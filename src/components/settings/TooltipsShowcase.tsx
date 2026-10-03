@@ -16,10 +16,10 @@ export default function TooltipDemo() {
   const [inputValue, setInputValue] = useState('');
 
   return (
-    <div className="p-8 space-y-12 bg-gray-50 min-h-screen">
+    <div className="p-8 space-y-12 bg-surface-muted min-h-screen">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tooltip System Demo</h1>
-        <p className="text-gray-600 mb-8">
+        <h1 className="text-3xl font-bold text-surface-foreground mb-2">Tooltip System Demo</h1>
+        <p className="text-surface-muted-fg mb-8">
           Comprehensive tooltip system with smart positioning, multiple triggers, and accessibility features.
         </p>
 
@@ -45,8 +45,8 @@ export default function TooltipDemo() {
                   <strong>Rich Content Tooltip</strong>
                   <p className="mt-1">This tooltip contains multiple elements and formatting.</p>
                   <ul className="mt-2 text-xs">
-                    <li>+óÔé¼-ó Bullet point one</li>
-                    <li>+óÔé¼-ó Bullet point two</li>
+                    <li>+ï¿½ï¿½ï¿½-ï¿½ Bullet point one</li>
+                    <li>+ï¿½ï¿½ï¿½-ï¿½ Bullet point two</li>
                   </ul>
                 </div>
               }
@@ -93,7 +93,7 @@ export default function TooltipDemo() {
               content={
                 <div>
                   <p className="mb-2">This tooltip is interactive!</p>
-                  <button className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                  <button className="px-2 py-1 bg-primary-500 text-white rounded text-xs hover:bg-primary-600">
                     Click me
                   </button>
                 </div>
@@ -125,7 +125,7 @@ export default function TooltipDemo() {
                 title="User Profile"
                 description="This section contains user profile information including name, email, and preferences."
               >
-                <span className="ml-1 text-gray-400">i</span>
+                <span className="ml-1 text-surface-muted-fg">i</span>
               </InfoTooltip>
             </div>
 
@@ -137,7 +137,7 @@ export default function TooltipDemo() {
 
             {/* Validation Tooltip */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-surface-foreground">
                 Password
                 <ValidationTooltip
                   rules={[
@@ -208,7 +208,7 @@ export default function TooltipDemo() {
           <div className="space-y-4">
             <div>
               <h3 className="font-medium mb-2">Keyboard Navigation</h3>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-surface-muted-fg mb-2">
                 Use Tab to navigate between elements, and tooltips will show on focus.
                 Press Escape to hide tooltips.
               </p>
@@ -224,7 +224,7 @@ export default function TooltipDemo() {
 
             <div>
               <h3 className="font-medium mb-2">Screen Reader Support</h3>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-surface-muted-fg mb-2">
                 Tooltips are properly announced to screen readers with ARIA attributes.
               </p>
               <Tooltip content="This tooltip is announced to screen readers">
@@ -234,7 +234,7 @@ export default function TooltipDemo() {
 
             <div>
               <h3 className="font-medium mb-2">High Contrast Mode</h3>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-surface-muted-fg mb-2">
                 Tooltips maintain proper contrast ratios for accessibility.
               </p>
               <Tooltip content="High contrast tooltip for better visibility">

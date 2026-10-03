@@ -32,14 +32,14 @@ const getGradeColor = (grade: string): string => {
     case 'A':
       return 'text-emerald-600';
     case 'B':
-      return 'text-blue-600';
+      return 'text-primary-600';
     case 'C':
       return 'text-amber-600';
     case 'D':
     case 'E':
       return 'text-rose-600';
     default:
-      return 'text-gray-600';
+      return 'text-surface-muted-fg';
   }
 };
 
@@ -65,7 +65,7 @@ export const StudentExamProfile: React.FC<StudentExamProfileProps> = ({
   const gradeColor = getGradeColor(meanGrade);
 
   return (
-    <div className={cn('bg-white rounded-xl border border-gray-200 p-6', className)}>
+    <div className={cn('bg-surface-card rounded-xl border border-surface-border p-6', className)}>
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left: Student Profile */}
         <div className="flex items-start gap-4 flex-1">
@@ -75,19 +75,19 @@ export const StudentExamProfile: React.FC<StudentExamProfileProps> = ({
               <img
                 src={avatarUrl}
                 alt={studentName}
-                className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                className="h-20 w-20 rounded-full object-cover border-2 border-surface-border"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 border-2 border-gray-200">
-                <UserCircleIcon className="h-12 w-12 text-gray-400" />
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-accent border-2 border-surface-border">
+                <UserCircleIcon className="h-12 w-12 text-surface-muted-fg" />
               </div>
             )}
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900">{studentName}</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="text-xl font-bold text-surface-foreground">{studentName}</h2>
+            <p className="text-sm text-surface-muted-fg mt-1">
               {admissionNumber}, {stream}
             </p>
 
@@ -127,55 +127,55 @@ export const StudentExamProfile: React.FC<StudentExamProfileProps> = ({
         {/* Middle: Exam Performance */}
         <div className="flex-1 grid grid-cols-2 gap-4">
           <div className="col-span-2 text-center pb-4 border-b border-gray-100">
-            <p className="text-sm text-gray-500">Exam Performance</p>
+            <p className="text-sm text-surface-muted-fg">Exam Performance</p>
           </div>
 
           {/* Mean Marks */}
           <div className="text-center">
             <p className="text-3xl font-bold text-emerald-600">{meanMarks}%</p>
-            <p className="text-xs text-gray-500 mt-1">Mean Marks</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Mean Marks</p>
             <p className="text-xs text-emerald-600 font-medium mt-0.5">+2 ↗</p>
           </div>
 
           {/* Total Points */}
           <div className="text-center">
-            <p className="text-3xl font-bold text-gray-900">
-              {totalPoints} <span className="text-lg text-gray-400">/ {maxPoints}</span>
+            <p className="text-3xl font-bold text-surface-foreground">
+              {totalPoints} <span className="text-lg text-surface-muted-fg">/ {maxPoints}</span>
             </p>
-            <p className="text-xs text-gray-500 mt-1">Total Points</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Total Points</p>
             <p className="text-xs text-emerald-600 font-medium mt-0.5">28 ↗</p>
           </div>
 
           {/* Overall Position */}
           <div className="text-center">
             <p className="text-2xl font-bold text-emerald-600">
-              {overallPosition} <span className="text-lg text-gray-400">/ {totalStudents}</span>
+              {overallPosition} <span className="text-lg text-surface-muted-fg">/ {totalStudents}</span>
             </p>
-            <p className="text-xs text-gray-500 mt-1">Overall Position</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Overall Position</p>
             <p className="text-xs text-rose-600 font-medium mt-0.5">-10 ↘</p>
           </div>
 
           {/* Stream Position */}
           <div className="text-center">
             <p className="text-2xl font-bold text-emerald-600">
-              {streamPosition} <span className="text-lg text-gray-400">/ {streamTotal}</span>
+              {streamPosition} <span className="text-lg text-surface-muted-fg">/ {streamTotal}</span>
             </p>
-            <p className="text-xs text-gray-500 mt-1">Stream Position</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Stream Position</p>
             <p className="text-xs text-rose-600 font-medium mt-0.5">-2 ↘</p>
           </div>
         </div>
 
         {/* Right: Grade & KCPE */}
-        <div className="flex flex-col items-center justify-center gap-4 px-6 py-4 bg-gray-50 rounded-xl min-w-[140px]">
+        <div className="flex flex-col items-center justify-center gap-4 px-6 py-4 bg-surface-muted rounded-xl min-w-[140px]">
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">Mean Grade</p>
+            <p className="text-xs text-surface-muted-fg mb-1">Mean Grade</p>
             <p className={cn('text-4xl font-bold', gradeColor)}>{meanGrade}</p>
           </div>
           
           {kcpeScore && (
-            <div className="text-center pt-4 border-t border-gray-200 w-full">
-              <p className="text-xs text-gray-500 mb-1">KCPE</p>
-              <p className="text-2xl font-bold text-gray-900">{kcpeScore}</p>
+            <div className="text-center pt-4 border-t border-surface-border w-full">
+              <p className="text-xs text-surface-muted-fg mb-1">KCPE</p>
+              <p className="text-2xl font-bold text-surface-foreground">{kcpeScore}</p>
             </div>
           )}
         </div>

@@ -106,15 +106,15 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
     >
       <div className="space-y-6">
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-surface-border">
           <nav className="-mb-px flex space-x-8">
             <button
               type="button"
               onClick={() => setActiveTab('fields')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'fields'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
               }`}
             >
               Fields Configuration
@@ -124,8 +124,8 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
               onClick={() => setActiveTab('styling')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'styling'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
               }`}
             >
               Styling Options
@@ -137,7 +137,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
         {activeTab === 'fields' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Quick Edit Fields</h3>
+              <h3 className="text-lg font-medium text-surface-foreground">Quick Edit Fields</h3>
               <Button size="sm" onClick={addField} leftIcon={<PlusIcon className="w-4 h-4" />}>
                 Add Field
               </Button>
@@ -145,7 +145,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {config.fields.map((field, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                <div key={index} className="border border-surface-border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <div className="grid grid-cols-2 gap-3 flex-1">
                       <Select
@@ -200,9 +200,9 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
                         type="checkbox"
                         checked={field.required || false}
                         onChange={(e) => updateField(index, { required: e.target.checked })}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-surface-border text-primary-600 focus:ring-primary-500"
                       />
-                      <span className="ml-2 text-sm text-gray-700">Required</span>
+                      <span className="ml-2 text-sm text-surface-foreground">Required</span>
                     </label>
                   </div>
                 </div>
@@ -214,7 +214,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
         {/* Styling Options Tab */}
         {activeTab === 'styling' && (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Styling Options</h3>
+            <h3 className="text-lg font-medium text-surface-foreground">Styling Options</h3>
 
             <div className="grid grid-cols-2 gap-4">
               <Select
@@ -240,13 +240,13 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
               />
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Preview</h4>
+            <div className="bg-surface-muted p-4 rounded-lg">
+              <h4 className="font-medium text-surface-foreground mb-2">Preview</h4>
               <div
                 className={`p-3 rounded border ${
                   config.styling.theme === 'dark'
                     ? 'bg-slate-800 border-slate-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-surface-card border-surface-border text-surface-foreground'
                 }`}
                 style={{ borderRadius: config.styling.borderRadius }}
               >

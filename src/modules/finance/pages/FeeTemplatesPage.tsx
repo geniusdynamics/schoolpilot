@@ -193,7 +193,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value, row) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'student_category_name', 
@@ -251,7 +251,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value, row) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'linked_expense_category_name', 
@@ -294,7 +294,7 @@ export const FeeTemplatesContent: React.FC = () => {
           Add Fee Template
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Create and manage fee templates for different school periods and student categories. Define template items (voteheads) and amounts.
         </p>
         <DataGrid 
@@ -304,7 +304,7 @@ export const FeeTemplatesContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <TicketIcon className="w-12 h-12 text-gray-400" />,
+            icon: <TicketIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Fee Templates Found",
             description: "Create your first fee template to define fees for different school periods and student categories.",
             action: {
@@ -319,8 +319,8 @@ export const FeeTemplatesContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeTemplateModal}>Cancel</Button>
-            <Button onClick={handleTemplateSubmit} disabled={loading.feeTemplates}>
-              {loading.feeTemplates ? <Spinner size="sm"/> : (editingTemplate ? 'Save Changes' : 'Add Template')}
+            <Button onClick={handleTemplateSubmit} loading={loading.feeTemplates}>
+              {editingTemplate ? 'Save Changes' : 'Add Template'}
             </Button>
           </>
         }
@@ -380,13 +380,13 @@ export const FeeTemplatesContent: React.FC = () => {
                 </Select>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" disabled={loading.feeTemplates}>
-                  {loading.feeTemplates ? <Spinner size="sm"/> : (editingItem ? 'Update Item' : 'Add Item')}
+                <Button onClick={handleItemSubmit} size="sm" loading={loading.feeTemplates}>
+                  {editingItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Existing Items for this Template</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Existing Items for this Template</h4>
             <DataGrid 
               columns={itemColumns} 
               data={(currentTemplateForItems.items || [])} 
@@ -394,7 +394,7 @@ export const FeeTemplatesContent: React.FC = () => {
               sortable
               filterable
               emptyState={{
-                icon: <ListBulletIcon className="w-12 h-12 text-gray-400" />,
+                icon: <ListBulletIcon className="w-12 h-12 text-surface-muted-fg" />,
                 title: "No Items Defined",
                 description: "No items have been defined for this fee template yet. Add items to specify the fee components."
               }}

@@ -183,8 +183,8 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Student Exam Results Entry" icon={<ListBulletIcon className="w-6 h-6 text-blue-500" />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
+      <Card title="Student Exam Results Entry" icon={<ListBulletIcon className="w-6 h-6 text-primary-500" />}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
           <Select
             label="Select Exam Session"
             value={selectedExamSessionId || ''}
@@ -217,19 +217,19 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
             <>
               <DataGrid columns={tableColumns} data={studentsForEntry} />
               <div className="mt-6 text-right">
-                <Button onClick={handleSaveAllMarks} disabled={saving} leftIcon={saving ? <Spinner size="sm"/> : undefined}>
+                <Button onClick={handleSaveAllMarks} loading={saving}>
                   {saving ? 'Saving Marks...' : 'Save All Marks'}
                 </Button>
               </div>
             </>
           ) : (
-            <p className="text-center text-gray-500 py-4">
+            <p className="text-center text-surface-muted-fg py-4">
               {studentsForEntry.length === 0 ? "No students in selected class stream." : ""}
               {paperSettingsForSession.length === 0 ? " No papers configured for this exam session." : ""}
             </p>
           )
         ) : (
-          <p className="text-center text-gray-500 py-4">Please select an exam session and class stream to enter marks.</p>
+          <p className="text-center text-surface-muted-fg py-4">Please select an exam session and class stream to enter marks.</p>
         )}
       </Card>
     </div>

@@ -12,6 +12,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type MerchantFormData = Omit<Partial<Merchant>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
 
@@ -24,6 +25,7 @@ export const MerchantsPageContent: React.FC = () => {
     updateMerchant, 
     deleteMerchant 
   } = useAppData();
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMerchant, setEditingMerchant] = useState<Merchant | null>(null);
@@ -73,7 +75,7 @@ export const MerchantsPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this merchant?')) {
+    if (await confirm({ title: 'Delete merchant', message: 'Are you sure you want to delete this merchant?', variant: 'danger' })) {
       await deleteMerchant(id);
     }
   };
@@ -102,7 +104,7 @@ export const MerchantsPageContent: React.FC = () => {
       render: (value, row) => row.gl_account_name || 'N/A'
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -132,7 +134,7 @@ export const MerchantsPageContent: React.FC = () => {
           Add Merchant
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define merchants where students can make purchases using their wallets. Link to a revenue GL account.
         </p>
         <DataGrid 
@@ -142,7 +144,7 @@ export const MerchantsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <BuildingStorefrontIcon className="w-12 h-12 text-gray-400" />,
+            icon: <BuildingStorefrontIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No merchants found",
             description: "Add merchants where students can make purchases using their wallets.",
             action: {
@@ -188,8 +190,8 @@ export const MerchantsPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.merchants}>
-            {loading.merchants ? <Spinner size="sm"/> : (editingMerchant ? 'Save Changes' : 'Add Merchant')}
+          <Button onClick={handleSubmit} loading={loading.merchants}>
+            {editingMerchant ? 'Save Changes' : 'Add Merchant'}
           </Button>
         </FormActions>
       </DialogForm>

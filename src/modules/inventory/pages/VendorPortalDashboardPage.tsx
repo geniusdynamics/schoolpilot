@@ -14,7 +14,7 @@ export const VendorPortalDashboardPageContent: React.FC = () => {
   const invoiceValue = pendingInvoices.reduce((sum: number, invoice: any) => sum + Number(invoice.total_amount || invoice.total || 0), 0);
 
   const metrics: DashboardMetric[] = [
-    { key: 'rfq', label: 'Open RFQs', value: openRfqs.length, icon: <DocumentReportIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'rfq', label: 'Open RFQs', value: openRfqs.length, icon: <DocumentReportIcon className="h-6 w-6 text-primary-700" /> },
     { key: 'orders', label: 'Active Orders', value: activeOrders.length, icon: <ArchiveIcon className="h-6 w-6 text-emerald-700" /> },
     { key: 'invoices', label: 'Pending Invoices', value: pendingInvoices.length, icon: <ClockIcon className="h-6 w-6 text-indigo-700" /> },
     { key: 'value', label: 'Invoice Value', value: `Ksh ${invoiceValue.toLocaleString()}`, icon: <CurrencyDollarIcon className="h-6 w-6 text-cyan-700" /> },
@@ -91,7 +91,7 @@ export const VendorPortalDashboardPageContent: React.FC = () => {
       notifications={notifications}
       charts={panels}
     >
-      <Card title="Vendor Actions" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Vendor Actions" className="border-slate-200 bg-surface-card shadow-sm">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <Link className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100" to="/inventory/vendor-portal/rfqs">Open RFQ Board</Link>
           <Link className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100" to="/inventory/vendor-portal/bids/new">Submit Bid</Link>

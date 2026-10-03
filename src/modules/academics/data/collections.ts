@@ -45,6 +45,45 @@ export const academicsCollections = {
   timetable_entries: {
     schema: schemas.timetableEntrySchema,
   },
+  exam_tokens: {
+    schema: schemas.examTokenSchema,
+  },
+  board_exam_results: {
+    schema: schemas.boardExamResultSchema,
+  },
+  result_distributions: {
+    schema: schemas.resultDistributionSchema,
+  },
+  exam_gazettes: {
+    schema: schemas.examGazetteSchema,
+  },
+  school_events: {
+    schema: schemas.schoolEventSchema,
+  },
+  marks_entry_sessions: {
+    schema: schemas.marksEntrySessionSchema,
+  },
+  structure_validation_records: {
+    schema: schemas.structureValidationRecordSchema,
+  },
+  marks_cross_check_records: {
+    schema: schemas.marksCrossCheckRecordSchema,
+  },
+  assignments: {
+    schema: schemas.assignmentSchema,
+  },
+  assignment_submissions: {
+    schema: schemas.assignmentSubmissionSchema,
+  },
+  weekly_plans: {
+    schema: schemas.weeklyPlanSchema,
+  },
+  lesson_plans: {
+    schema: schemas.lessonPlanSchema,
+  },
+  lesson_notes: {
+    schema: schemas.lessonNoteSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional, but good practice)

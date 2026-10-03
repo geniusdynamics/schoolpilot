@@ -33,16 +33,16 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       {breadcrumbs && breadcrumbs.length > 0 && (
         <div className="mb-4">
           <nav aria-label="breadcrumb">
-            <a href="/" className="text-sm text-gray-600 hover:text-gray-900">
+            <a href="/" className="text-sm text-surface-muted-fg hover:text-surface-foreground">
               Home
             </a>
             {breadcrumbs.map((crumb, index) => (
               <span key={index}>
                 <span className="mx-2">/</span>
                 {crumb.active ? (
-                  <span className="text-sm text-gray-900">{crumb.label}</span>
+                  <span className="text-sm text-surface-foreground">{crumb.label}</span>
                 ) : (
-                  <a href={crumb.href} className="text-sm text-gray-600 hover:text-gray-900">
+                  <a href={crumb.href} className="text-sm text-surface-muted-fg hover:text-surface-foreground">
                     {crumb.label}
                   </a>
                 )}
@@ -56,16 +56,16 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {icon && (
-            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
+            <div className="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-lg">
               {icon}
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-surface-foreground">
               {title}
             </h1>
             {description && (
-              <p className="text-gray-600 mt-1">
+              <p className="text-surface-muted-fg mt-1">
                 {description}
               </p>
             )}

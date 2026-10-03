@@ -34,7 +34,7 @@ const App: React.FC = () => {
               <div className="flex items-center justify-center h-screen">
                 <div className="text-center">
                   <Spinner size="lg" />
-                  <p className="mt-4 text-gray-600">Loading translations...</p>
+                  <p className="mt-4 text-surface-muted-fg">Loading translations...</p>
                 </div>
               </div>
             }

@@ -4,7 +4,8 @@
 import React from 'react';
 
 import { useToast, ToastProvider, useToastHelpers, useProgressToast } from '@/hooks/useToast';
-import { screen } from '@testing-library/react';
+// Bare render (no global provider wrapper) for tests that assert provider-less behavior.
+import { screen, render as renderWithoutProviders } from '@testing-library/react';
 
 // Test component that uses the toast hook
 const TestComponent: React.FC = () => {
@@ -75,9 +76,9 @@ describe('useToast Hook', () => {
   it('throws error when used outside ToastProvider', () => {
     // Suppress console.error for this test
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     expect(() => {
-      render(<TestComponent />);
+      renderWithoutProviders(<TestComponent />);
     }).toThrow('useToast must be used within a ToastProvider');
 
     consoleSpy.mockRestore();

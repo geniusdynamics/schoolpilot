@@ -276,14 +276,14 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const renderTabContent = () => {
     if (!activeTab) {
       return (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="flex-1 flex items-center justify-center bg-surface-muted">
           <div className="text-center p-8">
             <div className="text-6xl mb-4">├░┼©ÔÇ£┼í</div>
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">Welcome to SchoolPilot</h2>
-            <p className="text-gray-500 mb-6">Select a module from the sidebar to get started</p>
+            <h2 className="text-2xl font-bold text-surface-foreground mb-2">Welcome to SchoolPilot</h2>
+            <p className="text-surface-muted-fg mb-6">Select a module from the sidebar to get started</p>
             <button
               onClick={() => openTab('/dashboard')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               Open Dashboard
             </button>
@@ -294,7 +294,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     
     return (
       <TabWorkspaceErrorBoundary>
-        <div className="flex-1 overflow-auto bg-white">
+        <div className="flex-1 overflow-auto bg-surface-card">
           {/* 
             The actual page content is rendered by React Router
             We just provide the container
@@ -365,7 +365,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
           }}
         >
           {/* Tab Bar */}
-          <div className="flex-shrink-0 bg-white border-b border-gray-200">
+          <div className="flex-shrink-0 bg-surface-card border-b border-surface-border">
             <TabBar
               tabs={tabs as any}
               activeTabId={activeTabId}

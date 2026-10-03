@@ -516,7 +516,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           flex flex-col shadow-xl border-l ${moduleStyle.border}
           px-2 py-4
           ${moduleStyle.background}
-          ${isMobile ? 'bg-white/98' : 'bg-white/95'}
+          ${isMobile ? 'bg-white/98 dark:bg-slate-900/98' : 'bg-white/95 dark:bg-slate-900/95'}
           transition-transform duration-300 ease-in-out
         `}
         style={{
@@ -531,7 +531,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
             <button
               className={`
                 text-slate-600 hover:text-slate-800
-                bg-white/90 hover:bg-white
+                bg-white/90 dark:bg-slate-900/90 hover:bg-surface-card
                 border border-slate-200/50 hover:border-slate-300
                 shadow-sm hover:shadow-md
                 p-1.5 rounded-lg
@@ -553,7 +553,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
             absolute ${isMobile ? '-top-2 -right-2 w-10 h-10 p-2' : '-top-1 -right-1 w-8 h-8 p-1.5'} 
             z-40 text-red-600 hover:text-red-800 active:text-red-900
             hover:bg-red-100 active:bg-red-200
-            rounded-full bg-white shadow-lg border border-red-200 
+            rounded-full bg-surface-card shadow-lg border border-red-200 
             transition-all duration-200 hover:scale-110 hover:shadow-xl
             focus:outline-none focus:ring-2 focus:ring-red-400/50
             touch-manipulation
@@ -587,12 +587,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
               onChange={e => setSearch(e.target.value)}
               placeholder={t('common:search')}
               className={`
-                w-full rounded-lg bg-white/80
+                w-full rounded-lg bg-white/80 dark:bg-slate-900/80
                 border ${moduleStyle.border} 
                 ${moduleStyle.accent} 
                 ${isMobile ? 'px-4 py-4 text-base font-medium' : 'px-3 py-1.5 text-sm'}
                 focus:outline-none focus:ring-2 focus:ring-current focus:ring-opacity-50
-                focus:bg-white/90 focus:placeholder-slate-600
+                focus:bg-white/90 dark:focus:bg-slate-900/90 focus:placeholder-slate-600
                 placeholder-slate-500
                 ${isMobile ? 'shadow-lg' : 'shadow-sm'}
                 transition-all duration-200
@@ -675,7 +675,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                           onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
                                           className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
                                             isItemActive(child, item.children)
-                                              ? 'bg-white/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
+                                              ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                                               : 'border-transparent bg-white/5 hover:bg-white/20'
                                           }`}
                                           tabIndex={0}
@@ -706,7 +706,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                 onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
                                 className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
                                   isItemActive(child, item.children)
-                                    ? 'bg-white/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
+                                    ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                                     : 'border-transparent bg-white/5 hover:bg-white/20'
                                 }`}
                                 tabIndex={0}
@@ -732,7 +732,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
                       className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
                         isItemActive(item, filterItems(subMenus))
-                          ? 'bg-white/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
+                          ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                           : `border-transparent bg-white/5 hover:bg-white/20 ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''}`
                       }`}
                       title={isMinimized ? t(item.name) : undefined}

@@ -42,8 +42,8 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       <div className="text-gray-300 mb-4">
         {icon ?? <InboxIcon className="h-12 w-12" aria-hidden="true" />}
       </div>
-      <p className="text-base font-medium text-gray-900 mb-1">{title}</p>
-      {description && <p className="text-sm text-gray-500 max-w-sm">{description}</p>}
+      <p className="text-base font-medium text-surface-foreground mb-1">{title}</p>
+      {description && <p className="text-sm text-surface-muted-fg max-w-sm">{description}</p>}
       {actionElement && <div className="mt-5">{actionElement}</div>}
     </div>
   );

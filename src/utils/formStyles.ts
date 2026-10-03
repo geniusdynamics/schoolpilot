@@ -15,17 +15,17 @@ export const formInputStyles = {
 
   variants: {
     outlined: `
-      border-gray-300 bg-white
-      focus:border-blue-500 focus:ring-blue-500/20
+      border-surface-border bg-surface-card
+      focus:border-primary-500 focus:ring-primary-500/20
       hover:border-gray-400
     `,
     filled: `
-      border-transparent bg-gray-100
-      focus:bg-white focus:border-blue-500 focus:ring-blue-500/20
+      border-transparent bg-surface-accent
+      focus:bg-surface-card focus:border-primary-500 focus:ring-primary-500/20
     `,
     standard: `
-      border-0 border-b-2 border-gray-300 rounded-none bg-transparent
-      focus:border-blue-500 focus:ring-0
+      border-0 border-b-2 border-surface-border rounded-none bg-transparent
+      focus:border-primary-500 focus:ring-0
       px-0 py-1
     `,
   },
@@ -40,8 +40,8 @@ export const formInputStyles = {
       focus:border-green-500 focus:ring-green-500/20
     `,
     disabled: `
-      bg-gray-100 text-gray-500 cursor-not-allowed
-      border-gray-200
+      bg-surface-accent text-surface-muted-fg cursor-not-allowed
+      border-surface-border
     `,
     loading: `
       opacity-70 cursor-wait
@@ -59,10 +59,10 @@ export const formInputStyles = {
 export const formLabelStyles = {
   base: 'block text-sm font-medium',
   states: {
-    default: 'text-gray-700',
+    default: 'text-surface-foreground',
     error: 'text-red-700',
     success: 'text-green-700',
-    disabled: 'text-gray-400',
+    disabled: 'text-surface-muted-fg',
   },
   sizes: {
     sm: 'text-xs',
@@ -81,7 +81,7 @@ export const formActionsStyles = {
     between: 'justify-between',
   },
   variants: {
-    default: 'bg-gray-50 px-6 py-4 border-t border-gray-200',
+    default: 'bg-surface-muted px-6 py-4 border-t border-surface-border',
     transparent: 'bg-transparent',
     sticky: 'sticky bottom-0 z-10',
   },
@@ -90,10 +90,10 @@ export const formActionsStyles = {
 // Form section styles
 export const formSectionStyles = {
   base: 'space-y-4',
-  title: 'text-sm font-semibold uppercase tracking-wide text-gray-900',
-  description: 'text-sm text-gray-600',
+  title: 'text-sm font-semibold uppercase tracking-wide text-surface-foreground',
+  description: 'text-sm text-surface-muted-fg',
   variants: {
-    bordered: 'border-b border-gray-200 pb-6 mb-6',
+    bordered: 'border-b border-surface-border pb-6 mb-6',
     collapsible: 'cursor-pointer',
   },
 };
@@ -134,7 +134,7 @@ export const progressBarStyles = {
   track: 'w-full bg-gray-200 rounded-full h-2 overflow-hidden',
   fill: 'h-full rounded-full transition-all duration-300 ease-out',
   variants: {
-    default: 'bg-blue-600',
+    default: 'bg-primary-600',
     success: 'bg-green-500',
     warning: 'bg-yellow-500',
     error: 'bg-red-500',
@@ -145,9 +145,9 @@ export const progressBarStyles = {
 export const stepIndicatorStyles = {
   circle: 'flex items-center justify-center w-10 h-10 rounded-full font-semibold text-sm',
   states: {
-    current: 'bg-blue-600 text-white ring-4 ring-blue-100',
+    current: 'bg-primary-600 text-white ring-4 ring-primary-100',
     completed: 'bg-green-500 text-white',
-    pending: 'bg-gray-200 text-gray-500',
+    pending: 'bg-gray-200 text-surface-muted-fg',
   },
   connector: 'flex-1 h-0.5 mx-4',
   connectorStates: {

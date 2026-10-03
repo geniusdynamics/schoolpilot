@@ -20,11 +20,11 @@ interface StatCardProps {
 
 const colorSchemes = {
   blue: {
-    gradient: 'from-blue-500 to-cyan-500',
-    bg: 'bg-blue-50',
-    text: 'text-blue-600',
-    border: 'border-blue-200',
-    fill: 'bg-blue-500',
+    gradient: 'from-primary-500 to-cyan-500',
+    bg: 'bg-primary-50',
+    text: 'text-primary-600',
+    border: 'border-primary-200',
+    fill: 'bg-primary-500',
   },
   emerald: {
     gradient: 'from-emerald-500 to-teal-500',
@@ -62,7 +62,7 @@ const colorSchemes = {
     fill: 'bg-cyan-500',
   },
   indigo: {
-    gradient: 'from-indigo-500 to-blue-500',
+    gradient: 'from-indigo-500 to-primary-500',
     bg: 'bg-indigo-50',
     text: 'text-indigo-600',
     border: 'border-indigo-200',
@@ -89,13 +89,13 @@ const StatCard: React.FC<StatCardProps> = ({
   const trendConfig = {
     up: { icon: <ArrowUpIcon className="h-3 w-3" />, color: 'text-emerald-600 bg-emerald-100' },
     down: { icon: <ArrowDownIcon className="h-3 w-3" />, color: 'text-rose-600 bg-rose-100' },
-    neutral: { icon: <MinusIcon className="h-3 w-3" />, color: 'text-gray-600 bg-gray-100' },
+    neutral: { icon: <MinusIcon className="h-3 w-3" />, color: 'text-surface-muted-fg bg-surface-accent' },
   };
 
   const variantStyles = {
     default: `${colors.bg} border ${colors.border}`,
     gradient: `bg-gradient-to-br ${colors.gradient} text-white border-transparent`,
-    outlined: `bg-white border-2 ${colors.border}`,
+    outlined: `bg-surface-card border-2 ${colors.border}`,
     filled: `${colors.fill} text-white border-transparent`,
   };
 
@@ -119,15 +119,15 @@ const StatCard: React.FC<StatCardProps> = ({
       <div className="relative">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className={`text-sm font-medium ${isGradientOrFilled ? 'text-white/80' : 'text-gray-600'}`}>
+            <p className={`text-sm font-medium ${isGradientOrFilled ? 'text-white/80' : 'text-surface-muted-fg'}`}>
               {title}
             </p>
-            <h3 className={`mt-2 text-3xl font-bold tracking-tight ${isGradientOrFilled ? 'text-white' : 'text-gray-900'}`}>
+            <h3 className={`mt-2 text-3xl font-bold tracking-tight ${isGradientOrFilled ? 'text-white' : 'text-surface-foreground'}`}>
               {value}
             </h3>
             
             {subtitle && (
-              <p className={`mt-1 text-xs ${isGradientOrFilled ? 'text-white/70' : 'text-gray-500'}`}>
+              <p className={`mt-1 text-xs ${isGradientOrFilled ? 'text-white/70' : 'text-surface-muted-fg'}`}>
                 {subtitle}
               </p>
             )}

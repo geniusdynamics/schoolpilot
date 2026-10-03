@@ -1,8 +1,9 @@
 // ABOUTME: Data hook for lesson plans management
-// ABOUTME: Provides CRUD operations and state management for lesson plans
+// ABOUTME: Provides CRUD operations against the 'lesson_plans', 'lesson_notes' and 'weekly_plans' collections
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { DayPlan } from '../types';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 
 export type { DayPlan, PeriodPlan } from '../types';
 
@@ -95,93 +96,6 @@ export interface WeeklyPlan {
   updatedAt: string;
 }
 
-// Mock data
-const mockLessonPlans: LessonPlan[] = [
-  {
-    id: '1',
-    title: 'Introduction to Algebra',
-    description: 'Basic algebraic concepts and operations',
-    subjectId: 'math-101',
-    subjectName: 'Mathematics',
-    classId: 'class-1',
-    className: 'Grade 10A',
-    teacherId: 'teacher-1',
-    teacherName: 'John Smith',
-    date: new Date().toISOString().split('T')[0],
-    startTime: '09:00',
-    endTime: '10:00',
-    objectives: ['Understand variables', 'Learn basic operations'],
-    content: 'Introduction to variables and basic algebraic operations',
-    resources: ['Textbook Chapter 1', 'Worksheet A'],
-    status: 'published',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-const mockLessonNotes: LessonNote[] = [];
-
-const mockWeeklyPlans: WeeklyPlan[] = [
-  {
-    id: '1',
-    title: 'Week 1: Introduction to Algebra',
-    subjectId: 'math-101',
-    subjectName: 'Mathematics',
-    teacherId: 'teacher-1',
-    teacherName: 'John Smith',
-    gradeLevel: 'Grade 10',
-    classStreamId: 'class-1',
-    classStreamName: 'Grade 10A',
-    topic: 'Introduction to Algebra',
-    objectives: ['Understand variables', 'Learn basic operations'],
-    materials: ['Textbook', 'Worksheets'],
-    duration: 5,
-    status: PlanStatus.SUBMITTED,
-    submittedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Week 2: Linear Equations',
-    subjectId: 'math-101',
-    subjectName: 'Mathematics',
-    teacherId: 'teacher-1',
-    teacherName: 'John Smith',
-    gradeLevel: 'Grade 10',
-    classStreamId: 'class-1',
-    classStreamName: 'Grade 10A',
-    topic: 'Linear Equations',
-    objectives: ['Solve linear equations', 'Graph linear functions'],
-    materials: ['Textbook', 'Graph paper'],
-    duration: 5,
-    status: PlanStatus.APPROVED,
-    reviewedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Week 3: Quadratic Functions',
-    subjectId: 'math-101',
-    subjectName: 'Mathematics',
-    teacherId: 'teacher-1',
-    teacherName: 'John Smith',
-    gradeLevel: 'Grade 10',
-    classStreamId: 'class-1',
-    classStreamName: 'Grade 10A',
-    topic: 'Quadratic Functions',
-    objectives: ['Understand quadratic equations', 'Solve by factoring'],
-    materials: ['Textbook', 'Calculator'],
-    duration: 5,
-    status: PlanStatus.REJECTED,
-    reviewComments: 'Please add more practice problems',
-    reviewedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-];
-
 interface UseLessonPlansDataReturn {
   lessonPlans: LessonPlan[];
   lessonNotes: LessonNote[];
@@ -204,31 +118,33 @@ interface UseLessonPlansDataReturn {
 }
 
 export function useLessonPlansData(): UseLessonPlansDataReturn {
-  const [lessonPlans, setLessonPlans] = useState<LessonPlan[]>([]);
-  const [lessonNotes, setLessonNotes] = useState<LessonNote[]>(mockLessonNotes);
-  const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlan[]>(mockWeeklyPlans);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const lessonPlansCollection = useDatabaseCollection<LessonPlan>('lesson_plans');
+  const lessonNotesCollection = useDatabaseCollection<LessonNote>('lesson_notes');
+  const weeklyPlansCollection = useDatabaseCollection<WeeklyPlan>('weekly_plans');
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setLessonPlans(mockLessonPlans);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load lesson plans');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
+  const lessonPlans = lessonPlansCollection.data;
+  const lessonNotes = lessonNotesCollection.data;
+  const weeklyPlans = weeklyPlansCollection.data;
+
+  const loading = lessonPlansCollection.loading || lessonNotesCollection.loading || weeklyPlansCollection.loading;
+  const error = useMemo(
+    () =>
+      lessonPlansCollection.error?.message ??
+      lessonNotesCollection.error?.message ??
+      weeklyPlansCollection.error?.message ??
+      null,
+    [lessonPlansCollection.error, lessonNotesCollection.error, weeklyPlansCollection.error]
+  );
+
+  const getPlansByStatus = useCallback(
+    (status: PlanStatus): WeeklyPlan[] => weeklyPlans.filter(p => p.status === status),
+    [weeklyPlans]
+  );
 
   const createLessonPlan = useCallback(async (data: Partial<LessonPlan>): Promise<LessonPlan> => {
+    const now = new Date().toISOString();
     const newPlan: LessonPlan = {
-      id: Date.now().toString(),
+      id: data.id || Date.now().toString(),
       title: data.title || 'New Lesson Plan',
       description: data.description || '',
       subjectId: data.subjectId || '',
@@ -244,33 +160,29 @@ export function useLessonPlansData(): UseLessonPlansDataReturn {
       content: data.content || '',
       resources: data.resources || [],
       status: data.status || 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
-    setLessonPlans(prev => [...prev, newPlan]);
-    return newPlan;
-  }, []);
+    const inserted = await lessonPlansCollection.insert(newPlan);
+    return inserted ?? newPlan;
+  }, [lessonPlansCollection]);
 
   const updateLessonPlan = useCallback(async (id: string, data: Partial<LessonPlan>): Promise<LessonPlan> => {
-    let updated: LessonPlan | null = null;
-    setLessonPlans(prev => prev.map(p => {
-      if (p.id === id) {
-        updated = { ...p, ...data, updatedAt: new Date().toISOString() };
-        return updated;
-      }
-      return p;
-    }));
-    if (!updated) throw new Error('Lesson plan not found');
-    return updated;
-  }, []);
+    const existing = lessonPlans.find(p => p.id === id);
+    if (!existing) throw new Error('Lesson plan not found');
+    const updated: LessonPlan = { ...existing, ...data, id: existing.id, updatedAt: new Date().toISOString() };
+    const result = await lessonPlansCollection.update(id, updated);
+    return result ?? updated;
+  }, [lessonPlans, lessonPlansCollection]);
 
   const deleteLessonPlan = useCallback(async (id: string): Promise<void> => {
-    setLessonPlans(prev => prev.filter(p => p.id !== id));
-  }, []);
+    await lessonPlansCollection.remove(id);
+  }, [lessonPlansCollection]);
 
   const createLessonNote = useCallback(async (data: Partial<LessonNote>): Promise<LessonNote> => {
+    const now = new Date().toISOString();
     const newNote: LessonNote = {
-      id: Date.now().toString(),
+      id: data.id || Date.now().toString(),
       teacherId: data.teacherId || '',
       teacherName: data.teacherName || '',
       subjectId: data.subjectId || '',
@@ -292,59 +204,48 @@ export function useLessonPlansData(): UseLessonPlansDataReturn {
       challenges: data.challenges || '',
       studentsPresent: data.studentsPresent || '',
       studentsAbsent: data.studentsAbsent || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
-    setLessonNotes(prev => [...prev, newNote]);
-    return newNote;
-  }, []);
+    const inserted = await lessonNotesCollection.insert(newNote);
+    return inserted ?? newNote;
+  }, [lessonNotesCollection]);
 
   const updateLessonNote = useCallback(async (id: string, data: Partial<LessonNote>): Promise<LessonNote> => {
-    let updated: LessonNote | null = null;
-    setLessonNotes(prev => prev.map(n => {
-      if (n.id === id) {
-        updated = { ...n, ...data, updatedAt: new Date().toISOString() };
-        return updated;
-      }
-      return n;
-    }));
-    if (!updated) throw new Error('Lesson note not found');
-    return updated;
-  }, []);
+    const existing = lessonNotes.find(n => n.id === id);
+    if (!existing) throw new Error('Lesson note not found');
+    const updated: LessonNote = { ...existing, ...data, id: existing.id, updatedAt: new Date().toISOString() };
+    const result = await lessonNotesCollection.update(id, updated);
+    return result ?? updated;
+  }, [lessonNotes, lessonNotesCollection]);
 
   const deleteLessonNote = useCallback(async (id: string): Promise<void> => {
-    setLessonNotes(prev => prev.filter(n => n.id !== id));
-  }, []);
+    await lessonNotesCollection.remove(id);
+  }, [lessonNotesCollection]);
 
-  const reviewPlan = useCallback(async (id: string, approved: boolean, reviewedBy: string, reviewedByName: string, comments?: string): Promise<WeeklyPlan> => {
-    let updated: WeeklyPlan | null = null;
-    setWeeklyPlans(prev => prev.map(p => {
-      if (p.id === id) {
-        updated = { 
-          ...p, 
-          status: approved ? PlanStatus.APPROVED : PlanStatus.REJECTED, 
-          reviewComments: comments,
-          reviewedBy,
-          reviewedByName,
-          reviewedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString() 
-        };
-        return updated;
-      }
-      return p;
-    }));
-    if (!updated) throw new Error('Weekly plan not found');
-    return updated;
-  }, []);
-
-  const getPlansByStatus = useCallback((status: PlanStatus): WeeklyPlan[] => {
-    return weeklyPlans.filter(p => p.status === status);
-  }, [weeklyPlans]);
+  const reviewPlan = useCallback(
+    async (id: string, approved: boolean, reviewedBy: string, reviewedByName: string, comments?: string): Promise<WeeklyPlan> => {
+      const existing = weeklyPlans.find(p => p.id === id);
+      if (!existing) throw new Error('Weekly plan not found');
+      const updated: WeeklyPlan = {
+        ...existing,
+        status: approved ? PlanStatus.APPROVED : PlanStatus.REJECTED,
+        reviewComments: comments,
+        reviewedBy,
+        reviewedByName,
+        reviewedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const result = await weeklyPlansCollection.update(id, updated);
+      return result ?? updated;
+    },
+    [weeklyPlans, weeklyPlansCollection]
+  );
 
   const createWeeklyPlan = useCallback(async (data: Partial<WeeklyPlan>): Promise<WeeklyPlan> => {
     const now = new Date().toISOString();
     const newPlan: WeeklyPlan = {
-      id: Date.now().toString(),
+      id: data.id || Date.now().toString(),
       title: data.title || 'New Weekly Plan',
       subjectId: data.subjectId || '',
       subjectName: data.subjectName || '',
@@ -367,60 +268,47 @@ export function useLessonPlansData(): UseLessonPlansDataReturn {
       createdAt: now,
       updatedAt: now,
     };
-    setWeeklyPlans(prev => [...prev, newPlan]);
-    return newPlan;
-  }, []);
+    const inserted = await weeklyPlansCollection.insert(newPlan);
+    return inserted ?? newPlan;
+  }, [weeklyPlansCollection]);
 
   const updateWeeklyPlan = useCallback(async (id: string, data: Partial<WeeklyPlan>): Promise<WeeklyPlan> => {
-    let updated: WeeklyPlan | null = null;
-    setWeeklyPlans(prev => prev.map(p => {
-      if (p.id === id) {
-        updated = { ...p, ...data, updatedAt: new Date().toISOString() };
-        return updated;
-      }
-      return p;
-    }));
-    if (!updated) throw new Error('Weekly plan not found');
-    return updated;
-  }, []);
+    const existing = weeklyPlans.find(p => p.id === id);
+    if (!existing) throw new Error('Weekly plan not found');
+    const updated: WeeklyPlan = { ...existing, ...data, id: existing.id, updatedAt: new Date().toISOString() };
+    const result = await weeklyPlansCollection.update(id, updated);
+    return result ?? updated;
+  }, [weeklyPlans, weeklyPlansCollection]);
 
   const deleteWeeklyPlan = useCallback(async (id: string): Promise<void> => {
-    setWeeklyPlans(prev => prev.filter(p => p.id !== id));
-  }, []);
+    await weeklyPlansCollection.remove(id);
+  }, [weeklyPlansCollection]);
 
-  const submitPlan = useCallback(async (id: string, submittedByName?: string): Promise<WeeklyPlan> => {
-    let updated: WeeklyPlan | null = null;
-    setWeeklyPlans(prev => prev.map(p => {
-      if (p.id === id) {
-        updated = {
-          ...p,
-          status: PlanStatus.SUBMITTED,
-          submittedAt: new Date().toISOString(),
-          submittedByName: submittedByName ?? p.submittedByName,
-          updatedAt: new Date().toISOString(),
-        };
-        return updated;
-      }
-      return p;
-    }));
-    if (!updated) throw new Error('Weekly plan not found');
-    return updated;
-  }, []);
+  const submitPlan = useCallback(
+    async (id: string, submittedByName?: string): Promise<WeeklyPlan> => {
+      const existing = weeklyPlans.find(p => p.id === id);
+      if (!existing) throw new Error('Weekly plan not found');
+      const now = new Date().toISOString();
+      const updated: WeeklyPlan = {
+        ...existing,
+        status: PlanStatus.SUBMITTED,
+        submittedAt: now,
+        submittedByName: submittedByName ?? existing.submittedByName,
+        updatedAt: now,
+      };
+      const result = await weeklyPlansCollection.update(id, updated);
+      return result ?? updated;
+    },
+    [weeklyPlans, weeklyPlansCollection]
+  );
 
   const refresh = useCallback(async (): Promise<void> => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setLessonPlans(mockLessonPlans);
-      setLessonNotes(mockLessonNotes);
-      setWeeklyPlans(mockWeeklyPlans);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh lesson plans');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    await Promise.all([
+      lessonPlansCollection.refresh(),
+      lessonNotesCollection.refresh(),
+      weeklyPlansCollection.refresh(),
+    ]);
+  }, [lessonPlansCollection, lessonNotesCollection, weeklyPlansCollection]);
 
   return {
     lessonPlans,

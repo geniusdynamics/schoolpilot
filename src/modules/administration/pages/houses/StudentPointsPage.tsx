@@ -102,7 +102,7 @@ const StudentPointsPage: React.FC = () => {
       width: 80,
       align: 'center',
       render: (value: number) => (
-        <span className={`font-bold ${value <= 3 ? 'text-indigo-600' : 'text-gray-600'}`}>
+        <span className={`font-bold ${value <= 3 ? 'text-indigo-600' : 'text-surface-muted-fg'}`}>
           #{value}
         </span>
       ),
@@ -117,7 +117,7 @@ const StudentPointsPage: React.FC = () => {
         <div>
           <span className="font-medium">{value}</span>
           {item.className && (
-            <p className="text-xs text-gray-500">{item.className}</p>
+            <p className="text-xs text-surface-muted-fg">{item.className}</p>
           )}
         </div>
       ),
@@ -201,7 +201,7 @@ const StudentPointsPage: React.FC = () => {
         {/* Search and Filter */}
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1 relative">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
             <Input
               placeholder="Search by student name, house, or class..."
               value={searchQuery}
@@ -234,15 +234,16 @@ const StudentPointsPage: React.FC = () => {
         <DataGrid
           columns={columns}
           data={filteredStudents}
+          keyField="studentId"
           sortable
           filterable={false}
           emptyState={
             <div className="text-center py-12">
-              <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <UserGroupIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 No student point data available yet.
               </p>
             </div>
@@ -261,18 +262,18 @@ const StudentPointsPage: React.FC = () => {
           <>
             <FormSection columns={3}>
               <div className="text-center">
-                <p className="text-xs text-gray-500">House</p>
+                <p className="text-xs text-surface-muted-fg">House</p>
                 <p className="font-semibold text-base">{selectedStudent.houseName}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-gray-500">Net Points</p>
+                <p className="text-xs text-surface-muted-fg">Net Points</p>
                 <p className={`font-bold text-xl ${selectedStudent.netPoints >= 0 ? 'text-indigo-600' : 'text-red-600'}`}>
                   {selectedStudent.netPoints >= 0 ? '+' : ''}{selectedStudent.netPoints}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-gray-500">Overall Rank</p>
-                <p className="font-bold text-xl text-gray-900">#{selectedStudent.overallRank}</p>
+                <p className="text-xs text-surface-muted-fg">Overall Rank</p>
+                <p className="font-bold text-xl text-surface-foreground">#{selectedStudent.overallRank}</p>
               </div>
             </FormSection>
 
@@ -293,13 +294,13 @@ const StudentPointsPage: React.FC = () => {
                   {selectedStudent.recentTransactions.slice(0, 5).map((tx) => (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-surface-muted rounded-lg"
                     >
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-surface-foreground">
                           {tx.categoryName || tx.type}
                         </p>
-                        <p className="text-xs text-gray-500">{tx.reason}</p>
+                        <p className="text-xs text-surface-muted-fg">{tx.reason}</p>
                       </div>
                       <div className="text-right ml-4">
                         <span
@@ -309,7 +310,7 @@ const StudentPointsPage: React.FC = () => {
                         >
                           {tx.type === TransactionType.MERIT ? '+' : '-'}{tx.points}
                         </span>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-surface-muted-fg">
                           {new Date(tx.awardedAt).toLocaleDateString()}
                         </p>
                       </div>

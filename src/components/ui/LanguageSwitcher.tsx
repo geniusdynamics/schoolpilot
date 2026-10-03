@@ -74,7 +74,7 @@ const LanguageSwitcherContent: React.FC = () => {
   // Show loading state if i18n is not ready - moved after all hooks
   if (!ready || !i18n) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700">
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-card border border-slate-200 text-slate-700">
         <GlobeAltIcon className="w-4 h-4" />
         <span className="text-sm font-medium">Loading...</span>
       </div>
@@ -85,7 +85,7 @@ const LanguageSwitcherContent: React.FC = () => {
     <div className="relative">
     <button
       onClick={toggleDropdown}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-slate-300 transition-colors"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-card border border-slate-200 text-slate-700 hover:border-slate-300 transition-colors"
     >
       <span className="text-sm" style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{currentLanguage.flag}</span>
       <span className="text-sm font-medium">{currentLanguage.name}</span>
@@ -93,13 +93,13 @@ const LanguageSwitcherContent: React.FC = () => {
     </button>
     
     {isOpen && (
-      <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+      <div className="absolute top-full right-0 mt-2 w-48 bg-surface-card border border-slate-200 rounded-lg shadow-lg z-50">
         {languages.map((lang) => (
           <button
             key={lang.code}
             onClick={() => handleLanguageChange(lang.code)}
             className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-50 transition-colors flex items-center gap-2 ${
-              lang.code === currentLanguage.code ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+              lang.code === currentLanguage.code ? 'bg-primary-50 text-primary-700' : 'text-slate-700'
             }`}
           >
             <span style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{lang.flag}</span>

@@ -25,8 +25,8 @@ import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<PlanStatus, string> = {
-  [PlanStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [PlanStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [PlanStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [PlanStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [PlanStatus.APPROVED]: 'bg-green-100 text-green-800',
   [PlanStatus.REJECTED]: 'bg-red-100 text-red-800',
 };
@@ -298,7 +298,7 @@ const WeeklyPlansPage: React.FC = () => {
       sortable: false,
       width: 250,
       render: (value) => (
-        <span className="text-sm text-gray-600 line-clamp-2">{value}</span>
+        <span className="text-sm text-surface-muted-fg line-clamp-2">{value}</span>
       ),
     },
     {
@@ -445,7 +445,7 @@ const WeeklyPlansPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 placeholder="Search by teacher, subject, or class..."
                 value={filters.searchQuery}
@@ -486,11 +486,11 @@ const WeeklyPlansPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <CalendarDaysIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by creating a new weekly plan.
               </p>
               <div className="mt-6">

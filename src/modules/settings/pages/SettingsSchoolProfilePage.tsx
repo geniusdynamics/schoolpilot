@@ -52,8 +52,8 @@ export const SettingsSchoolProfileContent: React.FC = () => {
       <Card title={t('schoolProfile.title')}>
         <div className="text-center py-8 border-b mb-6">
           <IdentificationIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">{t('schoolProfile.header')}</h2>
-          <p className="text-gray-500">{t('schoolProfile.description')}</p>
+          <h2 className="text-xl font-semibold text-surface-foreground">{t('schoolProfile.header')}</h2>
+          <p className="text-surface-muted-fg">{t('schoolProfile.description')}</p>
         </div>
 
         {pageIsLoading ? (

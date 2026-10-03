@@ -48,7 +48,7 @@ export const TrialBalancePageContent: React.FC = () => {
 
   const getAccountTypeBadge = (type: string) => {
     const styles = {
-      'Asset': 'bg-blue-100 text-blue-800',
+      'Asset': 'bg-primary-100 text-primary-800',
       'Liability': 'bg-purple-100 text-purple-800',
       'Equity': 'bg-green-100 text-green-800',
       'Revenue': 'bg-yellow-100 text-yellow-800',
@@ -136,7 +136,7 @@ export const TrialBalancePageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">As of Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">As of Date</label>
             <Input
               type="date"
               value={asOfDate}
@@ -145,7 +145,7 @@ export const TrialBalancePageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Account Type</label>
             <Select
               value={accountTypeFilter}
               onChange={(e) => setAccountTypeFilter(e.target.value)}
@@ -157,7 +157,7 @@ export const TrialBalancePageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Account name or code..."
@@ -170,17 +170,17 @@ export const TrialBalancePageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <DocumentTextIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Accounts</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {filteredTrialBalance.length}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Total Debits</span>
             </div>
@@ -188,8 +188,8 @@ export const TrialBalancePageContent: React.FC = () => {
               KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Total Credits</span>
             </div>
@@ -197,8 +197,8 @@ export const TrialBalancePageContent: React.FC = () => {
               KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ScaleIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Balance Status</span>
             </div>

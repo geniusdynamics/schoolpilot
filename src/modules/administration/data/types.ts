@@ -808,3 +808,291 @@ export interface VisitorLog {
   updated_at: string;
 }
 
+// === ADMINISTRATION PAGE ENTITY TYPES (backed by real collections) ===
+
+export type PassType = 'Early Departure' | 'Medical Emergency' | 'Personal' | 'Other';
+
+export type PassStatus = 'Pending' | 'Approved' | 'Rejected' | 'Issued' | 'Returned';
+
+export interface GatePass {
+  id: string;
+  student_id: string;
+  student_name: string;
+  class_name: string;
+  section: string;
+  pass_type: PassType;
+  reason: string;
+  departure_time: string;
+  return_time?: string;
+  authorized_by: string;
+  status: PassStatus;
+  approved_by?: string;
+  approved_at?: string;
+  issued_by?: string;
+  issued_at?: string;
+  created_at: string;
+}
+
+export type ScholarshipStatus = 'Active' | 'Inactive' | 'Pending';
+
+export interface ScholarshipRecord {
+  id: string;
+  student_id: string;
+  student_name?: string;
+  admission_no?: string;
+  class_id?: string;
+  class_name?: string;
+  scholarship_type: string;
+  amount: number;
+  academic_year: string;
+  status: ScholarshipStatus;
+  start_date: string;
+  end_date: string;
+  criteria?: string;
+  notes?: string;
+}
+
+export type SMSStatus = 'Sent' | 'Delivered' | 'Failed' | 'Pending';
+
+export interface SMSReport {
+  id: string;
+  recipient: string;
+  recipient_name: string;
+  recipient_type: 'Student' | 'Staff' | 'Parent';
+  phone: string;
+  message: string;
+  template?: string;
+  sent_date: string;
+  sent_time?: string;
+  status: SMSStatus;
+  delivery_date?: string;
+  error_message?: string;
+  sender?: string;
+}
+
+export type TriggerType = 'Attendance' | 'Fees Due' | 'Exam Results' | 'Announcements' | 'Birthday';
+
+export type RecipientType = 'Student' | 'Staff' | 'Parent' | 'All';
+
+export interface AutoSMSSetting {
+  id: string;
+  trigger_type: TriggerType;
+  trigger_name: string;
+  recipient_type: RecipientType;
+  template_id: string;
+  template_name: string;
+  is_enabled: boolean;
+  send_time?: string;
+  conditions?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type WalletTransactionType = 'Advance' | 'Loan' | 'Deduction' | 'Repayment';
+
+export interface WalletTransaction {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  employee_id: string;
+  department: string;
+  transaction_type: WalletTransactionType;
+  amount: number;
+  date: string;
+  description?: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
+  balance: number;
+}
+
+export type StaffAttendanceStatus = 'Present' | 'Absent' | 'Late' | 'On Leave';
+
+export interface StaffAttendanceRecord {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  employee_id: string;
+  department: string;
+  designation: string;
+  date: string;
+  check_in_time?: string;
+  check_out_time?: string;
+  status: StaffAttendanceStatus;
+  notes?: string;
+}
+
+export type DynamicAttendanceStatus = 'Present' | 'Absent' | 'Late';
+
+export interface SessionAttendance {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  session_id: string;
+  session_name: string;
+  date?: string;
+  check_in_time?: string;
+  check_out_time?: string;
+  status: DynamicAttendanceStatus;
+  notes?: string;
+}
+
+export interface StudentRollNumber {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+}
+
+export interface AttendanceReport {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  month: string;
+  year: number;
+  total_days: number;
+  present_days: number;
+  absent_days: number;
+  late_days: number;
+  percentage: number;
+}
+
+export interface AlumniEngagement {
+  id: string;
+  alumni_name: string;
+  graduation_year: string;
+  activity_type: string;
+  activity_date: string;
+  description: string;
+  amount?: number;
+}
+
+export type AlumniEventStatus = 'Upcoming' | 'Completed' | 'Cancelled';
+
+export interface AlumniEvent {
+  id: string;
+  event_name: string;
+  event_date: string;
+  location: string;
+  event_type: string;
+  expected_attendees: number;
+  status: AlumniEventStatus;
+  description: string;
+}
+
+// === REPORT / VIEW ENTITY TYPES ===
+
+export interface StaffIDCard {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  employee_id: string;
+  department: string;
+  designation: string;
+  photo_url?: string;
+  joining_date: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
+export interface StudentIDCard {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  photo_url?: string;
+  dob: string;
+  blood_group?: string;
+  emergency_contact?: string;
+  academic_year: string;
+}
+
+export interface StudentMedicalCondition {
+  id: string;
+  condition: string;
+  diagnosis_date: string;
+  severity: string;
+  treatment?: string;
+  notes?: string;
+}
+
+export interface StudentEmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  address?: string;
+  is_primary: boolean;
+}
+
+export interface StudentDocument {
+  id: string;
+  document_type: string;
+  document_number: string;
+  issue_date: string;
+  issuing_authority: string;
+  expiry_date?: string;
+}
+
+export interface StudentBioData {
+  id: string;
+  student_id: string;
+  name: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  date_of_birth: string;
+  gender: string;
+  blood_group: string;
+  nationality: string;
+  religion: string;
+  mother_tongue: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  father_name: string;
+  father_phone: string;
+  father_occupation: string;
+  mother_name: string;
+  mother_phone: string;
+  mother_occupation: string;
+  guardian_name?: string;
+  guardian_phone?: string;
+  guardian_relationship?: string;
+  medical_conditions: StudentMedicalCondition[];
+  emergency_contacts: StudentEmergencyContact[];
+  documents: StudentDocument[];
+  allergies: string[];
+  created_at: string;
+}
+
+export interface TransferCertificateStudent {
+  id: string;
+  student_id: string;
+  name: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  admission_date: string;
+  father_name: string;
+  mother_name: string;
+  date_of_birth: string;
+  address: string;
+}
+

@@ -13,6 +13,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon, MagnifyingGlassIcon as SearchIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 // Simple Checkbox component
 const Checkbox: React.FC<{
@@ -57,6 +58,7 @@ interface BookFormData {
 export const BooksPageContent: React.FC = () => {
   const { data: books, create: addBook, update: updateBook, remove: deleteBook, search, isLoading: booksLoading, error: booksError } = useBookData();
   const { data: bookCategories, isLoading: categoriesLoading, error: categoriesError } = useBookCategoryData();
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const initialFormData: Partial<LibBookType> = {
@@ -243,7 +245,7 @@ export const BooksPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this book? This may affect existing loans and fines.')) {
+    if (await confirm({ title: 'Delete book', message: 'Are you sure you want to delete this book? This may affect existing loans and fines.', variant: 'danger' })) {
       await deleteBook(id);
     }
   };
@@ -376,7 +378,7 @@ export const BooksPageContent: React.FC = () => {
           </Button>
         </div>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage all books in the library catalog.
         </p>
         
@@ -406,9 +408,9 @@ export const BooksPageContent: React.FC = () => {
 
         {/* Advanced Search Panel */}
         {showAdvancedSearch && (
-          <Card className="mb-4 bg-gray-50">
+          <Card className="mb-4 bg-surface-muted">
             <div className="p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Advanced Search Filters</h3>
+              <h3 className="text-sm font-medium text-surface-foreground mb-3">Advanced Search Filters</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Input
                   name="author"
@@ -480,9 +482,9 @@ export const BooksPageContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-12">
-              <BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No books found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <BookOpenIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No books found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by adding your first book to the library catalog.
               </p>
               <div className="mt-6">
@@ -566,8 +568,8 @@ export const BooksPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={booksLoading}>
-            {booksLoading ? <Spinner size="sm"/> : (editingBook ? 'Save Changes' : 'Add Book')}
+          <Button onClick={handleSubmit} loading={booksLoading}>
+            {editingBook ? 'Save Changes' : 'Add Book'}
           </Button>
         </FormActions>
       </DialogForm>

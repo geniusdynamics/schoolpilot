@@ -246,7 +246,7 @@ const AlumniDirectoryPage: React.FC = () => {
       render: (value, item) => (
         <div>
           <div className="text-sm font-medium">{item.current_occupation || '-'}</div>
-          {item.employer && <div className="text-xs text-gray-500">{item.employer}</div>}
+          {item.employer && <div className="text-xs text-surface-muted-fg">{item.employer}</div>}
         </div>
       ),
     },
@@ -292,7 +292,7 @@ const AlumniDirectoryPage: React.FC = () => {
             View
           </Button>
           {item.email && (
-            <a href={`mailto:${item.email}`} className="inline-flex items-center p-1 text-blue-600 hover:text-blue-800">
+            <a href={`mailto:${item.email}`} className="inline-flex items-center p-1 text-primary-600 hover:text-primary-800">
               <EnvelopeIcon className="w-4 h-4" />
             </a>
           )}
@@ -346,8 +346,8 @@ const AlumniDirectoryPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <div className="text-gray-400 text-5xl mb-4">&#127891;</div>
-              <p className="text-gray-500">No alumni records found. Alumni are created when students graduate.</p>
+              <div className="text-surface-muted-fg text-5xl mb-4">&#127891;</div>
+              <p className="text-surface-muted-fg">No alumni records found. Alumni are created when students graduate.</p>
             </div>
           }
         />
@@ -364,62 +364,62 @@ const AlumniDirectoryPage: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-xs font-medium text-gray-500">Admission Number</label>
+                <label className="text-xs font-medium text-surface-muted-fg">Admission Number</label>
                 <p className="mt-1 text-sm">{selectedAlumni.admission_number}</p>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500">Graduation Year</label>
+                <label className="text-xs font-medium text-surface-muted-fg">Graduation Year</label>
                 <p className="mt-1 text-sm">{selectedAlumni.graduation_year}</p>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500">Graduation Class</label>
+                <label className="text-xs font-medium text-surface-muted-fg">Graduation Class</label>
                 <p className="mt-1 text-sm">{selectedAlumni.graduation_class_name || '-'} {selectedAlumni.graduation_stream_name || ''}</p>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500">Status</label>
+                <label className="text-xs font-medium text-surface-muted-fg">Status</label>
                 <div className="mt-1">{getEngagementBadge(selectedAlumni.engagement_status)}</div>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500">Category</label>
+                <label className="text-xs font-medium text-surface-muted-fg">Category</label>
                 <div className="mt-1">{getCategoryBadge(selectedAlumni.alumni_category)}</div>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500">Gender</label>
+                <label className="text-xs font-medium text-surface-muted-fg">Gender</label>
                 <p className="mt-1 text-sm">{selectedAlumni.gender || '-'}</p>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Contact Information</h4>
+              <h4 className="text-sm font-semibold text-surface-foreground mb-3">Contact Information</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Email</label>
+                  <label className="text-xs font-medium text-surface-muted-fg">Email</label>
                   <p className="mt-1 text-sm">{selectedAlumni.email || '-'}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Phone</label>
+                  <label className="text-xs font-medium text-surface-muted-fg">Phone</label>
                   <p className="mt-1 text-sm">{selectedAlumni.phone || '-'}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">City</label>
+                  <label className="text-xs font-medium text-surface-muted-fg">City</label>
                   <p className="mt-1 text-sm">{selectedAlumni.current_city || '-'}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Country</label>
+                  <label className="text-xs font-medium text-surface-muted-fg">Country</label>
                   <p className="mt-1 text-sm">{selectedAlumni.current_country || '-'}</p>
                 </div>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Professional Information</h4>
+              <h4 className="text-sm font-semibold text-surface-foreground mb-3">Professional Information</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Occupation</label>
+                  <label className="text-xs font-medium text-surface-muted-fg">Occupation</label>
                   <p className="mt-1 text-sm">{selectedAlumni.current_occupation || '-'}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Employer</label>
+                  <label className="text-xs font-medium text-surface-muted-fg">Employer</label>
                   <p className="mt-1 text-sm">{selectedAlumni.employer || '-'}</p>
                 </div>
               </div>
@@ -427,12 +427,12 @@ const AlumniDirectoryPage: React.FC = () => {
 
             {selectedAlumni.notes && (
               <div className="border-t pt-4">
-                <label className="text-xs font-medium text-gray-500">Notes</label>
-                <p className="mt-1 text-sm text-gray-700">{selectedAlumni.notes}</p>
+                <label className="text-xs font-medium text-surface-muted-fg">Notes</label>
+                <p className="mt-1 text-sm text-surface-foreground">{selectedAlumni.notes}</p>
               </div>
             )}
 
-            <div className="border-t pt-3 flex justify-between text-xs text-gray-400">
+            <div className="border-t pt-3 flex justify-between text-xs text-surface-muted-fg">
               <span>Newsletter: {selectedAlumni.is_newsletter_subscribed ? 'Subscribed' : 'Unsubscribed'}</span>
               <span>Last Contact: {selectedAlumni.last_contact_date ? new Date(selectedAlumni.last_contact_date).toLocaleDateString() : 'N/A'}</span>
             </div>
@@ -457,7 +457,7 @@ const AlumniDirectoryPage: React.FC = () => {
         }
       >
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 text-sm text-primary-700">
             Alumni records are typically created automatically when a student graduates and their status changes to "Alumni".
             Use this form for manual records or bulk imports.
           </div>

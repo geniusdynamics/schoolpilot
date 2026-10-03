@@ -82,8 +82,8 @@ export const SettingsWorkflowsContent: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Access Denied</h2>
+          <p className="text-surface-muted-fg mb-4">
             You don't have permission to view workflow settings.
           </p>
           <button
@@ -481,7 +481,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
           </Button>
         ) : null}
       >
-        <p className="text-sm text-gray-600 mb-4">{t('workflows.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('workflows.description')}</p>
         {appDataLoading.workflows ? (
           <div className="flex justify-center py-8">
             <Spinner />
@@ -558,9 +558,9 @@ export const SettingsWorkflowsContent: React.FC = () => {
             </Button>
             <Button
               onClick={handleWorkflowSubmit}
-              disabled={isSubmitting}
+              loading={isSubmitting}
             >
-              {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
+              {t('common:save')}
             </Button>
           </FormActions>
         </DialogForm>
@@ -613,9 +613,9 @@ export const SettingsWorkflowsContent: React.FC = () => {
             </Button>
             <Button
               onClick={handleStateSubmit}
-              disabled={isSubmitting}
+              loading={isSubmitting}
             >
-              {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
+              {t('common:save')}
             </Button>
           </FormActions>
         </DialogForm>
@@ -629,7 +629,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
         size="sm"
       >
         <FormSection>
-          <p className="text-gray-600">{deleteModalConfig.message}</p>
+          <p className="text-surface-muted-fg">{deleteModalConfig.message}</p>
         </FormSection>
         <FormActions>
           <Button
@@ -642,9 +642,9 @@ export const SettingsWorkflowsContent: React.FC = () => {
           <Button
             variant="danger"
             onClick={deleteModalConfig.onConfirm}
-            disabled={deleteModalConfig.isDeleting}
+            loading={deleteModalConfig.isDeleting}
           >
-            {deleteModalConfig.isDeleting ? <Spinner size="sm" /> : t('common:delete')}
+            {t('common:delete')}
           </Button>
         </FormActions>
       </DialogForm>

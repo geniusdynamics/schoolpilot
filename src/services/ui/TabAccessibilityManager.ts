@@ -374,24 +374,24 @@ export class TabAccessibilityManager {
     // Focus indicator
     baseClasses.push(
       `focus:ring-${focusIndicatorWidth}`,
-      'focus:ring-blue-500',
+      'focus:ring-primary-500',
       'focus:ring-offset-2'
     );
     
     // Active state
     if (isActive) {
       baseClasses.push(
-        'bg-white',
+        'bg-surface-card',
         'border-b-2',
-        'border-blue-500',
-        'text-blue-700',
+        'border-primary-500',
+        'text-primary-700',
         'font-medium'
       );
     } else {
       baseClasses.push(
-        'text-gray-600',
-        'hover:text-gray-800',
-        'hover:bg-gray-50'
+        'text-surface-muted-fg',
+        'hover:text-surface-foreground',
+        'hover:bg-surface-muted'
       );
     }
     

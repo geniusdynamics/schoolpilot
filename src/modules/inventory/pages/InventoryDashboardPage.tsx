@@ -225,31 +225,31 @@ export const InventoryDashboardPageContent: React.FC = () => {
       {/* Additional Inventory Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Stock Alerts Summary */}
-        <Card title="Stock Alerts" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Stock Alerts" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Out of Stock</span>
+              <span className="text-sm text-surface-muted-fg">Out of Stock</span>
               <span className="font-semibold text-rose-600">{outOfStockItems.length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Low Stock</span>
+              <span className="text-sm text-surface-muted-fg">Low Stock</span>
               <span className="font-semibold text-amber-600">{lowStockItems.length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Healthy Stock</span>
+              <span className="text-sm text-surface-muted-fg">Healthy Stock</span>
               <span className="font-semibold text-emerald-600">
                 {(stockLevels || []).filter((s: any) => Number(s.quantity_on_hand) > Number(s.reorder_point || 0)).length}
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Total SKUs</span>
-              <span className="font-semibold text-gray-900">{(itemsInv || []).length}</span>
+              <span className="text-sm text-surface-muted-fg">Total SKUs</span>
+              <span className="font-semibold text-surface-foreground">{(itemsInv || []).length}</span>
             </div>
           </div>
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -258,7 +258,7 @@ export const InventoryDashboardPageContent: React.FC = () => {
                   ${activity.type === 'po' ? 'bg-indigo-100 text-indigo-600' :
                     activity.type === 'receiving' ? 'bg-emerald-100 text-emerald-600' :
                     activity.type === 'alert' ? 'bg-amber-100 text-amber-600' :
-                    'bg-blue-100 text-blue-600'}
+                    'bg-primary-100 text-primary-600'}
                 `}>
                   {activity.type === 'po' ? <ShoppingCartIcon className="h-4 w-4" /> :
                    activity.type === 'receiving' ? <TruckIcon className="h-4 w-4" /> :
@@ -266,8 +266,8 @@ export const InventoryDashboardPageContent: React.FC = () => {
                    <ClipboardDocumentListIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -278,12 +278,12 @@ export const InventoryDashboardPageContent: React.FC = () => {
         </Card>
 
         {/* Quick Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-blue-50 p-3 text-center">
-                <p className="text-2xl font-bold text-blue-700">{openRequisitions.length}</p>
-                <p className="text-xs text-blue-600">Pending Reqs</p>
+              <div className="rounded-lg bg-primary-50 p-3 text-center">
+                <p className="text-2xl font-bold text-primary-700">{openRequisitions.length}</p>
+                <p className="text-xs text-primary-600">Pending Reqs</p>
               </div>
               <div className="rounded-lg bg-indigo-50 p-3 text-center">
                 <p className="text-2xl font-bold text-indigo-700">{activePurchaseOrders.length}</p>
@@ -308,7 +308,7 @@ export const InventoryDashboardPageContent: React.FC = () => {
             </div>
             <button
               onClick={() => window.location.hash = '#/inventory/purchase-orders'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               View Purchase Orders <ArrowRightIcon className="h-4 w-4" />
             </button>

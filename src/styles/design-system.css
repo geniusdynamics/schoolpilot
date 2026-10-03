@@ -4,17 +4,17 @@
 /* CSS Custom Properties for Design Tokens */
 :root {
   /* Color tokens - Primary */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
 
   /* Color tokens - Secondary */
   --color-secondary-50: #f8fafc;
@@ -93,8 +93,9 @@
   --color-accent: #f1f5f9;
   --color-accent-foreground: #0f172a;
   --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #3b82f6;
+  --color-input: #cbd5e1;
+  --color-input-hover: #94a3b8;
+  --color-ring: #6366f1;
 
   /* Typography tokens */
   --font-family-sans: 'Inter', system-ui, sans-serif;
@@ -186,25 +187,26 @@
   --color-accent: #334155;
   --color-accent-foreground: #f8fafc;
   --color-border: #334155;
-  --color-input: #334155;
-  --color-ring: #3b82f6;
+  --color-input: #475569;
+  --color-input-hover: #64748b;
+  --color-ring: #818cf8;
 }
 
 /* Glow effect keyframes */
 @keyframes glowPulse {
   0%, 100% {
     box-shadow: 
-      0 0 0 1px rgba(59, 130, 246, 0.3),
-      0 0 0 3px rgba(59, 130, 246, 0.1),
-      0 0 8px rgba(59, 130, 246, 0.15),
-      0 0 16px rgba(59, 130, 246, 0.1);
+      0 0 0 1px rgba(99, 102, 241, 0.3),
+      0 0 0 3px rgba(99, 102, 241, 0.1),
+      0 0 8px rgba(99, 102, 241, 0.15),
+      0 0 16px rgba(99, 102, 241, 0.1);
   }
   50% {
     box-shadow: 
-      0 0 0 1px rgba(59, 130, 246, 0.4),
-      0 0 0 4px rgba(59, 130, 246, 0.15),
-      0 0 12px rgba(59, 130, 246, 0.2),
-      0 0 20px rgba(59, 130, 246, 0.15);
+      0 0 0 1px rgba(99, 102, 241, 0.4),
+      0 0 0 4px rgba(99, 102, 241, 0.15),
+      0 0 12px rgba(99, 102, 241, 0.2),
+      0 0 20px rgba(99, 102, 241, 0.15);
   }
 }
 
@@ -571,33 +573,24 @@
 /* Glow utility classes */
 /* Glow effect utility classes */
 .glow-focus {
-  box-shadow: 
-    0 0 0 1px rgba(59, 130, 246, 0.3),
-    0 0 0 3px rgba(59, 130, 246, 0.15),
-    0 0 8px rgba(59, 130, 246, 0.2),
-    0 0 16px rgba(59, 130, 246, 0.15),
-    0 0 24px rgba(59, 130, 246, 0.1);
-  transition: box-shadow var(--duration-normal) var(--easing-ease-out);
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.55),
+    0 0 0 4px rgba(99, 102, 241, 0.14);
+  transition: box-shadow var(--duration-fast) var(--easing-ease-out);
 }
 
 .glow-success {
-  box-shadow: 
-    0 0 0 1px rgba(34, 197, 94, 0.3),
-    0 0 0 3px rgba(34, 197, 94, 0.15),
-    0 0 8px rgba(34, 197, 94, 0.2),
-    0 0 16px rgba(34, 197, 94, 0.15),
-    0 0 24px rgba(34, 197, 94, 0.1);
-  transition: box-shadow var(--duration-normal) var(--easing-ease-out);
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.55),
+    0 0 0 4px rgba(34, 197, 94, 0.14);
+  transition: box-shadow var(--duration-fast) var(--easing-ease-out);
 }
 
 .glow-error {
-  box-shadow: 
-    0 0 0 1px rgba(239, 68, 68, 0.3),
-    0 0 0 3px rgba(239, 68, 68, 0.15),
-    0 0 8px rgba(239, 68, 68, 0.2),
-    0 0 16px rgba(239, 68, 68, 0.15),
-    0 0 24px rgba(239, 68, 68, 0.1);
-  transition: box-shadow var(--duration-normal) var(--easing-ease-out);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.55),
+    0 0 0 4px rgba(239, 68, 68, 0.14);
+  transition: box-shadow var(--duration-fast) var(--easing-ease-out);
 }
 
 .glow-subtle {
@@ -632,10 +625,10 @@
 
 .hover\:glow-focus:hover {
   box-shadow: 
-    0 0 0 1px rgba(59, 130, 246, 0.2),
-    0 0 0 2px rgba(59, 130, 246, 0.1),
-    0 0 6px rgba(59, 130, 246, 0.15),
-    0 0 12px rgba(59, 130, 246, 0.1);
+    0 0 0 1px rgba(99, 102, 241, 0.2),
+    0 0 0 2px rgba(99, 102, 241, 0.1),
+    0 0 6px rgba(99, 102, 241, 0.15),
+    0 0 12px rgba(99, 102, 241, 0.1);
 }
 
 /* Animation utility classes */

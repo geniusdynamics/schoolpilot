@@ -218,14 +218,14 @@ export const ExamSessionsPageContent: React.FC = () => {
     { key: 'school_period_name', header: 'School Period' },
     { key: 'status', header: 'Status', 
         render: (_value: any, item: ExamSession) => {
-            let colorClass = 'bg-gray-200 text-gray-800';
-            if (item.status === ExamSessionStatus.PLANNING) colorClass = 'bg-blue-100 text-blue-800';
+            let colorClass = 'bg-gray-200 text-surface-foreground';
+            if (item.status === ExamSessionStatus.PLANNING) colorClass = 'bg-primary-100 text-primary-800';
             else if (item.status === ExamSessionStatus.MARKS_ENTRY_OPEN) colorClass = 'bg-yellow-100 text-yellow-800';
             else if (item.status === ExamSessionStatus.PUBLISHED) colorClass = 'bg-green-100 text-green-800';
             return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
         }
     },
-    { key: 'id', header: 'Papers Configured', render: (_value: any, item: ExamSession) => item.paper_settings?.length || 0 },
+    { key: 'papers_configured_count', header: 'Papers Configured', render: (_value: any, item: ExamSession) => item.paper_settings?.length || 0 },
     {
       key: 'actions',
       header: 'Actions',
@@ -313,8 +313,8 @@ export const ExamSessionsPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeSessionModal}>Cancel</Button>
-          <Button onClick={handleSessionSubmit} disabled={loading.examSessions}>
-            {loading.examSessions ? <Spinner size="sm"/> : (editingSession ? 'Save Changes' : 'Add Session')}
+          <Button onClick={handleSessionSubmit} loading={loading.examSessions}>
+            {editingSession ? 'Save Changes' : 'Add Session'}
           </Button>
         </FormActions>
       </DialogForm>
@@ -344,13 +344,13 @@ export const ExamSessionsPageContent: React.FC = () => {
                 </FormField>
               </FormSection>
               <FormActions>
-                <Button onClick={handlePaperSettingSubmit} size="sm" disabled={loading.examSessions}>
-                  {loading.examSessions ? <Spinner size="sm"/> : (editingPaperSetting ? 'Update Paper' : 'Add Paper')}
+                <Button onClick={handlePaperSettingSubmit} size="sm" loading={loading.examSessions}>
+                  {editingPaperSetting ? 'Update Paper' : 'Add Paper'}
                 </Button>
               </FormActions>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Configured Papers for this Session</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Configured Papers for this Session</h4>
             <DataGrid 
               columns={paperSettingColumns} 
               data={activeSessionForPapers.paper_settings || []} 

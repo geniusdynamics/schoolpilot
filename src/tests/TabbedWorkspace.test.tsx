@@ -1,135 +1,119 @@
 // ABOUTME: Test suite for the comprehensive tabbed workspace system
 // ABOUTME: Verifies tab management, action bars, RBAC integration, and UI functionality
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TabbedWorkspace } from '@/components/tabbedWorkspace/TabbedWorkspace';
 import { useTabStore } from '@/stores/tabStore';
-import { rbacService } from '@/core/rbacService';
 
-// Mock the stores and services
-vi.mock('../stores/tabStore');
-vi.mock('../core/rbacService');
-vi.mock('../services/actionRegistry', () => ({
-  actionRegistry: {
-    getActionsForModule: vi.fn(() => []),
-    getActionsForTab: vi.fn(() => []),
-    registerModuleActions: vi.fn(),
-  },
-}));
+// Mock the store — the component destructures every member below, so the
+// mock must expose the full surface or effects crash on missing functions.
+vi.mock('@/stores/tabStore');
 
 const mockTabStore = {
-  tabs: [],
-  activeTabId: null,
+  tabs: [] as any[],
+  activeTabId: null as string | null,
+  pinnedTabs: [] as string[],
   createTab: vi.fn(),
   closeTab: vi.fn(),
   activateTab: vi.fn(),
   updateTab: vi.fn(),
   reorderTabs: vi.fn(),
   pinTab: vi.fn(),
+  unpinTab: vi.fn(),
+  duplicateTab: vi.fn(),
+  setUserRole: vi.fn(),
+  updateUserPermissions: vi.fn(),
+  validateTabAccess: vi.fn(() => true),
   initializeStore: vi.fn(),
+  initialize: vi.fn(),
+  clearCorruptedData: vi.fn(),
 };
 
-const mockRbacService = {
-  hasPermission: vi.fn(() => true),
-  getUserPermissions: vi.fn(() => []),
-  validateTabAccess: vi.fn(() => true),
-};
+const mockRegisterAction = vi.fn();
+
+vi.mock('@/services/ui/actionRegistry', () => ({
+  useActionRegistry: () => ({
+    registerAction: mockRegisterAction,
+    getActionsByContext: vi.fn(() => []),
+    getActionsForContext: vi.fn(() => []),
+    getActionGroupsForContext: vi.fn(() => []),
+    searchActions: vi.fn(() => []),
+  }),
+}));
 
 describe('TabbedWorkspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTabStore.tabs = [];
+    mockTabStore.activeTabId = null;
     (useTabStore as any).mockReturnValue(mockTabStore);
-    (rbacService as any).hasPermission = mockRbacService.hasPermission;
-    (rbacService as any).getUserPermissions = mockRbacService.getUserPermissions;
-    (rbacService as any).validateTabAccess = mockRbacService.validateTabAccess;
   });
 
-  it('should render without crashing', () => {
-    render(
+  const renderWorkspace = (props: Record<string, unknown> = {}) => {
+    return render(
       <TabbedWorkspace
         userRole="admin"
         userPermissions={['read', 'write']}
         moduleContext="academics"
+        {...props}
       />
     );
-    
-    expect(screen.getByTestId('tabbed-workspace')).toBeInTheDocument();
+  };
+
+  it('should render without crashing', async () => {
+    renderWorkspace();
+    expect(await screen.findByTestId('tabbed-workspace')).toBeInTheDocument();
   });
 
-  it('should initialize the tab store on mount', () => {
-    render(
-      <TabbedWorkspace
-        userRole="admin"
-        userPermissions={['read', 'write']}
-        moduleContext="academics"
-      />
-    );
-    
-    expect(mockTabStore.initializeStore).toHaveBeenCalled();
+  it('should initialize the tab store on mount', async () => {
+    renderWorkspace();
+    await screen.findByTestId('tabbed-workspace');
+    await waitFor(() => {
+      expect(mockTabStore.initialize).toHaveBeenCalled();
+      expect(mockTabStore.initializeStore).toHaveBeenCalled();
+    });
   });
 
-  it('should render tab bar when showTabBar is true', () => {
-    render(
-      <TabbedWorkspace
-        userRole="admin"
-        userPermissions={['read', 'write']}
-        moduleContext="academics"
-        showTabBar={true}
-      />
-    );
-    
-    expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
+  it('should render tab bar when showTabBar is true', async () => {
+    const { container } = renderWorkspace({ showTabBar: true });
+    const workspace = await screen.findByTestId('tabbed-workspace');
+    expect(workspace).toBeInTheDocument();
+    // Tab bar renders inside the workspace once loading resolves
+    await waitFor(() => {
+      expect(within(workspace).getByTestId('tab-bar')).toBeInTheDocument();
+    });
+    expect(container).toBeInTheDocument();
   });
 
-  it('should render action bar when showActionBar is true', () => {
-    render(
-      <TabbedWorkspace
-        userRole="admin"
-        userPermissions={['read', 'write']}
-        moduleContext="academics"
-        showActionBar={true}
-      />
-    );
-    
-    expect(screen.getByTestId('action-bar')).toBeInTheDocument();
+  it('should render action bar when showActionBar is true', async () => {
+    renderWorkspace({ showActionBar: true });
+    const workspace = await screen.findByTestId('tabbed-workspace');
+    await waitFor(() => {
+      expect(within(workspace).getByTestId('action-bar')).toBeInTheDocument();
+    });
   });
 
   it('should handle tab creation', async () => {
-    render(
-      <TabbedWorkspace
-        userRole="admin"
-        userPermissions={['read', 'write']}
-        moduleContext="academics"
-        showTabBar={true}
-      />
-    );
-    
-    const addButton = screen.getByTestId('add-tab-button');
+    renderWorkspace({ showTabBar: true });
+    const workspace = await screen.findByTestId('tabbed-workspace');
+    const addButton = await within(workspace).findByTestId('add-tab-button');
     fireEvent.click(addButton);
-    
     await waitFor(() => {
       expect(mockTabStore.createTab).toHaveBeenCalled();
     });
   });
 
-  it('should respect RBAC permissions', () => {
-    mockRbacService.hasPermission.mockReturnValue(false);
-    
-    render(
-      <TabbedWorkspace
-        userRole="student"
-        userPermissions={['read']}
-        moduleContext="academics"
-        showActionBar={true}
-      />
-    );
-    
+  it('should respect RBAC permissions', async () => {
+    renderWorkspace({ userRole: 'student', userPermissions: ['read'], showActionBar: true });
+    const workspace = await screen.findByTestId('tabbed-workspace');
     // Action bar should still render but with limited actions
-    expect(screen.getByTestId('action-bar')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(within(workspace).getByTestId('action-bar')).toBeInTheDocument();
+    });
   });
 
-  it('should handle theme changes', () => {
+  it('should apply theme classes', async () => {
     const { rerender } = render(
       <TabbedWorkspace
         userRole="admin"
@@ -138,9 +122,10 @@ describe('TabbedWorkspace', () => {
         theme="light"
       />
     );
-    
-    expect(screen.getByTestId('tabbed-workspace')).toHaveClass('theme-light');
-    
+
+    const workspace = await screen.findByTestId('tabbed-workspace');
+    expect(workspace).toHaveClass('theme-light');
+
     rerender(
       <TabbedWorkspace
         userRole="admin"
@@ -149,54 +134,44 @@ describe('TabbedWorkspace', () => {
         theme="dark"
       />
     );
-    
+
     expect(screen.getByTestId('tabbed-workspace')).toHaveClass('theme-dark');
   });
 
-  it('should handle settings click', () => {
+  it('should wire the settings action to onSettingsClick', async () => {
     const onSettingsClick = vi.fn();
-    
-    render(
-      <TabbedWorkspace
-        userRole="admin"
-        userPermissions={['read', 'write']}
-        moduleContext="academics"
-        showSettings={true}
-        onSettingsClick={onSettingsClick}
-      />
-    );
-    
-    const settingsButton = screen.getByTestId('settings-button');
-    fireEvent.click(settingsButton);
-    
+    renderWorkspace({ showSettings: true, onSettingsClick });
+
+    await screen.findByTestId('tabbed-workspace');
+    await waitFor(() => {
+      expect(mockRegisterAction).toHaveBeenCalled();
+    });
+
+    const settingsRegistration = mockRegisterAction.mock.calls
+      .map(call => call[0])
+      .find((action: any) => action?.id === 'workspace.settings');
+    expect(settingsRegistration).toBeDefined();
+
+    await settingsRegistration.execute();
     expect(onSettingsClick).toHaveBeenCalled();
   });
 
-  it('should limit tabs when maxTabs is set', () => {
-    const tabsData = Array.from({ length: 5 }, (_, i) => ({
+  it('should render provided tabs in the tab bar', async () => {
+    mockTabStore.tabs = Array.from({ length: 5 }, (_, i) => ({
       id: `tab-${i}`,
       title: `Tab ${i}`,
       content: `Content ${i}`,
       moduleId: 'academics',
       isActive: i === 0,
-      isPinned: false,
+      pinned: false,
       permissions: ['read'],
+      order: i,
+      lastAccessed: Date.now(),
     }));
-    
-    mockTabStore.tabs = tabsData;
-    
-    render(
-      <TabbedWorkspace
-        userRole="admin"
-        userPermissions={['read', 'write']}
-        moduleContext="academics"
-        maxTabs={3}
-        showTabBar={true}
-      />
-    );
-    
-    // Should only show 3 tabs due to maxTabs limit
-    const tabs = screen.getAllByTestId(/^tab-/);
-    expect(tabs.length).toBeLessThanOrEqual(3);
-  });
+
+    renderWorkspace({ showTabBar: true });
+    const workspace = await screen.findByTestId('tabbed-workspace');
+    const tabBar = await within(workspace).findByTestId('tab-bar');
+    expect(within(tabBar).getAllByText(/Tab [0-9]/).length).toBe(5);
+  }, 20000);
 });

@@ -64,10 +64,10 @@ export const StockLevelsPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Current Stock Levels">
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           View current stock levels for all items across different warehouses. Use filters to narrow down the list.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Select
                 label="Filter by Warehouse"
                 value={selectedWarehouseId || ''}
@@ -92,7 +92,7 @@ export const StockLevelsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <TableCellsIcon className="w-12 h-12 text-gray-400" />,
+            icon: <TableCellsIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No stock levels found",
             description: "No stock levels found for the current filter. Try adjusting your filter criteria.",
             action: undefined

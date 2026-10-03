@@ -74,7 +74,7 @@ export const EffectFeeStructuresPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card title="Effect Fee Structures (Generate Student Invoices)">
         <div className="p-6 space-y-6">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-surface-muted-fg">
                 Select a fee template, school period, and student criteria to generate invoices. 
                 Ensure the fee template has items and the school period is correctly set up.
             </p>

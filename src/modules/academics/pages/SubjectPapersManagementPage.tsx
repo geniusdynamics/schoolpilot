@@ -113,7 +113,7 @@ export const SubjectPapersManagementContent: React.FC = () => {
           Add Subject Paper
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define individual papers for each subject (e.g., "Mathematics Paper 1", "Chemistry Practical Paper 2"). These papers are then used in exam settings.
         </p>
         <DataGrid columns={columns} data={subjectPapers} loading={loading.subjectPapers && isModalOpen} />
@@ -154,8 +154,8 @@ export const SubjectPapersManagementContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit" disabled={loading.subjectPapers}>
-            {loading.subjectPapers ? <Spinner size="sm"/> : (editingPaper ? 'Save Changes' : 'Add Paper')}
+          <Button type="submit" loading={loading.subjectPapers}>
+            {editingPaper ? 'Save Changes' : 'Add Paper'}
           </Button>
         </FormActions>
       </DialogForm>

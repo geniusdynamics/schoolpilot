@@ -364,7 +364,7 @@ const AddStudentPage: React.FC = () => {
         content: (
           <div className="space-y-6">
             <div className="space-y-4">
-              <h4 className="text-md font-semibold text-gray-700">Current Academic Status</h4>
+              <h4 className="text-md font-semibold text-surface-foreground">Current Academic Status</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Select
                   name="current_class_stream_id"
@@ -412,7 +412,7 @@ const AddStudentPage: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-md font-semibold text-gray-700">Exam Result Summary (e.g., KCPE)</h4>
+              <h4 className="text-md font-semibold text-surface-foreground">Exam Result Summary (e.g., KCPE)</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <Input
                   name="exam_result_summary_exam_name"
@@ -487,8 +487,8 @@ const AddStudentPage: React.FC = () => {
             Back to Students
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Student</h1>
-            <p className="text-sm text-gray-600">Fill in the student information using the tabbed form below</p>
+            <h1 className="text-2xl font-bold text-surface-foreground">Add New Student</h1>
+            <p className="text-sm text-surface-muted-fg">Fill in the student information using the tabbed form below</p>
           </div>
         </div>
       </div>

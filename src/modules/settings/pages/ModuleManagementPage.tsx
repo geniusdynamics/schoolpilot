@@ -237,8 +237,8 @@ export const ModuleManagementContent: React.FC = () => {
       filterable: true,
       render: (value: any, row: ModuleStatus) => (
         <div>
-          <div className="font-medium text-gray-900">{row.name}</div>
-          <div className="text-sm text-gray-500">{row.description}</div>
+          <div className="font-medium text-surface-foreground">{row.name}</div>
+          <div className="text-sm text-surface-muted-fg">{row.description}</div>
         </div>
       )
     },
@@ -258,7 +258,7 @@ export const ModuleManagementContent: React.FC = () => {
       filterable: true,
       width: 120,
       render: (value: any, row: ModuleStatus) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
           {row.category}
         </span>
       )
@@ -276,13 +276,13 @@ export const ModuleManagementContent: React.FC = () => {
               {t('moduleManagement.status.enabled')}
             </span>
           ) : (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-accent text-surface-foreground">
               <XMarkIcon className="w-3 h-3 mr-1" />
               {t('moduleManagement.status.disabled')}
             </span>
           )}
           {row.isActive && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
               {t('moduleManagement.status.active')}
             </span>
           )}
@@ -296,7 +296,7 @@ export const ModuleManagementContent: React.FC = () => {
       width: 120,
       align: 'center',
       render: (value: any, row: ModuleStatus) => (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-surface-muted-fg">
           {Array.isArray(row.features) ? row.features.length : 0} {t('moduleManagement.featuresCount')}
         </div>
       )
@@ -374,8 +374,8 @@ export const ModuleManagementContent: React.FC = () => {
     return (
       <div className="text-center py-8">
         <ExclamationTriangleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-gray-700">{t('common:errors.accessDenied')}</h2>
-        <p className="text-gray-500">{t('common:errors.insufficientPermissions')}</p>
+        <h2 className="text-xl font-semibold text-surface-foreground">{t('common:errors.accessDenied')}</h2>
+        <p className="text-surface-muted-fg">{t('common:errors.insufficientPermissions')}</p>
       </div>
     );
   }
@@ -386,8 +386,8 @@ export const ModuleManagementContent: React.FC = () => {
       <Card title={t('moduleManagement.title')}>
         <div className="text-center py-8">
           <CogIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">{t('moduleManagement.header')}</h2>
-          <p className="text-gray-500">{t('moduleManagement.description')}</p>
+          <h2 className="text-xl font-semibold text-surface-foreground">{t('moduleManagement.header')}</h2>
+          <p className="text-surface-muted-fg">{t('moduleManagement.description')}</p>
         </div>
       </Card>
 
@@ -395,7 +395,7 @@ export const ModuleManagementContent: React.FC = () => {
       <Card title={t('moduleManagement.filtersTitle')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-surface-foreground mb-2">
               {t('moduleManagement.searchLabel')}
             </label>
             <Input
@@ -406,7 +406,7 @@ export const ModuleManagementContent: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-surface-foreground mb-2">
               {t('moduleManagement.categoryLabel')}
             </label>
             <Select
@@ -426,7 +426,7 @@ export const ModuleManagementContent: React.FC = () => {
       {/* Module Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card title={t('moduleManagement.stats.total')}>
-          <div className="text-3xl font-bold text-gray-900">{modules.length}</div>
+          <div className="text-3xl font-bold text-surface-foreground">{modules.length}</div>
         </Card>
         <Card title={t('moduleManagement.stats.enabled')}>
           <div className="text-3xl font-bold text-green-600">
@@ -434,7 +434,7 @@ export const ModuleManagementContent: React.FC = () => {
           </div>
         </Card>
         <Card title={t('moduleManagement.stats.active')}>
-          <div className="text-3xl font-bold text-blue-600">
+          <div className="text-3xl font-bold text-primary-600">
             {modules.filter(m => m.isActive).length}
           </div>
         </Card>
@@ -454,7 +454,7 @@ export const ModuleManagementContent: React.FC = () => {
           sortable={true}
           filterable={true}
           emptyState={{
-            icon: <CogIcon className="h-12 w-12 text-gray-400" />,
+            icon: <CogIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No modules found',
             description: t('moduleManagement.noModulesFound'),
           }}
@@ -471,19 +471,19 @@ export const ModuleManagementContent: React.FC = () => {
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('moduleManagement.moduleId')}
               </label>
               <Input type="text" value={selectedModule.id} disabled />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('moduleManagement.moduleVersion')}
               </label>
               <Input type="text" value={selectedModule.version} disabled />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('moduleManagement.moduleFeatures')}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -514,16 +514,16 @@ export const ModuleManagementContent: React.FC = () => {
           title={t('moduleManagement.modulePermissions', { name: selectedModule.name })}
         >
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-surface-muted-fg">
               {t('moduleManagement.permissionsDescription')}
             </p>
             <div className="space-y-2">
               {selectedModule.requiredPermissions?.map(permission => (
                 <div 
                   key={permission}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between p-3 border border-surface-border rounded-lg"
                 >
-                  <span className="font-medium text-gray-900">{permission}</span>
+                  <span className="font-medium text-surface-foreground">{permission}</span>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                     {t('moduleManagement.required')}
                   </span>
@@ -547,7 +547,7 @@ export const ModuleManagementContent: React.FC = () => {
           title={t('moduleManagement.moduleDependencies', { name: selectedModule.name })}
         >
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-surface-muted-fg">
               {t('moduleManagement.dependenciesDescription')}
             </p>
             <div className="space-y-2">
@@ -556,12 +556,12 @@ export const ModuleManagementContent: React.FC = () => {
                 return (
                   <div 
                     key={dependency}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                    className="flex items-center justify-between p-3 border border-surface-border rounded-lg"
                   >
                     <div>
-                      <span className="font-medium text-gray-900">{dependency}</span>
+                      <span className="font-medium text-surface-foreground">{dependency}</span>
                       {depModule && (
-                        <div className="text-sm text-gray-500">{depModule.name}</div>
+                        <div className="text-sm text-surface-muted-fg">{depModule.name}</div>
                       )}
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

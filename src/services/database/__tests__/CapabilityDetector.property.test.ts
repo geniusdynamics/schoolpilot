@@ -7,6 +7,34 @@ import * as fc from 'fast-check';
 import { CapabilityDetector } from '../detection/CapabilityDetector';
 import type { CapabilityReport, StorageCapabilities } from '../detection/CapabilityDetector';
 
+// The global test setup installs an indexedDB stub whose `open()` returns a
+// request object that never fires `onsuccess`. CapabilityDetector runs an
+// async IndexedDB validation (`testIndexedDB`) whenever `window.indexedDB`
+// exists, and that promise never resolves under the stub — so every
+// `detectCapabilities()` call hangs until the test timeout. Install a
+// functional fake (requests complete in a microtask) for this file only.
+const originalIndexedDB = window.indexedDB;
+
+const installFunctionalIndexedDB = () => {
+  Object.defineProperty(window, 'indexedDB', {
+    configurable: true,
+    writable: true,
+    value: {
+      open: vi.fn(() => {
+        const request: Record<string, unknown> = {};
+        queueMicrotask(() => {
+          request.result = { close: vi.fn() };
+          (request.onsuccess as (() => void) | null)?.();
+        });
+        return request;
+      }),
+      deleteDatabase: vi.fn(),
+      cmp: vi.fn(() => 0),
+      databases: vi.fn(async () => []),
+    },
+  });
+};
+
 // Mock navigator and window for testing
 
 const mockNavigator = (overrides: Partial<Navigator> = {}) => {
@@ -43,7 +71,16 @@ const mockWindow = (overrides: Partial<Window & typeof globalThis> = {}) => {
 
 describe('CapabilityDetector - Property-Based Tests', () => {
   beforeEach(() => {
+    installFunctionalIndexedDB();
     CapabilityDetector.getInstance().clearCache();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'indexedDB', {
+      configurable: true,
+      writable: true,
+      value: originalIndexedDB,
+    });
   });
 
   afterAll(() => {
@@ -78,8 +115,8 @@ describe('CapabilityDetector - Property-Based Tests', () => {
 
   describe('Report Structure', () => {
     it('should always return a complete report', async () => {
-      fc.assert(
-        fc.property(fc.boolean(), async (forceRefresh) => {
+      await fc.assert(
+        fc.asyncProperty(fc.boolean(), async (forceRefresh) => {
           const detector = CapabilityDetector.getInstance();
           const report = await detector.detectCapabilities(forceRefresh);
 
@@ -152,8 +189,8 @@ describe('CapabilityDetector - Property-Based Tests', () => {
         'hasSharedArrayBuffer', 'hasWebRTC',
       ];
 
-      fc.assert(
-        fc.property(
+      await fc.assert(
+        fc.asyncProperty(
           fc.constantFrom(...capabilities),
           async (capability) => {
             const detector = CapabilityDetector.getInstance();
@@ -168,14 +205,14 @@ describe('CapabilityDetector - Property-Based Tests', () => {
     it('should return correct boolean type (not truthy/falsy)', async () => {
       const detector = CapabilityDetector.getInstance();
       const result = await detector.hasCapability('hasIndexedDB');
-      expect(result).toBe(true).or.toBe(false);
+      expect(typeof result).toBe('boolean');
     });
   });
 
   describe('Diagnostic Report', () => {
     it('should always return a non-empty string', async () => {
-      fc.assert(
-        fc.property(fc.boolean(), async (forceRefresh) => {
+      await fc.assert(
+        fc.asyncProperty(fc.boolean(), async (forceRefresh) => {
           const detector = CapabilityDetector.getInstance();
           const report = await detector.getDiagnosticReport();
 
@@ -242,8 +279,8 @@ describe('CapabilityDetector - Property-Based Tests', () => {
 
   describe('Provider Recommendation', () => {
     it('should always return a valid recommendation', async () => {
-      fc.assert(
-        fc.property(fc.boolean(), async (forceRefresh) => {
+      await fc.assert(
+        fc.asyncProperty(fc.boolean(), async (forceRefresh) => {
           const detector = CapabilityDetector.getInstance();
           const recommendation = await detector.getProviderRecommendation();
 

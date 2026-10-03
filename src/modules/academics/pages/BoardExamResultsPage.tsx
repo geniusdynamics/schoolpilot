@@ -8,7 +8,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 
 import Spinner from '@/components/ui/Spinner';
-import { initialMockBoardExamResults } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { BoardExamResult } from '../data/types';
 import { logger } from '@/utils/logging';
 import { DocumentTextIcon, PlusIcon } from '@/components/ui/icons';
@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/useToast';
 import { formatDate } from '@/utils/format';
 export const BoardExamResultsPageContent: React.FC = () => {
   const { students, loading } = useAppData();
+
+  const resultsCollection = useDatabaseCollection<BoardExamResult>('board_exam_results');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingResult, setEditingResult] = useState<BoardExamResult | null>(null);
@@ -37,9 +39,9 @@ export const BoardExamResultsPageContent: React.FC = () => {
   };
   const [formData, setFormData] = useState<Partial<BoardExamResult>>(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from board_exam_results
   const mockBoardResults: BoardExamResult[] = useMemo(() => {
-    let filtered = initialMockBoardExamResults;
+    let filtered = resultsCollection.data;
 
     if (searchTerm) {
       filtered = filtered.filter(result => 
@@ -54,7 +56,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, examTypeFilter]);
+  }, [resultsCollection.data, searchTerm, examTypeFilter]);
 
   const openModal = (result?: BoardExamResult) => {
     setEditingResult(result || null);
@@ -88,22 +90,70 @@ export const BoardExamResultsPageContent: React.FC = () => {
   };
 
   const toast = useToast();
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.student_id || !formData.subject_name) {
       toast.showWarning('Student and subject are required.');
       return;
     }
-    logger.info('Saving board exam result:', formData);
+
+    const student = students?.find(s => String(s.id) === String(formData.student_id));
+    const studentName = student ? `${student.first_name} ${student.last_name}`.trim() : '';
+    const marksObtained = Number(formData.marks_obtained ?? 0);
+    const maxMarks = Number(formData.max_marks ?? 100);
+    const percentage = maxMarks > 0 ? Math.round((marksObtained / maxMarks) * 10000) / 100 : 0;
+
+    try {
+      if (editingResult) {
+        await resultsCollection.update(editingResult.id, {
+          student_id: formData.student_id,
+          student_name: studentName || editingResult.student_name,
+          admission_no: student?.admission_no ?? editingResult.admission_no,
+          board_exam_type: formData.board_exam_type,
+          subject_name: formData.subject_name,
+          paper_code: formData.paper_code,
+          grade: formData.grade,
+          marks_obtained: marksObtained,
+          max_marks: maxMarks,
+          percentage,
+          exam_date: formData.exam_date,
+          center_number: formData.center_number,
+          candidate_number: formData.candidate_number
+        });
+        toast.showSuccess('Board exam result updated.');
+      } else {
+        await resultsCollection.insert({
+          student_id: formData.student_id!,
+          student_name: studentName,
+          admission_no: student?.admission_no ?? '',
+          board_exam_type: formData.board_exam_type ?? 'Other',
+          subject_name: formData.subject_name!,
+          paper_code: formData.paper_code ?? '',
+          grade: formData.grade ?? '',
+          marks_obtained: marksObtained,
+          max_marks: maxMarks,
+          percentage,
+          exam_date: formData.exam_date ?? new Date().toISOString().split('T')[0],
+          center_number: formData.center_number ?? '',
+          candidate_number: formData.candidate_number ?? '',
+          entered_at: new Date().toISOString()
+        });
+        toast.showSuccess('Board exam result added.');
+      }
+      logger.info('Saved board exam result:', formData);
+    } catch (err) {
+      logger.error('Failed to save board exam result:', err);
+      toast.showError('Failed to save board exam result.');
+    }
     closeModal();
   };
 
   const getExamTypeBadge = (type: string) => {
     const styles = {
-      'IGCSE': 'bg-blue-100 text-blue-800',
+      'IGCSE': 'bg-primary-100 text-primary-800',
       'A-Level': 'bg-purple-100 text-purple-800',
       'IB': 'bg-green-100 text-green-800',
       'SAT': 'bg-orange-100 text-orange-800',
-      'Other': 'bg-gray-100 text-gray-800'
+      'Other': 'bg-surface-accent text-surface-foreground'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type as keyof typeof styles]}`}>
@@ -182,7 +232,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
     };
   }, [mockBoardResults]);
 
-  if (loading?.all && mockBoardResults.length === 0) {
+  if ((loading?.all || resultsCollection.loading) && mockBoardResults.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -194,7 +244,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Board Exam Results</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Board Exam Results</h1>
         <Button onClick={() => openModal()} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Result
@@ -216,41 +266,41 @@ export const BoardExamResultsPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <DocumentTextIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Results</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <span className="text-sm font-medium">IGCSE</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               {totals.igcse}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <span className="text-sm font-medium">A-Level</span>
             </div>
             <p className="text-2xl font-bold text-purple-600 mt-2">
               {totals.aLevel}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <span className="text-sm font-medium">IB</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
               {totals.ib}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <span className="text-sm font-medium">SAT</span>
             </div>
             <p className="text-2xl font-bold text-orange-600 mt-2">
@@ -262,11 +312,11 @@ export const BoardExamResultsPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Exam Type</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Exam Type</label>
             <select
               value={examTypeFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setExamTypeFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Types</option>
               {examTypes.map(t => (
@@ -275,13 +325,13 @@ export const BoardExamResultsPageContent: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Student, admission, subject..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -304,7 +354,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">Select student</option>
               {students?.map(student => (
@@ -318,7 +368,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               name="board_exam_type"
               value={formData.board_exam_type}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               {examTypes.map(t => (
                 <option key={t} value={t}>{t}</option>
@@ -333,7 +383,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.subject_name}
               onChange={handleInputChange}
               placeholder="e.g., Mathematics"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -344,7 +394,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.paper_code}
               onChange={handleInputChange}
               placeholder="e.g., 0580/42"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -355,7 +405,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.grade}
               onChange={handleInputChange}
               placeholder="e.g., A*, A, B, 6, 750"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -366,7 +416,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.marks_obtained}
               onChange={handleInputChange}
               min="0"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -377,7 +427,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.max_marks}
               onChange={handleInputChange}
               min="0"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -387,7 +437,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               name="exam_date"
               value={formData.exam_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -398,7 +448,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.center_number}
               onChange={handleInputChange}
               placeholder="e.g., KE001"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -409,7 +459,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
               value={formData.candidate_number}
               onChange={handleInputChange}
               placeholder="e.g., 12345"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>

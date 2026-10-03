@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Alert, Autocomplete } from '@mui/material';
 import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
-  Receipt as ReceiptIcon
-} from '@mui/icons-material';
-import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData } from '../data';
+  PlusIcon,
+  TrashIcon,
+  ArchiveBoxIcon,
+} from '@heroicons/react/24/outline';
+import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData, StockTransactionType } from '../data';
+import { Card, Input, Select, Button, Alert } from '@/components/ui';
+import { DialogForm } from '@/components/ui/forms';
 
 interface StockReceptionItem {
   id: string;
@@ -37,29 +36,26 @@ export const StockReceptionPageContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Data hooks
-  const { items } = useItemData();
-  const { warehouses } = useWarehouseData();
-  const { createStockTransaction, getStockTransactionsByType } = useStockTransactionData();
-  const { updateStockLevel } = useStockLevelData();
+  // Data hooks — the hooks expose { data, create, update, remove }
+  const { data: items } = useItemData();
+  const { data: warehouses } = useWarehouseData();
+  const { data: stockTransactions, create: createStockTransaction } = useStockTransactionData();
+  const { data: stockLevels, create: createStockLevel, update: updateStockLevel } = useStockLevelData();
 
+  // Derive receptions from receipt transactions whenever the data changes
   useEffect(() => {
-    loadReceptions();
-  }, []);
-
-  const loadReceptions = async () => {
     try {
       setLoading(true);
-      const receiptTransactions = await getStockTransactionsByType(InvStockTransactionType.RECEIPT);
-      // Group transactions by reference number or date to show as receptions
-      const groupedReceptions = groupTransactionsByReception(receiptTransactions);
-      setReceptions(groupedReceptions);
+      const receiptTransactions = (stockTransactions || []).filter(
+        t => String(t.transaction_type) === StockTransactionType.RECEIPT
+      );
+      setReceptions(groupTransactionsByReception(receiptTransactions));
     } catch (err) {
       setError('Failed to load stock receptions');
     } finally {
       setLoading(false);
     }
-  };
+  }, [stockTransactions]);
 
   const groupTransactionsByReception = (transactions: any[]) => {
     const grouped = transactions.reduce((acc, transaction) => {
@@ -120,7 +116,7 @@ export const StockReceptionPageContent: React.FC = () => {
 
   const handleAddItem = () => {
     if (!editingReception) return;
-    
+
     const newItem: StockReceptionItem = {
       id: `temp-${Date.now()}`,
       item_id: '',
@@ -132,7 +128,7 @@ export const StockReceptionPageContent: React.FC = () => {
       warehouse_name: '',
       notes: ''
     };
-    
+
     setEditingReception({
       ...editingReception,
       items: [...editingReception.items, newItem]
@@ -141,7 +137,7 @@ export const StockReceptionPageContent: React.FC = () => {
 
   const handleRemoveItem = (index: number) => {
     if (!editingReception) return;
-    
+
     const updatedItems = editingReception.items.filter((_, i) => i !== index);
     setEditingReception({
       ...editingReception,
@@ -151,26 +147,26 @@ export const StockReceptionPageContent: React.FC = () => {
 
   const handleItemChange = (index: number, field: keyof StockReceptionItem, value: any) => {
     if (!editingReception) return;
-    
+
     const updatedItems = [...editingReception.items];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
-    
+
     // Auto-populate item name when item is selected
     if (field === 'item_id') {
-      const selectedItem = items.find(item => item.id === value);
+      const selectedItem = items.find(item => String(item.id) === String(value));
       if (selectedItem) {
         updatedItems[index].item_name = selectedItem.name;
       }
     }
-    
+
     // Auto-populate warehouse name when warehouse is selected
     if (field === 'warehouse_id') {
-      const selectedWarehouse = warehouses.find(wh => wh.id === value);
+      const selectedWarehouse = warehouses.find(wh => String(wh.id) === String(value));
       if (selectedWarehouse) {
         updatedItems[index].warehouse_name = selectedWarehouse.name;
       }
     }
-    
+
     setEditingReception({
       ...editingReception,
       items: updatedItems
@@ -179,54 +175,59 @@ export const StockReceptionPageContent: React.FC = () => {
 
   const handleSaveReception = async () => {
     if (!editingReception) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       // Validate form
       if (editingReception.items.length === 0) {
         setError('Please add at least one item to receive');
         return;
       }
-      
+
       for (const item of editingReception.items) {
         if (!item.item_id || !item.warehouse_id || item.quantity <= 0) {
           setError('Please fill in all required fields for each item');
           return;
         }
       }
-      
-      // Create stock transactions for each item
+
+      // Create stock transactions for each item and upsert stock levels
       for (const item of editingReception.items) {
-        const transactionData = {
+        await createStockTransaction({
           item_id: item.item_id,
-          warehouse_id: item.warehouse_id,
-          transaction_type: InvStockTransactionType.RECEIPT,
+          warehouse_id: Number(item.warehouse_id),
+          transaction_type: StockTransactionType.RECEIPT,
           quantity: item.quantity,
-          batch_number: item.batch_number || undefined,
-          expiry_date: item.expiry_date || undefined,
           source_table: 'stock_reception',
           source_id: editingReception.reference_number,
           transaction_date: editingReception.reception_date,
-          notes: `${editingReception.notes || ''} ${item.notes || ''}`.trim()
-        };
-        
-        await createStockTransaction(transactionData);
-        
-        // Update stock levels
-        const stockLevelId = `${item.item_id}|${item.warehouse_id}${item.batch_number ? `|${item.batch_number}` : ''}`;
-        await updateStockLevel(stockLevelId, {
-          item_id: item.item_id,
-          warehouse_id: item.warehouse_id,
-          quantity: item.quantity, // This will be added to existing quantity
-          batch_number: item.batch_number,
-          expiry_date: item.expiry_date
+          notes: [
+            editingReception.notes,
+            item.notes,
+            item.batch_number ? `Batch: ${item.batch_number}` : '',
+            item.expiry_date ? `Expiry: ${item.expiry_date}` : ''
+          ].filter(Boolean).join(' | ')
         });
+
+        // Update stock levels (add to existing or create)
+        const warehouseId = Number(item.warehouse_id);
+        const existingLevel = stockLevels.find(
+          l => String(l.item_id) === String(item.item_id) && l.warehouse_id === warehouseId
+        );
+        if (existingLevel) {
+          await updateStockLevel(existingLevel.id, { quantity: existingLevel.quantity + item.quantity });
+        } else {
+          await createStockLevel({
+            item_id: Number(item.item_id),
+            warehouse_id: warehouseId,
+            quantity: item.quantity
+          });
+        }
       }
-      
+
       setSuccess('Stock reception recorded successfully');
-      await loadReceptions();
       handleCloseDialog();
     } catch (err) {
       setError('Failed to save stock reception');
@@ -236,277 +237,256 @@ export const StockReceptionPageContent: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          <ReceiptIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-          Stock Reception
-        </Typography>
-        <Button
-          variant="contained"
-          leftIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          disabled={loading}
-        >
+    <div className="p-6 space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/15 text-primary-600 dark:text-primary-400">
+            <ArchiveBoxIcon className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-surface-foreground">Stock Reception</h1>
+            <p className="text-sm text-surface-muted-fg">Record incoming stock into your warehouses</p>
+          </div>
+        </div>
+        <Button leftIcon={<PlusIcon className="h-4 w-4" />} onClick={() => handleOpenDialog()} disabled={loading}>
           New Reception
         </Button>
-      </Box>
+      </div>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert variant="destructive" onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+        <Alert variant="success" onClose={() => setSuccess(null)}>
           {success}
         </Alert>
       )}
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Recent Stock Receptions
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Reference</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Items Count</TableCell>
-                  <TableCell>Total Quantity</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : receptions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      No stock receptions found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  receptions.map((reception) => (
-                    <TableRow key={reception.id}>
-                      <TableCell>{reception.reference_number || 'N/A'}</TableCell>
-                      <TableCell>{new Date(reception.reception_date).toLocaleDateString()}</TableCell>
-                      <TableCell>{reception.items.length}</TableCell>
-                      <TableCell>{reception.total_quantity}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          onClick={() => handleOpenDialog(reception)}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
+      <Card title="Recent Stock Receptions">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-surface-border text-sm">
+            <thead>
+              <tr className="table-header">
+                <th className="px-4 py-3 text-left font-medium">Reference</th>
+                <th className="px-4 py-3 text-left font-medium">Date</th>
+                <th className="px-4 py-3 text-left font-medium">Items Count</th>
+                <th className="px-4 py-3 text-left font-medium">Total Quantity</th>
+                <th className="px-4 py-3 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-border">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-surface-muted-fg">
+                    Loading...
+                  </td>
+                </tr>
+              ) : receptions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-surface-muted-fg">
+                    No stock receptions found
+                  </td>
+                </tr>
+              ) : (
+                receptions.map((reception) => (
+                  <tr key={reception.id} className="hover:bg-surface-accent/60 transition-colors">
+                    <td className="px-4 py-3 font-medium text-surface-foreground">{reception.reference_number || 'N/A'}</td>
+                    <td className="px-4 py-3 text-surface-muted-fg">{new Date(reception.reception_date).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-surface-muted-fg">{reception.items.length}</td>
+                    <td className="px-4 py-3 text-surface-muted-fg">{reception.total_quantity}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(reception)}>
+                        View
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Reception Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          {editingReception?.reference_number ? 'View Stock Reception' : 'New Stock Reception'}
-        </DialogTitle>
-        <DialogContent>
-          {editingReception && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Reception Date"
-                  type="date"
-                  value={editingReception.reception_date}
-                  onChange={(e) => setEditingReception({
-                    ...editingReception,
-                    reception_date: e.target.value
-                  })}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Reference Number"
-                  value={editingReception.reference_number}
-                  onChange={(e) => setEditingReception({
-                    ...editingReception,
-                    reference_number: e.target.value
-                  })}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Supplier Reference"
-                  value={editingReception.supplier_reference}
-                  onChange={(e) => setEditingReception({
-                    ...editingReception,
-                    supplier_reference: e.target.value
-                  })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Notes"
-                  multiline
-                  rows={2}
-                  value={editingReception.notes}
-                  onChange={(e) => setEditingReception({
-                    ...editingReception,
-                    notes: e.target.value
-                  })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Items to Receive</Typography>
-                  <Button
-                    variant="outlined"
-                    leftIcon={<AddIcon />}
-                    onClick={handleAddItem}
-                  >
-                    Add Item
-                  </Button>
-                </Box>
-                
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Item</TableCell>
-                        <TableCell>Warehouse</TableCell>
-                        <TableCell>Quantity</TableCell>
-                        <TableCell>Batch/Lot</TableCell>
-                        <TableCell>Expiry Date</TableCell>
-                        <TableCell>Notes</TableCell>
-                        <TableCell>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
+      <DialogForm
+        isOpen={openDialog}
+        onClose={handleCloseDialog}
+        title={editingReception?.reference_number && editingReception.items.length > 0 ? 'View Stock Reception' : 'New Stock Reception'}
+        description="Enter the received items, quantities and target warehouses."
+        size="xl"
+        onSubmit={(e) => { e.preventDefault(); void handleSaveReception(); }}
+      >
+        {editingReception && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-5">
+              <Input
+                label="Reception Date"
+                type="date"
+                value={editingReception.reception_date}
+                onChange={(e) => setEditingReception({
+                  ...editingReception,
+                  reception_date: e.target.value
+                })}
+              />
+              <Input
+                label="Reference Number"
+                value={editingReception.reference_number}
+                onChange={(e) => setEditingReception({
+                  ...editingReception,
+                  reference_number: e.target.value
+                })}
+              />
+              <Input
+                label="Supplier Reference"
+                value={editingReception.supplier_reference}
+                onChange={(e) => setEditingReception({
+                  ...editingReception,
+                  supplier_reference: e.target.value
+                })}
+              />
+            </div>
+
+            <Input
+              label="Notes"
+              value={editingReception.notes}
+              onChange={(e) => setEditingReception({
+                ...editingReception,
+                notes: e.target.value
+              })}
+            />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-surface-foreground">Items to Receive</h3>
+                <Button type="button" variant="outline" size="sm" leftIcon={<PlusIcon className="h-4 w-4" />} onClick={handleAddItem}>
+                  Add Item
+                </Button>
+              </div>
+
+              {editingReception.items.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-surface-border px-4 py-8 text-center text-sm text-surface-muted-fg">
+                  No items added. Click "Add Item" to start.
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-surface-border">
+                  <table className="min-w-full divide-y divide-surface-border text-sm">
+                    <thead>
+                      <tr className="table-header">
+                        <th className="px-3 py-2.5 text-left font-medium">Item</th>
+                        <th className="px-3 py-2.5 text-left font-medium">Warehouse</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-24">Qty</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-32">Batch/Lot</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-40">Expiry Date</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-32">Notes</th>
+                        <th className="px-3 py-2.5 text-right font-medium w-14"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-border">
                       {editingReception.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Autocomplete
-                              size="small"
-                              options={items}
-                              getOptionLabel={(option) => option.name}
-                              value={items.find(i => i.id === item.item_id) || null}
-                              onChange={(_, newValue) => {
-                                handleItemChange(index, 'item_id', newValue?.id || '');
-                              }}
-                              renderInput={(params) => (
-                                <TextField {...params} placeholder="Select item" />
-                              )}
-                              sx={{ minWidth: 200 }}
+                        <tr key={index}>
+                          <td className="px-3 py-2 min-w-[200px]">
+                            <Select
+                              searchable
+                              size="sm"
+                              placeholder="Select item"
+                              options={items.map(i => ({ value: String(i.id), label: i.name }))}
+                              value={String(item.item_id ?? '')}
+                              onValueChange={(value) => handleItemChange(index, 'item_id', value)}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <FormControl size="small" sx={{ minWidth: 150 }}>
-                              <Select
-                                value={item.warehouse_id}
-                                onChange={(e) => handleItemChange(index, 'warehouse_id', e.target.value)}
-                              >
-                                {warehouses.map((warehouse) => (
-                                  <MenuItem key={warehouse.id} value={warehouse.id}>
-                                    {warehouse.name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2 min-w-[150px]">
+                            <Select
+                              size="sm"
+                              placeholder="Select warehouse"
+                              value={item.warehouse_id ? String(item.warehouse_id) : ''}
+                              onChange={(e) => handleItemChange(index, 'warehouse_id', e.target.value)}
+                            >
+                              <option value="">Select warehouse…</option>
+                              {warehouses.map((warehouse) => (
+                                <option key={warehouse.id} value={warehouse.id}>
+                                  {warehouse.name}
+                                </option>
+                              ))}
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               type="number"
+                              min={0}
                               value={item.quantity}
                               onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
-                              sx={{ width: 100 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               value={item.batch_number}
                               onChange={(e) => handleItemChange(index, 'batch_number', e.target.value)}
-                              sx={{ width: 120 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               type="date"
                               value={item.expiry_date}
                               onChange={(e) => handleItemChange(index, 'expiry_date', e.target.value)}
-                              sx={{ width: 140 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               value={item.notes}
                               onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
-                              sx={{ width: 120 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <IconButton
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <button
+                              type="button"
                               onClick={() => handleRemoveItem(index)}
-                              color="error"
+                              className="rounded-md p-1.5 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                              aria-label={`Remove item ${index + 1}`}
                             >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
                       ))}
-                      {editingReception.items.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={7} align="center">
-                            No items added. Click "Add Item" to start.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} leftIcon={<CancelIcon />}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveReception}
-            variant="contained"
-            leftIcon={<SaveIcon />}
-            disabled={loading || !editingReception?.items.length}
-          >
-            {loading ? 'Saving...' : 'Save Reception'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                {error}
+              </Alert>
+            )}
+
+            <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4">
+              <Button variant="secondary" onClick={handleCloseDialog} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                loading={loading}
+                disabled={loading || !editingReception?.items.length}
+              >
+                Save Reception
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogForm>
+    </div>
   );
 };
+
 const StockReceptionPage: React.FC = () => (
   <div className="space-y-6">
     <StockReceptionPageContent />

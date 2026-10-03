@@ -41,7 +41,7 @@ const AnalyticsSubjectPage: React.FC = () => {
       key: 'total-subjects',
       label: 'Total Subjects',
       value: stats.totalSubjects,
-      icon: <BookOpenIcon className="h-6 w-6 text-blue-700" />,
+      icon: <BookOpenIcon className="h-6 w-6 text-primary-700" />,
     },
     {
       key: 'avg-pass-rate',
@@ -74,7 +74,7 @@ const AnalyticsSubjectPage: React.FC = () => {
   const trendIcon = (trend: 'up' | 'down' | 'stable') => {
     if (trend === 'up') return <ArrowUpIcon className="h-4 w-4 text-emerald-600" />;
     if (trend === 'down') return <ArrowDownIcon className="h-4 w-4 text-rose-600" />;
-    return <span className="text-gray-400 text-xs">--</span>;
+    return <span className="text-surface-muted-fg text-xs">--</span>;
   };
 
   const trendLabel = (trend: 'up' | 'down' | 'stable') => {
@@ -103,13 +103,13 @@ const AnalyticsSubjectPage: React.FC = () => {
     const total = distribution.reduce((s, d) => s + d.count, 0);
     return (
       <div className="space-y-1">
-        <div className="flex rounded-lg overflow-hidden h-3 bg-gray-100">
+        <div className="flex rounded-lg overflow-hidden h-3 bg-surface-accent">
           {distribution.map((d) => (
             <div
               key={d.grade}
               className={`transition-all ${
                 d.grade.startsWith('A') ? 'bg-emerald-500' :
-                d.grade.startsWith('B') ? 'bg-blue-500' :
+                d.grade.startsWith('B') ? 'bg-primary-500' :
                 d.grade.startsWith('C') ? 'bg-amber-500' :
                 d.grade.startsWith('D') ? 'bg-orange-500' :
                 'bg-rose-500'
@@ -119,12 +119,12 @@ const AnalyticsSubjectPage: React.FC = () => {
             />
           ))}
         </div>
-        <div className="flex gap-2 text-xs text-gray-500">
+        <div className="flex gap-2 text-xs text-surface-muted-fg">
           {distribution.map((d) => (
             <span key={d.grade} className="flex items-center gap-1">
               <span className={`inline-block w-2 h-2 rounded-full ${
                 d.grade.startsWith('A') ? 'bg-emerald-500' :
-                d.grade.startsWith('B') ? 'bg-blue-500' :
+                d.grade.startsWith('B') ? 'bg-primary-500' :
                 d.grade.startsWith('C') ? 'bg-amber-500' :
                 d.grade.startsWith('D') ? 'bg-orange-500' :
                 'bg-rose-500'
@@ -145,8 +145,8 @@ const AnalyticsSubjectPage: React.FC = () => {
       sortable: true,
       render: (value: string, row: SubjectPassRate) => (
         <div className="flex items-center gap-2">
-          <BookOpenIcon className="h-5 w-5 text-blue-600" />
-          <span className="font-medium text-gray-900">{value}</span>
+          <BookOpenIcon className="h-5 w-5 text-primary-600" />
+          <span className="font-medium text-surface-foreground">{value}</span>
         </div>
       ),
     },
@@ -175,7 +175,7 @@ const AnalyticsSubjectPage: React.FC = () => {
       align: 'center',
       render: (value: number, row: SubjectPassRate) => (
         <span className="text-sm font-medium">
-          {value}% <span className="text-gray-400">(H: {row.highestScore} / L: {row.lowestScore})</span>
+          {value}% <span className="text-surface-muted-fg">(H: {row.highestScore} / L: {row.lowestScore})</span>
         </span>
       ),
     },
@@ -193,7 +193,7 @@ const AnalyticsSubjectPage: React.FC = () => {
       render: (value: 'up' | 'down' | 'stable') => (
         <div className="flex items-center justify-center gap-1">
           {trendIcon(value)}
-          <span className="text-xs text-gray-600">{trendLabel(value)}</span>
+          <span className="text-xs text-surface-muted-fg">{trendLabel(value)}</span>
         </div>
       ),
     },
@@ -218,10 +218,10 @@ const AnalyticsSubjectPage: React.FC = () => {
       metrics={metrics}
     >
       {/* Controls */}
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="min-w-[180px]">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Academic Period</label>
+            <label className="block text-xs font-medium text-surface-muted-fg mb-1">Academic Period</label>
             <Select
               value={periodFilter}
               onChange={(val) => setPeriodFilter(val as string)}
@@ -267,48 +267,48 @@ const AnalyticsSubjectPage: React.FC = () => {
       {viewMode === 'cards' && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {subjectPassRates.map((subject) => (
-            <Card key={subject.subjectId} className="border-slate-200 bg-white shadow-sm">
+            <Card key={subject.subjectId} className="border-slate-200 bg-surface-card shadow-sm">
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <BookOpenIcon className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-semibold text-gray-900">{subject.subjectName}</h3>
+                    <BookOpenIcon className="h-5 w-5 text-primary-600" />
+                    <h3 className="font-semibold text-surface-foreground">{subject.subjectName}</h3>
                   </div>
                   <div className="flex items-center gap-1">
                     {trendIcon(subject.trend)}
-                    <span className="text-xs text-gray-500">{trendLabel(subject.trend)}</span>
+                    <span className="text-xs text-surface-muted-fg">{trendLabel(subject.trend)}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-2 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500">Pass Rate</p>
+                  <div className="text-center p-2 bg-surface-muted rounded-lg">
+                    <p className="text-xs text-surface-muted-fg">Pass Rate</p>
                     <p className={`text-xl font-bold ${subject.passRate >= 80 ? 'text-emerald-600' : subject.passRate >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                       {subject.passRate}%
                     </p>
                   </div>
-                  <div className="text-center p-2 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500">Avg Score</p>
-                    <p className="text-xl font-bold text-blue-600">{subject.averageScore}%</p>
+                  <div className="text-center p-2 bg-surface-muted rounded-lg">
+                    <p className="text-xs text-surface-muted-fg">Avg Score</p>
+                    <p className="text-xl font-bold text-primary-600">{subject.averageScore}%</p>
                   </div>
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Students: <strong className="text-gray-700">{subject.studentCount}</strong></span>
-                  <span>Exams: <strong className="text-gray-700">{subject.examCount}</strong></span>
+                <div className="flex justify-between text-xs text-surface-muted-fg">
+                  <span>Students: <strong className="text-surface-foreground">{subject.studentCount}</strong></span>
+                  <span>Exams: <strong className="text-surface-foreground">{subject.examCount}</strong></span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
-                    <p className="text-gray-500">Highest</p>
+                    <p className="text-surface-muted-fg">Highest</p>
                     <p className="font-semibold text-emerald-600">{subject.highestScore}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Median</p>
-                    <p className="font-semibold text-blue-600">{subject.medianScore}</p>
+                    <p className="text-surface-muted-fg">Median</p>
+                    <p className="font-semibold text-primary-600">{subject.medianScore}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Lowest</p>
+                    <p className="text-surface-muted-fg">Lowest</p>
                     <p className="font-semibold text-rose-600">{subject.lowestScore}</p>
                   </div>
                 </div>
@@ -316,7 +316,7 @@ const AnalyticsSubjectPage: React.FC = () => {
                 {/* Grade Distribution */}
                 {subject.gradeDistribution.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-gray-600 mb-2">{t('subject.gradeDistribution')}</p>
+                    <p className="text-xs font-medium text-surface-muted-fg mb-2">{t('subject.gradeDistribution')}</p>
                     <GradeDistributionBar distribution={subject.gradeDistribution} />
                   </div>
                 )}
@@ -328,7 +328,7 @@ const AnalyticsSubjectPage: React.FC = () => {
 
       {/* Subject Comparison Table */}
       {viewMode === 'table' && (
-        <Card title={t('subject.compareSubjects')} className="border-slate-200 bg-white shadow-sm">
+        <Card title={t('subject.compareSubjects')} className="border-slate-200 bg-surface-card shadow-sm">
           <DataGrid
             columns={comparisonColumns}
             data={subjectPassRates}

@@ -14,7 +14,9 @@ import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 import {
   buildStudentVoteheadStatement,
   StatementRow
-} from '@/utils/studentVoteheadStatement';
+} from '@/modules/reports/utils/studentVoteheadStatement';
+
+type StatementGridRow = StatementRow & { id: string };
 
 export const StudentVoteheadStatementPageContent: React.FC = () => {
   const { t } = useTranslation();
@@ -34,7 +36,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
     schoolPeriods.find(sp => sp.is_active)?.id || schoolPeriods[0]?.id
   );
   
-  const [reportData, setReportData] = useState<StatementRow[]>([]);
+  const [reportData, setReportData] = useState<StatementGridRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [openingBalance, setOpeningBalance] = useState(0);
 
@@ -65,7 +67,10 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
     });
 
     setOpeningBalance(statement.openingBalance);
-    setReportData(statement.rows);
+    setReportData(statement.rows.map((row, index) => ({
+      ...row,
+      id: `${row.date}-${row.description}-${index}`
+    })));
     setIsGenerating(false);
   }, [
     invoicePaymentApplications,
@@ -98,8 +103,8 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Student Votehead Statement Report">
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-            <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 Detailed statement of charges and payments for a selected student and period.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -138,7 +143,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
             </div>
           </>
         ) : (
-            <p className="text-center text-gray-500 py-4">Please select filters and click "Generate Statement".</p>
+            <p className="text-center text-surface-muted-fg py-4">Please select filters and click "Generate Statement".</p>
         )}
       </Card>
     </div>

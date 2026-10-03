@@ -140,7 +140,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value, row) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'transaction_date', 
@@ -148,7 +148,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-gray-700">{formatDate(row.transaction_date)}</span>
+      render: (value, row) => <span className="text-surface-foreground">{formatDate(row.transaction_date)}</span>
     },
     {
       key: 'id',
@@ -190,7 +190,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <CreditCardIcon className="w-12 h-12 text-gray-400" />,
+            icon: <CreditCardIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Student Payments Found",
             description: "Record your first student payment to track fee collections and payment history.",
             action: {
@@ -209,8 +209,8 @@ export const StudentPaymentsPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.studentPayments}>
-              {loading.studentPayments ? <Spinner size="sm" /> : (editingPayment ? 'Save Changes' : 'Record Payment')}
+            <Button onClick={handleSubmit} loading={loading.studentPayments}>
+              {editingPayment ? 'Save Changes' : 'Record Payment'}
             </Button>
           </>
         }

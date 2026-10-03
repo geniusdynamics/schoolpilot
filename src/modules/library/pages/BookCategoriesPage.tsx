@@ -10,6 +10,7 @@ import Input from '@/components/ui/Input';
 
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
@@ -18,6 +19,7 @@ type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 export const BookCategoriesPageContent: React.FC = () => {
   const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useAppData(); // Updated
   const { t } = useTranslation('library');
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BookCategory | null>(null);
@@ -57,7 +59,7 @@ export const BookCategoriesPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this book category? This may affect existing books.')) {
+    if (await confirm({ title: 'Delete book category', message: 'Are you sure you want to delete this book category? This may affect existing books.', variant: 'danger' })) {
       await deleteBookCategory(id);
     }
   };
@@ -67,7 +69,7 @@ export const BookCategoriesPageContent: React.FC = () => {
     { header: 'Category Name', key: 'name' as keyof BookCategory },
     {
       header: 'Actions',
-      key: 'id' as keyof BookCategory,
+      key: 'actions',
       render: (value: any, item: BookCategory) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
@@ -92,7 +94,7 @@ export const BookCategoriesPageContent: React.FC = () => {
           {t('bookCategories.addCategory')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('bookCategories.defineCategories')}
         </p>
         <DataGrid columns={columns} data={bookCategories} loading={loading.bookCategories && isModalOpen} />
@@ -115,8 +117,8 @@ export const BookCategoriesPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>{t('bookCategories.cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={loading.bookCategories}>
-            {loading.bookCategories ? <Spinner size="sm"/> : (editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory'))}
+          <Button onClick={handleSubmit} loading={loading.bookCategories}>
+            {editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory')}
           </Button>
         </FormActions>
       </DialogForm>

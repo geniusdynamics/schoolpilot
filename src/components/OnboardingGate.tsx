@@ -60,10 +60,10 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   // While checking, show minimal loading
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-          <p className="text-gray-600">Loading SchoolPilot...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto" />
+          <p className="text-surface-muted-fg">Loading SchoolPilot...</p>
         </div>
       </div>
     );

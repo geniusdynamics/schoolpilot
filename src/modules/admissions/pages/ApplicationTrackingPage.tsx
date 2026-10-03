@@ -171,7 +171,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                       ? 'bg-green-500 border-green-500'
                       : isCurrent
                       ? 'bg-yellow-100 border-yellow-400'
-                      : 'bg-gray-100 border-gray-300'
+                      : 'bg-surface-accent border-surface-border'
                   }`}
                 >
                   {isRejectedStep ? (
@@ -180,7 +180,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                     <CheckCircleIcon className="w-5 h-5 text-white" />
                   ) : (
                     <IconComponent
-                      className={`w-5 h-5 ${isCurrent ? 'text-yellow-600' : 'text-gray-400'}`}
+                      className={`w-5 h-5 ${isCurrent ? 'text-yellow-600' : 'text-surface-muted-fg'}`}
                     />
                   )}
                 </div>
@@ -203,13 +203,13 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                       ? 'text-green-700'
                       : isCurrent
                       ? 'text-yellow-700'
-                      : 'text-gray-400'
+                      : 'text-surface-muted-fg'
                   }`}
                 >
                   {step.label}
                 </p>
                 {isCurrent && !isRejected && (
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-surface-muted-fg mt-0.5">
                     {t('public.tracking.currentStatus', 'Current Status')}
                   </p>
                 )}
@@ -228,13 +228,13 @@ export const ApplicationTrackingPageContent: React.FC = () => {
 
   // â”€â”€ Main Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-primary-50 py-8 px-4">
       {/* Header */}
       <div className="max-w-2xl mx-auto mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-surface-foreground mb-2">
           {t('public.tracking.title', 'Track Your Application')}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-surface-muted-fg">
           {t(
             'public.tracking.subtitle',
             'Enter your application reference number to check the current status of your application.'
@@ -245,7 +245,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
       {/* Search Card */}
       <Card variant="elevated" size="lg" className="max-w-2xl mx-auto mb-6">
         <div className="px-4 py-4 sm:px-6 sm:py-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-surface-foreground mb-2">
             {t('public.tracking.referenceNumber', 'Application Reference Number')}
           </label>
           <div className="flex gap-3">
@@ -255,7 +255,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                 onChange={(e) => setReferenceNumber(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="e.g., APP-XXXXX-XXX"
-                leftIcon={<SearchIcon className="w-4 h-4 text-gray-400" />}
+                leftIcon={<SearchIcon className="w-4 h-4 text-surface-muted-fg" />}
               />
             </div>
             <Button
@@ -275,7 +275,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
       {isSearching && (
         <div className="max-w-2xl mx-auto text-center py-12">
           <Spinner size="lg" />
-          <p className="text-gray-500 mt-4">{t('common.loading', 'Searching...')}</p>
+          <p className="text-surface-muted-fg mt-4">{t('common.loading', 'Searching...')}</p>
         </div>
       )}
 
@@ -284,18 +284,18 @@ export const ApplicationTrackingPageContent: React.FC = () => {
         <Card variant="outlined" size="lg" className="max-w-2xl mx-auto">
           <div className="px-4 py-8 sm:px-6 text-center">
             <XCircleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-surface-foreground mb-2">
               {t('public.tracking.notFound', 'Application Not Found')}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-surface-muted-fg mb-4">
               {t(
                 'public.tracking.notFoundDesc',
                 'No application was found with that reference number. Please check the number and try again.'
               )}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-surface-muted-fg">
               {t('public.tracking.searchedFor', 'Searched for:')}{' '}
-              <code className="bg-gray-100 px-2 py-0.5 rounded font-mono">{referenceNumber}</code>
+              <code className="bg-surface-accent px-2 py-0.5 rounded font-mono">{referenceNumber}</code>
             </p>
           </div>
         </Card>
@@ -309,7 +309,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
             {/* Status Header */}
             <div className="px-4 py-4 sm:px-6 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-surface-muted-fg">
                   {t('public.tracking.applicationNumber', 'Application')}
                 </p>
                 <p className="text-lg font-mono font-bold text-indigo-700">
@@ -324,12 +324,12 @@ export const ApplicationTrackingPageContent: React.FC = () => {
             {/* Student Details */}
             <div className="px-4 py-4 sm:px-6 space-y-3">
               <div className="flex items-center gap-3">
-                <UserIcon className="w-5 h-5 text-gray-400" />
+                <UserIcon className="w-5 h-5 text-surface-muted-fg" />
                 <div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-surface-muted-fg">
                     {t('public.studentName', 'Student Name')}
                   </p>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-surface-foreground">
                     {application.firstName} {application.middleName && `${application.middleName} `}
                     {application.lastName}
                   </p>
@@ -337,24 +337,24 @@ export const ApplicationTrackingPageContent: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-gray-400" />
+                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg" />
                 <div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-surface-muted-fg">
                     {t('application.fields.intendedClass', 'Applied Class')}
                   </p>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-surface-foreground">
                     {application.intendedClassName || application.intendedClassId || 'â€”'}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <CalendarIcon className="w-5 h-5 text-gray-400" />
+                <CalendarIcon className="w-5 h-5 text-surface-muted-fg" />
                 <div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-surface-muted-fg">
                     {t('public.tracking.submittedOn', 'Submitted On')}
                   </p>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-surface-foreground">
                     {application.submissionDate
                       ? new Date(application.submissionDate).toLocaleDateString('en-GB', {
                           year: 'numeric',
@@ -368,12 +368,12 @@ export const ApplicationTrackingPageContent: React.FC = () => {
 
               {application.guardianEmail && (
                 <div className="flex items-center gap-3">
-                  <DocumentTextIcon className="w-5 h-5 text-gray-400" />
+                  <DocumentTextIcon className="w-5 h-5 text-surface-muted-fg" />
                   <div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-surface-muted-fg">
                       {t('application.fields.guardianEmail', 'Contact Email')}
                     </p>
-                    <p className="font-medium text-gray-900">{application.guardianEmail}</p>
+                    <p className="font-medium text-surface-foreground">{application.guardianEmail}</p>
                   </div>
                 </div>
               )}
@@ -383,7 +383,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
           {/* Timeline Card */}
           <Card variant="elevated" size="lg">
             <div className="px-4 py-4 sm:px-6 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-surface-foreground">
                 {t('public.tracking.statusTimeline', 'Application Progress')}
               </h3>
             </div>
@@ -405,8 +405,8 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                   )}
                 </p>
                 {application.reviewNotes && (
-                  <div className="bg-white rounded-lg p-3 mb-4 text-left">
-                    <p className="text-sm text-gray-600">
+                  <div className="bg-surface-card rounded-lg p-3 mb-4 text-left">
+                    <p className="text-sm text-surface-muted-fg">
                       <span className="font-medium">{t('public.tracking.notes', 'Notes:')}</span>{' '}
                       {application.reviewNotes}
                     </p>
@@ -448,8 +448,8 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                   )}
                 </p>
                 {application.rejectionReason && (
-                  <div className="bg-white rounded-lg p-3 mb-4 text-left">
-                    <p className="text-sm text-gray-700">
+                  <div className="bg-surface-card rounded-lg p-3 mb-4 text-left">
+                    <p className="text-sm text-surface-foreground">
                       <span className="font-medium">
                         {t('public.tracking.reason', 'Reason:')}:
                       </span>{' '}
@@ -523,10 +523,10 @@ export const ApplicationTrackingPageContent: React.FC = () => {
         <div className="max-w-2xl mx-auto mt-8">
           <Card variant="outlined" size="lg">
             <div className="px-4 py-6 sm:px-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">
+              <h3 className="text-base font-semibold text-surface-foreground mb-3">
                 {t('public.tracking.howItWorks', 'How It Works')}
               </h3>
-              <div className="space-y-3 text-sm text-gray-600">
+              <div className="space-y-3 text-sm text-surface-muted-fg">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
                     1

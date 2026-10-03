@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
       workbox: {
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 8 MiB
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        skipWaiting: true,
-        clientsClaim: true,
+        // NOTE: registerType 'prompt' requires the new worker to WAIT until the
+        // user accepts the update prompt — skipWaiting/clientsClaim would bypass it.
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

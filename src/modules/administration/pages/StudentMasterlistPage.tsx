@@ -190,12 +190,12 @@ const StudentMasterlistPage: React.FC = () => {
       render: (value, row) => {
         const statusColors: Record<string, string> = {
           'Active': 'bg-green-100 text-green-800',
-          'Alumni': 'bg-blue-100 text-blue-800',
+          'Alumni': 'bg-primary-100 text-primary-800',
           'Suspended': 'bg-yellow-100 text-yellow-800',
-          'Transferred': 'bg-gray-100 text-gray-800',
+          'Transferred': 'bg-surface-accent text-surface-foreground',
           'Expelled': 'bg-red-100 text-red-800'
         };
-        const colorClass = statusColors[row.status] || 'bg-gray-100 text-gray-800';
+        const colorClass = statusColors[row.status] || 'bg-surface-accent text-surface-foreground';
         return (
           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
             {row.status}
@@ -230,14 +230,14 @@ const StudentMasterlistPage: React.FC = () => {
     <div className="p-6 space-y-4">
       <Card>
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-surface-foreground flex items-center gap-2">
             <UsersIcon className="w-6 h-6" />
             {t('studentMasterlist')}
           </h1>
           
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-muted-fg" />
               <Input
                 placeholder={t('searchPlaceholder')}
                 value={searchTerm}
@@ -320,14 +320,14 @@ const StudentMasterlistPage: React.FC = () => {
             sortable={true}
             filterable={true}
             emptyState={{
-              icon: <UsersIcon className="w-12 h-12 text-gray-400" />,
+              icon: <UsersIcon className="w-12 h-12 text-surface-muted-fg" />,
               title: t('noStudentsFound'),
               description: t('noStudentsDescription')
             }}
           />
         )}
         
-        <div className="mt-4 text-sm text-gray-500 text-right">
+        <div className="mt-4 text-sm text-surface-muted-fg text-right">
           {t('showing')} {filteredData.length} {t('of')} {data.length} {t('studentsCountLabel')}
         </div>
       </Card>

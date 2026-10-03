@@ -296,7 +296,7 @@ describe('DataCard Component', () => {
       render(<DataCard metric={metric} />);
 
       const valueElement = screen.getByText('100');
-      expect(valueElement).toHaveClass('text-blue-600');
+      expect(valueElement).toHaveClass('text-primary-600');
     });
 
     it('applies green color', () => {

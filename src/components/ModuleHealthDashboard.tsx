@@ -154,7 +154,7 @@ const ModuleHealthDashboard: React.FC<ModuleHealthDashboardProps> = ({
     return (
       <Card title="Module Health" className={className}>
         <div className="flex justify-center items-center p-8">
-          <RefreshCwIcon className="w-6 h-6 animate-spin text-blue-500 mr-2" />
+          <RefreshCwIcon className="w-6 h-6 animate-spin text-primary-500 mr-2" />
           <span>Loading module health data...</span>
         </div>
       </Card>
@@ -163,7 +163,7 @@ const ModuleHealthDashboard: React.FC<ModuleHealthDashboardProps> = ({
 
   if (compact) {
     return (
-      <div className={`bg-white rounded-lg shadow p-4 ${className}`}>
+      <div className={`bg-surface-card rounded-lg shadow p-4 ${className}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Module Health</h3>
           <Button size="sm" variant="ghost" onClick={handleRefreshAll} className="p-1">
@@ -221,32 +221,32 @@ const ModuleHealthDashboard: React.FC<ModuleHealthDashboardProps> = ({
       </div>
       
       {sortedModules.length === 0 ? (
-        <div className="text-center p-8 text-gray-500">
+        <div className="text-center p-8 text-surface-muted-fg">
           No modules match the current filter criteria
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-surface-border">
+            <thead className="bg-surface-muted">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                   Module
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                   Status
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                   Load Time
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                   Last Error
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-surface-card divide-y divide-surface-border">
               {sortedModules.map(health => (
                 <tr key={health.moduleId} className={
                   health.status === ModuleHealthStatus.ERROR || health.status === ModuleHealthStatus.FAILED
@@ -255,16 +255,16 @@ const ModuleHealthDashboard: React.FC<ModuleHealthDashboardProps> = ({
                       ? 'bg-yellow-50'
                       : ''
                 }>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-surface-foreground">
                     {health.moduleId}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {renderStatusBadge(health.status)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-surface-muted-fg">
                     {health.loadTime ? `${health.loadTime.toFixed(2)}ms` : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                  <td className="px-6 py-4 text-sm text-surface-muted-fg max-w-xs truncate">
                     {health.lastError ? (
                       <span title={health.lastError.message}>
                         {health.lastError.message}

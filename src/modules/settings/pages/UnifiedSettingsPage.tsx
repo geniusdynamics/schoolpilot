@@ -390,8 +390,8 @@ export const UnifiedSettingsContent: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Initializing application data...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-surface-muted-fg">Initializing application data...</p>
           {initializationError && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-red-700 text-sm">Error: {initializationError.message}</p>
@@ -413,12 +413,12 @@ export const UnifiedSettingsContent: React.FC = () => {
   return (
     <PageContainer>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
-        <p className="text-gray-600 mt-2">{t('description')}</p>
+        <h1 className="text-3xl font-bold text-surface-foreground">{t('title')}</h1>
+        <p className="text-surface-muted-fg mt-2">{t('description')}</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-surface-border mb-6">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -428,8 +428,8 @@ export const UnifiedSettingsContent: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
                 }`}
               >
                 <Icon className="mr-2 h-5 w-5" />
@@ -445,11 +445,11 @@ export const UnifiedSettingsContent: React.FC = () => {
         <div className="space-y-6">
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">General App Settings</h3>
-              <p className="text-gray-600 mb-4">Configure general application settings</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">General App Settings</h3>
+              <p className="text-surface-muted-fg mb-4">Configure general application settings</p>
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Unified Configuration Status:</p>
+                <div className="p-4 bg-surface-muted rounded-lg">
+                  <p className="text-sm text-surface-muted-fg">Unified Configuration Status:</p>
                   <p className="font-medium">{isConfigLoading ? 'Loading...' : 'Ready'}</p>
                 </div>
               </div>
@@ -459,45 +459,45 @@ export const UnifiedSettingsContent: React.FC = () => {
           {schoolDetails && (
             <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center gap-2">
+              <h3 className="text-lg font-medium text-surface-foreground mb-2 flex items-center gap-2">
                 School Profile Overview
                 {loading?.schoolDetails && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                 )}
               </h3>
-              <p className="text-gray-600 mb-4">Basic information about your school</p>
+              <p className="text-surface-muted-fg mb-4">Basic information about your school</p>
               {loading?.schoolDetails ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading school details...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-surface-muted-fg">Loading school details...</p>
                   </div>
                 </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">School Name</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">School Name</p>
                       <p className="font-medium">{schoolDetails.name || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Address</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Address</p>
                       <p className="font-medium">{schoolDetails.address || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Phone</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Phone</p>
                       <p className="font-medium">{schoolDetails.phone || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Email</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Email</p>
                       <p className="font-medium">{schoolDetails.email || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Website</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Website</p>
                       <p className="font-medium">{schoolDetails.website || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Principal</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Principal</p>
                       <p className="font-medium">{schoolDetails.principal || 'Not set'}</p>
                     </div>
                   </div>
@@ -513,12 +513,12 @@ export const UnifiedSettingsContent: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">User Management Overview</h3>
-              <p className="text-gray-600 mb-4">Quick overview of user accounts</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">User Management Overview</h3>
+              <p className="text-surface-muted-fg mb-4">Quick overview of user accounts</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-600">Total Users</p>
-                  <p className="text-2xl font-bold text-blue-700">{users?.length || 0}</p>
+                <div className="p-3 bg-primary-50 rounded-lg">
+                  <p className="text-sm text-primary-600">Total Users</p>
+                  <p className="text-2xl font-bold text-primary-700">{users?.length || 0}</p>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-600">Active Users</p>
@@ -546,8 +546,8 @@ export const UnifiedSettingsContent: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Academic Calendar Setup</h3>
-              <p className="text-gray-600 mb-4">Configure academic structures and periods</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Academic Calendar Setup</h3>
+              <p className="text-surface-muted-fg mb-4">Configure academic structures and periods</p>
               <div className="space-y-3">
                 <Button variant="outline" className="w-full justify-start">
                   <ArrowLeftOnRectangleIcon className="mr-2 h-4 w-4" />
@@ -571,8 +571,8 @@ export const UnifiedSettingsContent: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Roles &amp; Permissions Overview</h3>
-              <p className="text-gray-600 mb-4">Quick access to user roles and workflow management</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Roles &amp; Permissions Overview</h3>
+              <p className="text-surface-muted-fg mb-4">Quick access to user roles and workflow management</p>
               <div className="space-y-3">
                 <Button 
                   variant="outline" 
@@ -596,15 +596,15 @@ export const UnifiedSettingsContent: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">System Information</h3>
-              <p className="text-gray-600 mb-4">Current system status and version information</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">System Information</h3>
+              <p className="text-surface-muted-fg mb-4">Current system status and version information</p>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Application Version:</span>
+                  <span className="text-sm text-surface-muted-fg">Application Version:</span>
                   <span className="font-medium">{appVersion}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Connection Status:</span>
+                  <span className="text-sm text-surface-muted-fg">Connection Status:</span>
                   <span className={`font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
                     {isOnline ? 'Online' : 'Offline'}
                   </span>
@@ -623,13 +623,13 @@ export const UnifiedSettingsContent: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-surface-foreground flex items-center gap-2">
                     User Management
                     {loading?.users && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                     )}
                   </h3>
-                  <p className="text-gray-600">Manage user accounts and permissions</p>
+                  <p className="text-surface-muted-fg">Manage user accounts and permissions</p>
                 </div>
                 <Button onClick={() => openUserModal()}>
                   <PlusIcon className="mr-2 h-4 w-4" />
@@ -639,8 +639,8 @@ export const UnifiedSettingsContent: React.FC = () => {
               {loading?.users ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading users...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-surface-muted-fg">Loading users...</p>
                   </div>
                 </div>
               ) : (
@@ -658,13 +658,13 @@ export const UnifiedSettingsContent: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-surface-foreground flex items-center gap-2">
                     Role Management
                     {loading?.roles && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                     )}
                   </h3>
-                  <p className="text-gray-600">Define and manage user roles</p>
+                  <p className="text-surface-muted-fg">Define and manage user roles</p>
                 </div>
                 <Button onClick={() => openRoleModal()}>
                   <PlusIcon className="mr-2 h-4 w-4" />
@@ -674,8 +674,8 @@ export const UnifiedSettingsContent: React.FC = () => {
               {loading?.roles ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading roles...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-surface-muted-fg">Loading roles...</p>
                   </div>
                 </div>
               ) : (
@@ -699,8 +699,8 @@ export const UnifiedSettingsContent: React.FC = () => {
       {activeTab === 'sync' && (
         <Card>
           <div className="p-6 space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Sync Controls</h3>
-            <p className="text-gray-600">
+            <h3 className="text-lg font-medium text-surface-foreground">Sync Controls</h3>
+            <p className="text-surface-muted-fg">
               Sync management is centralized in Data Layer Settings together with mode,
               database, and backend configuration.
             </p>
@@ -718,8 +718,8 @@ export const UnifiedSettingsContent: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Workflow Management</h3>
-                  <p className="text-gray-600">Configure approval workflows and states</p>
+                  <h3 className="text-lg font-medium text-surface-foreground">Workflow Management</h3>
+                  <p className="text-surface-muted-fg">Configure approval workflows and states</p>
                 </div>
                 <Button onClick={() => openWorkflowModal()}>
                   <PlusIcon className="mr-2 h-4 w-4" />
@@ -740,10 +740,10 @@ export const UnifiedSettingsContent: React.FC = () => {
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-surface-foreground">
                       States for "{currentWorkflowForStates.name}"
                     </h3>
-                    <p className="text-gray-600">Manage workflow states and their order</p>
+                    <p className="text-surface-muted-fg">Manage workflow states and their order</p>
                   </div>
                   <div className="flex gap-2">
                     <Button 
@@ -841,9 +841,9 @@ export const UnifiedSettingsContent: React.FC = () => {
                 type="checkbox"
                 checked={userFormData.isActive}
                 onChange={(e) => setUserFormData({ ...userFormData, isActive: e.target.checked })}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-surface-border rounded"
               />
-              <span className="text-sm text-gray-900">Active</span>
+              <span className="text-sm text-surface-foreground">Active</span>
             </label>
           </FormField>
         </FormSection>

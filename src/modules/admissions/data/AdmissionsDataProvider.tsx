@@ -2,6 +2,7 @@
 import React, { createContext, useContext, ReactNode, useCallback, useState } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import * as types from './types';
 
 interface AdmissionsDataContextType {
@@ -37,6 +38,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
   children, applications, interviews, loading: parentLoading
 }) => {
   const toast = useToast();
+  const confirm = useConfirm();
   const [localLoading, setLocalLoading] = useState(false);
   const loading = parentLoading || localLoading;
 
@@ -55,7 +57,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
   };
 
   const withConfirm = async <T,>(fn: () => Promise<T>, confirmMsg: string): Promise<T | void> => {
-    if (!window.confirm(confirmMsg)) return;
+    if (!(await confirm({ title: 'Confirm action', message: confirmMsg, variant: 'danger' }))) return;
     return fn();
   };
 

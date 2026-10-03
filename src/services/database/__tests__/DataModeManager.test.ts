@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DataModeManager } from '../../dataModeManager';
+import { DataModeManager } from '@/services/data/dataModeManager';
 
 // Mock the dependencies
 vi.mock('../DatabaseProviderFactory', () => {

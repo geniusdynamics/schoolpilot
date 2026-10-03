@@ -91,19 +91,19 @@ const ModuleLoadingProgress: React.FC<ModuleLoadingProgressProps> = ({
       {/* Progress bar */}
       <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
         <div 
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+          className="bg-primary-600 h-2 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${Math.min(progress, 100)}%` }}
         />
       </div>
 
       {/* Progress percentage */}
-      <div className="text-center text-sm text-gray-600 mb-2">
+      <div className="text-center text-sm text-surface-muted-fg mb-2">
         {Math.round(progress)}% Complete
       </div>
 
       {/* Current module (if details enabled) */}
       {showDetails && (
-        <div className="text-center text-xs text-gray-500 mb-4">
+        <div className="text-center text-xs text-surface-muted-fg mb-4">
           {currentModule}
         </div>
       )}

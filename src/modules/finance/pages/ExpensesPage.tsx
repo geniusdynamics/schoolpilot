@@ -30,7 +30,7 @@ const ExpensesPage: React.FC = () => {
       id: 'expenses',
       label: t('expenses.title', 'Expenses'),
       icon: <BanknotesIcon className="w-4 h-4" />,
-      component: <div className="p-4"><BanknotesIcon className="w-6 h-6 text-gray-400" /> <span className="text-gray-500 ml-2">Expense records will appear here</span></div>,
+      component: <div className="p-4"><BanknotesIcon className="w-6 h-6 text-surface-muted-fg" /> <span className="text-surface-muted-fg ml-2">Expense records will appear here</span></div>,
     },
     {
       id: 'banks',

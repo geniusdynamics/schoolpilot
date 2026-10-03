@@ -180,17 +180,17 @@ const VisitorsManagementPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="text-2xl font-bold text-blue-700">{stats.total}</div>
-          <div className="text-sm text-blue-600">Total Visitors</div>
+        <Card className="bg-primary-50 border-primary-200">
+          <div className="text-2xl font-bold text-primary-700">{stats.total}</div>
+          <div className="text-sm text-primary-600">Total Visitors</div>
         </Card>
         <Card className="bg-green-50 border-green-200">
           <div className="text-2xl font-bold text-green-700">{stats.checkedIn}</div>
           <div className="text-sm text-green-600">Currently In</div>
         </Card>
-        <Card className="bg-gray-50 border-gray-200">
-          <div className="text-2xl font-bold text-gray-700">{stats.checkedOut}</div>
-          <div className="text-sm text-gray-600">Checked Out</div>
+        <Card className="bg-surface-muted border-surface-border">
+          <div className="text-2xl font-bold text-surface-foreground">{stats.checkedOut}</div>
+          <div className="text-sm text-surface-muted-fg">Checked Out</div>
         </Card>
         <Card className="bg-purple-50 border-purple-200">
           <div className="text-2xl font-bold text-purple-700">{stats.today}</div>
@@ -215,8 +215,8 @@ const VisitorsManagementPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No visitor logs found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No visitor logs found.</p>
             </div>
           }
         />
@@ -231,52 +231,52 @@ const VisitorsManagementPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Name</label>
+                <label className="text-sm font-medium text-surface-foreground">Name</label>
                 <p className="mt-1">{selectedVisitor.visitor_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Type</label>
+                <label className="text-sm font-medium text-surface-foreground">Type</label>
                 <div className="mt-1"><Badge variant="neutral">{selectedVisitor.visitor_type}</Badge></div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Phone</label>
+                <label className="text-sm font-medium text-surface-foreground">Phone</label>
                 <p className="mt-1">{selectedVisitor.phone}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Email</label>
+                <label className="text-sm font-medium text-surface-foreground">Email</label>
                 <p className="mt-1">{selectedVisitor.email || '-'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">ID Type</label>
+                <label className="text-sm font-medium text-surface-foreground">ID Type</label>
                 <p className="mt-1">{selectedVisitor.id_type || '-'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">ID Number</label>
+                <label className="text-sm font-medium text-surface-foreground">ID Number</label>
                 <p className="mt-1">{selectedVisitor.id_number || '-'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">{getStatusBadge(selectedVisitor.status)}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Person to Meet</label>
+                <label className="text-sm font-medium text-surface-foreground">Person to Meet</label>
                 <p className="mt-1">{selectedVisitor.person_to_meet || '-'}</p>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Purpose</label>
+              <label className="text-sm font-medium text-surface-foreground">Purpose</label>
               <p className="mt-1">{selectedVisitor.purpose}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Check In</label>
+                <label className="text-sm font-medium text-surface-foreground">Check In</label>
                 <p className="mt-1">{new Date(selectedVisitor.check_in_time).toLocaleString()}</p>
               </div>
               {selectedVisitor.check_out_time && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Check Out</label>
+                  <label className="text-sm font-medium text-surface-foreground">Check Out</label>
                   <p className="mt-1">{new Date(selectedVisitor.check_out_time).toLocaleString()}</p>
                 </div>
               )}
@@ -284,7 +284,7 @@ const VisitorsManagementPage: React.FC = () => {
 
             {selectedVisitor.remarks && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Remarks</label>
+                <label className="text-sm font-medium text-surface-foreground">Remarks</label>
                 <p className="mt-1">{selectedVisitor.remarks}</p>
               </div>
             )}

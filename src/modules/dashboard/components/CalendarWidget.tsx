@@ -23,7 +23,7 @@ interface CalendarWidgetProps {
 const eventTypeColors = {
   exam: 'bg-purple-500',
   holiday: 'bg-amber-500',
-  event: 'bg-blue-500',
+  event: 'bg-primary-500',
   meeting: 'bg-emerald-500',
 };
 
@@ -59,11 +59,11 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
   };
 
   return (
-    <div className={cn('bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden', className)}>
+    <div className={cn('bg-surface-card rounded-xl border border-surface-border shadow-sm overflow-hidden', className)}>
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900">Upcoming Events</h3>
+          <h3 className="text-base font-semibold text-surface-foreground">Upcoming Events</h3>
           {onAddEvent && (
             <button
               onClick={onAddEvent}
@@ -79,22 +79,22 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigateMonth('prev')}
-              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent rounded-lg transition-colors"
             >
               <ChevronLeftIcon className="h-5 w-5" />
             </button>
-            <span className="text-lg font-semibold text-gray-900 min-w-[140px] text-center">
+            <span className="text-lg font-semibold text-surface-foreground min-w-[140px] text-center">
               {format(currentDate, 'MMMM yyyy')}
             </span>
             <button
               onClick={() => navigateMonth('next')}
-              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent rounded-lg transition-colors"
             >
               <ChevronRightIcon className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-surface-accent rounded-lg p-1">
             {(['month', 'week', 'day'] as const).map((mode) => (
               <button
                 key={mode}
@@ -102,8 +102,8 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
                 className={cn(
                   'px-3 py-1 text-xs font-medium rounded-md transition-colors capitalize',
                   viewMode === mode
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-primary-500 text-white'
+                    : 'text-surface-muted-fg hover:text-surface-foreground'
                 )}
               >
                 {mode}
@@ -120,7 +120,7 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           {weekDays.map((weekDay) => (
             <div
               key={weekDay}
-              className="text-center text-xs font-medium text-gray-500 py-2"
+              className="text-center text-xs font-medium text-surface-muted-fg py-2"
             >
               {weekDay}
             </div>
@@ -142,7 +142,7 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
                 className={cn(
                   'relative h-10 flex items-center justify-center rounded-lg text-sm transition-colors',
                   !isCurrentMonth && 'text-gray-300',
-                  isCurrentMonth && 'text-gray-700 hover:bg-gray-50',
+                  isCurrentMonth && 'text-surface-foreground hover:bg-surface-muted',
                   isToday && 'bg-amber-100 text-amber-700 font-semibold',
                   hasEvents && !isToday && 'font-medium'
                 )}
@@ -162,7 +162,7 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
                       />
                     ))}
                     {dayEvents.length > 3 && (
-                      <span className="text-[8px] text-gray-400">+</span>
+                      <span className="text-[8px] text-surface-muted-fg">+</span>
                     )}
                   </div>
                 )}
@@ -173,13 +173,13 @@ export const CalendarWidget: React.FC<CalendarWidgetProps> = ({
       </div>
 
       {/* Event Legend */}
-      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 dark:bg-slate-800/50">
         <div className="flex flex-wrap items-center gap-3 text-xs">
-          <span className="text-gray-500">Events:</span>
+          <span className="text-surface-muted-fg">Events:</span>
           {Object.entries(eventTypeColors).map(([type, color]) => (
             <div key={type} className="flex items-center gap-1">
               <span className={cn('h-2 w-2 rounded-full', color)} />
-              <span className="text-gray-600 capitalize">{type}</span>
+              <span className="text-surface-muted-fg capitalize">{type}</span>
             </div>
           ))}
         </div>

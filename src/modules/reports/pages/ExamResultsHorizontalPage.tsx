@@ -70,7 +70,6 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
           ...(paperSettings || []).map(ps => ({
               header: `${(ps.subject_name || 'N/A').substring(0,5)} - ${(ps.subject_paper_name || 'N/A').substring(0,7)} (${ps.marks_out_of || 'N/A'})`, 
               key: `paper_${ps.id}` as keyof ReportRow, 
-              id: `paper_${ps.id}`, 
           })),
           { header: t('tableHeaders.totalMarks'), key: 'totalMarks' as keyof ReportRow },
           { header: t('tableHeaders.meanGrade'), key: 'meanGrade' as keyof ReportRow },
@@ -121,7 +120,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('examResultsHorizontal.title')}>
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-md bg-gray-50 filter-section">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-md bg-surface-muted filter-section">
             <Select
                 label={t('examResultsHorizontal.examSession')}
                 value={selectedExamSessionId || ''}
@@ -169,10 +168,10 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => window.print()} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.csvExportToBeDeveloped'))} leftIcon={<ExportIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.exportCSV')}</Button>
                 </div>
-                <DataGrid columns={dynamicColumns} data={(reportData || [])} loading={isGenerating} />
+                <DataGrid columns={dynamicColumns} data={(reportData || [])} loading={isGenerating} keyField="studentId" />
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">
+            <p className="text-center text-surface-muted-fg py-4">
                 {t('examResultsHorizontal.selectFiltersMessage')}
             </p>
         )}

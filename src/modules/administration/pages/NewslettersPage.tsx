@@ -117,14 +117,14 @@ export const NewslettersContent: React.FC = () => {
 
       {/* Content based on active tab */}
       {activeTab === 'newsletters' && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-surface-card rounded-xl border border-surface-border shadow-sm">
           {/* Header */}
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Newsletter(s)</h2>
+            <h2 className="text-xl font-semibold text-surface-foreground">Newsletter(s)</h2>
             <Button
               onClick={handleAddNewsletter}
               leftIcon={<PlusIcon className="h-4 w-4" />}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              className="bg-primary-500 hover:bg-primary-600 text-white"
             >
               Add Newsletter
             </Button>
@@ -145,8 +145,8 @@ export const NewslettersContent: React.FC = () => {
             {mockNewsletters.length === 0 && (
               <div className="text-center py-12">
                 <NewspaperIcon className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500">No newsletters found.</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-surface-muted-fg">No newsletters found.</p>
+                <p className="text-sm text-surface-muted-fg mt-1">
                   Click "Add Newsletter" to create your first newsletter.
                 </p>
               </div>
@@ -156,10 +156,10 @@ export const NewslettersContent: React.FC = () => {
       )}
 
       {activeTab === 'manage-events' && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-surface-card rounded-xl border border-surface-border shadow-sm">
           {/* Header */}
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Manage Events</h2>
+            <h2 className="text-xl font-semibold text-surface-foreground">Manage Events</h2>
             <Button
               onClick={() => logger.info('Add event')}
               leftIcon={<PlusIcon className="h-4 w-4" />}
@@ -175,18 +175,18 @@ export const NewslettersContent: React.FC = () => {
               {mockEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-4 p-4 bg-surface-muted rounded-xl hover:bg-surface-accent transition-colors"
                 >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white text-emerald-600 shadow-sm">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-card text-emerald-600 shadow-sm">
                     <CalendarIcon className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{event.title}</h4>
-                    <p className="text-sm text-gray-500">{event.date}</p>
+                    <h4 className="font-medium text-surface-foreground">{event.title}</h4>
+                    <p className="text-sm text-surface-muted-fg">{event.date}</p>
                   </div>
                   <span className={`
                     px-3 py-1 rounded-full text-xs font-medium capitalize
-                    ${event.type === 'sports' ? 'bg-blue-100 text-blue-700' :
+                    ${event.type === 'sports' ? 'bg-primary-100 text-primary-700' :
                       event.type === 'exam' ? 'bg-amber-100 text-amber-700' :
                       'bg-purple-100 text-purple-700'}
                   `}>
@@ -206,8 +206,8 @@ export const NewslettersContent: React.FC = () => {
             {mockEvents.length === 0 && (
               <div className="text-center py-12">
                 <CalendarIcon className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500">No events found.</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-surface-muted-fg">No events found.</p>
+                <p className="text-sm text-surface-muted-fg mt-1">
                   Click "Add Event" to create your first event.
                 </p>
               </div>

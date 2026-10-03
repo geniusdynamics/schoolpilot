@@ -3,19 +3,22 @@ import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 
 import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { CalendarIcon, PlusIcon, EditIcon, TrashIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
-import { initialMockSchoolEvents } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { SchoolEvent, EventType, EventStatus } from '../data/types';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 export const EventsManagerPageContent: React.FC = () => {
   const { loading } = useAppData();
+
+  const eventsCollection = useDatabaseCollection<SchoolEvent>('school_events');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<SchoolEvent | null>(null);
@@ -36,9 +39,9 @@ export const EventsManagerPageContent: React.FC = () => {
   };
   const [formData, setFormData] = useState<Partial<SchoolEvent>>(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from school_events
   const mockEvents: SchoolEvent[] = useMemo(() => {
-    let filtered = initialMockSchoolEvents;
+    let filtered = eventsCollection.data;
 
     if (selectedType) {
       filtered = filtered.filter(e => e.event_type === selectedType);
@@ -57,7 +60,7 @@ export const EventsManagerPageContent: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedType, selectedStatus, searchTerm]);
+  }, [eventsCollection.data, selectedType, selectedStatus, searchTerm]);
 
   const openModal = (event?: SchoolEvent) => {
     setEditingEvent(event || null);
@@ -87,18 +90,59 @@ export const EventsManagerPageContent: React.FC = () => {
   };
 
   const toast = useToast();
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title || !formData.start_date) {
       toast.showWarning('Title and start date are required.');
       return;
     }
-    logger.info('Saving event:', formData);
+
+    try {
+      if (editingEvent) {
+        await eventsCollection.update(editingEvent.id, {
+          title: formData.title,
+          description: formData.description,
+          event_type: formData.event_type,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+          location: formData.location,
+          status: formData.status,
+          organizer: formData.organizer,
+          participants: formData.participants
+        });
+        toast.showSuccess('Event updated.');
+      } else {
+        await eventsCollection.insert({
+          title: formData.title!,
+          description: formData.description ?? '',
+          event_type: formData.event_type ?? 'Other',
+          start_date: formData.start_date!,
+          end_date: formData.end_date ?? formData.start_date!,
+          location: formData.location ?? '',
+          status: formData.status ?? 'Upcoming',
+          organizer: formData.organizer ?? '',
+          participants: formData.participants || undefined,
+          created_at: new Date().toISOString()
+        });
+        toast.showSuccess('Event added.');
+      }
+      logger.info('Saved event:', formData);
+    } catch (err) {
+      logger.error('Failed to save event:', err);
+      toast.showError('Failed to save event.');
+    }
     closeModal();
   };
 
-  const deleteEvent = (event: SchoolEvent) => {
+  const deleteEvent = async (event: SchoolEvent) => {
     if (confirm('Are you sure you want to delete this event?')) {
-      logger.info('Deleting event:', event.id);
+      try {
+        await eventsCollection.remove(event.id);
+        toast.showSuccess('Event deleted.');
+        logger.info('Deleted event:', event.id);
+      } catch (err) {
+        logger.error('Failed to delete event:', err);
+        toast.showError('Failed to delete event.');
+      }
     }
   };
 
@@ -106,10 +150,10 @@ export const EventsManagerPageContent: React.FC = () => {
     const styles = {
       'Exam': 'bg-purple-100 text-purple-800',
       'Holiday': 'bg-green-100 text-green-800',
-      'Function': 'bg-blue-100 text-blue-800',
+      'Function': 'bg-primary-100 text-primary-800',
       'Meeting': 'bg-yellow-100 text-yellow-800',
       'Sports': 'bg-orange-100 text-orange-800',
-      'Other': 'bg-gray-100 text-gray-800'
+      'Other': 'bg-surface-accent text-surface-foreground'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type]}`}>
@@ -120,9 +164,9 @@ export const EventsManagerPageContent: React.FC = () => {
 
   const getStatusBadge = (status: EventStatus) => {
     const styles = {
-      'Upcoming': 'bg-blue-100 text-blue-800',
+      'Upcoming': 'bg-primary-100 text-primary-800',
       'Ongoing': 'bg-green-100 text-green-800',
-      'Completed': 'bg-gray-100 text-gray-800',
+      'Completed': 'bg-surface-accent text-surface-foreground',
       'Cancelled': 'bg-red-100 text-red-800'
     };
     return (
@@ -144,7 +188,7 @@ export const EventsManagerPageContent: React.FC = () => {
     };
   }, [mockEvents]);
 
-  if (loading?.all && mockEvents.length === 0) {
+  if ((loading?.all || eventsCollection.loading) && mockEvents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -156,7 +200,7 @@ export const EventsManagerPageContent: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Events Manager</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Events Manager</h1>
         <Button onClick={() => openModal()} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Event
@@ -178,26 +222,26 @@ export const EventsManagerPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Events</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CalendarIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <CalendarIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">Upcoming</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               {totals.upcoming}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Ongoing</span>
             </div>
@@ -205,12 +249,12 @@ export const EventsManagerPageContent: React.FC = () => {
               {totals.ongoing}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CalendarIcon className="w-5 h-5 text-gray-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <CalendarIcon className="w-5 h-5 text-surface-muted-fg" />
               <span className="text-sm font-medium">Completed</span>
             </div>
-            <p className="text-2xl font-bold text-gray-600 mt-2">
+            <p className="text-2xl font-bold text-surface-muted-fg mt-2">
               {totals.completed}
             </p>
           </div>
@@ -219,39 +263,39 @@ export const EventsManagerPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Event Type</label>
+            <Select
               value={selectedType}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedType(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Types</option>
               {eventTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
+            <Select
               value={selectedStatus}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Statuses</option>
               {eventStatuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Event, location..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -334,7 +378,7 @@ export const EventsManagerPageContent: React.FC = () => {
               value={formData.title}
               onChange={handleInputChange}
               placeholder="Event title"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -345,21 +389,21 @@ export const EventsManagerPageContent: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Event description"
               rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Event Type" required>
-            <select
+            <Select
               name="event_type"
               value={formData.event_type}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {eventTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Start Date" required>
@@ -368,7 +412,7 @@ export const EventsManagerPageContent: React.FC = () => {
               name="start_date"
               value={formData.start_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -378,7 +422,7 @@ export const EventsManagerPageContent: React.FC = () => {
               name="end_date"
               value={formData.end_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -389,21 +433,21 @@ export const EventsManagerPageContent: React.FC = () => {
               value={formData.location}
               onChange={handleInputChange}
               placeholder="Event location"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Status" required>
-            <select
+            <Select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {eventStatuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Organizer" required>
@@ -413,7 +457,7 @@ export const EventsManagerPageContent: React.FC = () => {
               value={formData.organizer}
               onChange={handleInputChange}
               placeholder="Event organizer"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -424,7 +468,7 @@ export const EventsManagerPageContent: React.FC = () => {
               value={formData.participants}
               onChange={handleInputChange}
               placeholder="Participants"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>

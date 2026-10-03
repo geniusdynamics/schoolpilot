@@ -1,44 +1,78 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { UserIcon, PlusIcon, AcademicCapIcon, BriefcaseIcon, DocumentTextIcon, ChartBarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { initialMockStaffBioData } from '../data/mockData';
-import type { StaffBioData, Qualification, EmploymentHistory, Contract, PerformanceReview } from '../data/types';
-
+import type { StaffBioData } from '../data/types';
+
 import { formatKES, formatDate } from '@/utils/format';
 export const StaffBioDataPageContent: React.FC = () => {
 
-  const { loading } = useAppData();
+  const { staff = [], loading } = useAppData();
 
-  const [selectedStaff, setSelectedStaff] = useState<StaffBioData | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'qualifications' | 'employment' | 'contracts' | 'performance'>('qualifications');
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockStaffBioData: StaffBioData[] = useMemo(() => {
-    let filtered = initialMockStaffBioData;
+  // Live staff records mapped into the bio-data display shape.
+  const staffBioData: StaffBioData[] = useMemo(() => {
+    return staff.map(s => ({
+      id: String(s.id),
+      staff_id: s.staff_no || '',
+      name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ').trim() || 'Unnamed',
+      designation: s.designation_title || '',
+      department: s.department_name || '',
+      date_of_birth: '',
+      gender: '',
+      marital_status: '',
+      blood_group: '',
+      phone: s.phone || '',
+      email: s.email || '',
+      address: '',
+      emergency_contact_name: '',
+      emergency_contact_phone: '',
+      emergency_contact_relation: '',
+      // Sub-records are not tracked per-staff yet; their tabs render empty states below.
+      qualifications: [],
+      employment_history: [],
+      contracts: [],
+      performance_reviews: [],
+      created_at: s.created_at || '',
+    }));
+  }, [staff]);
+
+  const departments = useMemo(
+    () => Array.from(new Set(staffBioData.map(s => s.department).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    [staffBioData]
+  );
+
+  const filteredStaff = useMemo(() => {
+    let filtered = staffBioData;
 
     if (selectedDepartment) {
       filtered = filtered.filter(s => s.department === selectedDepartment);
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(s => 
-        (s.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (s.staff_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(term) ||
+        s.staff_id.toLowerCase().includes(term)
       );
     }
 
     return filtered;
-  }, [selectedDepartment, searchTerm]);
+  }, [staffBioData, selectedDepartment, searchTerm]);
 
-  const departments = ['Academics', 'Sports', 'Administration', 'Finance', 'HR', 'Library'];
+  // Resolve the selected member from live data so edits stay fresh.
+  const selectedStaff = useMemo(
+    () => (selectedStaffId ? staffBioData.find(s => s.id === selectedStaffId) ?? null : null),
+    [staffBioData, selectedStaffId]
+  );
 
-  if (loading?.all && mockStaffBioData.length === 0) {
+  if (loading?.all && staffBioData.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -47,10 +81,12 @@ export const StaffBioDataPageContent: React.FC = () => {
     );
   }
 
+  const renderDetailValue = (value: string) => value || '—';
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Staff Bio Data & Records</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Staff Bio Data & Records</h1>
       </div>
       
       {!selectedStaff ? (
@@ -71,11 +107,11 @@ export const StaffBioDataPageContent: React.FC = () => {
           {/* Filters */}
           <div className="mb-6 flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <label className="block text-sm font-medium text-surface-foreground mb-1">Department</label>
               <select
                 value={selectedDepartment}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               >
                 <option value="">All Departments</option>
                 {departments.map(dept => (
@@ -84,29 +120,31 @@ export const StaffBioDataPageContent: React.FC = () => {
               </select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
               <input
                 type="text"
                 placeholder="Staff name, ID..."
                 value={searchTerm}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               />
             </div>
           </div>
 
           {/* Staff List */}
           <div className="space-y-3">
-            {mockStaffBioData.map(staff => (
+            {filteredStaff.map(staff => (
               <div
                 key={staff.id}
-                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                onClick={() => setSelectedStaff(staff)}
+                className="p-4 border border-surface-border rounded-lg hover:bg-surface-muted cursor-pointer"
+                onClick={() => setSelectedStaffId(staff.id)}
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-semibold text-gray-800">{staff.name}</h4>
-                    <p className="text-sm text-gray-600">{staff.staff_id} | {staff.designation} | {staff.department}</p>
+                    <h4 className="font-semibold text-surface-foreground">{staff.name}</h4>
+                    <p className="text-sm text-surface-muted-fg">
+                      {[staff.staff_id, staff.designation, staff.department].filter(Boolean).join(' | ') || '—'}
+                    </p>
                   </div>
                   <Button size="sm" variant="secondary">
                     View Details
@@ -114,44 +152,49 @@ export const StaffBioDataPageContent: React.FC = () => {
                 </div>
               </div>
             ))}
+            {filteredStaff.length === 0 && (
+              <div className="py-8 text-center text-surface-muted-fg">
+                No staff records found.
+              </div>
+            )}
           </div>
         </Card>
       ) : (
         <Card>
           <div className="flex justify-between items-center mb-4">
-            <Button onClick={() => setSelectedStaff(null)} variant="secondary">
+            <Button onClick={() => setSelectedStaffId(null)} variant="secondary">
               Ã¢â€ Â Back to Staff List
             </Button>
-            <h2 className="text-xl font-bold text-gray-800">{selectedStaff.name}</h2>
+            <h2 className="text-xl font-bold text-surface-foreground">{selectedStaff.name}</h2>
           </div>
 
           {/* Tabs */}
-          <div className="mb-6 border-b border-gray-200">
+          <div className="mb-6 border-b border-surface-border">
             <div className="flex gap-4">
               <button
                 onClick={() => setActiveTab('qualifications')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'qualifications' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'qualifications' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-surface-muted-fg'}`}
               >
                 <AcademicCapIcon className="w-4 h-4 inline mr-1" />
                 Qualifications
               </button>
               <button
                 onClick={() => setActiveTab('employment')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'employment' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'employment' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-surface-muted-fg'}`}
               >
                 <BriefcaseIcon className="w-4 h-4 inline mr-1" />
                 Employment History
               </button>
               <button
                 onClick={() => setActiveTab('contracts')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'contracts' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'contracts' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-surface-muted-fg'}`}
               >
                 <DocumentTextIcon className="w-4 h-4 inline mr-1" />
                 Contracts
               </button>
               <button
                 onClick={() => setActiveTab('performance')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'performance' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'performance' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-surface-muted-fg'}`}
               >
                 <ChartBarIcon className="w-4 h-4 inline mr-1" />
                 Performance Reviews
@@ -160,42 +203,39 @@ export const StaffBioDataPageContent: React.FC = () => {
           </div>
 
           {/* Tab Content */}
-          <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <h3 className="font-semibold text-gray-800 mb-2">Basic Information</h3>
+          <div className="mb-6 p-4 bg-surface-muted border border-surface-border rounded-lg">
+            <h3 className="font-semibold text-surface-foreground mb-2">Basic Information</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-              <div><span className="font-medium">Staff ID:</span> {selectedStaff.staff_id}</div>
-              <div><span className="font-medium">Designation:</span> {selectedStaff.designation}</div>
-              <div><span className="font-medium">Department:</span> {selectedStaff.department}</div>
-              <div><span className="font-medium">Date of Birth:</span> {formatDate(selectedStaff.date_of_birth)}</div>
-              <div><span className="font-medium">Gender:</span> {selectedStaff.gender}</div>
-              <div><span className="font-medium">Marital Status:</span> {selectedStaff.marital_status}</div>
-              <div><span className="font-medium">Blood Group:</span> {selectedStaff.blood_group}</div>
-              <div><span className="font-medium">Phone:</span> {selectedStaff.phone}</div>
-              <div><span className="font-medium">Email:</span> {selectedStaff.email}</div>
-              <div className="col-span-2 md:col-span-3"><span className="font-medium">Address:</span> {selectedStaff.address}</div>
-              <div><span className="font-medium">Emergency Contact:</span> {selectedStaff.emergency_contact_name}</div>
-              <div><span className="font-medium">Emergency Phone:</span> {selectedStaff.emergency_contact_phone}</div>
-              <div><span className="font-medium">Relation:</span> {selectedStaff.emergency_contact_relation}</div>
+              <div><span className="font-medium">Staff ID:</span> {renderDetailValue(selectedStaff.staff_id)}</div>
+              <div><span className="font-medium">Designation:</span> {renderDetailValue(selectedStaff.designation)}</div>
+              <div><span className="font-medium">Department:</span> {renderDetailValue(selectedStaff.department)}</div>
+              <div><span className="font-medium">Date Joined:</span> {formatDate(selectedStaff.created_at)}</div>
+              <div><span className="font-medium">Gender:</span> {renderDetailValue(selectedStaff.gender)}</div>
+              <div><span className="font-medium">Phone:</span> {renderDetailValue(selectedStaff.phone)}</div>
+              <div><span className="font-medium">Email:</span> {renderDetailValue(selectedStaff.email)}</div>
+              <div><span className="font-medium">Address:</span> {renderDetailValue(selectedStaff.address)}</div>
             </div>
           </div>
 
           {activeTab === 'qualifications' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Qualifications</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Qualifications</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Qualification
                 </Button>
               </div>
               <div className="space-y-3">
-                {selectedStaff.qualifications.map(qual => (
-                  <div key={qual.id} className="p-4 border border-gray-200 rounded-lg">
+                {selectedStaff.qualifications.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg py-4">No qualification records available for this staff member yet.</p>
+                ) : selectedStaff.qualifications.map(qual => (
+                  <div key={qual.id} className="p-4 border border-surface-border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-gray-800">{qual.degree}</h4>
-                        <p className="text-sm text-gray-600">{qual.institution} | {qual.year}</p>
-                        <p className="text-xs text-gray-500">Field: {qual.field}</p>
+                        <h4 className="font-semibold text-surface-foreground">{qual.degree}</h4>
+                        <p className="text-sm text-surface-muted-fg">{qual.institution} | {qual.year}</p>
+                        <p className="text-xs text-surface-muted-fg">Field: {qual.field}</p>
                       </div>
                       <Button size="sm" variant="secondary">
                         Edit
@@ -210,24 +250,26 @@ export const StaffBioDataPageContent: React.FC = () => {
           {activeTab === 'employment' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Employment History</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Employment History</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Employment
                 </Button>
               </div>
               <div className="space-y-3">
-                {selectedStaff.employment_history.map(emp => (
-                  <div key={emp.id} className="p-4 border border-gray-200 rounded-lg">
+                {selectedStaff.employment_history.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg py-4">No employment history records available for this staff member yet.</p>
+                ) : selectedStaff.employment_history.map(emp => (
+                  <div key={emp.id} className="p-4 border border-surface-border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-gray-800">{emp.position}</h4>
-                        <p className="text-sm text-gray-600">{emp.organization}</p>
-                        <p className="text-xs text-gray-500">
+                        <h4 className="font-semibold text-surface-foreground">{emp.position}</h4>
+                        <p className="text-sm text-surface-muted-fg">{emp.organization}</p>
+                        <p className="text-xs text-surface-muted-fg">
                           {formatDate(emp.start_date)} - {emp.end_date ? formatDate(emp.end_date) : 'Present'}
                         </p>
                         {emp.reason_for_leaving && (
-                          <p className="text-xs text-gray-500 mt-1">Reason: {emp.reason_for_leaving}</p>
+                          <p className="text-xs text-surface-muted-fg mt-1">Reason: {emp.reason_for_leaving}</p>
                         )}
                       </div>
                       <Button size="sm" variant="secondary">
@@ -243,24 +285,26 @@ export const StaffBioDataPageContent: React.FC = () => {
           {activeTab === 'contracts' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Contracts</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Contracts</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Contract
                 </Button>
               </div>
               <div className="space-y-3">
-                {selectedStaff.contracts.map(contract => (
-                  <div key={contract.id} className="p-4 border border-gray-200 rounded-lg">
+                {selectedStaff.contracts.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg py-4">No contract records available for this staff member yet.</p>
+                ) : selectedStaff.contracts.map(contract => (
+                  <div key={contract.id} className="p-4 border border-surface-border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-gray-800">{contract.contract_type}</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="font-semibold text-surface-foreground">{contract.contract_type}</h4>
+                        <p className="text-sm text-surface-muted-fg">
                           {formatDate(contract.start_date)} - {formatDate(contract.end_date)}
                         </p>
-                        <p className="text-sm text-gray-700 font-semibold">KES {contract.formatKES(salary)}</p>
+                        <p className="text-sm text-surface-foreground font-semibold">{formatKES(contract.salary)}</p>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          contract.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          contract.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'
                         }`}>
                           {contract.status}
                         </span>
@@ -278,22 +322,24 @@ export const StaffBioDataPageContent: React.FC = () => {
           {activeTab === 'performance' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Performance Reviews</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Performance Reviews</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Review
                 </Button>
               </div>
               <div className="space-y-3">
-                {selectedStaff.performance_reviews.map(review => (
-                  <div key={review.id} className="p-4 border border-gray-200 rounded-lg">
+                {selectedStaff.performance_reviews.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg py-4">No performance reviews available for this staff member yet.</p>
+                ) : selectedStaff.performance_reviews.map(review => (
+                  <div key={review.id} className="p-4 border border-surface-border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-gray-800">{review.review_period}</h4>
-                        <p className="text-sm text-gray-600">Rating: {review.rating}/5.0</p>
-                        <p className="text-sm text-gray-600">Reviewer: {review.reviewer}</p>
-                        <p className="text-sm text-gray-600">Date: {formatDate(review.date)}</p>
-                        <p className="text-sm text-gray-700 mt-2 italic">"{review.comments}"</p>
+                        <h4 className="font-semibold text-surface-foreground">{review.review_period}</h4>
+                        <p className="text-sm text-surface-muted-fg">Rating: {review.rating}/5.0</p>
+                        <p className="text-sm text-surface-muted-fg">Reviewer: {review.reviewer}</p>
+                        <p className="text-sm text-surface-muted-fg">Date: {formatDate(review.date)}</p>
+                        <p className="text-sm text-surface-foreground mt-2 italic">"{review.comments}"</p>
                       </div>
                       <Button size="sm" variant="secondary">
                         Edit

@@ -343,7 +343,7 @@
 }
 
 .form-progress__fill--default {
-  background-color: #3b82f6;
+  background-color: #6366f1;
 }
 
 .form-progress__fill--success {
@@ -377,9 +377,9 @@
 }
 
 .step-indicator__circle--current {
-  background-color: #3b82f6;
+  background-color: #6366f1;
   color: white;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
 }
 
 .step-indicator__circle--completed {
@@ -415,7 +415,7 @@
 }
 
 .auto-save-indicator--saving {
-  color: #3b82f6;
+  color: #6366f1;
 }
 
 .auto-save-indicator--saved {

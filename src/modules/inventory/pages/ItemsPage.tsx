@@ -13,6 +13,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { ItemTypeInv } from '@/core/types';
 import type { ItemInv } from '@/core/types';
@@ -24,7 +25,8 @@ type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 
 export const ItemsPageContent: React.FC = () => {
   const { itemsInv, itemCategoriesInv, loading, addItemInv, updateItemInv, deleteItemInv } = useAppData(); // Updated
   const { t } = useTranslation('inventory');
-  
+  const confirm = useConfirm();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemInv | null>(null);
   const initialFormData: ItemFormData = { 
@@ -93,7 +95,7 @@ export const ItemsPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this item? This may affect fixed assets, stock levels, and transactions.')) {
+    if (await confirm({ title: 'Delete item', message: 'Are you sure you want to delete this item? This may affect fixed assets, stock levels, and transactions.', variant: 'danger' })) {
       await deleteItemInv(id);
     }
   };
@@ -113,7 +115,7 @@ export const ItemsPageContent: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value) => (
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -126,7 +128,7 @@ export const ItemsPageContent: React.FC = () => {
       width: 150,
       render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-          value ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+          value ? 'bg-primary-100 text-primary-800' : 'bg-surface-accent text-surface-foreground'
         }`}>
           {value || 'Uncategorized'}
         </span>
@@ -138,7 +140,7 @@ export const ItemsPageContent: React.FC = () => {
       sortable: true,
       width: 100,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {value}
         </span>
       )
@@ -153,7 +155,7 @@ export const ItemsPageContent: React.FC = () => {
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
           value === ItemTypeInv.CONSUMABLE ? 'bg-orange-100 text-orange-800' :
           value === ItemTypeInv.NON_CONSUMABLE ? 'bg-green-100 text-green-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-surface-accent text-surface-foreground'
         }`}>
           {value}
         </span>
@@ -212,7 +214,7 @@ export const ItemsPageContent: React.FC = () => {
           {t('inventory.items.addItem')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('inventory.items.maintain.list')}
         </p>
         <DataGrid 
@@ -222,9 +224,9 @@ export const ItemsPageContent: React.FC = () => {
           filterable 
           emptyState={
             <div className="text-center py-12">
-              <CubeIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No inventory items found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first inventory item.</p>
+              <CubeIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No inventory items found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">Get started by adding your first inventory item.</p>
               <div className="mt-6">
                 <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
                   {t('inventory.items.addItem')}
@@ -239,8 +241,8 @@ export const ItemsPageContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('inventory.items.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.itemsInv}>
-              {loading.itemsInv ? <Spinner size="sm"/> : (editingItem ? t('inventory.items.saveChanges') : t('inventory.items.addItem'))}
+            <Button onClick={handleSubmit} loading={loading.itemsInv}>
+              {editingItem ? t('inventory.items.saveChanges') : t('inventory.items.addItem')}
             </Button>
           </FormActions>
         }

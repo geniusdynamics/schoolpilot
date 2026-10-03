@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 
 import { useFinance } from '@/modules/finance/hooks/useFinance';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { AccountTemplateType, AccountType } from '@/core/types';
 import type { ChartOfAccount, ExpenseCategory } from '@/core/types';
@@ -21,17 +22,15 @@ type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' 
 };
 
 export const ChartOfAccountsContent: React.FC = () => {
-  const { 
-    chartOfAccounts, 
-    loading, 
-    addChartOfAccount, 
-    updateChartOfAccount, 
+  const {
+    chartOfAccounts,
+    loading,
+    addChartOfAccount,
+    updateChartOfAccount,
     deleteChartOfAccount
   } = useFinance();
+  const { expenseCategories } = useAppData();
 
-  // Get expense categories with fallback to empty array
-  const initialMockExpenseCategories = [] as any[];
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccount | null>(null);
   
@@ -113,7 +112,7 @@ export const ChartOfAccountsContent: React.FC = () => {
       width: 120,
       sticky: 'left',
       render: (value) => (
-        <span className="font-mono font-medium text-gray-900">
+        <span className="font-mono font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -125,7 +124,7 @@ export const ChartOfAccountsContent: React.FC = () => {
       filterable: true,
       width: 250,
       render: (value) => (
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -140,10 +139,10 @@ export const ChartOfAccountsContent: React.FC = () => {
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
           value === AccountType.ASSET ? 'bg-green-100 text-green-800' :
           value === AccountType.LIABILITY ? 'bg-red-100 text-red-800' :
-          value === AccountType.EQUITY ? 'bg-blue-100 text-blue-800' :
+          value === AccountType.EQUITY ? 'bg-primary-100 text-primary-800' :
           value === AccountType.REVENUE ? 'bg-purple-100 text-purple-800' :
           value === AccountType.EXPENSE ? 'bg-orange-100 text-orange-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-surface-accent text-surface-foreground'
         }`}>
           {value}
         </span>
@@ -158,7 +157,7 @@ export const ChartOfAccountsContent: React.FC = () => {
       render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
           value === AccountTemplateType.CORE ? 'bg-indigo-100 text-indigo-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-surface-accent text-surface-foreground'
         }`}>
           {value}
         </span>
@@ -171,7 +170,7 @@ export const ChartOfAccountsContent: React.FC = () => {
       filterable: true,
       width: 150,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {value || 'N/A'}
         </span>
       )
@@ -231,7 +230,7 @@ export const ChartOfAccountsContent: React.FC = () => {
           Add Account
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           Manage the school's chart of accounts. Define accounts for assets, liabilities, equity, revenue, and expenses.
         </p>
         <DataGrid 
@@ -241,7 +240,7 @@ export const ChartOfAccountsContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <BanknotesIcon className="w-12 h-12 text-gray-400" />,
+            icon: <BanknotesIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Chart of Accounts Found",
             description: "Get started by adding your first account to the chart of accounts.",
             action: (
@@ -260,8 +259,8 @@ export const ChartOfAccountsContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.chartOfAccounts}>
-              {loading.chartOfAccounts ? <Spinner size="sm"/> : (editingAccount ? 'Save Changes' : 'Add Account')}
+            <Button onClick={handleSubmit} loading={loading.chartOfAccounts}>
+              {editingAccount ? 'Save Changes' : 'Add Account'}
             </Button>
           </>
         }
@@ -280,14 +279,14 @@ export const ChartOfAccountsContent: React.FC = () => {
             {formData.type === AccountType.EXPENSE && (
                  <Select name="expense_category_id" label="Expense Category (for Expense Type)" value={formData.expense_category_id || ''} onChange={handleInputChange}>
                     <option value="">Select Expense Category</option>
-                    {initialMockExpenseCategories.map((cat: ExpenseCategory) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                    {(expenseCategories || []).map((cat: ExpenseCategory) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
                 </Select>
             )}
            
             <div className="flex items-center mt-2 md:col-span-2">
-                <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
+                <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500" 
                     checked={formData.is_active || false} onChange={handleInputChange} />
-                <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Is Active Account</label>
+                <label htmlFor="is_active" className="ml-2 block text-sm text-surface-foreground">Is Active Account</label>
             </div>
         </div>
       </DialogForm>

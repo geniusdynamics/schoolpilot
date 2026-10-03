@@ -397,6 +397,6 @@ export function getPerformanceStatusColor(status: 'improved' | 'degraded' | 'sta
   switch (status) {
     case 'improved': return 'text-green-600';
     case 'degraded': return 'text-red-600';
-    default: return 'text-gray-600';
+    default: return 'text-surface-muted-fg';
   }
 }

@@ -5,10 +5,9 @@ import { describe, expect, it } from 'vitest';
 import {
   FinOpeningBalanceTypeEnum,
   InvoiceStatus,
-  SchoolPeriod,
-  StudentInvoice,
-  StudentPayment
-} from '@/types';
+} from '@/modules/finance/data/types';
+import type { StudentInvoice, StudentPayment } from '@/modules/finance/data/types';
+import type { SchoolPeriod } from '@/core/types';
 import { buildStudentVoteheadStatement } from '../studentVoteheadStatement';
 
 const schoolPeriods: SchoolPeriod[] = [

@@ -24,12 +24,12 @@ interface PageHeaderWithTabsProps {
 
 const colorSchemes = {
   blue: {
-    activeBg: 'bg-blue-50',
-    activeText: 'text-blue-700',
-    activeBorder: 'border-blue-500',
-    badgeBg: 'bg-blue-100',
-    badgeText: 'text-blue-700',
-    hover: 'hover:bg-blue-50',
+    activeBg: 'bg-primary-50',
+    activeText: 'text-primary-700',
+    activeBorder: 'border-primary-500',
+    badgeBg: 'bg-primary-100',
+    badgeText: 'text-primary-700',
+    hover: 'hover:bg-primary-50',
   },
   emerald: {
     activeBg: 'bg-emerald-50',
@@ -151,7 +151,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
     };
 
     return (
-      <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-lg" role="tablist" aria-label="Tab navigation">
+      <div className="flex items-center gap-1 bg-gray-100/80 dark:bg-slate-800/80 p-1 rounded-lg" role="tablist" aria-label="Tab navigation">
         {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
           return (
@@ -168,7 +168,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
                 transition-all duration-200
                 ${isActive 
                   ? `${colors.activeBg} ${colors.activeText} shadow-sm` 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                  : 'text-surface-muted-fg hover:text-surface-foreground hover:bg-gray-200/50'
                 }
               `}
             >
@@ -177,7 +177,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
               {tab.badge !== undefined && tab.badge > 0 && (
                 <span className={`
                   ml-1 px-1.5 py-0.5 text-xs rounded-full
-                  ${isActive ? colors.badgeBg + ' ' + colors.badgeText : 'bg-gray-200 text-gray-600'}
+                  ${isActive ? colors.badgeBg + ' ' + colors.badgeText : 'bg-gray-200 text-surface-muted-fg'}
                 `}>
                   {tab.badge}
                 </span>
@@ -191,7 +191,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
 
   if (variant === 'minimal') {
     return (
-      <div className="flex items-center justify-between py-2 border-b border-gray-200 mb-3">
+      <div className="flex items-center justify-between py-2 border-b border-surface-border mb-3">
         <div className="flex items-center gap-4">
           {renderCustomTabs()}
         </div>
@@ -210,12 +210,12 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div>
             {title && (
-              <h1 className={`font-semibold text-gray-900 ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
+              <h1 className={`font-semibold text-surface-foreground ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
                 {title}
               </h1>
             )}
             {subtitle && (
-              <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+              <p className="text-sm text-surface-muted-fg mt-0.5">{subtitle}</p>
             )}
           </div>
           <div className="flex items-center gap-2">

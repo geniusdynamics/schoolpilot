@@ -107,8 +107,8 @@ export const AccountLedgerPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('accountLedgerPage.title')}>
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-            <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 {t('accountLedgerPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -137,7 +137,7 @@ export const AccountLedgerPageContent: React.FC = () => {
                 <DataGrid columns={columns} data={(reportData || [])} loading={isGenerating} emptyState={t('accountLedgerPage.noTransactionsFound')}/>
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">{t('accountLedgerPage.pleaseSelectFiltersAndClickGenerateLedger')}</p>
+            <p className="text-center text-surface-muted-fg py-4">{t('accountLedgerPage.pleaseSelectFiltersAndClickGenerateLedger')}</p>
         )}
       </Card>
     </div>

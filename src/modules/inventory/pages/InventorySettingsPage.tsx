@@ -34,7 +34,7 @@ const InventorySettingsPage: React.FC = () => {
         <div className="space-y-6">
           {/* Stock Thresholds */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">Stock Thresholds</h3>
+            <h3 className="text-sm font-semibold text-surface-foreground mb-3 border-b pb-2">Stock Thresholds</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Low Stock Alert Threshold"
@@ -55,7 +55,7 @@ const InventorySettingsPage: React.FC = () => {
 
           {/* Warehouse Defaults */}
           <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">Warehouse Defaults</h3>
+            <h3 className="text-sm font-semibold text-surface-foreground mb-3 border-b pb-2">Warehouse Defaults</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
                 label="Default Warehouse"
@@ -84,7 +84,7 @@ const InventorySettingsPage: React.FC = () => {
 
           {/* Currency & Formatting */}
           <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">Currency & Formatting</h3>
+            <h3 className="text-sm font-semibold text-surface-foreground mb-3 border-b pb-2">Currency & Formatting</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
                 label="Currency"
@@ -114,18 +114,18 @@ const InventorySettingsPage: React.FC = () => {
 
           {/* Tracking Options */}
           <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">Tracking Preferences</h3>
+            <h3 className="text-sm font-semibold text-surface-foreground mb-3 border-b pb-2">Tracking Preferences</h3>
             <div className="space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settings.expiryDateTracking}
                   onChange={(e) => handleChange('expiryDateTracking', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-surface-border text-primary-600 focus:ring-primary-500"
                 />
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Enable Expiry Date Tracking</span>
-                  <p className="text-xs text-gray-500">Track expiry dates for perishable and consumable items</p>
+                  <span className="text-sm font-medium text-surface-foreground">Enable Expiry Date Tracking</span>
+                  <p className="text-xs text-surface-muted-fg">Track expiry dates for perishable and consumable items</p>
                 </div>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
@@ -133,11 +133,11 @@ const InventorySettingsPage: React.FC = () => {
                   type="checkbox"
                   checked={settings.batchTracking}
                   onChange={(e) => handleChange('batchTracking', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-surface-border text-primary-600 focus:ring-primary-500"
                 />
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Enable Batch/Lot Tracking</span>
-                  <p className="text-xs text-gray-500">Track items by batch or lot numbers for traceability</p>
+                  <span className="text-sm font-medium text-surface-foreground">Enable Batch/Lot Tracking</span>
+                  <p className="text-xs text-surface-muted-fg">Track items by batch or lot numbers for traceability</p>
                 </div>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
@@ -145,11 +145,11 @@ const InventorySettingsPage: React.FC = () => {
                   type="checkbox"
                   checked={settings.serialNumberTracking}
                   onChange={(e) => handleChange('serialNumberTracking', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-surface-border text-primary-600 focus:ring-primary-500"
                 />
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Enable Serial Number Tracking</span>
-                  <p className="text-xs text-gray-500">Track individual items by unique serial numbers</p>
+                  <span className="text-sm font-medium text-surface-foreground">Enable Serial Number Tracking</span>
+                  <p className="text-xs text-surface-muted-fg">Track individual items by unique serial numbers</p>
                 </div>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
@@ -157,11 +157,11 @@ const InventorySettingsPage: React.FC = () => {
                   type="checkbox"
                   checked={settings.autoReorderEnabled}
                   onChange={(e) => handleChange('autoReorderEnabled', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-surface-border text-primary-600 focus:ring-primary-500"
                 />
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Enable Auto-Reorder Alerts</span>
-                  <p className="text-xs text-gray-500">Automatically generate reorder recommendations when stock is low</p>
+                  <span className="text-sm font-medium text-surface-foreground">Enable Auto-Reorder Alerts</span>
+                  <p className="text-xs text-surface-muted-fg">Automatically generate reorder recommendations when stock is low</p>
                 </div>
               </label>
             </div>

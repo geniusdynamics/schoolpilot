@@ -5,7 +5,7 @@ export const initialMockHouses: House[] = [
     id: 'HOUS001',
     name: 'Unity',
     description: 'House of Unity - Strength through togetherness',
-    color: '#3B82F6',
+    color: '#6366f1',
     motto: 'Unity is Strength',
     patronTeacherId: 'STAFF001',
     patronTeacherName: 'Mr. James Wilson',
@@ -97,3 +97,10 @@ export const initialMockPointTransactions: PointTransaction[] = [
   { id: 'PTRX004', studentId: 'STU007', studentName: 'George Harris', className: 'Grade 9A', houseId: 'HOUS004', houseName: 'Excellence', categoryId: 'PCAT006', categoryName: 'Late Coming', type: TransactionType.DEMERIT, points: 3, reason: 'Arrived 30 minutes late to school', status: TransactionStatus.APPROVED, awardedBy: 'STAFF004', awardedByName: 'Mrs. Grace Lee', awardedAt: '2024-03-25T08:30:00Z' },
   { id: 'PTRX005', studentId: 'STU002', studentName: 'Bob Smith', className: 'Grade 8A', houseId: 'HOUS001', houseName: 'Unity', categoryId: 'PCAT003', categoryName: 'Leadership', type: TransactionType.MERIT, points: 12, reason: 'Led house charity drive successfully', status: TransactionStatus.PENDING, awardedBy: 'STAFF001', awardedByName: 'Mr. James Wilson', awardedAt: '2024-03-28T11:00:00Z' },
 ];
+
+// -- Seedable exports ---------------------------------------------
+// Non-'initialMock*' aliases are picked up by seedProviderWithDemoData
+// (demoDataSeed.ts) and inserted into the real database collections.
+export const houses = initialMockHouses;
+export const pointCategories = initialMockPointCategories;
+export const pointTransactions = initialMockPointTransactions;

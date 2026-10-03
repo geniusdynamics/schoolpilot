@@ -179,10 +179,10 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
   ];
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">User Permissions Management</h3>
-        <p className="text-sm text-gray-600 mt-1">
+    <div className={`bg-surface-card rounded-lg shadow-sm border border-surface-border ${className}`}>
+      <div className="px-6 py-4 border-b border-surface-border">
+        <h3 className="text-lg font-semibold text-surface-foreground">User Permissions Management</h3>
+        <p className="text-sm text-surface-muted-fg mt-1">
           Manage users, user types, and permissions for role-based access control.
         </p>
       </div>
@@ -192,12 +192,12 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
         <div className={`px-6 py-3 border-b ${
           message.type === 'success' ? 'bg-green-50 border-green-200' :
           message.type === 'error' ? 'bg-red-50 border-red-200' :
-          'bg-blue-50 border-blue-200'
+          'bg-primary-50 border-primary-200'
         }`}>
           <div className={`flex items-center gap-2 text-sm ${
             message.type === 'success' ? 'text-green-800' :
             message.type === 'error' ? 'text-red-800' :
-            'text-blue-800'
+            'text-primary-800'
           }`}>
             {message.text}
           </div>
@@ -205,7 +205,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-surface-border">
         <nav className="flex space-x-8 px-6">
           {[
             { id: 'users', label: 'Users', icon: UsersIcon },
@@ -219,8 +219,8 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
                 }`}
               >
                 <Icon className="w-4 h-4" />

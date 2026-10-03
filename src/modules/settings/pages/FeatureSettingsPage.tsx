@@ -15,10 +15,10 @@ export const FeatureSettingsContent: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-surface-foreground mb-2">
             {t('accessDeniedTitle')}
           </h2>
-          <p className="text-gray-600">
+          <p className="text-surface-muted-fg">
             {t('accessDeniedMessage')}
           </p>
         </div>
@@ -28,11 +28,11 @@ export const FeatureSettingsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
-        <h2 className="text-xl font-semibold text-blue-900 mb-2">
+      <div className="p-6 bg-primary-50 border border-primary-200 rounded-lg">
+        <h2 className="text-xl font-semibold text-primary-900 mb-2">
           {t('featureSettings.title')}
         </h2>
-        <p className="text-blue-700">
+        <p className="text-primary-700">
           {t('featureSettings.description')}
         </p>
       </div>

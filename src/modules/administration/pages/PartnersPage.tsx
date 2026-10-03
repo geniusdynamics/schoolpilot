@@ -8,7 +8,6 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon as PartnersIcon } from '@/components/ui/icons';
 import { usePartnerData } from '../data/usePartnerData'; // Use module-specific hook
-import Spinner from '@/components/ui/Spinner';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -173,7 +172,7 @@ export const PartnersContent: React.FC = () => {
           Add Partner
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage school partners such as sponsors, board members, service providers, and government agencies.
         </p>
         <DataGrid 
@@ -182,7 +181,7 @@ export const PartnersContent: React.FC = () => {
           sortable 
           filterable 
           emptyState={{
-            icon: <PartnersIcon className="h-12 w-12 text-gray-400" />,
+            icon: <PartnersIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No partners found',
             description: 'Get started by adding your first partner.',
           }}

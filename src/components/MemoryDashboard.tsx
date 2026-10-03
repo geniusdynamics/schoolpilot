@@ -66,7 +66,7 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
       case 'warning':
         return 'text-yellow-600 bg-yellow-100 border-yellow-200';
       default:
-        return 'text-blue-600 bg-blue-100 border-blue-200';
+        return 'text-primary-600 bg-primary-100 border-primary-200';
     }
   };
 
@@ -84,7 +84,7 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CpuChipIcon className="w-6 h-6 text-indigo-600" />
-          <h2 className="text-xl font-semibold text-gray-900">Memory Management</h2>
+          <h2 className="text-xl font-semibold text-surface-foreground">Memory Management</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -107,15 +107,15 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+      <div className="flex space-x-1 bg-surface-accent p-1 rounded-lg">
         {(['overview', 'alerts', 'connections', 'settings'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
               activeTab === tab
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                ? 'bg-surface-card text-surface-foreground shadow-sm'
+                : 'text-surface-muted-fg hover:text-surface-foreground hover:bg-gray-200'
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -129,15 +129,15 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           {/* Memory Usage Card */}
           <Card className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Memory Usage</span>
+              <span className="text-sm text-surface-muted-fg">Memory Usage</span>
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${usageColorClass}`}>
                 {formatPercentage(memoryUsagePercent)}
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-surface-foreground">
               {metrics ? formatBytes(metrics.usedMemory) : 'â€”'}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-surface-muted-fg">
               of {metrics ? formatBytes(metrics.totalMemory) : 'â€”'}
             </div>
           </Card>
@@ -145,15 +145,15 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           {/* Active Alerts Card */}
           <Card className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Active Alerts</span>
+              <span className="text-sm text-surface-muted-fg">Active Alerts</span>
               {activeAlerts.length > 0 ? (
                 <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />
               ) : (
                 <CheckCircleIcon className="w-5 h-5 text-green-500" />
               )}
             </div>
-            <div className="text-2xl font-bold text-gray-900">{activeAlerts.length}</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-2xl font-bold text-surface-foreground">{activeAlerts.length}</div>
+            <div className="text-sm text-surface-muted-fg">
               {activeAlerts.length === 0 ? 'All clear' : `${activeAlerts.filter(a => a.severity === 'critical').length} critical`}
             </div>
           </Card>
@@ -161,11 +161,11 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           {/* Connections Card */}
           <Card className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Active Connections</span>
-              <SignalIcon className="w-5 h-5 text-blue-500" />
+              <span className="text-sm text-surface-muted-fg">Active Connections</span>
+              <SignalIcon className="w-5 h-5 text-primary-500" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">{connectionStats.active}</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-2xl font-bold text-surface-foreground">{connectionStats.active}</div>
+            <div className="text-sm text-surface-muted-fg">
               {connectionStats.stale} stale
             </div>
           </Card>
@@ -173,11 +173,11 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           {/* Trend Card */}
           <Card className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Trend</span>
+              <span className="text-sm text-surface-muted-fg">Trend</span>
               <ChartBarIcon className="w-5 h-5 text-indigo-500" />
             </div>
-            <div className="text-2xl font-bold text-gray-900 capitalize">{summary.trend}</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-2xl font-bold text-surface-foreground capitalize">{summary.trend}</div>
+            <div className="text-sm text-surface-muted-fg">
               {summary.recommendations.length} recommendations
             </div>
           </Card>
@@ -185,10 +185,10 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           {/* Recommendations */}
           {summary.recommendations.length > 0 && (
             <Card className="p-4 md:col-span-2 lg:col-span-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Recommendations</h3>
+              <h3 className="text-sm font-medium text-surface-foreground mb-2">Recommendations</h3>
               <ul className="space-y-1">
                 {summary.recommendations.map((rec, index) => (
-                  <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                  <li key={index} className="text-sm text-surface-muted-fg flex items-start gap-2">
                     <Cog6ToothIcon className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                     {rec}
                   </li>
@@ -202,9 +202,9 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
       {/* Alerts Tab */}
       {activeTab === 'alerts' && (
         <Card className="p-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Memory Alerts</h3>
+          <h3 className="text-lg font-medium text-surface-foreground mb-4">Memory Alerts</h3>
           {activeAlerts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-surface-muted-fg">
               <CheckCircleIcon className="w-12 h-12 mx-auto mb-2 text-green-500" />
               <p>No active alerts</p>
             </div>
@@ -240,11 +240,11 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
       {/* Connections Tab */}
       {activeTab === 'connections' && (
         <Card className="p-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Connection Statistics</h3>
+          <h3 className="text-lg font-medium text-surface-foreground mb-4">Connection Statistics</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-gray-900">{connectionStats.total}</div>
-              <div className="text-sm text-gray-600">Total</div>
+            <div className="text-center p-3 bg-surface-muted rounded-lg">
+              <div className="text-2xl font-bold text-surface-foreground">{connectionStats.total}</div>
+              <div className="text-sm text-surface-muted-fg">Total</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-700">{connectionStats.active}</div>
@@ -254,21 +254,21 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
               <div className="text-2xl font-bold text-yellow-700">{connectionStats.stale}</div>
               <div className="text-sm text-yellow-600">Stale</div>
             </div>
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-700">
+            <div className="text-center p-3 bg-primary-50 rounded-lg">
+              <div className="text-2xl font-bold text-primary-700">
                 {Object.keys(connectionStats.byProvider).length}
               </div>
-              <div className="text-sm text-blue-600">Providers</div>
+              <div className="text-sm text-primary-600">Providers</div>
             </div>
           </div>
           {Object.entries(connectionStats.byProvider).length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">By Provider</h4>
+              <h4 className="text-sm font-medium text-surface-foreground mb-2">By Provider</h4>
               <div className="space-y-1">
                 {Object.entries(connectionStats.byProvider).map(([provider, count]) => (
-                  <div key={provider} className="flex justify-between items-center py-1 px-2 bg-gray-50 rounded">
-                    <span className="text-sm text-gray-600 capitalize">{provider}</span>
-                    <span className="text-sm font-medium text-gray-900">{count}</span>
+                  <div key={provider} className="flex justify-between items-center py-1 px-2 bg-surface-muted rounded">
+                    <span className="text-sm text-surface-muted-fg capitalize">{provider}</span>
+                    <span className="text-sm font-medium text-surface-foreground">{count}</span>
                   </div>
                 ))}
               </div>
@@ -280,18 +280,18 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
       {/* Settings Tab */}
       {activeTab === 'settings' && (
         <Card className="p-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Threshold Settings</h3>
+          <h3 className="text-lg font-medium text-surface-foreground mb-4">Threshold Settings</h3>
           {!showThresholdSettings ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm text-gray-600">Warning Threshold</div>
+                <div className="p-3 bg-surface-muted rounded-lg">
+                  <div className="text-sm text-surface-muted-fg">Warning Threshold</div>
                   <div className="text-xl font-bold text-yellow-600">
                     {formatPercentage(thresholds.warningThreshold)}
                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm text-gray-600">Critical Threshold</div>
+                <div className="p-3 bg-surface-muted rounded-lg">
+                  <div className="text-sm text-surface-muted-fg">Critical Threshold</div>
                   <div className="text-xl font-bold text-red-600">
                     {formatPercentage(thresholds.criticalThreshold)}
                   </div>
@@ -308,7 +308,7 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   Warning Threshold (%)
                 </label>
                 <input
@@ -322,11 +322,11 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
                       warningThreshold: Number(e.target.value),
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   Critical Threshold (%)
                 </label>
                 <input
@@ -340,7 +340,7 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
                       criticalThreshold: Number(e.target.value),
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <div className="flex gap-2">
@@ -361,8 +361,8 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
           )}
 
           {/* Force Cleanup */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Manual Actions</h4>
+          <div className="mt-6 pt-6 border-t border-surface-border">
+            <h4 className="text-sm font-medium text-surface-foreground mb-2">Manual Actions</h4>
             <Button
               variant="danger"
               size="sm"

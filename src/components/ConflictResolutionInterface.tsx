@@ -64,16 +64,16 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
     switch (priority) {
       case 'critical': return 'bg-red-100 text-red-800 border-red-200';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'normal': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'normal': return 'bg-primary-100 text-primary-800 border-primary-200';
+      case 'low': return 'bg-surface-accent text-surface-foreground border-surface-border';
+      default: return 'bg-surface-accent text-surface-foreground border-surface-border';
     }
   };
 
   const getConflictTypeIcon = (type: string) => {
     switch (type) {
       case 'data':
-        return <DocumentDuplicateIcon className="w-5 h-5 text-blue-500" />;
+        return <DocumentDuplicateIcon className="w-5 h-5 text-primary-500" />;
       case 'structural':
         return <CodeBracketIcon className="w-5 h-5 text-purple-500" />;
       case 'deletion':
@@ -139,17 +139,17 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
       <div className="space-y-4">
         {conflictFields.map(field => (
           <div key={field} className="border rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-3">{field}</h4>
+            <h4 className="font-medium text-surface-foreground mb-3">{field}</h4>
             
             {viewMode === 'side-by-side' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700">Local Version</span>
+                    <div className="w-3 h-3 bg-primary-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-surface-foreground">Local Version</span>
                   </div>
-                  <div className="bg-blue-50 p-3 rounded border">
-                    <pre className="text-sm text-gray-800 whitespace-pre-wrap">
+                  <div className="bg-primary-50 p-3 rounded border">
+                    <pre className="text-sm text-surface-foreground whitespace-pre-wrap">
                       {JSON.stringify(localData[field], null, 2)}
                     </pre>
                   </div>
@@ -158,10 +158,10 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700">Remote Version</span>
+                    <span className="text-sm font-medium text-surface-foreground">Remote Version</span>
                   </div>
                   <div className="bg-green-50 p-3 rounded border">
-                    <pre className="text-sm text-gray-800 whitespace-pre-wrap">
+                    <pre className="text-sm text-surface-foreground whitespace-pre-wrap">
                       {JSON.stringify(remoteData[field], null, 2)}
                     </pre>
                   </div>
@@ -193,7 +193,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
             {viewMode === 'raw' && (
               <div className="space-y-4">
                 <div>
-                  <h5 className="text-sm font-medium text-gray-700 mb-2">Local Version (Raw)</h5>
+                  <h5 className="text-sm font-medium text-surface-foreground mb-2">Local Version (Raw)</h5>
                   <textarea
                     className="w-full h-32 p-3 border rounded-md font-mono text-sm"
                     value={JSON.stringify(localData[field], null, 2)}
@@ -201,7 +201,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
                   />
                 </div>
                 <div>
-                  <h5 className="text-sm font-medium text-gray-700 mb-2">Remote Version (Raw)</h5>
+                  <h5 className="text-sm font-medium text-surface-foreground mb-2">Remote Version (Raw)</h5>
                   <textarea
                     className="w-full h-32 p-3 border rounded-md font-mono text-sm"
                     value={JSON.stringify(remoteData[field], null, 2)}
@@ -228,24 +228,24 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
       >
         <div className="space-y-6">
           {/* Conflict Info */}
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-surface-muted p-4 rounded-lg">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-gray-700">Entity:</span>
+                <span className="font-medium text-surface-foreground">Entity:</span>
                 <span className="ml-2">{selectedConflict.entityName}</span>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Type:</span>
+                <span className="font-medium text-surface-foreground">Type:</span>
                 <span className="ml-2 capitalize">{selectedConflict.conflictType}</span>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Priority:</span>
+                <span className="font-medium text-surface-foreground">Priority:</span>
                 <span className={`ml-2 px-2 py-1 rounded text-xs ${getPriorityColor(selectedConflict.priority)}`}>
                   {selectedConflict.priority}
                 </span>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Time:</span>
+                <span className="font-medium text-surface-foreground">Time:</span>
                 <span className="ml-2">{selectedConflict.timestamp.toLocaleString()}</span>
               </div>
             </div>
@@ -253,7 +253,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
 
           {/* View Mode Selector */}
           <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium text-gray-700">View Mode:</span>
+            <span className="text-sm font-medium text-surface-foreground">View Mode:</span>
             <div className="flex space-x-2">
               {[
                 { key: 'side-by-side', label: 'Side by Side' },
@@ -265,8 +265,8 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
                   onClick={() => setViewMode(key as any)}
                   className={`px-3 py-1 text-sm rounded ${
                     viewMode === key
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-200 text-surface-foreground hover:bg-gray-300'
                   }`}
                 >
                   {label}
@@ -280,7 +280,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
 
           {/* Resolution Strategy */}
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Resolution Strategy</h4>
+            <h4 className="font-medium text-surface-foreground">Resolution Strategy</h4>
             <div className="grid grid-cols-2 gap-4">
               {[
                 { key: 'local', label: 'Keep Local', desc: 'Use your offline changes' },
@@ -288,7 +288,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
                 { key: 'merge', label: 'Auto Merge', desc: 'Combine both versions' },
                 { key: 'custom', label: 'Custom', desc: 'Manual resolution' }
               ].map(({ key, label, desc }) => (
-                <label key={key} className="flex items-start space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label key={key} className="flex items-start space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-surface-muted">
                   <input
                     type="radio"
                     name="resolution"
@@ -298,8 +298,8 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
                     className="mt-1"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">{label}</div>
-                    <div className="text-sm text-gray-600">{desc}</div>
+                    <div className="font-medium text-surface-foreground">{label}</div>
+                    <div className="text-sm text-surface-muted-fg">{desc}</div>
                   </div>
                 </label>
               ))}
@@ -309,7 +309,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
           {/* Custom Resolution Editor */}
           {resolutionStrategy === 'custom' && (
             <div className="space-y-2">
-              <h5 className="font-medium text-gray-900">Custom Resolution</h5>
+              <h5 className="font-medium text-surface-foreground">Custom Resolution</h5>
               <textarea
                 className="w-full h-40 p-3 border rounded-md font-mono text-sm"
                 value={JSON.stringify(customResolution, null, 2)}
@@ -348,8 +348,8 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
     return (
       <div className={`text-center py-8 ${className}`}>
         <CheckCircleIcon className="w-12 h-12 mx-auto mb-4 text-green-500" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Conflicts</h3>
-        <p className="text-gray-600">All data is synchronized successfully</p>
+        <h3 className="text-lg font-medium text-surface-foreground mb-2">No Conflicts</h3>
+        <p className="text-surface-muted-fg">All data is synchronized successfully</p>
       </div>
     );
   }
@@ -359,8 +359,8 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Data Conflicts</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="text-lg font-medium text-surface-foreground">Data Conflicts</h3>
+          <p className="text-sm text-surface-muted-fg">
             {conflicts.length} conflict{conflicts.length !== 1 ? 's' : ''} require resolution
           </p>
         </div>
@@ -392,15 +392,15 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
       {/* Conflicts List */}
       <div className="space-y-3">
         {sortedConflicts.map((conflict) => (
-          <div key={conflict.id} className="border rounded-lg p-4 hover:bg-gray-50">
+          <div key={conflict.id} className="border rounded-lg p-4 hover:bg-surface-muted">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getConflictTypeIcon(conflict.conflictType)}
                 <div>
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-surface-foreground">
                     {conflict.entityName} #{conflict.entityId}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-surface-muted-fg">
                     {conflict.conflictFields.length} field{conflict.conflictFields.length !== 1 ? 's' : ''} in conflict
                   </div>
                 </div>
@@ -411,7 +411,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
                   {conflict.priority}
                 </span>
                 
-                <div className="flex items-center space-x-1 text-xs text-gray-500">
+                <div className="flex items-center space-x-1 text-xs text-surface-muted-fg">
                   <ClockIcon className="w-4 h-4" />
                   <span>{conflict.timestamp.toLocaleTimeString()}</span>
                 </div>

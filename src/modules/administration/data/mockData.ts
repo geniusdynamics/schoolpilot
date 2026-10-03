@@ -16,8 +16,11 @@ import {
   AttendanceReport, AutoSMSSetting, GatePass,
   StudentRollNumber, SessionAttendance, ScholarshipRecord,
   SMSReport, WalletTransaction,
-  StaffAttendanceRecord, StaffIDCard, StudentBioData, StudentIDCard, TransferCertificateStudent
+  StaffAttendanceRecord, StaffIDCard, StudentBioData, StudentIDCard, TransferCertificateStudent,
+  AlumniEngagement, AlumniEvent
 } from './types';
+import { ApplicationStatus, ApplicationType, Gender, GuardianType } from '@/modules/admissions/data/types';
+import type { Application } from '@/modules/admissions/data/types';
 
 export const initialMockSchoolDetails: SchoolDetails = {
   id: 1, name: 'Greenwood High International', email: 'info@greenwood.int', telephone: '+254-722-123456',
@@ -1647,3 +1650,76 @@ export const transferCertificateStudents: TransferCertificateStudent[] = [
     address: '789 School Street, City'
   }
 ];
+
+// Source: AlumniManagementPage.tsx
+export const alumniEngagements: AlumniEngagement[] = [
+  { id: 'eng-001', alumni_name: 'James Mwangi', graduation_year: '2024', activity_type: 'Donation', activity_date: '2026-06-15', description: 'Donated KES 50,000 to scholarship fund', amount: 50000 },
+  { id: 'eng-002', alumni_name: 'Grace Akinyi', graduation_year: '2023', activity_type: 'Mentorship', activity_date: '2026-06-10', description: 'Career mentorship session with Form 4 science students' },
+  { id: 'eng-003', alumni_name: 'Sarah Wanjiku', graduation_year: '2022', activity_type: 'Donation', activity_date: '2026-05-28', description: 'Annual alumni donation drive contribution', amount: 25000 },
+  { id: 'eng-004', alumni_name: 'Peter Kamau', graduation_year: '2023', activity_type: 'Event Participation', activity_date: '2026-05-20', description: 'Attended Alumni networking mixer' },
+  { id: 'eng-005', alumni_name: 'David Ochieng', graduation_year: '2024', activity_type: 'Volunteer', activity_date: '2026-05-15', description: 'Volunteered as career day speaker for engineering students' },
+  { id: 'eng-006', alumni_name: 'James Mwangi', graduation_year: '2024', activity_type: 'Mentorship', activity_date: '2026-05-10', description: 'Guided 3 students through software development internship applications' },
+  { id: 'eng-007', alumni_name: 'Grace Akinyi', graduation_year: '2023', activity_type: 'Donation', activity_date: '2026-04-22', description: 'Donated medical textbooks to school library', amount: 15000 },
+  { id: 'eng-008', alumni_name: 'Sarah Wanjiku', graduation_year: '2022', activity_type: 'Volunteer', activity_date: '2026-04-10', description: 'Financial literacy workshop for Form 3 students' },
+];
+
+export const alumniEvents: AlumniEvent[] = [
+  { id: 'evt-001', event_name: 'Annual Alumni Reunion 2026', event_date: '2026-08-15', location: 'School Main Hall', event_type: 'Reunion', expected_attendees: 200, status: 'Upcoming', description: 'Grand reunion for all alumni celebrating 50 years of excellence' },
+  { id: 'evt-002', event_name: 'Scholarship Fundraiser Gala', event_date: '2026-07-20', location: 'Nairobi Serena Hotel', event_type: 'Fundraiser', expected_attendees: 150, status: 'Upcoming', description: 'Annual fundraising gala to support underprivileged students' },
+  { id: 'evt-003', event_name: 'Career Networking Mixer', event_date: '2026-05-20', location: 'School Amphitheatre', event_type: 'Networking', expected_attendees: 80, status: 'Completed', description: 'Networking event connecting alumni with current students' },
+  { id: 'evt-004', event_name: 'STEM Workshop Series', event_date: '2026-04-10', location: 'Science Lab Complex', event_type: 'Workshop', expected_attendees: 45, status: 'Completed', description: 'Hands-on workshops in robotics and programming for Form 2-3 students' },
+  { id: 'evt-005', event_name: 'Class of 2020 Reunion', event_date: '2026-03-05', location: 'School Dining Hall', event_type: 'Reunion', expected_attendees: 60, status: 'Completed', description: '5-year reunion for the class of 2020' },
+  { id: 'evt-006', event_name: 'Sports Day Alumni Challenge', event_date: '2026-09-10', location: 'School Sports Ground', event_type: 'Reunion', expected_attendees: 120, status: 'Upcoming', description: 'Friendly sports competition between alumni and current students' },
+  { id: 'evt-007', event_name: 'Career Day 2026', event_date: '2026-02-15', location: 'School Hall', event_type: 'Workshop', expected_attendees: 300, status: 'Completed', description: 'Annual career day with alumni speakers from various professions' },
+  { id: 'evt-008', event_name: 'Entrepreneurship Bootcamp', event_date: '2026-10-01', location: 'Business Studies Department', event_type: 'Workshop', expected_attendees: 50, status: 'Upcoming', description: 'Weekend bootcamp for students interested in entrepreneurship' },
+  { id: 'evt-009', event_name: 'Alumni vs Staff Charity Match', event_date: '2026-06-30', location: 'School Sports Ground', event_type: 'Fundraiser', expected_attendees: 500, status: 'Cancelled', description: 'Charity football match cancelled due to ground renovations' },
+];
+
+// -- Seedable exports (picked up by demoDataSeed ? real collections) --
+export const templateComms = initialMockTemplateComms;
+export const campaigns = initialMockCampaigns;
+
+// === ADMISSIONS SEED DATA ===
+// camelCase fields intentionally mirror the Application type consumed by
+// ApplicationsListPage; demoDataSeed resolves these to 'admissions_applications'
+// and 'application_form_templates'.
+
+interface ApplicationFormTemplate {
+  id: string;
+  name: string;
+  description: string;
+  sections: number;
+  fields: number;
+  isActive: boolean;
+  lastModified: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export const admissionsApplications: Application[] = [
+  { id: 'APPSEED001', applicationNumber: 'APP-2026-001', applicationType: ApplicationType.NEW, status: ApplicationStatus.APPROVED, firstName: 'Amina', middleName: 'Njeri', lastName: 'Otieno', dateOfBirth: '2013-04-12', gender: Gender.FEMALE, nationality: 'Kenyan', religion: 'Christian', birthCertificateNumber: 'BC-884001', previousSchool: 'Riverside Academy', previousClass: 'Standard 6', kcpeIndexNumber: '20401101001/2026', kcpeMarks: 388, kcpeGrade: 'A-', guardianType: GuardianType.MOTHER, guardianFirstName: 'Grace', guardianLastName: 'Otieno', guardianPhone: '+254711000001', guardianEmail: 'grace.otieno@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-01-08T09:15:00Z', reviewDate: '2026-01-20T10:00:00Z', decisionDate: '2026-01-25T14:30:00Z', createdAt: '2026-01-05T08:00:00Z', updatedAt: '2026-01-25T14:30:00Z', createdBy: 'USR002', residentialAddress: '12 Acacia Avenue, Nairobi', county: 'Nairobi', subCounty: 'Westlands' },
+  { id: 'APPSEED002', applicationNumber: 'APP-2026-002', applicationType: ApplicationType.NEW, status: ApplicationStatus.REJECTED, firstName: 'Brian', lastName: 'Kiptoo', dateOfBirth: '2013-09-03', gender: Gender.MALE, nationality: 'Kenyan', religion: 'Christian', birthCertificateNumber: 'BC-884002', previousSchool: 'Highland Primary', previousClass: 'Standard 6', kcpeIndexNumber: '20401101002/2026', kcpeMarks: 214, kcpeGrade: 'D+', guardianType: GuardianType.FATHER, guardianFirstName: 'David', guardianLastName: 'Kiptoo', guardianPhone: '+254711000002', guardianEmail: 'david.kiptoo@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-01-09T11:40:00Z', reviewDate: '2026-01-21T09:00:00Z', decisionDate: '2026-01-26T10:15:00Z', createdAt: '2026-01-07T13:00:00Z', updatedAt: '2026-01-26T10:15:00Z', createdBy: 'USR002', residentialAddress: '45 Elm Road, Nakuru', county: 'Nakuru', subCounty: 'Naivasha' },
+  { id: 'APPSEED003', applicationNumber: 'APP-2026-003', applicationType: ApplicationType.TRANSFER, status: ApplicationStatus.UNDER_REVIEW, firstName: 'Cynthia', lastName: 'Achieng', dateOfBirth: '2012-02-18', gender: Gender.FEMALE, nationality: 'Kenyan', religion: 'Christian', previousSchool: 'Lakeview Secondary', previousClass: 'Form 2', guardianType: GuardianType.GUARDIAN, guardianFirstName: 'Mary', guardianLastName: 'Owour', guardianPhone: '+254711000003', guardianEmail: 'mary.owuor@example.com', intendedClassId: 'cls-form2', intendedClassName: 'Form 2', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-02-02T08:20:00Z', reviewDate: '2026-02-10T11:00:00Z', createdAt: '2026-02-01T16:45:00Z', updatedAt: '2026-02-10T11:00:00Z', createdBy: 'USR003', residentialAddress: '78 Kwale Street, Kisumu', county: 'Kisumu', subCounty: 'Kisumu East' },
+  { id: 'APPSEED004', applicationNumber: 'APP-2026-004', applicationType: ApplicationType.NEW, status: ApplicationStatus.SUBMITTED, firstName: 'Daniel', middleName: 'Kimani', lastName: 'Mwangi', dateOfBirth: '2013-06-25', gender: Gender.MALE, nationality: 'Kenyan', religion: 'Christian', birthCertificateNumber: 'BC-884004', previousSchool: 'Greenfields Primary', previousClass: 'Standard 6', kcpeIndexNumber: '20401101004/2026', kcpeMarks: 342, kcpeGrade: 'B', guardianType: GuardianType.FATHER, guardianFirstName: 'Peter', guardianLastName: 'Mwangi', guardianPhone: '+254711000004', guardianEmail: 'peter.mwangi@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-02-14T10:05:00Z', createdAt: '2026-02-12T09:30:00Z', updatedAt: '2026-02-14T10:05:00Z', createdBy: 'USR002', residentialAddress: '23 Cedar Close, Thika', county: 'Kiambu', subCounty: 'Thika West' },
+  { id: 'APPSEED005', applicationNumber: 'APP-2026-005', applicationType: ApplicationType.NEW, status: ApplicationStatus.WAITLISTED, firstName: 'Esther', lastName: 'Wafula', dateOfBirth: '2013-11-30', gender: Gender.FEMALE, nationality: 'Kenyan', religion: 'Christian', birthCertificateNumber: 'BC-884005', previousSchool: 'St. Luke\u2019s Primary', previousClass: 'Standard 6', kcpeIndexNumber: '20401101005/2026', kcpeMarks: 301, kcpeGrade: 'B-', guardianType: GuardianType.MOTHER, guardianFirstName: 'Rose', guardianLastName: 'Wafula', guardianPhone: '+254711000005', guardianEmail: 'rose.wafula@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-02-20T14:10:00Z', reviewDate: '2026-03-02T09:45:00Z', decisionDate: '2026-03-05T12:00:00Z', createdAt: '2026-02-18T11:25:00Z', updatedAt: '2026-03-05T12:00:00Z', createdBy: 'USR003', residentialAddress: '56 Mangrove Lane, Bungoma', county: 'Bungoma', subCounty: 'Bungoma North' },
+  { id: 'APPSEED006', applicationNumber: 'APP-2026-006', applicationType: ApplicationType.READMISSION, status: ApplicationStatus.SUBMITTED, firstName: 'Felix', lastName: 'Onyango', dateOfBirth: '2011-08-09', gender: Gender.MALE, nationality: 'Kenyan', religion: 'Christian', previousSchool: 'Greenwood High International', previousClass: 'Form 3', guardianType: GuardianType.FATHER, guardianFirstName: 'George', guardianLastName: 'Onyango', guardianPhone: '+254711000006', guardianEmail: 'george.onyango@example.com', intendedClassId: 'cls-form3', intendedClassName: 'Form 3', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-03-01T07:55:00Z', createdAt: '2026-02-27T15:35:00Z', updatedAt: '2026-03-01T07:55:00Z', createdBy: 'USR002', residentialAddress: '90 Palm Grove, Migori', county: 'Migori', subCounty: 'Suna East' },
+  { id: 'APPSEED007', applicationNumber: 'APP-2026-007', applicationType: ApplicationType.NEW, status: ApplicationStatus.APPROVED, firstName: 'Halima', lastName: 'Yusuf', dateOfBirth: '2013-01-17', gender: Gender.FEMALE, nationality: 'Kenyan', religion: 'Muslim', birthCertificateNumber: 'BC-884007', previousSchool: 'Coastal Breeze Academy', previousClass: 'Standard 6', kcpeIndexNumber: '20401101007/2026', kcpeMarks: 376, kcpeGrade: 'A-', guardianType: GuardianType.MOTHER, guardianFirstName: 'Zainab', guardianLastName: 'Yusuf', guardianPhone: '+254711000007', guardianEmail: 'zainab.yusuf@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-03-04T09:50:00Z', reviewDate: '2026-03-15T10:30:00Z', decisionDate: '2026-03-18T13:20:00Z', createdAt: '2026-03-02T08:40:00Z', updatedAt: '2026-03-18T13:20:00Z', createdBy: 'USR004', residentialAddress: '34 Coral Bay, Mombasa', county: 'Mombasa', subCounty: 'Nyali' },
+  { id: 'APPSEED008', applicationNumber: 'APP-2026-008', applicationType: ApplicationType.NEW, status: ApplicationStatus.REJECTED, firstName: 'Ian', middleName: 'Baraka', lastName: 'Mutiso', dateOfBirth: '2013-03-22', gender: Gender.MALE, nationality: 'Kenyan', religion: 'Christian', birthCertificateNumber: 'BC-884008', previousSchool: 'Sunrise Hill Primary', previousClass: 'Standard 6', kcpeIndexNumber: '20401101008/2026', kcpeMarks: 198, kcpeGrade: 'D', guardianType: GuardianType.GUARDIAN, guardianFirstName: 'Agnes', guardianLastName: 'Ndinda', guardianPhone: '+254711000008', guardianEmail: 'agnes.ndinda@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-03-10T12:35:00Z', reviewDate: '2026-03-22T09:10:00Z', decisionDate: '2026-03-25T15:45:00Z', createdAt: '2026-03-08T10:20:00Z', updatedAt: '2026-03-25T15:45:00Z', createdBy: 'USR003', residentialAddress: '67 Baobab Way, Machakos', county: 'Machakos', subCounty: 'Machakos Town' },
+  { id: 'APPSEED009', applicationNumber: 'APP-2026-009', applicationType: ApplicationType.TRANSFER, status: ApplicationStatus.UNDER_REVIEW, firstName: 'Joy', lastName: 'Chebet', dateOfBirth: '2012-12-05', gender: Gender.FEMALE, nationality: 'Kenyan', religion: 'Christian', previousSchool: 'Rift Valley Girls', previousClass: 'Form 2', guardianType: GuardianType.MOTHER, guardianFirstName: 'Sally', guardianLastName: 'Chebet', guardianPhone: '+254711000009', guardianEmail: 'sally.chebet@example.com', intendedClassId: 'cls-form2', intendedClassName: 'Form 2', academicYearId: 'AY2026', academicYearName: '2026', submissionDate: '2026-04-01T08:45:00Z', reviewDate: '2026-04-08T11:15:00Z', createdAt: '2026-03-30T14:05:00Z', updatedAt: '2026-04-08T11:15:00Z', createdBy: 'USR004', residentialAddress: '15 Tea Estate Road, Kericho', county: 'Kericho', subCounty: 'Ainamoi' },
+  { id: 'APPSEED010', applicationNumber: 'APP-2026-010', applicationType: ApplicationType.NEW, status: ApplicationStatus.DRAFT, firstName: 'Kevin', lastName: 'Njoroge', dateOfBirth: '2013-07-14', gender: Gender.MALE, nationality: 'Kenyan', religion: 'Christian', previousSchool: 'Pinecrest Preparatory', previousClass: 'Standard 6', guardianType: GuardianType.FATHER, guardianFirstName: 'James', guardianLastName: 'Njoroge', guardianPhone: '+254711000010', guardianEmail: 'james.njoroge@example.com', intendedClassId: 'cls-form1', intendedClassName: 'Form 1', academicYearId: 'AY2026', academicYearName: '2026', createdAt: '2026-04-15T16:20:00Z', updatedAt: '2026-04-15T16:20:00Z', createdBy: 'USR002', residentialAddress: '82 Juniper Court, Limuru', county: 'Kiambu', subCounty: 'Limuru' },
+];
+
+export const applicationFormTemplates: ApplicationFormTemplate[] = [
+  { id: 'formtpl-1', name: 'Standard Application Form', description: 'Default application form for new students', sections: 4, fields: 24, isActive: true, lastModified: '2025-12-01', created_at: '2025-10-01T08:00:00Z', updated_at: '2025-12-01T09:30:00Z' },
+  { id: 'formtpl-2', name: 'Transfer Application Form', description: 'For students transferring from other schools', sections: 3, fields: 18, isActive: true, lastModified: '2025-11-15', created_at: '2025-09-20T08:00:00Z', updated_at: '2025-11-15T10:15:00Z' },
+  { id: 'formtpl-3', name: 'International Student Form', description: 'For international student applications', sections: 5, fields: 30, isActive: false, lastModified: '2025-10-20', created_at: '2025-08-10T08:00:00Z', updated_at: '2025-10-20T12:45:00Z' },
+];
+
+// === SEEDING ALIASES (resolved by demoDataSeed via camelToSnake -> registered collections) ===
+export const gatePasses = initialMockGatePasses;
+export const scholarships = initialMockScholarshipRecords;
+export const smsReports = initialMockSMSReports;
+export const autoSmsSettings = initialMockAutoSMSSettings;
+export const staffWalletTransactions = initialMockWalletTransactions;
+// staffAttendanceRecords is already exported above with a seedable name ('staff_attendance_records').
+export const sessionAttendance = initialMockSessionAttendance;

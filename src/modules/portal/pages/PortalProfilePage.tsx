@@ -126,16 +126,16 @@ export const PortalProfileContent: React.FC = () => {
     <div className="space-y-6">
       {/* Role Switcher (for demonstration) */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500">View as:</span>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <span className="text-sm text-surface-muted-fg">View as:</span>
+        <div className="flex items-center gap-1 bg-surface-accent rounded-lg p-1">
           {(['student', 'parent'] as UserRole[]).map((role) => (
             <button
               key={role}
               onClick={() => switchRole(role)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
                 profile.role === role
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-surface-card text-surface-foreground shadow-sm'
+                  : 'text-surface-muted-fg hover:text-surface-foreground'
               }`}
             >
               {role}
@@ -145,7 +145,7 @@ export const PortalProfileContent: React.FC = () => {
       </div>
 
       {/* Profile Header Card */}
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex flex-col sm:flex-row items-center gap-6 px-6 py-6">
           {/* Avatar */}
           {profile.photoPath ? (
@@ -155,14 +155,14 @@ export const PortalProfileContent: React.FC = () => {
               className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-semibold shadow-md">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-semibold shadow-md">
               {avatarInitials}
             </div>
           )}
 
           {/* Profile Info */}
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-2xl font-semibold text-gray-900">{profile.displayName}</h1>
+            <h1 className="text-2xl font-semibold text-surface-foreground">{profile.displayName}</h1>
             <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
               <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-50 text-indigo-700">
                 {roleLabels[profile.role]}
@@ -174,7 +174,7 @@ export const PortalProfileContent: React.FC = () => {
               )}
             </div>
             {profile.student && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-surface-muted-fg mt-1">
                 Admission: {profile.student.admissionNo} &middot; Since {new Date(profile.student.enrollmentDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
               </p>
             )}
@@ -193,34 +193,34 @@ export const PortalProfileContent: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
-        <Card title={t('profile.personalInfo')} className="border-slate-200 bg-white shadow-sm">
+        <Card title={t('profile.personalInfo')} className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <UserCircleIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <UserCircleIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Full Name</p>
-                <p className="text-sm font-medium text-gray-900">{profile.displayName}</p>
+                <p className="text-xs text-surface-muted-fg">Full Name</p>
+                <p className="text-sm font-medium text-surface-foreground">{profile.displayName}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <EnvelopeIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <EnvelopeIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Email</p>
-                <p className="text-sm font-medium text-gray-900">{profile.email}</p>
+                <p className="text-xs text-surface-muted-fg">Email</p>
+                <p className="text-sm font-medium text-surface-foreground">{profile.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <PhoneIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <PhoneIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Phone</p>
-                <p className="text-sm font-medium text-gray-900">{profile.phone}</p>
+                <p className="text-xs text-surface-muted-fg">Phone</p>
+                <p className="text-sm font-medium text-surface-foreground">{profile.phone}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <GlobeAltIcon className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <GlobeAltIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Address</p>
-                <p className="text-sm font-medium text-gray-900">{profile.address}</p>
+                <p className="text-xs text-surface-muted-fg">Address</p>
+                <p className="text-sm font-medium text-surface-foreground">{profile.address}</p>
               </div>
             </div>
           </div>
@@ -228,27 +228,27 @@ export const PortalProfileContent: React.FC = () => {
 
         {/* Academic Information (for students) */}
         {profile.student && (
-          <Card title={t('profile.academicInfo')} className="border-slate-200 bg-white shadow-sm">
+          <Card title={t('profile.academicInfo')} className="border-slate-200 bg-surface-card shadow-sm">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">Admission Number</p>
-                  <p className="text-sm font-mono font-medium text-gray-900">{profile.student.admissionNo}</p>
+                  <p className="text-xs text-surface-muted-fg">Admission Number</p>
+                  <p className="text-sm font-mono font-medium text-surface-foreground">{profile.student.admissionNo}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">Class & Stream</p>
-                  <p className="text-sm font-medium text-gray-900">{profile.student.className} - {profile.student.streamName}</p>
+                  <p className="text-xs text-surface-muted-fg">Class & Stream</p>
+                  <p className="text-sm font-medium text-surface-foreground">{profile.student.className} - {profile.student.streamName}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">Enrollment Date</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs text-surface-muted-fg">Enrollment Date</p>
+                  <p className="text-sm font-medium text-surface-foreground">
                     {new Date(profile.student.enrollmentDate).toLocaleDateString('en-GB', {
                       day: '2-digit',
                       month: 'long',
@@ -258,10 +258,10 @@ export const PortalProfileContent: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500">Academic Year</p>
-                  <p className="text-sm font-medium text-gray-900">{profile.student.academicYear}</p>
+                  <p className="text-xs text-surface-muted-fg">Academic Year</p>
+                  <p className="text-sm font-medium text-surface-foreground">{profile.student.academicYear}</p>
                 </div>
               </div>
             </div>
@@ -272,20 +272,20 @@ export const PortalProfileContent: React.FC = () => {
         {profile.role !== 'student' && profile.children && profile.children.length > 0 && (
           <Card
             title={`Linked Children (${profile.children.length})`}
-            className="border-slate-200 bg-white shadow-sm lg:col-span-2"
+            className="border-slate-200 bg-surface-card shadow-sm lg:col-span-2"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {profile.children.map((child) => (
                 <div
                   key={child.id}
-                  className="flex items-center gap-4 rounded-lg border border-gray-200 p-4 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-4 rounded-lg border border-surface-border p-4 hover:bg-surface-muted transition-colors"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                     {child.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{child.fullName}</p>
-                    <p className="text-xs text-gray-500">{child.admissionNo}</p>
+                    <p className="text-sm font-semibold text-surface-foreground truncate">{child.fullName}</p>
+                    <p className="text-xs text-surface-muted-fg">{child.admissionNo}</p>
                     <p className="text-xs text-emerald-600 font-medium">{child.className} - {child.streamName}</p>
                   </div>
                   <UsersIcon className="w-5 h-5 text-gray-300 flex-shrink-0" />
@@ -297,34 +297,34 @@ export const PortalProfileContent: React.FC = () => {
       </div>
 
       {/* Settings Placeholder */}
-      <Card title="Settings & Preferences" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Settings & Preferences" className="border-slate-200 bg-surface-card shadow-sm">
         <div className="space-y-4">
           <div className="flex items-center justify-between py-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <CogIcon className="w-5 h-5 text-gray-400" />
+              <CogIcon className="w-5 h-5 text-surface-muted-fg" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Notification Preferences</p>
-                <p className="text-xs text-gray-500">Configure email and SMS notifications</p>
+                <p className="text-sm font-medium text-surface-foreground">Notification Preferences</p>
+                <p className="text-xs text-surface-muted-fg">Configure email and SMS notifications</p>
               </div>
             </div>
             <Button variant="outline" size="sm">Configure</Button>
           </div>
           <div className="flex items-center justify-between py-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <CogIcon className="w-5 h-5 text-gray-400" />
+              <CogIcon className="w-5 h-5 text-surface-muted-fg" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Language</p>
-                <p className="text-xs text-gray-500">Current: English</p>
+                <p className="text-sm font-medium text-surface-foreground">Language</p>
+                <p className="text-xs text-surface-muted-fg">Current: English</p>
               </div>
             </div>
             <Button variant="outline" size="sm">Change</Button>
           </div>
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
-              <CogIcon className="w-5 h-5 text-gray-400" />
+              <CogIcon className="w-5 h-5 text-surface-muted-fg" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Change Password</p>
-                <p className="text-xs text-gray-500">Update your account password</p>
+                <p className="text-sm font-medium text-surface-foreground">Change Password</p>
+                <p className="text-xs text-surface-muted-fg">Update your account password</p>
               </div>
             </div>
             <Button variant="outline" size="sm">Update</Button>

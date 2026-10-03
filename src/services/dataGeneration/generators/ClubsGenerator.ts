@@ -101,7 +101,7 @@ export class ClubsGenerator extends BaseGenerator {
       {
         name: 'Academic',
         description: 'Clubs focused on academic excellence and subject-specific activities',
-        color: '#3B82F6'
+        color: '#6366f1'
       },
       {
         name: 'Sports',

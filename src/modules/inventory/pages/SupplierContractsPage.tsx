@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { EditIcon, DeleteIcon, PlusIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useSupplierContractData } from '../data/useSupplierContractData';
 import { useSupplierData } from '../data/useSupplierData';
@@ -19,6 +20,7 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 export const SupplierContractsPageContent: React.FC = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const confirm = useConfirm();
   const {
     contracts,
     loading,
@@ -137,7 +139,7 @@ export const SupplierContractsPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('common.confirmDelete'))) {
+    if (await confirm({ title: t('common.delete'), message: t('common.confirmDelete'), variant: 'danger' })) {
       try {
         await remove(id);
         toast.showSuccess(t('inventory.contracts.deleted'));
@@ -182,7 +184,7 @@ export const SupplierContractsPageContent: React.FC = () => {
       header: t('inventory.contracts.contractNumber'),
       minWidth: 150,
       render: (_v, contract) => (
-        <span className="font-medium text-gray-900">{contract.contract_number}</span>
+        <span className="font-medium text-surface-foreground">{contract.contract_number}</span>
       )
     },
     {
@@ -269,7 +271,7 @@ export const SupplierContractsPageContent: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-surface-foreground">
           {t('inventory.contracts.title')}
         </h1>
         <Button onClick={() => handleOpenDialog()} leftIcon={<PlusIcon className="w-4 h-4" />}>
@@ -278,7 +280,7 @@ export const SupplierContractsPageContent: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-surface-card border border-surface-border rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Input
             placeholder={t('inventory.contracts.search')}

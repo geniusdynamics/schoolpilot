@@ -5,7 +5,7 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import Spinner from '@/components/ui/Spinner';
-import { initialMockExamGazettes } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { ExamGazette } from '../data/types';
 import { logger } from '@/utils/logging';
 import { DocumentTextIcon, DownloadIcon, PrinterIcon } from '@/components/ui/icons';
@@ -14,12 +14,14 @@ import { formatDate } from '@/utils/format';
 export const ExamGazettePageContent: React.FC = () => {
   const { loading } = useAppData();
 
+  const gazettesCollection = useDatabaseCollection<ExamGazette>('exam_gazettes');
+
   const [selectedSession, setSelectedSession] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from exam_gazettes
   const mockGazettes: ExamGazette[] = useMemo(() => {
-    let filtered = initialMockExamGazettes;
+    let filtered = gazettesCollection.data;
 
     if (selectedSession) {
       filtered = filtered.filter(g => g.exam_session_id === selectedSession);
@@ -30,7 +32,7 @@ export const ExamGazettePageContent: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedSession, selectedClass]);
+  }, [gazettesCollection.data, selectedSession, selectedClass]);
 
   const handlePrint = (gazette: ExamGazette) => {
     logger.info('Printing gazette:', gazette.id);
@@ -94,7 +96,7 @@ export const ExamGazettePageContent: React.FC = () => {
     return classes.map(id => mockGazettes.find(g => g.class_id === id)?.class_name || id);
   }, [mockGazettes]);
 
-  if (loading?.all && mockGazettes.length === 0) {
+  if ((loading?.all || gazettesCollection.loading) && mockGazettes.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -129,11 +131,11 @@ export const ExamGazettePageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Exam Session</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Exam Session</label>
             <select
               value={selectedSession}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedSession(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Sessions</option>
               {uniqueSessions.map(session => (
@@ -142,11 +144,11 @@ export const ExamGazettePageContent: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
             <select
               value={selectedClass}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Classes</option>
               {uniqueClasses.map(cls => (
@@ -163,9 +165,9 @@ export const ExamGazettePageContent: React.FC = () => {
 
         {/* Detailed Gazette View */}
         {mockGazettes.length === 1 && (
-          <div className="mt-8 p-6 bg-white border border-gray-200 rounded-lg">
+          <div className="mt-8 p-6 bg-surface-card border border-surface-border rounded-lg">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-surface-foreground">
                 {mockGazettes[0].exam_session_name} - {mockGazettes[0].class_name}
               </h3>
               <div className="flex gap-2">
@@ -182,7 +184,7 @@ export const ExamGazettePageContent: React.FC = () => {
 
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-surface-accent">
                   <th className="px-4 py-2 text-left text-sm font-semibold border">Rank</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold border">Admission No</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold border">Student Name</th>
@@ -204,7 +206,7 @@ export const ExamGazettePageContent: React.FC = () => {
                     <td className="px-4 py-2">{student.student_name}</td>
                     {mockGazettes[0].subjects.map(subject => (
                       <td key={subject.id} className="px-4 py-2 text-center">
-                        {subject.marks_obtained}
+                        {student.marks?.[subject.subject_id] ?? '—'}
                       </td>
                     ))}
                     <td className="px-4 py-2 text-center font-semibold">{student.total_marks}</td>

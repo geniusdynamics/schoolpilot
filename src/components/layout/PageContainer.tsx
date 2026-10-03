@@ -22,7 +22,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({
 
   if (fluid) {
     return (
-      <div className={`p-6 min-h-screen bg-gray-50 ${className}`}>
+      <div className={`p-6 min-h-screen bg-surface-muted ${className}`}>
         {children}
       </div>
     );
@@ -41,7 +41,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({
 
   return (
     <div className={`py-6 px-4 sm:px-6 lg:px-8 min-h-screen mx-auto ${maxWidthClass} ${className}`}>
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-surface-card rounded-lg shadow-sm p-6">
         {children}
       </div>
     </div>

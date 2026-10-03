@@ -110,10 +110,10 @@ export const MealConsumptionLogPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Log Meal Consumption">
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Select a student and the meal they are consuming. The system will check their meal plan or deduct from their wallet if applicable.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Input 
                 name="consumption_date" 
                 label="Consumption Date" 
@@ -180,7 +180,7 @@ export const MealConsumptionLogPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400" />,
+            icon: <ClipboardDocumentListIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No meal consumption logs",
             description: "No meal consumption logs recorded yet. Start logging student meals to track consumption.",
             action: undefined

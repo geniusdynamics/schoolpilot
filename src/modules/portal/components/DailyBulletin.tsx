@@ -65,10 +65,10 @@ const defaultPosts: BulletinPost[] = [
 
 const tagColors: Record<string, string> = {
   drama: 'bg-purple-100 text-purple-700 border-purple-200',
-  staff: 'bg-gray-100 text-gray-700 border-gray-200',
+  staff: 'bg-surface-accent text-surface-foreground border-surface-border',
   exams: 'bg-amber-100 text-amber-700 border-amber-200',
   important: 'bg-rose-100 text-rose-700 border-rose-200',
-  general: 'bg-blue-100 text-blue-700 border-blue-200',
+  general: 'bg-primary-100 text-primary-700 border-primary-200',
 };
 
 // Quick filter tags - translation keys will be resolved in component
@@ -114,8 +114,8 @@ export const DailyBulletin: React.FC<DailyBulletinProps> = ({
             onClick={() => onTagClick?.(tag.key)}
             className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
               tag.active
-                ? 'bg-blue-50 text-blue-700 font-medium'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-primary-50 text-primary-700 font-medium'
+                : 'text-surface-muted-fg hover:bg-surface-accent'
             }`}
           >
             {t(tag.key)}
@@ -123,8 +123,8 @@ export const DailyBulletin: React.FC<DailyBulletinProps> = ({
         ))}
         <div className="flex-1"></div>
         <div className="flex items-center gap-1 text-xs">
-          <button className="text-gray-600 hover:text-gray-900 px-2">{t('portal.bulletin.expand')}</button>
-          <button className="text-gray-600 hover:text-gray-900 px-2">{t('portal.bulletin.collapse')}</button>
+          <button className="text-surface-muted-fg hover:text-surface-foreground px-2">{t('portal.bulletin.expand')}</button>
+          <button className="text-surface-muted-fg hover:text-surface-foreground px-2">{t('portal.bulletin.collapse')}</button>
           <button className="text-rose-600 hover:text-rose-700 px-2">{t('portal.bulletin.delete')}</button>
         </div>
       </div>
@@ -142,7 +142,7 @@ export const DailyBulletin: React.FC<DailyBulletinProps> = ({
                   className="w-10 h-10 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
                   <UserCircleIcon className="w-6 h-6" />
                 </div>
               )}
@@ -151,15 +151,15 @@ export const DailyBulletin: React.FC<DailyBulletinProps> = ({
             {/* Content */}
             <div className="flex-1 min-w-0">
               {/* Title */}
-              <h4 className="text-sm font-semibold text-blue-600 mb-0.5">{post.title}</h4>
+              <h4 className="text-sm font-semibold text-primary-600 mb-0.5">{post.title}</h4>
 
               {/* Meta */}
-              <p className="text-xs text-gray-500 mb-1">
+              <p className="text-xs text-surface-muted-fg mb-1">
                 {t('portal.bulletin.postedAt', { time: post.postedAt, author: post.authorName })}
               </p>
 
               {/* Content */}
-              <p className="text-sm text-gray-700 mb-2 line-clamp-2">{post.content}</p>
+              <p className="text-sm text-surface-foreground mb-2 line-clamp-2">{post.content}</p>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-1.5">
@@ -180,7 +180,7 @@ export const DailyBulletin: React.FC<DailyBulletinProps> = ({
       </div>
 
       {posts.length === 0 && (
-        <div className="text-center py-6 text-gray-500">
+        <div className="text-center py-6 text-surface-muted-fg">
           <ClipboardDocumentListIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">{t('portal.announcements.noAnnouncements')}</p>
         </div>

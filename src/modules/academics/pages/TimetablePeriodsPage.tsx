@@ -9,7 +9,7 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 
-import { useTimetablePeriodDefData } from '../data/useTimetablePeriodDefData'; // Use module-specific hook
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection'; // Real database collection
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -21,10 +21,10 @@ export const TimetablePeriodsContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const {
     data: timetablePeriodDefs,
-    create,
+    insert,
     update,
     remove
-  } = useTimetablePeriodDefData(); // Use module-specific hook
+  } = useDatabaseCollection<TimetablePeriodDef>('timetable_period_definitions');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<TimetablePeriodDef | null>(null);
@@ -62,17 +62,22 @@ export const TimetablePeriodsContent: React.FC = () => {
         return;
     }
 
-    const payload: TimetablePeriodDef = {
-      id: editingPeriod?.id || Date.now(), // Generate ID for new items
+    const payload = {
       period_name: formData.period_name!,
       start_time: formData.start_time!,
       end_time: formData.end_time!,
     };
 
-    if (editingPeriod) {
-      update(editingPeriod.id, payload);
-    } else {
-      create(payload);
+    try {
+      if (editingPeriod) {
+        await update(String(editingPeriod.id), payload);
+        toast.showSuccess('Timetable period updated.');
+      } else {
+        await insert(payload);
+        toast.showSuccess('Timetable period added.');
+      }
+    } catch (err) {
+      toast.showError('Failed to save timetable period.');
     }
     closeModal();
   };
@@ -80,7 +85,12 @@ export const TimetablePeriodsContent: React.FC = () => {
   const confirm = useConfirm();
   const handleDelete = async (id: number) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this timetable period?' }))) {
-      remove(id);
+      try {
+        await remove(String(id));
+        toast.showSuccess('Timetable period deleted.');
+      } catch (err) {
+        toast.showError('Failed to delete timetable period.');
+      }
     }
   };
 
@@ -101,8 +111,7 @@ export const TimetablePeriodsContent: React.FC = () => {
     },
   ];
 
-  // Module-specific hooks don't have loading states like global context
-  // Remove loading check since data is immediately available
+  // Data and loading state come from the timetable_period_definitions collection
 
   return (
     <div className="space-y-6">
@@ -111,7 +120,7 @@ export const TimetablePeriodsContent: React.FC = () => {
           Add Period
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define standard lesson periods for the school day (e.g., Lesson 1, Break) along with their start and end times.
         </p>
         <DataGrid columns={columns} data={timetablePeriodDefs} />

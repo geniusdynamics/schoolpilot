@@ -215,6 +215,7 @@ export const StudentWalletPageContent: React.FC = () => {
         <DataGrid 
           columns={walletColumns} 
           data={filteredStudentWallets} 
+          keyField="student_id"
           loading={loading.studentWallets && !isTxModalOpen}
           selectable
           onSelectionChange={(rows) => setSelectedRows(rows.map(r => String(r.id)))}
@@ -228,8 +229,8 @@ export const StudentWalletPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeTxModal}>Cancel</Button>
-            <Button onClick={handleTxSubmit} disabled={loading.walletTransactions}>
-              {loading.walletTransactions ? <Spinner size="sm"/> : 'Post Transaction'}
+            <Button onClick={handleTxSubmit} loading={loading.walletTransactions}>
+              {'Post Transaction'}
             </Button>
           </>
         }

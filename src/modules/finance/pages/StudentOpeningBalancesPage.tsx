@@ -136,7 +136,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-blue-600">{row.as_of_date ? formatDate(row.as_of_date) : '-'}</span>
+      render: (value, row) => <span className="text-primary-600">{row.as_of_date ? formatDate(row.as_of_date) : '-'}</span>
     },
     { 
       key: 'is_billed', 
@@ -145,7 +145,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
       filterable: true, 
       width: 80,
       render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        row.is_billed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+        row.is_billed ? 'bg-primary-100 text-primary-800' : 'bg-surface-accent text-surface-foreground'
       }`}>{row.is_billed ? 'Yes' : 'No'}</span>
     },
     {
@@ -191,7 +191,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <BookOpenIcon className="w-12 h-12 text-gray-400" />,
+            icon: <BookOpenIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No opening balances found",
             description: "Set up opening fee balances for students to track their financial history from the beginning of the academic period.",
             action: studentsWithoutOB.length > 0 ? {
@@ -206,8 +206,8 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.studentOpeningBalances}>
-              {loading.studentOpeningBalances ? <Spinner size="sm"/> : (editingBalance ? 'Save Changes' : 'Add Balance')}
+            <Button onClick={handleSubmit} loading={loading.studentOpeningBalances}>
+              {editingBalance ? 'Save Changes' : 'Add Balance'}
             </Button>
           </>
         }
@@ -222,9 +222,9 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
         <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={formData.amount || ''} onChange={handleInputChange} required />
         <Input name="as_of_date" label="As Of Date" type="date" value={formData.as_of_date || ''} onChange={handleInputChange} required />
         <div className="mt-4 flex items-center">
-            <input id="is_billed" name="is_billed" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
+            <input id="is_billed" name="is_billed" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500" 
                 checked={formData.is_billed || false} onChange={handleInputChange} />
-            <label htmlFor="is_billed" className="ml-2 block text-sm text-gray-900">Consider this amount as already billed (affects statement)</label>
+            <label htmlFor="is_billed" className="ml-2 block text-sm text-surface-foreground">Consider this amount as already billed (affects statement)</label>
         </div>
       </DialogForm>
     </div>

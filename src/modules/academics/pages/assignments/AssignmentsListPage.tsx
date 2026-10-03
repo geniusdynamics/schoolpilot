@@ -24,8 +24,8 @@ import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<AssignmentStatus, string> = {
-  [AssignmentStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [AssignmentStatus.PUBLISHED]: 'bg-blue-100 text-blue-800',
+  [AssignmentStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [AssignmentStatus.PUBLISHED]: 'bg-primary-100 text-primary-800',
   [AssignmentStatus.ARCHIVED]: 'bg-orange-100 text-orange-800',
 };
 
@@ -259,9 +259,9 @@ const AssignmentsListPage: React.FC = () => {
       width: 280,
       render: (value, item) => (
         <div>
-          <span className="font-medium text-gray-900">{value}</span>
+          <span className="font-medium text-surface-foreground">{value}</span>
           {item.subjectName && (
-            <p className="text-xs text-gray-500 truncate">{item.subjectName}</p>
+            <p className="text-xs text-surface-muted-fg truncate">{item.subjectName}</p>
           )}
         </div>
       ),
@@ -313,7 +313,7 @@ const AssignmentsListPage: React.FC = () => {
         const count = getSubmissionCount(item.id);
         const total = item.submissionCount || 0;
         return (
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-surface-foreground">
             {count} / {total || '?'}
           </span>
         );
@@ -398,7 +398,7 @@ const AssignmentsListPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 placeholder="Search assignments..."
                 value={searchQuery}
@@ -464,11 +464,11 @@ const AssignmentsListPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <DocumentTextIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by creating a new assignment.
               </p>
               <div className="mt-6">
@@ -494,7 +494,7 @@ const AssignmentsListPage: React.FC = () => {
       >
         <FormSection title="Basic Information" columns={2}>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.title')} *
             </label>
             <Input
@@ -505,26 +505,26 @@ const AssignmentsListPage: React.FC = () => {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.description')}
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Brief description of the assignment"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-surface-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               rows={2}
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.instructions')}
             </label>
             <textarea
               value={formData.instructions}
               onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
               placeholder="Detailed instructions for students"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-surface-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               rows={3}
             />
           </div>
@@ -532,7 +532,7 @@ const AssignmentsListPage: React.FC = () => {
 
         <FormSection title="Details" columns={2}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.subject')}
             </label>
             <Input
@@ -543,7 +543,7 @@ const AssignmentsListPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.class')}
             </label>
             <Input
@@ -554,7 +554,7 @@ const AssignmentsListPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.teacher')}
             </label>
             <Input
@@ -564,7 +564,7 @@ const AssignmentsListPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.status')}
             </label>
             <Select
@@ -579,7 +579,7 @@ const AssignmentsListPage: React.FC = () => {
             </Select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.assignedDate')}
             </label>
             <Input
@@ -589,7 +589,7 @@ const AssignmentsListPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.dueDate')} *
             </label>
             <Input
@@ -603,7 +603,7 @@ const AssignmentsListPage: React.FC = () => {
 
         <FormSection title="Scoring & Options" columns={2}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.maxScore')}
             </label>
             <Input
@@ -614,7 +614,7 @@ const AssignmentsListPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               {t('assignment.fields.weightPercentage')}
             </label>
             <Input
@@ -631,15 +631,15 @@ const AssignmentsListPage: React.FC = () => {
               id="allowLate"
               checked={formData.allowLateSubmission}
               onChange={(e) => setFormData(prev => ({ ...prev, allowLateSubmission: e.target.checked }))}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-surface-border rounded"
             />
-            <label htmlFor="allowLate" className="text-sm text-gray-700">
+            <label htmlFor="allowLate" className="text-sm text-surface-foreground">
               {t('assignment.fields.allowLateSubmission')}
             </label>
           </div>
           {formData.allowLateSubmission && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-foreground mb-1">
                 {t('assignment.fields.latePenaltyPercentage')}
               </label>
               <Input

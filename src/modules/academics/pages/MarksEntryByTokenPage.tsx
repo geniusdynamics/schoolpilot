@@ -8,7 +8,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormActions from '@/components/ui/forms/FormActions';
 
 import Spinner from '@/components/ui/Spinner';
-import { initialMockMarksEntrySessions } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { MarksEntrySession } from '../data/types';
 import { logger } from '@/utils/logging';
 import { DocumentDuplicateIcon } from '@/components/ui/icons';
@@ -17,14 +17,16 @@ import { useToast } from '@/hooks/useToast';
 export const MarksEntryByTokenPageContent: React.FC = () => {
   const { loading } = useAppData();
 
+  const sessionsCollection = useDatabaseCollection<MarksEntrySession>('marks_entry_sessions');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const [activeSession, setActiveSession] = useState<MarksEntrySession | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from marks_entry_sessions
   const mockSessions: MarksEntrySession[] = useMemo(() => {
-    let filtered = initialMockMarksEntrySessions;
+    let filtered = sessionsCollection.data;
 
     if (searchTerm) {
       filtered = filtered.filter(session => 
@@ -35,7 +37,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm]);
+  }, [sessionsCollection.data, searchTerm]);
 
   const toast = useToast();
   const handleTokenSubmit = () => {
@@ -71,10 +73,20 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
     setActiveSession({ ...activeSession, marks: updatedMarks });
   };
 
-  const handleSaveMarks = () => {
+  const handleSaveMarks = async () => {
     if (!activeSession) return;
-    // In production, this would save the marks
-    logger.info('Saving marks:', activeSession);
+    try {
+      await sessionsCollection.update(activeSession.id, {
+        marks: activeSession.marks,
+        status: 'Completed',
+        updated_at: new Date().toISOString()
+      });
+      toast.showSuccess('Marks saved.');
+      logger.info('Saving marks:', activeSession);
+    } catch (err) {
+      logger.error('Failed to save marks:', err);
+      toast.showError('Failed to save marks.');
+    }
     setIsModalOpen(false);
     setActiveSession(null);
     setTokenInput('');
@@ -83,7 +95,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const styles = {
       'Pending': 'bg-yellow-100 text-yellow-800',
-      'In Progress': 'bg-blue-100 text-blue-800',
+      'In Progress': 'bg-primary-100 text-primary-800',
       'Completed': 'bg-green-100 text-green-800'
     };
     return (
@@ -133,7 +145,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
     }
   ];
 
-  if (loading?.all && mockSessions.length === 0) {
+  if ((loading?.all || sessionsCollection.loading) && mockSessions.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -168,13 +180,13 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
         {/* Token Entry */}
         <div className="mb-6 flex gap-4 items-end">
           <div className="flex-1 max-w-md">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Enter Token Code</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Enter Token Code</label>
             <input
               type="text"
               placeholder="TKN-2024-XXXX"
               value={tokenInput}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTokenInput(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
           <Button onClick={handleTokenSubmit} variant="primary">
@@ -185,13 +197,13 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Token, subject, class..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -215,22 +227,22 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
       >
         {activeSession && (
           <>
-            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="mb-4 p-4 bg-surface-muted border border-surface-border rounded-lg">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Token:</span>
+                  <span className="text-surface-muted-fg">Token:</span>
                   <span className="ml-2 font-semibold">{activeSession.token_code}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Exam:</span>
+                  <span className="text-surface-muted-fg">Exam:</span>
                   <span className="ml-2 font-semibold">{activeSession.exam_session_name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Teacher:</span>
+                  <span className="text-surface-muted-fg">Teacher:</span>
                   <span className="ml-2 font-semibold">{activeSession.teacher_name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Status:</span>
+                  <span className="text-surface-muted-fg">Status:</span>
                   <span className="ml-2">{getStatusBadge(activeSession.status)}</span>
                 </div>
               </div>
@@ -239,7 +251,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
             <FormSection>
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-surface-accent">
                     <th className="px-4 py-2 text-left text-sm font-semibold">Student</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold">Admission No</th>
                     <th className="px-4 py-2 text-center text-sm font-semibold">Marks Obtained</th>
@@ -260,7 +272,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
                           max={mark.marks_total}
                           value={mark.marks_obtained}
                           onChange={(e) => handleMarkChange(mark.id, 'marks_obtained', parseInt(e.target.value) || 0)}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-center"
+                          className="w-full border border-surface-border rounded px-2 py-1 text-center"
                         />
                       </td>
                       <td className="px-4 py-2 text-center">{mark.marks_total}</td>
@@ -270,7 +282,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
                           type="text"
                           value={mark.remarks}
                           onChange={(e) => handleMarkChange(mark.id, 'remarks', e.target.value)}
-                          className="w-full border border-gray-300 rounded px-2 py-1"
+                          className="w-full border border-surface-border rounded px-2 py-1"
                         />
                       </td>
                     </tr>

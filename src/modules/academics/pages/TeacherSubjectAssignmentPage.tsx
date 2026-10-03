@@ -114,7 +114,7 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
     { header: 'Academic Year', key: 'academic_year_name' },
     {
       header: 'Actions',
-      key: 'id',
+      key: 'actions',
       render: (_value: any, item: TeacherSubjectAssignment) => (
         <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
       ),
@@ -138,7 +138,7 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
           Assign Teacher
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Assign teachers to the subjects that have been allocated to class streams for specific academic years.
         </p>
         <DataGrid columns={columns} data={teacherSubjectAssignments} loading={loading.teacherSubjectAssignments && isModalOpen} />
@@ -177,8 +177,8 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.teacherSubjectAssignments}>
-            {loading.teacherSubjectAssignments ? <Spinner size="sm"/> : 'Assign Teacher'}
+          <Button onClick={handleSubmit} loading={loading.teacherSubjectAssignments}>
+            {'Assign Teacher'}
           </Button>
         </FormActions>
       </DialogForm>

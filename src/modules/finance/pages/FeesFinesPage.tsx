@@ -186,7 +186,7 @@ export const FeesFinesPageContent: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => openModal(item)}
-            className="text-blue-600 hover:text-blue-800"
+            className="text-primary-600 hover:text-primary-800"
             title="Edit"
           >
             Edit

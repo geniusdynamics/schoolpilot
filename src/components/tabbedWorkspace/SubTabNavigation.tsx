@@ -30,7 +30,7 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
   };
 
   return (
-    <div className={`flex items-center space-x-1 border-b border-gray-200 bg-gray-50 px-4 py-2 ${className}`}>
+    <div className={`flex items-center space-x-1 border-b border-surface-border bg-surface-muted px-4 py-2 ${className}`}>
       {/* Sub-tab buttons */}
       <div className="flex items-center space-x-1">
         {subTabs.map((subTab) => {
@@ -45,14 +45,14 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
               className={`
                 px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-200
                 ${isActive 
-                  ? 'bg-white text-blue-600 border border-gray-200 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-surface-card text-primary-600 border border-surface-border shadow-sm' 
+                  : 'text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent'
                 }
                 ${isDisabled 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'cursor-pointer'
                 }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1
               `}
               title={subTab.tooltip}
             >
@@ -63,7 +63,7 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
               )}
               {subTab.label}
               {subTab.badge && (
-                <span className="ml-1.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+                <span className="ml-1.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium bg-gray-200 text-surface-foreground rounded-full">
                   {subTab.badge}
                 </span>
               )}
@@ -77,9 +77,9 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
         <button
           onClick={handleAddClick}
           className="
-            ml-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 
+            ml-2 p-1.5 text-surface-muted-fg hover:text-surface-muted-fg hover:bg-surface-accent 
             rounded-md transition-colors duration-200
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1
           "
           title="Add new tab"
         >

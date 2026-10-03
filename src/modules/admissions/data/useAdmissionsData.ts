@@ -2,9 +2,11 @@
 
 // ABOUTME: Self-contained hook for admissions data management
 // ABOUTME: Provides CRUD operations for applications, documents, reviews, and enrollment
+// ABOUTME: All database access goes through the provider-agnostic ICollection API
 
 import { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import type { ICollection } from '@/services/database/interfaces';
 import type {
   Application,
   ApplicationFormData,
@@ -19,6 +21,29 @@ import type {
   ApplicationStatus,
 } from './types';
 import { ApplicationStatus as AppStatus } from './types';
+
+// Registered collection names (see src/services/database/collections.ts):
+// admissions_applications, application_reviews, application_documents,
+// application_approvals, application_notes, admission_enrollments, students.
+const COLLECTIONS = {
+  applications: 'admissions_applications',
+  reviews: 'application_reviews',
+  documents: 'application_documents',
+  decisions: 'application_approvals',
+  notes: 'application_notes',
+  enrollments: 'admission_enrollments',
+  students: 'students',
+} as const;
+
+// Resolve an ICollection through the live database manager.
+const getCollection = async (name: string): Promise<ICollection<any>> => {
+  const db = await databaseService.getDatabase();
+  const collection = db.getCollection(name);
+  if (!collection) {
+    throw new Error(`Collection '${name}' is not registered`);
+  }
+  return collection;
+};
 
 // Generate unique application number
 const generateApplicationNumber = (): string => {
@@ -70,41 +95,37 @@ export const useAdmissionsData = () => {
     setLoading(true);
     setError(null);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['applications'];
-      
-      let query = collection.find();
-      
-      // Apply filters
+      const collection = await getCollection(COLLECTIONS.applications);
+      // ICollection exposes plain find(); filter in JS to mimic the old query builder.
+      let apps = ((await collection.find({})) || []) as Application[];
+
       if (filters) {
         if (filters.status) {
-          query = query.where('status').eq(filters.status);
+          apps = apps.filter(app => app.status === filters.status);
         }
         if (filters.classId) {
-          query = query.where('intendedClassId').eq(filters.classId);
+          apps = apps.filter(app => app.intendedClassId === filters.classId);
         }
         if (filters.academicYearId) {
-          query = query.where('academicYearId').eq(filters.academicYearId);
+          apps = apps.filter(app => app.academicYearId === filters.academicYearId);
         }
         if (filters.applicationType) {
-          query = query.where('applicationType').eq(filters.applicationType);
+          apps = apps.filter(app => app.applicationType === filters.applicationType);
         }
         if (filters.searchQuery) {
           const regex = new RegExp(filters.searchQuery, 'i');
-          query = query.where('firstName').regex(regex);
+          apps = apps.filter(app => regex.test(app.firstName));
         }
         if (filters.dateFrom) {
-          query = query.where('createdAt').gte(filters.dateFrom);
+          apps = apps.filter(app => app.createdAt >= filters.dateFrom!);
         }
         if (filters.dateTo) {
-          query = query.where('createdAt').lte(filters.dateTo);
+          apps = apps.filter(app => app.createdAt <= filters.dateTo!);
         }
       }
-      
-      const results = await query.exec();
-      const apps = results.map((doc: any) => doc.toJSON()) as Application[];
+
       setApplications(apps);
-      
+
       // Update statistics
       updateStatistics(apps);
     } catch (err) {
@@ -122,6 +143,8 @@ export const useAdmissionsData = () => {
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+    const enrolledCount = apps.filter(a => a.status === AppStatus.ENROLLED).length;
+
     const stats: ApplicationStatistics = {
       totalApplications: apps.length,
       pendingReview: apps.filter(a => a.status === AppStatus.UNDER_REVIEW).length,
@@ -129,12 +152,31 @@ export const useAdmissionsData = () => {
       rejected: apps.filter(a => a.status === AppStatus.REJECTED).length,
       deferred: apps.filter(a => a.status === AppStatus.DEFERRED).length,
       waitlisted: apps.filter(a => a.status === AppStatus.WAITLISTED).length,
-      enrolled: apps.filter(a => a.status === AppStatus.ENROLLED).length,
+      enrolled: enrolledCount,
+      pipeline: {
+        contacts: apps.length,
+        enquired: apps.length,
+        applied: apps.filter(a => a.status !== AppStatus.DRAFT).length,
+        admitted: apps.filter(
+          a => a.status === AppStatus.APPROVED || a.status === AppStatus.ENROLLED
+        ).length,
+        enrolled: enrolledCount,
+      },
       byClass: [],
       byStatus: [],
       thisMonth: apps.filter(a => new Date(a.createdAt) >= startOfMonth).length,
       thisWeek: apps.filter(a => new Date(a.createdAt) >= startOfWeek).length,
       today: apps.filter(a => new Date(a.createdAt) >= startOfDay).length,
+      // Time-series/funnel analytics are not derived yet - kept empty as before.
+      monthlyData: [],
+      funnel: [],
+      postAdmissions: { declined: 0, enrolled: enrolledCount, total: apps.length },
+      trends: {
+        enquiries: { direction: 'neutral', value: '0%' },
+        applications: { direction: 'neutral', value: '0%' },
+        enrollment: { direction: 'neutral', value: '0%' },
+        conversionRate: { direction: 'neutral', value: '0%' },
+      },
     };
 
     // Group by class
@@ -173,12 +215,11 @@ export const useAdmissionsData = () => {
   const createApplication = async (formData: ApplicationFormData): Promise<Application> => {
     setLoading(true);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['applications'];
-      
+      const collection = await getCollection(COLLECTIONS.applications);
+
       const now = new Date().toISOString();
       const applicationNumber = generateApplicationNumber();
-      
+
       const newApplication: Application = {
         id: databaseService.generateId(),
         applicationNumber,
@@ -188,15 +229,17 @@ export const useAdmissionsData = () => {
         createdAt: now,
         updatedAt: now,
       };
-      
+
       await collection.insert(newApplication);
-      
-      setApplications(prev => [...prev, newApplication]);
-      updateStatistics([...applications, newApplication]);
-      
+
+      const next = [...applications, newApplication];
+      setApplications(next);
+      updateStatistics(next);
+
       return newApplication;
     } catch (err) {
       setError('Failed to create application');
+      logger.error('Error creating application:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -207,26 +250,22 @@ export const useAdmissionsData = () => {
   const updateApplication = async (id: string, updates: Partial<Application>): Promise<void> => {
     setLoading(true);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['applications'];
-      
-      const doc = await collection.findOne(id).exec();
-      if (doc) {
-        await doc.update({
-          $set: {
-            ...updates,
-            updatedAt: new Date().toISOString(),
-          },
-        });
-        
-        setApplications(prev =>
-          prev.map(app =>
-            app.id === id ? { ...app, ...updates, updatedAt: new Date().toISOString() } : app
-          )
-        );
-      }
+      const collection = await getCollection(COLLECTIONS.applications);
+
+      const updatedAt = new Date().toISOString();
+      await collection.update(id, {
+        ...updates,
+        updatedAt,
+      });
+
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === id ? { ...app, ...updates, updatedAt } : app
+        )
+      );
     } catch (err) {
       setError('Failed to update application');
+      logger.error('Error updating application:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -237,17 +276,15 @@ export const useAdmissionsData = () => {
   const deleteApplication = async (id: string): Promise<void> => {
     setLoading(true);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['applications'];
-      
-      const doc = await collection.findOne(id).exec();
-      if (doc) {
-        await doc.remove();
-        setApplications(prev => prev.filter(app => app.id !== id));
-        updateStatistics(applications.filter(app => app.id !== id));
-      }
+      const collection = await getCollection(COLLECTIONS.applications);
+
+      await collection.remove(id);
+      const next = applications.filter(app => app.id !== id);
+      setApplications(next);
+      updateStatistics(next);
     } catch (err) {
       setError('Failed to delete application');
+      logger.error('Error deleting application:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -257,13 +294,13 @@ export const useAdmissionsData = () => {
   // Get single application by ID
   const getApplication = async (id: string): Promise<Application | null> => {
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['applications'];
-      
-      const doc = await collection.findOne(id).exec();
-      return doc ? doc.toJSON() as Application : null;
+      const collection = await getCollection(COLLECTIONS.applications);
+
+      const doc = await collection.findById(id);
+      return (doc as Application) ?? null;
     } catch (err) {
       setError('Failed to load application');
+      logger.error('Error loading application:', err);
       return null;
     }
   };
@@ -271,14 +308,13 @@ export const useAdmissionsData = () => {
   // Get single application by application number (reference)
   const getApplicationByReference = async (applicationNumber: string): Promise<Application | null> => {
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['applications'];
+      const collection = await getCollection(COLLECTIONS.applications);
 
-      const results = await collection.find().where('applicationNumber').eq(applicationNumber).exec();
-      if (results.length === 0) return null;
-      return results[0].toJSON() as Application;
+      const results = ((await collection.find({})) || []) as Application[];
+      return results.find(app => app.applicationNumber === applicationNumber) ?? null;
     } catch (err) {
       setError('Failed to load application');
+      logger.error('Error loading application by reference:', err);
       return null;
     }
   };
@@ -287,9 +323,8 @@ export const useAdmissionsData = () => {
   const addReview = async (applicationId: string, reviewData: ReviewFormData, reviewerId: string): Promise<void> => {
     setLoading(true);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['application_reviews'];
-      
+      const collection = await getCollection(COLLECTIONS.reviews);
+
       const review: ApplicationReview = {
         id: databaseService.generateId(),
         applicationId,
@@ -299,9 +334,9 @@ export const useAdmissionsData = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      
+
       await collection.insert(review);
-      
+
       // Update application status to under review
       await updateApplication(applicationId, {
         status: AppStatus.UNDER_REVIEW,
@@ -309,13 +344,14 @@ export const useAdmissionsData = () => {
       });
     } catch (err) {
       setError('Failed to add review');
+      logger.error('Error adding review:', err);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Make admission decision
+  // Make admission decision (decisions persist to application_approvals)
   const makeDecision = async (
     applicationId: string,
     decisionData: DecisionFormData,
@@ -323,9 +359,8 @@ export const useAdmissionsData = () => {
   ): Promise<void> => {
     setLoading(true);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['admission_decisions'];
-      
+      const collection = await getCollection(COLLECTIONS.decisions);
+
       const decision = {
         id: databaseService.generateId(),
         applicationId,
@@ -340,21 +375,22 @@ export const useAdmissionsData = () => {
         decisionDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
       };
-      
+
       await collection.insert(decision);
-      
+
       // Update application with decision
       await updateApplication(applicationId, {
         status: decisionData.decision,
         decisionDate: new Date().toISOString(),
       });
-      
+
       // If approved, process enrollment
       if (decisionData.decision === AppStatus.APPROVED) {
         await processEnrollment(applicationId, decisionData, decidedBy);
       }
     } catch (err) {
       setError('Failed to make decision');
+      logger.error('Error making decision:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -368,17 +404,18 @@ export const useAdmissionsData = () => {
     enrolledBy: string
   ): Promise<EnrollmentDetails> => {
     try {
-      const db = await databaseService.getDatabase();
       const app = await getApplication(applicationId);
-      
+
       if (!app) {
         throw new Error('Application not found');
       }
-      
+
+      const studentsCollection = await getCollection(COLLECTIONS.students);
+
       // Create student record
       const studentId = databaseService.generateId();
       const admissionNumber = decisionData.admissionNumber || generateAdmissionNumber();
-      
+
       const student = {
         id: studentId,
         admission_no: admissionNumber,
@@ -402,10 +439,11 @@ export const useAdmissionsData = () => {
         primary_school: app.previousSchool,
         marks_attained_primary: app.kcpeMarks?.toString(),
       };
-      
-      await db.collections['students'].insert(student);
-      
+
+      await studentsCollection.insert(student);
+
       // Create enrollment record
+      const enrollmentsCollection = await getCollection(COLLECTIONS.enrollments);
       const enrollment: EnrollmentDetails = {
         id: databaseService.generateId(),
         applicationId,
@@ -422,18 +460,19 @@ export const useAdmissionsData = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      
-      await db.collections['enrollments'].insert(enrollment);
-      
+
+      await enrollmentsCollection.insert(enrollment);
+
       // Update application to enrolled status
       await updateApplication(applicationId, {
         status: AppStatus.ENROLLED,
         enrollmentDate: new Date().toISOString(),
       });
-      
+
       return enrollment;
     } catch (err) {
       setError('Failed to process enrollment');
+      logger.error('Error processing enrollment:', err);
       throw err;
     }
   };
@@ -447,13 +486,12 @@ export const useAdmissionsData = () => {
   ): Promise<ApplicationDocument> => {
     setLoading(true);
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['application_documents'];
-      
+      const collection = await getCollection(COLLECTIONS.documents);
+
       // Generate unique filename
       const timestamp = Date.now();
       const storedFilename = `${applicationId}_${documentType}_${timestamp}_${file.name}`;
-      
+
       // In a real implementation, you would upload to a storage service
       // For now, we store the file metadata
       const document: ApplicationDocument = {
@@ -469,12 +507,13 @@ export const useAdmissionsData = () => {
         uploadedAt: new Date().toISOString(),
         uploadedBy,
       };
-      
+
       await collection.insert(document);
-      
+
       return document;
     } catch (err) {
       setError('Failed to upload document');
+      logger.error('Error uploading document:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -489,9 +528,8 @@ export const useAdmissionsData = () => {
     isInternal: boolean = true
   ): Promise<ApplicationNote> => {
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['application_notes'];
-      
+      const collection = await getCollection(COLLECTIONS.notes);
+
       const note: ApplicationNote = {
         id: databaseService.generateId(),
         applicationId,
@@ -500,12 +538,13 @@ export const useAdmissionsData = () => {
         isInternal,
         createdAt: new Date().toISOString(),
       };
-      
+
       await collection.insert(note);
-      
+
       return note;
     } catch (err) {
       setError('Failed to add note');
+      logger.error('Error adding note:', err);
       throw err;
     }
   };
@@ -513,13 +552,13 @@ export const useAdmissionsData = () => {
   // Get application documents
   const getApplicationDocuments = async (applicationId: string): Promise<ApplicationDocument[]> => {
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['application_documents'];
-      
-      const results = await collection.find().where('applicationId').eq(applicationId).exec();
-      return results.map((doc: any) => doc.toJSON()) as ApplicationDocument[];
+      const collection = await getCollection(COLLECTIONS.documents);
+
+      const results = ((await collection.find({})) || []) as ApplicationDocument[];
+      return results.filter(doc => doc.applicationId === applicationId);
     } catch (err) {
       setError('Failed to load documents');
+      logger.error('Error loading application documents:', err);
       return [];
     }
   };
@@ -527,13 +566,13 @@ export const useAdmissionsData = () => {
   // Get application reviews
   const getApplicationReviews = async (applicationId: string): Promise<ApplicationReview[]> => {
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['application_reviews'];
-      
-      const results = await collection.find().where('applicationId').eq(applicationId).exec();
-      return results.map((doc: any) => doc.toJSON()) as ApplicationReview[];
+      const collection = await getCollection(COLLECTIONS.reviews);
+
+      const results = ((await collection.find({})) || []) as ApplicationReview[];
+      return results.filter(review => review.applicationId === applicationId);
     } catch (err) {
       setError('Failed to load reviews');
+      logger.error('Error loading application reviews:', err);
       return [];
     }
   };
@@ -541,13 +580,13 @@ export const useAdmissionsData = () => {
   // Get application notes
   const getApplicationNotes = async (applicationId: string): Promise<ApplicationNote[]> => {
     try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['application_notes'];
-      
-      const results = await collection.find().where('applicationId').eq(applicationId).exec();
-      return results.map((doc: any) => doc.toJSON()) as ApplicationNote[];
+      const collection = await getCollection(COLLECTIONS.notes);
+
+      const results = ((await collection.find({})) || []) as ApplicationNote[];
+      return results.filter(note => note.applicationId === applicationId);
     } catch (err) {
       setError('Failed to load notes');
+      logger.error('Error loading application notes:', err);
       return [];
     }
   };
@@ -563,7 +602,7 @@ export const useAdmissionsData = () => {
     statistics,
     loading,
     error,
-    
+
     // Actions
     loadApplications,
     createApplication,

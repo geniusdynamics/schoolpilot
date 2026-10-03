@@ -114,7 +114,7 @@ export const InvoiceGenerationPageContent: React.FC = () => {
         width: 130,
         sortable: true,
         render: (value) => (
-          <span className="font-mono text-blue-600">{formatCurrency(value as number)}</span>
+          <span className="font-mono text-primary-600">{formatCurrency(value as number)}</span>
         ),
       },
       {
@@ -148,8 +148,8 @@ export const InvoiceGenerationPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('invoiceGeneration.title') || 'Invoice Generation'}>
         {/* Configuration */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
+          <p className="text-sm text-surface-muted-fg mb-4">
             {t('invoiceGeneration.description') || 
               'Generate invoices for all active students for the selected school period and fee template.'}
           </p>
@@ -207,11 +207,11 @@ export const InvoiceGenerationPageContent: React.FC = () => {
 
           {/* Template Summary */}
           {selectedTemplateId && templateItems.length > 0 && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-md">
-              <div className="text-sm font-medium text-blue-800">
+            <div className="mt-4 p-3 bg-primary-50 rounded-md">
+              <div className="text-sm font-medium text-primary-800">
                 {t('invoiceGeneration.templateSummary') || 'Template Summary'}
               </div>
-              <div className="text-sm text-blue-600 mt-1">
+              <div className="text-sm text-primary-600 mt-1">
                 {templateItems.length} {t('invoiceGeneration.items') || 'items'} |{' '}
                 {t('invoiceGeneration.total') || 'Total'}: {formatCurrency(templateTotal)}
               </div>
@@ -252,19 +252,19 @@ export const InvoiceGenerationPageContent: React.FC = () => {
               </div>
               <div className="grid grid-cols-3 gap-4 mt-3">
                 <div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-surface-muted-fg">
                     {t('invoiceGeneration.totalStudents') || 'Total Students'}
                   </div>
                   <div className="text-xl font-bold">{result.totalStudents}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-surface-muted-fg">
                     {t('invoiceGeneration.invoicesCreated') || 'Invoices Created'}
                   </div>
                   <div className="text-xl font-bold text-green-600">{result.invoicesCreated}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-surface-muted-fg">
                     {t('invoiceGeneration.skipped') || 'Skipped'}
                   </div>
                   <div className="text-xl font-bold text-yellow-600">{result.skipped}</div>
@@ -302,7 +302,7 @@ export const InvoiceGenerationPageContent: React.FC = () => {
 
         {/* Empty State */}
         {!result && !isGenerating && !localError && !serviceError && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-surface-muted-fg">
             <UserGroupIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <p>{t('invoiceGeneration.configureMessage') || 'Configure the options above and click Generate to create invoices'}</p>
           </div>

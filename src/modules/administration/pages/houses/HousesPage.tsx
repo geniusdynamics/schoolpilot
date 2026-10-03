@@ -31,7 +31,7 @@ interface HouseFormData {
 }
 
 const HOUSE_COLORS = [
-  { value: '#3B82F6', label: 'Blue' },
+  { value: '#6366f1', label: 'Blue' },
   { value: '#EF4444', label: 'Red' },
   { value: '#10B981', label: 'Green' },
   { value: '#F59E0B', label: 'Amber' },
@@ -54,7 +54,7 @@ const HousesPage: React.FC = () => {
   const initialFormData: HouseFormData = {
     name: '',
     description: '',
-    color: '#3B82F6',
+    color: '#6366f1',
     motto: '',
     patronTeacherId: '',
     patronTeacherName: '',
@@ -161,7 +161,7 @@ const HousesPage: React.FC = () => {
       render: (value, item) => (
         <div className="flex items-center gap-2">
           <div
-            className="w-4 h-4 rounded-full border border-gray-200"
+            className="w-4 h-4 rounded-full border border-surface-border"
             style={{ backgroundColor: item.color }}
           />
           <span className="font-medium">{value}</span>
@@ -264,11 +264,11 @@ const HousesPage: React.FC = () => {
             filterable
             emptyState={
               <div className="text-center py-12">
-                <StarIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                <StarIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                   {t('common.noData')}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   {t('houses.messages.createSuccess')}
                 </p>
                 <div className="mt-6">
@@ -370,7 +370,7 @@ const HousesPage: React.FC = () => {
         title={t('houses.delete')}
         size="sm"
       >
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-surface-muted-fg">
           {t('houses.messages.deleteConfirm')}
           {houseToDelete && (
             <span className="font-semibold"> "{houseToDelete.name}"</span>

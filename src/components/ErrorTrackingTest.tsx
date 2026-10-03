@@ -93,14 +93,14 @@ const ErrorTrackingTest: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+    <div className="p-6 bg-surface-card rounded-lg shadow-md max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4 text-surface-foreground">
         ðŸ› Bugsink Error Tracking Test Panel
       </h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-surface-muted-fg mb-6">
         Use these buttons to test Bugsink error tracking integration. Check your Bugsink dashboard to see the captured errors.
         <br />
-        <span className="text-sm text-blue-600">âœ… = Success, âŒ = Failed, âšª = Not tested</span>
+        <span className="text-sm text-primary-600">âœ… = Success, âŒ = Failed, âšª = Not tested</span>
       </p>
       
       {/* Quick Test Button */}
@@ -138,7 +138,7 @@ const ErrorTrackingTest: React.FC = () => {
         
         <button
           onClick={triggerCustomMessage}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
+          className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
           <span>ðŸ’¬ Info Message</span>
           <span>{getTestResultIcon('infoMessage')}</span>
@@ -187,8 +187,8 @@ const ErrorTrackingTest: React.FC = () => {
       
       {/* Test Results Summary */}
       {Object.keys(testResults).length > 0 && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-gray-800 mb-2">Test Results:</h3>
+        <div className="mb-6 p-4 bg-surface-muted rounded-lg">
+          <h3 className="font-medium text-surface-foreground mb-2">Test Results:</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
             {Object.entries(testResults).map(([testName, success]) => (
               <div key={testName} className={`p-2 rounded ${success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -201,9 +201,9 @@ const ErrorTrackingTest: React.FC = () => {
       )}
       
       {/* Instructions */}
-      <div className="p-4 bg-gray-100 rounded">
-        <h3 className="font-medium text-gray-800 mb-2">Instructions:</h3>
-        <ul className="text-sm text-gray-600 space-y-1">
+      <div className="p-4 bg-surface-accent rounded">
+        <h3 className="font-medium text-surface-foreground mb-2">Instructions:</h3>
+        <ul className="text-sm text-surface-muted-fg space-y-1">
           <li>â€¢ Click "Run All Tests" to test all functionality at once</li>
           <li>â€¢ Or click individual buttons to test specific features</li>
           <li>â€¢ Check browser console for detailed logs</li>
@@ -214,8 +214,8 @@ const ErrorTrackingTest: React.FC = () => {
       </div>
       
       {/* Connection Status */}
-      <div className="mt-4 p-3 bg-blue-50 rounded">
-        <p className="text-sm text-blue-800">
+      <div className="mt-4 p-3 bg-primary-50 rounded">
+        <p className="text-sm text-primary-800">
           <strong>Bugsink DSN:</strong> {import.meta.env.VITE_BUGSINK_DSN ? 'âœ… Configured' : 'âŒ Not configured'}
           <br />
           <strong>Environment:</strong> {import.meta.env.DEV ? 'Development' : 'Production'}

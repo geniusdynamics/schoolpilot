@@ -45,7 +45,7 @@ const PickupDashboardPage: React.FC = () => {
       key: 'active-codes',
       label: t('dashboard.activeCodes'),
       value: activeCodes,
-      icon: <TicketIcon className="h-6 w-6 text-blue-700" />,
+      icon: <TicketIcon className="h-6 w-6 text-primary-700" />,
     },
     {
       key: 'pickups-today',

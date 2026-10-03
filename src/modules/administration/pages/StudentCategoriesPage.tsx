@@ -4,59 +4,28 @@ import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
-import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
+import EntityForm from '@/components/ui/forms/EntityForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { useToast } from '@/hooks/useToast';
-
-type StudentCategoryFormData = Omit<Partial<StudentCategory>, 'id'>;
 
 export const StudentCategoriesContent: React.FC = () => {
   const { studentCategories, loading, addStudentCategory, updateStudentCategory, deleteStudentCategory } = useAppData();
   const { t } = useTranslation('administration');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<StudentCategory | null>(null);
-  const initialFormData: StudentCategoryFormData = { name: '' };
-  const [formData, setFormData] = useState<StudentCategoryFormData>(initialFormData);
 
   const openModal = (category?: StudentCategory) => {
     setEditingCategory(category || null);
-    setFormData(category ? { name: category.name } : initialFormData);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const toast = useToast();
-  const handleSubmit = async () => {
-    if (!formData.name) {
-      toast.showWarning(t('validation.categoryNameRequired'));
-      return;
-    }
-    const payload = {
-      name: formData.name!,
-    };
-
-    if (editingCategory) {
-      await updateStudentCategory({ ...editingCategory, ...payload });
-    } else {
-      await addStudentCategory(payload);
-    }
-    closeModal();
   };
 
   const confirm = useConfirm();
@@ -84,7 +53,7 @@ export const StudentCategoriesContent: React.FC = () => {
       render: (value, item) => <span className="font-medium">{value}</span>
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -122,31 +91,32 @@ export const StudentCategoriesContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <ListBulletIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No student categories found. Create your first category to get started.</p>
+              <ListBulletIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No student categories found. Create your first category to get started.</p>
             </div>
           }
         />
       </Card>
 
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingCategory ? t('studentCategories.editStudentCategory') : t('studentCategories.addNewStudentCategory')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('studentCategories.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.studentCategories}>
-              {loading.studentCategories ? <Spinner size="sm"/> : (editingCategory ? t('studentCategories.saveChanges') : t('studentCategories.addCategory'))}
-            </Button>
-          </>
-        }
-      >
-        <Input 
-          name="name" 
-          label={t('studentCategories.categoryName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </DialogForm>
+      <EntityForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingCategory ? t('studentCategories.editStudentCategory') : t('studentCategories.addNewStudentCategory')}
+        initialData={editingCategory ? { name: editingCategory.name } : undefined}
+        fields={[
+          { name: 'name', label: t('studentCategories.categoryName'), required: true },
+        ]}
+        submitLabel={editingCategory ? t('studentCategories.saveChanges') : t('studentCategories.addCategory')}
+        cancelLabel={t('studentCategories.cancel')}
+        onSubmit={async (values) => {
+          const payload = { name: String(values.name ?? '') };
+          if (editingCategory) {
+            await updateStudentCategory({ ...editingCategory, ...payload });
+          } else {
+            await addStudentCategory(payload);
+          }
+        }}
+      />
     </div>
   );
 };

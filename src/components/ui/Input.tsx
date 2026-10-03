@@ -1,16 +1,19 @@
 
-// ABOUTME: Enhanced Input component with floating labels, animations, and modern styling
-// ABOUTME: Supports validation states, loading indicators, icons, and accessibility features
+// ABOUTME: Premium form input with top-aligned labels, design-token theming, and validation states
+// ABOUTME: Supports optional floating-label mode, icons, loading indicators, and accessibility wiring
 
 import React, { InputHTMLAttributes, ReactNode, useState, useRef, useEffect } from 'react';
 import { getFormFieldIds, getAriaInvalid, createAriaDescribedBy } from '@/utils/accessibility';
-import { useTransition } from '@/utils/animations';
-import { designTokens } from '@/utils/designTokens';
 
 export interface ModernInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
-  /** Visible/floating label. Optional because inputs are frequently wrapped by FormField, which supplies the label. */
+  /** Visible label. Optional because inputs are frequently wrapped by FormField, which supplies the label. */
   label?: string;
   error?: string;
+  /**
+   * Style-only error state (red border/ring, aria-invalid) WITHOUT rendering the
+   * error message — use when a wrapper (e.g. FormField) renders the message.
+   */
+  errorState?: boolean;
   success?: boolean;
   loading?: boolean;
   helperText?: string;
@@ -20,6 +23,7 @@ export interface ModernInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
   rightIcon?: ReactNode;
   onValidate?: (value: string) => string | undefined;
   containerClassName?: string;
+  /** Legacy MUI-style inner label. Defaults to false; the canonical look is a top-aligned label. */
   floatingLabel?: boolean;
 }
 
@@ -27,6 +31,7 @@ const Input: React.FC<ModernInputProps> = ({
   label,
   id,
   error,
+  errorState = false,
   success = false,
   loading = false,
   helperText,
@@ -37,7 +42,7 @@ const Input: React.FC<ModernInputProps> = ({
   onValidate,
   className = '',
   containerClassName = '',
-  floatingLabel = true,
+  floatingLabel = false,
   value,
   defaultValue,
   onFocus,
@@ -47,307 +52,281 @@ const Input: React.FC<ModernInputProps> = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [hasValue, setHasValue] = useState(() => {
-    // Better initial state calculation
     return Boolean(value || defaultValue);
   });
   const [internalError, setInternalError] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const fieldIds = getFormFieldIds(props.name || 'input');
   const inputId = id || fieldIds.field;
   const finalError = error || internalError;
-  
-  // Animation styles
-  const transitionStyles = useTransition(['all'], designTokens.animations.duration.fast);
-  
+  // Any error condition (message or style-only) flips the invalid visuals
+  const isInvalid = Boolean(finalError) || errorState;
+
   // Update hasValue when value changes
   useEffect(() => {
     const currentValue = value !== undefined ? value : inputRef.current?.value;
     setHasValue(Boolean(currentValue));
   }, [value]);
-  
+
   // Handle focus events
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(true);
     onFocus?.(e);
   };
-  
+
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(false);
     setHasValue(Boolean(e.target.value));
-    
+
     // Run validation on blur if provided
     if (onValidate && e.target.value) {
       const validationError = onValidate(e.target.value);
       setInternalError(validationError);
     }
-    
+
     onBlur?.(e);
   };
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setHasValue(Boolean(newValue));
-    
+
     // Clear error when user starts typing
     if (internalError) {
       setInternalError(undefined);
     }
-    
+
     onChange?.(e);
   };
-  
+
   // Determine if label should be floating
   const shouldFloat = floatingLabel && (isFocused || hasValue || Boolean(value) || props.placeholder || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local');
-  
-  // Size variants
+
+  // Size scale: sm 32px / md 40px / lg 44px control heights
   const sizeStyles = {
     sm: {
-      input: 'px-3 py-2 text-sm',
-      label: 'text-xs',
+      input: 'h-8 px-2.5 text-sm rounded-md',
+      label: 'text-xs mb-1',
       icon: 'w-4 h-4',
-      spacing: 'gap-2',
+      iconLeft: 'left-2.5',
+      iconRight: 'right-2.5',
+      padLeft: 'pl-8',
+      padRight: 'pr-8',
+      floating: 'text-xs',
     },
     md: {
-      input: 'px-3 py-2.5 text-sm',
-      label: 'text-sm',
-      icon: 'w-5 h-5',
-      spacing: 'gap-2.5',
+      input: 'h-10 px-3 text-sm rounded-lg',
+      label: 'text-sm mb-1.5',
+      icon: 'w-4 h-4',
+      iconLeft: 'left-3',
+      iconRight: 'right-3',
+      padLeft: 'pl-9',
+      padRight: 'pr-9',
+      floating: 'text-xs',
     },
     lg: {
-      input: 'px-4 py-3 text-base',
-      label: 'text-base',
-      icon: 'w-6 h-6',
-      spacing: 'gap-3',
+      input: 'h-11 px-3.5 text-base rounded-lg',
+      label: 'text-sm mb-2',
+      icon: 'w-5 h-5',
+      iconLeft: 'left-3',
+      iconRight: 'right-3',
+      padLeft: 'pl-10',
+      padRight: 'pr-10',
+      floating: 'text-xs',
     },
   };
-  
-  // Get glow effect class based on state and focus
-  const getGlowEffect = () => {
-    if (finalError) {
-      return isFocused ? 'glow-error' : '';
-    }
-    
-    if (success) {
-      return isFocused ? 'glow-success' : '';
-    }
-    
-    if (loading) {
-      return 'glow-pulse';
-    }
-    
-    return isFocused ? 'glow-focus' : '';
-  };
 
-  // Variant styles
+  // Variant styles — token-based so they follow the active theme (incl. dark)
   const variantStyles = {
     outlined: {
       container: 'relative',
       input: `
-        border border-gray-300 rounded-lg bg-white
-        focus:border-blue-500 focus:ring-0 focus:outline-none
-        hover:border-gray-400 hover:glow-subtle
-        disabled:bg-gray-50 disabled:border-gray-200 disabled:text-gray-500
-        transition-all duration-300 ease-out
-        ${getGlowEffect()}
+        bg-surface-card border border-surface-input
+        hover:border-surface-input-hover
+        focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15
+        disabled:bg-surface-muted disabled:border-surface-border disabled:text-surface-muted-fg
       `,
-      label: floatingLabel ? `
-        absolute left-3 transition-all duration-200 ease-out pointer-events-none
-        ${shouldFloat 
-          ? '-top-2.5 text-xs bg-white px-1 text-blue-600' 
-          : 'top-1/2 -translate-y-1/2 text-gray-500'
-        }
-      ` : 'block text-gray-700 font-medium mb-2',
+      floatingIdle: 'top-1/2 -translate-y-1/2 text-surface-muted-fg',
+      floatingActive: '-top-2 text-xs bg-surface-card px-1.5 text-primary-600 dark:text-primary-400',
     },
     filled: {
       container: 'relative',
       input: `
-        border-0 border-b-2 border-gray-300 rounded-t-lg bg-gray-50
-        focus:border-blue-500 focus:bg-white focus:ring-0 focus:outline-none
-        hover:bg-gray-100 hover:glow-subtle
-        disabled:bg-gray-100 disabled:border-gray-200 disabled:text-gray-500
-        transition-all duration-300 ease-out
-        ${getGlowEffect()}
+        bg-surface-muted border border-transparent
+        hover:bg-surface-accent
+        focus:bg-surface-card focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15
+        disabled:text-surface-muted-fg
       `,
-      label: floatingLabel ? `
-        absolute left-3 transition-all duration-200 ease-out pointer-events-none
-        ${shouldFloat 
-          ? 'top-2 text-xs text-blue-600' 
-          : 'top-1/2 -translate-y-1/2 text-gray-500'
-        }
-      ` : 'block text-gray-700 font-medium mb-2',
+      floatingIdle: 'top-1/2 -translate-y-1/2 text-surface-muted-fg',
+      floatingActive: 'top-1.5 text-xs text-primary-600 dark:text-primary-400',
     },
     standard: {
       container: 'relative',
       input: `
-        border-0 border-b border-gray-300 rounded-none bg-transparent
-        focus:border-blue-500 focus:ring-0 focus:outline-none
-        hover:border-gray-400 hover:glow-subtle
-        disabled:border-gray-200 disabled:text-gray-500
-        transition-all duration-300 ease-out
-        ${getGlowEffect()}
+        bg-transparent border-0 border-b border-surface-input rounded-none
+        hover:border-surface-input-hover
+        focus:border-primary-500 focus:ring-0
+        disabled:text-surface-muted-fg
       `,
-      label: floatingLabel ? `
-        absolute left-0 transition-all duration-200 ease-out pointer-events-none
-        ${shouldFloat 
-          ? '-top-5 text-xs text-blue-600' 
-          : 'top-1/2 -translate-y-1/2 text-gray-500'
-        }
-      ` : 'block text-gray-700 font-medium mb-2',
+      floatingIdle: 'top-1/2 -translate-y-1/2 text-surface-muted-fg',
+      floatingActive: '-top-4 text-xs text-primary-600 dark:text-primary-400',
     },
   };
-  
+
   // State-based styles
   const getStateStyles = () => {
-    if (finalError) {
+    if (isInvalid) {
       return {
-        input: 'border-red-500 focus:border-red-500',
-        label: 'text-red-600',
+        input: 'border-red-400 dark:border-red-500/70 focus:border-red-500 focus:ring-4 focus:ring-red-500/15',
+        label: 'text-red-600 dark:text-red-400',
         icon: 'text-red-500',
       };
     }
-    
+
     if (success) {
       return {
-        input: 'border-green-500 focus:border-green-500',
-        label: 'text-green-600',
+        input: 'border-green-400 dark:border-green-500/70 focus:border-green-500 focus:ring-4 focus:ring-green-500/15',
+        label: 'text-green-600 dark:text-green-400',
         icon: 'text-green-500',
       };
     }
-    
+
     if (loading) {
       return {
-        input: 'border-blue-500',
-        label: 'text-blue-600',
-        icon: 'text-blue-500',
+        input: '',
+        label: '',
+        icon: 'text-slate-400',
       };
     }
-    
+
     return {
       input: '',
       label: '',
-      icon: 'text-gray-400',
+      icon: 'text-surface-muted-fg',
     };
   };
-  
+
   const stateStyles = getStateStyles();
   const currentSize = sizeStyles[size];
   const currentVariant = variantStyles[variant];
-  
+
   // Loading spinner component
   const LoadingSpinner = () => (
-    <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+    <div className="animate-spin w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full" />
   );
-  
+
   // Success checkmark component
   const SuccessIcon = () => (
     <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   );
-  
+
   // Error icon component
   const ErrorIcon = () => (
     <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
-  
+
   // Determine right icon to show
   const getRightIcon = () => {
     if (loading) return <LoadingSpinner />;
     if (success) return <SuccessIcon />;
-    if (finalError) return <ErrorIcon />;
+    if (isInvalid) return <ErrorIcon />;
     return rightIcon;
   };
-  
+
   const describedBy = createAriaDescribedBy([
     helperText ? fieldIds.description : undefined,
     finalError ? fieldIds.error : undefined,
   ]);
-  
+
   return (
-    <div className={`space-y-1 ${containerClassName}`}>
-      <div className={`${currentVariant.container} ${currentSize.spacing}`}>
-        {/* Label */}
-        {!floatingLabel && (
-          <label 
-            htmlFor={inputId}
-            className={`${currentVariant.label} ${stateStyles.label}`}
-          >
-            {label}
-          </label>
-        )}
-        
-        {/* Input container */}
+    <div className={`${containerClassName}`}>
+      {/* Top-aligned label */}
+      {!floatingLabel && label && (
+        <label
+          htmlFor={inputId}
+          className={`block font-medium text-surface-foreground ${currentSize.label} ${stateStyles.label}`}
+        >
+          {label}
+        </label>
+      )}
+
+      <div className={currentVariant.container}>
+        {/* Control row */}
         <div className="relative flex items-center">
           {/* Left icon */}
           {leftIcon && (
-            <div className={`absolute left-3 z-10 ${currentSize.icon} ${stateStyles.icon}`}>
+            <div className={`absolute ${currentSize.iconLeft} z-10 pointer-events-none ${currentSize.icon} ${stateStyles.icon}`} aria-hidden="true">
               {leftIcon}
             </div>
           )}
-          
+
           {/* Input field */}
           <input
             ref={inputRef}
             id={inputId}
             className={`
-              w-full transition-all duration-200 ease-out
+              w-full outline-none text-surface-foreground
+              placeholder:text-surface-muted-fg
+              shadow-sm transition-[border-color,box-shadow,background-color] duration-150
               ${currentSize.input}
               ${currentVariant.input}
               ${stateStyles.input}
-              ${leftIcon ? 'pl-10' : ''}
-              ${getRightIcon() ? 'pr-10' : ''}
+              ${leftIcon ? currentSize.padLeft : ''}
+              ${getRightIcon() ? currentSize.padRight : ''}
               ${className}
             `}
-            style={transitionStyles}
             value={value}
             defaultValue={defaultValue}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onChange={handleChange}
-            aria-invalid={getAriaInvalid(Boolean(finalError))}
+            aria-invalid={getAriaInvalid(isInvalid)}
             aria-describedby={describedBy}
             disabled={loading || props.disabled}
             {...props}
           />
-          
+
+          {/* Right adornment (status icon or custom) */}
+          {getRightIcon() && (
+            <div className={`absolute ${currentSize.iconRight} z-10 ${currentSize.icon}`} aria-hidden="true">
+              {getRightIcon()}
+            </div>
+          )}
+
           {/* Floating label */}
-          {floatingLabel && (
-            <label 
+          {floatingLabel && label && (
+            <label
               htmlFor={inputId}
-              className={`${currentVariant.label} ${stateStyles.label}`}
-              style={transitionStyles}
+              className={`absolute left-3 transition-all duration-150 ease-out pointer-events-none font-medium ${
+                shouldFloat ? `${currentSize.floating} ${currentVariant.floatingActive}` : currentVariant.floatingIdle
+              } ${stateStyles.label}`}
             >
               {label}
             </label>
           )}
-          
-          {/* Right icon */}
-          {getRightIcon() && (
-            <div className={`absolute right-3 z-10 ${currentSize.icon}`}>
-              {getRightIcon()}
-            </div>
-          )}
         </div>
       </div>
-      
+
       {/* Helper text */}
       {helperText && !finalError && (
-        <p 
+        <p
           id={fieldIds.description}
-          className="text-sm text-gray-600"
+          className="mt-1.5 text-xs text-surface-muted-fg"
         >
           {helperText}
         </p>
       )}
-      
+
       {/* Error message */}
       {finalError && (
-        <p 
+        <p
           id={fieldIds.error}
-          className="text-sm text-red-600 flex items-center gap-1"
+          className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1"
           role="alert"
         >
           <ErrorIcon />

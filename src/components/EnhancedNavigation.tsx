@@ -20,7 +20,7 @@ const EnhancedNavigation: React.FC = () => {
     if (!isOnline) return 'text-red-500';
     if (!backendAvailable) return 'text-amber-500';
     if (connectionQuality === 'excellent') return 'text-green-500';
-    if (connectionQuality === 'good') return 'text-blue-500';
+    if (connectionQuality === 'good') return 'text-primary-500';
     return 'text-amber-500';
   };
 
@@ -41,16 +41,16 @@ const EnhancedNavigation: React.FC = () => {
   };
 
   return (
-    <div className="bg-white shadow-sm border-b">
+    <div className="bg-surface-card shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
-              <h1 className="text-xl font-bold text-gray-900">SchoolPilot3</h1>
+              <h1 className="text-xl font-bold text-surface-foreground">SchoolPilot3</h1>
             </div>
 
             {/* Mode indicator */}
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-surface-muted-fg">
               {currentMode === 'demo' && '(Demo Mode)'}
               {currentMode === 'production' && '(Production)'}
             </div>
@@ -62,21 +62,21 @@ const EnhancedNavigation: React.FC = () => {
               <div className={`w-2 h-2 rounded-full ${!isOnline ? 'bg-red-500' :
                   !backendAvailable ? 'bg-amber-500' :
                     connectionQuality === 'excellent' ? 'bg-green-500' :
-                      connectionQuality === 'good' ? 'bg-blue-500' :
+                      connectionQuality === 'good' ? 'bg-primary-500' :
                         'bg-amber-500'
                 }`}></div>
               <span className="font-medium">{getStatusText()}</span>
             </div>
 
             {/* Data source */}
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-surface-muted-fg">
               Source: <span className="font-medium">{getDataSourceText()}</span>
             </div>
 
             {/* Subtle sync indicator - only show when actively syncing or has errors */}
             {syncStatus.state === 'syncing' && (
-              <div className="flex items-center space-x-2 text-blue-600">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+              <div className="flex items-center space-x-2 text-primary-600">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600"></div>
                 <span className="text-xs">Syncing</span>
               </div>
             )}

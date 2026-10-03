@@ -4,6 +4,7 @@ import { ServerIcon, ClockIcon, CheckCircleIcon, XCircleIcon, SignalIcon, Signal
 import { AlertTriangleIcon } from './ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import { ExclamationTriangleIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 // Component to wrap features that may not be available offline
 interface OfflineCapableComponentProps {
@@ -32,15 +33,15 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
     return (
       <div className={`feature-unavailable ${className}`}>
         {fallback || (
-          <div className="flex items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <div className="flex items-center justify-center p-8 bg-surface-muted rounded-lg border-2 border-dashed border-surface-border">
             <div className="text-center">
               <AlertTriangleIcon className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Feature Unavailable</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Feature Unavailable</h3>
+              <p className="text-surface-muted-fg mb-4">
                 {capability?.reason || 'This feature requires an internet connection'}
               </p>
               {capability?.alternativeAction && (
-                <p className="text-sm text-blue-600">
+                <p className="text-sm text-primary-600">
                   {capability.alternativeAction}
                 </p>
               )}
@@ -61,7 +62,7 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
         </div>
       )}
       {showOfflineIndicator && isOnline && !backendAvailable && (
-        <div className="absolute top-2 right-2 flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs">
+        <div className="absolute top-2 right-2 flex items-center space-x-1 bg-primary-100 text-primary-800 px-2 py-1 rounded-md text-xs">
           <ServerIcon className="w-3 h-3" />
           <span>Local</span>
         </div>
@@ -93,7 +94,7 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
     if (!isOnline) return 'text-red-500';
     if (!backendAvailable) return 'text-amber-500';
     if (connectionQuality === 'excellent') return 'text-green-500';
-    if (connectionQuality === 'good') return 'text-blue-500';
+    if (connectionQuality === 'good') return 'text-primary-500';
     return 'text-amber-500';
   };
 
@@ -118,7 +119,7 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
       
       {showDetails && (
         <>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-surface-muted-fg">
             Source: {dataSource}
           </div>
           
@@ -130,8 +131,8 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
           )}
           
           {syncStatus?.state === 'syncing' && (
-            <div className="flex items-center space-x-1 text-xs text-blue-600">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+            <div className="flex items-center space-x-1 text-xs text-primary-600">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600"></div>
               <span>Syncing...</span>
             </div>
           )}
@@ -174,6 +175,8 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
     updateSyncSettings
   } = useAppData() || {};
 
+  const confirm = useConfirm();
+
   // Safely get queue status with comprehensive fallback
   const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
     ? getQueueStatus() 
@@ -189,7 +192,7 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
     
     switch (syncStatus.state) {
       case 'syncing':
-        return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>;
+        return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>;
       case 'error':
         return <XCircleIcon className="w-4 h-4 text-red-500" />;
       case 'paused':
@@ -217,18 +220,18 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow p-4 ${className}`}>
+    <div className={`bg-surface-card rounded-lg shadow p-4 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Sync Status</h3>
+        <h3 className="text-lg font-medium text-surface-foreground">Sync Status</h3>
         <div className="flex items-center space-x-2">
           {getSyncStatusIcon()}
-          <span className="text-sm text-gray-600">{getSyncStatusText()}</span>
+          <span className="text-sm text-surface-muted-fg">{getSyncStatusText()}</span>
         </div>
       </div>
       
       {pendingSyncCount > 0 && (
         <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
+          <div className="flex justify-between text-sm text-surface-muted-fg mb-2">
             <span>Pending Items</span>
             <span>{pendingSyncCount}</span>
           </div>
@@ -255,24 +258,24 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
       {/* Queue Details Section */}
       {showQueueDetails && pendingSyncCount > 0 && (
         <div className="mb-4 border-t pt-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Sync Queue Details</h4>
+          <h4 className="text-sm font-medium text-surface-foreground mb-3">Sync Queue Details</h4>
           <div className="space-y-2">
             {queueStatus.sync.items?.slice(0, 5).map((item: any, index: number) => (
-              <div key={index} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+              <div key={index} className="flex items-center justify-between text-xs bg-surface-muted p-2 rounded">
                 <div className="flex items-center space-x-2">
                   <div className={`w-2 h-2 rounded-full ${
-                    item.status === 'processing' ? 'bg-blue-500 animate-pulse' :
+                    item.status === 'processing' ? 'bg-primary-500 animate-pulse' :
                     item.status === 'error' ? 'bg-red-500' : 'bg-gray-400'
                   }`} />
                   <span className="font-medium">{item.operation?.entity || 'Unknown'}</span>
-                  <span className="text-gray-500">{item.operation?.type || 'unknown'}</span>
+                  <span className="text-surface-muted-fg">{item.operation?.type || 'unknown'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-1 rounded text-xs ${
                     item.priority === 'critical' ? 'bg-red-100 text-red-800' :
                     item.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                    item.priority === 'normal' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
+                    item.priority === 'normal' ? 'bg-primary-100 text-primary-800' :
+                    'bg-surface-accent text-surface-foreground'
                   }`}>
                     {item.priority}
                   </span>
@@ -283,7 +286,7 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
               </div>
             ))}
             {queueStatus.sync.pending > 5 && (
-              <div className="text-xs text-gray-500 text-center">
+              <div className="text-xs text-surface-muted-fg text-center">
                 ... and {queueStatus.sync.pending - 5} more items
               </div>
             )}
@@ -294,23 +297,23 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
       {/* Sync Settings Section */}
       {showSettings && (
         <div className="mb-4 border-t pt-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Sync Settings</h4>
+          <h4 className="text-sm font-medium text-surface-foreground mb-3">Sync Settings</h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-700">Auto Sync</label>
+              <label className="text-sm text-surface-foreground">Auto Sync</label>
               <input
                 type="checkbox"
                 checked={syncSettings.autoSync}
                 onChange={(e) => updateSyncSettings?.({ autoSync: e.target.checked })}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-700">Sync Interval (seconds)</label>
+              <label className="text-sm text-surface-foreground">Sync Interval (seconds)</label>
               <select
                 value={syncSettings.syncInterval / 1000}
                 onChange={(e) => updateSyncSettings?.({ syncInterval: parseInt(e.target.value) * 1000 })}
-                className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value={15}>15s</option>
                 <option value={30}>30s</option>
@@ -319,11 +322,11 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
               </select>
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-700">Batch Size</label>
+              <label className="text-sm text-surface-foreground">Batch Size</label>
               <select
                 value={syncSettings.batchSize}
                 onChange={(e) => updateSyncSettings?.({ batchSize: parseInt(e.target.value) })}
-                className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -340,7 +343,7 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
         <button
           onClick={forceSync}
           disabled={!canSync || syncStatus?.state === 'syncing'}
-          className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {syncStatus?.state === 'syncing' ? 'Syncing...' : 'Force Sync'}
         </button>
@@ -365,8 +368,12 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
         
         {pendingSyncCount > 0 && clearSyncQueue && (
           <button
-            onClick={() => {
-              if (window.confirm('Clear all pending sync items? This cannot be undone.')) {
+            onClick={async () => {
+              if (await confirm({
+                title: 'Clear sync queue',
+                message: 'Clear all pending sync items? This cannot be undone.',
+                variant: 'danger'
+              })) {
                 clearSyncQueue();
               }
             }}
@@ -377,7 +384,7 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
         )}
         
         {!canSync && (
-          <div className="flex-1 text-center text-xs text-gray-500 py-2">
+          <div className="flex-1 text-center text-xs text-surface-muted-fg py-2">
             {!isOnline ? 'No internet connection' : 'Backend unavailable'}
           </div>
         )}
@@ -414,10 +421,10 @@ export const FeatureAvailabilityIndicator: React.FC<FeatureAvailabilityProps> = 
   const totalCount = featureStatus.length;
   
   return (
-    <div className={`bg-white rounded-lg shadow p-4 ${className}`}>
+    <div className={`bg-surface-card rounded-lg shadow p-4 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Feature Availability</h3>
-        <div className="text-sm text-gray-600">
+        <h3 className="text-lg font-medium text-surface-foreground">Feature Availability</h3>
+        <div className="text-sm text-surface-muted-fg">
           {availableCount}/{totalCount} available
         </div>
       </div>
@@ -437,7 +444,7 @@ export const FeatureAvailabilityIndicator: React.FC<FeatureAvailabilityProps> = 
             </div>
             
             {!available && (
-              <div className="text-xs text-gray-500 max-w-xs text-right">
+              <div className="text-xs text-surface-muted-fg max-w-xs text-right">
                 {reason || alternativeAction}
               </div>
             )}
@@ -501,7 +508,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
 
     return (
       <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 text-sm font-medium text-gray-700 border-b pb-2">
+        <div className="grid grid-cols-3 gap-4 text-sm font-medium text-surface-foreground border-b pb-2">
           <div>Field</div>
           <div>Local Version</div>
           <div>Server Version</div>
@@ -512,7 +519,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
           const isDifferent = JSON.stringify(localValue) !== JSON.stringify(serverValue);
 
           return (
-            <div key={key} className={`grid grid-cols-3 gap-4 text-sm py-2 ${isDifferent ? 'bg-red-50' : 'bg-gray-50'}`}>
+            <div key={key} className={`grid grid-cols-3 gap-4 text-sm py-2 ${isDifferent ? 'bg-red-50' : 'bg-surface-muted'}`}>
               <div className="font-medium">{key}</div>
               <div className="break-words">
                 {typeof localValue === 'object' ? JSON.stringify(localValue, null, 2) : String(localValue || 'N/A')}
@@ -532,7 +539,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-red-200 ${className}`}>
+    <div className={`bg-surface-card rounded-lg shadow-lg border border-red-200 ${className}`}>
       <div className="bg-red-50 px-4 py-3 border-b border-red-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -544,7 +551,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
           <div className="flex space-x-2">
             <button
               onClick={() => onResolveAll('local')}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              className="px-3 py-1 bg-primary-600 text-white text-sm rounded hover:bg-primary-700"
             >
               Keep All Local
             </button>
@@ -561,31 +568,31 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
       <div className="p-4">
         {!selectedConflict ? (
           <div className="space-y-3">
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-surface-muted-fg mb-4">
               The following items have conflicts between your local changes and server data. 
               Choose how to resolve each conflict:
             </p>
             {conflicts.map(conflict => (
-              <div key={conflict.id} className="border rounded-lg p-3 hover:bg-gray-50">
+              <div key={conflict.id} className="border rounded-lg p-3 hover:bg-surface-muted">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-surface-foreground">
                       {conflict.entityName} #{conflict.entityId}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-surface-muted-fg">
                       {conflict.conflictType} conflict Ã¢â‚¬Â¢ {conflict.timestamp.toLocaleString()}
                     </div>
                   </div>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setSelectedConflict(conflict.id)}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200"
+                      className="px-3 py-1 bg-surface-accent text-surface-foreground text-sm rounded hover:bg-gray-200"
                     >
                       Review
                     </button>
                     <button
                       onClick={() => onResolve(conflict.id, 'local')}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                      className="px-3 py-1 bg-primary-600 text-white text-sm rounded hover:bg-primary-700"
                     >
                       Keep Local
                     </button>
@@ -603,12 +610,12 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
         ) : (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-medium text-gray-900">
+              <h4 className="text-lg font-medium text-surface-foreground">
                 Resolve Conflict: {conflict?.entityName} #{conflict?.entityId}
               </h4>
               <button
                 onClick={() => setSelectedConflict(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-surface-muted-fg hover:text-surface-foreground"
               >
                 <XCircleIcon className="w-5 h-5" />
               </button>
@@ -626,7 +633,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
                       onResolve(conflict.id, 'local');
                       setSelectedConflict(null);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
                   >
                     Keep Local Version
                   </button>

@@ -187,7 +187,7 @@ export const SchoolPeriodsContent: React.FC = () => {
           Add School Period
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           Define specific school terms or semesters within an academic year. Link them to financial years and academic period definitions (e.g., "Term 1").
         </p>
         <DataGrid

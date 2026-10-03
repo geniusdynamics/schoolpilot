@@ -122,7 +122,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
         width: 120,
         sortable: true,
         render: (value) => (
-          <span className="font-mono text-blue-600">{formatCurrency(value)}</span>
+          <span className="font-mono text-primary-600">{formatCurrency(value)}</span>
         ),
       },
       {
@@ -169,7 +169,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
         width: 100,
         sortable: true,
         render: (value) => (
-          <span className={`font-mono ${value > 0 ? 'text-purple-600' : 'text-gray-400'}`}>
+          <span className={`font-mono ${value > 0 ? 'text-purple-600' : 'text-surface-muted-fg'}`}>
             {formatCurrency(value)}
           </span>
         ),
@@ -260,7 +260,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('studentFinancialSummary.title') || 'Student Financial Summary'}>
         {/* Filters */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Input
               placeholder={t('studentFinancialSummary.searchPlaceholder') || 'Search by admission no or name...'}
@@ -317,9 +317,9 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-4 gap-4 mb-4">
-          <div className="bg-blue-50 p-3 rounded-md">
-            <div className="text-sm text-blue-600">{t('studentFinancialSummary.totalStudents') || 'Total Students'}</div>
-            <div className="text-xl font-bold text-blue-800">{filteredData.length}</div>
+          <div className="bg-primary-50 p-3 rounded-md">
+            <div className="text-sm text-primary-600">{t('studentFinancialSummary.totalStudents') || 'Total Students'}</div>
+            <div className="text-xl font-bold text-primary-800">{filteredData.length}</div>
           </div>
           <div className="bg-red-50 p-3 rounded-md">
             <div className="text-sm text-red-600">{t('studentFinancialSummary.inArrears') || 'In Arrears'}</div>
@@ -368,11 +368,12 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
         <DataGrid
           columns={columns}
           data={filteredData}
+          keyField="studentId"
           onRowClick={handleRowClick}
           sortable
           filterable
           emptyState={{
-            icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
+            icon: <CurrencyDollarIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: t('studentFinancialSummary.noData') || 'No Data',
             description:
               t('studentFinancialSummary.noDataDescription') ||

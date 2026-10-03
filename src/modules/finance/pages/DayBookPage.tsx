@@ -99,17 +99,17 @@ export const DayBookPageContent: React.FC = () => {
       <Card
         title={
           <div className="flex items-center gap-2">
-            <BookOpenIcon className="w-6 h-6 text-blue-600" />
+            <BookOpenIcon className="w-6 h-6 text-primary-600" />
             <span>Day Book</span>
           </div>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <BookOpenIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <BookOpenIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">Daily Transaction Log</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">Daily Transaction Log</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 The Day Book records all daily financial transactions with debit and credit entries.
                 Use this to track all money in and out on a daily basis for reconciliation purposes.
               </p>
@@ -120,7 +120,7 @@ export const DayBookPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Select Date</label>
             <Input
               type="date"
               value={selectedDate}
@@ -129,7 +129,7 @@ export const DayBookPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Search by description, reference, or account..."
@@ -142,8 +142,8 @@ export const DayBookPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowUpIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Debits</span>
             </div>
@@ -151,8 +151,8 @@ export const DayBookPageContent: React.FC = () => {
               KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowDownIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Credits</span>
             </div>
@@ -160,17 +160,17 @@ export const DayBookPageContent: React.FC = () => {
               KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Transactions</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {mockDayBookEntries.length}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <BookOpenIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Net Position</span>
             </div>

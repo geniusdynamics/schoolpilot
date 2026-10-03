@@ -40,10 +40,10 @@ class PrimarySidebarErrorBoundary extends React.Component<
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
   const colorSchemes = {
     dashboard: {
-      base: 'bg-blue-500/20 border-blue-400/30 hover:bg-blue-500/30',
-      selected: 'bg-blue-500/40 border-blue-300/50 shadow-blue-500/30',
-      iconColor: 'text-blue-400',
-      badgeColor: 'bg-blue-500 text-white border-blue-400/50'
+      base: 'bg-primary-500/20 border-primary-400/30 hover:bg-primary-500/30',
+      selected: 'bg-primary-500/40 border-primary-300/50 shadow-primary-500/30',
+      iconColor: 'text-primary-400',
+      badgeColor: 'bg-primary-500 text-white border-primary-400/50'
     },
     administration: {
       base: 'bg-purple-500/20 border-purple-400/30 hover:bg-purple-500/30',
@@ -95,8 +95,8 @@ const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
     },
     settings: {
       base: 'bg-gray-500/20 border-gray-400/30 hover:bg-gray-500/30',
-      selected: 'bg-gray-500/40 border-gray-300/50 shadow-gray-500/30',
-      iconColor: 'text-gray-400',
+      selected: 'bg-gray-500/40 border-gray-300/50 dark:border-slate-700/50 shadow-gray-500/30',
+      iconColor: 'text-surface-muted-fg',
       badgeColor: 'bg-gray-500 text-white border-gray-400/50'
     }
   };
@@ -267,7 +267,7 @@ const PrimarySidebarContent: React.FC<{
     // Border color logic (simplified)
     const getBorderColor = () => {
       const colorMap: Record<string, string> = {
-        'bg-blue': 'border-t-blue-500',
+        'bg-blue': 'border-t-primary-500',
         'bg-purple': 'border-t-purple-500',
         'bg-green': 'border-t-green-500',
         'bg-yellow': 'border-t-yellow-500',

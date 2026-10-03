@@ -11,7 +11,6 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/components/ui/icons';
 import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndSocietyData';
 import { useAppData } from '@/hooks/useAppData'; // For staff data only
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormSection from '../../../components/ui/forms/FormSection';
@@ -134,7 +133,7 @@ const ClubsPage: React.FC = () => {
           Add Club/Society
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage school clubs, societies, and sports teams. Assign patrons from the staff list.
         </p>
         <DataGrid 
@@ -143,7 +142,7 @@ const ClubsPage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ClubsIcon className="h-12 w-12 text-gray-400" />,
+            icon: <ClubsIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No clubs or societies found',
             description: 'Get started by creating your first club or society.',
           }}

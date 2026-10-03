@@ -105,7 +105,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="font-mono text-blue-600">{row.expectedAmount.toFixed(2)}</span>
+      render: (value, row) => <span className="font-mono text-primary-600">{row.expectedAmount.toFixed(2)}</span>
     },
     { 
       key: 'paidAmount', 
@@ -122,7 +122,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
       filterable: true, 
       width: 150,
       render: (value, row) => <span className={`font-mono ${
-        row.arrears > 0 ? 'text-red-600' : 'text-gray-600'
+        row.arrears > 0 ? 'text-red-600' : 'text-surface-muted-fg'
       }`}>{row.arrears.toFixed(2)}</span>
     },
   ];
@@ -174,8 +174,8 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('feeCollection.title')}>
-         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-            <p className="text-sm text-gray-600 mb-4">
+         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 {t('feeCollection.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -210,14 +210,14 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
                   sortable
                   filterable
                   emptyState={{
-                    icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
+                    icon: <CurrencyDollarIcon className="w-12 h-12 text-surface-muted-fg" />,
                     title: t('feeCollection.noData'),
                     description: "Adjust your filters and generate the report to view fee collection summary data."
                   }}
                 />
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">{t('feeCollection.selectFiltersMessage')}</p>
+            <p className="text-center text-surface-muted-fg py-4">{t('feeCollection.selectFiltersMessage')}</p>
         )}
       </Card>
     </div>

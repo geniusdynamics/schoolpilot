@@ -84,12 +84,12 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
 
     return (
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">{sectionTitle}</h4>
+        <h4 className="text-sm font-medium text-surface-foreground mb-2">{sectionTitle}</h4>
         <div className="space-y-1">
           {entries.map(([capability, enabled]) => (
             <div key={capability} className={`flex items-center text-xs ${enabled ? '' : 'opacity-50'}`}>
               <span className={`w-2 h-2 rounded-full mr-2 ${enabled ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-              <span className={enabled ? 'text-gray-600 capitalize' : 'text-gray-400 capitalize'}>
+              <span className={enabled ? 'text-surface-muted-fg capitalize' : 'text-surface-muted-fg capitalize'}>
                 {capability.replace(/([A-Z])/g, ' $1').trim()}
               </span>
             </div>
@@ -101,7 +101,7 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
 
   const getBackendStatusColor = () => {
     if (currentBackend === 'frontend-only') {
-      return 'text-blue-600';
+      return 'text-primary-600';
     }
 
     if (isApiAvailable) {
@@ -129,16 +129,16 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
 
   if (!backendConfig) {
     return (
-      <div className={`p-4 bg-gray-50 rounded-lg ${className}`}>
-        <div className="text-sm text-gray-500">Loading backend configuration...</div>
+      <div className={`p-4 bg-surface-muted rounded-lg ${className}`}>
+        <div className="text-sm text-surface-muted-fg">Loading backend configuration...</div>
       </div>
     );
   }
 
   return (
-    <div className={`p-4 bg-white border border-gray-200 rounded-lg ${className}`}>
+    <div className={`p-4 bg-surface-card border border-surface-border rounded-lg ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <h3 className="text-lg font-medium text-surface-foreground">{title}</h3>
         <div className="flex items-center space-x-2">
           <span className={`text-sm font-medium ${getBackendStatusColor()}`}>
             {getBackendStatusText()}
@@ -147,7 +147,7 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
             <button
               onClick={checkApiAvailability}
               disabled={isCheckingApi}
-              className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+              className="text-xs px-2 py-1 bg-surface-accent hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
             >
               {isCheckingApi ? 'Checking...' : 'Refresh'}
             </button>
@@ -156,7 +156,7 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
       </div>
 
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Backend Type</h4>
+        <h4 className="text-sm font-medium text-surface-foreground mb-3">Backend Type</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {backendTypes.map((type) => (
             <label key={type} className="flex items-center space-x-2 cursor-pointer">
@@ -166,9 +166,9 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
                 value={type}
                 checked={currentBackend === type}
                 onChange={() => handleBackendSwitch(type)}
-                className="text-blue-600 focus:ring-blue-500"
+                className="text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700 capitalize">
+              <span className="text-sm text-surface-foreground capitalize">
                 {type.replace(/-/g, ' ')}
               </span>
             </label>
@@ -177,8 +177,8 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
       </div>
 
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Configuration Details</h4>
-        <div className="bg-gray-50 p-3 rounded text-xs space-y-1">
+        <h4 className="text-sm font-medium text-surface-foreground mb-3">Configuration Details</h4>
+        <div className="bg-surface-muted p-3 rounded text-xs space-y-1">
           <div><span className="font-medium">Data Source:</span> {backendConfig.dataSource}</div>
           <div><span className="font-medium">Sync Strategy:</span> {backendConfig.syncStrategy}</div>
           {backendConfig.endpoints.api && (
@@ -191,23 +191,23 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Available Capabilities</h4>
+        <h4 className="text-sm font-medium text-surface-foreground">Available Capabilities</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-surface-muted p-3 rounded">
             {renderCapabilitySection('Core Operations', backendConfig.capabilities.crud)}
           </div>
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-surface-muted p-3 rounded">
             {renderCapabilitySection('Advanced Features', backendConfig.capabilities.advanced)}
           </div>
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-surface-muted p-3 rounded">
             {renderCapabilitySection('Integrations', backendConfig.capabilities.integrations)}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Fallback Strategy</h4>
-        <div className="bg-gray-50 p-3 rounded text-xs space-y-1">
+      <div className="mt-6 pt-4 border-t border-surface-border">
+        <h4 className="text-sm font-medium text-surface-foreground mb-2">Fallback Strategy</h4>
+        <div className="bg-surface-muted p-3 rounded text-xs space-y-1">
           <div><span className="font-medium">Primary:</span> {backendConfig.fallbackStrategy.primary}</div>
           <div><span className="font-medium">Fallback:</span> {backendConfig.fallbackStrategy.fallback}</div>
           <div><span className="font-medium">Auto Fallback:</span> {backendConfig.fallbackStrategy.autoFallback ? 'Enabled' : 'Disabled'}</div>

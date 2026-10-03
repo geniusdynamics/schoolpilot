@@ -151,7 +151,7 @@ const AnalyticsTrendsPage: React.FC = () => {
 
   function getMetricIcon(metric: TrendMetric): React.ReactNode {
     if (metric === 'passRate') return <CheckCircleIcon className="h-6 w-6 text-emerald-700" />;
-    if (metric === 'attendance') return <UsersIcon className="h-6 w-6 text-blue-700" />;
+    if (metric === 'attendance') return <UsersIcon className="h-6 w-6 text-primary-700" />;
     return <AcademicCapIcon className="h-6 w-6 text-violet-700" />;
   }
 
@@ -239,8 +239,8 @@ const AnalyticsTrendsPage: React.FC = () => {
           {/* Gradient definition */}
           <defs>
             <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+              <stop offset="0%" stopColor="#6366f1" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -248,7 +248,7 @@ const AnalyticsTrendsPage: React.FC = () => {
           <polyline
             points={pathPoints}
             fill="none"
-            stroke="#3b82f6"
+            stroke="#6366f1"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -261,7 +261,7 @@ const AnalyticsTrendsPage: React.FC = () => {
                 cx={getPointX(i)}
                 cy={getPointY(d.value)}
                 r="2"
-                fill="#3b82f6"
+                fill="#6366f1"
                 stroke="white"
                 strokeWidth="0.5"
               />
@@ -298,7 +298,7 @@ const AnalyticsTrendsPage: React.FC = () => {
       sortable: true,
       align: 'center',
       render: (value: number) => (
-        <span className="font-semibold text-gray-900">{value}%</span>
+        <span className="font-semibold text-surface-foreground">{value}%</span>
       ),
     },
     {
@@ -310,7 +310,7 @@ const AnalyticsTrendsPage: React.FC = () => {
         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
           value > 0 ? 'bg-emerald-100 text-emerald-700' :
           value < 0 ? 'bg-rose-100 text-rose-700' :
-          'bg-gray-100 text-gray-600'
+          'bg-surface-accent text-surface-muted-fg'
         }`}>
           {value > 0 ? <ArrowUpIcon className="h-3 w-3" /> : value < 0 ? <ArrowDownIcon className="h-3 w-3" /> : null}
           {value >= 0 ? '+' : ''}{value}%
@@ -335,10 +335,10 @@ const AnalyticsTrendsPage: React.FC = () => {
       metrics={metrics}
     >
       {/* Period Selector */}
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Period:</span>
+            <span className="text-sm font-medium text-surface-foreground">Period:</span>
             {(['week', 'month', 'term', 'year'] as PeriodOption[]).map((p) => (
               <Button
                 key={p}
@@ -350,7 +350,7 @@ const AnalyticsTrendsPage: React.FC = () => {
             ))}
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Metric:</span>
+            <span className="text-sm font-medium text-surface-foreground">Metric:</span>
             <Button
               variant={activeMetric === 'passRate' ? 'primary' : 'outline'}
               onClick={() => setActiveMetric('passRate')}
@@ -378,46 +378,46 @@ const AnalyticsTrendsPage: React.FC = () => {
 
       {/* Trend Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-slate-200 bg-surface-card shadow-sm">
           <div className="text-center">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pass Rate Trend</p>
+            <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">Pass Rate Trend</p>
             <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-bold text-surface-foreground">
                 {activeMetric === 'passRate' ? `${trendStats.current}%` :
                   classPerformances.length > 0 ? `${Math.round(classPerformances.reduce((s, c) => s + c.passRate, 0) / classPerformances)}%` : '--'}
               </span>
               {trendStats.trend === 'up' && <ArrowUpIcon className="h-5 w-5 text-emerald-600" />}
               {trendStats.trend === 'down' && <ArrowDownIcon className="h-5 w-5 text-rose-600" />}
             </div>
-            <p className={`text-xs mt-1 ${trendStats.trend === 'up' ? 'text-emerald-600' : trendStats.trend === 'down' ? 'text-rose-600' : 'text-gray-500'}`}>
+            <p className={`text-xs mt-1 ${trendStats.trend === 'up' ? 'text-emerald-600' : trendStats.trend === 'down' ? 'text-rose-600' : 'text-surface-muted-fg'}`}>
               {trendStats.trend === 'up' ? 'Improving' : trendStats.trend === 'down' ? 'Declining' : 'Stable'}
             </p>
           </div>
         </Card>
 
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-slate-200 bg-surface-card shadow-sm">
           <div className="text-center">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Attendance Trend</p>
+            <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">Attendance Trend</p>
             <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-bold text-surface-foreground">
                 {activeMetric === 'attendance' ? `${trendStats.current}%` :
                   classPerformances.length > 0 ? `${Math.round(classPerformances.reduce((s, c) => s + c.attendanceRate, 0) / classPerformances)}%` : '--'}
               </span>
-              <span className="text-xs text-gray-400">avg</span>
+              <span className="text-xs text-surface-muted-fg">avg</span>
             </div>
-            <p className="text-xs mt-1 text-blue-600">Across all classes</p>
+            <p className="text-xs mt-1 text-primary-600">Across all classes</p>
           </div>
         </Card>
 
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-slate-200 bg-surface-card shadow-sm">
           <div className="text-center">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Performance Trend</p>
+            <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">Performance Trend</p>
             <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-bold text-surface-foreground">
                 {activeMetric === 'performance' ? `${trendStats.current}%` :
                   classPerformances.length > 0 ? `${Math.round(classPerformances.reduce((s, c) => s + c.averageScore, 0) / classPerformances)}%` : '--'}
               </span>
-              <span className="text-xs text-gray-400">avg</span>
+              <span className="text-xs text-surface-muted-fg">avg</span>
             </div>
             <p className="text-xs mt-1 text-violet-600">Average score trend</p>
           </div>
@@ -427,38 +427,39 @@ const AnalyticsTrendsPage: React.FC = () => {
       {/* Trend Line Chart */}
       <Card
         title={`${getMetricLabel(activeMetric)} Trend - ${period.charAt(0).toUpperCase() + period.slice(1)}`}
-        className="border-slate-200 bg-white shadow-sm"
+        className="border-slate-200 bg-surface-card shadow-sm"
       >
         <LineChartPlaceholder data={generateTrendData} />
       </Card>
 
       {/* Trend Data Table */}
-      <Card title="Trend Data" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Trend Data" className="border-slate-200 bg-surface-card shadow-sm">
         <DataGrid
           columns={tableColumns}
           data={generateTrendData}
           loading={loading}
           sortable
           filterable={false}
+          keyField="date"
         />
       </Card>
 
       {/* Auto-Generated Insights */}
       <Card
         title="Insights"
-        icon={<ChartPieIcon className="h-5 w-5 text-blue-600" />}
-        className="border-slate-200 bg-white shadow-sm"
+        icon={<ChartPieIcon className="h-5 w-5 text-primary-600" />}
+        className="border-slate-200 bg-surface-card shadow-sm"
       >
         <div className="space-y-3">
           {insights.map((insight, idx) => (
             <div
               key={idx}
-              className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100"
+              className="flex items-start gap-3 p-3 rounded-lg bg-primary-50 border border-primary-100"
             >
-              <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <div className="h-6 w-6 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-bold">{idx + 1}</span>
               </div>
-              <p className="text-sm text-gray-700">{insight}</p>
+              <p className="text-sm text-surface-foreground">{insight}</p>
             </div>
           ))}
         </div>

@@ -8,6 +8,7 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import { usePortalData } from '../data/usePortalData';
+import { PortalAccessNotice, shouldShowAccessNotice } from '../components/PortalAccessNotice';
 import type { PortalResultSummary } from '../data/types';
 import {
   ChartBarIcon,
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/icons';
 
 interface SubjectRow {
+  id: string;
   subjectName: string;
   marks: string;
   grade: string;
@@ -28,13 +30,14 @@ export const PortalResultsContent: React.FC = () => {
   const {
     results,
     loading,
+    accessStatus,
     loadResults,
   } = usePortalData();
 
   const [expandedExams, setExpandedExams] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    loadResults('STU001');
+    loadResults();
   }, [loadResults]);
 
   const toggleExam = useCallback((examId: string) => {
@@ -63,7 +66,7 @@ export const PortalResultsContent: React.FC = () => {
       header: t('results.subject'),
       sortable: true,
       filterable: true,
-      render: (value: string) => <span className="font-medium text-gray-900">{value}</span>,
+      render: (value: string) => <span className="font-medium text-surface-foreground">{value}</span>,
     },
     {
       key: 'marks',
@@ -73,7 +76,7 @@ export const PortalResultsContent: React.FC = () => {
       align: 'center',
       render: (value: string, row) => {
         const marks = parseFloat(row.marks);
-        const color = marks >= 80 ? 'text-emerald-600' : marks >= 60 ? 'text-blue-600' : marks >= 40 ? 'text-amber-600' : 'text-rose-600';
+        const color = marks >= 80 ? 'text-emerald-600' : marks >= 60 ? 'text-primary-600' : marks >= 40 ? 'text-amber-600' : 'text-rose-600';
         return <span className={`font-mono font-semibold ${color}`}>{value}</span>;
       },
     },
@@ -85,7 +88,7 @@ export const PortalResultsContent: React.FC = () => {
       align: 'center',
       render: (value: string) => {
         const gradeColor = value.startsWith('A') ? 'text-emerald-700 bg-emerald-50' :
-          value.startsWith('B') ? 'text-blue-700 bg-blue-50' :
+          value.startsWith('B') ? 'text-primary-700 bg-primary-50' :
           value.startsWith('C') ? 'text-amber-700 bg-amber-50' :
           value.startsWith('D') ? 'text-orange-700 bg-orange-50' : 'text-rose-700 bg-rose-50';
         return (
@@ -101,24 +104,29 @@ export const PortalResultsContent: React.FC = () => {
       sortable: true,
       filterable: true,
       align: 'center',
-      render: (value: string) => <span className="font-mono text-gray-700">{value}</span>,
+      render: (value: string) => <span className="font-mono text-surface-foreground">{value}</span>,
     },
     {
       key: 'comment',
       header: t('results.comment'),
       sortable: false,
       filterable: true,
-      render: (value: string) => <span className="text-gray-600 text-sm">{value}</span>,
+      render: (value: string) => <span className="text-surface-muted-fg text-sm">{value}</span>,
     },
   ];
 
-  if (loading?.all && results.length === 0) {
+  if (loading && results.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />
-        <span className="ml-3 text-gray-600">{t('common.loading')}</span>
+        <span className="ml-3 text-surface-muted-fg">{t('common.loading')}</span>
       </div>
     );
+  }
+
+  // Auth-gated: without a linked student there is nothing to show but a notice.
+  if (shouldShowAccessNotice(accessStatus)) {
+    return <PortalAccessNotice status={accessStatus} />;
   }
 
   return (
@@ -126,8 +134,8 @@ export const PortalResultsContent: React.FC = () => {
       {/* Header with actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{t('results.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl font-semibold text-surface-foreground">{t('results.title')}</h1>
+          <p className="text-sm text-surface-muted-fg mt-1">
             {results.length} exam session{results.length !== 1 ? 's' : ''} available
           </p>
         </div>
@@ -144,17 +152,18 @@ export const PortalResultsContent: React.FC = () => {
       </div>
 
       {results.length === 0 ? (
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-slate-200 bg-surface-card shadow-sm">
           <div className="text-center py-12">
             <ChartBarIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium text-gray-900">{t('results.noResults')}</h3>
-            <p className="text-sm text-gray-500 mt-2">Results will appear here once exams have been graded.</p>
+            <h3 className="text-lg font-medium text-surface-foreground">{t('results.noResults')}</h3>
+            <p className="text-sm text-surface-muted-fg mt-2">Results will appear here once exams have been graded.</p>
           </div>
         </Card>
       ) : (
         results.map((exam: PortalResultSummary) => {
           const isExpanded = expandedExams.has(exam.examSessionId);
-          const subjectRows: SubjectRow[] = exam.subjects.map(s => ({
+          const subjectRows: SubjectRow[] = exam.subjects.map((s, i) => ({
+            id: `${exam.examSessionId}_${s.subjectName ?? i}`,
             subjectName: s.subjectName,
             marks: s.marks != null ? `${s.marks}/${s.marksOutOf ?? 100}` : '-',
             grade: s.grade ?? '-',
@@ -163,19 +172,19 @@ export const PortalResultsContent: React.FC = () => {
           }));
 
           return (
-            <Card key={exam.examSessionId} className="border-slate-200 bg-white shadow-sm">
+            <Card key={exam.examSessionId} className="border-slate-200 bg-surface-card shadow-sm">
               {/* Exam Header */}
               <button
-                className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors rounded-t-xl text-left"
+                className="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-muted transition-colors rounded-t-xl text-left"
                 onClick={() => toggleExam(exam.examSessionId)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="rounded-lg bg-blue-50 p-2.5">
-                    <ChartBarIcon className="w-5 h-5 text-blue-600" />
+                  <div className="rounded-lg bg-primary-50 p-2.5">
+                    <ChartBarIcon className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-gray-900">{exam.examSessionName}</h3>
-                    <p className="text-sm text-gray-500">{exam.academicPeriodName}</p>
+                    <h3 className="text-base font-semibold text-surface-foreground">{exam.examSessionName}</h3>
+                    <p className="text-sm text-surface-muted-fg">{exam.academicPeriodName}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
@@ -183,52 +192,52 @@ export const PortalResultsContent: React.FC = () => {
                   <div className="hidden sm:flex items-center gap-6 text-sm">
                     {exam.totalMarks != null && (
                       <div className="text-center">
-                        <p className="font-semibold text-gray-900">{exam.totalMarks}</p>
-                        <p className="text-xs text-gray-500">{t('results.totalMarks')}</p>
+                        <p className="font-semibold text-surface-foreground">{exam.totalMarks}</p>
+                        <p className="text-xs text-surface-muted-fg">{t('results.totalMarks')}</p>
                       </div>
                     )}
                     {exam.meanGrade && (
                       <div className="text-center">
                         <p className="font-semibold text-emerald-600">{exam.meanGrade}</p>
-                        <p className="text-xs text-gray-500">{t('results.meanGrade')}</p>
+                        <p className="text-xs text-surface-muted-fg">{t('results.meanGrade')}</p>
                       </div>
                     )}
                     {exam.classRank != null && (
                       <div className="text-center">
                         <p className="font-semibold text-violet-600">#{exam.classRank}</p>
-                        <p className="text-xs text-gray-500">{t('results.classRank')}</p>
+                        <p className="text-xs text-surface-muted-fg">{t('results.classRank')}</p>
                       </div>
                     )}
                   </div>
                   {isExpanded ? (
-                    <ChevronUpIcon className="w-5 h-5 text-gray-400" />
+                    <ChevronUpIcon className="w-5 h-5 text-surface-muted-fg" />
                   ) : (
-                    <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                    <ChevronDownIcon className="w-5 h-5 text-surface-muted-fg" />
                   )}
                 </div>
               </button>
 
               {/* Expanded Subject Breakdown */}
               {isExpanded && (
-                <div className="border-t border-gray-200">
+                <div className="border-t border-surface-border">
                   {/* Mobile Stats */}
-                  <div className="sm:hidden grid grid-cols-3 gap-3 p-4 bg-gray-50">
+                  <div className="sm:hidden grid grid-cols-3 gap-3 p-4 bg-surface-muted">
                     {exam.totalMarks != null && (
                       <div className="text-center">
-                        <p className="font-semibold text-gray-900">{exam.totalMarks}</p>
-                        <p className="text-xs text-gray-500">{t('results.totalMarks')}</p>
+                        <p className="font-semibold text-surface-foreground">{exam.totalMarks}</p>
+                        <p className="text-xs text-surface-muted-fg">{t('results.totalMarks')}</p>
                       </div>
                     )}
                     {exam.meanGrade && (
                       <div className="text-center">
                         <p className="font-semibold text-emerald-600">{exam.meanGrade}</p>
-                        <p className="text-xs text-gray-500">{t('results.meanGrade')}</p>
+                        <p className="text-xs text-surface-muted-fg">{t('results.meanGrade')}</p>
                       </div>
                     )}
                     {exam.classRank != null && (
                       <div className="text-center">
                         <p className="font-semibold text-violet-600">#{exam.classRank}</p>
-                        <p className="text-xs text-gray-500">{t('results.classRank')}</p>
+                        <p className="text-xs text-surface-muted-fg">{t('results.classRank')}</p>
                       </div>
                     )}
                   </div>

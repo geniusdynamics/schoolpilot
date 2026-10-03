@@ -90,9 +90,9 @@ const StudentFinancialDetailPage: React.FC = () => {
         if (item.status === InvoiceStatus.PAID) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === InvoiceStatus.DUE) colorClass = 'bg-yellow-100 text-yellow-800';
         else if (item.status === InvoiceStatus.OVERDUE) colorClass = 'bg-red-100 text-red-800';
-        else if (item.status === InvoiceStatus.PARTIALLY_PAID) colorClass = 'bg-blue-100 text-blue-800';
-        else if (item.status === InvoiceStatus.VOIDED) colorClass = 'bg-gray-100 text-gray-800 line-through';
-        else colorClass = 'bg-gray-100 text-gray-800';
+        else if (item.status === InvoiceStatus.PARTIALLY_PAID) colorClass = 'bg-primary-100 text-primary-800';
+        else if (item.status === InvoiceStatus.VOIDED) colorClass = 'bg-surface-accent text-surface-foreground line-through';
+        else colorClass = 'bg-surface-accent text-surface-foreground';
         return <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
       }
     },
@@ -161,7 +161,7 @@ const StudentFinancialDetailPage: React.FC = () => {
 
   const getBalanceColor = (balance: number = 0) => {
     if (balance > 0) return 'text-red-600'; // Due
-    if (balance < 0) return 'text-blue-600'; // Overpaid / Credit
+    if (balance < 0) return 'text-primary-600'; // Overpaid / Credit
     return 'text-green-600'; // Paid up (zero balance)
   };
 
@@ -172,8 +172,8 @@ const StudentFinancialDetailPage: React.FC = () => {
       <Card>
         <div className="flex justify-between items-center mb-6 pb-4 border-b">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Student Financial Overview</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-surface-foreground">Student Financial Overview</h1>
+            <p className="text-sm text-surface-muted-fg">
               <Link to="/dashboard" className="hover:underline">Dashboard</Link> &gt;
               <Link to="/administration/students" className="hover:underline"> Students</Link> &gt;
               <Link to={`/administration/students/${studentId}`} className="hover:underline"> {fullName}</Link> &gt; Financials
@@ -195,7 +195,7 @@ const StudentFinancialDetailPage: React.FC = () => {
                   <UserCircleIcon className="w-24 h-24 text-gray-300 mx-auto mb-3" />
                 )}
                 <h2 className="text-lg font-semibold">{fullName}</h2>
-                <p className="text-xs text-gray-500">ID: {admission_no} | Class: {current_class_name || 'N/A'} - {current_class_stream_name || 'N/A'}</p>
+                <p className="text-xs text-surface-muted-fg">ID: {admission_no} | Class: {current_class_name || 'N/A'} - {current_class_stream_name || 'N/A'}</p>
               </div>
             </Card>
 
@@ -203,26 +203,26 @@ const StudentFinancialDetailPage: React.FC = () => {
               <Card title="Financial Summary">
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-600">Current Balance:</span>
+                    <span className="font-medium text-surface-muted-fg">Current Balance:</span>
                     <span className={`text-xl font-bold ${getBalanceColor(financial_summary.currentBalance)}`}>
                       {formatCurrency(financial_summary.currentBalance)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total Fees Billed:</span>
-                    <span className="text-gray-700 font-medium">{formatCurrency(financial_summary.totalFees)}</span>
+                    <span className="text-surface-muted-fg">Total Fees Billed:</span>
+                    <span className="text-surface-foreground font-medium">{formatCurrency(financial_summary.totalFees)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total Paid:</span>
-                    <span className="text-gray-700 font-medium">{formatCurrency(financial_summary.totalPaid)}</span>
+                    <span className="text-surface-muted-fg">Total Paid:</span>
+                    <span className="text-surface-foreground font-medium">{formatCurrency(financial_summary.totalPaid)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total Discounts:</span>
-                    <span className="text-gray-700 font-medium">{formatCurrency(financial_summary.totalDiscount)}</span>
+                    <span className="text-surface-muted-fg">Total Discounts:</span>
+                    <span className="text-surface-foreground font-medium">{formatCurrency(financial_summary.totalDiscount)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total Fines:</span>
-                    <span className="text-gray-700 font-medium">{formatCurrency(financial_summary.totalFine)}</span>
+                    <span className="text-surface-muted-fg">Total Fines:</span>
+                    <span className="text-surface-foreground font-medium">{formatCurrency(financial_summary.totalFine)}</span>
                   </div>
                 </div>
               </Card>
@@ -242,8 +242,8 @@ const StudentFinancialDetailPage: React.FC = () => {
                       filterable={true}
                       emptyState={
                         <div className="text-center py-8">
-                          <CurrencyDollarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-500">No invoices or charges found.</p>
+                          <CurrencyDollarIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+                          <p className="text-surface-muted-fg">No invoices or charges found.</p>
                         </div>
                       }
                     />
@@ -259,8 +259,8 @@ const StudentFinancialDetailPage: React.FC = () => {
                       filterable={true}
                       emptyState={
                         <div className="text-center py-8">
-                          <CurrencyDollarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-500">No payment history found.</p>
+                          <CurrencyDollarIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+                          <p className="text-surface-muted-fg">No payment history found.</p>
                         </div>
                       }
                     />

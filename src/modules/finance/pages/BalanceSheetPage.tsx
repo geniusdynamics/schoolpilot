@@ -71,7 +71,7 @@ export const BalanceSheetPageContent: React.FC = () => {
 
   const getCategoryBadge = (category: string) => {
     const styles = {
-      'Asset': 'bg-blue-100 text-blue-800',
+      'Asset': 'bg-primary-100 text-primary-800',
       'Liability': 'bg-red-100 text-red-800',
       'Equity': 'bg-green-100 text-green-800'
     };
@@ -107,7 +107,7 @@ export const BalanceSheetPageContent: React.FC = () => {
       header: 'Amount',
       sortable: true,
       render: (value, item) => (
-        <span className={`font-semibold ${item.category === 'Asset' || item.category === 'Equity' ? 'text-blue-600' : 'text-red-600'}`}>
+        <span className={`font-semibold ${item.category === 'Asset' || item.category === 'Equity' ? 'text-primary-600' : 'text-red-600'}`}>
           KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
@@ -150,20 +150,20 @@ export const BalanceSheetPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">As of Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">As of Date</label>
             <input
               type="date"
               value={asOfDate}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAsOfDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Category</label>
             <select
               value={categoryFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoryFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Categories</option>
               {categories.map(c => (
@@ -172,30 +172,30 @@ export const BalanceSheetPageContent: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Account or subcategory..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <CurrencyDollarIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">Total Assets</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               KES {(totals.assets / 1000000).toFixed(1)}M
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Total Liabilities</span>
             </div>
@@ -203,8 +203,8 @@ export const BalanceSheetPageContent: React.FC = () => {
               KES {(totals.liabilities / 1000000).toFixed(1)}M
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Total Equity</span>
             </div>
@@ -212,8 +212,8 @@ export const BalanceSheetPageContent: React.FC = () => {
               KES {(totals.equity / 1000000).toFixed(1)}M
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ScaleIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Working Capital</span>
             </div>
@@ -221,8 +221,8 @@ export const BalanceSheetPageContent: React.FC = () => {
               KES {totals.workingCapital?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <BuildingLibraryIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Debt Ratio</span>
             </div>
@@ -234,20 +234,20 @@ export const BalanceSheetPageContent: React.FC = () => {
 
         {/* Balance Summary */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-800 mb-3">Assets Breakdown</h4>
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+            <h4 className="font-semibold text-primary-800 mb-3">Assets Breakdown</h4>
             <div className="space-y-2">
               {mockBalanceSheet.filter(i => i.category === 'Asset').map(item => (
-                <div key={item.id} className="flex justify-between py-1 border-b border-blue-100 last:border-0">
-                  <span className="text-sm text-blue-700">{item.account_name}</span>
-                  <span className="text-sm font-semibold text-blue-800">
+                <div key={item.id} className="flex justify-between py-1 border-b border-primary-100 last:border-0">
+                  <span className="text-sm text-primary-700">{item.account_name}</span>
+                  <span className="text-sm font-semibold text-primary-800">
                     KES {(item.amount / 1000000).toFixed(2)}M
                   </span>
                 </div>
               ))}
-              <div className="flex justify-between py-2 border-t-2 border-blue-300 font-bold">
-                <span className="text-sm text-blue-800">Total Assets</span>
-                <span className="text-sm text-blue-800">KES {(totals.assets / 1000000).toFixed(2)}M</span>
+              <div className="flex justify-between py-2 border-t-2 border-primary-300 font-bold">
+                <span className="text-sm text-primary-800">Total Assets</span>
+                <span className="text-sm text-primary-800">KES {(totals.assets / 1000000).toFixed(2)}M</span>
               </div>
             </div>
           </div>

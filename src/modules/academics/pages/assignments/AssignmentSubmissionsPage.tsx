@@ -12,8 +12,8 @@ import { SubmissionStatus } from '../../data/types';
 import { useTranslation } from 'react-i18next';
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
-  [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [SubmissionStatus.PENDING_REVIEW]: 'bg-surface-accent text-surface-foreground',
+  [SubmissionStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
   [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
   [SubmissionStatus.RETURNED]: 'bg-purple-100 text-purple-800',
@@ -113,7 +113,7 @@ const AssignmentSubmissionsPage: React.FC = () => {
       header: t('submission.fields.feedback'),
       sortable: false,
       render: (value) => (
-        <span className="text-sm text-gray-600 truncate block max-w-xs" title={value || ''}>
+        <span className="text-sm text-surface-muted-fg truncate block max-w-xs" title={value || ''}>
           {value || '-'}
         </span>
       ),
@@ -158,10 +158,10 @@ const AssignmentSubmissionsPage: React.FC = () => {
             {t('common.back')}
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-surface-foreground">
               {assignment?.title || 'Assignment Submissions'}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-surface-muted-fg mt-1">
               {assignment?.subjectName} - {assignment?.classStreamName}
             </p>
           </div>
@@ -178,32 +178,32 @@ const AssignmentSubmissionsPage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card variant="compact">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-xs text-gray-500">Total</p>
+            <p className="text-2xl font-bold text-surface-foreground">{stats.total}</p>
+            <p className="text-xs text-surface-muted-fg">Total</p>
           </div>
         </Card>
         <Card variant="compact">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-400">{stats.notSubmitted}</p>
-            <p className="text-xs text-gray-500">Not Submitted</p>
+            <p className="text-2xl font-bold text-surface-muted-fg">{stats.notSubmitted}</p>
+            <p className="text-xs text-surface-muted-fg">Not Submitted</p>
           </div>
         </Card>
         <Card variant="compact">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.submitted}</p>
-            <p className="text-xs text-gray-500">Submitted</p>
+            <p className="text-2xl font-bold text-primary-600">{stats.submitted}</p>
+            <p className="text-xs text-surface-muted-fg">Submitted</p>
           </div>
         </Card>
         <Card variant="compact">
           <div className="text-center">
             <p className="text-2xl font-bold text-orange-600">{stats.late}</p>
-            <p className="text-xs text-gray-500">Late</p>
+            <p className="text-xs text-surface-muted-fg">Late</p>
           </div>
         </Card>
         <Card variant="compact">
           <div className="text-center">
             <p className="text-2xl font-bold text-green-600">{stats.graded}</p>
-            <p className="text-xs text-gray-500">Graded</p>
+            <p className="text-xs text-surface-muted-fg">Graded</p>
           </div>
         </Card>
       </div>
@@ -237,11 +237,11 @@ const AssignmentSubmissionsPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <DocumentTextIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 No submissions found
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 {filterStatus ? 'Try adjusting the filter.' : 'Students have not submitted their work yet.'}
               </p>
             </div>
@@ -260,15 +260,15 @@ const AssignmentSubmissionsPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                   {t('submission.fields.student')}
                 </label>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-surface-foreground">
                   {selectedSubmission.studentName || 'Unknown'}
                 </p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                   {t('submission.fields.status')}
                 </label>
                 <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${submissionStatusColors[selectedSubmission.status]}`}>
@@ -276,50 +276,50 @@ const AssignmentSubmissionsPage: React.FC = () => {
                 </span>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                   {t('submission.fields.submissionDate')}
                 </label>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-surface-foreground">
                   {selectedSubmission.submissionDate
                     ? new Date(selectedSubmission.submissionDate).toLocaleString()
                     : 'Not submitted'}
                 </p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                   {t('submission.fields.isLate')}
                 </label>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-surface-foreground">
                   {selectedSubmission.isLate ? 'Yes' : 'No'}
                 </p>
               </div>
               {selectedSubmission.score !== null && selectedSubmission.score !== undefined && (
                 <>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                       {t('submission.fields.score')}
                     </label>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-surface-foreground">
                       {selectedSubmission.score} / {selectedSubmission.maxScore || assignment?.maxScore || 100}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                       {t('submission.fields.grade')}
                     </label>
-                    <p className="text-sm text-gray-900">{selectedSubmission.grade || '-'}</p>
+                    <p className="text-sm text-surface-foreground">{selectedSubmission.grade || '-'}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                       Graded By
                     </label>
-                    <p className="text-sm text-gray-900">{selectedSubmission.gradedByName || '-'}</p>
+                    <p className="text-sm text-surface-foreground">{selectedSubmission.gradedByName || '-'}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                       Graded At
                     </label>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-surface-foreground">
                       {selectedSubmission.gradedAt
                         ? new Date(selectedSubmission.gradedAt).toLocaleString()
                         : '-'}
@@ -330,10 +330,10 @@ const AssignmentSubmissionsPage: React.FC = () => {
             </div>
             {selectedSubmission.feedback && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
                   {t('submission.fields.feedback')}
                 </label>
-                <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                <p className="text-sm text-surface-foreground bg-surface-muted p-3 rounded-md whitespace-pre-wrap">
                   {selectedSubmission.feedback}
                 </p>
               </div>

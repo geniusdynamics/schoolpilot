@@ -14,6 +14,7 @@ import { PlusIcon, EditIcon, DeleteIcon, CakeIcon } from '@/components/ui/icons'
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'meal_type'> & {
     meal_type: MealType;
@@ -22,6 +23,7 @@ type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'me
 export const MenusPageContent: React.FC = () => {
   const { menus, loading, addMenu, updateMenu, deleteMenu } = useAppData();
   const { t } = useTranslation('nutrition');
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
@@ -72,7 +74,7 @@ export const MenusPageContent: React.FC = () => {
   }, [formData, editingMenu, updateMenu, addMenu, closeModal]);
 
   const handleDelete = useCallback(async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this menu? This might affect consumption logs.')) {
+    if (await confirm({ title: 'Delete menu', message: 'Are you sure you want to delete this menu? This might affect consumption logs.', variant: 'danger' })) {
       await deleteMenu(id);
     }
   }, [deleteMenu]);
@@ -132,7 +134,7 @@ export const MenusPageContent: React.FC = () => {
           {t('menus.add.button')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('menus.management.description')}
         </p>
         <DataGrid 
@@ -142,7 +144,7 @@ export const MenusPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <CakeIcon className="w-12 h-12 text-gray-400" />,
+            icon: <CakeIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No menus found",
             description: "Create meal menus to plan and track student nutrition throughout the academic period.",
             action: {
@@ -198,8 +200,8 @@ export const MenusPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>{t('menus.cancel.button')}</Button>
-          <Button onClick={handleSubmit} disabled={loading.menus}>
-            {loading.menus ? <Spinner size="sm"/> : (editingMenu ? t('menus.save.button') : t('menus.add.button'))}
+          <Button onClick={handleSubmit} loading={loading.menus}>
+            {editingMenu ? t('menus.save.button') : t('menus.add.button')}
           </Button>
         </FormActions>
       </DialogForm>

@@ -60,7 +60,7 @@ const ModuleHealthIndicator: React.FC<ModuleHealthIndicatorProps> = ({
     <>
       <button
         onClick={() => setIsDashboardOpen(true)}
-        className={`flex items-center px-2 py-1 rounded hover:bg-gray-100 ${className}`}
+        className={`flex items-center px-2 py-1 rounded hover:bg-surface-accent ${className}`}
         title={statusText}
       >
         <StatusIcon className={`w-5 h-5 ${statusColor}`} />
@@ -72,7 +72,7 @@ const ModuleHealthIndicator: React.FC<ModuleHealthIndicatorProps> = ({
         )}
         
         {showLabel && (
-          <span className="ml-2 text-sm text-gray-600">
+          <span className="ml-2 text-sm text-surface-muted-fg">
             {statusText}
           </span>
         )}

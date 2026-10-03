@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
+import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -9,7 +10,7 @@ import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, CurrencyDollarIcon, PlusIcon, CheckIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { initialMockScholarshipRecords } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { ScholarshipRecord } from '../data/types';
 
 import { logger } from '@/utils/logging';
@@ -17,7 +18,8 @@ import { useToast } from '@/hooks/useToast';
 
 const ScholarshipTrackingPage: React.FC = () => {
   const { t } = useTranslation('administration');
-  const { students, classes, loading } = useAppData();
+  const { students } = useAppData();
+  const scholarshipCollection = useDatabaseCollection<ScholarshipRecord>('scholarships');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScholarship, setEditingScholarship] = useState<ScholarshipRecord | null>(null);
@@ -37,12 +39,12 @@ const ScholarshipTrackingPage: React.FC = () => {
   };
   const [formData, setFormData] = useState<Partial<ScholarshipRecord>>(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockScholarships: ScholarshipRecord[] = useMemo(() => {
-    let filtered = initialMockScholarshipRecords;
+  // Live scholarship records from the database
+  const scholarships: ScholarshipRecord[] = useMemo(() => {
+    let filtered = scholarshipCollection.data;
 
     if (selectedClass) {
-      filtered = filtered.filter(s => s.class_id === selectedClass);
+      filtered = filtered.filter(s => s.class_name === selectedClass);
     }
 
     if (statusFilter) {
@@ -50,7 +52,7 @@ const ScholarshipTrackingPage: React.FC = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(s => 
+      filtered = filtered.filter(s =>
         (s.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         (s.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         (s.scholarship_type?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
@@ -58,7 +60,22 @@ const ScholarshipTrackingPage: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedClass, statusFilter, searchTerm]);
+  }, [scholarshipCollection.data, selectedClass, statusFilter, searchTerm]);
+
+  const getStudentDisplayName = (studentId: string): string => {
+    const student = students?.find(s => String(s.id) === String(studentId));
+    if (!student) return '';
+    return student.display_name || `${student.first_name} ${student.last_name}`.trim();
+  };
+
+  const getStudentClassName = (studentId: string): string => {
+    const student = students?.find(s => String(s.id) === String(studentId));
+    if (!student) return '';
+    const cls = student.current_class_name || '';
+    const stream = student.current_class_stream_name || '';
+    if (cls && stream) return `${cls} - ${stream}`;
+    return cls || stream;
+  };
 
   const openModal = (scholarship?: ScholarshipRecord) => {
     setEditingScholarship(scholarship || null);
@@ -97,13 +114,38 @@ const ScholarshipTrackingPage: React.FC = () => {
       return;
     }
     logger.info('Saving scholarship:', formData);
-    closeModal();
+    const payload = {
+      student_id: formData.student_id || '',
+      student_name: getStudentDisplayName(formData.student_id || ''),
+      admission_no: students?.find(s => String(s.id) === String(formData.student_id))?.admission_no || '',
+      class_name: getStudentClassName(formData.student_id || ''),
+      scholarship_type: formData.scholarship_type || '',
+      amount: Number(formData.amount) || 0,
+      academic_year: formData.academic_year || '',
+      status: formData.status || 'Active',
+      start_date: formData.start_date || '',
+      end_date: formData.end_date || '',
+      criteria: formData.criteria,
+      notes: formData.notes,
+      created_at: new Date().toISOString()
+    };
+    const save = editingScholarship
+      ? scholarshipCollection.update(editingScholarship.id, payload)
+      : scholarshipCollection.insert(payload as Omit<ScholarshipRecord, 'id'> & { id?: string });
+
+    void save.then(() => {
+      toast.showSuccess(editingScholarship ? 'Scholarship updated.' : 'Scholarship added.');
+      closeModal();
+    }).catch((err: unknown) => {
+      logger.error('Failed to save scholarship:', err);
+      toast.showError('Failed to save scholarship.');
+    });
   };
 
   const getStatusBadge = (status: string) => {
     const styles = {
       'Active': 'bg-green-100 text-green-800',
-      'Inactive': 'bg-gray-100 text-gray-800',
+      'Inactive': 'bg-surface-accent text-surface-foreground',
       'Pending': 'bg-yellow-100 text-yellow-800'
     };
     return (
@@ -171,22 +213,22 @@ const ScholarshipTrackingPage: React.FC = () => {
   ];
 
   const uniqueClasses = useMemo(() => {
-    const classIds = [...new Set(mockScholarships.map(s => s.class_id))];
-    return classIds.map(id => mockScholarships.find(s => s.class_id === id)?.class_name || id);
-  }, [mockScholarships]);
+    const classNames = [...new Set(scholarships.map(s => s.class_name).filter((name): name is string => Boolean(name)))];
+    return classNames;
+  }, [scholarships]);
 
   const scholarshipTypes = ['Merit Scholarship', 'Need-Based Scholarship', 'Sports Scholarship', 'Arts Scholarship', 'Other'];
   const statuses = ['Active', 'Inactive', 'Pending'];
 
   const totals = useMemo(() => {
     return {
-      total: mockScholarships.length,
-      active: mockScholarships.filter(s => s.status === 'Active').length,
-      totalAmount: mockScholarships.filter(s => s.status === 'Active').reduce((sum, s) => sum + s.amount, 0)
+      total: scholarships.length,
+      active: scholarships.filter(s => s.status === 'Active').length,
+      totalAmount: scholarships.filter(s => s.status === 'Active').reduce((sum, s) => sum + s.amount, 0)
     };
-  }, [mockScholarships]);
+  }, [scholarships]);
 
-  if (loading?.all && mockScholarships.length === 0) {
+  if (scholarshipCollection.loading && scholarships.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -198,7 +240,7 @@ const ScholarshipTrackingPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Scholarship Tracking</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Scholarship Tracking</h1>
         <Button onClick={() => openModal()} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Scholarship
@@ -220,17 +262,17 @@ const ScholarshipTrackingPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Scholarships</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Active</span>
             </div>
@@ -238,8 +280,8 @@ const ScholarshipTrackingPage: React.FC = () => {
               {totals.active}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-teal-600" />
               <span className="text-sm font-medium">Total Disbursed</span>
             </div>
@@ -252,45 +294,45 @@ const ScholarshipTrackingPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
+            <Select
               value={selectedClass}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Classes</option>
               {uniqueClasses.map(cls => (
                 <option key={cls} value={cls}>{cls}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
+            <Select
               value={statusFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Statuses</option>
               {statuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Student, type..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockScholarships}
+          data={scholarships}
           columns={columns}
         />
       </Card>
@@ -303,31 +345,31 @@ const ScholarshipTrackingPage: React.FC = () => {
       >
         <FormSection>
           <FormField label="Student" required>
-            <select
+            <Select
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select student</option>
               {students?.map(student => (
                 <option key={student.id} value={student.id}>{student.first_name} {student.last_name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Scholarship Type" required>
-            <select
+            <Select
               name="scholarship_type"
               value={formData.scholarship_type}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select type</option>
               {scholarshipTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Amount" required>
@@ -337,7 +379,7 @@ const ScholarshipTrackingPage: React.FC = () => {
               value={formData.amount}
               onChange={handleInputChange}
               min="0"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -348,21 +390,21 @@ const ScholarshipTrackingPage: React.FC = () => {
               value={formData.academic_year}
               onChange={handleInputChange}
               placeholder="e.g., 2024-2025"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Status" required>
-            <select
+            <Select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {statuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Start Date">
@@ -371,7 +413,7 @@ const ScholarshipTrackingPage: React.FC = () => {
               name="start_date"
               value={formData.start_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -381,7 +423,7 @@ const ScholarshipTrackingPage: React.FC = () => {
               name="end_date"
               value={formData.end_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -392,7 +434,7 @@ const ScholarshipTrackingPage: React.FC = () => {
               value={formData.criteria}
               onChange={handleInputChange}
               placeholder="e.g., Top 5% in class"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -403,7 +445,7 @@ const ScholarshipTrackingPage: React.FC = () => {
               value={formData.notes}
               onChange={handleInputChange}
               placeholder="Additional notes"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>

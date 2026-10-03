@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { EditIcon, DeleteIcon, PlusIcon, StarIcon } from '@/components/ui/icons';
 import { useSupplierData } from '../data/useSupplierData';
 import { InvSupplierType, InvSupplierStatusEnum } from '../data/types';
@@ -40,6 +41,7 @@ const StarRating: React.FC<{ value: number; onChange?: (value: number) => void; 
 export const SuppliersPageContent: React.FC = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const confirm = useConfirm();
   const {
     suppliers,
     loading,
@@ -146,7 +148,7 @@ export const SuppliersPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('common.confirmDelete'))) {
+    if (await confirm({ title: t('common.delete'), message: t('common.confirmDelete'), variant: 'danger' })) {
       try {
         await remove(id);
         toast.showSuccess(t('inventory.suppliers.deleted'));
@@ -177,7 +179,7 @@ export const SuppliersPageContent: React.FC = () => {
       header: t('inventory.suppliers.name'),
       minWidth: 200,
       render: (_v, supplier) => (
-        <span className="font-medium text-gray-900">{supplier.name}</span>
+        <span className="font-medium text-surface-foreground">{supplier.name}</span>
       )
     },
     {
@@ -244,7 +246,7 @@ export const SuppliersPageContent: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-surface-foreground">
           {t('inventory.suppliers.title')}
         </h1>
         <Button onClick={() => handleOpenDialog()} leftIcon={<PlusIcon className="w-4 h-4" />}>
@@ -253,7 +255,7 @@ export const SuppliersPageContent: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-surface-card border border-surface-border rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             placeholder={t('inventory.suppliers.search')}
@@ -364,7 +366,7 @@ export const SuppliersPageContent: React.FC = () => {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, credit_limit: parseFloat(e.target.value) || 0 })}
           />
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-700">{t('inventory.suppliers.rating')}</span>
+            <span className="text-sm font-medium text-surface-foreground">{t('inventory.suppliers.rating')}</span>
             <StarRating
               value={formData.performance_rating || 5}
               onChange={(newValue) => setFormData({ ...formData, performance_rating: newValue || 5 })}

@@ -209,7 +209,7 @@ export const FeesDueReportPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Class Filter</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class Filter</label>
             <Select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
@@ -221,7 +221,7 @@ export const FeesDueReportPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Aging Filter</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Aging Filter</label>
             <Select
               value={agingFilter}
               onChange={(e) => setAgingFilter(e.target.value)}
@@ -233,7 +233,7 @@ export const FeesDueReportPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Student or admission no..."
@@ -246,29 +246,29 @@ export const FeesDueReportPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ExclamationTriangleIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Due</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">{formatKES(totals.totalDue)}</p>
+            <p className="text-2xl font-bold text-surface-foreground mt-2">{formatKES(totals.totalDue)}</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <span className="text-green-600 font-bold">✓</span>
               <span className="text-sm font-medium">Total Paid</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">{formatKES(totals.totalPaid)}</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Outstanding Balance</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">{formatKES(totals.totalBalance)}</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserGroupIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Overdue Accounts</span>
             </div>

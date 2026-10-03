@@ -129,8 +129,8 @@ describe('DataGrid Table Rendering - Various Data States', () => {
       const customEmptyState = (
         <div className="text-center py-12">
           <div className="text-4xl mb-4">ðŸ“¦</div>
-          <div className="text-lg font-medium text-gray-900 mb-2">No modules available</div>
-          <div className="text-gray-500">Add your first module to get started</div>
+          <div className="text-lg font-medium text-surface-foreground mb-2">No modules available</div>
+          <div className="text-surface-muted-fg">Add your first module to get started</div>
         </div>
       );
 
@@ -319,8 +319,8 @@ describe('DataGrid Table Rendering - Various Data States', () => {
       const customLoadingState = (
         <div className="flex items-center justify-center py-8">
           <div className="animate-pulse flex items-center">
-            <div className="h-4 w-4 bg-blue-400 rounded-full mr-3"></div>
-            <span className="text-gray-600">Loading modules data...</span>
+            <div className="h-4 w-4 bg-primary-400 rounded-full mr-3"></div>
+            <span className="text-surface-muted-fg">Loading modules data...</span>
           </div>
         </div>
       );

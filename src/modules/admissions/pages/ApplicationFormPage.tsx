@@ -133,7 +133,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   // Step 1: Student Information
   const renderStudentInfo = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Student Information</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Student Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Input
           name="firstName"
@@ -200,7 +200,7 @@ export const ApplicationFormPageContent: React.FC = () => {
         />
       </div>
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">Application Details</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">Application Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select
             name="applicationType"
@@ -238,7 +238,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   // Step 2: Guardian Information
   const renderGuardianInfo = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Guardian Information</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Guardian Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Select
           name="guardianType"
@@ -299,7 +299,7 @@ export const ApplicationFormPageContent: React.FC = () => {
         />
       </div>
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">Address Information</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">Address Information</h4>
         <div className="space-y-4">
           <Input
             name="residentialAddress"
@@ -335,7 +335,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   // Step 3: Academic Background
   const renderAcademicBackground = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Academic Background</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Academic Background</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           name="previousSchool"
@@ -351,7 +351,7 @@ export const ApplicationFormPageContent: React.FC = () => {
         />
       </div>
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">KCPE Results (if applicable)</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">KCPE Results (if applicable)</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             name="kcpeIndexNumber"
@@ -380,41 +380,41 @@ export const ApplicationFormPageContent: React.FC = () => {
   // Step 4: Review & Submit
   const renderReview = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">Review Application</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Review Application</h3>
       
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Student Information</h4>
+      <div className="bg-surface-muted p-4 rounded-lg">
+        <h4 className="font-medium text-surface-foreground mb-2">Student Information</h4>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <span className="text-gray-600">Name:</span>
+          <span className="text-surface-muted-fg">Name:</span>
           <span>{`${formData.firstName} ${formData.middleName} ${formData.lastName}`}</span>
-          <span className="text-gray-600">Date of Birth:</span>
+          <span className="text-surface-muted-fg">Date of Birth:</span>
           <span>{formData.dateOfBirth}</span>
-          <span className="text-gray-600">Gender:</span>
+          <span className="text-surface-muted-fg">Gender:</span>
           <span>{formData.gender}</span>
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Guardian Information</h4>
+      <div className="bg-surface-muted p-4 rounded-lg">
+        <h4 className="font-medium text-surface-foreground mb-2">Guardian Information</h4>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <span className="text-gray-600">Guardian:</span>
+          <span className="text-surface-muted-fg">Guardian:</span>
           <span>{`${formData.guardianFirstName} ${formData.guardianLastName}`}</span>
-          <span className="text-gray-600">Phone:</span>
+          <span className="text-surface-muted-fg">Phone:</span>
           <span>{formData.guardianPhone}</span>
-          <span className="text-gray-600">Email:</span>
+          <span className="text-surface-muted-fg">Email:</span>
           <span>{formData.guardianEmail || 'N/A'}</span>
         </div>
       </div>
 
       {formData.previousSchool && (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">Academic Background</h4>
+        <div className="bg-surface-muted p-4 rounded-lg">
+          <h4 className="font-medium text-surface-foreground mb-2">Academic Background</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="text-gray-600">Previous School:</span>
+            <span className="text-surface-muted-fg">Previous School:</span>
             <span>{formData.previousSchool}</span>
             {formData.kcpeMarks && (
               <>
-                <span className="text-gray-600">KCPE Marks:</span>
+                <span className="text-surface-muted-fg">KCPE Marks:</span>
                 <span>{formData.kcpeMarks}</span>
               </>
             )}
@@ -422,7 +422,7 @@ export const ApplicationFormPageContent: React.FC = () => {
         </div>
       )}
 
-      <div className="flex items-center space-x-2 text-sm text-gray-600">
+      <div className="flex items-center space-x-2 text-sm text-surface-muted-fg">
         <CheckCircleIcon className="w-5 h-5 text-green-500" />
         <span>Please review all information before submitting. You will not be able to edit after submission.</span>
       </div>

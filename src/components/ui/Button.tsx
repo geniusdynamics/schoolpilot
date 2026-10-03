@@ -106,25 +106,25 @@ const Button = forwardRef(<C extends ElementType = "button">(
     'focus:outline-none',
     'focus-visible:ring-2',
     'focus-visible:ring-offset-2',
-    'active:scale-95',
+    'active:scale-[0.98]',
     'select-none',
     fullWidth ? 'w-full' : '',
     isDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-    // Enhanced hover effects with transform
-    !isDisabled ? 'hover:shadow-md hover:-translate-y-0.5 active:translate-y-0' : '',
+    // Refined hover: gentle elevation without layout-shifting translation
+    !isDisabled ? 'hover:shadow-sm' : '',
   ].filter(Boolean).join(' ');
 
   // Enhanced variant styles with WCAG AA compliant colors using standard Tailwind classes
   const variantStyles = {
     primary: [
-      'bg-indigo-600 text-white border-indigo-600',
-      'hover:bg-indigo-700 hover:border-indigo-700',
-      'focus-visible:ring-indigo-500',
-      'active:bg-indigo-800',
+      'bg-primary-600 text-white border-primary-600',
+      'hover:bg-primary-700 hover:border-primary-700',
+      'focus-visible:ring-primary-500',
+      'active:bg-primary-800',
     ].join(' '),
     secondary: [
-      'bg-gray-100 text-gray-900 border-gray-200',
-      'hover:bg-gray-200 hover:border-gray-300',
+      'bg-surface-accent text-surface-foreground border-surface-border',
+      'hover:bg-gray-200 hover:border-surface-border',
       'focus-visible:ring-gray-500',
       'active:bg-gray-300',
     ].join(' '),
@@ -147,16 +147,16 @@ const Button = forwardRef(<C extends ElementType = "button">(
       'active:bg-red-800',
     ].join(' '),
     ghost: [
-      'bg-transparent text-indigo-600 border-transparent',
-      'hover:bg-indigo-50 hover:text-indigo-700',
-      'focus-visible:ring-indigo-500',
-      'active:bg-indigo-100',
+      'bg-transparent text-primary-600 border-transparent',
+      'hover:bg-primary-50 hover:text-primary-700',
+      'focus-visible:ring-primary-500',
+      'active:bg-primary-100',
     ].join(' '),
     outline: [
-      'bg-transparent text-indigo-600 border-indigo-600',
-      'hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-700',
-      'focus-visible:ring-indigo-500',
-      'active:bg-indigo-100',
+      'bg-transparent text-primary-600 border-primary-600',
+      'hover:bg-primary-50 hover:text-primary-700 hover:border-primary-700',
+      'focus-visible:ring-primary-500',
+      'active:bg-primary-100',
     ].join(' '),
   };
 

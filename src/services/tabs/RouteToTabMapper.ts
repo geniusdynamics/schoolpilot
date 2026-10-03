@@ -154,6 +154,9 @@ export class RouteToTabMapper {
       if (patternSegment.startsWith(':')) {
         const paramName = patternSegment.substring(1);
         params[paramName] = pathSegment;
+      } else if (patternSegment === '*') {
+        // Anonymous wildcard matches any single segment
+        params[''] = pathSegment;
       } else if (patternSegment !== pathSegment) {
         // Non-matching static segment - return empty params
         return {};
@@ -188,7 +191,9 @@ export class RouteToTabMapper {
     }
 
     const normalizedPath = this.normalizePath(path);
-    const module = this.extractModuleFromPath(normalizedPath);
+    // The module comes from the navigation item; fall back to 'unknown' when
+    // the navigation config does not declare one for this item.
+    const module = navigationItem?.module || 'unknown';
     const title = this.generateTabTitle(navigationItem, options?.title);
 
     const tab: Partial<Tab> = {
@@ -343,8 +348,11 @@ export class RouteToTabMapper {
       return '/';
     }
 
+    // Trim surrounding whitespace so whitespace-only paths normalize to root
+    let normalized = path.trim();
+
     // Remove query strings
-    let normalized = path.split('?')[0];
+    normalized = normalized.split('?')[0];
 
     // Remove hash fragment
     normalized = normalized.split('#')[0];
@@ -534,10 +542,9 @@ export class RouteToTabMapper {
       // Capture remaining segments as wildcard
       const wildcardParam = patternSegments[wildcardIndex].replace('/*', '').replace('*', '');
       const remainingSegments = pathSegments.slice(wildcardIndex);
-      if (wildcardParam) {
-        params[wildcardParam] = remainingSegments.join('/');
-      }
-      
+      // Anonymous wildcards ('*') capture under the empty-string key
+      params[wildcardParam] = remainingSegments.join('/');
+
       return params;
     }
 

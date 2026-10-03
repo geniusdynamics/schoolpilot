@@ -27,7 +27,7 @@ const EnrollmentChart: React.FC<EnrollmentChartProps> = ({
   return (
     <div className="w-full h-[280px]">
       {title && (
-        <h3 className="text-center text-sm font-semibold text-blue-600 mb-2">
+        <h3 className="text-center text-sm font-semibold text-primary-600 mb-2">
           {title}
         </h3>
       )}
@@ -69,7 +69,7 @@ const EnrollmentChart: React.FC<EnrollmentChartProps> = ({
       <div className="flex justify-center items-center gap-4 mt-2">
         <div className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full bg-[#50E3C2]" />
-          <span className="text-xs text-gray-600">{schoolName}</span>
+          <span className="text-xs text-surface-muted-fg">{schoolName}</span>
         </div>
       </div>
     </div>

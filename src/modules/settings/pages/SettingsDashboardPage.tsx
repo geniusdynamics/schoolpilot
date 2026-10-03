@@ -226,29 +226,29 @@ export const SettingsDashboardContent: React.FC = () => {
       {/* Additional Settings Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* System Status */}
-        <Card title="System Status" className="border-slate-200 bg-white shadow-sm">
+        <Card title="System Status" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Active Modules</span>
+              <span className="text-sm text-surface-muted-fg">Active Modules</span>
               <span className="font-semibold text-emerald-600">{activeModules}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Inactive Modules</span>
+              <span className="text-sm text-surface-muted-fg">Inactive Modules</span>
               <span className="font-semibold text-amber-600">{inactiveModules}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">User Roles</span>
+              <span className="text-sm text-surface-muted-fg">User Roles</span>
               <span className="font-semibold text-violet-600">{totalRoles}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Admin Users</span>
-              <span className="font-semibold text-blue-600">{adminUsers}</span>
+              <span className="text-sm text-surface-muted-fg">Admin Users</span>
+              <span className="font-semibold text-primary-600">{adminUsers}</span>
             </div>
           </div>
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -265,8 +265,8 @@ export const SettingsDashboardContent: React.FC = () => {
                    <IdentificationIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -277,16 +277,16 @@ export const SettingsDashboardContent: React.FC = () => {
         </Card>
 
         {/* Quick Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-emerald-50 p-3 text-center">
                 <p className="text-2xl font-bold text-emerald-700">{totalUsers}</p>
                 <p className="text-xs text-emerald-600">Total Users</p>
               </div>
-              <div className="rounded-lg bg-blue-50 p-3 text-center">
-                <p className="text-2xl font-bold text-blue-700">{adminUsers}</p>
-                <p className="text-xs text-blue-600">Admins</p>
+              <div className="rounded-lg bg-primary-50 p-3 text-center">
+                <p className="text-2xl font-bold text-primary-700">{adminUsers}</p>
+                <p className="text-xs text-primary-600">Admins</p>
               </div>
             </div>
             <div className="rounded-lg bg-cyan-50 p-3">
@@ -313,7 +313,7 @@ export const SettingsDashboardContent: React.FC = () => {
             </div>
             <button
               onClick={() => window.location.hash = '#/settings/unified'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               Open Settings <ArrowRightIcon className="h-4 w-4" />
             </button>

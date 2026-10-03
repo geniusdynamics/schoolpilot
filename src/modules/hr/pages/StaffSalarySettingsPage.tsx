@@ -231,7 +231,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
       render: (value: string) => value ? formatDate(value) : '-'
     },
     { header: t('tableHeaders.status'), key: 'is_active' as keyof StaffSalaryComponent, render: (value: boolean) => (
-      <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'}`}>
         {value ? t('common:active') : t('common:inactive')}
       </span>
     )},
@@ -261,7 +261,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">{t('salarySettings.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('salarySettings.description')}</p>
         {loading ? (
           <div className="flex justify-center py-8">
             <Spinner />
@@ -289,7 +289,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
               value={formData.staff_id || ''}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">{t('fields.selectStaff')}</option>
               {(staff as any[] || []).map(s => (
@@ -314,7 +314,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
               value={formData.component_type || 'earning'}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="earning">{t('fields.typeEarning')}</option>
               <option value="deduction">{t('fields.typeDeduction')}</option>
@@ -358,9 +358,9 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
                 checked={formData.is_active ?? true}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                className="w-4 h-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700">{t('fields.isActive')}</span>
+              <span className="text-sm text-surface-foreground">{t('fields.isActive')}</span>
             </label>
           </FormField>
         </FormSection>
@@ -368,8 +368,8 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
           <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
             {t('common:cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <Spinner size="sm" /> : (editingComponent ? t('common:save') : t('common:create'))}
+          <Button type="submit" loading={isSubmitting}>
+            {editingComponent ? t('common:save') : t('common:create')}
           </Button>
         </FormActions>
       </DialogForm>

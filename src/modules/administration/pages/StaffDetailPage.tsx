@@ -73,21 +73,21 @@ const StaffDetailPage: React.FC = () => {
       content: (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <p>
-            <strong className="font-medium text-gray-700">Staff No:</strong> {staff_no}
+            <strong className="font-medium text-surface-foreground">Staff No:</strong> {staff_no}
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Full Name:</strong> {fullName}
+            <strong className="font-medium text-surface-foreground">Full Name:</strong> {fullName}
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Department:</strong>{' '}
+            <strong className="font-medium text-surface-foreground">Department:</strong>{' '}
             {department_name || 'N/A'}
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Designation:</strong>{' '}
+            <strong className="font-medium text-surface-foreground">Designation:</strong>{' '}
             {designation_title || 'N/A'}
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Status:</strong>{' '}
+            <strong className="font-medium text-surface-foreground">Status:</strong>{' '}
             <span
               className={`px-2 py-1 rounded text-xs ${
                 is_active
@@ -99,20 +99,20 @@ const StaffDetailPage: React.FC = () => {
             </span>
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Joined Date:</strong>{' '}
+            <strong className="font-medium text-surface-foreground">Joined Date:</strong>{' '}
             {created_at ? new Date(created_at).toLocaleDateString() : 'N/A'}
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Email:</strong>{' '}
+            <strong className="font-medium text-surface-foreground">Email:</strong>{' '}
             {email || 'N/A'}
           </p>
           <p>
-            <strong className="font-medium text-gray-700">Phone:</strong>{' '}
+            <strong className="font-medium text-surface-foreground">Phone:</strong>{' '}
             {phone || 'N/A'}
           </p>
           {hod_of_department_name && (
             <p className="md:col-span-2">
-              <strong className="font-medium text-gray-700">HOD Of:</strong>{' '}
+              <strong className="font-medium text-surface-foreground">HOD Of:</strong>{' '}
               {hod_of_department_name}
             </p>
           )}
@@ -123,11 +123,11 @@ const StaffDetailPage: React.FC = () => {
       label: 'Employment History',
       content: (
         <div className="text-center py-12">
-          <CalendarIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
+          <CalendarIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+          <h3 className="mt-2 text-sm font-medium text-surface-foreground">
             Employment History
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-surface-muted-fg">
             Employment history tracking will be implemented here.
           </p>
         </div>
@@ -137,11 +137,11 @@ const StaffDetailPage: React.FC = () => {
       label: 'Assigned Classes/Subjects',
       content: (
         <div className="text-center py-12">
-          <BriefcaseIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
+          <BriefcaseIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+          <h3 className="mt-2 text-sm font-medium text-surface-foreground">
             Class & Subject Assignments
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-surface-muted-fg">
             Class and subject assignments will be displayed here.
           </p>
         </div>
@@ -154,8 +154,8 @@ const StaffDetailPage: React.FC = () => {
       <Card>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Staff Profile</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-surface-foreground">Staff Profile</h1>
+            <p className="text-sm text-surface-muted-fg">
               <Link to="/dashboard" className="hover:underline">
                 Dashboard
               </Link>{' '}
@@ -193,26 +193,26 @@ const StaffDetailPage: React.FC = () => {
                 ) : (
                   <UserCircleIcon className="w-32 h-32 text-gray-300 mx-auto mb-4" />
                 )}
-                <h2 className="text-xl font-semibold text-gray-800">{fullName}</h2>
-                <p className="text-sm text-gray-500">ID: {staff_no}</p>
+                <h2 className="text-xl font-semibold text-surface-foreground">{fullName}</h2>
+                <p className="text-sm text-surface-muted-fg">ID: {staff_no}</p>
                 <p className="text-sm text-indigo-600 font-medium flex items-center justify-center mt-1">
                   <BriefcaseIcon className="w-4 h-4 mr-1" />{' '}
                   {designation_title || 'N/A'}
                 </p>
-                <p className="text-sm text-gray-500 flex items-center justify-center mt-1">
+                <p className="text-sm text-surface-muted-fg flex items-center justify-center mt-1">
                   <BuildingOfficeIcon className="w-4 h-4 mr-1" />{' '}
                   {department_name || 'N/A'}
                 </p>
               </div>
               <div className="border-t px-4 py-3 space-y-2">
                 {email && (
-                  <p className="text-sm text-gray-600 flex items-center">
-                    <EnvelopeIcon className="w-4 h-4 mr-2 text-gray-400" /> {email}
+                  <p className="text-sm text-surface-muted-fg flex items-center">
+                    <EnvelopeIcon className="w-4 h-4 mr-2 text-surface-muted-fg" /> {email}
                   </p>
                 )}
                 {phone && (
-                  <p className="text-sm text-gray-600 flex items-center">
-                    <PhoneIcon className="w-4 h-4 mr-2 text-gray-400" /> {phone}
+                  <p className="text-sm text-surface-muted-fg flex items-center">
+                    <PhoneIcon className="w-4 h-4 mr-2 text-surface-muted-fg" /> {phone}
                   </p>
                 )}
               </div>

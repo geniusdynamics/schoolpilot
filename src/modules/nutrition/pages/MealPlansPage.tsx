@@ -4,6 +4,7 @@ import { Card, DataGrid, Button, Modal, Input, Textarea, Toast, Spinner } from '
 
 import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_at'>;
@@ -11,6 +12,7 @@ type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_a
 export const MealPlansPageContent: React.FC = () => {
   const { mealPlans, loading, addMealPlan, updateMealPlan, deleteMealPlan } = useAppData();
   const { t } = useTranslation('nutrition');
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<MealPlan | null>(null);
@@ -65,7 +67,7 @@ export const MealPlansPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this meal plan?')) {
+    if (await confirm({ title: 'Delete meal plan', message: 'Are you sure you want to delete this meal plan?', variant: 'danger' })) {
       try {
         await deleteMealPlan(id);
         setToast({ message: 'Meal plan deleted successfully!', type: 'success' });
@@ -82,7 +84,7 @@ export const MealPlansPageContent: React.FC = () => {
       return;
     }
     
-    if (window.confirm(`Are you sure you want to delete ${selectedRows.length} meal plan(s)?`)) {
+    if (await confirm({ title: 'Delete meal plans', message: `Are you sure you want to delete ${selectedRows.length} meal plan(s)?`, variant: 'danger' })) {
       try {
         for (const id of selectedRows) {
           await deleteMealPlan(parseInt(id));
@@ -158,7 +160,7 @@ export const MealPlansPageContent: React.FC = () => {
           </Button>
         </div>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('mealPlans.managementDescription')}
         </p>
         <DataGrid 
@@ -186,8 +188,8 @@ export const MealPlansPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('mealPlans.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.mealPlans}>
-              {loading.mealPlans ? <Spinner size="sm"/> : (editingPlan ? t('mealPlans.saveChanges') : t('mealPlans.addPlan'))}
+            <Button onClick={handleSubmit} loading={loading.mealPlans}>
+              {editingPlan ? t('mealPlans.saveChanges') : t('mealPlans.addPlan')}
             </Button>
           </>
         }

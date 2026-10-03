@@ -112,7 +112,7 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value, row) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'school_period_name', 
@@ -130,7 +130,7 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
       width: 120,
       render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
         row.status === TransportAssignmentStatus.ACTIVE ? 'bg-green-100 text-green-800' :
-        row.status === TransportAssignmentStatus.INACTIVE ? 'bg-gray-100 text-gray-800' :
+        row.status === TransportAssignmentStatus.INACTIVE ? 'bg-surface-accent text-surface-foreground' :
         'bg-red-100 text-red-800'
       }`}>{value}</span>
     },
@@ -174,7 +174,7 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <TruckIcon className="w-12 h-12 text-gray-400" />,
+            icon: <TruckIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Transport Assignments",
             description: "No students have been assigned to transport routes yet. Start by assigning students to available routes.",
             action: (
@@ -190,8 +190,8 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.studentTransportAssignments}>
-              {loading.studentTransportAssignments ? <Spinner size="sm"/> : (editingAssignment ? 'Save Changes' : 'Assign')}
+            <Button onClick={handleSubmit} loading={loading.studentTransportAssignments}>
+              {editingAssignment ? 'Save Changes' : 'Assign'}
             </Button>
           </>
         }

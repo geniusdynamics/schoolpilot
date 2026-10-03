@@ -149,7 +149,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
       <Card title={t('classSubjectAllocations.title')} bodyClassName="p-0" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classSubjectAllocations.addButton')}</Button>
       }>
-        <div className="p-4 sm:p-6 pb-3 text-sm text-gray-600 border-b border-gray-200">
+        <div className="p-4 sm:p-6 pb-3 text-sm text-surface-muted-fg border-b border-surface-border">
           Assign subjects to specific class streams for a given academic year.
         </div>
         <DataGrid columns={columns} data={classSubjectAllocations || []} loading={loading.classSubjectAllocations} sortable filterable />
@@ -159,8 +159,8 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.classSubjectAllocations}>
-              {loading.classSubjectAllocations ? <Spinner size="sm"/> : t('common:save')}
+            <Button onClick={handleSubmit} loading={loading.classSubjectAllocations}>
+              {t('common:save')}
             </Button>
           </FormActions>
         }
@@ -175,7 +175,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
             >
               <option value="">{t('classSubjectAllocations.selectClassStreamOption')}</option>
               {(classStreams || []).map((cs: ClassStream) => (
-                <option key={cs.id} value={cs.id}>{cs.name}</option>
+                <option key={cs.id} value={cs.id}>{cs.class_name ? `${cs.class_name} - ${cs.name}` : cs.name}</option>
               ))}
             </Select>
           </FormField>

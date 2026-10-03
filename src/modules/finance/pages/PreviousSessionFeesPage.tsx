@@ -123,7 +123,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
       'Pending': 'bg-yellow-100 text-yellow-800',
       'Partial': 'bg-orange-100 text-orange-800',
       'Paid': 'bg-green-100 text-green-800',
-      'Waived': 'bg-blue-100 text-blue-800'
+      'Waived': 'bg-primary-100 text-primary-800'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
@@ -248,7 +248,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Previous Session</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Previous Session</label>
             <Select
               value={selectedSession}
               onChange={(e) => setSelectedSession(e.target.value)}
@@ -260,7 +260,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
             <Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -272,7 +272,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Student name or admission no..."
@@ -285,8 +285,8 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowPathIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Carry-over</span>
             </div>
@@ -294,8 +294,8 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               KES {totals.carryOver?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Paid</span>
             </div>
@@ -303,8 +303,8 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               KES {totals.paid?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Outstanding</span>
             </div>
@@ -312,12 +312,12 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               KES {totals.remaining?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserGroupIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Records</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {filteredPreviousSessionFees.length}
             </p>
           </div>
@@ -430,7 +430,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Additional notes"
               rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>

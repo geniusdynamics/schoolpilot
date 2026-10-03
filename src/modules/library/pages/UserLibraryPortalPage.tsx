@@ -163,7 +163,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
       header: 'Renewals',
       width: 120,
       render: (_, item) => (
-        <span className="text-xs text-gray-600">
+        <span className="text-xs text-surface-muted-fg">
           {getRenewalInfo(item)}
         </span>
       ),
@@ -200,7 +200,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <p className="text-lg text-gray-600">Please log in to access your library portal.</p>
+          <p className="text-lg text-surface-muted-fg">Please log in to access your library portal.</p>
         </div>
       </div>
     );
@@ -214,23 +214,23 @@ export const UserLibraryPortalPageContent: React.FC = () => {
       >
         {/* Borrowing Rules Info */}
         {userBorrowingRules && (
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Your Borrowing Limits</h3>
+          <div className="bg-surface-muted p-4 rounded-lg mb-6">
+            <h3 className="text-sm font-semibold text-surface-foreground mb-2">Your Borrowing Limits</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-gray-600">Max Books:</span>
+                <span className="text-surface-muted-fg">Max Books:</span>
                 <span className="ml-1 font-medium">{userBorrowingRules.max_books_per_user}</span>
               </div>
               <div>
-                <span className="text-gray-600">Loan Period:</span>
+                <span className="text-surface-muted-fg">Loan Period:</span>
                 <span className="ml-1 font-medium">{userBorrowingRules.max_loan_days} days</span>
               </div>
               <div>
-                <span className="text-gray-600">Max Renewals:</span>
+                <span className="text-surface-muted-fg">Max Renewals:</span>
                 <span className="ml-1 font-medium">{userBorrowingRules.max_renewals}</span>
               </div>
               <div>
-                <span className="text-gray-600">Fine Rate:</span>
+                <span className="text-surface-muted-fg">Fine Rate:</span>
                 <span className="ml-1 font-medium">KES {userBorrowingRules.fine_per_day}/day</span>
               </div>
             </div>
@@ -239,10 +239,10 @@ export const UserLibraryPortalPageContent: React.FC = () => {
 
         {/* Summary stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-900">Active Loans</h3>
-            <p className="text-2xl font-bold text-blue-600">{userLoans.length}</p>
-            <p className="text-xs text-blue-700">of {userBorrowingRules?.max_books_per_user || 'N/A'} max</p>
+          <div className="bg-primary-50 p-4 rounded-lg">
+            <h3 className="text-sm font-medium text-primary-900">Active Loans</h3>
+            <p className="text-2xl font-bold text-primary-600">{userLoans.length}</p>
+            <p className="text-xs text-primary-700">of {userBorrowingRules?.max_books_per_user || 'N/A'} max</p>
           </div>
           <div className="bg-yellow-50 p-4 rounded-lg">
             <h3 className="text-sm font-medium text-yellow-900">Overdue</h3>
@@ -274,7 +274,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <p className="text-gray-500">{t('library:userPortal.noLoansMessage')}</p>
+              <p className="text-surface-muted-fg">{t('library:userPortal.noLoansMessage')}</p>
             </div>
           }
         />

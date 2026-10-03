@@ -95,8 +95,8 @@ export const SchedulingCalendar: React.FC<SchedulingCalendarProps> = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Exam Scheduling Calendar</h2>
-          <p className="text-sm text-gray-500 mt-1">Manage exam schedules</p>
+          <h2 className="text-2xl font-bold text-surface-foreground">Exam Scheduling Calendar</h2>
+          <p className="text-sm text-surface-muted-fg mt-1">Manage exam schedules</p>
         </div>
         <Button
           variant="primary"
@@ -181,12 +181,12 @@ export const SchedulingCalendar: React.FC<SchedulingCalendarProps> = ({
           {schedules.map((schedule) => (
             <div
               key={schedule.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-surface-muted cursor-pointer"
               onClick={() => handleSelectSchedule(schedule)}
             >
               <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{schedule.examName}</h3>
-                <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+                <h3 className="font-medium text-surface-foreground">{schedule.examName}</h3>
+                <div className="flex items-center space-x-4 mt-1 text-sm text-surface-muted-fg">
                   <span>{formatDate(schedule.date)}</span>
                   <span>{formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}</span>
                   <span>{schedule.roomNumber}</span>
@@ -196,7 +196,7 @@ export const SchedulingCalendar: React.FC<SchedulingCalendarProps> = ({
               </div>
               <div className="flex items-center space-x-2">
                 <span className={`px-2 py-1 text-xs rounded-full ${
-                  schedule.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                  schedule.status === 'scheduled' ? 'bg-primary-100 text-primary-800' :
                   schedule.status === 'completed' ? 'bg-green-100 text-green-800' :
                   'bg-red-100 text-red-800'
                 }`}>
@@ -222,39 +222,39 @@ export const SchedulingCalendar: React.FC<SchedulingCalendarProps> = ({
         <Card title="Schedule Details">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">Exam Details</h3>
+              <h3 className="font-medium text-surface-foreground mb-2">Exam Details</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Exam Name:</span>
+                  <span className="text-surface-muted-fg">Exam Name:</span>
                   <span className="font-medium">{selectedSchedule.examName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Date:</span>
+                  <span className="text-surface-muted-fg">Date:</span>
                   <span className="font-medium">{formatDate(selectedSchedule.date)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Time:</span>
+                  <span className="text-surface-muted-fg">Time:</span>
                   <span className="font-medium">{formatTime(selectedSchedule.startTime)} - {formatTime(selectedSchedule.endTime)}</span>
                 </div>
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">Location Details</h3>
+              <h3 className="font-medium text-surface-foreground mb-2">Location Details</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Room Number:</span>
+                  <span className="text-surface-muted-fg">Room Number:</span>
                   <span className="font-medium">{selectedSchedule.roomNumber}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Invigilator:</span>
+                  <span className="text-surface-muted-fg">Invigilator:</span>
                   <span className="font-medium">{selectedSchedule.invigilator}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Class Stream:</span>
+                  <span className="text-surface-muted-fg">Class Stream:</span>
                   <span className="font-medium">{selectedSchedule.classStream}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Status:</span>
+                  <span className="text-surface-muted-fg">Status:</span>
                   <span className="font-medium">{selectedSchedule.status}</span>
                 </div>
               </div>

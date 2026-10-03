@@ -9,7 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Loan, Student, Staff, Book } from '@/types';
+import { formatKES } from '@/utils/format';
 
 interface OverdueItem {
   loanId: string;
@@ -58,7 +58,7 @@ const OverdueReport: React.FC = () => {
       overdueItems.push({
         loanId: loan.id,
         bookTitle: book?.title || 'Unknown Book',
-        bookIsbn: book?.isbn,
+        bookIsbn: book?.isbn || undefined,
         borrowerName,
         borrowerType,
         borrowerId: loan.user_id,
@@ -102,9 +102,10 @@ const OverdueReport: React.FC = () => {
     { header: 'ISBN', key: 'bookIsbn' as keyof OverdueItem },
     { header: 'Borrower', key: 'borrowerName' as keyof OverdueItem },
     { header: 'Type', key: 'borrowerType' as keyof OverdueItem },
-    { header: 'Loan Date', key: 'loan_date', render: (_v: any, item: OverdueItem) => new Date(item.loanDate).toLocaleDateString() },
-    { header: 'Due Date', key: 'due_date', render: (_v: any, item: OverdueItem) => new Date(item.dueDate).toLocaleDateString() },
-    { header: 'Days Overdue', key: 'days_overdue', render: (_v: any, item: OverdueItem) => (
+    // Keys must match the camelCase OverdueItem fields so DataGrid sorting/filtering works
+    { header: 'Loan Date', key: 'loanDate', render: (_v: any, item: OverdueItem) => new Date(item.loanDate).toLocaleDateString() },
+    { header: 'Due Date', key: 'dueDate', render: (_v: any, item: OverdueItem) => new Date(item.dueDate).toLocaleDateString() },
+    { header: 'Days Overdue', key: 'daysOverdue', render: (_v: any, item: OverdueItem) => (
       <span className={`px-2 py-1 rounded text-xs font-semibold ${
         item.daysOverdue > 30 ? 'bg-red-100 text-red-800' :
         item.daysOverdue > 14 ? 'bg-orange-100 text-orange-800' :
@@ -113,7 +114,7 @@ const OverdueReport: React.FC = () => {
         {item.daysOverdue} days
       </span>
     )},
-    { header: 'Potential Fine', key: 'potential_fine', render: (_v: any, item: OverdueItem) => `$${item.fineAmount?.toFixed(2) || '0.00'}` },
+    { header: 'Potential Fine', key: 'fineAmount', align: 'right' as const, render: (_v: any, item: OverdueItem) => formatKES(item.fineAmount ?? 0) },
   ];
 
   const isLoadingPage = loading.loans || loading.books || loading.students || loading.staff;
@@ -132,7 +133,7 @@ const OverdueReport: React.FC = () => {
       new Date(item.loanDate).toLocaleDateString(),
       new Date(item.dueDate).toLocaleDateString(),
       item.daysOverdue?.toString() ?? '',
-      `$${item.fineAmount?.toFixed(2) || '0.00'}`
+      formatKES(item.fineAmount ?? 0)
     ]);
 
     const csvContent = [headers, ...rows]
@@ -158,8 +159,8 @@ const OverdueReport: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Overdue Books Report" icon={ClockIcon}>
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+          <p className="text-sm text-surface-muted-fg mb-4">
             Generate a report of all overdue library books with borrower information and potential fines.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
@@ -173,7 +174,7 @@ const OverdueReport: React.FC = () => {
             </Select>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-foreground mb-1">
                 Minimum Days Overdue
               </label>
               <input
@@ -181,7 +182,7 @@ const OverdueReport: React.FC = () => {
                 min="1"
                 value={minDaysOverdue}
                 onChange={e => setMinDaysOverdue(parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
@@ -200,7 +201,7 @@ const OverdueReport: React.FC = () => {
           <Card className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-red-600">{filteredOverdueItems.length}</p>
-              <p className="text-sm text-gray-600">Overdue Books</p>
+              <p className="text-sm text-surface-muted-fg">Overdue Books</p>
             </div>
           </Card>
           <Card className="p-4">
@@ -208,13 +209,13 @@ const OverdueReport: React.FC = () => {
               <p className="text-2xl font-bold text-orange-600">
                 {filteredOverdueItems.filter(item => item.daysOverdue > 14).length}
               </p>
-              <p className="text-sm text-gray-600">Over 2 Weeks</p>
+              <p className="text-sm text-surface-muted-fg">Over 2 Weeks</p>
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">${totalFineAmount.toFixed(2)}</p>
-              <p className="text-sm text-gray-600">Total Potential Fines</p>
+              <p className="text-2xl font-bold text-green-600">{formatKES(totalFineAmount)}</p>
+              <p className="text-sm text-surface-muted-fg">Total Potential Fines</p>
             </div>
           </Card>
         </div>

@@ -143,7 +143,7 @@ export const StockIssuancePageContent: React.FC = () => {
           Issue Stock
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Record items issued from stores. This will update stock levels.
         </p>
         <DataGrid 
@@ -152,7 +152,7 @@ export const StockIssuancePageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ArrowsRightLeftIcon className="w-8 h-8 text-gray-400" />,
+            icon: <ArrowsRightLeftIcon className="w-8 h-8 text-surface-muted-fg" />,
             title: "No stock issuance records found",
             description: "Start by issuing your first stock item."
           }}
@@ -163,8 +163,8 @@ export const StockIssuancePageContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.stockTransactions}>
-              {loading.stockTransactions ? <Spinner size="sm"/> : 'Issue Item'}
+            <Button onClick={handleSubmit} loading={loading.stockTransactions}>
+              {'Issue Item'}
             </Button>
           </FormActions>
         }

@@ -512,9 +512,9 @@ describe('DataGrid Module-Specific Tests', () => {
           render: (value) => {
             const statusColors = {
               ACTIVE: 'bg-green-100 text-green-800',
-              INACTIVE: 'bg-gray-100 text-gray-800',
+              INACTIVE: 'bg-surface-accent text-surface-foreground',
               SUSPENDED: 'bg-red-100 text-red-800',
-              GRADUATED: 'bg-blue-100 text-blue-800'
+              GRADUATED: 'bg-primary-100 text-primary-800'
             };
             return (
               <span className={`px-2 py-1 rounded text-xs ${statusColors[value as keyof typeof statusColors]}`}>

@@ -201,7 +201,7 @@ export const GradingSchemesContent: React.FC = () => {
           Add Grading Scheme
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define grading schemes and their corresponding levels (grades, minimum scores, points).
         </p>
         <DataGrid columns={schemeColumns} data={gradingSchemes} />
@@ -216,8 +216,8 @@ export const GradingSchemesContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeSchemeModal}>Cancel</Button>
-            <Button type="submit" disabled={loading.gradingSchemes}>
-              {loading.gradingSchemes ? <Spinner size="sm"/> : (editingScheme ? 'Save Changes' : 'Add Scheme')}
+            <Button type="submit" loading={loading.gradingSchemes}>
+              {editingScheme ? 'Save Changes' : 'Add Scheme'}
             </Button>
           </FormActions>
         }
@@ -240,9 +240,9 @@ export const GradingSchemesContent: React.FC = () => {
                 type="checkbox"
                 checked={schemeFormData.is_default || false}
                 onChange={handleSchemeInputChange}
-                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
               />
-              <label htmlFor="is_default" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="is_default" className="ml-2 block text-sm text-surface-foreground">
                 Set as Default Scheme
               </label>
             </div>
@@ -274,7 +274,7 @@ export const GradingSchemesContent: React.FC = () => {
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Existing Levels</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Existing Levels</h4>
             <DataGrid 
               columns={levelColumns} 
               data={currentSchemeForLevels.levels || []} 

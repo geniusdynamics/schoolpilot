@@ -17,10 +17,10 @@ export const TabSettingsContent: React.FC = () => {
       
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl font-bold text-surface-foreground mb-2">
           Tabbed Mode Settings
         </h1>
-        <p className="text-gray-600">
+        <p className="text-surface-muted-fg">
           Configure and manage tabbed mode functionality
         </p>
       </div>
@@ -28,7 +28,7 @@ export const TabSettingsContent: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         {/* <TabSettings /> */}
-        <div className="p-4 bg-gray-50 border rounded text-gray-500">
+        <div className="p-4 bg-surface-muted border rounded text-surface-muted-fg">
           Tab settings component is currently unavailable.
         </div>
       </div>

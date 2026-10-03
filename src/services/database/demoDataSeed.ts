@@ -39,7 +39,8 @@ const COLLECTION_NAME_EXCEPTIONS: Record<string, string> = {
   parentsGuardians: 'parents_guardians',
   studentHealthRecords: 'student_health_records',
   studentAttendance: 'student_attendance',
-  templatesComm: 'templates_comm',
+  templatesComm: 'communication_templates',
+  campaigns: 'message_campaigns',
   chartOfAccounts: 'chart_of_accounts',
   expenseCategories: 'expense_categories',
   feeTemplates: 'fee_templates',
@@ -57,7 +58,7 @@ const COLLECTION_NAME_EXCEPTIONS: Record<string, string> = {
   teacherSubjectAssignments: 'teacher_subject_assignments',
   studentSubjectEnrollments: 'student_subject_enrollments',
   timetableEntries: 'timetable_entries',
-  timetablePeriodDefs: 'timetable_period_defs',
+  timetablePeriodDefs: 'timetable_period_definitions',
   itemCategoriesInv: 'item_categories_inv',
   itemsInv: 'items_inv',
   fixedAssets: 'fixed_assets',
@@ -438,15 +439,36 @@ export const seedProviderWithDemoData = async (
       continue;
     }
 
+    // Count only rows that actually persisted. insertMany resolves with an
+    // `errors[]` array on partial failure (e.g. a column mismatch); previously
+    // the seeder counted attempts, so collections could silently end up empty
+    // (demo seeding wrote 0 rows for classes/class_streams this way in Aug 2026).
+    let inserted = normalizedRecords.length;
     if (typeof collection.insertMany === 'function') {
-      await collection.insertMany(normalizedRecords);
-    } else {
-      for (const record of normalizedRecords) {
-        await collection.insert(record);
+      const bulkResult: any = await collection.insertMany(normalizedRecords);
+      const insertErrors = Array.isArray(bulkResult?.errors) ? bulkResult.errors : [];
+      if (insertErrors.length > 0) {
+        inserted = normalizedRecords.length - insertErrors.length;
+        logger.warn(
+          `[demoDataSeed] ${collectionName}: ${insertErrors.length}/${normalizedRecords.length} inserts failed ` +
+          `(first: ${insertErrors[0]?.reason ?? insertErrors[0]})`
+        );
       }
+    } else {
+      let ok = 0;
+      for (const record of normalizedRecords) {
+        try {
+          await collection.insert(record);
+          ok++;
+        } catch (error) {
+          logger.warn(`[demoDataSeed] ${collectionName}: insert failed:`, error);
+        }
+      }
+      inserted = ok;
+      skippedCollections.push(...(ok < normalizedRecords.length ? [`${collectionName}:${normalizedRecords.length - ok} failures`] : []));
     }
 
-    insertedCounts[collectionName] = (insertedCounts[collectionName] || 0) + normalizedRecords.length;
+    insertedCounts[collectionName] = (insertedCounts[collectionName] || 0) + inserted;
   }
 
   // Phase 2 integrity: validate relationships in-memory before returning; log warnings, fail CI if strict

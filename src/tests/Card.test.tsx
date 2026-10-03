@@ -67,7 +67,7 @@ describe('Card Component', () => {
       );
 
       const card = container.firstChild as HTMLElement;
-      expect(card).toHaveClass('bg-white', 'border', 'shadow-lg');
+      expect(card).toHaveClass('bg-surface-card', 'border', 'shadow-lg');
     });
 
     it('applies elevated variant styles', () => {
@@ -100,7 +100,7 @@ describe('Card Component', () => {
       );
 
       const card = container.firstChild as HTMLElement;
-      expect(card).toHaveClass('border-gray-300', 'shadow-none');
+      expect(card).toHaveClass('border-surface-border', 'shadow-none');
     });
 
     it('applies filled variant styles', () => {
@@ -111,7 +111,7 @@ describe('Card Component', () => {
       );
 
       const card = container.firstChild as HTMLElement;
-      expect(card).toHaveClass('bg-gray-50', 'shadow-sm');
+      expect(card).toHaveClass('bg-surface-muted', 'shadow-sm');
     });
 
     it('applies compact variant styles', () => {
@@ -337,7 +337,7 @@ describe('Card Component', () => {
       );
 
       const card = container.firstChild as HTMLElement;
-      expect(card).toHaveClass('focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500');
+      expect(card).toHaveClass('focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500');
     });
   });
 

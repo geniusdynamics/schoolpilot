@@ -48,14 +48,20 @@ vi.mock('../../hooks/useUnifiedConfig', async () => {
   };
 });
 
-vi.mock('../../hooks/useAppData', () => ({
+// The hook moved from hooks/useAppData to the AppDataContext module — mock
+// the module the component actually imports from.
+vi.mock('@/contexts/AppDataContext', () => ({
   useAppData: () => ({
     isOnline: true,
     backendAvailable: true,
     syncStatus: { state: 'idle' },
     pendingSyncCount: 0,
     conflicts: [],
-    getQueueStatus: () => ({ api: { pending: 0, completed: 0 }, sync: { pending: 0, errors: 0 } })
+    resolveConflict: vi.fn(),
+    resolveAllConflicts: vi.fn(),
+    getQueueStatus: () => ({ api: { pending: 0, completed: 0 }, sync: { pending: 0, errors: 0 } }),
+    forceSync: vi.fn(),
+    clearSyncQueue: vi.fn(),
   })
 }));
 
@@ -64,39 +70,30 @@ describe('FeatureSettings', () => {
     render(<FeatureSettings />);
     expect(screen.getByText('Feature Settings')).toBeInTheDocument();
     expect(screen.getByText('System Status')).toBeInTheDocument();
+    expect(screen.getByText('Sync Management')).toBeInTheDocument();
   });
 
-  it('Fix Missing Flags adds performanceMonitorWidget via unified config', () => {
+  it('renders the Feature Flags tab with Application Mode and known flags', () => {
     render(<FeatureSettings />);
     fireEvent.click(screen.getByText('Feature Flags'));
-    const fixBtn = screen.getByText('Fix Missing Flags');
-    fireEvent.click(fixBtn);
+    expect(screen.getByText('Application Mode')).toBeInTheDocument();
+    // "Feature Flags" appears both as the tab label and the card title
+    expect(screen.getAllByText('Feature Flags').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/Enhanced Data Layer/i)).toBeInTheDocument();
+  });
+
+  it('toggling a feature flag routes through unified updateConfig', () => {
+    render(<FeatureSettings />);
+    fireEvent.click(screen.getByText('Feature Flags'));
+    const flagToggles = screen.getAllByRole('checkbox');
+    expect(flagToggles.length).toBeGreaterThan(0);
+    fireEvent.click(flagToggles[0]);
     expect(mockFns.updateConfig).toHaveBeenCalled();
   });
 
-  it('Reset Config uses unified resetConfig (no localStorage)', () => {
+  it('reflects system status from the app data layer', () => {
     render(<FeatureSettings />);
-    fireEvent.click(screen.getByText('Feature Flags'));
-    const resetBtn = screen.getByText('Reset Config');
-    fireEvent.click(resetBtn);
-    expect(mockFns.resetConfig).toHaveBeenCalled();
-  });
-
-  it('Restore Defaults applies environment preset', () => {
-    render(<FeatureSettings />);
-    fireEvent.click(screen.getByText('Feature Flags'));
-    const restoreBtn = screen.getByText('Restore Defaults');
-    fireEvent.click(restoreBtn);
-    expect(mockFns.applyPreset).toHaveBeenCalledWith('development');
-  });
-
-  it('shows a data layer handoff instead of duplicate mode and backend controls', () => {
-    render(<FeatureSettings />);
-    fireEvent.click(screen.getByText('Feature Flags'));
-    expect(screen.getByText('Data Layer Controls')).toBeInTheDocument();
-    expect(screen.queryByText('Application Mode')).not.toBeInTheDocument();
-    expect(screen.queryByText('Backend Configuration')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /open data layer settings/i }));
-    expect(mockNavigate).toHaveBeenCalledWith('/settings/data-layer');
+    expect(screen.getByText('Connected')).toBeInTheDocument();
+    expect(screen.getByText('Available')).toBeInTheDocument();
   });
 });

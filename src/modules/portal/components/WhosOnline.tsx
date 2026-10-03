@@ -72,7 +72,7 @@ export const WhosOnline: React.FC<WhosOnlineProps> = ({
             {users.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-muted transition-colors"
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
@@ -83,7 +83,7 @@ export const WhosOnline: React.FC<WhosOnlineProps> = ({
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
                       <UserCircleIcon className="w-5 h-5" />
                     </div>
                   )}
@@ -101,7 +101,7 @@ export const WhosOnline: React.FC<WhosOnlineProps> = ({
 
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                  <p className="text-sm font-medium text-surface-foreground truncate">{user.name}</p>
                 </div>
 
                 {/* Last Seen */}
@@ -115,9 +115,9 @@ export const WhosOnline: React.FC<WhosOnlineProps> = ({
           {/* My Status */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">{t('portal.whosOnline.myStatus')}:</span>
+              <span className="text-sm text-surface-muted-fg">{t('portal.whosOnline.myStatus')}:</span>
               <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-                currentUserStatus === 'online' ? 'text-emerald-600' : 'text-gray-500'
+                currentUserStatus === 'online' ? 'text-emerald-600' : 'text-surface-muted-fg'
               }`}>
                 <span className={`w-2 h-2 rounded-full ${
                   currentUserStatus === 'online' ? 'bg-emerald-500' : 'bg-gray-400'
@@ -141,14 +141,14 @@ export const WhosOnline: React.FC<WhosOnlineProps> = ({
       )}
 
       {activeTab === t('portal.whosOnline.loginHistory') && (
-        <div className="text-center py-6 text-gray-500">
+        <div className="text-center py-6 text-surface-muted-fg">
           <ClockIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">{t('portal.whosOnline.loginHistoryPlaceholder')}</p>
         </div>
       )}
 
       {activeTab === t('portal.whosOnline.accountOptions') && (
-        <div className="text-center py-6 text-gray-500">
+        <div className="text-center py-6 text-surface-muted-fg">
           <ShieldCheckIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">{t('portal.whosOnline.accountOptionsPlaceholder')}</p>
         </div>

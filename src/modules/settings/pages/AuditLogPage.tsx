@@ -68,9 +68,9 @@ export const AuditLogContent: React.FC = () => {
       render: (value) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
           value === 'CREATE' ? 'bg-green-100 text-green-800' :
-          value === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
+          value === 'UPDATE' ? 'bg-primary-100 text-primary-800' :
           value === 'DELETE' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-surface-accent text-surface-foreground'
         }`}>
           {value}
         </span>
@@ -97,9 +97,9 @@ export const AuditLogContent: React.FC = () => {
     <div className="space-y-6">
       <Card title="System Audit Log">
         <div className="text-center py-8 border-b mb-6">
-          <ClockIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700">View System Audit Trails</h2>
-          <p className="text-gray-500">
+          <ClockIcon className="w-16 h-16 text-surface-muted-fg mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-surface-foreground">View System Audit Trails</h2>
+          <p className="text-surface-muted-fg">
             Review logs of significant actions performed within the system for security and accountability.
           </p>
         </div>
@@ -158,7 +158,7 @@ export const AuditLogContent: React.FC = () => {
           sortable={true}
           filterable={true}
           emptyState={{
-            icon: <ClockIcon className="h-12 w-12 text-gray-400" />,
+            icon: <ClockIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No audit logs found',
             description: Object.values(filters).some(v => v)
               ? 'No audit logs match your current filter criteria. Try adjusting your filters.'

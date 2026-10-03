@@ -40,14 +40,14 @@ const getGradeColor = (grade: string): string => {
     case 'A':
       return 'text-emerald-600 bg-emerald-50 border-emerald-200';
     case 'B':
-      return 'text-blue-600 bg-blue-50 border-blue-200';
+      return 'text-primary-600 bg-primary-50 border-primary-200';
     case 'C':
       return 'text-amber-600 bg-amber-50 border-amber-200';
     case 'D':
     case 'E':
       return 'text-rose-600 bg-rose-50 border-rose-200';
     default:
-      return 'text-gray-600 bg-gray-50 border-gray-200';
+      return 'text-surface-muted-fg bg-surface-muted border-surface-border';
   }
 };
 
@@ -62,7 +62,7 @@ const TrendIndicator: React.FC<{ trend: { direction: 'up' | 'down' | 'neutral'; 
   const colorClass = isPositive 
     ? 'text-emerald-600 bg-emerald-50' 
     : trend.direction === 'neutral'
-    ? 'text-gray-600 bg-gray-50'
+    ? 'text-surface-muted-fg bg-surface-muted'
     : 'text-rose-600 bg-rose-50';
 
   const Icon = trend.direction === 'up' 
@@ -96,7 +96,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({
   return (
     <div
       className={cn(
-        'bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden',
+        'bg-surface-card rounded-xl border border-surface-border shadow-sm overflow-hidden',
         'hover:shadow-md transition-shadow',
         onClick && 'cursor-pointer',
         className
@@ -107,14 +107,14 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-start gap-3">
           {icon || (
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-600">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-accent text-surface-muted-fg">
               <HomeIcon className="h-5 w-5" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 truncate">{title}</h3>
+            <h3 className="text-lg font-bold text-surface-foreground truncate">{title}</h3>
             {subtitle && (
-              <p className="text-sm text-gray-500 truncate">{subtitle}</p>
+              <p className="text-sm text-surface-muted-fg truncate">{subtitle}</p>
             )}
           </div>
         </div>
@@ -124,7 +124,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({
       <div className="p-4 space-y-4">
         {/* Mean Points */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Mean Points</span>
+          <span className="text-sm text-surface-muted-fg">Mean Points</span>
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-emerald-600">
               {meanPoints.toFixed(4)}
@@ -135,7 +135,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({
 
         {/* Mean Marks */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Mean Marks</span>
+          <span className="text-sm text-surface-muted-fg">Mean Marks</span>
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-emerald-600">
               {meanMarks.toFixed(1)}%
@@ -146,7 +146,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({
 
         {/* Mean Grade */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <span className="text-sm text-gray-600">Mean Grade</span>
+          <span className="text-sm text-surface-muted-fg">Mean Grade</span>
           <span className={cn('px-3 py-1 rounded-lg text-lg font-bold border', gradeStyle)}>
             {meanGrade}
           </span>

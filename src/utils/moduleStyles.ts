@@ -20,20 +20,20 @@ export interface ModuleStyle {
 const DEFAULT_MODULE_STYLE: ModuleStyle = {
   background: 'bg-gradient-to-br from-gray-500/10 via-gray-400/8 to-gray-600/12',
   border: 'border-gray-400/20',
-  accent: 'text-gray-600',
+  accent: 'text-surface-muted-fg',
   hover: 'hover:bg-gray-500/15',
-  activeLink: 'border-gray-400 text-gray-600 bg-gray-50/80',
-  hoverLink: 'hover:bg-gray-100/60 hover:text-gray-800',
+  activeLink: 'border-gray-400 text-surface-muted-fg bg-gray-50/80 dark:bg-slate-800/80',
+  hoverLink: 'hover:bg-gray-100/60 dark:hover:bg-slate-800/60 hover:text-surface-foreground',
 };
 
 const MODULE_COLOR_SCHEMES: Record<string, ModuleStyle> = {
   dashboard: {
-    background: 'bg-gradient-to-br from-blue-500/10 via-blue-400/8 to-blue-600/12',
-    border: 'border-blue-400/20',
-    accent: 'text-blue-600',
-    hover: 'hover:bg-blue-500/15',
-    activeLink: 'border-blue-400 text-blue-600 bg-blue-50/80',
-    hoverLink: 'hover:bg-blue-100/60 hover:text-blue-800',
+    background: 'bg-gradient-to-br from-primary-500/10 via-primary-400/8 to-primary-600/12',
+    border: 'border-primary-400/20',
+    accent: 'text-primary-600',
+    hover: 'hover:bg-primary-500/15',
+    activeLink: 'border-primary-400 text-primary-600 bg-primary-50/80',
+    hoverLink: 'hover:bg-primary-100/60 hover:text-primary-800',
   },
   administration: {
     background: 'bg-gradient-to-br from-purple-500/10 via-purple-400/8 to-purple-600/12',

@@ -3,14 +3,14 @@
 
 import {
   FinOpeningBalanceTypeEnum,
-  FinStudentOpeningBalanceType,
   InvoicePaymentApplication,
   InvoiceStatus,
-  SchoolPeriod,
   StudentInvoice,
   StudentInvoiceItem,
-  StudentPayment
-} from '@/types';
+  StudentPayment,
+  StudentOpeningBalance as FinStudentOpeningBalanceType,
+} from '@/modules/finance/data/types';
+import type { SchoolPeriod } from '@/core/types';
 
 export interface StatementRow {
   date: string;

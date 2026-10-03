@@ -47,8 +47,8 @@ const DisciplinaryCasesPage: React.FC = () => {
   };
 
   const statusColors: Record<DisciplinaryStatus, string> = {
-    Reported: 'bg-gray-100 text-gray-800',
-    'Under Investigation': 'bg-blue-100 text-blue-800',
+    Reported: 'bg-surface-accent text-surface-foreground',
+    'Under Investigation': 'bg-primary-100 text-primary-800',
     'Pending Review': 'bg-yellow-100 text-yellow-800',
     Resolved: 'bg-green-100 text-green-800',
     Dismissed: 'bg-purple-100 text-purple-800',
@@ -273,8 +273,8 @@ const DisciplinaryCasesPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No disciplinary cases found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No disciplinary cases found.</p>
             </div>
           }
         />
@@ -291,19 +291,19 @@ const DisciplinaryCasesPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Student</label>
+                <label className="text-sm font-medium text-surface-foreground">Student</label>
                 <p className="mt-1">{selectedCase.student_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Admission No</label>
+                <label className="text-sm font-medium text-surface-foreground">Admission No</label>
                 <p className="mt-1">{selectedCase.admission_number}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Category</label>
+                <label className="text-sm font-medium text-surface-foreground">Category</label>
                 <div className="mt-1"><Badge variant="neutral">{selectedCase.category}</Badge></div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Severity</label>
+                <label className="text-sm font-medium text-surface-foreground">Severity</label>
                 <div className="mt-1">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${severityColors[selectedCase.severity]}`}>
                     {selectedCase.severity}
@@ -311,7 +311,7 @@ const DisciplinaryCasesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[selectedCase.status]}`}>
                     {selectedCase.status}
@@ -319,18 +319,18 @@ const DisciplinaryCasesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Incident Date</label>
+                <label className="text-sm font-medium text-surface-foreground">Incident Date</label>
                 <p className="mt-1">{new Date(selectedCase.incident_date).toLocaleDateString()}</p>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Title</label>
+              <label className="text-sm font-medium text-surface-foreground">Title</label>
               <p className="mt-1 font-medium">{selectedCase.title}</p>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Description</label>
+              <label className="text-sm font-medium text-surface-foreground">Description</label>
               <p className="mt-1">{selectedCase.description}</p>
             </div>
 
@@ -464,18 +464,18 @@ const DisciplinaryCasesPage: React.FC = () => {
                 type="checkbox"
                 checked={formData.parent_notified}
                 onChange={(e) => handleInputChange('parent_notified', e.target.checked)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Parent Notified</span>
+              <span className="ml-2 text-sm text-surface-foreground">Parent Notified</span>
             </label>
             <label className="flex items-center">
               <input
                 type="checkbox"
                 checked={formData.follow_up_required}
                 onChange={(e) => handleInputChange('follow_up_required', e.target.checked)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Follow-up Required</span>
+              <span className="ml-2 text-sm text-surface-foreground">Follow-up Required</span>
             </label>
           </div>
         </div>

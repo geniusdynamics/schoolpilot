@@ -52,7 +52,7 @@ const AnalyticsClassPage: React.FC = () => {
       key: 'total-classes',
       label: 'Total Classes',
       value: stats.totalClasses,
-      icon: <UserGroupIcon className="h-6 w-6 text-blue-700" />,
+      icon: <UserGroupIcon className="h-6 w-6 text-primary-700" />,
     },
     {
       key: 'avg-score',
@@ -100,10 +100,10 @@ const AnalyticsClassPage: React.FC = () => {
       };
     }
     return {
-      icon: <span className="text-gray-400 text-xs">--</span>,
+      icon: <span className="text-surface-muted-fg text-xs">--</span>,
       label: t('class.trendStable'),
-      bg: 'bg-gray-100',
-      text: 'text-gray-600',
+      bg: 'bg-surface-accent',
+      text: 'text-surface-muted-fg',
     };
   };
 
@@ -122,13 +122,13 @@ const AnalyticsClassPage: React.FC = () => {
       sortable: true,
       render: (value: string, row: ClassPerformance) => (
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-            <AcademicCapIcon className="h-4 w-4 text-blue-600" />
+          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+            <AcademicCapIcon className="h-4 w-4 text-primary-600" />
           </div>
           <div>
-            <span className="font-medium text-gray-900">{value}</span>
+            <span className="font-medium text-surface-foreground">{value}</span>
             {row.streamName && (
-              <span className="block text-xs text-gray-500">{row.streamName}</span>
+              <span className="block text-xs text-surface-muted-fg">{row.streamName}</span>
             )}
           </div>
         </div>
@@ -197,7 +197,7 @@ const AnalyticsClassPage: React.FC = () => {
       align: 'center',
       render: (_value: any, row: ClassPerformance) => {
         const count = row.bottomPerformers?.length || 0;
-        if (count === 0) return <span className="text-xs text-gray-400">None</span>;
+        if (count === 0) return <span className="text-xs text-surface-muted-fg">None</span>;
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
             <ExclamationTriangleIcon className="h-3 w-3" />
@@ -258,10 +258,10 @@ const AnalyticsClassPage: React.FC = () => {
       metrics={metrics}
     >
       {/* Period Filter */}
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="min-w-[180px]">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Filter by Period</label>
+            <label className="block text-xs font-medium text-surface-muted-fg mb-1">Filter by Period</label>
             <Select
               value={periodFilter}
               onChange={(val) => setPeriodFilter(val as string)}
@@ -272,7 +272,7 @@ const AnalyticsClassPage: React.FC = () => {
       </Card>
 
       {/* Class Overview Cards */}
-      <Card title="Class Overview" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Class Overview" className="border-slate-200 bg-surface-card shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {overviewCards.map((card) => {
             const trend = trendInfo(card.trend);
@@ -286,12 +286,12 @@ const AnalyticsClassPage: React.FC = () => {
                     setShowDetailModal(true);
                   }
                 }}
-                className="text-left p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-left p-3 rounded-lg border border-surface-border hover:border-primary-300 hover:bg-primary-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <AcademicCapIcon className="h-5 w-5 text-blue-600" />
-                    <span className="font-semibold text-gray-900">{card.name}</span>
+                    <AcademicCapIcon className="h-5 w-5 text-primary-600" />
+                    <span className="font-semibold text-surface-foreground">{card.name}</span>
                   </div>
                   <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${trend.bg} ${trend.text}`}>
                     {trend.icon}
@@ -299,19 +299,19 @@ const AnalyticsClassPage: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
-                    <p className="text-gray-500">Score</p>
-                    <p className="font-semibold text-blue-600">{card.avgScore}%</p>
+                    <p className="text-surface-muted-fg">Score</p>
+                    <p className="font-semibold text-primary-600">{card.avgScore}%</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Pass</p>
+                    <p className="text-surface-muted-fg">Pass</p>
                     <p className="font-semibold text-emerald-600">{card.passRate}%</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Attend</p>
+                    <p className="text-surface-muted-fg">Attend</p>
                     <p className="font-semibold text-violet-600">{card.attendance}%</p>
                   </div>
                 </div>
-                <div className="mt-2 flex justify-between text-xs text-gray-500">
+                <div className="mt-2 flex justify-between text-xs text-surface-muted-fg">
                   <span className="flex items-center gap-1">
                     <UsersIcon className="h-3 w-3" />
                     {card.students}
@@ -330,7 +330,7 @@ const AnalyticsClassPage: React.FC = () => {
       </Card>
 
       {/* Class Comparison DataGrid */}
-      <Card title={t('class.compareClasses')} className="border-slate-200 bg-white shadow-sm">
+      <Card title={t('class.compareClasses')} className="border-slate-200 bg-surface-card shadow-sm">
         <DataGrid
           columns={columns}
           data={classPerformances}
@@ -356,31 +356,31 @@ const AnalyticsClassPage: React.FC = () => {
             <div className="space-y-6">
               {/* Quick Stats */}
               <div className="grid grid-cols-4 gap-3">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-gray-500">Students</p>
-                  <p className="text-xl font-bold text-blue-700">{selectedClass.studentCount}</p>
+                <div className="text-center p-3 bg-primary-50 rounded-lg">
+                  <p className="text-xs text-surface-muted-fg">Students</p>
+                  <p className="text-xl font-bold text-primary-700">{selectedClass.studentCount}</p>
                 </div>
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                  <p className="text-xs text-gray-500">Avg Score</p>
+                  <p className="text-xs text-surface-muted-fg">Avg Score</p>
                   <p className="text-xl font-bold text-emerald-700">{selectedClass.averageScore}%</p>
                 </div>
                 <div className="text-center p-3 bg-violet-50 rounded-lg">
-                  <p className="text-xs text-gray-500">Pass Rate</p>
+                  <p className="text-xs text-surface-muted-fg">Pass Rate</p>
                   <p className="text-xl font-bold text-violet-700">{selectedClass.passRate}%</p>
                 </div>
                 <div className="text-center p-3 bg-amber-50 rounded-lg">
-                  <p className="text-xs text-gray-500">Attendance</p>
+                  <p className="text-xs text-surface-muted-fg">Attendance</p>
                   <p className="text-xl font-bold text-amber-700">{selectedClass.attendanceRate}%</p>
                 </div>
               </div>
 
               {/* Subject Breakdown */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('class.subjectBreakdown')}</h3>
+                <h3 className="text-sm font-semibold text-surface-foreground mb-3">{t('class.subjectBreakdown')}</h3>
                 <div className="space-y-2">
                   {selectedClass.subjectBreakdown.map((sb) => (
-                    <div key={sb.subjectId} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
-                      <div className="w-24 text-sm font-medium text-gray-700">{sb.subjectName}</div>
+                    <div key={sb.subjectId} className="flex items-center gap-3 p-2 rounded-lg bg-surface-muted">
+                      <div className="w-24 text-sm font-medium text-surface-foreground">{sb.subjectName}</div>
                       <div className="flex-1">
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
@@ -394,10 +394,10 @@ const AnalyticsClassPage: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right text-xs">
-                        <span className="text-gray-500">Avg: </span>
+                        <span className="text-surface-muted-fg">Avg: </span>
                         <span className="font-semibold">{sb.averageScore}%</span>
-                        <span className="text-gray-400 mx-1">|</span>
-                        <span className="text-gray-500">Pass: </span>
+                        <span className="text-surface-muted-fg mx-1">|</span>
+                        <span className="text-surface-muted-fg">Pass: </span>
                         <span className="font-semibold">{sb.passRate}%</span>
                       </div>
                     </div>
@@ -407,36 +407,36 @@ const AnalyticsClassPage: React.FC = () => {
 
               {/* Top 5 Students */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('class.topPerformers')}</h3>
+                <h3 className="text-sm font-semibold text-surface-foreground mb-3">{t('class.topPerformers')}</h3>
                 {selectedClass.topPerformers && selectedClass.topPerformers.length > 0 ? (
                   <div className="space-y-1">
                     {selectedClass.topPerformers.slice(0, 5).map((student) => (
-                      <div key={student.studentId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                      <div key={student.studentId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-muted">
                         <div className="h-7 w-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs font-bold">
                           #{student.rank}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{student.studentName}</p>
+                          <p className="text-sm font-medium text-surface-foreground truncate">{student.studentName}</p>
                         </div>
                         <span className="text-sm font-semibold text-emerald-600">{student.averageScore}%</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No data available</p>
+                  <p className="text-sm text-surface-muted-fg">No data available</p>
                 )}
               </div>
 
               {/* Struggling Students */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('class.bottomPerformers')}</h3>
+                <h3 className="text-sm font-semibold text-surface-foreground mb-3">{t('class.bottomPerformers')}</h3>
                 {selectedClass.bottomPerformers && selectedClass.bottomPerformers.length > 0 ? (
                   <div className="space-y-2">
                     {selectedClass.bottomPerformers.map((student) => {
                       const trendStyle =
                         student.trend === 'improving' ? 'text-emerald-600 bg-emerald-50' :
                         student.trend === 'declining' ? 'text-rose-600 bg-rose-50' :
-                        'text-gray-600 bg-gray-50';
+                        'text-surface-muted-fg bg-surface-muted';
                       const trendLabel =
                         student.trend === 'improving' ? 'Improving' :
                         student.trend === 'declining' ? 'Declining' :
@@ -447,8 +447,8 @@ const AnalyticsClassPage: React.FC = () => {
                             <ExclamationTriangleIcon className="h-4 w-4 text-rose-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{student.studentName}</p>
-                            <p className="text-xs text-gray-500 truncate">
+                            <p className="text-sm font-medium text-surface-foreground truncate">{student.studentName}</p>
+                            <p className="text-xs text-surface-muted-fg truncate">
                               Struggling in: {student.subjects.join(', ')}
                             </p>
                           </div>
@@ -463,7 +463,7 @@ const AnalyticsClassPage: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No struggling students identified</p>
+                  <p className="text-sm text-surface-muted-fg">No struggling students identified</p>
                 )}
               </div>
             </div>

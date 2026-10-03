@@ -127,35 +127,35 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       filterable: true, 
       width: 150
     },
-    { 
-      key: 'id', 
-      header: 'Assigned Meal Plan', 
-      sortable: false, 
-      filterable: true, 
+    {
+      key: 'assigned_meal_plan',
+      header: 'Assigned Meal Plan',
+      sortable: false,
+      filterable: true,
       width: 200,
       render: (value, row) => {
         const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
         return assignment ? (mealPlans || []).find(mp => mp.id === assignment.meal_plan_id)?.name || 'N/A' : 'Not Assigned';
       }
     },
-    { 
-      key: 'id', 
-      header: 'Status', 
-      sortable: false, 
-      filterable: true, 
+    {
+      key: 'assignment_status',
+      header: 'Status',
+      sortable: false,
+      filterable: true,
       width: 120,
       render: (value, row) => {
         const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
-        if (!assignment) return <span className="text-xs text-gray-500">Not Assigned</span>;
+        if (!assignment) return <span className="text-xs text-surface-muted-fg">Not Assigned</span>;
         return <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
             assignment.status === StudentMealPlanStatus.ACTIVE ? 'bg-green-100 text-green-800' :
-            assignment.status === StudentMealPlanStatus.INACTIVE ? 'bg-gray-100 text-gray-700' :
+            assignment.status === StudentMealPlanStatus.INACTIVE ? 'bg-surface-accent text-surface-foreground' :
             'bg-red-100 text-red-800' // Cancelled
         }`}>{assignment.status}</span>
       }
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -185,7 +185,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Student Meal Plan Assignments">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
             <Select 
                 label="Filter by School Period" 
                 value={selectedSchoolPeriodId || ''} 
@@ -200,18 +200,18 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
              <DataGrid 
                columns={studentAssignmentColumns} 
                data={activeStudents || []} 
-               isLoading={loading.studentMealPlans && isModalOpen}
+               loading={loading.studentMealPlans && !isModalOpen}
                sortable
                filterable
                emptyState={{
-                 icon: <UsersIcon className="w-12 h-12 text-gray-400" />,
+                 icon: <UsersIcon className="w-12 h-12 text-surface-muted-fg" />,
                  title: "No students found",
                  description: "No active students available for meal plan assignments in the selected period.",
                  action: undefined
                }}
              />
         ) : (
-            <p className="text-center text-gray-500 py-4">Please select a school period to view and manage assignments.</p>
+            <p className="text-center text-surface-muted-fg py-4">Please select a school period to view and manage assignments.</p>
         )}
        
       </Card>
@@ -258,8 +258,8 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.studentMealPlans}>
-            {loading.studentMealPlans ? <Spinner size="sm"/> : (editingAssignment ? 'Save Changes' : 'Assign Plan')}
+          <Button onClick={handleSubmit} loading={loading.studentMealPlans}>
+            {editingAssignment ? 'Save Changes' : 'Assign Plan'}
           </Button>
         </FormActions>
       </DialogForm>

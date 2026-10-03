@@ -565,6 +565,9 @@ export interface GazetteStudent {
   average: number;
   grade: string;
   position: string;
+  /** Per-student marks keyed by subject_id — without this the detail table
+   *  can only repeat class-level subject averages for every student. */
+  marks?: Record<string, number>;
 }
 
 export interface GazetteSubject {

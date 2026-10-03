@@ -133,8 +133,8 @@ const StudentClearancePage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No clearance requests found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No clearance requests found.</p>
             </div>
           }
         />
@@ -151,32 +151,32 @@ const StudentClearancePage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Student Name</label>
+                <label className="text-sm font-medium text-surface-foreground">Student Name</label>
                 <p className="mt-1">{selectedRequest.student_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Admission Number</label>
+                <label className="text-sm font-medium text-surface-foreground">Admission Number</label>
                 <p className="mt-1">{selectedRequest.admission_number}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Academic Year</label>
+                <label className="text-sm font-medium text-surface-foreground">Academic Year</label>
                 <p className="mt-1">{selectedRequest.academic_year_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Reason</label>
+              <label className="text-sm font-medium text-surface-foreground">Reason</label>
               <p className="mt-1">{selectedRequest.reason}</p>
             </div>
 
             <div className="grid grid-cols-4 gap-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="text-lg font-bold text-blue-700">{selectedRequest.total_departments}</div>
-                <div className="text-xs text-blue-600">Total</div>
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+                <div className="text-lg font-bold text-primary-700">{selectedRequest.total_departments}</div>
+                <div className="text-xs text-primary-600">Total</div>
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="text-lg font-bold text-green-700">{selectedRequest.cleared_departments}</div>

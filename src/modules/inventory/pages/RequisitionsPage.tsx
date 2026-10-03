@@ -11,6 +11,7 @@ import Textarea from '@/components/ui/Textarea';
 
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { RequisitionStatus } from '@/core/types';
 import type { Requisition, RequisitionItem } from '@/core/types';
 import { ClipboardDocumentListIcon, DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
@@ -32,7 +33,8 @@ export const RequisitionsPageContent: React.FC = () => {
     updateRequisition, 
     deleteRequisition: mockDeleteRequisition 
   } = useAppData(); // Updated
-  
+  const confirm = useConfirm();
+
   const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   
@@ -179,14 +181,14 @@ export const RequisitionsPageContent: React.FC = () => {
   };
   
   const handleDeleteReq = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this requisition? This will also delete all its items.')) {
+    if (await confirm({ title: 'Delete requisition', message: 'Are you sure you want to delete this requisition? This will also delete all its items.', variant: 'danger' })) {
       await mockDeleteRequisition(id);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
       if (!currentRequisitionForItems) return;
-      if (window.confirm('Are you sure you want to delete this item from the requisition?')) {
+      if (await confirm({ title: 'Remove item', message: 'Are you sure you want to delete this item from the requisition?', variant: 'danger' })) {
           const updatedItems = (currentRequisitionForItems.items || []).filter(i => i.id !== itemId);
           await updateRequisition(currentRequisitionForItems, updatedItems);
            const updatedReq = requisitions.find(r => r.id === currentRequisitionForItems.id);
@@ -232,11 +234,11 @@ export const RequisitionsPageContent: React.FC = () => {
       filterable: true,
       width: 150,
       render: (value) => {
-        let colorClass = 'bg-gray-200 text-gray-800';
+        let colorClass = 'bg-gray-200 text-surface-foreground';
         if (value === RequisitionStatus.PENDING_APPROVAL) colorClass = 'bg-yellow-100 text-yellow-800';
         else if (value === RequisitionStatus.APPROVED) colorClass = 'bg-green-100 text-green-800';
         else if (value === RequisitionStatus.REJECTED) colorClass = 'bg-red-100 text-red-800';
-        else if (value === RequisitionStatus.ORDERED) colorClass = 'bg-blue-100 text-blue-800';
+        else if (value === RequisitionStatus.ORDERED) colorClass = 'bg-primary-100 text-primary-800';
         else if (value === RequisitionStatus.FULFILLED) colorClass = 'bg-purple-100 text-purple-800';
         return (
           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
@@ -405,9 +407,9 @@ export const RequisitionsPageContent: React.FC = () => {
           filterable 
           emptyState={
             <div className="text-center py-12">
-              <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No requisitions found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating a new requisition.</p>
+              <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No requisitions found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">Get started by creating a new requisition.</p>
               <div className="mt-6">
                 <Button onClick={() => openRequisitionModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
                   New Requisition
@@ -423,8 +425,8 @@ export const RequisitionsPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeRequisitionModal}>Cancel</Button>
-            <Button onClick={handleReqSubmit} disabled={loading.requisitions}>
-              {loading.requisitions ? <Spinner size="sm"/> : (editingRequisition ? 'Save Changes' : 'Add Requisition')}
+            <Button onClick={handleReqSubmit} loading={loading.requisitions}>
+              {editingRequisition ? 'Save Changes' : 'Add Requisition'}
             </Button>
           </>
         }
@@ -462,13 +464,13 @@ export const RequisitionsPageContent: React.FC = () => {
                 <Input name="unit_price" label="Unit Price (KES)" type="number" step="0.01" value={itemFormData.unit_price ?? ''} onChange={handleItemInputChange} placeholder="Auto from item, or override"/>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" disabled={loading.requisitions}>
-                  {loading.requisitions ? <Spinner size="sm"/> : (editingReqItem ? 'Update Item' : 'Add Item')}
+                <Button onClick={handleItemSubmit} size="sm" loading={loading.requisitions}>
+                  {editingReqItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Requisition</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Items in this Requisition</h4>
             <DataGrid 
               columns={reqItemColumns} 
               data={currentRequisitionForItems.items || []} 
@@ -476,9 +478,9 @@ export const RequisitionsPageContent: React.FC = () => {
               filterable 
               emptyState={
                 <div className="text-center py-8">
-                  <ListBulletIcon className="mx-auto h-8 w-8 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No items added</h3>
-                  <p className="mt-1 text-sm text-gray-500">Add items to this requisition using the form above.</p>
+                  <ListBulletIcon className="mx-auto h-8 w-8 text-surface-muted-fg" />
+                  <h3 className="mt-2 text-sm font-medium text-surface-foreground">No items added</h3>
+                  <p className="mt-1 text-sm text-surface-muted-fg">Add items to this requisition using the form above.</p>
                 </div>
               }
             />

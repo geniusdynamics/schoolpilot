@@ -27,8 +27,8 @@ import {
 import { useToast } from '@/hooks/useToast';
 
 const statusColors: Record<ApplicationStatus, string> = {
-  [ApplicationStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [ApplicationStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [ApplicationStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [ApplicationStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [ApplicationStatus.UNDER_REVIEW]: 'bg-yellow-100 text-yellow-800',
   [ApplicationStatus.INTERVIEW_SCHEDULED]: 'bg-purple-100 text-purple-800',
   [ApplicationStatus.APPROVED]: 'bg-green-100 text-green-800',
@@ -48,7 +48,13 @@ export const ApplicationsListPageContent: React.FC = () => {
   const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
 
   const filteredApplications = useMemo(() => {
-    return applications.filter(app => {
+    return applications
+      .map(app => ({
+        ...app,
+        // Materialize the composed applicant name so grid sort/filter works
+        name: `${app.firstName} ${app.middleName || ''} ${app.lastName}`.trim(),
+      }))
+      .filter(app => {
       if (filters.status && app.status !== filters.status) return false;
       if (filters.classId && app.intendedClassId !== filters.classId) return false;
       if (filters.applicationType && app.applicationType !== filters.applicationType) return false;
@@ -136,7 +142,9 @@ export const ApplicationsListPageContent: React.FC = () => {
     a.click();
   };
 
-  const columns: DataGridColumn<Application>[] = [
+  type ApplicationRow = Application & { name: string };
+
+  const columns: DataGridColumn<ApplicationRow>[] = [
     {
       key: 'applicationNumber',
       header: 'Application #',
@@ -152,7 +160,7 @@ export const ApplicationsListPageContent: React.FC = () => {
       filterable: true,
       width: 200,
       render: (_, item) => (
-        <span>{`${item.firstName} ${item.middleName || ''} ${item.lastName}`}</span>
+        <span>{item.name || `${item.firstName} ${item.lastName}`}</span>
       ),
     },
     {
@@ -264,7 +272,7 @@ export const ApplicationsListPageContent: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 placeholder="Search by name or application number..."
                 value={filters.searchQuery || ''}
@@ -318,11 +326,11 @@ export const ApplicationsListPageContent: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <DocumentTextIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 No applications found
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by creating a new application.
               </p>
               <div className="mt-6">

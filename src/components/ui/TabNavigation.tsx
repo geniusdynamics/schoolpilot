@@ -27,34 +27,34 @@ interface TabNavigationProps {
 
 const variantStyles = {
   default: {
-    container: 'bg-white border-b border-gray-200',
-    tab: 'px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors border-b-2 border-transparent',
-    active: 'text-blue-600 border-blue-600 bg-blue-50/50',
-    disabled: 'opacity-50 cursor-not-allowed hover:text-gray-500 hover:bg-transparent',
+    container: 'bg-surface-card border-b border-surface-border',
+    tab: 'px-4 py-3 text-sm font-medium text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-muted transition-colors border-b-2 border-transparent',
+    active: 'text-primary-600 border-primary-600 bg-primary-50/50',
+    disabled: 'opacity-50 cursor-not-allowed hover:text-surface-muted-fg hover:bg-transparent',
   },
   pills: {
-    container: 'bg-gray-100/50 p-1 rounded-xl',
-    tab: 'px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg transition-all',
-    active: 'text-gray-900 bg-white shadow-sm',
-    disabled: 'opacity-50 cursor-not-allowed hover:text-gray-600',
+    container: 'bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-xl',
+    tab: 'px-4 py-2 text-sm font-medium text-surface-muted-fg hover:text-surface-foreground rounded-lg transition-all',
+    active: 'text-surface-foreground bg-surface-card shadow-sm',
+    disabled: 'opacity-50 cursor-not-allowed hover:text-surface-muted-fg',
   },
   underline: {
-    container: 'border-b border-gray-200',
-    tab: 'px-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors border-b-2 border-transparent -mb-[2px]',
-    active: 'text-blue-600 border-blue-600',
-    disabled: 'opacity-50 cursor-not-allowed hover:text-gray-500',
+    container: 'border-b border-surface-border',
+    tab: 'px-1 py-3 text-sm font-medium text-surface-muted-fg hover:text-surface-foreground transition-colors border-b-2 border-transparent -mb-[2px]',
+    active: 'text-primary-600 border-primary-600',
+    disabled: 'opacity-50 cursor-not-allowed hover:text-surface-muted-fg',
   },
   buttons: {
     container: 'bg-emerald-500 p-1 rounded-lg gap-1',
     tab: 'px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-all flex items-center gap-2',
-    active: 'text-emerald-700 bg-white hover:bg-white hover:text-emerald-700 shadow-sm',
+    active: 'text-emerald-700 bg-surface-card hover:bg-surface-card hover:text-emerald-700 shadow-sm',
     disabled: 'opacity-50 cursor-not-allowed hover:text-white/80 hover:bg-transparent',
   },
   sidebar: {
-    container: 'bg-gray-100/80 p-1.5 rounded-xl gap-1 backdrop-blur-sm border border-gray-200/50',
-    tab: 'px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white/50 border border-gray-200/60 hover:bg-white/80 hover:border-gray-300/60 rounded-lg transition-all flex items-center gap-2 shadow-sm hover:shadow-md',
-    active: 'text-slate-900 bg-white border-gray-300 shadow-md ring-2 ring-gray-200/50 hover:bg-white',
-    disabled: 'opacity-50 cursor-not-allowed hover:text-slate-600 hover:bg-white/50 hover:border-gray-200/60',
+    container: 'bg-gray-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl gap-1 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50',
+    tab: 'px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white/50 dark:bg-slate-900/50 border border-gray-200/60 dark:border-slate-700/60 hover:bg-white/80 dark:hover:bg-slate-900/80 hover:border-gray-300/60 dark:hover:border-slate-700/60 rounded-lg transition-all flex items-center gap-2 shadow-sm hover:shadow-md',
+    active: 'text-slate-900 bg-surface-card border-surface-border shadow-md ring-2 ring-gray-200/50 hover:bg-surface-card',
+    disabled: 'opacity-50 cursor-not-allowed hover:text-slate-600 hover:bg-white/50 dark:hover:bg-slate-900/50 hover:border-gray-200/60 dark:hover:border-slate-700/60',
   },
 };
 
@@ -77,7 +77,7 @@ const sizeStyles = {
 };
 
 const badgeColorStyles = {
-  blue: 'bg-blue-100 text-blue-700',
+  blue: 'bg-primary-100 text-primary-700',
   green: 'bg-emerald-100 text-emerald-700',
   amber: 'bg-amber-100 text-amber-700',
   red: 'bg-rose-100 text-rose-700',

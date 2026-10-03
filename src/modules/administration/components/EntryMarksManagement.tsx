@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { SelectOption } from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-
-import { logger } from '@/utils/logging';
 
 interface PreNAMark {
   id: string;
@@ -37,7 +34,7 @@ export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
   onCancel,
   loading = false,
 }) => {
-  const [marks, setMarks] = useState<PreNAMark[]>([
+  const [marks] = useState<PreNAMark[]>([
     {
       id: '1',
       studentId: 'student-001',
@@ -89,13 +86,6 @@ export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
     onCancel();
   };
 
-  const statusOptions: SelectOption[] = [
-    { label: 'Pending', value: 'pending' },
-    { label: 'Submitted', value: 'submitted' },
-    { label: 'Approved', value: 'approved' },
-    { label: 'Rejected', value: 'rejected' },
-  ];
-
   const columns: DataGridColumn<PreNAMark>[] = [
     {
       key: 'studentName',
@@ -103,8 +93,8 @@ export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
       sortable: true,
       render: (value, item) => (
         <div>
-          <span className="font-medium text-gray-900">{value}</span>
-          <p className="text-xs text-gray-500">{item.className}</p>
+          <span className="font-medium text-surface-foreground">{value}</span>
+          <p className="text-xs text-surface-muted-fg">{item.className}</p>
         </div>
       ),
     },
@@ -142,7 +132,7 @@ export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
       render: (value) => (
         <span className={`px-2 py-1 text-xs rounded-full ${
           value === 'approved' ? 'bg-green-100 text-green-800' :
-          value === 'submitted' ? 'bg-blue-100 text-blue-800' :
+          value === 'submitted' ? 'bg-primary-100 text-primary-800' :
           value === 'rejected' ? 'bg-red-100 text-red-800' :
           'bg-yellow-100 text-yellow-800'
         }`}>
@@ -150,38 +140,49 @@ export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
         </span>
       ),
     },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'center',
+      sortable: false,
+      filterable: false,
+      render: (_value, item) => (
+        <div className="flex space-x-2 justify-center">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => handleSubmit(item.id)}
+          >
+            Save
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => handleDelete(item.id)}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Pre-NA Marks Management</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage Pre-NA exam marks</p>
+        <h2 className="text-2xl font-bold text-surface-foreground">Pre-NA Marks Management</h2>
+        <p className="text-sm text-surface-muted-fg mt-1">Manage Pre-NA exam marks</p>
       </div>
 
       <Card>
         <DataGrid
           columns={columns}
           data={marks}
+          keyField="id"
           sortable
           filterable
+          pagination={marks.length > 10}
           loading={loading}
-          actions={[
-            {
-              label: 'Save',
-              onClick: (item) => handleSubmit(item.id),
-              variant: 'primary' as const,
-            },
-            {
-              label: 'Delete',
-              onClick: (item) => handleDelete(item.id),
-              variant: 'danger' as const,
-            },
-          ]}
-          onEdit={(item) => {
-            // Implement edit functionality
-            logger.info('Edit:', item);
-          }}
         />
       </Card>
 

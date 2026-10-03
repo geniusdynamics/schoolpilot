@@ -14,6 +14,36 @@ This is the canonical guide for form work in SchoolPilot. For tables see
 | Operation feedback | `useToast()` from `@/hooks/useToast` |
 | Layout primitives | `DialogForm` + `FormSection` / `FormGrid` / `FormField` / `FormActions` |
 
+## Visual conventions (design system)
+
+- **Labels are top-aligned** (`FormField` renders them; small, medium-weight).
+  `Input`'s legacy `floatingLabel` mode still exists but is not the default —
+  don't opt into it in new code.
+- **One accent**: everything uses the `primary` scale (indigo) via Tailwind
+  tokens. Never hardcode `blue-*`/`indigo-*` for interactive states.
+- **Surfaces use semantic tokens** (`bg-surface-card`, `border-surface-input`,
+  `bg-surface-muted`, `text-surface-foreground`, …) so forms render correctly
+  under the light/dark theme toggle. Don't hardcode `bg-white`/`text-gray-900`.
+- **Control heights**: `sm` 32px / `md` 40px / `lg` 44px across `Input`,
+  `Select`, and `Button`.
+- **Focus treatment**: accent border + soft ring (`focus:ring-primary-500/15`);
+  the old `glow-*` classes are retired.
+- **Extra controls**: `Checkbox`, `Radio`/`RadioGroup`, `Switch`
+  (`@/components/ui`) share the same language — use them instead of raw
+  `<input type="checkbox|radio">`.
+
+## Select API notes
+
+`Select` supports two option sources: `<option>` children (legacy native
+select) or the typed `options` prop (custom listbox with search/multi-select).
+
+- Options mode reports the selected value(s) directly through **both**
+  `onValueChange(value)` and `onChange(value)` (no event object).
+- Children mode fires `onChange` with a native-style
+  `{ target: { name, value } }` event, so plain handlers keep working.
+- Defensive handlers like `v => typeof v === 'string' ? v : v.target.value`
+  work with either mode.
+
 ## Validation
 
 `src/hooks/useValidation.ts` exports both APIs:

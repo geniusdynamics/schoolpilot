@@ -7,6 +7,10 @@ import DialogForm from './DialogForm';
 import { FormSection, FormGrid, FormField, FormActions } from './index';
 import Input from '../Input';
 import Textarea from '../Textarea';
+import Select from '../Select';
+import Checkbox from '../Checkbox';
+import { RadioGroup } from '../Radio';
+import Switch from '../Switch';
 import Button from '../Button';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +26,9 @@ export type EntityFormFieldType =
   | 'time'
   | 'textarea'
   | 'select'
-  | 'checkbox';
+  | 'checkbox'
+  | 'radio'
+  | 'switch';
 
 /** Declarative field configuration for EntityForm. */
 export interface EntityFieldConfig {
@@ -203,15 +209,12 @@ const EntityForm: React.FC<EntityFormProps> = ({
     switch (field.type) {
       case 'select':
         control = (
-          <select
+          <Select
             {...commonProps}
+            name={field.name}
             value={value !== undefined && value !== null ? String(value) : ''}
             onChange={(e) => handleChange(field, e.target.value)}
-            onBlur={() => handleBlur(field)}
-            aria-invalid={error ? true : undefined}
-            className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 ${
-              error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
-            }`}
+            errorState={Boolean(error)}
           >
             <option value="">{field.placeholder ?? 'Select an option…'}</option>
             {(field.options ?? []).map(option => (
@@ -219,7 +222,7 @@ const EntityForm: React.FC<EntityFormProps> = ({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         );
         break;
       case 'textarea':
@@ -230,23 +233,51 @@ const EntityForm: React.FC<EntityFormProps> = ({
             onChange={(e) => handleChange(field, e.target.value)}
             onBlur={() => handleBlur(field)}
             rows={field.rows ?? 3}
-            error={error}
+            errorState={Boolean(error)}
           />
         );
         break;
       case 'checkbox': {
         control = (
-          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
-            <input
-              type="checkbox"
+          <div className="pt-2">
+            <Checkbox
               checked={Boolean(value)}
-              onChange={(e) => handleChange(field, e.target.checked)}
+              onChange={(checked) => handleChange(field, checked)}
               disabled={field.disabled || isSaving}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              error={Boolean(error)}
+            >
+              {field.label}
+            </Checkbox>
+          </div>
+        );
+        break;
+      }
+      case 'switch': {
+        control = (
+          <div className="pt-2">
+            <Switch
+              checked={Boolean(value)}
+              onChange={(checked) => handleChange(field, checked)}
+              disabled={field.disabled || isSaving}
+              aria-label={field.label}
             />
-            <span className="sr-only">{field.label}</span>
-            {field.helperText || field.label}
-          </label>
+          </div>
+        );
+        break;
+      }
+      case 'radio': {
+        control = (
+          <RadioGroup
+            name={`entity-form-${field.name}`}
+            value={value !== undefined && value !== null ? String(value) : undefined}
+            onChange={(nextValue) => handleChange(field, nextValue)}
+            options={(field.options ?? []).map(option => ({
+              value: String(option.value),
+              label: option.label,
+            }))}
+            errorState={Boolean(error)}
+            disabled={field.disabled || isSaving}
+          />
         );
         break;
       }
@@ -263,7 +294,7 @@ const EntityForm: React.FC<EntityFormProps> = ({
             min={field.min}
             max={field.max}
             step={field.step}
-            error={error}
+            errorState={Boolean(error)}
           />
         );
     }
@@ -272,8 +303,8 @@ const EntityForm: React.FC<EntityFormProps> = ({
       <FormField
         key={field.name}
         fieldId={controlFieldId}
-        label={field.type === 'checkbox' ? undefined : field.label}
-        helperText={field.type === 'checkbox' ? undefined : field.helperText}
+        label={field.type === 'checkbox' || field.type === 'switch' ? undefined : field.label}
+        helperText={field.helperText}
         error={error}
         required={field.required}
         className={field.colSpan === 2 ? 'md:col-span-2' : ''}
@@ -284,7 +315,6 @@ const EntityForm: React.FC<EntityFormProps> = ({
   };
 
   const hasVisibleErrors = Object.keys(errors).some(name => errors[name]);
-  const gridCols = fields.some(f => f.colSpan === 2) ? 1 : 1;
 
   return (
     <DialogForm
@@ -296,7 +326,7 @@ const EntityForm: React.FC<EntityFormProps> = ({
       onSubmit={(e) => { e.preventDefault(); void handleSubmit(); }}
       size="lg"
     >
-      <FormSection columns={gridCols}>
+      <FormSection>
         <FormGrid columns={2}>
           {fields.map(renderField)}
         </FormGrid>

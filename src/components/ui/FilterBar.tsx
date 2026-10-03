@@ -60,10 +60,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
         {filters.map((filter) => (
           <div key={filter.id} className="flex-1 min-w-[180px] max-w-[280px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-surface-foreground mb-1.5">
               {filter.label}
               {filter.optional && (
-                <span className="text-gray-400 font-normal ml-1">(Optional)</span>
+                <span className="text-surface-muted-fg font-normal ml-1">(Optional)</span>
               )}
             </label>
             <select
@@ -71,9 +71,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               value={filter.value || ''}
               onChange={(e) => filter.onChange(e.target.value)}
               className={cn(
-                'w-full rounded-lg border-gray-300 text-gray-900',
+                'w-full rounded-lg border-surface-border text-surface-foreground',
                 'focus:border-emerald-500 focus:ring-emerald-500',
-                'bg-white shadow-sm',
+                'bg-surface-card shadow-sm',
                 compact ? 'py-1.5 text-sm' : 'py-2 text-sm'
               )}
             >
@@ -94,7 +94,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <button
               onClick={onClear}
               className={cn(
-                'flex items-center gap-1.5 text-gray-600 hover:text-gray-900',
+                'flex items-center gap-1.5 text-surface-muted-fg hover:text-surface-foreground',
                 'transition-colors font-medium',
                 compact ? 'text-sm px-2 py-1.5' : 'text-sm px-3 py-2'
               )}

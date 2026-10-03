@@ -114,7 +114,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
         <div className="flex items-center gap-2">
           {value}
           {item.is_default && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Default</span>
+            <span className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full">Default</span>
           )}
         </div>
       )
@@ -145,7 +145,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => openPreview(item)}
-            className="text-blue-600 hover:text-blue-800"
+            className="text-primary-600 hover:text-primary-800"
             title="Preview"
           >
             <EyeIcon className="w-4 h-4" />
@@ -182,7 +182,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
       <Card
         title={
           <div className="flex items-center gap-2">
-            <DocumentTextIcon className="w-6 h-6 text-blue-600" />
+            <DocumentTextIcon className="w-6 h-6 text-primary-600" />
             <span>Custom Fees Receipt Templates</span>
           </div>
         }
@@ -193,12 +193,12 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <DocumentTextIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">About Receipt Templates</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">About Receipt Templates</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 Create custom receipt templates with your school branding, logo, and personalized messages.
                 These templates are used when generating fee payment receipts for students and parents.
               </p>
@@ -291,7 +291,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
           <FormField label="School Logo">
             <div className="space-y-2">
               {formData.logo_url && (
-                <img src={formData.logo_url} alt="School logo preview" className="h-12 w-auto rounded border border-gray-200 bg-white p-1" />
+                <img src={formData.logo_url} alt="School logo preview" className="h-12 w-auto rounded border border-surface-border bg-surface-card p-1" />
               )}
               <Input
                 name="logo_url"
@@ -334,71 +334,71 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
         title="Receipt Preview"
         size="large"
       >
-        <div className="bg-white p-8 border border-gray-300 max-w-2xl mx-auto">
+        <div className="bg-surface-card p-8 border border-surface-border max-w-2xl mx-auto">
           {/* Receipt Header */}
           <div className="text-center mb-6">
             {formData.logo_url && (
               <img src={formData.logo_url} alt="School Logo" className="h-16 mx-auto mb-2" />
             )}
-            <h1 className="text-2xl font-bold text-gray-800">{formData.school_name}</h1>
-            <p className="text-sm text-gray-600">{formData.school_address}</p>
-            <p className="text-sm text-gray-600">{formData.school_phone} | {formData.school_email}</p>
+            <h1 className="text-2xl font-bold text-surface-foreground">{formData.school_name}</h1>
+            <p className="text-sm text-surface-muted-fg">{formData.school_address}</p>
+            <p className="text-sm text-surface-muted-fg">{formData.school_phone} | {formData.school_email}</p>
           </div>
 
           <div className="border-t-2 border-b-2 border-gray-800 py-3 mb-6 text-center">
-            <h2 className="text-xl font-bold text-gray-800">{formData.header_text}</h2>
+            <h2 className="text-xl font-bold text-surface-foreground">{formData.header_text}</h2>
           </div>
 
           {/* Sample Receipt Content */}
           <div className="space-y-3 text-sm mb-6">
             <div className="flex justify-between">
-              <span className="text-gray-600">Receipt No:</span>
+              <span className="text-surface-muted-fg">Receipt No:</span>
               <span className="font-semibold">RCP-2024-001234</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Date:</span>
+              <span className="text-surface-muted-fg">Date:</span>
               <span className="font-semibold">{formatDate()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Student:</span>
+              <span className="text-surface-muted-fg">Student:</span>
               <span className="font-semibold">John Doe (ADM-001)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Class:</span>
+              <span className="text-surface-muted-fg">Class:</span>
               <span className="font-semibold">Grade 10 - A</span>
             </div>
           </div>
 
           <table className="w-full mb-6 text-sm">
             <thead>
-              <tr className="border-b border-gray-300">
+              <tr className="border-b border-surface-border">
                 <th className="text-left py-2">Description</th>
                 <th className="text-right py-2">Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-surface-border">
                 <td className="py-2">Tuition Fee - Term 1</td>
                 <td className="text-right py-2">KES 45,000.00</td>
               </tr>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-surface-border">
                 <td className="py-2">Activity Fee</td>
                 <td className="text-right py-2">KES 5,000.00</td>
               </tr>
-              <tr className="border-b border-gray-300 font-bold">
+              <tr className="border-b border-surface-border font-bold">
                 <td className="py-2">Total</td>
                 <td className="text-right py-2">KES 50,000.00</td>
               </tr>
             </tbody>
           </table>
 
-          <div className="text-center text-sm text-gray-600 mb-6">
+          <div className="text-center text-sm text-surface-muted-fg mb-6">
             <p>Amount Paid: KES 50,000.00</p>
             <p>Payment Method: Cash</p>
           </div>
 
           {/* Receipt Footer */}
-          <div className="border-t border-gray-300 pt-4 text-center text-sm text-gray-600">
+          <div className="border-t border-surface-border pt-4 text-center text-sm text-surface-muted-fg">
             <p>{formData.footer_text}</p>
           </div>
         </div>

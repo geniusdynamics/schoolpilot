@@ -18,7 +18,7 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
   }
 
   return (
-    <div className={`border-b border-gray-200 bg-white ${className}`}>
+    <div className={`border-b border-surface-border bg-surface-card ${className}`}>
       <div className="flex items-center justify-between px-4 py-2">
         <nav className="flex space-x-1" aria-label="Sub-navigation">
           {subTabs.map((subTab) => (
@@ -30,8 +30,8 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
                 flex items-center space-x-2
                 ${
                   subTab.isActive
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
+                    ? 'bg-primary-50 text-primary-700 border border-primary-200 shadow-sm'
+                    : 'text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-muted border border-transparent'
                 }
               `}
               aria-current={subTab.isActive ? 'page' : undefined}
@@ -52,8 +52,8 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
                   inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full
                   ${
                     subTab.isActive
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-600'
+                      ? 'bg-primary-100 text-primary-800'
+                      : 'bg-surface-accent text-surface-muted-fg'
                   }
                 `}>
                   {subTab.badge}
@@ -62,7 +62,7 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
               
               {/* Active indicator */}
               {subTab.isActive && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-full" />
               )}
             </button>
           ))}
@@ -73,9 +73,9 @@ const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
           <button
             onClick={onAddSubTab}
             className="
-              flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600
-              hover:bg-gray-100 rounded-lg transition-colors duration-200
-              border border-dashed border-gray-300 hover:border-gray-400
+              flex items-center justify-center w-8 h-8 text-surface-muted-fg hover:text-surface-muted-fg
+              hover:bg-surface-accent rounded-lg transition-colors duration-200
+              border border-dashed border-surface-border hover:border-gray-400
             "
             title="Add new sub-tab"
             aria-label="Add new sub-tab"

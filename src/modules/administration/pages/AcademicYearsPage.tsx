@@ -99,7 +99,7 @@ export const AcademicYearsContent: React.FC = () => {
       header: 'Structure',
       sortable: true,
       filterable: true,
-      render: (_value, item) => <span className="text-blue-600">{item.structure_name || '—'}</span>
+      render: (_value, item) => <span className="text-primary-600">{item.structure_name || '—'}</span>
     },
     {
       key: 'start_date',
@@ -139,7 +139,7 @@ export const AcademicYearsContent: React.FC = () => {
           Add Academic Year
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define academic years (e.g., "AY 2023/2024"), link them to an Academic Year Structure, and set their start and end dates.
         </p>
         <DataGrid

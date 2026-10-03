@@ -93,6 +93,7 @@ export const studentAttendanceSchema: DatabaseSchema = createDatabaseSchema({
         date: SchemaHelpers.string({ description: 'Attendance date', maxLength: 20 }),
         status: SchemaHelpers.string({ description: 'Attendance status', enum: Object.values(types.AttendanceStatus), maxLength: 50 }),
         reason_for_absence: SchemaHelpers.string({ description: 'Reason for absence', maxLength: 200 }),
+        notes: SchemaHelpers.string({ description: 'Additional notes for manually marked attendance', nullable: true, maxLength: 500 }),
         created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
         student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
         period_name: SchemaHelpers.string({ description: 'Period name (denormalized)', maxLength: 100 }),
@@ -404,6 +405,74 @@ export const applicationApprovalSchema: DatabaseSchema = createDatabaseSchema({
     },
     required: ['id', 'application_id', 'approved_by', 'approval_date', 'final_decision', 'created_at', 'updated_at'],
     indexes: ['application_id', 'final_decision', 'approval_date']
+});
+
+// Property names for the three schemas below intentionally mirror the admissions
+// module types that write to them (ApplicationNote, EnrollmentDetails, FormTemplate),
+// which are camelCase - documents are persisted exactly as written.
+export const applicationNoteSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'application_notes',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the note' }),
+        applicationId: SchemaHelpers.ref('admissions_applications', { description: 'Reference to application' }),
+        authorId: SchemaHelpers.string({ description: 'Note author user id', maxLength: 100 }),
+        authorName: SchemaHelpers.string({ description: 'Note author display name (denormalized)', maxLength: 200 }),
+        content: SchemaHelpers.string({ description: 'Note content', maxLength: 2000 }),
+        isInternal: SchemaHelpers.boolean({ description: 'Whether the note is internal-only' }),
+        createdAt: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+    },
+    required: ['id', 'applicationId', 'authorId', 'content', 'isInternal', 'createdAt'],
+    indexes: ['applicationId', 'authorId']
+});
+
+export const admissionEnrollmentSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'admission_enrollments',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the enrollment' }),
+        applicationId: SchemaHelpers.ref('admissions_applications', { description: 'Reference to application' }),
+        studentId: SchemaHelpers.ref('students', { description: 'Reference to the created student' }),
+        admissionNumber: SchemaHelpers.string({ description: 'Admission number assigned', maxLength: 20 }),
+        enrolledAt: SchemaHelpers.timestamp({ description: 'Enrollment timestamp' }),
+        enrolledBy: SchemaHelpers.string({ description: 'User who performed the enrollment', maxLength: 100 }),
+        classId: SchemaHelpers.string({ description: 'Assigned class id', maxLength: 100 }),
+        className: SchemaHelpers.string({ description: 'Assigned class name (denormalized)', maxLength: 200 }),
+        streamId: SchemaHelpers.string({ description: 'Assigned stream id', maxLength: 100 }),
+        streamName: SchemaHelpers.string({ description: 'Assigned stream name (denormalized)', maxLength: 200 }),
+        dormitoryId: SchemaHelpers.string({ description: 'Assigned dormitory id', maxLength: 100 }),
+        dormitoryName: SchemaHelpers.string({ description: 'Assigned dormitory name (denormalized)', maxLength: 200 }),
+        feeStructureId: SchemaHelpers.string({ description: 'Applied fee structure id', maxLength: 100 }),
+        documentsReceived: SchemaHelpers.array(SchemaHelpers.string({ maxLength: 255 }), {
+            description: 'Document ids received at enrollment'
+        }),
+        isActive: SchemaHelpers.boolean({ description: 'Whether the enrollment is active' }),
+        createdAt: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updatedAt: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'applicationId', 'studentId', 'admissionNumber', 'enrolledAt', 'enrolledBy', 'classId', 'documentsReceived', 'isActive', 'createdAt', 'updatedAt'],
+    indexes: ['applicationId', 'studentId', 'admissionNumber']
+});
+
+export const applicationFormTemplateSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'application_form_templates',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the form template' }),
+        name: SchemaHelpers.string({ description: 'Form template name', maxLength: 200 }),
+        description: SchemaHelpers.string({ description: 'Form template description', maxLength: 500 }),
+        sections: SchemaHelpers.integer({ description: 'Number of sections in the form', minimum: 0, maximum: 999 }),
+        fields: SchemaHelpers.integer({ description: 'Number of fields in the form', minimum: 0, maximum: 9999 }),
+        isActive: SchemaHelpers.boolean({ description: 'Whether the template is active' }),
+        lastModified: SchemaHelpers.string({ description: 'Last modification date (ISO date)', maxLength: 20 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'name', 'description', 'sections', 'fields', 'isActive', 'lastModified'],
+    indexes: ['name', 'isActive']
 });
 
 export const smsCampaignSchema: DatabaseSchema = createDatabaseSchema({
@@ -725,4 +794,253 @@ export const visitorLogSchema: DatabaseSchema = createDatabaseSchema({
     },
     required: ['id', 'visitor_name', 'visitor_type', 'phone', 'purpose', 'status', 'check_in_time', 'created_at', 'updated_at'],
     indexes: ['visitor_name', 'visitor_type', 'status', 'check_in_time', 'phone']
+});
+
+// === GATE PASSES SCHEMA ===
+
+export const gatePassSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'gate_passes',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the gate pass' }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        class_name: SchemaHelpers.string({ description: 'Class name (denormalized)', maxLength: 100 }),
+        section: SchemaHelpers.string({ description: 'Section/stream name (denormalized)', maxLength: 50 }),
+        pass_type: SchemaHelpers.string({ description: 'Type of pass', enum: ['Early Departure', 'Medical Emergency', 'Personal', 'Other'], maxLength: 50 }),
+        reason: SchemaHelpers.string({ description: 'Reason for the gate pass', maxLength: 1000 }),
+        departure_time: SchemaHelpers.string({ description: 'Departure time', maxLength: 40 }),
+        return_time: SchemaHelpers.string({ description: 'Expected return time', nullable: true, maxLength: 40 }),
+        authorized_by: SchemaHelpers.string({ description: 'Authorizing parent/guardian', maxLength: 200 }),
+        status: SchemaHelpers.string({ description: 'Pass status', enum: ['Pending', 'Approved', 'Rejected', 'Issued', 'Returned'], maxLength: 50 }),
+        approved_by: SchemaHelpers.string({ description: 'Approved by user', nullable: true, maxLength: 200 }),
+        approved_at: SchemaHelpers.timestamp({ description: 'Approval timestamp', nullable: true }),
+        issued_by: SchemaHelpers.string({ description: 'Issued by user', nullable: true, maxLength: 200 }),
+        issued_at: SchemaHelpers.timestamp({ description: 'Issue timestamp', nullable: true }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'student_id', 'pass_type', 'reason', 'authorized_by', 'status', 'created_at', 'updated_at'],
+    indexes: ['student_id', 'status', 'pass_type', 'departure_time']
+});
+
+// === SCHOLARSHIPS SCHEMA ===
+
+export const scholarshipSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'scholarships',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the scholarship record' }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_no: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        class_id: SchemaHelpers.string({ description: 'Class reference (denormalized)', maxLength: 100 }),
+        class_name: SchemaHelpers.string({ description: 'Class name (denormalized)', maxLength: 100 }),
+        scholarship_type: SchemaHelpers.string({ description: 'Type of scholarship', maxLength: 100 }),
+        amount: SchemaHelpers.number({ description: 'Scholarship amount', minimum: 0, maximum: 999999999 }),
+        academic_year: SchemaHelpers.string({ description: 'Academic year covered', maxLength: 20 }),
+        status: SchemaHelpers.string({ description: 'Scholarship status', enum: ['Active', 'Inactive', 'Pending'], maxLength: 50 }),
+        start_date: SchemaHelpers.string({ description: 'Start date', maxLength: 20 }),
+        end_date: SchemaHelpers.string({ description: 'End date', maxLength: 20 }),
+        criteria: SchemaHelpers.string({ description: 'Award criteria', nullable: true, maxLength: 500 }),
+        notes: SchemaHelpers.string({ description: 'Additional notes', nullable: true, maxLength: 1000 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'student_id', 'scholarship_type', 'amount', 'academic_year', 'status', 'start_date', 'end_date', 'created_at', 'updated_at'],
+    indexes: ['student_id', 'status', 'scholarship_type', 'academic_year']
+});
+
+// === SMS REPORTS SCHEMA ===
+
+export const smsReportSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'sms_reports',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the SMS report entry' }),
+        recipient: SchemaHelpers.string({ description: 'Recipient reference ID', maxLength: 100 }),
+        recipient_name: SchemaHelpers.string({ description: 'Recipient display name', maxLength: 200 }),
+        recipient_type: SchemaHelpers.string({ description: 'Recipient type', enum: ['Student', 'Staff', 'Parent'], maxLength: 50 }),
+        phone: SchemaHelpers.string({ description: 'Recipient phone number', maxLength: 30 }),
+        message: SchemaHelpers.string({ description: 'Message content sent', maxLength: 2000 }),
+        template: SchemaHelpers.string({ description: 'Template used', nullable: true, maxLength: 150 }),
+        sent_date: SchemaHelpers.string({ description: 'Date the message was sent', maxLength: 20 }),
+        sent_time: SchemaHelpers.string({ description: 'Time the message was sent', nullable: true, maxLength: 20 }),
+        status: SchemaHelpers.string({ description: 'Delivery status', enum: ['Sent', 'Delivered', 'Failed', 'Pending'], maxLength: 50 }),
+        delivery_date: SchemaHelpers.string({ description: 'Date of delivery confirmation', nullable: true, maxLength: 20 }),
+        error_message: SchemaHelpers.string({ description: 'Failure reason if delivery failed', nullable: true, maxLength: 500 }),
+        sender: SchemaHelpers.string({ description: 'Sender identity', nullable: true, maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'recipient', 'recipient_name', 'recipient_type', 'phone', 'message', 'sent_date', 'status', 'created_at', 'updated_at'],
+    indexes: ['recipient', 'recipient_type', 'status', 'sent_date']
+});
+
+// === AUTO SMS SETTINGS SCHEMA ===
+
+export const autoSmsSettingSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'auto_sms_settings',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the auto-SMS rule' }),
+        trigger_type: SchemaHelpers.string({ description: 'Event that triggers the SMS', enum: ['Attendance', 'Fees Due', 'Exam Results', 'Announcements', 'Birthday'], maxLength: 50 }),
+        trigger_name: SchemaHelpers.string({ description: 'Human readable rule name', maxLength: 200 }),
+        recipient_type: SchemaHelpers.string({ description: 'Who receives the SMS', enum: ['Student', 'Staff', 'Parent', 'All'], maxLength: 50 }),
+        template_id: SchemaHelpers.ref('communication_templates', { description: 'Reference to the SMS template' }),
+        template_name: SchemaHelpers.string({ description: 'Template name (denormalized)', maxLength: 150 }),
+        is_enabled: SchemaHelpers.boolean({ description: 'Whether the rule is enabled', default: false }),
+        send_time: SchemaHelpers.string({ description: 'Time of day to send (HH:mm)', nullable: true, maxLength: 10 }),
+        conditions: SchemaHelpers.string({ description: 'Trigger conditions', nullable: true, maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'trigger_type', 'trigger_name', 'recipient_type', 'template_id', 'template_name', 'is_enabled', 'created_at', 'updated_at'],
+    indexes: ['trigger_type', 'recipient_type', 'is_enabled']
+});
+
+// === STAFF WALLET TRANSACTIONS SCHEMA ===
+
+export const staffWalletTransactionSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'staff_wallet_transactions',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the wallet transaction' }),
+        staff_id: SchemaHelpers.ref('staff', { description: 'Reference to staff member' }),
+        staff_name: SchemaHelpers.string({ description: 'Staff name (denormalized)', maxLength: 200 }),
+        employee_id: SchemaHelpers.string({ description: 'Employee/staff number (denormalized)', maxLength: 50 }),
+        department: SchemaHelpers.string({ description: 'Department name (denormalized)', maxLength: 200 }),
+        transaction_type: SchemaHelpers.string({ description: 'Transaction type', enum: ['Advance', 'Loan', 'Deduction', 'Repayment'], maxLength: 50 }),
+        amount: SchemaHelpers.number({ description: 'Transaction amount', minimum: -999999999, maximum: 999999999 }),
+        date: SchemaHelpers.string({ description: 'Transaction date', maxLength: 20 }),
+        description: SchemaHelpers.string({ description: 'Transaction description', nullable: true, maxLength: 500 }),
+        status: SchemaHelpers.string({ description: 'Transaction status', enum: ['Pending', 'Approved', 'Rejected', 'Completed'], maxLength: 50 }),
+        balance: SchemaHelpers.number({ description: 'Running balance after this transaction', maximum: 999999999, minimum: -999999999 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'staff_id', 'transaction_type', 'amount', 'date', 'status', 'balance', 'created_at', 'updated_at'],
+    indexes: ['staff_id', 'transaction_type', 'status', 'date']
+});
+
+// === STAFF ATTENDANCE RECORDS SCHEMA ===
+
+export const staffAttendanceRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'staff_attendance_records',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the staff attendance record' }),
+        staff_id: SchemaHelpers.ref('staff', { description: 'Reference to staff member' }),
+        staff_name: SchemaHelpers.string({ description: 'Staff name (denormalized)', maxLength: 200 }),
+        employee_id: SchemaHelpers.string({ description: 'Employee/staff number (denormalized)', maxLength: 50 }),
+        department: SchemaHelpers.string({ description: 'Department name (denormalized)', maxLength: 200 }),
+        designation: SchemaHelpers.string({ description: 'Designation title (denormalized)', maxLength: 200 }),
+        date: SchemaHelpers.string({ description: 'Attendance date', maxLength: 20 }),
+        check_in_time: SchemaHelpers.string({ description: 'Check-in time (HH:mm)', nullable: true, maxLength: 10 }),
+        check_out_time: SchemaHelpers.string({ description: 'Check-out time (HH:mm)', nullable: true, maxLength: 10 }),
+        status: SchemaHelpers.string({ description: 'Attendance status', enum: ['Present', 'Absent', 'Late', 'On Leave'], maxLength: 50 }),
+        notes: SchemaHelpers.string({ description: 'Additional notes', nullable: true, maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'staff_id', 'date', 'status', 'created_at', 'updated_at'],
+    indexes: ['staff_id', 'date', 'status']
+});
+
+// === SESSION ATTENDANCE SCHEMA ===
+
+export const sessionAttendanceSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'session_attendance',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the session attendance record' }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_no: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        class_id: SchemaHelpers.string({ description: 'Class reference (denormalized)', maxLength: 100 }),
+        class_name: SchemaHelpers.string({ description: 'Class name (denormalized)', maxLength: 100 }),
+        session_id: SchemaHelpers.string({ description: 'Identifier of the attendance session', maxLength: 100 }),
+        session_name: SchemaHelpers.string({ description: 'Session display name', maxLength: 200 }),
+        date: SchemaHelpers.string({ description: 'Session date', nullable: true, maxLength: 20 }),
+        check_in_time: SchemaHelpers.string({ description: 'Check-in time (HH:mm)', nullable: true, maxLength: 10 }),
+        check_out_time: SchemaHelpers.string({ description: 'Check-out time (HH:mm)', nullable: true, maxLength: 10 }),
+        status: SchemaHelpers.string({ description: 'Attendance status', enum: ['Present', 'Absent', 'Late'], maxLength: 50 }),
+        notes: SchemaHelpers.string({ description: 'Additional notes', nullable: true, maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'student_id', 'session_id', 'session_name', 'status', 'created_at', 'updated_at'],
+    indexes: ['student_id', 'session_id', 'class_id', 'status', 'date']
+});
+
+// === ALUMNI ENGAGEMENTS SCHEMA (page-shaped; see also alumniSchema.ts) ===
+
+export const alumniEngagementRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'alumni_engagements',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the engagement activity' }),
+        alumni_name: SchemaHelpers.string({ description: 'Alumni full name', maxLength: 200 }),
+        graduation_year: SchemaHelpers.string({ description: 'Year of graduation', maxLength: 10 }),
+        activity_type: SchemaHelpers.string({ description: 'Type of engagement activity', maxLength: 100 }),
+        activity_date: SchemaHelpers.string({ description: 'Date of the activity', maxLength: 20 }),
+        description: SchemaHelpers.string({ description: 'Activity description', maxLength: 2000 }),
+        amount: SchemaHelpers.number({ description: 'Monetary amount if applicable', nullable: true, minimum: 0, maximum: 999999999 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'alumni_name', 'graduation_year', 'activity_type', 'activity_date', 'description', 'created_at', 'updated_at'],
+    indexes: ['alumni_name', 'activity_type', 'activity_date', 'graduation_year']
+});
+
+// === ALUMNI EVENTS SCHEMA (page-shaped; see also alumniSchema.ts) ===
+
+export const alumniEventRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'alumni_events',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the event' }),
+        event_name: SchemaHelpers.string({ description: 'Event name', maxLength: 200 }),
+        event_date: SchemaHelpers.string({ description: 'Date of the event', maxLength: 20 }),
+        location: SchemaHelpers.string({ description: 'Event location/venue', maxLength: 300 }),
+        event_type: SchemaHelpers.string({ description: 'Category of event', maxLength: 100 }),
+        expected_attendees: SchemaHelpers.number({ description: 'Expected number of attendees', minimum: 0, maximum: 999999 }),
+        status: SchemaHelpers.string({ description: 'Event status', enum: ['Upcoming', 'Completed', 'Cancelled'], maxLength: 20 }),
+        description: SchemaHelpers.string({ description: 'Event description', maxLength: 3000 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'event_name', 'event_date', 'location', 'event_type', 'expected_attendees', 'status', 'description', 'created_at', 'updated_at'],
+    indexes: ['event_name', 'event_type', 'event_date', 'status']
+});
+
+// === DATABASE BACKUP RECORDS SCHEMA ===
+
+export const backupRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'backup_records',
+    version: 0,
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the backup record' }),
+        filename: SchemaHelpers.string({ description: 'Generated backup filename', maxLength: 255 }),
+        size: SchemaHelpers.string({ description: 'Human readable payload size', maxLength: 50 }),
+        record_count: SchemaHelpers.number({ description: 'Number of records captured in the backup', default: 0 }),
+        type: SchemaHelpers.string({ description: 'Backup type', enum: ['Automatic', 'Manual', 'Scheduled'], maxLength: 20 }),
+        status: SchemaHelpers.string({ description: 'Backup status', enum: ['Completed', 'Failed', 'In Progress'], maxLength: 20 }),
+        description: SchemaHelpers.string({ description: 'Backup description', maxLength: 500 }),
+        payload_json: SchemaHelpers.string({ description: 'Serialized backup snapshot (JSON)', nullable: true, maxLength: 100000000 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'filename', 'size', 'type', 'status', 'created_at', 'updated_at'],
+    indexes: ['filename', 'type', 'status', 'created_at']
 });

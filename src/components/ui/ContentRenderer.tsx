@@ -230,7 +230,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
       header: '#',
       width: 60,
       render: (value) => (
-        <span className="font-mono text-xs text-gray-500">#{value}</span>
+        <span className="font-mono text-xs text-surface-muted-fg">#{value}</span>
       )
     },
     {
@@ -238,7 +238,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
       header: 'Name',
       render: (value) => (
         <div className="max-w-xs">
-          <div className="font-medium text-gray-900 truncate" title={String(value ?? '')}>
+          <div className="font-medium text-surface-foreground truncate" title={String(value ?? '')}>
             {value}
           </div>
         </div>
@@ -265,7 +265,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
       width: 150,
       render: (value) => {
         const teamList = String(value ?? '').split(',').map(t => t.trim()).filter(Boolean);
-        if (teamList.length === 0) return <span className="text-gray-400">-</span>;
+        if (teamList.length === 0) return <span className="text-surface-muted-fg">-</span>;
         return (
           <div className="flex flex-wrap gap-1">
             {teamList.slice(0, 2).map((team) => (
@@ -287,11 +287,11 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
       render: (value) => (
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
-            <span className="text-xs font-medium text-gray-600">
+            <span className="text-xs font-medium text-surface-muted-fg">
               {value ? String(value).charAt(0).toUpperCase() : '?'}
             </span>
           </div>
-          <span className="text-sm text-gray-900">{value || 'Unassigned'}</span>
+          <span className="text-sm text-surface-foreground">{value || 'Unassigned'}</span>
         </div>
       )
     },
@@ -309,7 +309,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex flex-col items-center gap-1">
             {badge}
-            <span className="text-xs text-gray-500">{value}</span>
+            <span className="text-xs text-surface-muted-fg">{value}</span>
           </div>
         );
       }
@@ -324,7 +324,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
           {value ? (
             <CheckCircleIcon className="w-5 h-5 text-green-500" />
           ) : (
-            <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
+            <div className="w-5 h-5 border-2 border-surface-border rounded-full" />
           )}
         </div>
       )
@@ -399,66 +399,66 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
 
       case 'kanban':
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <Squares2X2Icon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Kanban Board</h3>
-              <p className="text-gray-500">Kanban view will be implemented here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Kanban Board</h3>
+              <p className="text-surface-muted-fg">Kanban view will be implemented here.</p>
             </div>
           </div>
         );
 
       case 'calendar':
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <CalendarDaysIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
-              <p className="text-gray-500">Calendar view will be implemented here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Calendar View</h3>
+              <p className="text-surface-muted-fg">Calendar view will be implemented here.</p>
             </div>
           </div>
         );
 
       case 'dashboard':
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <Squares2X2Icon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Dashboard</h3>
-              <p className="text-gray-500">Dashboard widgets will be implemented here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Dashboard</h3>
+              <p className="text-surface-muted-fg">Dashboard widgets will be implemented here.</p>
             </div>
           </div>
         );
 
       case 'form':
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Form View</h3>
-              <p className="text-gray-500">Dynamic form will be rendered here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Form View</h3>
+              <p className="text-surface-muted-fg">Dynamic form will be rendered here.</p>
             </div>
           </div>
         );
 
       case 'list':
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <Bars3Icon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">List View</h3>
-              <p className="text-gray-500">List content will be displayed here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">List View</h3>
+              <p className="text-surface-muted-fg">List content will be displayed here.</p>
             </div>
           </div>
         );
 
       case 'chart':
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <ArrowTrendingUpIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chart View</h3>
-              <p className="text-gray-500">Charts and analytics will be displayed here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Chart View</h3>
+              <p className="text-surface-muted-fg">Charts and analytics will be displayed here.</p>
             </div>
           </div>
         );
@@ -472,7 +472,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
                 {typeof tab.content.data === 'string' ? (
                   <p>{tab.content.data}</p>
                 ) : (
-                  <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
+                  <pre className="bg-surface-accent p-4 rounded-lg overflow-auto">
                     {JSON.stringify(tab.content.data, null, 2)}
                   </pre>
                 )}
@@ -482,11 +482,11 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         }
 
         return (
-          <div className="flex items-center justify-center h-full bg-gray-50">
+          <div className="flex items-center justify-center h-full bg-surface-muted">
             <div className="text-center">
               <DocumentIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{tab.title}</h3>
-              <p className="text-gray-500">Content for this tab will be displayed here.</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">{tab.title}</h3>
+              <p className="text-surface-muted-fg">Content for this tab will be displayed here.</p>
             </div>
           </div>
         );

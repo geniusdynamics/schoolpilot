@@ -2,7 +2,6 @@
 // ABOUTME: Provides consistent section styling with titles, descriptions, and layout options
 
 import React, { ReactNode, useState } from 'react';
-import { useTransition } from '../../../utils/animations';
 import { ChevronDownIcon } from '../icons';
 
 export interface FormSectionProps {
@@ -85,7 +84,6 @@ const FormSection: React.FC<FormSectionProps> = ({
   icon,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const transitionStyles = useTransition(['all']);
 
   // Size styles
   const sizeStyles = {
@@ -97,14 +95,14 @@ const FormSection: React.FC<FormSectionProps> = ({
     },
     md: {
       section: 'space-y-4',
-      title: 'text-sm font-semibold uppercase tracking-wide text-gray-900',
-      description: 'text-sm text-gray-600',
+      title: 'text-sm font-semibold text-surface-foreground',
+      description: 'text-sm text-surface-muted-fg mt-0.5',
       content: 'space-y-4',
     },
     lg: {
       section: 'space-y-6',
-      title: 'text-base font-semibold',
-      description: 'text-base',
+      title: 'text-base font-semibold text-surface-foreground',
+      description: 'text-sm text-surface-muted-fg mt-0.5',
       content: 'space-y-5',
     },
   };
@@ -112,9 +110,9 @@ const FormSection: React.FC<FormSectionProps> = ({
   // Column grid classes
   const gridClasses = {
     1: '',
-    2: 'grid grid-cols-1 md:grid-cols-2 gap-4',
-    3: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4',
-    4: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4',
+    2: 'grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5',
+    3: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-5',
+    4: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5',
   };
 
   const currentSize = sizeStyles[size];
@@ -130,12 +128,11 @@ const FormSection: React.FC<FormSectionProps> = ({
     <div
       className={`
         ${currentSize.section}
-        ${bordered ? 'border-b border-gray-200 pb-6 mb-6' : ''}
+        ${bordered ? 'border-b border-surface-border pb-6 mb-6' : ''}
         ${pageBreak ? 'print:break-before-page' : ''}
         print:break-inside-avoid
         ${className}
       `}
-      style={transitionStyles}
     >
       {/* Section Header */}
       {(title || description) && (
@@ -157,7 +154,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         >
           <div className="flex items-center gap-2">
             {icon && (
-              <span className="flex-shrink-0 text-gray-500">
+              <span className="flex-shrink-0 text-surface-muted-fg">
                 {icon}
               </span>
             )}
@@ -178,7 +175,7 @@ const FormSection: React.FC<FormSectionProps> = ({
           {collapsible && (
             <ChevronDownIcon
               className={`
-                w-5 h-5 text-gray-400 transition-transform duration-200
+                w-5 h-5 text-surface-muted-fg transition-transform duration-200
                 ${isExpanded ? 'transform rotate-180' : ''}
               `}
             />

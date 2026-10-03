@@ -35,6 +35,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   private tableName: string;
   private queryCount = 0;
   private totalQueryTime = 0;
+  /** Column names in table order — used to decode positional rows from sqlite-wasm. */
+  private columnNamesCache: string[] | null = null;
 
   constructor(
     private db: Database,
@@ -51,9 +53,19 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     return name.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
   }
 
+  /**
+   * Safely quote a column/identifier for SQLite so that SQL reserved keywords
+   * (e.g. the "references" property on weekly plans) can be used as columns.
+   */
+  private quoteIdentifier(name: string): string {
+    return `"${String(name).replace(/"/g, '""')}"`;
+  }
+
   private createTable(): void {
     try {
       logger.info(`[SQLiteWASMCollection] Creating table: ${this.tableName}`);
+      // Schema (re)creation invalidates any cached column list
+      this.columnNamesCache = null;
       
       // Use schema converter to generate proper SQLite schema
       const conversionResult = SchemaConverter.convertRxDBToSQLite(this.name, this.schema);
@@ -70,14 +82,16 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           this.db.exec(indexSQL);
         } catch (indexError) {
           // Index might already exist, log warning but continue
-          logger.warn(`[SQLiteWASMCollection] Index creation warning for ${this.tableName}:`, indexError);
+          const detail = indexError instanceof Error ? indexError.message : String(indexError);
+          logger.warn(`[SQLiteWASMCollection] Index creation warning for ${this.tableName}: ${detail} | SQL: ${indexSQL.replace(/\s+/g, ' ')}`);
         }
       });
       
       logger.info(`[SQLiteWASMCollection] Successfully created table ${this.tableName} with ${conversionResult.indexes.length} indexes`);
     } catch (error) {
-      logger.error(`[SQLiteWASMCollection] Failed to create table ${this.tableName}:`, error);
-      throw new CollectionError(`Failed to create table ${this.tableName}`, this.name);
+      const detail = error instanceof Error ? error.message : String(error);
+      logger.error(`[SQLiteWASMCollection] Failed to create table ${this.tableName}: ${detail}`, error);
+      throw new CollectionError(`Failed to create table ${this.tableName}: ${detail}`, this.name);
     }
   }
 
@@ -115,6 +129,26 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     }
   }
 
+  /**
+   * Intersect a document's keys with the table's real columns. Documents may
+   * carry extra/denormalized properties (e.g. nested `streams` arrays or
+   * display-only labels) that are not table columns; including them in an
+   * INSERT/UPDATE produced "no such column" failures that were swallowed by
+   * bulk-write error collection (demo seeding wrote 0 rows for `classes` and
+   * `class_streams` this way). Unknown keys are dropped and reported at debug.
+   */
+  private writableColumns(doc: Record<string, any>): string[] {
+    const keys = Object.keys(doc);
+    const known = new Set(this.getColumnNames());
+    if (known.size === 0) return keys; // schema unknown → preserve legacy behavior
+    const usable = keys.filter((key) => known.has(key));
+    const dropped = keys.filter((key) => !known.has(key));
+    if (dropped.length > 0) {
+      logger.debug(`[SQLiteWASMCollection] ${this.name}: ignoring non-column keys on write: ${dropped.join(', ')}`);
+    }
+    return usable;
+  }
+
   async insert(doc: Omit<T, 'id'>): Promise<InsertResult<T>> {
     if (this.isDestroyed) {
       throw new CollectionError('Collection has been destroyed', this.name);
@@ -125,12 +159,12 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         const id = (doc as any).id || this.generateId();
         const docWithId = { ...doc, id } as T;
         
-        // Convert document to SQL values
-        const columns = Object.keys(docWithId as any);
+        // Convert document to SQL values (only real table columns)
+        const columns = this.writableColumns(docWithId as any);
         const placeholders = columns.map(() => '?').join(', ');
         const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
         
-        const sql = `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+        const sql = `INSERT INTO ${this.tableName} (${columns.map(col => this.quoteIdentifier(col)).join(', ')}) VALUES (${placeholders})`;
         
         this.db.exec({
           sql: sql,
@@ -178,11 +212,11 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           const docWithId = { ...doc, id } as T;
 
           // Inline synchronous insert logic for use within transaction
-          const columns = Object.keys(docWithId as any);
+          const columns = this.writableColumns(docWithId as any);
           const placeholders = columns.map(() => '?').join(', ');
           const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
 
-          const sql = `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+          const sql = `INSERT INTO ${this.tableName} (${columns.map(col => this.quoteIdentifier(col)).join(', ')}) VALUES (${placeholders})`;
 
           this.db.exec({
             sql: sql,
@@ -218,6 +252,13 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
       // Update data subject once after all inserts
       this.updateDataSubject();
+
+      // Surface partial-batch failures instead of silently reporting success
+      if (errors.length > 0) {
+        logger.warn(
+          `[SQLiteWASMCollection] ${this.name}: ${errors.length}/${docs.length} batch inserts failed (first: ${errors[0]?.reason})`
+        );
+      }
 
       return { docs: results, errors };
     } catch (error) {
@@ -259,7 +300,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         });
         
         const rows = result as any[];
-        return rows.length > 0 ? this.deserializeDocument(rows[0]) : null;
+        return rows.length > 0 ? this.deserializeRow(rows[0]) : null;
       } catch (error) {
         logger.error(`[SQLiteWASMCollection] FindOne failed in ${this.name}:`, error);
         throw new CollectionError(`FindOne failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
@@ -309,7 +350,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         });
         
         const rows = result as any[];
-        return rows.map(row => this.deserializeDocument(row));
+        return rows.map(row => this.deserializeRow(row));
       } catch (error) {
         logger.error(`[SQLiteWASMCollection] Find failed in ${this.name}:`, error);
         throw new CollectionError(`Find failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
@@ -330,9 +371,12 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         throw new CollectionError(`Document with id ${id} not found`, this.name);
       }
       
-      // Build UPDATE SQL
-      const updateFields = Object.keys(update).filter(key => key !== 'id');
-      const setClause = updateFields.map(field => `${field} = ?`).join(', ');
+      // Build UPDATE SQL (only real table columns — see writableColumns)
+      const updateFields = this.writableColumns(update as Record<string, any>).filter(key => key !== 'id');
+      if (updateFields.length === 0) {
+        return { success: true, modifiedCount: 0, document: existing as T };
+      }
+      const setClause = updateFields.map(field => `${this.quoteIdentifier(field)} = ?`).join(', ');
       const values = updateFields.map(field => this.serializeValue((update as any)[field]));
       
       const sql = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
@@ -540,7 +584,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
     try {
       const indexName = `idx_${this.tableName}_${index.name}`;
-      const fields = index.fields.join(', ');
+      const fields = index.fields.map(field => this.quoteIdentifier(field)).join(', ');
       const unique = index.unique ? 'UNIQUE' : '';
       
       const sql = `CREATE ${unique} INDEX IF NOT EXISTS ${indexName} ON ${this.tableName} (${fields})`;
@@ -642,7 +686,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
   private deserializeDocument(row: any): T {
     const doc: any = {};
-    
+
     for (const [key, value] of Object.entries(row)) {
       if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
         try {
@@ -654,8 +698,55 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         doc[key] = value;
       }
     }
-    
+
     return doc as T;
+  }
+
+  /**
+   * Column names in table order. sqlite-wasm's exec() returns rows as POSITIONAL
+   * arrays (rowMode defaults to 'array'); consumers need named fields, so rows are
+   * zipped against this list. Cached per collection; invalidated on schema change.
+   */
+  private getColumnNames(): string[] {
+    if (this.columnNamesCache) return this.columnNamesCache;
+    try {
+      const info = this.db.exec({
+        sql: `PRAGMA table_info(${this.tableName})`,
+        returnValue: 'resultRows'
+      }) as any[];
+      // PRAGMA table_info row: [cid, name, type, notnull, dflt_value, pk]
+      this.columnNamesCache = info.map((r: any) => String(Array.isArray(r) ? r[1] : r.name ?? r[1]));
+    } catch (error) {
+      logger.warn(`[SQLiteWASMCollection] Failed to read column names for ${this.tableName}:`, error);
+      this.columnNamesCache = [];
+    }
+    return this.columnNamesCache;
+  }
+
+  /**
+   * Convert a raw sqlite-wasm row (positional array, or an object keyed by column
+   * index from older code paths) into a document keyed by real column names, then
+   * deserialize JSON-encoded field values.
+   */
+  private deserializeRow(row: any): T {
+    if (row && typeof row === 'object' && !Array.isArray(row)) {
+      const keys = Object.keys(row);
+      const isPositional = keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
+      if (!isPositional) {
+        return this.deserializeDocument(row);
+      }
+      const cols = this.getColumnNames();
+      const named: any = {};
+      cols.forEach((col, i) => { named[col] = row[String(i)] ?? row[i]; });
+      return this.deserializeDocument(named);
+    }
+    if (Array.isArray(row)) {
+      const cols = this.getColumnNames();
+      const named: any = {};
+      cols.forEach((col, i) => { named[col] = row[i]; });
+      return this.deserializeDocument(named);
+    }
+    return this.deserializeDocument(row);
   }
 
   private buildWhereClause(selector: Record<string, any>): { whereClause: string; whereParams: any[] } {
@@ -663,48 +754,49 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     const params: any[] = [];
     
     for (const [field, value] of Object.entries(selector)) {
+      const quotedField = this.quoteIdentifier(field);
       if (typeof value === 'object' && value !== null) {
         // Handle operators like $gt, $lt, etc.
         for (const [operator, operatorValue] of Object.entries(value)) {
           switch (operator) {
             case '$gt':
-              conditions.push(`${field} > ?`);
+              conditions.push(`${quotedField} > ?`);
               params.push(operatorValue);
               break;
             case '$gte':
-              conditions.push(`${field} >= ?`);
+              conditions.push(`${quotedField} >= ?`);
               params.push(operatorValue);
               break;
             case '$lt':
-              conditions.push(`${field} < ?`);
+              conditions.push(`${quotedField} < ?`);
               params.push(operatorValue);
               break;
             case '$lte':
-              conditions.push(`${field} <= ?`);
+              conditions.push(`${quotedField} <= ?`);
               params.push(operatorValue);
               break;
             case '$ne':
-              conditions.push(`${field} != ?`);
+              conditions.push(`${quotedField} != ?`);
               params.push(operatorValue);
               break;
             case '$in':
               if (Array.isArray(operatorValue)) {
                 const placeholders = operatorValue.map(() => '?').join(', ');
-                conditions.push(`${field} IN (${placeholders})`);
+                conditions.push(`${quotedField} IN (${placeholders})`);
                 params.push(...operatorValue);
               }
               break;
             case '$nin':
               if (Array.isArray(operatorValue)) {
                 const placeholders = operatorValue.map(() => '?').join(', ');
-                conditions.push(`${field} NOT IN (${placeholders})`);
+                conditions.push(`${quotedField} NOT IN (${placeholders})`);
                 params.push(...operatorValue);
               }
               break;
           }
         }
       } else {
-        conditions.push(`${field} = ?`);
+        conditions.push(`${quotedField} = ?`);
         params.push(this.serializeValue(value));
       }
     }
@@ -718,10 +810,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     
     for (const sortItem of sort) {
       if (typeof sortItem === 'string') {
-        orderBy.push(sortItem);
+        orderBy.push(this.quoteIdentifier(sortItem));
       } else if (typeof sortItem === 'object') {
         for (const [field, direction] of Object.entries(sortItem)) {
-          orderBy.push(`${field} ${direction === 'desc' ? 'DESC' : 'ASC'}`);
+          orderBy.push(`${this.quoteIdentifier(field)} ${direction === 'desc' ? 'DESC' : 'ASC'}`);
         }
       }
     }
@@ -918,15 +1010,33 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         throw new Error('Failed to initialize SQLite WASM module');
       }
 
-      // Create database with OPFS storage
+      // Create database with persistent storage.
+      // NOTE: the 'opfs' VFS (OpfsDb) requires Atomics.wait() and therefore only
+      // works inside a Web Worker. On the main thread, OpfsDb does not exist, so
+      // we fall back to the 'opfs-sahpool' VFS, which IS main-thread capable and
+      // still persists to OPFS. A pure in-memory DB is the last resort only.
       const dbPath = `/opfs/${this.config.name}.db`;
       
       try {
         this.db = new this.sqlite3.oo1.OpfsDb(dbPath);
         logger.info(`[SQLiteWASMProvider] Created OPFS database: ${dbPath}`);
       } catch (opfsError) {
-        logger.warn('[SQLiteWASMProvider] OPFS database creation failed, falling back to memory:', opfsError);
-        this.db = new this.sqlite3.oo1.DB();
+        logger.warn(`[SQLiteWASMProvider] 'opfs' VFS unavailable on this thread (${opfsError instanceof Error ? opfsError.message : String(opfsError)}), trying persistent 'opfs-sahpool' VFS...`);
+        
+        if (this.sqlite3?.oo1 && typeof this.sqlite3.oo1.DB !== 'function') {
+          logger.error('[SQLiteWASMProvider] sqlite3.oo1.DB is not available - cannot open any database.');
+          throw new Error('sqlite3.oo1.DB is not available in this environment');
+        }
+
+        try {
+          // 'c' = create if missing / open if existing; persists across reloads.
+          const sahpoolUri = `file:/${this.config.name}.sqlite3?vfs=opfs-sahpool`;
+          this.db = new this.sqlite3.oo1.DB(sahpoolUri, 'c');
+          logger.info(`[SQLiteWASMProvider] Created OPFS (opfs-sahpool) database: ${sahpoolUri}`);
+        } catch (sahpoolError) {
+          logger.error(`[SQLiteWASMProvider] Persistent storage unavailable ('opfs-sahpool' failed: ${sahpoolError instanceof Error ? sahpoolError.message : String(sahpoolError)}). Falling back to IN-MEMORY DATABASE - DATA WILL NOT PERSIST AND ALL USER DATA WILL BE LOST ON RELOAD.`, sahpoolError);
+          this.db = new this.sqlite3.oo1.DB();
+        }
       }
 
       // Configure SQLCipher Encryption if a key is provided

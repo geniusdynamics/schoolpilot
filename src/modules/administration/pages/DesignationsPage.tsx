@@ -4,19 +4,12 @@ import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
-import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, IdentificationIcon } from '@/components/ui/icons';
 import { useDesignationData } from '@/modules/administration/data/useDesignationData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import EntityForm from '@/components/ui/forms/EntityForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { useToast } from '@/hooks/useToast';
-
-type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'updated_at'>;
 
 export const DesignationsContent: React.FC = () => {
   const { designations, loading, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
@@ -24,42 +17,15 @@ export const DesignationsContent: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
-  const initialFormData: DesignationFormData = { title: '' };
-  const [formData, setFormData] = useState<DesignationFormData>(initialFormData);
 
   const openModal = (desig?: Designation) => {
     setEditingDesignation(desig || null);
-    setFormData(desig ? { title: desig.title } : initialFormData);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingDesignation(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const toast = useToast();
-  const handleSubmit = async () => {
-    if (!formData.title) {
-      toast.showWarning(t('validation.designationTitleIsRequired'));
-      return;
-    }
-    const payload = {
-      title: formData.title!,
-    };
-
-    if (editingDesignation) {
-      await updateDesignation({ ...editingDesignation, ...payload });
-    } else {
-      await addDesignation(payload);
-    }
-    closeModal();
   };
 
   const confirm = useConfirm();
@@ -87,7 +53,7 @@ export const DesignationsContent: React.FC = () => {
       render: (value, item) => <span className="font-medium">{value}</span>
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -125,40 +91,32 @@ export const DesignationsContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <IdentificationIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No designations found. Create your first designation to get started.</p>
+              <IdentificationIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No designations found. Create your first designation to get started.</p>
             </div>
           }
         />
       </Card>
 
-      <DialogForm
+      <EntityForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingDesignation ? t('designations.editDesignation') : t('designations.addNewDesignation')}
-        size="lg"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
+        initialData={editingDesignation ? { title: editingDesignation.title } : undefined}
+        fields={[
+          { name: 'title', label: t('designations.designationTitle'), required: true },
+        ]}
+        submitLabel={editingDesignation ? t('designations.saveChanges') : t('designations.addDesignation')}
+        cancelLabel={t('designations.cancel')}
+        onSubmit={async (values) => {
+          const payload = { title: String(values.title ?? '') };
+          if (editingDesignation) {
+            await updateDesignation({ ...editingDesignation, ...payload });
+          } else {
+            await addDesignation(payload);
+          }
         }}
-      >
-        <FormSection>
-          <FormField label={t('designations.designationTitle')} required>
-            <Input
-              name="title"
-              value={formData.title || ''}
-              onChange={handleInputChange}
-              required
-            />
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>{t('designations.cancel')}</Button>
-          <Button type="submit" disabled={loading.designations}>
-            {loading.designations ? <Spinner size="sm"/> : (editingDesignation ? t('designations.saveChanges') : t('designations.addDesignation'))}
-          </Button>
-        </FormActions>
-      </DialogForm>
+      />
     </>
   );
 };

@@ -118,9 +118,9 @@ export function HelpTooltip({ content, className = '', ...props }: HelpTooltipPr
       <button
         type="button"
         className={`
-          inline-flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600
-          rounded-full border border-gray-300 hover:border-gray-400
-          transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500
+          inline-flex items-center justify-center w-4 h-4 text-surface-muted-fg hover:text-surface-muted-fg
+          rounded-full border border-surface-border hover:border-gray-400
+          transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500
           ${className}
         `}
         aria-label="Help"
@@ -150,7 +150,7 @@ export function ValidationTooltip({ rules, examples, ...props }: ValidationToolt
         <ul className="space-y-1">
           {rules.map((rule, index) => (
             <li key={index} className="flex items-start text-xs">
-              <span className="text-blue-400 mr-1">â€¢</span>
+              <span className="text-primary-400 mr-1">â€¢</span>
               {rule}
             </li>
           ))}

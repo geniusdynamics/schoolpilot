@@ -83,7 +83,7 @@ const getDefaultActions = (t: (key: string) => string): QuickAction[] => [
 ];
 
 const colorClasses: Record<string, { bg: string; hover: string; text: string }> = {
-  blue: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600', text: 'text-white' },
+  blue: { bg: 'bg-primary-500', hover: 'hover:bg-primary-600', text: 'text-white' },
   emerald: { bg: 'bg-emerald-500', hover: 'hover:bg-emerald-600', text: 'text-white' },
   amber: { bg: 'bg-amber-500', hover: 'hover:bg-amber-600', text: 'text-white' },
   rose: { bg: 'bg-rose-500', hover: 'hover:bg-rose-600', text: 'text-white' },
@@ -119,7 +119,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       {/* Scroll Left */}
       <button
         onClick={handleScrollLeft}
-        className="flex-shrink-0 w-8 h-10 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
+        className="flex-shrink-0 w-8 h-10 flex items-center justify-center rounded bg-surface-card border border-surface-border text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border transition-colors"
       >
         <ChevronLeftIcon className="w-5 h-5" />
       </button>
@@ -150,7 +150,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       {/* Scroll Right */}
       <button
         onClick={handleScrollRight}
-        className="flex-shrink-0 w-8 h-10 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
+        className="flex-shrink-0 w-8 h-10 flex items-center justify-center rounded bg-surface-card border border-surface-border text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border transition-colors"
       >
         <ChevronRightIcon className="w-5 h-5" />
       </button>

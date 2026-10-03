@@ -11,6 +11,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ShoppingCartIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { PurchaseOrderStatus } from '@/core/types';
 import type { PurchaseOrder, PurchaseOrderItem } from '@/core/types';
 
@@ -29,6 +30,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
     updatePurchaseOrder, 
     deletePurchaseOrder 
   } = useAppData(); // Updated
+  const confirm = useConfirm();
   
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -169,14 +171,14 @@ export const PurchaseOrdersPageContent: React.FC = () => {
   };
   
   const handleDeletePO = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this purchase order?')) {
+    if (await confirm({ title: 'Delete purchase order', message: 'Are you sure you want to delete this purchase order?', variant: 'danger' })) {
       await deletePurchaseOrder(id);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
       if (!currentPOForItems) return;
-      if (window.confirm('Are you sure you want to delete this item from the purchase order?')) {
+      if (await confirm({ title: 'Remove item', message: 'Are you sure you want to delete this item from the purchase order?', variant: 'danger' })) {
           const updatedItems = (currentPOForItems.items || []).filter(i => i.id !== itemId);
           await updatePurchaseOrder(currentPOForItems, updatedItems);
           const updatedPO = purchaseOrders.find(r => r.id === currentPOForItems.id);
@@ -211,9 +213,9 @@ export const PurchaseOrdersPageContent: React.FC = () => {
       key: 'status', 
       header: 'Status', 
       render: (value: any, item: PurchaseOrder) => {
-        let colorClass = 'bg-gray-200 text-gray-800';
+        let colorClass = 'bg-gray-200 text-surface-foreground';
         if (item.status === PurchaseOrderStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
-        else if (item.status === PurchaseOrderStatus.APPROVED || item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === PurchaseOrderStatus.APPROVED || item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER) colorClass = 'bg-primary-100 text-primary-800';
         else if (item.status === PurchaseOrderStatus.FULLY_RECEIVED || item.status === PurchaseOrderStatus.PARTIALLY_RECEIVED) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === PurchaseOrderStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
@@ -322,7 +324,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ShoppingCartIcon className="w-8 h-8 text-gray-400" />,
+            icon: <ShoppingCartIcon className="w-8 h-8 text-surface-muted-fg" />,
             title: "No purchase orders found",
             description: "Get started by creating your first purchase order."
           }}
@@ -333,8 +335,8 @@ export const PurchaseOrdersPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closePOModal}>Cancel</Button>
-            <Button onClick={handlePOSubmit} disabled={loading.purchaseOrders}>
-              {loading.purchaseOrders ? <Spinner size="sm"/> : (editingPO ? 'Save Changes' : 'Add Purchase Order')}
+            <Button onClick={handlePOSubmit} loading={loading.purchaseOrders}>
+              {editingPO ? 'Save Changes' : 'Add Purchase Order'}
             </Button>
           </>
         }
@@ -371,20 +373,20 @@ export const PurchaseOrdersPageContent: React.FC = () => {
                 <Input name="unit_price" label="Unit Price (KES)" type="number" step="0.01" value={itemFormData.unit_price ?? ''} onChange={handleItemInputChange} required/>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" disabled={loading.purchaseOrders}>
-                  {loading.purchaseOrders ? <Spinner size="sm"/> : (editingPOItem ? 'Update Item' : 'Add Item')}
+                <Button onClick={handleItemSubmit} size="sm" loading={loading.purchaseOrders}>
+                  {editingPOItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Purchase Order</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Items in this Purchase Order</h4>
             <DataGrid 
               columns={poItemColumns} 
               data={currentPOForItems.items || []} 
               sortable
               filterable
               emptyState={{
-                icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
+                icon: <ListBulletIcon className="w-8 h-8 text-surface-muted-fg" />,
                 title: "No items added",
                 description: "No items added to this purchase order yet."
               }}

@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
+import Select from '@/components/ui/Select';
 import { PencilIcon, PlusIcon, TrashIcon, CubeIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -103,12 +104,12 @@ export const StationeryPageContent: React.FC = () => {
 
   const getCategoryBadge = (category: StationeryCategory) => {
     const styles = {
-      'Paper': 'bg-blue-100 text-blue-800',
+      'Paper': 'bg-primary-100 text-primary-800',
       'Pens': 'bg-green-100 text-green-800',
       'Notebooks': 'bg-yellow-100 text-yellow-800',
       'Files': 'bg-purple-100 text-purple-800',
       'Art Supplies': 'bg-pink-100 text-pink-800',
-      'Office Supplies': 'bg-gray-100 text-gray-800',
+      'Office Supplies': 'bg-surface-accent text-surface-foreground',
       'Other': 'bg-orange-100 text-orange-800'
     };
     return (
@@ -121,7 +122,7 @@ export const StationeryPageContent: React.FC = () => {
   const getStatusBadge = (status: AllocationStatus) => {
     const styles = {
       'Available': 'bg-green-100 text-green-800',
-      'Allocated': 'bg-blue-100 text-blue-800',
+      'Allocated': 'bg-primary-100 text-primary-800',
       'Low Stock': 'bg-yellow-100 text-yellow-800',
       'Out of Stock': 'bg-red-100 text-red-800'
     };
@@ -157,7 +158,7 @@ export const StationeryPageContent: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Stationery Supply Management</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Stationery Supply Management</h1>
         <Button onClick={() => openModal()} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Item
@@ -179,17 +180,17 @@ export const StationeryPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CubeIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Items</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CubeIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Available</span>
             </div>
@@ -197,8 +198,8 @@ export const StationeryPageContent: React.FC = () => {
               {totals.available}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CubeIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Low Stock</span>
             </div>
@@ -206,8 +207,8 @@ export const StationeryPageContent: React.FC = () => {
               {totals.lowStock}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CubeIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Out of Stock</span>
             </div>
@@ -220,39 +221,39 @@ export const StationeryPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Category</label>
+            <Select
               value={selectedCategory}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedCategory(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Categories</option>
               {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
+            <Select
               value={selectedStatus}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Statuses</option>
               {statuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Item, description, department..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -284,7 +285,7 @@ export const StationeryPageContent: React.FC = () => {
               render: (value, record) => (
                 <div>
                   <span className="font-semibold">{value} {record.unit}</span>
-                  <p className="text-xs text-gray-500">Min: {record.min_stock_level}</p>
+                  <p className="text-xs text-surface-muted-fg">Min: {record.min_stock_level}</p>
                 </div>
               )
             },
@@ -345,21 +346,21 @@ export const StationeryPageContent: React.FC = () => {
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Item name"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Category" required>
-            <select
+            <Select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Description">
@@ -369,7 +370,7 @@ export const StationeryPageContent: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Item description"
               rows={2}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -380,7 +381,7 @@ export const StationeryPageContent: React.FC = () => {
               value={formData.unit}
               onChange={handleInputChange}
               placeholder="e.g., Pieces, Packs, Reams"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -391,7 +392,7 @@ export const StationeryPageContent: React.FC = () => {
               value={formData.quantity}
               onChange={handleInputChange}
               placeholder="Current quantity"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -402,22 +403,22 @@ export const StationeryPageContent: React.FC = () => {
               value={formData.min_stock_level}
               onChange={handleInputChange}
               placeholder="Alert when below this level"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Department">
-            <select
+            <Select
               name="department"
               value={formData.department}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select Department</option>
               {departments.map(dept => (
                 <option key={dept} value={dept}>{dept}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Allocated To">
@@ -427,7 +428,7 @@ export const StationeryPageContent: React.FC = () => {
               value={formData.allocated_to}
               onChange={handleInputChange}
               placeholder="Who is this allocated to"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>

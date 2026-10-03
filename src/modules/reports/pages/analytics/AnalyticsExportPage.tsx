@@ -82,7 +82,7 @@ const AnalyticsExportPage: React.FC = () => {
       key: 'teacher-records',
       label: 'Teacher Records',
       value: (teacherAnalytics || []).length,
-      icon: <AcademicCapIcon className="h-6 w-6 text-blue-700" />,
+      icon: <AcademicCapIcon className="h-6 w-6 text-primary-700" />,
     },
     {
       key: 'subject-records',
@@ -142,7 +142,8 @@ const AnalyticsExportPage: React.FC = () => {
   const previewData = useMemo(() => {
     switch (config.dataType) {
       case 'teachers':
-        return (teacherAnalytics || []).map((ta) => ({
+        return (teacherAnalytics || []).map((ta, index) => ({
+          id: `teacher-${index}`,
           Teacher: ta.teacherName,
           Subject: ta.subjectName || 'N/A',
           Classes: (ta.classPerformance || []).length,
@@ -152,7 +153,8 @@ const AnalyticsExportPage: React.FC = () => {
           Attendance: `${Math.round(ta.attendanceRate || 0)}%`,
         }));
       case 'subjects':
-        return (subjectPassRates || []).map((sp) => ({
+        return (subjectPassRates || []).map((sp, index) => ({
+          id: `subject-${index}`,
           Subject: sp.subjectName,
           Students: sp.studentCount,
           Exams: sp.examCount,
@@ -163,7 +165,8 @@ const AnalyticsExportPage: React.FC = () => {
           Trend: sp.trend,
         }));
       case 'classes':
-        return (classPerformances || []).map((cp) => ({
+        return (classPerformances || []).map((cp, index) => ({
+          id: `class-${index}`,
           Class: cp.className,
           Stream: cp.streamName || 'N/A',
           Students: cp.studentCount,
@@ -174,9 +177,9 @@ const AnalyticsExportPage: React.FC = () => {
         }));
       case 'trends':
         return [
-          { Metric: 'Pass Rate', 'Current Value': '72%', 'Previous': '68%', Change: '+4%', Status: 'Improving' },
-          { Metric: 'Average Score', 'Current Value': '65%', 'Previous': '67%', Change: '-2%', Status: 'Declining' },
-          { Metric: 'Attendance', 'Current Value': '89%', 'Previous': '87%', Change: '+2%', Status: 'Improving' },
+          { id: 'pass-rate', Metric: 'Pass Rate', 'Current Value': '72%', 'Previous': '68%', Change: '+4%', Status: 'Improving' },
+          { id: 'average-score', Metric: 'Average Score', 'Current Value': '65%', 'Previous': '67%', Change: '-2%', Status: 'Declining' },
+          { id: 'attendance', Metric: 'Attendance', 'Current Value': '89%', 'Previous': '87%', Change: '+2%', Status: 'Improving' },
         ];
       default:
         return [];
@@ -186,7 +189,7 @@ const AnalyticsExportPage: React.FC = () => {
   // Preview columns (dynamic based on data type)
   const previewColumns: DataGridColumn<Record<string, string>>[] = useMemo(() => {
     if (previewData.length === 0) return [];
-    const keys = Object.keys(previewData[0]);
+    const keys = Object.keys(previewData[0]).filter((key) => key !== 'id');
     return keys.map((key) => ({
       key,
       header: key,
@@ -200,9 +203,9 @@ const AnalyticsExportPage: React.FC = () => {
           return <span className="text-rose-600 font-medium text-sm">{value}</span>;
         }
         if (value === 'stable' || value === 'Stable') {
-          return <span className="text-gray-600 font-medium text-sm">{value}</span>;
+          return <span className="text-surface-muted-fg font-medium text-sm">{value}</span>;
         }
-        return <span className="text-sm text-gray-900">{value}</span>;
+        return <span className="text-sm text-surface-foreground">{value}</span>;
       },
     }));
   }, [previewData]);
@@ -243,8 +246,8 @@ const AnalyticsExportPage: React.FC = () => {
       sortable: true,
       render: (value: string) => (
         <div className="flex items-center gap-2">
-          <DocumentReportIcon className="h-4 w-4 text-blue-600" />
-          <span className="text-sm text-gray-900">{value}</span>
+          <DocumentReportIcon className="h-4 w-4 text-primary-600" />
+          <span className="text-sm text-surface-foreground">{value}</span>
         </div>
       ),
     },
@@ -273,7 +276,7 @@ const AnalyticsExportPage: React.FC = () => {
       sortable: true,
       align: 'center',
       render: (value: string | undefined) => (
-        <span className="text-sm text-gray-500">{value || '-'}</span>
+        <span className="text-sm text-surface-muted-fg">{value || '-'}</span>
       ),
     },
   ];
@@ -294,12 +297,12 @@ const AnalyticsExportPage: React.FC = () => {
       metrics={metrics}
     >
       {/* Export Configuration Form */}
-      <Card title="Export Configuration" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Export Configuration" className="border-slate-200 bg-surface-card shadow-sm">
         <div className="space-y-6">
           {/* Data Type and Format */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('export.reportType')}
               </label>
               <Select
@@ -309,7 +312,7 @@ const AnalyticsExportPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('export.format')}
               </label>
               <div className="flex gap-2">
@@ -328,24 +331,24 @@ const AnalyticsExportPage: React.FC = () => {
 
           {/* Date Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-2">Date Range</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">From</label>
+                <label className="block text-xs text-surface-muted-fg mb-1">From</label>
                 <input
                   type="date"
                   value={config.dateFrom}
                   onChange={(e) => setConfig((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-surface-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">To</label>
+                <label className="block text-xs text-surface-muted-fg mb-1">To</label>
                 <input
                   type="date"
                   value={config.dateTo}
                   onChange={(e) => setConfig((prev) => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-surface-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -353,10 +356,10 @@ const AnalyticsExportPage: React.FC = () => {
 
           {/* Filters */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filters</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-2">Filters</label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Subject</label>
+                <label className="block text-xs text-surface-muted-fg mb-1">Subject</label>
                 <Select
                   value={config.subjectFilter}
                   onChange={(val) => setConfig((prev) => ({ ...prev, subjectFilter: val as string }))}
@@ -364,7 +367,7 @@ const AnalyticsExportPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Class</label>
+                <label className="block text-xs text-surface-muted-fg mb-1">Class</label>
                 <Select
                   value={config.classFilter}
                   onChange={(val) => setConfig((prev) => ({ ...prev, classFilter: val as string }))}
@@ -372,7 +375,7 @@ const AnalyticsExportPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Teacher</label>
+                <label className="block text-xs text-surface-muted-fg mb-1">Teacher</label>
                 <Select
                   value={config.teacherFilter}
                   onChange={(val) => setConfig((prev) => ({ ...prev, teacherFilter: val as string }))}
@@ -384,7 +387,7 @@ const AnalyticsExportPage: React.FC = () => {
 
           {/* Quick Date Range Buttons */}
           <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-gray-500 self-center mr-2">Quick Range:</span>
+            <span className="text-sm text-surface-muted-fg self-center mr-2">Quick Range:</span>
             {[
               { label: 'Last 7 Days', days: 7 },
               { label: 'Last 30 Days', days: 30 },
@@ -418,13 +421,13 @@ const AnalyticsExportPage: React.FC = () => {
       {/* Preview Table */}
       <Card
         title={`Preview: ${dataTypeOptions.find((o) => o.value === config.dataType)?.label || ''}`}
-        className="border-slate-200 bg-white shadow-sm"
+        className="border-slate-200 bg-surface-card shadow-sm"
       >
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-surface-muted-fg">
             Showing {previewData.length} record{previewData.length !== 1 ? 's' : ''} that will be exported
           </p>
-          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+          <span className="text-xs text-surface-muted-fg bg-surface-accent px-2 py-1 rounded">
             Format: {config.format?.toUpperCase() ?? ''}
           </span>
         </div>
@@ -438,11 +441,11 @@ const AnalyticsExportPage: React.FC = () => {
       </Card>
 
       {/* Export Action */}
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Ready to Export</h3>
-            <p className="text-xs text-gray-500 mt-1">
+            <h3 className="text-sm font-semibold text-surface-foreground">Ready to Export</h3>
+            <p className="text-xs text-surface-muted-fg mt-1">
               {previewData.length} records will be exported as {config.format?.toUpperCase() ?? ''}
             </p>
           </div>
@@ -466,7 +469,7 @@ const AnalyticsExportPage: React.FC = () => {
       </Card>
 
       {/* Recent Exports History */}
-      <Card title="Recent Exports" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Recent Exports" className="border-slate-200 bg-surface-card shadow-sm">
         <DataGrid
           columns={historyColumns}
           data={recentExports}

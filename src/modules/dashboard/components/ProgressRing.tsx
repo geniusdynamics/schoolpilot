@@ -17,7 +17,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   progress,
   size = 120,
   strokeWidth = 8,
-  color = '#3b82f6',
+  color = '#6366f1',
   bgColor = '#e5e7eb',
   label,
   sublabel,
@@ -31,7 +31,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
 
   const getColor = (value: number) => {
     if (value >= 80) return '#10b981'; // emerald-500
-    if (value >= 60) return '#3b82f6'; // blue-500
+    if (value >= 60) return '#6366f1'; // primary-500
     if (value >= 40) return '#f59e0b'; // amber-500
     return '#ef4444'; // red-500
   };
@@ -74,18 +74,18 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {showPercentage && (
-            <span className="text-2xl font-bold text-gray-900">
+            <span className="text-2xl font-bold text-surface-foreground">
               {Math.round(progress)}%
             </span>
           )}
           {label && (
-            <span className="text-xs text-gray-500 mt-0.5">{label}</span>
+            <span className="text-xs text-surface-muted-fg mt-0.5">{label}</span>
           )}
         </div>
       </div>
       
       {sublabel && (
-        <p className="mt-2 text-sm text-gray-600 text-center">{sublabel}</p>
+        <p className="mt-2 text-sm text-surface-muted-fg text-center">{sublabel}</p>
       )}
     </div>
   );

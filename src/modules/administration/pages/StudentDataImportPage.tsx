@@ -499,15 +499,15 @@ const StudentDataImportPage: React.FC = () => {
       filterable: true,
       render: (value, item) => {
         const statusColors: Record<string, string> = {
-          Pending: 'bg-gray-100 text-gray-800',
+          Pending: 'bg-surface-accent text-surface-foreground',
           Validating: 'bg-yellow-100 text-yellow-800',
-          Importing: 'bg-blue-100 text-blue-800',
+          Importing: 'bg-primary-100 text-primary-800',
           Completed: 'bg-green-100 text-green-800',
           Failed: 'bg-red-100 text-red-800',
           Partial: 'bg-orange-100 text-orange-800'
         };
         return (
-          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[item.status] || 'bg-gray-100 text-gray-800'}`}>
+          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[item.status] || 'bg-surface-accent text-surface-foreground'}`}>
             {item.status}
           </span>
         );
@@ -582,13 +582,13 @@ const StudentDataImportPage: React.FC = () => {
                 <div key={step} className="flex items-center">
                   <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
                     isCompleted ? 'bg-green-500 text-white' :
-                    isActive ? 'bg-blue-500 text-white' :
-                    'bg-gray-200 text-gray-600'
+                    isActive ? 'bg-primary-500 text-white' :
+                    'bg-gray-200 text-surface-muted-fg'
                   }`}>
                     {isCompleted ? <CheckCircleIcon className="w-5 h-5" /> : index + 1}
                   </div>
                   <span className={`ml-2 text-sm font-medium ${
-                    isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                    isActive ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-surface-muted-fg'
                   }`}>
                     {t(`studentImport.steps.${stepNames[index].toLowerCase()}`)}
                   </span>
@@ -612,17 +612,17 @@ const StudentDataImportPage: React.FC = () => {
                 onDragLeave={handleDragLeave}
                 className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
                   isDragOver 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-primary-500 bg-primary-50' 
+                    : 'border-surface-border hover:border-gray-400'
                 }`}
                 onClick={() => document.getElementById('file-input')?.click()}
               >
-                <UploadIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                <UploadIcon className="w-16 h-16 mx-auto mb-4 text-surface-muted-fg" />
                 <p className="text-lg font-medium mb-2">
                   {isDragOver ? 'Drop your file here' : 'Drag & drop your CSV file here'}
                 </p>
-                <p className="text-sm text-gray-500 mb-4">or click to browse files</p>
-                <p className="text-xs text-gray-400">Supported formats: CSV (Excel coming soon)</p>
+                <p className="text-sm text-surface-muted-fg mb-4">or click to browse files</p>
+                <p className="text-xs text-surface-muted-fg">Supported formats: CSV (Excel coming soon)</p>
                 <input
                   id="file-input"
                   type="file"
@@ -653,7 +653,7 @@ const StudentDataImportPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">Preview Import Data</h3>
-              <p className="text-sm text-gray-500">{uploadedFile?.name}</p>
+              <p className="text-sm text-surface-muted-fg">{uploadedFile?.name}</p>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="secondary" onClick={handleReset}>
@@ -671,9 +671,9 @@ const StudentDataImportPage: React.FC = () => {
 
           {/* Validation Summary */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="text-2xl font-bold text-blue-700">{validationStats.total}</div>
-              <div className="text-sm text-blue-600">Total Records</div>
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+              <div className="text-2xl font-bold text-primary-700">{validationStats.total}</div>
+              <div className="text-sm text-primary-600">Total Records</div>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-700">{validationStats.valid}</div>
@@ -697,8 +697,8 @@ const StudentDataImportPage: React.FC = () => {
             filterable={true}
             emptyState={
               <div className="text-center py-8">
-                <ExclamationCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No records to preview.</p>
+                <ExclamationCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+                <p className="text-surface-muted-fg">No records to preview.</p>
               </div>
             }
           />
@@ -717,7 +717,7 @@ const StudentDataImportPage: React.FC = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
-                  className="bg-blue-500 h-3 rounded-full transition-all duration-300"
+                  className="bg-primary-500 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
                 />
               </div>
@@ -733,15 +733,15 @@ const StudentDataImportPage: React.FC = () => {
                 <div className="text-2xl font-bold text-red-700">{importProgress.failed}</div>
                 <div className="text-sm text-red-600">Failed</div>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-700">
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                <div className="text-2xl font-bold text-primary-700">
                   {importProgress.total - importProgress.current}
                 </div>
-                <div className="text-sm text-blue-600">Remaining</div>
+                <div className="text-sm text-primary-600">Remaining</div>
               </div>
             </div>
 
-            <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-surface-muted-fg">
               Please do not close this window while importing...
             </div>
           </div>
@@ -754,7 +754,7 @@ const StudentDataImportPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">Import Results</h3>
-              <p className="text-sm text-gray-500">{activeSession.filename}</p>
+              <p className="text-sm text-surface-muted-fg">{activeSession.filename}</p>
             </div>
             <Button onClick={handleReset} leftIcon={<UploadIcon className="w-5 h-5" />}>
               New Import
@@ -763,9 +763,9 @@ const StudentDataImportPage: React.FC = () => {
 
           {/* Results Summary */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="text-2xl font-bold text-blue-700">{activeSession.total_records}</div>
-              <div className="text-sm text-blue-600">Total Records</div>
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+              <div className="text-2xl font-bold text-primary-700">{activeSession.total_records}</div>
+              <div className="text-sm text-primary-600">Total Records</div>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-700">{activeSession.imported_records}</div>
@@ -793,8 +793,8 @@ const StudentDataImportPage: React.FC = () => {
             filterable={true}
             emptyState={
               <div className="text-center py-8">
-                <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No records found for this session.</p>
+                <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+                <p className="text-surface-muted-fg">No records found for this session.</p>
               </div>
             }
           />

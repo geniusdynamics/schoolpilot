@@ -193,7 +193,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       width: 140,
       sticky: 'left',
       render: (value) => (
-        <span className="font-mono font-medium text-gray-900">
+        <span className="font-mono font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -205,7 +205,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value) => (
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -216,7 +216,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       sortable: true,
       width: 120,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {formatDate(value)}
         </span>
       )
@@ -227,7 +227,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       sortable: true,
       width: 120,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {value ? formatDate(value) : '-'}
         </span>
       )
@@ -254,7 +254,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
           value === CustomerInvoiceStatus.PAID ? 'bg-green-100 text-green-800' :
           value === CustomerInvoiceStatus.DUE ? 'bg-yellow-100 text-yellow-800' :
           value === CustomerInvoiceStatus.VOIDED ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-surface-accent text-surface-foreground'
         }`}>
           {value}
         </span>
@@ -303,7 +303,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       filterable: true,
       width: 300,
       render: (value) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-sm text-surface-foreground">
           {value}
         </span>
       )
@@ -326,7 +326,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {value}
         </span>
       )
@@ -375,7 +375,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
           New Customer Invoice
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage invoices for services provided to external customers.
         </p>
         <DataGrid 
@@ -385,7 +385,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ReceiptRefundIcon className="w-12 h-12 text-gray-400" />,
+            icon: <ReceiptRefundIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Customer Invoices Found",
             description: "Get started by creating your first customer invoice for external services.",
             action: (
@@ -404,8 +404,8 @@ export const CustomerInvoicesPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeInvoiceModal}>Cancel</Button>
-            <Button onClick={handleInvoiceSubmit} disabled={loading.customerInvoices}>
-              {loading.customerInvoices ? <Spinner size="sm"/> : (editingInvoice ? 'Save Changes' : 'Add Invoice')}
+            <Button onClick={handleInvoiceSubmit} loading={loading.customerInvoices}>
+              {editingInvoice ? 'Save Changes' : 'Add Invoice'}
             </Button>
           </>
         }
@@ -443,13 +443,13 @@ export const CustomerInvoicesPageContent: React.FC = () => {
                 </Select>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" disabled={loading.customerInvoices}>
-                  {loading.customerInvoices ? <Spinner size="sm"/> : (editingInvoiceItem ? 'Update Item' : 'Add Item')}
+                <Button onClick={handleItemSubmit} size="sm" loading={loading.customerInvoices}>
+                  {editingInvoiceItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Invoice</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Items in this Invoice</h4>
             <DataGrid 
               columns={itemColumns} 
               data={currentInvoiceForItems.items || []} 
@@ -457,7 +457,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
               sortable
               filterable
               emptyState={{
-                icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
+                icon: <ListBulletIcon className="w-8 h-8 text-surface-muted-fg" />,
                 title: "No Items Added",
                 description: "No items have been added to this invoice yet. Add items using the form above.",
                 action: null

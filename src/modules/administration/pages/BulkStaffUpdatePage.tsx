@@ -8,7 +8,6 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, ArrowPathIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
@@ -25,8 +24,7 @@ interface StaffRecord {
 }
 
 export const BulkStaffUpdateContent: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { staff, loading } = useAppData();
+  const { staff, loading, updateStaffMember } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -34,100 +32,37 @@ export const BulkStaffUpdateContent: React.FC = () => {
   const [selectedStaff, setSelectedStaff] = useState<Set<string>>(new Set());
   const [updateField, setUpdateField] = useState('');
   const [updateValue, setUpdateValue] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Mock data for staff records (in production, this would come from useAppData)
-  const mockStaff: StaffRecord[] = useMemo(() => {
-    const staff: StaffRecord[] = [
-      {
-        id: 'bsu-1',
-        staff_id: '1',
-        staff_name: 'Dr. Sarah Johnson',
-        employee_id: 'EMP-001',
-        department: 'Academic',
-        designation: 'Principal',
-        phone: '+1234567890',
-        email: 'sarah.johnson@school.edu',
-        address: '123 Education Lane'
-      },
-      {
-        id: 'bsu-2',
-        staff_id: '2',
-        staff_name: 'Prof. Michael Chen',
-        employee_id: 'EMP-002',
-        department: 'Academic',
-        designation: 'Vice Principal',
-        phone: '+1234567891',
-        email: 'michael.chen@school.edu',
-        address: '456 Academic Road'
-      },
-      {
-        id: 'bsu-3',
-        staff_id: '3',
-        staff_name: 'Ms. Emily Davis',
-        employee_id: 'EMP-003',
-        department: 'Academic',
-        designation: 'Math Teacher',
-        phone: '+1234567892',
-        email: 'emily.davis@school.edu',
-        address: '789 Teacher Street'
-      },
-      {
-        id: 'bsu-4',
-        staff_id: '4',
-        staff_name: 'Mr. Robert Wilson',
-        employee_id: 'EMP-004',
-        department: 'Administration',
-        designation: 'Accountant',
-        phone: '+1234567893',
-        email: 'robert.wilson@school.edu',
-        address: '321 Finance Avenue'
-      },
-      {
-        id: 'bsu-5',
-        staff_id: '5',
-        staff_name: 'Mrs. Lisa Anderson',
-        employee_id: 'EMP-005',
-        department: 'Administration',
-        designation: 'HR Manager',
-        phone: '+1234567894',
-        email: 'lisa.anderson@school.edu',
-        address: '654 HR Boulevard'
-      }
-    ];
-
-    let filtered = staff;
+  // Live staff records from the database
+  const staffRows: StaffRecord[] = useMemo(() => {
+    let rows: StaffRecord[] = (staff || [])
+      .filter(s => !s.deleted_at)
+      .map(s => ({
+        id: String(s.id),
+        staff_id: String(s.id),
+        staff_name: s.display_name || `${s.first_name} ${s.last_name}`.trim(),
+        employee_id: s.staff_no,
+        department: s.department_name || '',
+        designation: s.designation_title || '',
+        phone: s.phone || '',
+        email: s.email || '',
+        address: ''
+      }));
 
     if (selectedDepartment) {
-      filtered = filtered.filter(s => s.department === selectedDepartment);
+      rows = rows.filter(s => s.department === selectedDepartment);
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(s => 
+      rows = rows.filter(s =>
         (s.staff_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         (s.employee_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
-    return filtered;
-  }, [selectedDepartment, searchTerm]);
-
-  const handleSelectStaff = (staffId: string) => {
-    const newSelection = new Set(selectedStaff);
-    if (newSelection.has(staffId)) {
-      newSelection.delete(staffId);
-    } else {
-      newSelection.add(staffId);
-    }
-    setSelectedStaff(newSelection);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedStaff.size === mockStaff.length) {
-      setSelectedStaff(new Set());
-    } else {
-      setSelectedStaff(new Set(mockStaff.map(s => s.id)));
-    }
-  };
+    return rows;
+  }, [staff, selectedDepartment, searchTerm]);
 
   const toast = useToast();
   const openUpdateModal = () => {
@@ -144,41 +79,57 @@ export const BulkStaffUpdateContent: React.FC = () => {
     setUpdateValue('');
   };
 
-  const handleBulkUpdate = () => {
-    const staffToUpdate = selectedStaff.size > 0 
-      ? Array.from(selectedStaff) 
-      : mockStaff.filter(s => s.department === selectedDepartment).map(s => s.id);
-    
+  // Maps grid fields onto real staff entity fields persisted via updateStaffMember
+  const resolveStaffPatch = (field: string, value: string): Record<string, unknown> => {
+    switch (field) {
+      case 'department':
+        return { department_name: value };
+      case 'designation':
+        return { designation_title: value };
+      case 'phone':
+        return { phone: value };
+      case 'email':
+        return { email: value };
+      case 'address':
+        return {};
+      default:
+        return {};
+    }
+  };
+
+  const handleBulkUpdate = async () => {
+    const staffToUpdate = selectedStaff.size > 0
+      ? Array.from(selectedStaff)
+      : staffRows.filter(s => s.department === selectedDepartment).map(s => s.id);
+
+    if (!updateField || !updateValue || staffToUpdate.length === 0) {
+      toast.showWarning('Please select a field and enter a value.');
+      return;
+    }
+
+    setIsUpdating(true);
     logger.info('Bulk updating staff:', {
       field: updateField,
       value: updateValue,
       staffIds: staffToUpdate
     });
-    closeModal();
-    setSelectedStaff(new Set());
+    try {
+      const patch = resolveStaffPatch(updateField, updateValue);
+      for (const staffId of staffToUpdate) {
+        await updateStaffMember(String(staffId), patch);
+      }
+      toast.showSuccess(`Updated ${staffToUpdate.length} staff member(s).`);
+      closeModal();
+      setSelectedStaff(new Set());
+    } catch (err) {
+      logger.error('Failed to bulk update staff:', err);
+      toast.showError('Failed to update staff records.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const columns: DataGridColumn<StaffRecord>[] = [
-    {
-      key: 'select',
-      header: (
-        <input
-          type="checkbox"
-          checked={selectedStaff.size === mockStaff.length && mockStaff.length > 0}
-          onChange={handleSelectAll}
-          className="w-4 h-4"
-        />
-      ),
-      sortable: false,
-      render: (_, record) => (
-        <input
-          type="checkbox"
-          checked={selectedStaff.has(record.id)}
-          onChange={() => handleSelectStaff(record.id)}
-          className="w-4 h-4"
-        />
-      )
-    },
     {
       key: 'staff_name',
       header: 'Staff Name',
@@ -218,20 +169,20 @@ export const BulkStaffUpdateContent: React.FC = () => {
   ];
 
   const uniqueDepartments = useMemo(() => {
-    const depts = [...new Set(mockStaff.map(s => s.department))];
-    return depts;
-  }, [mockStaff]);
+    const depts = [...new Set(staffRows.map(s => s.department))];
+    return depts.filter(Boolean);
+  }, [staffRows]);
 
   const updateFields = ['department', 'designation', 'phone', 'email', 'address'];
 
   const totals = useMemo(() => {
     return {
-      total: mockStaff.length,
+      total: staffRows.length,
       selected: selectedStaff.size
     };
-  }, [mockStaff, selectedStaff]);
+  }, [staffRows, selectedStaff]);
 
-  if (loading?.all && mockStaff.length === 0) {
+  if (loading?.all && staffRows.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -243,7 +194,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Bulk Staff Update</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Bulk Staff Update</h1>
         <Button onClick={openUpdateModal} variant="primary">
           <ArrowPathIcon className="w-4 h-4 mr-2" />
           Bulk Update
@@ -256,7 +207,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
             <div>
               <h3 className="font-semibold text-orange-800">Multi-Field Batch Update for Staff Records</h3>
               <p className="text-sm text-orange-700 mt-1">
-                Update multiple staff records at once. Select a department or specific staff members, 
+                Update multiple staff records at once. Select a department or specific staff members,
                 then choose the field to update and apply the new value.
               </p>
             </div>
@@ -264,8 +215,8 @@ export const BulkStaffUpdateContent: React.FC = () => {
         </div>
 
         {/* Summary Card */}
-        <div className="mb-6 bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-gray-600">
+        <div className="mb-6 bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="flex items-center gap-2 text-surface-muted-fg">
             <UserIcon className="w-5 h-5" />
             <span className="text-sm font-medium">Selected: {totals.selected} / {totals.total}</span>
           </div>
@@ -274,11 +225,11 @@ export const BulkStaffUpdateContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Department</label>
             <select
               value={selectedDepartment}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDepartment(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Departments</option>
               {uniqueDepartments.map(dept => (
@@ -287,20 +238,24 @@ export const BulkStaffUpdateContent: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Staff, employee ID..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockStaff}
+          data={staffRows}
           columns={columns}
+          selectable={true}
+          onSelectionChange={(selected: StaffRecord[]) =>
+            setSelectedStaff(new Set(selected.map(row => row.id)))
+          }
         />
       </Card>
 
@@ -313,7 +268,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
         <FormSection>
           <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
             <p className="text-sm text-orange-800">
-              {selectedStaff.size > 0 
+              {selectedStaff.size > 0
                 ? `Updating ${selectedStaff.size} selected staff member(s).`
                 : `Updating all staff in ${selectedDepartment || 'selected department'}.`
               }
@@ -324,7 +279,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
             <select
               value={updateField}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setUpdateField(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">Select field</option>
               {updateFields.map(field => (
@@ -339,7 +294,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
               value={updateValue}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUpdateValue(e.target.value)}
               placeholder="Enter new value"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>
@@ -348,8 +303,8 @@ export const BulkStaffUpdateContent: React.FC = () => {
           <Button onClick={closeModal} variant="secondary">
             Cancel
           </Button>
-          <Button onClick={handleBulkUpdate} variant="primary">
-            Update Records
+          <Button onClick={() => void handleBulkUpdate()} variant="primary" disabled={isUpdating}>
+            {isUpdating ? 'Updating...' : 'Update Records'}
           </Button>
         </div>
       </DialogForm>
@@ -364,4 +319,3 @@ const BulkStaffUpdatePage: React.FC = () => (
 );
 
 export default BulkStaffUpdatePage;
-

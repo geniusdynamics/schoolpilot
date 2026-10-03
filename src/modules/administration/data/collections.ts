@@ -45,6 +45,15 @@ export const administrationCollections = {
   application_approvals: {
     schema: schemas.applicationApprovalSchema,
   },
+  application_notes: {
+    schema: schemas.applicationNoteSchema,
+  },
+  admission_enrollments: {
+    schema: schemas.admissionEnrollmentSchema,
+  },
+  application_form_templates: {
+    schema: schemas.applicationFormTemplateSchema,
+  },
   sms_campaigns: {
     schema: schemas.smsCampaignSchema,
   },
@@ -84,6 +93,42 @@ export const administrationCollections = {
   // === VISITORS MANAGEMENT COLLECTIONS ===
   visitor_logs: {
     schema: schemas.visitorLogSchema,
+  },
+
+  // === ADMINISTRATION OPERATIONS COLLECTIONS ===
+  gate_passes: {
+    schema: schemas.gatePassSchema,
+  },
+  scholarships: {
+    schema: schemas.scholarshipSchema,
+  },
+  sms_reports: {
+    schema: schemas.smsReportSchema,
+  },
+  auto_sms_settings: {
+    schema: schemas.autoSmsSettingSchema,
+  },
+  staff_wallet_transactions: {
+    schema: schemas.staffWalletTransactionSchema,
+  },
+  staff_attendance_records: {
+    schema: schemas.staffAttendanceRecordSchema,
+  },
+  session_attendance: {
+    schema: schemas.sessionAttendanceSchema,
+  },
+
+  // === ALUMNI ENGAGEMENT/EVENT COLLECTIONS (page-shaped) ===
+  alumni_engagements: {
+    schema: schemas.alumniEngagementRecordSchema,
+  },
+  alumni_events: {
+    schema: schemas.alumniEventRecordSchema,
+  },
+
+  // === DATABASE BACKUP RECORDS ===
+  backup_records: {
+    schema: schemas.backupRecordSchema,
   },
 };
 

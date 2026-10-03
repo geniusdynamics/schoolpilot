@@ -8,6 +8,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -30,6 +31,7 @@ export const FixedAssetsPageContent: React.FC = () => {
     updateFixedAsset, 
     deleteFixedAsset 
   } = useAppData(); // Updated
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<FixedAsset | null>(null);
@@ -112,7 +114,7 @@ export const FixedAssetsPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this fixed asset record?')) {
+    if (await confirm({ title: 'Delete fixed asset', message: 'Are you sure you want to delete this fixed asset record?', variant: 'danger' })) {
       await deleteFixedAsset(id);
     }
   };
@@ -197,7 +199,7 @@ export const FixedAssetsPageContent: React.FC = () => {
           Add Fixed Asset
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Track fixed assets, including asset tags, purchase details, depreciation, and assignment to staff.
         </p>
         <DataGrid 
@@ -206,7 +208,7 @@ export const FixedAssetsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <CubeIcon className="w-8 h-8 text-gray-400" />,
+            icon: <CubeIcon className="w-8 h-8 text-surface-muted-fg" />,
             title: "No fixed assets found",
             description: "Start by adding your first fixed asset."
           }}
@@ -261,8 +263,8 @@ export const FixedAssetsPageContent: React.FC = () => {
 
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button variant="primary" type="submit" disabled={loading.fixedAssets}>
-            {loading.fixedAssets ? <Spinner size="sm"/> : (editingAsset ? 'Save Changes' : 'Add Asset')}
+          <Button variant="primary" type="submit" loading={loading.fixedAssets}>
+            {editingAsset ? 'Save Changes' : 'Add Asset'}
           </Button>
         </FormActions>
       </DialogForm>

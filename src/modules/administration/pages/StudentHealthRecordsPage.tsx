@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Student } from '@/types';
 import { AdminStudentHealthRecordType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
@@ -9,7 +9,6 @@ import Input from '@/components/ui/Input';
 import { EditIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useStudentHealthRecordData } from '@/modules/administration/data/useStudentHealthRecordData';
 import { useAppData } from '@/hooks/useAppData'; // For students data only
-import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
 
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -82,43 +81,51 @@ const StudentHealthRecordsPage: React.FC = () => {
     closeModal();
   };
 
-  const studentColumns: DataGridColumn<Student>[] = [
-    { 
+  // Project students into view models so the computed 'name' and
+  // 'health_record_status' fields the columns reference actually exist —
+  // otherwise DataGrid sorting/filtering on those columns silently no-ops.
+  const studentRows = useMemo(() =>
+    (students || []).map(s => ({
+      ...s,
+      name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ') || s.admission_no || '—',
+      health_record_status: (studentHealthRecords || []).some(hr => hr.student_id === s.id) ? 'Record Exists' : 'No Record',
+    })),
+  [students, studentHealthRecords]);
+
+  const studentColumns: DataGridColumn<(typeof studentRows)[number]>[] = [
+    {
       key: 'admission_no',
-      header: 'Adm No', 
+      header: 'Adm No',
       sortable: true,
       filterable: true,
       width: 120,
       render: (value, item) => item.admission_no
     },
-    { 
+    {
       key: 'name',
-      header: 'Name', 
+      header: 'Name',
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—'
+      render: (value, item) => item.name || '—'
     },
-    { 
+    {
       key: 'current_class_name',
-      header: 'Class', 
+      header: 'Class',
       sortable: true,
       filterable: true,
       width: 150,
       render: (value, item) => item.current_class_name
     },
-    { 
+    {
       key: 'health_record_status',
-      header: 'Health Record Status', 
+      header: 'Health Record Status',
       sortable: true,
       filterable: true,
       width: 180,
-      render: (value, item) => {
-        const hasRecord = (studentHealthRecords || []).some(hr => hr.student_id === item.id);
-        return hasRecord ? 
-          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Record Exists</span> : 
-          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">No Record</span>;
-      }
+      render: (value, item) => item.health_record_status === 'Record Exists' ?
+        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Record Exists</span> :
+        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">No Record</span>
     },
     {
       key: 'actions',
@@ -138,16 +145,16 @@ const StudentHealthRecordsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Student Health Records Management">
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage health records for each student, including blood type, allergies, medical conditions, and emergency contact overrides.
         </p>
         <DataGrid 
           columns={studentColumns} 
-          data={students}
+          data={studentRows}
           sortable
           filterable
           emptyState={{
-            icon: <ClipboardDocumentListIcon className="h-12 w-12 text-gray-400" />,
+            icon: <ClipboardDocumentListIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No students found',
             description: 'No students are currently enrolled in the system.',
           }}

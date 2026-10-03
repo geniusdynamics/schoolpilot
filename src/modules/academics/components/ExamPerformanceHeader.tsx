@@ -31,7 +31,7 @@ const TrendBadge: React.FC<{ trend: TrendData; inverse?: boolean }> = ({ trend, 
   const colorClass = isPositive 
     ? 'text-emerald-600' 
     : trend.direction === 'neutral'
-    ? 'text-gray-600'
+    ? 'text-surface-muted-fg'
     : 'text-rose-600';
 
   const Icon = trend.direction === 'up' 
@@ -54,14 +54,14 @@ const getGradeColor = (grade: string): string => {
     case 'A':
       return 'text-emerald-600';
     case 'B':
-      return 'text-blue-600';
+      return 'text-primary-600';
     case 'C':
       return 'text-amber-600';
     case 'D':
     case 'E':
       return 'text-rose-600';
     default:
-      return 'text-gray-600';
+      return 'text-surface-muted-fg';
   }
 };
 
@@ -80,16 +80,16 @@ export const ExamPerformanceHeader: React.FC<ExamPerformanceHeaderProps> = ({
   const gradeColor = getGradeColor(meanGrade);
 
   return (
-    <div className={cn('bg-white rounded-xl border border-gray-200 p-6', className)}>
+    <div className={cn('bg-surface-card rounded-xl border border-surface-border p-6', className)}>
       <div className="flex flex-col lg:flex-row lg:items-start gap-6">
         {/* Left: Form Icon and Info */}
         <div className="flex items-start gap-4 flex-1">
-          <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-gray-100 text-gray-700 flex-shrink-0">
+          <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-surface-accent text-surface-foreground flex-shrink-0">
             <HomeIcon className="h-8 w-8" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{formName}</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="text-2xl font-bold text-surface-foreground">{formName}</h2>
+            <p className="text-sm text-surface-muted-fg mt-1">
               {examName}
               {termName && ` - (${termName})`}
             </p>
@@ -100,7 +100,7 @@ export const ExamPerformanceHeader: React.FC<ExamPerformanceHeaderProps> = ({
         <div className="grid grid-cols-2 gap-6 lg:gap-8">
           {/* Mean Points */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-1">Mean Points</p>
+            <p className="text-sm text-surface-muted-fg mb-1">Mean Points</p>
             <p className="text-3xl font-bold text-emerald-600">{meanPoints.toFixed(4)}</p>
             {pointsTrend && (
               <div className="mt-1">
@@ -111,7 +111,7 @@ export const ExamPerformanceHeader: React.FC<ExamPerformanceHeaderProps> = ({
 
           {/* Mean Marks */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-1">Mean Marks</p>
+            <p className="text-sm text-surface-muted-fg mb-1">Mean Marks</p>
             <p className="text-3xl font-bold text-emerald-600">{meanMarks.toFixed(1)}%</p>
             {marksTrend && (
               <div className="mt-1">
@@ -122,17 +122,17 @@ export const ExamPerformanceHeader: React.FC<ExamPerformanceHeaderProps> = ({
 
           {/* Mean Grade */}
           <div className="text-center col-span-2 lg:col-span-2">
-            <p className="text-sm text-gray-600 mb-1">Mean Grade</p>
+            <p className="text-sm text-surface-muted-fg mb-1">Mean Grade</p>
             <p className={cn('text-3xl font-bold', gradeColor)}>{meanGrade}</p>
           </div>
         </div>
 
         {/* Student Count */}
         {studentCount && (
-          <div className="flex flex-col items-center justify-center px-6 py-4 bg-gray-50 rounded-xl">
-            <AcademicCapIcon className="h-8 w-8 text-gray-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{studentCount}</p>
-            <p className="text-xs text-gray-500 text-center">Students who sat<br />for the exam</p>
+          <div className="flex flex-col items-center justify-center px-6 py-4 bg-surface-muted rounded-xl">
+            <AcademicCapIcon className="h-8 w-8 text-surface-muted-fg mb-2" />
+            <p className="text-2xl font-bold text-surface-foreground">{studentCount}</p>
+            <p className="text-xs text-surface-muted-fg text-center">Students who sat<br />for the exam</p>
           </div>
         )}
       </div>

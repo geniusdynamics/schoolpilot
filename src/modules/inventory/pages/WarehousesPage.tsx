@@ -11,6 +11,7 @@ import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, CubeTransparentIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 
 type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
@@ -18,7 +19,8 @@ type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
 export const WarehousesPageContent: React.FC = () => {
   const { warehouses, loading, addWarehouse, updateWarehouse, deleteWarehouse } = useAppData(); // Updated
   const { t } = useTranslation('inventory');
-  
+  const confirm = useConfirm();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
   const initialFormData: WarehouseFormData = { name: '' };
@@ -57,7 +59,7 @@ export const WarehousesPageContent: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this warehouse? This might affect stock levels.')) {
+    if (await confirm({ title: 'Delete warehouse', message: 'Are you sure you want to delete this warehouse? This might affect stock levels.', variant: 'danger' })) {
       await deleteWarehouse(id);
     }
   };
@@ -78,7 +80,7 @@ export const WarehousesPageContent: React.FC = () => {
       width: 200
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -108,7 +110,7 @@ export const WarehousesPageContent: React.FC = () => {
           {t('warehouses.addWarehouse')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('warehouses.description')}
         </p>
         <DataGrid 
@@ -118,7 +120,7 @@ export const WarehousesPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <CubeTransparentIcon className="w-12 h-12 text-gray-400" />,
+            icon: <CubeTransparentIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No warehouses found",
             description: "Create warehouses to organize and track your inventory across different locations.",
             action: {
@@ -133,8 +135,8 @@ export const WarehousesPageContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('warehouses.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.warehouses}>
-              {loading.warehouses ? <Spinner size="sm"/> : (editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse'))}
+            <Button onClick={handleSubmit} loading={loading.warehouses}>
+              {editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse')}
             </Button>
           </FormActions>
         }

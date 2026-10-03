@@ -96,7 +96,7 @@ export const DEFAULT_QUICK_EDIT_CONFIG: QuickEditConfig = {
   },
   styling: {
     theme: 'dark',
-    accentColor: '#3b82f6',
+    accentColor: '#6366f1',
     borderRadius: '0.5rem',
   }
 };

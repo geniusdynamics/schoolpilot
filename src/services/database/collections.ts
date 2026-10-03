@@ -17,6 +17,7 @@ import { libraryCollections } from '@/modules/library/data/collections';
 import { nutritionCollections } from '@/modules/nutrition/data/collections';
 import { housesCollections } from '@/modules/administration/data/houses/collections';
 import { pickupCollections } from '@/modules/administration/data/pickup/collections';
+import { portalCollections } from '@/modules/portal/data/collections';
 
 // Re-export module types for convenience
 export * from './types';
@@ -518,6 +519,7 @@ export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> =
   // New Module Collections
   ...housesCollections,
   ...pickupCollections,
+  ...portalCollections,
 };
 
 // ID Generation utilities (moved from rxdbService.ts)

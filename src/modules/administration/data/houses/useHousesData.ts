@@ -1,7 +1,10 @@
-﻿import { useState, useEffect, useCallback } from 'react';
-import { databaseService } from '@/services/database/databaseService';
-import { initialMockHouses, initialMockPointCategories, initialMockPointTransactions } from './mockData';
+﻿import { useCallback, useMemo } from 'react';
 import { logger } from '@/utils/logging';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+// ABOUTME: Database-backed hook for the houses module.
+// ABOUTME: Reads/writes the real `houses`, `point_categories` and `point_transactions`
+// ABOUTME: collections via useDatabaseCollection — no local mock state.
 
 import type {
   House,
@@ -9,49 +12,35 @@ import type {
   PointTransaction,
   StudentPointSummary,
   HouseLeaderboardEntry,
-  TransactionType,
-  TransactionStatus
 } from './types';
 
 export const useHousesData = () => {
-  const [houses, setHouses] = useState<House[]>([]);
-  const [categories, setCategories] = useState<PointCategory[]>([]);
-  const [transactions, setTransactions] = useState<PointTransaction[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const housesCollection = useDatabaseCollection<House>('houses');
+  const categoriesCollection = useDatabaseCollection<PointCategory>('point_categories');
+  const transactionsCollection = useDatabaseCollection<PointTransaction>('point_transactions');
 
-  // Initialize with mock data
-  useEffect(() => {
-    setHouses(initialMockHouses);
-    setCategories(initialMockPointCategories);
-    setTransactions(initialMockPointTransactions);
-  }, []);
+  // Data comes straight from the database — empty until seeded or populated
+  const houses = housesCollection.data;
+  const categories = categoriesCollection.data;
+  const transactions = transactionsCollection.data;
 
-  // Load houses from database
+  const loading =
+    housesCollection.loading || categoriesCollection.loading || transactionsCollection.loading;
+  const error =
+    housesCollection.error?.message ||
+    categoriesCollection.error?.message ||
+    transactionsCollection.error?.message ||
+    null;
+
+  // ── Houses CRUD ──────────────────────────────────────────────
   const loadHouses = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['houses'];
-      const docs = await collection.find().exec();
-      setHouses(docs.map(doc => doc.toJSON()));
-    } catch (err: any) {
-      logger.warn('Using mock data for houses:', err.message);
-      setHouses(initialMockHouses);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    await housesCollection.refresh();
+  }, [housesCollection]);
 
-  // Create house
-  const createHouse = useCallback(async (data: Partial<House>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['houses'];
+  const createHouse = useCallback(
+    async (data: Partial<House>) => {
       const now = new Date().toISOString();
-      const newHouse = {
-        id: `HOUS${Date.now()}`,
+      return housesCollection.insert({
         totalPoints: 0,
         meritPoints: 0,
         demeritPoints: 0,
@@ -59,214 +48,240 @@ export const useHousesData = () => {
         createdAt: now,
         updatedAt: now,
         ...data,
-      } as House;
-      await collection.insert(newHouse as any);
-      setHouses(prev => [...prev, newHouse]);
-      return newHouse;
-    } catch (err: any) {
-      logger.warn('Failed to create house in DB, using local state:', err.message);
-      const now = new Date().toISOString();
-      const newHouse = {
-        id: `HOUS${Date.now()}`,
-        totalPoints: 0,
-        meritPoints: 0,
-        demeritPoints: 0,
-        memberCount: 0,
-        createdAt: now,
-        updatedAt: now,
-        ...data,
-      } as House;
-      setHouses(prev => [...prev, newHouse]);
-      return newHouse;
-    }
-  }, []);
+      } as Omit<House, 'id'> & { id?: string });
+    },
+    [housesCollection]
+  );
 
-  // Update house
-  const updateHouse = useCallback(async (id: string, updates: Partial<House>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['houses'];
-      const doc = await collection.findOne(id).exec();
-      if (doc) {
-        await doc.update({ $set: { ...updates, updatedAt: new Date().toISOString() } });
-      }
-    } catch (err: any) {
-      logger.warn('Failed to update house in DB, using local state:', err.message);
-    }
-    setHouses(prev => prev.map(h => h.id === id ? { ...h, ...updates, updatedAt: new Date().toISOString() } : h));
-  }, []);
+  const updateHouse = useCallback(
+    async (id: string, updates: Partial<House>) => {
+      return housesCollection.update(id, { ...updates, updatedAt: new Date().toISOString() });
+    },
+    [housesCollection]
+  );
 
-  // Delete house
-  const deleteHouse = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['houses'];
-      const doc = await collection.findOne(id).exec();
-      if (doc) await doc.remove();
-    } catch (err: any) {
-      logger.warn('Failed to delete house in DB, using local state:', err.message);
-    }
-    setHouses(prev => prev.filter(h => h.id !== id));
-  }, []);
+  const deleteHouse = useCallback(
+    async (id: string) => {
+      return housesCollection.remove(id);
+    },
+    [housesCollection]
+  );
 
-  // Load categories
+  // ── Categories CRUD ──────────────────────────────────────────
   const loadCategories = useCallback(async () => {
-    try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['point_categories'];
-      const docs = await collection.find().exec();
-      setCategories(docs.map(doc => doc.toJSON()));
-    } catch (err: any) {
-      logger.warn('Using mock data for categories:', err.message);
-      setCategories(initialMockPointCategories);
-    }
-  }, []);
+    await categoriesCollection.refresh();
+  }, [categoriesCollection]);
 
-  // Create category
-  const createCategory = useCallback(async (data: Partial<PointCategory>) => {
-    const newCategory = { id: `PCAT${Date.now()}`, ...data } as PointCategory;
-    setCategories(prev => [...prev, newCategory]);
-    return newCategory;
-  }, []);
+  const createCategory = useCallback(
+    async (data: Partial<PointCategory>) => {
+      return categoriesCollection.insert({
+        isActive: true,
+        requiresApproval: false,
+        evidenceRequired: false,
+        ...data,
+      } as Omit<PointCategory, 'id'> & { id?: string });
+    },
+    [categoriesCollection]
+  );
 
-  // Update category
-  const updateCategory = useCallback(async (id: string, updates: Partial<PointCategory>) => {
-    setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-  }, []);
+  const updateCategory = useCallback(
+    async (id: string, updates: Partial<PointCategory>) => {
+      return categoriesCollection.update(id, updates);
+    },
+    [categoriesCollection]
+  );
 
-  // Delete category
-  const deleteCategory = useCallback(async (id: string) => {
-    setCategories(prev => prev.filter(c => c.id !== id));
-  }, []);
+  const deleteCategory = useCallback(
+    async (id: string) => {
+      return categoriesCollection.remove(id);
+    },
+    [categoriesCollection]
+  );
 
-  // Load transactions
+  // ── Transactions ─────────────────────────────────────────────
   const loadTransactions = useCallback(async () => {
-    try {
-      const db = await databaseService.getDatabase();
-      const collection = db.collections['point_transactions'];
-      const docs = await collection.find().sort({ awardedAt: 'desc' }).exec();
-      setTransactions(docs.map(doc => doc.toJSON()));
-    } catch (err: any) {
-      logger.warn('Using mock data for transactions:', err.message);
-      setTransactions(initialMockPointTransactions);
-    }
-  }, []);
+    await transactionsCollection.refresh();
+  }, [transactionsCollection]);
 
-  // Create transaction
-  const createTransaction = useCallback(async (data: Partial<PointTransaction>) => {
-    const newTx = {
-      id: `PTRX${Date.now()}`,
-      status: 'pending' as TransactionStatus,
-      awardedAt: new Date().toISOString(),
-      ...data,
-    } as PointTransaction;
-    setTransactions(prev => [newTx, ...prev]);
-    // Update house points
-    if (data.houseId && data.points) {
-      const actualPoints = data.type === 'demerit' ? -Math.abs(data.points) : Math.abs(data.points);
-      setHouses(prev => prev.map(h =>
-        h.id === data.houseId
-          ? {
-              ...h,
-              totalPoints: h.totalPoints + actualPoints,
-              meritPoints: data.type === 'merit' ? h.meritPoints + actualPoints : h.meritPoints,
-              demeritPoints: data.type === 'demerit' ? h.demeritPoints + Math.abs(data.points) : h.demeritPoints,
-            }
-          : h
-      ));
-    }
-    return newTx;
-  }, []);
+  /** Recompute a house's point rollups from its approved/pending transactions. */
+  const buildHousePointPatch = useCallback(
+    (houseId: string): Partial<House> | null => {
+      const houseTx = transactions.filter(t => t.houseId === houseId);
+      if (!houseTx.length) return null;
+      let meritPoints = 0;
+      let demeritPoints = 0;
+      houseTx.forEach(t => {
+        if (t.type === 'merit') meritPoints += Math.abs(t.points || 0);
+        else demeritPoints += Math.abs(t.points || 0);
+      });
+      return {
+        meritPoints,
+        demeritPoints,
+        totalPoints: meritPoints - demeritPoints,
+      };
+    },
+    [transactions]
+  );
 
-  // Approve transaction
-  const approveTransaction = useCallback(async (id: string, approvedBy: string) => {
-    const now = new Date().toISOString();
-    setTransactions(prev => prev.map(t =>
-      t.id === id ? { ...t, status: 'approved' as TransactionStatus, approvedBy, approvedAt: now } : t
-    ));
-  }, []);
+  const createTransaction = useCallback(
+    async (data: Partial<PointTransaction>) => {
+      const created = await transactionsCollection.insert({
+        status: 'pending' as const,
+        awardedAt: new Date().toISOString(),
+        ...data,
+      } as Omit<PointTransaction, 'id'> & { id?: string });
 
-  // Reject transaction
-  const rejectTransaction = useCallback(async (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
-  }, []);
+      // Roll the awarded points into the house document so leaderboards stay consistent
+      if (created && data.houseId) {
+        const patch = buildHousePointPatch(data.houseId);
+        const house = houses.find(h => h.id === data.houseId);
+        if (patch && house) {
+          try {
+            await housesCollection.update(house.id, patch);
+          } catch (err) {
+            logger.warn('[useHousesData] Failed to update house point rollups:', err);
+          }
+        }
+      }
+      return created;
+    },
+    [transactionsCollection, housesCollection, houses, buildHousePointPatch]
+  );
 
-  // Get leaderboard
+  const approveTransaction = useCallback(
+    async (id: string, approvedBy: string) => {
+      const tx = transactions.find(t => t.id === id);
+      const result = await transactionsCollection.update(id, {
+        status: 'approved',
+        approvedBy,
+        approvedAt: new Date().toISOString(),
+      });
+      if (tx?.houseId) {
+        const patch = buildHousePointPatch(tx.houseId);
+        if (patch) await housesCollection.update(tx.houseId, patch);
+      }
+      return result;
+    },
+    [transactionsCollection, transactions, housesCollection, buildHousePointPatch]
+  );
+
+  const rejectTransaction = useCallback(
+    async (id: string) => {
+      const tx = transactions.find(t => t.id === id);
+      const result = await transactionsCollection.update(id, { status: 'rejected' as any });
+      if (tx?.houseId) {
+        const patch = buildHousePointPatch(tx.houseId);
+        if (patch) await housesCollection.update(tx.houseId, patch);
+      }
+      return result;
+    },
+    [transactionsCollection, transactions, housesCollection, buildHousePointPatch]
+  );
+
+  // ── Derived views ────────────────────────────────────────────
   const getLeaderboard = useCallback((): HouseLeaderboardEntry[] => {
-    return houses
-      .map((h, index) => ({
+    return [...houses]
+      .map((h): HouseLeaderboardEntry => ({
         houseId: h.id,
         houseName: h.name,
         color: h.color,
-        totalPoints: h.totalPoints,
-        meritPoints: h.meritPoints,
-        demeritPoints: h.demeritPoints,
-        memberCount: h.memberCount,
-        rank: index + 1,
+        totalPoints: h.totalPoints ?? 0,
+        meritPoints: h.meritPoints ?? 0,
+        demeritPoints: h.demeritPoints ?? 0,
+        memberCount: h.memberCount ?? 0,
+        rank: 0,
       }))
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .map((entry, index) => ({ ...entry, rank: index + 1 }));
   }, [houses]);
 
-  // Get student point summary
-  const getStudentSummary = useCallback((studentId: string): StudentPointSummary | null => {
-    const studentTx = transactions.filter(t => t.studentId === studentId);
-    if (studentTx.length === 0) return null;
+  const getStudentSummary = useCallback(
+    (studentId: string): StudentPointSummary | null => {
+      const studentTx = transactions.filter(t => t.studentId === studentId);
+      if (studentTx.length === 0) return null;
 
-    const meritPoints = studentTx.filter(t => t.type === 'merit').reduce((sum, t) => sum + t.points, 0);
-    const demeritPoints = studentTx.filter(t => t.type === 'demerit').reduce((sum, t) => sum + t.points, 0);
+      const meritPoints = studentTx.filter(t => t.type === 'merit').reduce((sum, t) => sum + t.points, 0);
+      const demeritPoints = studentTx.filter(t => t.type === 'demerit').reduce((sum, t) => sum + t.points, 0);
 
-    return {
-      studentId,
-      studentName: studentTx[0]?.studentName || '',
-      houseId: studentTx[0]?.houseId || '',
-      houseName: studentTx[0]?.houseName || '',
-      className: studentTx[0]?.className || '',
-      totalPoints: meritPoints + demeritPoints,
-      meritPoints,
-      demeritPoints,
-      netPoints: meritPoints - Math.abs(demeritPoints),
-      recentTransactions: studentTx.slice(0, 10),
-    };
-  }, [transactions]);
+      return {
+        studentId,
+        studentName: studentTx[0]?.studentName || '',
+        houseId: studentTx[0]?.houseId || '',
+        houseName: studentTx[0]?.houseName || '',
+        className: studentTx[0]?.className || '',
+        totalPoints: meritPoints + demeritPoints,
+        meritPoints,
+        demeritPoints,
+        netPoints: meritPoints - Math.abs(demeritPoints),
+        recentTransactions: studentTx.slice(0, 10),
+      };
+    },
+    [transactions]
+  );
 
-  // Get transactions by house
-  const getTransactionsByHouse = useCallback((houseId: string) => {
-    return transactions.filter(t => t.houseId === houseId);
-  }, [transactions]);
+  const getTransactionsByHouse = useCallback(
+    (houseId: string) => transactions.filter(t => t.houseId === houseId),
+    [transactions]
+  );
 
-  // Get transactions by student
-  const getTransactionsByStudent = useCallback((studentId: string) => {
-    return transactions.filter(t => t.studentId === studentId);
-  }, [transactions]);
+  const getTransactionsByStudent = useCallback(
+    (studentId: string) => transactions.filter(t => t.studentId === studentId),
+    [transactions]
+  );
 
-  // Get pending transactions
-  const getPendingTransactions = useCallback(() => {
-    return transactions.filter(t => t.status === 'pending');
-  }, [transactions]);
+  const getPendingTransactions = useCallback(
+    () => transactions.filter(t => t.status === 'pending'),
+    [transactions]
+  );
 
-  return {
-    houses,
-    categories,
-    transactions,
-    loading,
-    error,
-    loadHouses,
-    loadCategories,
-    loadTransactions,
-    createHouse,
-    updateHouse,
-    deleteHouse,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    createTransaction,
-    approveTransaction,
-    rejectTransaction,
-    getLeaderboard,
-    getStudentSummary,
-    getTransactionsByHouse,
-    getTransactionsByStudent,
-    getPendingTransactions,
-  };
+  return useMemo(
+    () => ({
+      houses,
+      categories,
+      transactions,
+      loading,
+      error,
+      loadHouses,
+      loadCategories,
+      loadTransactions,
+      createHouse,
+      updateHouse,
+      deleteHouse,
+      createCategory,
+      updateCategory,
+      deleteCategory,
+      createTransaction,
+      approveTransaction,
+      rejectTransaction,
+      getLeaderboard,
+      getStudentSummary,
+      getTransactionsByHouse,
+      getTransactionsByStudent,
+      getPendingTransactions,
+    }),
+    [
+      houses,
+      categories,
+      transactions,
+      loading,
+      error,
+      loadHouses,
+      loadCategories,
+      loadTransactions,
+      createHouse,
+      updateHouse,
+      deleteHouse,
+      createCategory,
+      updateCategory,
+      deleteCategory,
+      createTransaction,
+      approveTransaction,
+      rejectTransaction,
+      getLeaderboard,
+      getStudentSummary,
+      getTransactionsByHouse,
+      getTransactionsByStudent,
+      getPendingTransactions,
+    ]
+  );
 };

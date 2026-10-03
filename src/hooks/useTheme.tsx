@@ -8,6 +8,16 @@ import { applyCSSCustomProperties } from '@/utils/designTokens';
 
 export type Theme = 'light' | 'dark' | 'system';
 
+/**
+ * Dark mode is temporarily DISABLED system-wide until it is properly implemented.
+ * With this flag false:
+ *  - the app always resolves to the light theme (OS `prefers-color-scheme` is ignored),
+ *  - a previously stored 'dark'/'system' preference is overwritten on boot,
+ *  - setTheme/toggleTheme are no-ops and the theme toggle UI is hidden.
+ * Flip to true to re-enable the light/dark/system switcher.
+ */
+export const DARK_MODE_ENABLED = false;
+
 interface ThemeContextValue {
   theme: Theme;
   resolvedTheme: 'light' | 'dark';
@@ -35,8 +45,9 @@ const getSystemTheme = (): 'light' | 'dark' => {
 
 // Get stored theme preference
 const getStoredTheme = (): Theme => {
+  if (!DARK_MODE_ENABLED) return 'light';
   if (typeof window === 'undefined') return 'system';
-  
+
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored && ['light', 'dark', 'system'].includes(stored)) {
@@ -45,7 +56,7 @@ const getStoredTheme = (): Theme => {
   } catch (error) {
     logger.warn('Failed to read theme from localStorage:', error);
   }
-  
+
   return 'system';
 };
 
@@ -62,6 +73,7 @@ const storeTheme = (theme: Theme): void => {
 
 // Resolve theme to actual light/dark value
 const resolveTheme = (theme: Theme): 'light' | 'dark' => {
+  if (!DARK_MODE_ENABLED) return 'light';
   if (theme === 'system') {
     return getSystemTheme();
   }
@@ -94,14 +106,20 @@ export const useTheme = (): ThemeContextValue => {
     }
   }, [theme]);
 
-  // Set theme and persist to storage
+  // Set theme and persist to storage (no-op while dark mode is disabled)
   const setTheme = useCallback((newTheme: Theme) => {
+    if (!DARK_MODE_ENABLED) {
+      setThemeState('light');
+      storeTheme('light');
+      return;
+    }
     setThemeState(newTheme);
     storeTheme(newTheme);
   }, []);
 
   // Toggle between light and dark (ignoring system)
   const toggleTheme = useCallback(() => {
+    if (!DARK_MODE_ENABLED) return;
     const newTheme = resolvedTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
   }, [resolvedTheme, setTheme]);
@@ -137,6 +155,17 @@ export const useThemeContext = (): ThemeContextValue => {
 
 // Initialize theme on app startup
 export const initializeTheme = (): void => {
+  if (!DARK_MODE_ENABLED) {
+    // Force light: clear any previously stored dark/system preference so state
+    // is consistent, drop a stray 'dark' class, and apply light tokens.
+    try {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+    } catch (error) {
+      logger.warn('Failed to clear theme preference:', error);
+    }
+    applyCSSCustomProperties('light');
+    return;
+  }
   const theme = getStoredTheme();
   const resolved = resolveTheme(theme);
   applyCSSCustomProperties(resolved);

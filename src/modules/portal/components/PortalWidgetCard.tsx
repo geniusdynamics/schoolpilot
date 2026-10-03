@@ -42,25 +42,25 @@ export const PortalWidgetCard: React.FC<PortalWidgetCardProps> = ({
   onMoreOptions,
 }) => {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-surface-card rounded-lg border border-surface-border shadow-sm overflow-hidden ${className}`}>
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between mb-2">
           {/* Title Section */}
           <div className="flex items-center gap-3">
-            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-base font-semibold text-surface-foreground">{title}</h3>
             {date && (
-              <div className="flex items-center gap-1 text-sm text-gray-500">
+              <div className="flex items-center gap-1 text-sm text-surface-muted-fg">
                 <button
                   onClick={() => onDateChange?.('prev')}
-                  className="p-0.5 hover:bg-gray-100 rounded transition-colors"
+                  className="p-0.5 hover:bg-surface-accent rounded transition-colors"
                 >
                   <ChevronLeftIcon className="w-4 h-4" />
                 </button>
-                <span className="text-gray-600">{date}</span>
+                <span className="text-surface-muted-fg">{date}</span>
                 <button
                   onClick={() => onDateChange?.('next')}
-                  className="p-0.5 hover:bg-gray-100 rounded transition-colors"
+                  className="p-0.5 hover:bg-surface-accent rounded transition-colors"
                 >
                   <ChevronRightIcon className="w-4 h-4" />
                 </button>
@@ -72,7 +72,7 @@ export const PortalWidgetCard: React.FC<PortalWidgetCardProps> = ({
           {showMoreOptions && (
             <button
               onClick={onMoreOptions}
-              className="p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-600"
+              className="p-1 hover:bg-surface-accent rounded transition-colors text-surface-muted-fg hover:text-surface-muted-fg"
             >
               <MoreHorizontalIcon className="w-5 h-5" />
             </button>
@@ -88,8 +88,8 @@ export const PortalWidgetCard: React.FC<PortalWidgetCardProps> = ({
                 onClick={() => onTabChange?.(tab)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   activeTab === tab
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-muted'
                 }`}
               >
                 {tab}
@@ -99,7 +99,7 @@ export const PortalWidgetCard: React.FC<PortalWidgetCardProps> = ({
         )}
 
         {/* Subtitle */}
-        {subtitle && <p className="text-xs text-gray-500 mt-2">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-surface-muted-fg mt-2">{subtitle}</p>}
       </div>
 
       {/* Content */}
@@ -107,7 +107,7 @@ export const PortalWidgetCard: React.FC<PortalWidgetCardProps> = ({
 
       {/* Actions Footer */}
       {actions && actions.length > 0 && (
-        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 dark:bg-slate-800/50">
           <div className="flex items-center gap-2 flex-wrap">
             {actions.map((action, index) => (
               <Button

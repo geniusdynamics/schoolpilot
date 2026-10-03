@@ -175,17 +175,17 @@ export interface DesignTokens {
 export const designTokens: DesignTokens = {
   colors: {
     primary: {
-      50: '#eff6ff',
-      100: '#dbeafe',
-      200: '#bfdbfe',
-      300: '#93c5fd',
-      400: '#60a5fa',
-      500: '#3b82f6',
-      600: '#2563eb',
-      700: '#1d4ed8',
-      800: '#1e40af',
-      900: '#1e3a8a',
-      950: '#172554',
+      50: '#eef2ff',
+      100: '#e0e7ff',
+      200: '#c7d2fe',
+      300: '#a5b4fc',
+      400: '#818cf8',
+      500: '#6366f1',
+      600: '#4f46e5',
+      700: '#4338ca',
+      800: '#3730a3',
+      900: '#312e81',
+      950: '#1e1b4b',
     },
     secondary: {
       50: '#f8fafc',
@@ -264,8 +264,8 @@ export const designTokens: DesignTokens = {
       accent: '#f1f5f9',
       accentForeground: '#0f172a',
       border: '#e2e8f0',
-      input: '#e2e8f0',
-      ring: '#3b82f6',
+      input: '#cbd5e1',
+      ring: '#6366f1',
     },
   },
   typography: {
@@ -389,8 +389,8 @@ export const designTokens: DesignTokens = {
       md: '2.5rem',  // 40px
       lg: '3rem',    // 48px
     },
-    inputBorder: '#d4d4d4',    // neutral.300
-    inputFocus: '#3b82f6',     // primary.500
+    inputBorder: '#cbd5e1',    // slate.300
+    inputFocus: '#6366f1',     // primary.500
     errorColor: '#ef4444',     // error.500
     successColor: '#22c55e',   // success.500
     actionsPadding: '1rem 1.5rem', // px-6 py-4
@@ -425,8 +425,8 @@ export const generateCSSCustomProperties = (tokens: DesignTokens, theme: 'light'
     accent: '#334155',
     accentForeground: '#f8fafc',
     border: '#334155',
-    input: '#334155',
-    ring: '#3b82f6',
+    input: '#475569',
+    ring: '#818cf8',
   } : tokens.colors.surface;
   
   Object.entries(surfaceColors).forEach(([key, value]) => {

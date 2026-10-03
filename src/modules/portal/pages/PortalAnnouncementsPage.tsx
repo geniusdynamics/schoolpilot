@@ -35,16 +35,16 @@ const priorityConfig: Record<string, { color: string; bg: string; border: string
     label: 'High',
   },
   medium: {
-    color: 'text-blue-700',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
+    color: 'text-primary-700',
+    bg: 'bg-primary-50',
+    border: 'border-primary-200',
     icon: <MegaphoneIcon className="w-3.5 h-3.5" />,
     label: 'Medium',
   },
   low: {
-    color: 'text-gray-600',
-    bg: 'bg-gray-50',
-    border: 'border-gray-200',
+    color: 'text-surface-muted-fg',
+    bg: 'bg-surface-muted',
+    border: 'border-surface-border',
     icon: <MegaphoneIcon className="w-3.5 h-3.5" />,
     label: 'Low',
   },
@@ -116,11 +116,11 @@ export const PortalAnnouncementsContent: React.FC = () => {
     return false;
   };
 
-  if (loading?.all && announcements.length === 0) {
+  if (loading && announcements.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />
-        <span className="ml-3 text-gray-600">{t('common.loading')}</span>
+        <span className="ml-3 text-surface-muted-fg">{t('common.loading')}</span>
       </div>
     );
   }
@@ -130,21 +130,21 @@ export const PortalAnnouncementsContent: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{t('announcements.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl font-semibold text-surface-foreground">{t('announcements.title')}</h1>
+          <p className="text-sm text-surface-muted-fg mt-1">
             {publishedAnnouncements.length} announcement{publishedAnnouncements.length !== 1 ? 's' : ''} available
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-surface-accent rounded-lg p-1">
             {(['newest', 'oldest', 'priority'] as SortOrder[]).map((order) => (
               <button
                 key={order}
                 onClick={() => setSortOrder(order)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   sortOrder === order
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-surface-card text-surface-foreground shadow-sm'
+                    : 'text-surface-muted-fg hover:text-surface-foreground'
                 }`}
               >
                 {order === 'newest' ? 'Newest' : order === 'oldest' ? 'Oldest' : 'Priority'}
@@ -166,11 +166,11 @@ export const PortalAnnouncementsContent: React.FC = () => {
 
       {/* Announcements List */}
       {publishedAnnouncements.length === 0 ? (
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-slate-200 bg-surface-card shadow-sm">
           <div className="text-center py-12">
             <MegaphoneIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium text-gray-900">{t('announcements.noAnnouncements')}</h3>
-            <p className="text-sm text-gray-500 mt-2">Check back later for new announcements.</p>
+            <h3 className="text-lg font-medium text-surface-foreground">{t('announcements.noAnnouncements')}</h3>
+            <p className="text-sm text-surface-muted-fg mt-2">Check back later for new announcements.</p>
           </div>
         </Card>
       ) : (
@@ -183,13 +183,13 @@ export const PortalAnnouncementsContent: React.FC = () => {
             return (
               <Card
                 key={announcement.id}
-                className={`border-slate-200 bg-white shadow-sm transition-all ${
+                className={`border-slate-200 bg-surface-card shadow-sm transition-all ${
                   expired ? 'opacity-75' : ''
                 }`}
               >
                 {/* Announcement Header */}
                 <button
-                  className="w-full flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left"
+                  className="w-full flex items-start gap-4 px-6 py-4 hover:bg-surface-muted transition-colors text-left"
                   onClick={() => toggleExpanded(announcement.id)}
                 >
                   {/* Priority Badge */}
@@ -204,13 +204,13 @@ export const PortalAnnouncementsContent: React.FC = () => {
                         {config.label}
                       </span>
                       {expired && (
-                        <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-500">
+                        <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-surface-accent text-surface-muted-fg">
                           Expired
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-semibold text-gray-900">{announcement.title}</h3>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <h3 className="text-base font-semibold text-surface-foreground">{announcement.title}</h3>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-surface-muted-fg">
                       <span className="flex items-center gap-1">
                         <UserCircleIcon className="w-3.5 h-3.5" />
                         {announcement.authorName}
@@ -237,20 +237,20 @@ export const PortalAnnouncementsContent: React.FC = () => {
 
                   <div className="flex-shrink-0 mt-1">
                     {isExpanded ? (
-                      <ChevronUpIcon className="w-5 h-5 text-gray-400" />
+                      <ChevronUpIcon className="w-5 h-5 text-surface-muted-fg" />
                     ) : (
-                      <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                      <ChevronDownIcon className="w-5 h-5 text-surface-muted-fg" />
                     )}
                   </div>
                 </button>
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t border-gray-200 px-6 py-4">
-                    <div className="prose prose-sm max-w-none text-gray-700">
+                  <div className="border-t border-surface-border px-6 py-4">
+                    <div className="prose prose-sm max-w-none text-surface-foreground">
                       <p className="whitespace-pre-line">{announcement.content}</p>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-surface-muted-fg">
                       <span>
                         Audience: <span className="font-medium capitalize">{announcement.audience}</span>
                       </span>

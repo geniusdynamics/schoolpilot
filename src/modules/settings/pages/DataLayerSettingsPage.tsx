@@ -262,23 +262,23 @@ export const DataLayerSettingsContent: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center space-x-3">
         <Cog6ToothIcon className="w-6 h-6" />
-        <h1 className="text-2xl font-bold">Data Layer Cog6ToothIcon</h1>
+        <h1 className="text-2xl font-bold">Data Layer Settings</h1>
       </div>
 
       {isLoading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <span className="text-blue-800">Switching data mode...</span>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+            <span className="text-primary-800">Switching data mode...</span>
           </div>
         </div>
       )}
 
-      <div className="border-b border-gray-200">
+      <div className="border-b border-surface-border">
         <nav className="-mb-px flex w-full">
           {[{ id: 'mode', label: 'Configuration', icon: Cog6ToothIcon }, { id: 'sync', label: 'Sync Management', icon: ArrowPathIcon }].map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActiveTab(id as any)}
-              className={`flex-1 py-2 px-1 border-b-2 font-medium text-sm ${activeTab === id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+              className={`flex-1 py-2 px-1 border-b-2 font-medium text-sm ${activeTab === id ? 'border-primary-500 text-primary-600' : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'}`}>
               <div className="flex items-center justify-center space-x-2">
                 <Icon className="w-4 h-4" />
                 <span>{label}</span>
@@ -291,21 +291,21 @@ export const DataLayerSettingsContent: React.FC = () => {
       <div className="space-y-6">
         {activeTab === 'mode' && (
           <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+            <div className="bg-surface-card border border-surface-border rounded-lg p-6 space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Unified Data Management</h3>
-                <p className="text-sm text-gray-600">Select the application mode, database type, and compatible backend from one consolidated workflow.</p>
+                <p className="text-sm text-surface-muted-fg">Select the application mode, database type, and compatible backend from one consolidated workflow.</p>
               </div>
 
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <div className="space-y-3 lg:col-span-1">
-                  <div className="text-sm font-medium text-gray-900">Application Mode</div>
+                  <div className="text-sm font-medium text-surface-foreground">Application Mode</div>
                   <div className="grid grid-cols-1 gap-2">
                     {(['demo', 'production'] as ApplicationSettingsMode[]).map((mode) => (
-                      <label key={mode} className={`flex items-center justify-between rounded-lg border px-4 py-3 ${applicationMode === mode ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                      <label key={mode} className={`flex items-center justify-between rounded-lg border px-4 py-3 ${applicationMode === mode ? 'border-primary-500 bg-primary-50' : 'border-surface-border'}`}>
                         <div>
                           <div className="font-medium capitalize">{mode}</div>
-                          <div className="text-xs text-gray-500">{mode === 'demo' ? 'Browser-safe demo and local development configurations' : 'Live persistence and backend-enabled production profiles'}</div>
+                          <div className="text-xs text-surface-muted-fg">{mode === 'demo' ? 'Browser-safe demo and local development configurations' : 'Live persistence and backend-enabled production profiles'}</div>
                         </div>
                         <input type="radio" name="applicationMode" checked={applicationMode === mode} onChange={() => handleApplicationModeChange(mode)} />
                       </label>
@@ -316,32 +316,32 @@ export const DataLayerSettingsContent: React.FC = () => {
                 <div className="space-y-4 lg:col-span-2">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">Database Type</label>
-                      <select aria-label="Database Type" value={selectedProvider} onChange={(e) => handleProviderChange(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                      <label className="block text-sm font-medium text-surface-foreground mb-2">Database Type</label>
+                      <select aria-label="Database Type" value={selectedProvider} onChange={(e) => handleProviderChange(e.target.value)} className="w-full rounded-lg border border-surface-border px-3 py-2 text-sm">
                         {databaseOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                       </select>
-                      <p className="mt-2 text-xs text-gray-500">{databaseOptions.find((option) => option.value === selectedProvider)?.description}</p>
+                      <p className="mt-2 text-xs text-surface-muted-fg">{databaseOptions.find((option) => option.value === selectedProvider)?.description}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">Backend Configuration</label>
-                      <select aria-label="Backend Configuration" value={selectedBackendIntegration} onChange={(e) => handleBackendIntegrationChange(e.target.value as BackendIntegrationType)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                      <label className="block text-sm font-medium text-surface-foreground mb-2">Backend Configuration</label>
+                      <select aria-label="Backend Configuration" value={selectedBackendIntegration} onChange={(e) => handleBackendIntegrationChange(e.target.value as BackendIntegrationType)} className="w-full rounded-lg border border-surface-border px-3 py-2 text-sm">
                         {backendOptions.map((option) => <option key={option.id} value={option.backendIntegration}>{option.label}</option>)}
                       </select>
-                      <p className="mt-2 text-xs text-gray-500">{selectedConfiguration?.description}</p>
+                      <p className="mt-2 text-xs text-surface-muted-fg">{selectedConfiguration?.description}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <div className="text-xs uppercase tracking-wide text-gray-500">Selected Mode</div>
+                    <div className="rounded-lg border border-surface-border p-4">
+                      <div className="text-xs uppercase tracking-wide text-surface-muted-fg">Selected Mode</div>
                       <div className="mt-1 text-sm font-semibold capitalize">{applicationMode}</div>
                     </div>
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <div className="text-xs uppercase tracking-wide text-gray-500">Database</div>
+                    <div className="rounded-lg border border-surface-border p-4">
+                      <div className="text-xs uppercase tracking-wide text-surface-muted-fg">Database</div>
                       <div className="mt-1 text-sm font-semibold">{databaseOptions.find((option) => option.value === selectedProvider)?.label || 'Not selected'}</div>
                     </div>
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <div className="text-xs uppercase tracking-wide text-gray-500">Backend Type</div>
+                    <div className="rounded-lg border border-surface-border p-4">
+                      <div className="text-xs uppercase tracking-wide text-surface-muted-fg">Backend Type</div>
                       <div className="mt-1 text-sm font-semibold capitalize">{selectedBackendType.replace(/-/g, ' ')}</div>
                     </div>
                   </div>
@@ -359,14 +359,14 @@ export const DataLayerSettingsContent: React.FC = () => {
                   )}
 
                   {saveMessage && (
-                    <div className={`rounded-lg border px-4 py-3 text-sm ${saveMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : saveMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>
+                    <div className={`rounded-lg border px-4 py-3 text-sm ${saveMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : saveMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-primary-200 bg-primary-50 text-primary-700'}`}>
                       {saveMessage.text}
                     </div>
                   )}
 
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex justify-end">
-                      <button onClick={() => setShowAdvanced(!showAdvanced)} className="text-sm text-blue-600 hover:text-blue-800">
+                      <button onClick={() => setShowAdvanced(!showAdvanced)} className="text-sm text-primary-600 hover:text-primary-800">
                         {showAdvanced ? 'Hide' : 'Show'} Advanced Options
                       </button>
                     </div>
@@ -384,10 +384,10 @@ export const DataLayerSettingsContent: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
                 <div className="flex items-start space-x-2">
-                  <InformationCircleIcon className="w-4 h-4 text-blue-600 mt-0.5" />
-                  <div className="text-sm text-blue-800">
+                  <InformationCircleIcon className="w-4 h-4 text-primary-600 mt-0.5" />
+                  <div className="text-sm text-primary-800">
                     <p className="font-medium">Consolidation Notes</p>
                     <p className="mt-1">Demo mode groups browser demo and local development database options under one application mode.</p>
                   </div>
@@ -395,12 +395,12 @@ export const DataLayerSettingsContent: React.FC = () => {
               </div>
 
               {showAdvanced && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="bg-surface-muted border border-surface-border rounded-lg p-4">
                   <h4 className="font-medium mb-2">Advanced Configuration</h4>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span>Source Mode:</span><span className="text-gray-700 capitalize">{selectedConfiguration?.sourceMode || 'unknown'}</span></div>
-                    <div className="flex justify-between"><span>Backend Integration:</span><span className="text-gray-700 capitalize">{selectedBackendIntegration.replace(/-/g, ' ')}</span></div>
-                    <div className="flex justify-between"><span>API Base URL:</span><span className="text-gray-700 truncate max-w-[16rem] text-right">{getApiBaseUrl(selectedConfiguration) || 'Local only'}</span></div>
+                    <div className="flex justify-between"><span>Source Mode:</span><span className="text-surface-foreground capitalize">{selectedConfiguration?.sourceMode || 'unknown'}</span></div>
+                    <div className="flex justify-between"><span>Backend Integration:</span><span className="text-surface-foreground capitalize">{selectedBackendIntegration.replace(/-/g, ' ')}</span></div>
+                    <div className="flex justify-between"><span>API Base URL:</span><span className="text-surface-foreground truncate max-w-[16rem] text-right">{getApiBaseUrl(selectedConfiguration) || 'Local only'}</span></div>
                   </div>
                 </div>
               )}
@@ -409,7 +409,7 @@ export const DataLayerSettingsContent: React.FC = () => {
                 <div className="flex items-start space-x-2 mb-3">
                   <InformationCircleIcon className={`w-4 h-4 mt-0.5 ${isDemoReseedingDisabled ? 'text-amber-600' : 'text-green-600'}`} />
                   <div className={`text-sm ${isDemoReseedingDisabled ? 'text-amber-800' : 'text-green-800'}`}>
-                    <p className="font-medium">{isDemoReseedingDisabled ? 'Demo Data Cleared â€” Production Ready' : 'Demo Data Management'}</p>
+                    <p className="font-medium">{isDemoReseedingDisabled ? 'Demo Data Cleared — Production Ready' : 'Demo Data Management'}</p>
                     <p className="mt-1">{isDemoReseedingDisabled ? 'Demo data has been cleared to transition to production.' : 'Populate the database with realistic school data across 12 modules.'}</p>
                   </div>
                 </div>
@@ -418,7 +418,7 @@ export const DataLayerSettingsContent: React.FC = () => {
                   <>
                     <div className="flex items-center gap-3 mb-3">
                       <label className="text-sm font-medium text-green-900">Data Volume:</label>
-                      <select value={seedVolume} onChange={(e) => setSeedVolume(e.target.value as any)} className="text-sm border border-green-300 rounded-md px-3 py-1.5 bg-white">
+                      <select value={seedVolume} onChange={(e) => setSeedVolume(e.target.value as any)} className="text-sm border border-green-300 rounded-md px-3 py-1.5 bg-surface-card">
                         <option value="tiny">Tiny (30 students)</option>
                         <option value="small">Small (150 students)</option>
                         <option value="medium">Medium (500 students)</option>
@@ -438,7 +438,7 @@ export const DataLayerSettingsContent: React.FC = () => {
                         <p className="text-xs text-green-700">{selectedModules.includes('all') ? 'All modules selected (~88 collections)' : `${selectedModules.length} module(s) selected`}</p>
                       )}
                       {showModuleSelection && (
-                        <div className="bg-white border border-green-200 rounded-lg p-3 mt-2">
+                        <div className="bg-surface-card border border-green-200 rounded-lg p-3 mt-2">
                           <label className="flex items-center space-x-2 mb-3 pb-2 border-b border-green-100">
                             <input type="checkbox" checked={selectedModules.includes('all')} onChange={(e) => setSelectedModules(e.target.checked ? ['all'] : ['core'])} className="rounded border-green-300 text-green-600" />
                             <span className="text-sm font-medium text-green-900">All Modules</span>
@@ -452,8 +452,8 @@ export const DataLayerSettingsContent: React.FC = () => {
                                   setSelectedModules(updated.length === 0 ? ['all'] : updated);
                                 }} className="rounded border-green-300 text-green-600 mt-0.5 disabled:opacity-50" />
                                 <div className="flex-1">
-                                  <span className={`text-sm ${selectedModules.includes('all') ? 'text-gray-400' : 'text-gray-700'}`}>{mod.name}</span>
-                                  <p className="text-xs text-gray-500">{mod.description}</p>
+                                  <span className={`text-sm ${selectedModules.includes('all') ? 'text-surface-muted-fg' : 'text-surface-foreground'}`}>{mod.name}</span>
+                                  <p className="text-xs text-surface-muted-fg">{mod.description}</p>
                                   <p className="text-xs text-green-600">~{mod.estimatedRecords[seedVolume]} records</p>
                                 </div>
                               </label>
@@ -471,7 +471,7 @@ export const DataLayerSettingsContent: React.FC = () => {
                 )}
 
                 {seedMessage && (
-                  <div className={`mt-3 rounded-lg border px-4 py-3 text-sm ${seedMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : seedMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>
+                  <div className={`mt-3 rounded-lg border px-4 py-3 text-sm ${seedMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : seedMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-primary-200 bg-primary-50 text-primary-700'}`}>
                     {seedMessage.text}
                   </div>
                 )}
@@ -484,18 +484,18 @@ export const DataLayerSettingsContent: React.FC = () => {
 
         {activeTab === 'sync' && (
           <div className="space-y-4">
-            <SyncManagementPanel className="!shadow-none border border-gray-200" />
+            <SyncManagementPanel className="!shadow-none border border-surface-border" />
           </div>
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div className="bg-surface-card border border-surface-border rounded-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Current Status</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div><span className="text-gray-600">Mode:</span><div className="font-medium capitalize">{currentMode}</div></div>
-          <div><span className="text-gray-600">Provider:</span><div className="font-medium">{config.database.provider}</div></div>
-          <div><span className="text-gray-600">Records:</span><div className="font-medium">{dataModeStatus?.dataCount || 0} Records</div></div>
-          <div><span className="text-gray-600">Last Sync:</span><div className="font-medium">{syncStatus?.lastSyncTime ? new Date(syncStatus.lastSyncTime).toLocaleString() : 'Never'}</div></div>
+          <div><span className="text-surface-muted-fg">Mode:</span><div className="font-medium capitalize">{currentMode}</div></div>
+          <div><span className="text-surface-muted-fg">Provider:</span><div className="font-medium">{config.database.provider}</div></div>
+          <div><span className="text-surface-muted-fg">Records:</span><div className="font-medium">{dataModeStatus?.dataCount || 0} Records</div></div>
+          <div><span className="text-surface-muted-fg">Last Sync:</span><div className="font-medium">{syncStatus?.lastSyncTime ? new Date(syncStatus.lastSyncTime).toLocaleString() : 'Never'}</div></div>
         </div>
       </div>
     </div>

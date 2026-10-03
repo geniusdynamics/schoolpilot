@@ -2,7 +2,7 @@
 // ABOUTME: Exports ExamAnalysisContent, rendered as a tab by ExamAnalysisPage hub
 
 import React, { useState, useMemo, useCallback } from 'react';
-import type { Subject } from '../data/types';
+import type { ExamPaperSetting, Subject } from '../data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -31,13 +31,10 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import {
-  initialMockExamPerformanceOverTimeData,
-  initialMockStreamPerformanceData
-} from '../data/mockData';
 import { useToast } from '@/hooks/useToast';
 
 interface SubjectAnalysisData {
+  id: string;
   subjectId: number;
   subjectName: string;
   studentsSat: number;
@@ -45,7 +42,31 @@ interface SubjectAnalysisData {
   lowestScore: number;
   averageScore: number;
   totalMarksPossible: number;
+  // Average for the same subject/stream in the preceding session (drives the change column)
+  previousAverage?: number;
 }
+
+interface StreamPerformancePoint {
+  name: string;
+  points: number;
+}
+
+interface ExamPerformanceOverTimePoint {
+  name: string;
+  exam1?: number;
+  exam2?: number;
+  exam3?: number;
+}
+
+const meanOf = (values: number[]): number =>
+  values.length > 0 ? values.reduce((sum, v) => sum + v, 0) / values.length : 0;
+
+const round1 = (value: number): number => Math.round(value * 10) / 10;
+
+const createdAtTime = (iso: string): number => {
+  const time = new Date(iso).getTime();
+  return Number.isNaN(time) ? 0 : time;
+};
 
 export const ExamAnalysisContent: React.FC = () => {
   const { t } = useTranslation('academics');
@@ -60,6 +81,8 @@ export const ExamAnalysisContent: React.FC = () => {
     classSubjectAllocations,
     academicYears,
     schoolPeriods,
+    examPaperSettings = [],
+    gradingSchemes = [],
     loading,
   } = useAppData();
 
@@ -67,6 +90,154 @@ export const ExamAnalysisContent: React.FC = () => {
   const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>();
   const [analysisData, setAnalysisData] = useState<SubjectAnalysisData[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // ===== Live chart derivations (client-side aggregation over loaded context arrays) =====
+
+  // Grading scheme levels — prefer the default scheme, fall back to the first available.
+  const gradeLevels = useMemo(() => {
+    const scheme = gradingSchemes.find(s => s.is_default) ?? gradingSchemes[0];
+    return [...(scheme?.levels ?? [])].sort((a, b) => b.min_score - a.min_score);
+  }, [gradingSchemes]);
+
+  const pointsForPercent = useCallback(
+    (percent: number): number | null => {
+      const points = gradeLevels.find(l => percent >= l.min_score)?.points;
+      return typeof points === 'number' ? points : null;
+    },
+    [gradeLevels]
+  );
+
+  // Paper settings by id — flat collection merged with settings embedded on sessions.
+  const paperSettingsById = useMemo(() => {
+    const map = new Map<string, ExamPaperSetting>();
+    examPaperSettings.forEach(ps => map.set(String(ps.id), ps));
+    examSessions.forEach(es => (es.paper_settings ?? []).forEach(ps => {
+      if (!map.has(String(ps.id))) map.set(String(ps.id), ps);
+    }));
+    return map;
+  }, [examPaperSettings, examSessions]);
+
+  const studentById = useMemo(
+    () => new Map((students || []).map(s => [String(s.id), s])),
+    [students]
+  );
+  const streamById = useMemo(
+    () => new Map((classStreams || []).map(cs => [String(cs.id), cs])),
+    [classStreams]
+  );
+
+  // Percentage score per result (0–100); total_marks is already a weighted 0–100 score when present.
+  const scoredResults = useMemo(() => {
+    return (studentExamResults || []).flatMap(result => {
+      const total = result.total_marks;
+      let percent: number | null =
+        typeof total === 'number' && Number.isFinite(total) && total > 0 ? total : null;
+      if (percent == null) {
+        const marks = result.marks ?? [];
+        if (marks.length > 0) {
+          let weightedSum = 0;
+          let totalWeight = 0;
+          marks.forEach(mark => {
+            if (mark.score == null) return;
+            const setting = paperSettingsById.get(String(mark.paper_setting_id));
+            const marksOutOf = setting?.marks_out_of ?? 0;
+            if (marksOutOf <= 0) {
+              weightedSum += Number(mark.score);
+              totalWeight += 1;
+              return;
+            }
+            const normalized = (Number(mark.score) / marksOutOf) * 100;
+            const weight = setting?.weight_percentage;
+            if (weight != null && weight > 0) {
+              weightedSum += normalized * (weight / 100);
+              totalWeight += weight / 100;
+            } else {
+              weightedSum += normalized;
+              totalWeight += 1;
+            }
+          });
+          percent = totalWeight > 0 ? weightedSum / totalWeight : null;
+        }
+      }
+      return percent == null ? [] : [{ result, percent }];
+    });
+  }, [studentExamResults, paperSettingsById]);
+
+  interface StreamBucket {
+    label: string;
+    percents: number[];
+  }
+
+  const groupScoredByStream = useCallback(
+    (entries: { result: (typeof studentExamResults)[number]; percent: number }[]): StreamBucket[] => {
+      const byKey = new Map<string, StreamBucket>();
+      entries.forEach(({ result, percent }) => {
+        const student = studentById.get(String(result.student_id));
+        const streamId = student?.current_class_stream_id;
+        const stream = streamId != null ? streamById.get(String(streamId)) : undefined;
+        const label = stream
+          ? `${stream.class_name ?? ''} ${stream.name}`.trim()
+          : student?.current_class_stream_name?.trim() || 'Unassigned';
+        const key = stream ? String(stream.id) : label;
+        const bucket = byKey.get(key);
+        if (bucket) bucket.percents.push(percent);
+        else byKey.set(key, { label, percents: [percent] });
+      });
+      return Array.from(byKey.values());
+    },
+    [studentById, streamById]
+  );
+
+  // Mean points per stream for the selected session (all sessions when none selected).
+  const streamPerformanceData: StreamPerformancePoint[] = useMemo(() => {
+    const relevant = selectedExamSessionId
+      ? scoredResults.filter(e => String(e.result.exam_session_id) === String(selectedExamSessionId))
+      : scoredResults;
+    return groupScoredByStream(relevant)
+      .map(bucket => ({
+        name: bucket.label,
+        points: round1(meanOf(
+          bucket.percents
+            .map(pointsForPercent)
+            .filter((p): p is number => p != null)
+        )),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [scoredResults, selectedExamSessionId, groupScoredByStream, pointsForPercent]);
+
+  // Mean points per stream across the three most recent sessions (exam1/exam2/exam3 columns).
+  const examPerformanceOverTimeData: ExamPerformanceOverTimePoint[] = useMemo(() => {
+    const sessionsAsc = [...(examSessions || [])].sort(
+      (a, b) => createdAtTime(a.created_at) - createdAtTime(b.created_at)
+    );
+    const focusSessions = sessionsAsc.slice(-3);
+    if (focusSessions.length === 0) return [];
+
+    const rowsByKey = new Map<string, { name: string; values: (number | undefined)[] }>();
+    focusSessions.forEach((session, sessionIndex) => {
+      const relevant = scoredResults.filter(
+        e => String(e.result.exam_session_id) === String(session.id)
+      );
+      groupScoredByStream(relevant).forEach(bucket => {
+        // Bucket labels are stable across sessions only when streams resolve to ids,
+        // so key on the resolved id captured in the label when possible.
+        const row = rowsByKey.get(bucket.label) ?? { name: bucket.label, values: [] };
+        row.values[sessionIndex] = round1(meanOf(
+          bucket.percents
+            .map(pointsForPercent)
+            .filter((p): p is number => p != null)
+        ));
+        rowsByKey.set(bucket.label, row);
+      });
+    });
+
+    return Array.from(rowsByKey.values()).map(row => ({
+      name: row.name,
+      exam1: row.values[0],
+      exam2: row.values[1],
+      exam3: row.values[2],
+    }));
+  }, [examSessions, scoredResults, groupScoredByStream, pointsForPercent]);
 
   // Tab navigation items
   const tabs = [
@@ -111,6 +282,60 @@ export const ExamAnalysisContent: React.FC = () => {
       res => res.exam_session_id === selectedExamSessionId && studentsInStream.some(s => s.id === res.student_id)
     );
 
+    // Previous session for the same stream — used for per-subject change values.
+    const sessionsAsc = [...(examSessions || [])].sort(
+      (a, b) => createdAtTime(a.created_at) - createdAtTime(b.created_at)
+    );
+    const sessionIndex = sessionsAsc.findIndex(es => es.id === selectedExamSessionId);
+    const prevSessionId = sessionIndex > 0 ? sessionsAsc[sessionIndex - 1].id : null;
+
+    // Mean percentage for one subject in one session, for this stream.
+    const computeSubjectAverageForSession = (sessionId: string, subjectId: number): number | null => {
+      const session = (examSessions || []).find(es => es.id === sessionId);
+      if (!session) return null;
+      const paperSettingsForSubject = (session.paper_settings || []).filter(ps => {
+        const paper = (subjectPapers || []).find(sp => sp.id === ps.subject_paper_id);
+        return paper?.subject_id === subjectId;
+      });
+      if (paperSettingsForSubject.length === 0) return null;
+
+      const settingIds = new Set(paperSettingsForSubject.map(ps => String(ps.id)));
+      let averageSum = 0;
+      let studentsCounted = 0;
+      (studentExamResults || []).forEach(result => {
+        if (result.exam_session_id !== sessionId) return;
+        if (!studentsInStream.some(s => s.id === result.student_id)) return;
+        const marks = (result.marks || []).filter(m => settingIds.has(String(m.paper_setting_id)));
+        if (marks.length === 0) return;
+        let weightedSum = 0;
+        let totalWeight = 0;
+        marks.forEach(mark => {
+          if (mark.score == null) return;
+          const setting = paperSettingsForSubject.find(x => String(x.id) === String(mark.paper_setting_id));
+          const marksOutOf = setting?.marks_out_of ?? 0;
+          if (marksOutOf <= 0) {
+            weightedSum += Number(mark.score);
+            totalWeight += 1;
+            return;
+          }
+          const normalized = (Number(mark.score) / marksOutOf) * 100;
+          const weight = setting?.weight_percentage;
+          if (weight != null && weight > 0) {
+            weightedSum += normalized * (weight / 100);
+            totalWeight += weight / 100;
+          } else {
+            weightedSum += normalized;
+            totalWeight += 1;
+          }
+        });
+        if (totalWeight > 0) {
+          averageSum += weightedSum / totalWeight;
+          studentsCounted += 1;
+        }
+      });
+      return studentsCounted > 0 ? averageSum / studentsCounted : null;
+    };
+
     const newAnalysisData = allocatedSubjectsForStream.map(subject => {
       let studentsSat = 0;
       let totalScoreForSubject = 0;
@@ -150,6 +375,7 @@ export const ExamAnalysisContent: React.FC = () => {
       if (lowestScoreInSubject === Infinity) lowestScoreInSubject = 0;
 
       return {
+        id: subject.name,
         subjectId: subject.id,
         subjectName: subject.name,
         studentsSat,
@@ -157,6 +383,10 @@ export const ExamAnalysisContent: React.FC = () => {
         lowestScore: studentsSat > 0 ? lowestScoreInSubject : 0,
         averageScore: studentsSat > 0 ? totalScoreForSubject / studentsSat : 0,
         totalMarksPossible: totalMarksPossibleForSubject,
+        previousAverage:
+          prevSessionId != null
+            ? computeSubjectAverageForSession(prevSessionId, subject.id) ?? undefined
+            : undefined,
       };
     }).filter(data => data.totalMarksPossible > 0);
 
@@ -170,7 +400,8 @@ export const ExamAnalysisContent: React.FC = () => {
       rank: index + 1,
       name: data.subjectName,
       points: data.averageScore,
-      change: Math.random() * 2 - 1, // Mock change data
+      // Change vs the same subject/stream in the previous session (0 when no baseline exists)
+      change: data.previousAverage != null ? round1(data.averageScore - data.previousAverage) : 0,
       grade: data.averageScore >= 70 ? 'A' : 
              data.averageScore >= 60 ? 'B' : 
              data.averageScore >= 50 ? 'C' : 
@@ -278,17 +509,17 @@ export const ExamAnalysisContent: React.FC = () => {
           {/* Stream Performance Chart */}
           <Card className="lg:col-span-2">
             <div className="p-4 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <ChartBarIcon className="h-5 w-5 text-gray-500" />
+              <h3 className="text-base font-semibold text-surface-foreground flex items-center gap-2">
+                <ChartBarIcon className="h-5 w-5 text-surface-muted-fg" />
                 Performance of Form 1 streams
               </h3>
             </div>
             <div className="p-4">
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={initialMockStreamPerformanceData}>
+                <AreaChart data={streamPerformanceData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
-                  <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} domain={[3.5, 5]} />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                   />
@@ -327,11 +558,11 @@ export const ExamAnalysisContent: React.FC = () => {
           {/* Performance Over Time Chart */}
           <Card>
             <div className="p-4 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900">Performance Over Time</h3>
+              <h3 className="text-base font-semibold text-surface-foreground">Performance Over Time</h3>
             </div>
             <div className="p-4">
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={initialMockExamPerformanceOverTimeData}>
+                <LineChart data={examPerformanceOverTimeData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
@@ -339,7 +570,7 @@ export const ExamAnalysisContent: React.FC = () => {
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="exam1" name="Exam 1" stroke="#3b82f6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="exam1" name="Exam 1" stroke="#6366f1" strokeWidth={2} />
                   <Line type="monotone" dataKey="exam2" name="Exam 2" stroke="#10b981" strokeWidth={2} />
                   <Line type="monotone" dataKey="exam3" name="Exam 3" stroke="#f59e0b" strokeWidth={2} />
                 </LineChart>
@@ -371,7 +602,7 @@ export const ExamAnalysisContent: React.FC = () => {
         </Card>
       ) : (
         <Card>
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-surface-muted-fg py-8">
             <ChartPieIcon className="h-12 w-12 mx-auto text-gray-300 mb-3" />
             <p>Select an exam session and class stream, then click "Load Analysis" to view results.</p>
           </div>

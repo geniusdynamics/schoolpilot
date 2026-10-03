@@ -49,17 +49,17 @@ const StudentBioDataPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">{t('studentBioData.title', 'Student Bio Data Management')}</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">{t('studentBioData.title', 'Student Bio Data Management')}</h1>
       </div>
       
       {!selectedStudent ? (
         <Card>
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
             <div className="flex items-start gap-3">
-              <UserIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+              <UserIcon className="w-5 h-5 text-primary-600 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-blue-800">{t('studentBioData.profiles', 'Comprehensive Student Profiles')}</h3>
-                <p className="text-sm text-blue-700 mt-1">
+                <h3 className="font-semibold text-primary-800">{t('studentBioData.profiles', 'Comprehensive Student Profiles')}</h3>
+                <p className="text-sm text-primary-700 mt-1">
                   {t('studentBioData.description', 'View and manage complete student bio data including emergency contacts, medical history, allergies, and documents.')}
                 </p>
               </div>
@@ -69,11 +69,11 @@ const StudentBioDataPage: React.FC = () => {
           {/* Filters */}
           <div className="mb-6 flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+              <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
               <select
                 value={selectedClass}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               >
                 <option value="">All Classes</option>
                 {classes.map(cls => (
@@ -82,13 +82,13 @@ const StudentBioDataPage: React.FC = () => {
               </select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
               <input
                 type="text"
                 placeholder="Student name, ID..."
                 value={searchTerm}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               />
             </div>
           </div>
@@ -98,13 +98,13 @@ const StudentBioDataPage: React.FC = () => {
             {mockStudentBioData.map(student => (
               <div
                 key={student.id}
-                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="p-4 border border-surface-border rounded-lg hover:bg-surface-muted cursor-pointer"
                 onClick={() => setSelectedStudent(student)}
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-semibold text-gray-800">{student.name}</h4>
-                    <p className="text-sm text-gray-600">{student.student_id} | {student.class_name} - {student.section}</p>
+                    <h4 className="font-semibold text-surface-foreground">{student.name}</h4>
+                    <p className="text-sm text-surface-muted-fg">{student.student_id} | {student.class_name} - {student.section}</p>
                   </div>
                   <Button size="sm" variant="secondary">
                     View Details
@@ -120,36 +120,36 @@ const StudentBioDataPage: React.FC = () => {
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
               â† {t('studentBioData.backToStudents', 'Back to Students')}
             </Button>
-            <h2 className="text-xl font-bold text-gray-800">{selectedStudent.name}</h2>
+            <h2 className="text-xl font-bold text-surface-foreground">{selectedStudent.name}</h2>
           </div>
 
           {/* Tabs */}
-          <div className="mb-6 border-b border-gray-200">
+          <div className="mb-6 border-b border-surface-border">
             <div className="flex gap-4">
               <button
                 onClick={() => setActiveTab('basic')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'basic' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'basic' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
               >
                 <UserIcon className="w-4 h-4 inline mr-1" />
                 {t('studentBioData.basicInfo', 'Basic Info')}
               </button>
               <button
                 onClick={() => setActiveTab('medical')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'medical' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'medical' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
               >
                 <HeartIcon className="w-4 h-4 inline mr-1" />
                 {t('studentBioData.medical', 'Medical')}
               </button>
               <button
                 onClick={() => setActiveTab('emergency')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'emergency' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'emergency' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
               >
                 <PhoneIcon className="w-4 h-4 inline mr-1" />
                 {t('studentBioData.emergencyContacts', 'Emergency')}
               </button>
               <button
                 onClick={() => setActiveTab('documents')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'documents' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                className={`pb-2 px-4 font-medium ${activeTab === 'documents' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
               >
                 <DocumentTextIcon className="w-4 h-4 inline mr-1" />
                 Documents
@@ -160,8 +160,8 @@ const StudentBioDataPage: React.FC = () => {
           {/* Tab Content */}
           {activeTab === 'basic' && (
             <div>
-              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-4">Personal Information</h3>
+              <div className="mb-6 p-4 bg-surface-muted border border-surface-border rounded-lg">
+                <h3 className="font-semibold text-surface-foreground mb-4">Personal Information</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                   <div><span className="font-medium">Student ID:</span> {selectedStudent.student_id}</div>
                   <div><span className="font-medium">Class/Section:</span> {selectedStudent.class_name} - {selectedStudent.section}</div>
@@ -178,8 +178,8 @@ const StudentBioDataPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-4">Parent/Guardian Information</h3>
+              <div className="mb-6 p-4 bg-surface-muted border border-surface-border rounded-lg">
+                <h3 className="font-semibold text-surface-foreground mb-4">Parent/Guardian Information</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                   <div><span className="font-medium">Father:</span> {selectedStudent.father_name}</div>
                   <div><span className="font-medium">Father Phone:</span> {selectedStudent.father_phone}</div>
@@ -202,7 +202,7 @@ const StudentBioDataPage: React.FC = () => {
           {activeTab === 'medical' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Medical Conditions</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Medical Conditions</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Condition
@@ -211,21 +211,21 @@ const StudentBioDataPage: React.FC = () => {
               <div className="space-y-3 mb-6">
                 {(selectedStudent.medical_conditions?.length ?? 0) > 0 ? (
                   selectedStudent.medical_conditions.map(condition => (
-                    <div key={condition.id} className="p-4 border border-gray-200 rounded-lg">
+                    <div key={condition.id} className="p-4 border border-surface-border rounded-lg">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-semibold text-gray-800">{condition.condition}</h4>
-                          <p className="text-sm text-gray-600">Diagnosed: {new Date(condition.diagnosis_date).toLocaleDateString()}</p>
-                          <p className="text-sm text-gray-600">Severity: {condition.severity}</p>
-                          <p className="text-sm text-gray-600">Treatment: {condition.treatment}</p>
-                          {condition.notes && <p className="text-sm text-gray-500 mt-1">Notes: {condition.notes}</p>}
+                          <h4 className="font-semibold text-surface-foreground">{condition.condition}</h4>
+                          <p className="text-sm text-surface-muted-fg">Diagnosed: {new Date(condition.diagnosis_date).toLocaleDateString()}</p>
+                          <p className="text-sm text-surface-muted-fg">Severity: {condition.severity}</p>
+                          <p className="text-sm text-surface-muted-fg">Treatment: {condition.treatment}</p>
+                          {condition.notes && <p className="text-sm text-surface-muted-fg mt-1">Notes: {condition.notes}</p>}
                         </div>
                         <Button size="sm" variant="secondary">Edit</Button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No medical conditions recorded</p>
+                  <p className="text-surface-muted-fg text-center py-4">No medical conditions recorded</p>
                 )}
               </div>
 
@@ -249,7 +249,7 @@ const StudentBioDataPage: React.FC = () => {
           {activeTab === 'emergency' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Emergency Contacts</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Emergency Contacts</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Contact
@@ -257,16 +257,16 @@ const StudentBioDataPage: React.FC = () => {
               </div>
               <div className="space-y-3">
                 {(selectedStudent.emergency_contacts || []).map(contact => (
-                  <div key={contact.id} className={`p-4 border rounded-lg ${contact.is_primary ? 'border-blue-300 bg-blue-50' : 'border-gray-200'}`}>
+                  <div key={contact.id} className={`p-4 border rounded-lg ${contact.is_primary ? 'border-primary-300 bg-primary-50' : 'border-surface-border'}`}>
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-gray-800">{contact.name}</h4>
-                          {contact.is_primary && <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Primary</span>}
+                          <h4 className="font-semibold text-surface-foreground">{contact.name}</h4>
+                          {contact.is_primary && <span className="px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-xs">Primary</span>}
                         </div>
-                        <p className="text-sm text-gray-600">Relationship: {contact.relationship}</p>
-                        <p className="text-sm text-gray-600">Phone: {contact.phone}</p>
-                        <p className="text-sm text-gray-600">Address: {contact.address}</p>
+                        <p className="text-sm text-surface-muted-fg">Relationship: {contact.relationship}</p>
+                        <p className="text-sm text-surface-muted-fg">Phone: {contact.phone}</p>
+                        <p className="text-sm text-surface-muted-fg">Address: {contact.address}</p>
                       </div>
                       <Button size="sm" variant="secondary">Edit</Button>
                     </div>
@@ -279,7 +279,7 @@ const StudentBioDataPage: React.FC = () => {
           {activeTab === 'documents' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Documents</h3>
+                <h3 className="text-lg font-semibold text-surface-foreground">Documents</h3>
                 <Button size="sm" variant="secondary">
                   <PlusIcon className="w-4 h-4 mr-1" />
                   Add Document
@@ -287,14 +287,14 @@ const StudentBioDataPage: React.FC = () => {
               </div>
               <div className="space-y-3">
                 {(selectedStudent.documents || []).map(doc => (
-                  <div key={doc.id} className="p-4 border border-gray-200 rounded-lg">
+                  <div key={doc.id} className="p-4 border border-surface-border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-gray-800">{doc.document_type}</h4>
-                        <p className="text-sm text-gray-600">Number: {doc.document_number}</p>
-                        <p className="text-sm text-gray-600">Issued: {new Date(doc.issue_date).toLocaleDateString()}</p>
-                        {doc.expiry_date && <p className="text-sm text-gray-600">Expires: {new Date(doc.expiry_date).toLocaleDateString()}</p>}
-                        <p className="text-sm text-gray-600">Authority: {doc.issuing_authority}</p>
+                        <h4 className="font-semibold text-surface-foreground">{doc.document_type}</h4>
+                        <p className="text-sm text-surface-muted-fg">Number: {doc.document_number}</p>
+                        <p className="text-sm text-surface-muted-fg">Issued: {new Date(doc.issue_date).toLocaleDateString()}</p>
+                        {doc.expiry_date && <p className="text-sm text-surface-muted-fg">Expires: {new Date(doc.expiry_date).toLocaleDateString()}</p>}
+                        <p className="text-sm text-surface-muted-fg">Authority: {doc.issuing_authority}</p>
                       </div>
                       <Button size="sm" variant="secondary">Edit</Button>
                     </div>

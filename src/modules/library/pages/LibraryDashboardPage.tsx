@@ -268,22 +268,22 @@ export const LibraryDashboardPageContent: React.FC = () => {
       {/* Additional Library Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Lending Summary */}
-        <Card title="Lending Summary" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Lending Summary" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Available Books</span>
+              <span className="text-sm text-surface-muted-fg">Available Books</span>
               <span className="font-semibold text-emerald-600">{availableBooks}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">On Loan</span>
-              <span className="font-semibold text-blue-600">{booksOnLoan}</span>
+              <span className="text-sm text-surface-muted-fg">On Loan</span>
+              <span className="font-semibold text-primary-600">{booksOnLoan}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Active Loans</span>
-              <span className="font-semibold text-gray-900">{(loans || []).filter((l: any) => !l.return_date).length}</span>
+              <span className="text-sm text-surface-muted-fg">Active Loans</span>
+              <span className="font-semibold text-surface-foreground">{(loans || []).filter((l: any) => !l.return_date).length}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Total Borrowers</span>
+              <span className="text-sm text-surface-muted-fg">Total Borrowers</span>
               <span className="font-semibold text-violet-600">
                 {new Set((loans || []).map((l: any) => l.student_id)).size}
               </span>
@@ -292,7 +292,7 @@ export const LibraryDashboardPageContent: React.FC = () => {
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -300,7 +300,7 @@ export const LibraryDashboardPageContent: React.FC = () => {
                   flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0
                   ${activity.type === 'return' ? 'bg-emerald-100 text-emerald-600' :
                     activity.type === 'fine' ? 'bg-amber-100 text-amber-600' :
-                    activity.type === 'issue' ? 'bg-blue-100 text-blue-600' :
+                    activity.type === 'issue' ? 'bg-primary-100 text-primary-600' :
                     'bg-violet-100 text-violet-600'}
                 `}>
                   {activity.type === 'return' ? <ArrowLeftIcon className="h-4 w-4" /> :
@@ -309,8 +309,8 @@ export const LibraryDashboardPageContent: React.FC = () => {
                    <PlusIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -321,7 +321,7 @@ export const LibraryDashboardPageContent: React.FC = () => {
         </Card>
 
         {/* Quick Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-emerald-50 p-3 text-center">
@@ -339,17 +339,17 @@ export const LibraryDashboardPageContent: React.FC = () => {
                 <span className="font-bold text-amber-700">{(bookCategories || []).length}</span>
               </div>
             </div>
-            <div className="rounded-lg bg-blue-50 p-3">
+            <div className="rounded-lg bg-primary-50 p-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-700">Avg. Loans per Book</span>
-                <span className="font-bold text-blue-700">
+                <span className="text-sm text-primary-700">Avg. Loans per Book</span>
+                <span className="font-bold text-primary-700">
                   {totalBooks > 0 ? ((loans || []).length / totalBooks).toFixed(1) : '0'}
                 </span>
               </div>
             </div>
             <button
               onClick={() => window.location.hash = '#/library/loans'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               View All Loans <ArrowRightIcon className="h-4 w-4" />
             </button>
@@ -359,17 +359,17 @@ export const LibraryDashboardPageContent: React.FC = () => {
 
       {/* Top Borrowed Books */}
       {topBorrowed.length > 0 && (
-        <Card title="Top Borrowed Books" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Top Borrowed Books" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-2">
             {topBorrowed.map((book, index) => (
-              <div key={book.title} className="flex items-center justify-between rounded-lg bg-gray-50 p-3 hover:bg-gray-100 transition-colors">
+              <div key={book.title} className="flex items-center justify-between rounded-lg bg-surface-muted p-3 hover:bg-surface-accent transition-colors">
                 <div className="flex items-center">
                   <span className="mr-3 flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-xs text-white">
                     {index + 1}
                   </span>
-                  <span className="truncate text-sm font-medium text-gray-900">{book.title}</span>
+                  <span className="truncate text-sm font-medium text-surface-foreground">{book.title}</span>
                 </div>
-                <span className="text-sm text-gray-500">{book.count} loans</span>
+                <span className="text-sm text-surface-muted-fg">{book.count} loans</span>
               </div>
             ))}
           </div>

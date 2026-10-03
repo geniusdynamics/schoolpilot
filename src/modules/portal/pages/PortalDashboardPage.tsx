@@ -8,23 +8,27 @@ import ModuleDashboardShell, { DashboardMetric, DashboardQuickAction, DashboardP
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import { usePortalData } from '../data/usePortalData';
+import { PortalAccessNotice, shouldShowAccessNotice } from '../components/PortalAccessNotice';
 import { HomeIcon, CalendarDaysIcon, ChartBarIcon, CurrencyDollarIcon, MegaphoneIcon, BellIcon, UserCircleIcon } from '@/components/ui/icons';
 
 export const PortalDashboardContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const {
-    announcements,
     feeSummaries,
     results,
     loading,
+    accessStatus,
+    currentStudent,
     loadAnnouncements,
     getAnnouncementsForUser,
     getAttendanceSummary,
   } = usePortalData();
 
   const [userRole] = useState<string>('student');
-  const [userName] = useState<string>('John Doe');
-  const [userGreeting] = useState<string>(new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening');
+  const userGreeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening';
+  const userName = currentStudent
+    ? [currentStudent.first_name, currentStudent.last_name].filter(Boolean).join(' ') || 'Student'
+    : 'Student';
 
   useEffect(() => {
     loadAnnouncements();
@@ -55,7 +59,7 @@ export const PortalDashboardContent: React.FC = () => {
       description: feeSummaries.length > 0
         ? feeBalance > 0 ? `${t('fees.totalFees')}: KES ${feeSummaries[0].totalFees.toLocaleString()}` : t('fees.totalPaid')
         : undefined,
-      icon: <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />,
+      icon: <CurrencyDollarIcon className="w-5 h-5 text-primary-600" />,
     },
     {
       key: 'recent-results',
@@ -114,8 +118,8 @@ export const PortalDashboardContent: React.FC = () => {
   const priorityColors: Record<string, string> = {
     urgent: 'text-rose-600 bg-rose-50 border-rose-200',
     high: 'text-orange-600 bg-orange-50 border-orange-200',
-    medium: 'text-blue-600 bg-blue-50 border-blue-200',
-    low: 'text-gray-600 bg-gray-50 border-gray-200',
+    medium: 'text-primary-600 bg-primary-50 border-primary-200',
+    low: 'text-surface-muted-fg bg-surface-muted border-surface-border',
   };
 
   const announcementsPanel: DashboardPanel = {
@@ -124,7 +128,7 @@ export const PortalDashboardContent: React.FC = () => {
     content: (
       <div className="space-y-3">
         {publishedAnnouncements.length === 0 ? (
-          <div className="text-center py-6 text-gray-500">
+          <div className="text-center py-6 text-surface-muted-fg">
             <MegaphoneIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">{t('announcements.noAnnouncements')}</p>
           </div>
@@ -132,7 +136,7 @@ export const PortalDashboardContent: React.FC = () => {
           publishedAnnouncements.map((announcement) => (
             <div
               key={announcement.id}
-              className="rounded-lg border p-3 hover:bg-gray-50 transition-colors"
+              className="rounded-lg border p-3 hover:bg-surface-muted transition-colors"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
@@ -140,10 +144,10 @@ export const PortalDashboardContent: React.FC = () => {
                     <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${priorityColors[announcement.priority]}`}>
                       {announcement.priority}
                     </span>
-                    <h4 className="text-sm font-semibold text-gray-900 truncate">{announcement.title}</h4>
+                    <h4 className="text-sm font-semibold text-surface-foreground truncate">{announcement.title}</h4>
                   </div>
-                  <p className="text-xs text-gray-500 line-clamp-2">{announcement.content}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-surface-muted-fg line-clamp-2">{announcement.content}</p>
+                  <p className="text-xs text-surface-muted-fg mt-1">
                     {announcement.authorName} &middot; {new Date(announcement.publishedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -169,8 +173,8 @@ export const PortalDashboardContent: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="text-center">
-            <p className="text-2xl font-semibold text-gray-900">{attendanceSummary.attendancePercentage}%</p>
-            <p className="text-xs text-gray-500">{t('attendance.percentage')}</p>
+            <p className="text-2xl font-semibold text-surface-foreground">{attendanceSummary.attendancePercentage}%</p>
+            <p className="text-xs text-surface-muted-fg">{t('attendance.percentage')}</p>
           </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -195,14 +199,14 @@ export const PortalDashboardContent: React.FC = () => {
             <p className="text-lg font-semibold text-amber-700">{attendanceSummary.lateDays}</p>
             <p className="text-xs text-amber-600">{t('attendance.late')}</p>
           </div>
-          <div className="rounded bg-blue-50 p-2">
-            <p className="text-lg font-semibold text-blue-700">{attendanceSummary.excusedDays}</p>
-            <p className="text-xs text-blue-600">{t('attendance.excused')}</p>
+          <div className="rounded bg-primary-50 p-2">
+            <p className="text-lg font-semibold text-primary-700">{attendanceSummary.excusedDays}</p>
+            <p className="text-xs text-primary-600">{t('attendance.excused')}</p>
           </div>
         </div>
       </div>
     ) : (
-      <div className="text-center py-6 text-gray-500">
+      <div className="text-center py-6 text-surface-muted-fg">
         <CalendarDaysIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
         <p className="text-sm">{t('common.noData')}</p>
       </div>
@@ -216,18 +220,18 @@ export const PortalDashboardContent: React.FC = () => {
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3 text-center">
           <div>
-            <p className="text-lg font-semibold text-gray-900">KES {feeSummaries[0].totalFees.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">{t('fees.totalFees')}</p>
+            <p className="text-lg font-semibold text-surface-foreground">KES {feeSummaries[0].totalFees.toLocaleString()}</p>
+            <p className="text-xs text-surface-muted-fg">{t('fees.totalFees')}</p>
           </div>
           <div>
             <p className="text-lg font-semibold text-emerald-600">KES {feeSummaries[0].totalPaid.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">{t('fees.totalPaid')}</p>
+            <p className="text-xs text-surface-muted-fg">{t('fees.totalPaid')}</p>
           </div>
           <div>
             <p className={`text-lg font-semibold ${feeBalance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
               KES {feeBalance.toLocaleString()}
             </p>
-            <p className="text-xs text-gray-500">{t('fees.balance')}</p>
+            <p className="text-xs text-surface-muted-fg">{t('fees.balance')}</p>
           </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -241,7 +245,7 @@ export const PortalDashboardContent: React.FC = () => {
         </Button>
       </div>
     ) : (
-      <div className="text-center py-6 text-gray-500">
+      <div className="text-center py-6 text-surface-muted-fg">
         <CurrencyDollarIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
         <p className="text-sm">{t('common.noData')}</p>
       </div>
@@ -270,7 +274,7 @@ export const PortalDashboardContent: React.FC = () => {
     }
   }
   const urgentAnnouncements = publishedAnnouncements.filter(a => a.priority === 'urgent');
-  urgentAnnouncements.forEach((ann, idx) => {
+  urgentAnnouncements.forEach((ann) => {
     notifications.push({
       id: `urgent-${ann.id}`,
       title: ann.title,
@@ -283,9 +287,14 @@ export const PortalDashboardContent: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />
-        <span className="ml-3 text-gray-600">{t('common.loading')}</span>
+        <span className="ml-3 text-surface-muted-fg">{t('common.loading')}</span>
       </div>
     );
+  }
+
+  // Auth-gated: the dashboard is personal data — require a linked student.
+  if (shouldShowAccessNotice(accessStatus)) {
+    return <PortalAccessNotice status={accessStatus} />;
   }
 
   return (

@@ -11,6 +11,7 @@ import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 
 
 interface FeeCollectionSummaryRow {
+  id: string;
   votehead: string;
   expectedAmount: number;
   paidAmount: number;
@@ -67,6 +68,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     });
 
     const summaryData: FeeCollectionSummaryRow[] = Array.from(summaryMap.entries()).map(([votehead, data]) => ({
+      id: votehead,
       votehead,
       expectedAmount: data.expected,
       paidAmount: data.paid,
@@ -133,8 +135,8 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Fee Collection Summary Report">
-         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-            <p className="text-sm text-gray-600 mb-4">
+         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 Aggregated summary of fee collection by votehead for the selected criteria.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -165,7 +167,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
                 <DataGrid columns={columns} data={(reportData || [])} loading={isGenerating} emptyState="No fee collection data found for the selected criteria."/>
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">Please select filters and click "Generate Summary".</p>
+            <p className="text-center text-surface-muted-fg py-4">Please select filters and click "Generate Summary".</p>
         )}
       </Card>
     </div>

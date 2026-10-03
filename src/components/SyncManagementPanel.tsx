@@ -124,16 +124,16 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
     switch (priority) {
       case 'critical': return 'bg-red-100 text-red-800 border-red-200';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'normal': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'normal': return 'bg-primary-100 text-primary-800 border-primary-200';
+      case 'low': return 'bg-surface-accent text-surface-foreground border-surface-border';
+      default: return 'bg-surface-accent text-surface-foreground border-surface-border';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'processing':
-        return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>;
+        return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>;
       case 'completed':
         return <CheckCircleIcon className="w-4 h-4 text-green-500" />;
       case 'error':
@@ -141,21 +141,21 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
       case 'paused':
         return <PauseIcon className="w-4 h-4 text-amber-500" />;
       default:
-        return <ClockIcon className="w-4 h-4 text-gray-500" />;
+        return <ClockIcon className="w-4 h-4 text-surface-muted-fg" />;
     }
   };
 
   const renderQueueTab = () => (
     <div className="space-y-4">
       {/* Queue Controls */}
-      <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+      <div className="flex items-center justify-between bg-surface-muted p-4 rounded-lg">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">Priority:</label>
+            <label className="text-sm font-medium text-surface-foreground">Priority:</label>
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="all">All</option>
               <option value="critical">Critical</option>
@@ -165,11 +165,11 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
             </select>
           </div>
           <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">Status:</label>
+            <label className="text-sm font-medium text-surface-foreground">Status:</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
@@ -207,13 +207,13 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
       {/* Queue Items */}
       <div className="space-y-2">
         {filteredQueueItems.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-surface-muted-fg">
             <ClockIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p>No items in sync queue</p>
           </div>
         ) : (
           filteredQueueItems.map((item) => (
-            <div key={item.id} className="border rounded-lg p-4 hover:bg-gray-50">
+            <div key={item.id} className="border rounded-lg p-4 hover:bg-surface-muted">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <input
@@ -226,16 +226,16 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
                         setSelectedItems(selectedItems.filter(id => id !== item.id));
                       }
                     }}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
                   />
                   
                   <div className="flex items-center space-x-2">
                     {getStatusIcon(item.status)}
                     <div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-surface-foreground">
                         {item.operation.entity} - {item.operation.type}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-surface-muted-fg">
                         {item.timestamp.toLocaleString()}
                         {item.retryCount > 0 && ` â€¢ Retry ${item.retryCount}/${item.maxRetries}`}
                       </div>
@@ -262,7 +262,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
                   )}
                   
                   {item.estimatedDuration && (
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-surface-muted-fg">
                       ~{Math.round(item.estimatedDuration / 1000)}s
                     </div>
                   )}
@@ -281,36 +281,36 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-gray-900">Auto Sync</label>
-              <p className="text-xs text-gray-500">Automatically sync changes in the background</p>
+              <label className="text-sm font-medium text-surface-foreground">Auto Sync</label>
+              <p className="text-xs text-surface-muted-fg">Automatically sync changes in the background</p>
             </div>
             <input
               type="checkbox"
               checked={syncSettings.autoSync}
               onChange={(e) => updateSyncSettings?.({ autoSync: e.target.checked })}
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
             />
           </div>
           
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-gray-900">Background Sync</label>
-              <p className="text-xs text-gray-500">Continue syncing when app is in background</p>
+              <label className="text-sm font-medium text-surface-foreground">Background Sync</label>
+              <p className="text-xs text-surface-muted-fg">Continue syncing when app is in background</p>
             </div>
             <input
               type="checkbox"
               checked={syncSettings.backgroundSync}
               onChange={(e) => updateSyncSettings?.({ backgroundSync: e.target.checked })}
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
             />
           </div>
           
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-900">Sync Interval</label>
+            <label className="text-sm font-medium text-surface-foreground">Sync Interval</label>
             <select
               value={syncSettings.syncInterval / 1000}
               onChange={(e) => updateSyncSettings?.({ syncInterval: parseInt(e.target.value) * 1000 })}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value={15}>15 seconds</option>
               <option value={30}>30 seconds</option>
@@ -321,11 +321,11 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
           </div>
           
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-900">Batch Size</label>
+            <label className="text-sm font-medium text-surface-foreground">Batch Size</label>
             <select
               value={syncSettings.batchSize}
               onChange={(e) => updateSyncSettings?.({ batchSize: parseInt(e.target.value) })}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value={5}>5 items</option>
               <option value={10}>10 items</option>
@@ -335,11 +335,11 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
           </div>
           
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-900">Max Retries</label>
+            <label className="text-sm font-medium text-surface-foreground">Max Retries</label>
             <select
               value={syncSettings.maxRetries}
               onChange={(e) => updateSyncSettings?.({ maxRetries: parseInt(e.target.value) })}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value={1}>1 retry</option>
               <option value={3}>3 retries</option>
@@ -349,11 +349,11 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-900">Retry Delay</label>
+            <label className="text-sm font-medium text-surface-foreground">Retry Delay</label>
             <select
               value={syncSettings.retryDelay}
               onChange={(e) => updateSyncSettings?.({ retryDelay: parseInt(e.target.value) })}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value={1000}>1 second</option>
               <option value={5000}>5 seconds</option>
@@ -364,13 +364,13 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
 
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-gray-900">Conflict Resolution</label>
-              <p className="text-xs text-gray-500">Choose how sync conflicts should be handled by default</p>
+              <label className="text-sm font-medium text-surface-foreground">Conflict Resolution</label>
+              <p className="text-xs text-surface-muted-fg">Choose how sync conflicts should be handled by default</p>
             </div>
             <select
               value={syncSettings.conflictResolution}
               onChange={(e) => updateSyncSettings?.({ conflictResolution: e.target.value as SyncSettings['conflictResolution'] })}
-              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="text-sm border-surface-border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="manual">Manual review</option>
               <option value="merge">Merge automatically</option>
@@ -385,7 +385,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
 
   const renderHistoryTab = () => (
     <div className="space-y-4">
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-surface-muted-fg">
         <ChartBarIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
         <p>Sync history will be displayed here</p>
         <p className="text-sm">Track completed sync operations and performance metrics</p>
@@ -396,7 +396,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
   const renderConflictsTab = () => (
     <div className="space-y-4">
       {conflicts.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-surface-muted-fg">
           <CheckCircleIcon className="w-12 h-12 mx-auto mb-4 text-green-300" />
           <p>No sync conflicts</p>
           <p className="text-sm">All data is synchronized successfully</p>
@@ -436,13 +436,13 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
   ];
 
   return (
-    <div className={`bg-white rounded-lg shadow ${className}`}>
+    <div className={`bg-surface-card rounded-lg shadow ${className}`}>
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
+      <div className="border-b border-surface-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-medium text-gray-900">Sync Management</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-medium text-surface-foreground">Sync Management</h2>
+            <p className="text-sm text-surface-muted-fg">
               Manage data synchronization queue and settings
             </p>
           </div>
@@ -455,8 +455,8 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
               {isOnline && backendAvailable ? 'Online' : 'Offline'}
             </div>
             {syncStatus?.state === 'syncing' && (
-              <div className="flex items-center space-x-1 text-sm text-blue-600">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+              <div className="flex items-center space-x-1 text-sm text-primary-600">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600"></div>
                 <span>Syncing...</span>
               </div>
             )}
@@ -465,7 +465,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-surface-border">
         <nav className="flex space-x-8 px-6">
           {tabs.map(({ id, label, count, alert }) => (
             <button
@@ -473,8 +473,8 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
               onClick={() => setActiveTab(id as any)}
               className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                 activeTab === id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
               }`}
             >
               {label}
@@ -482,7 +482,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
                 <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
                   alert 
                     ? 'bg-red-100 text-red-800' 
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-surface-accent text-surface-muted-fg'
                 }`}>
                   {count}
                 </span>

@@ -175,24 +175,24 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
   // Variant styles
   const variantStyles = {
     default: {
-      container: 'border border-gray-200 rounded-lg bg-white shadow-sm',
-      tabList: 'border-b border-gray-200 bg-gray-50 rounded-t-lg',
-      tab: 'border-b-2 border-transparent hover:border-gray-300 hover:text-gray-700',
-      activeTab: 'border-blue-500 text-blue-600 bg-white',
-      content: 'bg-white rounded-b-lg',
+      container: 'border border-surface-border rounded-lg bg-surface-card shadow-sm',
+      tabList: 'border-b border-surface-border bg-surface-muted rounded-t-lg',
+      tab: 'border-b-2 border-transparent hover:border-surface-border hover:text-surface-foreground',
+      activeTab: 'border-primary-500 text-primary-600 bg-surface-card',
+      content: 'bg-surface-card rounded-b-lg',
     },
     pills: {
-      container: 'bg-white rounded-lg shadow-sm',
-      tabList: 'p-2 bg-gray-100 rounded-lg',
-      tab: 'rounded-md hover:bg-gray-200 hover:text-gray-700',
-      activeTab: 'bg-white text-blue-600 shadow-sm',
+      container: 'bg-surface-card rounded-lg shadow-sm',
+      tabList: 'p-2 bg-surface-accent rounded-lg',
+      tab: 'rounded-md hover:bg-gray-200 hover:text-surface-foreground',
+      activeTab: 'bg-surface-card text-primary-600 shadow-sm',
       content: 'mt-4',
     },
     underline: {
-      container: 'bg-white',
-      tabList: 'border-b border-gray-200',
-      tab: 'border-b-2 border-transparent hover:border-gray-300 hover:text-gray-700',
-      activeTab: 'border-blue-500 text-blue-600',
+      container: 'bg-surface-card',
+      tabList: 'border-b border-surface-border',
+      tab: 'border-b-2 border-transparent hover:border-surface-border hover:text-surface-foreground',
+      activeTab: 'border-primary-500 text-primary-600',
       content: 'mt-6',
     },
   };
@@ -222,7 +222,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
     if (!isAccessible) {
       classes.push('opacity-50 cursor-not-allowed');
     } else {
-      classes.push('cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2');
+      classes.push('cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2');
     }
     
     // Validation state indicators
@@ -257,14 +257,14 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
     
     try {
       // Validate all tabs
-      const allValid = tabs.every((tab, index) => {
+      const allValid = tabs.every((_, index) => {
         const validationState = getTabValidationState(index);
         return validationState !== 'error';
       });
       
       if (!allValid) {
         // Find first invalid tab and switch to it
-        const firstInvalidTab = tabs.findIndex((tab, index) => {
+        const firstInvalidTab = tabs.findIndex((_, index) => {
           const validationState = getTabValidationState(index);
           return validationState === 'error';
         });
@@ -331,12 +331,12 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
       {showProgress && (
         <div className="px-6 pt-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">Progress</span>
-            <span className="text-sm text-gray-500">{Math.round(progress)}%</span>
+            <span className="text-sm font-medium text-surface-foreground">Progress</span>
+            <span className="text-sm text-surface-muted-fg">{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
+              className="bg-primary-600 h-2 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -378,13 +378,13 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
       </div>
       
       {/* Mobile Tab Navigation */}
-      <div className={`${mobileClasses[mobileBreakpoint]} p-4 border-b border-gray-200`}>
+      <div className={`${mobileClasses[mobileBreakpoint]} p-4 border-b border-surface-border`}>
         <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={() => handleTabChange(Math.max(0, currentTab - 1))}
             disabled={currentTab === 0}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-surface-muted-fg hover:text-surface-muted-fg disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Previous tab"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,8 +393,8 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
           </button>
           
           <div className="flex-1 text-center">
-            <div className="font-medium text-gray-900">{tabs[currentTab]?.label}</div>
-            <div className="text-sm text-gray-500">
+            <div className="font-medium text-surface-foreground">{tabs[currentTab]?.label}</div>
+            <div className="text-sm text-surface-muted-fg">
               {currentTab + 1} of {tabs.length}
             </div>
           </div>
@@ -403,7 +403,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
             type="button"
             onClick={() => handleTabChange(Math.min(tabs.length - 1, currentTab + 1))}
             disabled={currentTab === tabs.length - 1}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-surface-muted-fg hover:text-surface-muted-fg disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Next tab"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -429,12 +429,12 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
       
       {/* Form Actions - Right-aligned buttons */}
       {(onSubmit || onCancel) && (
-        <div className="flex justify-end items-center gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+        <div className="flex justify-end items-center gap-3 px-6 py-4 bg-surface-muted border-t border-surface-border rounded-b-lg">
           {currentTab > 0 && (
             <button
               type="button"
               onClick={() => handleTabChange(currentTab - 1)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 text-sm font-medium text-surface-foreground bg-surface-card border border-surface-border rounded-md hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               Previous
             </button>
@@ -444,7 +444,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              className="px-4 py-2 text-sm font-medium text-surface-foreground bg-surface-card border border-surface-border rounded-md hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               disabled={isSubmitting}
             >
               {cancelButtonText}
@@ -455,7 +455,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
             <button
               type="button"
               onClick={() => handleTabChange(currentTab + 1)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               Next
             </button>
@@ -464,7 +464,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
               type="submit"
               onClick={handleSubmit}
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {(isSubmitting || loading) && (
                 <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">

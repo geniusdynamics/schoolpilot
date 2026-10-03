@@ -317,8 +317,11 @@ describe('useKanban - Basic Tests', () => {
       act(() => {
         actions.setFilter('ui'); // Filter by 'ui' tag which only card 1 has
       });
-      
-      const filteredColumns = actions.getFilteredColumns();
+
+      // Re-read actions after the state update: the `actions` destructured
+      // above is a stale closure (getFilteredColumns captured filterText='')
+      const [, freshActions] = result.current;
+      const filteredColumns = freshActions.getFilteredColumns();
       
       // Should only include cards with 'ui' tag (only card 1 has this)
       expect(filteredColumns[0].cards).toHaveLength(1);
@@ -403,7 +406,9 @@ describe('useKanban - Basic Tests', () => {
       [currentState] = result.current;
       expect(currentState.selectedCards).toEqual(['1', '2']);
       
-      stats = actions.getBoardStats();
+      // Re-read actions after the state update (stale closure otherwise)
+      const [, statsActions] = result.current;
+      stats = statsActions.getBoardStats();
       expect(stats.selectedCards).toBe(2);
     });
   });

@@ -127,9 +127,9 @@ const TransferredStudentsPage: React.FC = () => {
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="text-2xl font-bold text-blue-700">{transferredStudents.length}</div>
-            <div className="text-xs text-blue-600">Total Transferred</div>
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+            <div className="text-2xl font-bold text-primary-700">{transferredStudents.length}</div>
+            <div className="text-xs text-primary-600">Total Transferred</div>
           </div>
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
             <div className="text-2xl font-bold text-green-700">{transferredStudents.filter(s => s.transfer_certificate_issued).length}</div>
@@ -157,8 +157,8 @@ const TransferredStudentsPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <ArrowDownTrayIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No transferred students found.</p>
+              <ArrowDownTrayIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No transferred students found.</p>
             </div>
           }
         />
@@ -168,19 +168,19 @@ const TransferredStudentsPage: React.FC = () => {
         <Modal isOpen={!!selectedStudent} onClose={() => setSelectedStudent(null)} title={[selectedStudent.first_name, selectedStudent.last_name].filter(Boolean).join(' ') || 'Student Details'} size="lg">
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div><label className="text-xs font-medium text-gray-500">Admission Number</label><p className="mt-1 text-sm">{selectedStudent.admission_number}</p></div>
-              <div><label className="text-xs font-medium text-gray-500">Gender</label><p className="mt-1 text-sm">{selectedStudent.gender}</p></div>
-              <div><label className="text-xs font-medium text-gray-500">Previous Class</label><p className="mt-1 text-sm">{selectedStudent.class_name} {selectedStudent.stream_name}</p></div>
-              <div><label className="text-xs font-medium text-gray-500">Transfer Date</label><p className="mt-1 text-sm">{new Date(selectedStudent.transfer_date).toLocaleDateString()}</p></div>
-              <div><label className="text-xs font-medium text-gray-500">Certificate</label><div className="mt-1"><Badge variant={selectedStudent.transfer_certificate_issued ? 'success' : 'warning'}>{selectedStudent.transfer_certificate_issued ? 'Issued' : 'Pending'}</Badge></div></div>
-              <div><label className="text-xs font-medium text-gray-500">Processed By</label><p className="mt-1 text-sm">{selectedStudent.processed_by}</p></div>
+              <div><label className="text-xs font-medium text-surface-muted-fg">Admission Number</label><p className="mt-1 text-sm">{selectedStudent.admission_number}</p></div>
+              <div><label className="text-xs font-medium text-surface-muted-fg">Gender</label><p className="mt-1 text-sm">{selectedStudent.gender}</p></div>
+              <div><label className="text-xs font-medium text-surface-muted-fg">Previous Class</label><p className="mt-1 text-sm">{selectedStudent.class_name} {selectedStudent.stream_name}</p></div>
+              <div><label className="text-xs font-medium text-surface-muted-fg">Transfer Date</label><p className="mt-1 text-sm">{new Date(selectedStudent.transfer_date).toLocaleDateString()}</p></div>
+              <div><label className="text-xs font-medium text-surface-muted-fg">Certificate</label><div className="mt-1"><Badge variant={selectedStudent.transfer_certificate_issued ? 'success' : 'warning'}>{selectedStudent.transfer_certificate_issued ? 'Issued' : 'Pending'}</Badge></div></div>
+              <div><label className="text-xs font-medium text-surface-muted-fg">Processed By</label><p className="mt-1 text-sm">{selectedStudent.processed_by}</p></div>
             </div>
             <div className="border-t pt-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Transfer Details</h4>
+              <h4 className="text-sm font-semibold text-surface-foreground mb-3">Transfer Details</h4>
               <div className="space-y-3">
-                <div><label className="text-xs font-medium text-gray-500">Destination School</label><p className="mt-1 text-sm font-medium">{selectedStudent.destination_school}</p></div>
-                <div><label className="text-xs font-medium text-gray-500">Reason for Transfer</label><p className="mt-1 text-sm">{selectedStudent.transfer_reason}</p></div>
-                {selectedStudent.notes && <div><label className="text-xs font-medium text-gray-500">Notes</label><p className="mt-1 text-sm text-gray-700">{selectedStudent.notes}</p></div>}
+                <div><label className="text-xs font-medium text-surface-muted-fg">Destination School</label><p className="mt-1 text-sm font-medium">{selectedStudent.destination_school}</p></div>
+                <div><label className="text-xs font-medium text-surface-muted-fg">Reason for Transfer</label><p className="mt-1 text-sm">{selectedStudent.transfer_reason}</p></div>
+                {selectedStudent.notes && <div><label className="text-xs font-medium text-surface-muted-fg">Notes</label><p className="mt-1 text-sm text-surface-foreground">{selectedStudent.notes}</p></div>}
               </div>
             </div>
           </div>

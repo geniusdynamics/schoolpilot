@@ -101,14 +101,44 @@ export function usePWA(): [PWAState, PWAActions] {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
-    const isDev = process.env.NODE_ENV === 'development';
+    // Vite replaces import.meta.env.DEV at build time; process.env.NODE_ENV is
+    // NOT defined in this client bundle, which silently disabled dev cleanup
+    // and let stale production service workers keep intercepting dev requests.
+    const isDev = import.meta.env.DEV;
 
     if (isDev) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        for (const reg of registrations) {
-          reg.unregister();
+      const cleanupDevServiceWorkers = async () => {
+        try {
+          // A production build previously served on this origin registers a
+          // workbox SW that persists across dev sessions. It intercepts Vite's
+          // module URLs (/@vite/client, /src/*.ts?t=…) and floods the console
+          // with "Precaching did not find a match" / "No route found".
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(reg => reg.unregister()));
+
+          // Evict workbox precache/runtime caches left by that build.
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+          }
+
+          // If a stale SW controlled this page, reload once so the app runs
+          // uncontrolled (guard against reload loops).
+          if (registrations.length > 0 && navigator.serviceWorker.controller) {
+            const key = 'sw-dev-cleanup-reloaded';
+            if (!sessionStorage.getItem(key)) {
+              sessionStorage.setItem(key, '1');
+              window.location.reload();
+            }
+          } else {
+            sessionStorage.removeItem('sw-dev-cleanup-reloaded');
+          }
+        } catch (error) {
+          logger.warn('[usePWA] Dev service worker cleanup failed:', error);
         }
-      });
+      };
+
+      cleanupDevServiceWorkers();
       return;
     }
 
@@ -219,10 +249,11 @@ export function usePWA(): [PWAState, PWAActions] {
    * Register background sync
    */
   const registerSync = useCallback(async (tag = 'background-sync'): Promise<boolean> => {
-    if (!('sync' in registration.current)) return false;
+    const current = registration.current;
+    if (!current || !('sync' in current)) return false;
 
     try {
-      await (registration.current as any).sync.register(tag);
+      await (current as any).sync.register(tag);
       return true;
     } catch (error) {
       logger.error('Background sync registration failed:', error);

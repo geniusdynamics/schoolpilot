@@ -63,6 +63,12 @@ export type { TooltipProps, InfoTooltipProps, HelpTooltipProps, ValidationToolti
 // Enhanced form components
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
+export { default as Checkbox } from './Checkbox';
+export type { CheckboxProps } from './Checkbox';
+export { Radio, RadioGroup, default as RadioInput } from './Radio';
+export type { RadioProps, RadioGroupProps, RadioGroupOption } from './Radio';
+export { default as Switch } from './Switch';
+export type { SwitchProps } from './Switch';
 export { default as Modal } from './Modal';
 export { default as Card, CardHeader, CardTitle, CardDescription, CardContent } from './Card';
 export type { CardVariant, CardSize } from './Card';

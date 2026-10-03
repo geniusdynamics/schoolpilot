@@ -76,7 +76,7 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Initializing data layer...</p>
+          <p className="mt-4 text-surface-muted-fg">Initializing data layer...</p>
         </div>
       </div>
     );
@@ -89,7 +89,7 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading data layer...</p>
+          <p className="mt-4 text-surface-muted-fg">Loading data layer...</p>
         </div>
       </div>
     }>
@@ -128,7 +128,7 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children, modulesIni
                             <div className="flex items-center justify-center h-screen">
                               <div className="text-center">
                                 <Spinner size="lg" />
-                                <p className="mt-4 text-gray-600">Initializing application...</p>
+                                <p className="mt-4 text-surface-muted-fg">Initializing application...</p>
                               </div>
                             </div>
                           )}

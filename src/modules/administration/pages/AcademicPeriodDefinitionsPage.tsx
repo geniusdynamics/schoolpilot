@@ -162,7 +162,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
           Add Definition
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define the individual periods within an Academic Year Structure (e.g., "Term 1", "Term 2", "Semester 1"). 
           Set their sequence order within the structure.
         </p>
@@ -173,7 +173,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
           sortable 
           filterable 
           emptyState={{
-            icon: <DocumentDuplicateIcon className="h-12 w-12 text-gray-400" />,
+            icon: <DocumentDuplicateIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No period definitions found',
             description: 'Get started by creating your first academic period definition.',
           }}
@@ -219,8 +219,8 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.academicPeriodDefinitions}>
-            {loading.academicPeriodDefinitions ? <Spinner size="sm"/> : (editingDefinition ? 'Save Changes' : 'Add Definition')}
+          <Button onClick={handleSubmit} loading={loading.academicPeriodDefinitions}>
+            {editingDefinition ? 'Save Changes' : 'Add Definition'}
           </Button>
         </FormActions>
       </DialogForm>

@@ -39,12 +39,12 @@ export interface TimetableWidgetProps {
 }
 
 const defaultPeriods: Period[] = [
-  { id: '1', name: 'P1', subject: 'English', startTime: '08:00', endTime: '09:00', color: 'bg-blue-50 text-blue-700' },
+  { id: '1', name: 'P1', subject: 'English', startTime: '08:00', endTime: '09:00', color: 'bg-primary-50 text-primary-700' },
   { id: '2', name: 'P2', subject: 'Mathematics', startTime: '09:00', endTime: '10:00', color: 'bg-emerald-50 text-emerald-700' },
   { id: '3', name: 'P3', subject: 'French', startTime: '10:25', endTime: '11:25', color: 'bg-purple-50 text-purple-700' },
   { id: '4', name: 'P4', subject: 'Spanish', startTime: '11:10', endTime: '12:10', color: 'bg-orange-50 text-orange-700' },
   { id: '5', name: 'P5', subject: 'Design', startTime: '12:20', endTime: '13:20', color: 'bg-pink-50 text-pink-700' },
-  { id: '6', name: 'P6', subject: 'Free Period', startTime: '13:05', endTime: '14:30', color: 'bg-gray-50 text-gray-600' },
+  { id: '6', name: 'P6', subject: 'Free Period', startTime: '13:05', endTime: '14:30', color: 'bg-surface-muted text-surface-muted-fg' },
 ];
 
 const getSubjectIcon = (subject: string) => {
@@ -87,11 +87,11 @@ export const TimetableWidget: React.FC<TimetableWidgetProps> = ({
         {periods.map((period, index) => (
           <div
             key={period.id}
-            className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 transition-colors"
+            className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 hover:border-surface-border hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors"
           >
             {/* Period Number */}
             <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold ${
-              period.color || 'bg-gray-100 text-gray-700'
+              period.color || 'bg-surface-accent text-surface-foreground'
             }`}>
               {period.name}
             </div>
@@ -100,14 +100,14 @@ export const TimetableWidget: React.FC<TimetableWidgetProps> = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 {getSubjectIcon(period.subject)}
-                <span className="text-sm font-medium text-gray-900 truncate">
+                <span className="text-sm font-medium text-surface-foreground truncate">
                   {period.subject}
                 </span>
               </div>
             </div>
 
             {/* Time */}
-            <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 text-xs text-surface-muted-fg">
               <ClockIcon className="w-3.5 h-3.5" />
               <span>{period.startTime}</span>
               <span className="text-gray-300">-</span>

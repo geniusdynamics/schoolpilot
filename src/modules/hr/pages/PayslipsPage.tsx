@@ -197,7 +197,7 @@ export const PayslipsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">{t('payslips.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('payslips.description')}</p>
         {appDataLoading.payslips ? (
           <div className="flex justify-center py-8">
             <Spinner />
@@ -225,7 +225,7 @@ export const PayslipsPageContent: React.FC = () => {
               value={formData.staff_id || ''}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">{t('fields.selectStaff')}</option>
               {(staff as Staff[] || []).map(s => (
@@ -241,7 +241,7 @@ export const PayslipsPageContent: React.FC = () => {
               value={formData.period_id || ''}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">{t('fields.selectPeriod')}</option>
               {(payrollPeriods as PayrollPeriod[] || []).map(p => (
@@ -266,7 +266,7 @@ export const PayslipsPageContent: React.FC = () => {
               disabled={isSubmitting}
               placeholder={t('fields.notesPlaceholder')}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </FormField>
         </FormSection>
@@ -274,8 +274,8 @@ export const PayslipsPageContent: React.FC = () => {
           <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
             {t('common:cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <Spinner size="sm" /> : t('payslips.generate')}
+          <Button type="submit" loading={isSubmitting}>
+            {t('payslips.generate')}
           </Button>
         </FormActions>
       </DialogForm>
@@ -290,43 +290,43 @@ export const PayslipsPageContent: React.FC = () => {
           <FormSection title={t('payslips.viewSection.details')}>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-sm text-gray-500">{t('fields.staff')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.staff')}:</span>
                 <p className="font-medium">{getStaffName(selectedPayslip.staff_id)}</p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.payrollPeriod')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.payrollPeriod')}:</span>
                 <p className="font-medium">{getPeriodName(selectedPayslip.period_id)}</p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.paymentDate')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.paymentDate')}:</span>
                 <p className="font-medium">
                   {selectedPayslip.payment_date ? formatDate(selectedPayslip.payment_date) : '-'}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.status')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.status')}:</span>
                 <p className="font-medium">{selectedPayslip.status}</p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.basicSalary')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.basicSalary')}:</span>
                 <p className="font-medium">{formatKES(selectedPayslip.basic_salary)}</p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.totalEarnings')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.totalEarnings')}:</span>
                 <p className="font-medium text-green-600">{formatKES(selectedPayslip.total_earnings)}</p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.totalDeductions')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.totalDeductions')}:</span>
                 <p className="font-medium text-red-600">{formatKES(selectedPayslip.total_deductions)}</p>
               </div>
               <div>
-                <span className="text-sm text-gray-500">{t('fields.netSalary')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.netSalary')}:</span>
                 <p className="font-medium text-primary-600">{formatKES(selectedPayslip.net_salary)}</p>
               </div>
             </div>
             {selectedPayslip.notes && (
               <div className="mt-4">
-                <span className="text-sm text-gray-500">{t('fields.notes')}:</span>
+                <span className="text-sm text-surface-muted-fg">{t('fields.notes')}:</span>
                 <p className="mt-1">{selectedPayslip.notes}</p>
               </div>
             )}

@@ -123,7 +123,7 @@ export const SupplierInvoicesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-blue-600">{formatDate(row.invoice_date)}</span>
+      render: (value, row) => <span className="text-primary-600">{formatDate(row.invoice_date)}</span>
     },
     { 
       key: 'due_date', 
@@ -194,7 +194,7 @@ export const SupplierInvoicesPageContent: React.FC = () => {
           Add Supplier Invoice
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Record and manage invoices received from suppliers.
         </p>
         <DataGrid 
@@ -204,7 +204,7 @@ export const SupplierInvoicesPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ReceiptRefundIcon className="w-12 h-12 text-gray-400" />,
+            icon: <ReceiptRefundIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No supplier invoices found",
             description: "Start tracking your supplier invoices by recording the first invoice. Manage payments, due dates, and maintain accurate financial records.",
             action: {
@@ -219,8 +219,8 @@ export const SupplierInvoicesPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.supplierInvoices}>
-              {loading.supplierInvoices ? <Spinner size="sm"/> : (editingInvoice ? 'Save Changes' : 'Add Invoice')}
+            <Button onClick={handleSubmit} loading={loading.supplierInvoices}>
+              {editingInvoice ? 'Save Changes' : 'Add Invoice'}
             </Button>
           </>
         }

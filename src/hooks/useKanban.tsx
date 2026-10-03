@@ -72,24 +72,29 @@ export const useKanban = <T extends KanbanCard = KanbanCard>({
       const newColumns = [...prevColumns];
       const fromColIndex = newColumns.findIndex(col => col.id === fromColumn);
       const toColIndex = newColumns.findIndex(col => col.id === toColumn);
-      
+
       if (fromColIndex === -1 || toColIndex === -1) return prevColumns;
-      
-      const fromCol = { ...newColumns[fromColIndex] };
-      const toCol = { ...newColumns[toColIndex] };
-      
+
+      const fromCol = newColumns[fromColIndex];
+      const toCol = newColumns[toColIndex];
+
       const cardIndex = fromCol.cards.findIndex(card => card.id === cardId);
       if (cardIndex === -1) return prevColumns;
-      
-      const [card] = fromCol.cards.splice(cardIndex, 1);
-      
+
+      // Copy the card arrays before splicing — the previous implementation
+      // spliced `fromCol.cards`/`toCol.cards` through a shallow column copy,
+      // which mutated the caller's (and React's) original column state.
+      const fromCards = [...fromCol.cards];
+      const [card] = fromCards.splice(cardIndex, 1);
+
+      const toCards = [...toCol.cards];
       // Insert at specific index or at the end
-      const insertIndex = newIndex !== undefined ? Math.min(newIndex, toCol.cards.length) : toCol.cards.length;
-      toCol.cards.splice(insertIndex, 0, card);
-      
-      newColumns[fromColIndex] = { ...fromCol, cards: [...fromCol.cards] };
-      newColumns[toColIndex] = { ...toCol, cards: [...toCol.cards] };
-      
+      const insertIndex = newIndex !== undefined ? Math.min(newIndex, toCards.length) : toCards.length;
+      toCards.splice(insertIndex, 0, card);
+
+      newColumns[fromColIndex] = { ...fromCol, cards: fromCards };
+      newColumns[toColIndex] = { ...toCol, cards: toCards };
+
       return newColumns;
     });
     

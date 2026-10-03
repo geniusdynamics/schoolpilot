@@ -27,7 +27,7 @@ const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
   <div className="flex items-center justify-center h-screen">
     <div className="text-center">
       <Spinner size="lg" />
-      {label && <p className="mt-4 text-gray-600">{label}</p>}
+      {label && <p className="mt-4 text-surface-muted-fg">{label}</p>}
     </div>
   </div>
 );
@@ -302,11 +302,11 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
           path="*"
           element={
             <div className="flex flex-col items-center justify-center h-[60vh] text-center p-8">
-              <h1 className="text-3xl font-bold text-gray-700">Page not found</h1>
-              <p className="text-gray-500 mt-2">The page you requested does not exist.</p>
+              <h1 className="text-3xl font-bold text-surface-foreground">Page not found</h1>
+              <p className="text-surface-muted-fg mt-2">The page you requested does not exist.</p>
               <button
                 onClick={() => (window.location.hash = '#/dashboard')}
-                className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
                 Go to Dashboard
               </button>

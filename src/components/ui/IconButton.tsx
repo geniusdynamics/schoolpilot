@@ -110,14 +110,14 @@ const IconButton = forwardRef(<C extends ElementType = "button">(
   // Variant styles using standard Tailwind classes
   const variantStyles = {
     primary: [
-      'bg-indigo-600 text-white border-indigo-600',
-      'hover:bg-indigo-700 hover:border-indigo-700',
-      'focus-visible:ring-indigo-500',
-      'active:bg-indigo-800',
+      'bg-primary-600 text-white border-primary-600',
+      'hover:bg-primary-700 hover:border-primary-700',
+      'focus-visible:ring-primary-500',
+      'active:bg-primary-800',
     ].join(' '),
     secondary: [
-      'bg-gray-100 text-gray-900 border-gray-200',
-      'hover:bg-gray-200 hover:border-gray-300',
+      'bg-surface-accent text-surface-foreground border-surface-border',
+      'hover:bg-gray-200 hover:border-surface-border',
       'focus-visible:ring-gray-500',
       'active:bg-gray-300',
     ].join(' '),
@@ -140,16 +140,16 @@ const IconButton = forwardRef(<C extends ElementType = "button">(
       'active:bg-red-800',
     ].join(' '),
     ghost: [
-      'bg-transparent text-gray-600 border-transparent',
-      'hover:bg-gray-100 hover:text-gray-700',
+      'bg-transparent text-surface-muted-fg border-transparent',
+      'hover:bg-surface-accent hover:text-surface-foreground',
       'focus-visible:ring-gray-500',
       'active:bg-gray-200',
     ].join(' '),
     outline: [
-      'bg-transparent text-indigo-600 border-indigo-600',
-      'hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-700',
-      'focus-visible:ring-indigo-500',
-      'active:bg-indigo-100',
+      'bg-transparent text-primary-600 border-primary-600',
+      'hover:bg-primary-50 hover:text-primary-700 hover:border-primary-700',
+      'focus-visible:ring-primary-500',
+      'active:bg-primary-100',
     ].join(' '),
   };
 

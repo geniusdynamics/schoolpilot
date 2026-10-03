@@ -129,13 +129,13 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
   const getModeColor = (mode: DataMode): string => {
     switch (mode) {
       case 'development':
-        return 'border-blue-500 bg-blue-50';
+        return 'border-primary-500 bg-primary-50';
       case 'demo':
         return 'border-green-500 bg-green-50';
       case 'production':
         return 'border-red-500 bg-red-50';
       default:
-        return 'border-gray-500 bg-gray-50';
+        return 'border-gray-500 bg-surface-muted';
     }
   };
 
@@ -171,12 +171,12 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
           </label>
         </div>
         {showDescription && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-surface-muted-fg">
             Demo mode uses mock data, while production mode uses RxDB with real data persistence.
           </p>
         )}
         {isLoading && (
-          <div className="flex items-center space-x-2 text-blue-600">
+          <div className="flex items-center space-x-2 text-primary-600">
             <ArrowPathIcon className="w-4 h-4 animate-spin" />
             <span className="text-sm">Switching modes...</span>
           </div>
@@ -204,7 +204,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
               className={`px-3 py-1 text-xs font-medium rounded border transition-colors ${
                 currentMode === mode
                   ? getModeColor(mode)
-                  : 'border-gray-200 bg-white hover:bg-gray-50'
+                  : 'border-surface-border bg-surface-card hover:bg-surface-muted'
               }`}
             >
               {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -212,7 +212,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
           ))}
         </div>
         {isLoading && (
-          <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
+          <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
         )}
       </div>
     );
@@ -223,10 +223,10 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
     <div className={`space-y-4 ${className}`}>
       {/* Loading/Error States */}
       {isLoading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
-            <span className="text-blue-800">Switching data mode...</span>
+            <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
+            <span className="text-primary-800">Switching data mode...</span>
           </div>
         </div>
       )}
@@ -247,17 +247,17 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
             key={mode}
             className={`p-4 border rounded-lg cursor-pointer transition-colors ${
               currentMode === mode
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-surface-border hover:border-surface-border'
             } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => !isLoading && handleModeSwitch(mode)}
           >
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium capitalize">{mode}</h4>
-              {currentMode === mode && <CheckCircleIcon className="w-5 h-5 text-blue-500" />}
+              {currentMode === mode && <CheckCircleIcon className="w-5 h-5 text-primary-500" />}
             </div>
             {showDescription && (
-              <p className="text-sm text-gray-600">{getModeDescription(mode)}</p>
+              <p className="text-sm text-surface-muted-fg">{getModeDescription(mode)}</p>
             )}
           </div>
         ))}

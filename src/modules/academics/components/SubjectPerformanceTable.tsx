@@ -25,14 +25,14 @@ const getGradeColor = (grade: string): string => {
     case 'A':
       return 'text-emerald-600 bg-emerald-50';
     case 'B':
-      return 'text-blue-600 bg-blue-50';
+      return 'text-primary-600 bg-primary-50';
     case 'C':
       return 'text-amber-600 bg-amber-50';
     case 'D':
     case 'E':
       return 'text-rose-600 bg-rose-50';
     default:
-      return 'text-gray-600 bg-gray-50';
+      return 'text-surface-muted-fg bg-surface-muted';
   }
 };
 
@@ -53,7 +53,7 @@ const TrendCell: React.FC<{ value: number }> = ({ value }) => {
     );
   }
   return (
-    <span className="inline-flex items-center gap-0.5 text-gray-500">
+    <span className="inline-flex items-center gap-0.5 text-surface-muted-fg">
       <MinusIcon className="h-3.5 w-3.5" />
       0
     </span>
@@ -68,42 +68,42 @@ export const SubjectPerformanceTable: React.FC<SubjectPerformanceTableProps> = (
   const displaySubjects = subjects.slice(0, maxRows);
 
   return (
-    <div className={cn('bg-white rounded-xl border border-gray-200 overflow-hidden', className)}>
+    <div className={cn('bg-surface-card rounded-xl border border-surface-border overflow-hidden', className)}>
       <div className="px-4 py-3 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-900">Subject Performance</h3>
+        <h3 className="text-base font-semibold text-surface-foreground">Subject Performance</h3>
       </div>
       
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-surface-muted">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 #
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Points
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Change
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Grade
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {displaySubjects.map((subject) => (
-              <tr key={subject.name} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+              <tr key={subject.name} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                <td className="px-4 py-3 text-sm font-medium text-surface-foreground">
                   {subject.rank}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
+                <td className="px-4 py-3 text-sm text-surface-foreground">
                   {subject.name}
                 </td>
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                <td className="px-4 py-3 text-sm font-medium text-surface-foreground">
                   {subject.points.toFixed(4)}
                 </td>
                 <td className="px-4 py-3 text-sm">
@@ -124,7 +124,7 @@ export const SubjectPerformanceTable: React.FC<SubjectPerformanceTableProps> = (
       </div>
 
       {subjects.length === 0 && (
-        <div className="px-4 py-8 text-center text-gray-500">
+        <div className="px-4 py-8 text-center text-surface-muted-fg">
           No subject data available
         </div>
       )}

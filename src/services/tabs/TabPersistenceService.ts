@@ -603,14 +603,14 @@ export class TabPersistenceService {
 
     return tabs
       .filter((tab): tab is Tab => {
-        // Basic validation - ensure required fields exist
+        // Basic validation - ensure required fields exist and are non-empty
         return (
           tab !== null &&
           typeof tab === 'object' &&
-          typeof tab.id === 'string' &&
-          typeof tab.title === 'string' &&
-          typeof tab.module === 'string' &&
-          typeof tab.path === 'string'
+          typeof tab.id === 'string' && tab.id !== '' &&
+          typeof tab.title === 'string' && tab.title !== '' &&
+          typeof tab.module === 'string' && tab.module !== '' &&
+          typeof tab.path === 'string' && tab.path !== ''
         );
       })
       .map((tab) => ({

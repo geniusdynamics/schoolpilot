@@ -88,7 +88,7 @@ export const AppContent: React.FC<AppContentProps> = ({ modulesInitialized, conf
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Initializing...</p>
+          <p className="mt-4 text-surface-muted-fg">Initializing...</p>
         </div>
       </div>
     );
@@ -103,7 +103,7 @@ export const AppContent: React.FC<AppContentProps> = ({ modulesInitialized, conf
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
               <Spinner size="lg" />
-              <p className="mt-4 text-gray-600">Loading login page...</p>
+              <p className="mt-4 text-surface-muted-fg">Loading login page...</p>
             </div>
           </div>
         }

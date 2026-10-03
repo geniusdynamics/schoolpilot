@@ -22,7 +22,7 @@ import {
     RFQStatus
 } from '@/core/types';
 import { suppliers } from '@/globalMockData';
-import { InvSupplierType, InvSupplierStatusEnum, StationeryItem } from './types';
+import { InvSupplierType, InvSupplierStatusEnum, StationeryItem, InvContractStatusEnum, InvSupplierContractType } from './types';
 
 // Map global suppliers to InvSupplierType for inventory module use
 export const initialMockSuppliers: InvSupplierType[] = suppliers.map(supplier => ({
@@ -244,6 +244,39 @@ export const initialMockRFQs: RFQ[] = [
   { id: 'RFQ005', title: 'ICT Infrastructure Enhancement', description: 'Supply and installation of computers, projectors, and networking equipment', issue_date: '2024-05-15', closing_date: '2024-05-30', status: RFQStatus.CANCELLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
 ];
 
+export const initialMockSupplierContracts: InvSupplierContractType[] = [
+  {
+    id: 'SC001',
+    supplier_id: 1,
+    supplier_name: 'Text Book Centre',
+    contract_number: 'TBC-2024-001',
+    title: 'Core textbooks supply agreement',
+    description: 'Annual supply contract for curriculum textbooks and classroom stationery.',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    status: InvContractStatusEnum.ACTIVE,
+    contract_value: 125000,
+    renewal_notice_days: 45,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'SC002',
+    supplier_id: 7,
+    supplier_name: 'Scientific Equipment Ltd',
+    contract_number: 'SEL-2024-002',
+    title: 'Laboratory consumables and equipment contract',
+    description: 'Provides science lab consumables, calibrated instruments, and warranty support.',
+    start_date: '2024-02-01',
+    end_date: '2025-01-31',
+    status: InvContractStatusEnum.PENDING_RENEWAL,
+    contract_value: 210000,
+    renewal_notice_days: 30,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
 // Ensure all AppDataType keys for inventory are exported
 export const warehouses = initialMockWarehouses;
 export const itemCategoriesInv = initialMockItemCategoriesInv;
@@ -257,6 +290,7 @@ export const stockLevels = initialMockStockLevels;
 export const stockTransactions = initialMockStockTransactions;
 export const assetDepreciationLogs = initialMockAssetDepreciationLogs;
 export const rfqs = initialMockRFQs;
+export const supplierContracts = initialMockSupplierContracts;
 
 // Source: StationeryPage.tsx
 export const stationeryItems: StationeryItem[] = [

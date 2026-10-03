@@ -66,8 +66,8 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       sortable: true,
       render: (value, item) => (
         <div>
-          <span className="font-medium text-gray-900">{value}</span>
-          <p className="text-xs text-gray-500">{item.category}</p>
+          <span className="font-medium text-surface-foreground">{value}</span>
+          <p className="text-xs text-surface-muted-fg">{item.category}</p>
         </div>
       ),
     },
@@ -76,7 +76,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       header: 'Current Stock',
       sortable: true,
       render: (value) => (
-        <span className={`font-medium ${value <= item.reorderLevel ? 'text-red-600' : 'text-gray-900'}`}>
+        <span className={`font-medium ${value <= item.reorderLevel ? 'text-red-600' : 'text-surface-foreground'}`}>
           {value}
         </span>
       ),
@@ -91,7 +91,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       header: 'Days Until Reorder',
       sortable: true,
       render: (value) => (
-        <span className={value <= 3 ? 'text-red-600' : value <= 7 ? 'text-yellow-600' : 'text-gray-900'}>
+        <span className={value <= 3 ? 'text-red-600' : value <= 7 ? 'text-yellow-600' : 'text-surface-foreground'}>
           {value}
         </span>
       ),
@@ -104,7 +104,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
         <span className={`px-2 py-1 text-xs rounded-full ${
           value === 'critical' ? 'bg-red-100 text-red-800' :
           value === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-          value === 'out_of_stock' ? 'bg-gray-100 text-gray-800' :
+          value === 'out_of_stock' ? 'bg-surface-accent text-surface-foreground' :
           'bg-green-100 text-green-800'
         }`}>
           {value}
@@ -131,8 +131,8 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Reorder Alerts</h2>
-        <p className="text-sm text-gray-500 mt-1">Monitor inventory levels and reorder alerts</p>
+        <h2 className="text-2xl font-bold text-surface-foreground">Reorder Alerts</h2>
+        <p className="text-sm text-surface-muted-fg mt-1">Monitor inventory levels and reorder alerts</p>
       </div>
 
       <Card>
@@ -169,47 +169,47 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
         <Card title="Alert Details">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">Item Information</h3>
+              <h3 className="font-medium text-surface-foreground mb-2">Item Information</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Item Name:</span>
+                  <span className="text-surface-muted-fg">Item Name:</span>
                   <span className="font-medium">{selectedAlert.itemName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Category:</span>
+                  <span className="text-surface-muted-fg">Category:</span>
                   <span className="font-medium">{selectedAlert.category}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Supplier:</span>
+                  <span className="text-surface-muted-fg">Supplier:</span>
                   <span className="font-medium">{selectedAlert.supplier}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Status:</span>
+                  <span className="text-surface-muted-fg">Status:</span>
                   <span className="font-medium">{getStatusLabel(selectedAlert.status)}</span>
                 </div>
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">Stock Information</h3>
+              <h3 className="font-medium text-surface-foreground mb-2">Stock Information</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Current Stock:</span>
-                  <span className={`font-medium ${selectedAlert.currentStock <= selectedAlert.reorderLevel ? 'text-red-600' : 'text-gray-900'}`}>
+                  <span className="text-surface-muted-fg">Current Stock:</span>
+                  <span className={`font-medium ${selectedAlert.currentStock <= selectedAlert.reorderLevel ? 'text-red-600' : 'text-surface-foreground'}`}>
                     {selectedAlert.currentStock}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Reorder Level:</span>
+                  <span className="text-surface-muted-fg">Reorder Level:</span>
                   <span className="font-medium">{selectedAlert.reorderLevel}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Days Until Reorder:</span>
-                  <span className={`font-medium ${selectedAlert.daysUntilReorder <= 3 ? 'text-red-600' : selectedAlert.daysUntilReorder <= 7 ? 'text-yellow-600' : 'text-gray-900'}`}>
+                  <span className="text-surface-muted-fg">Days Until Reorder:</span>
+                  <span className={`font-medium ${selectedAlert.daysUntilReorder <= 3 ? 'text-red-600' : selectedAlert.daysUntilReorder <= 7 ? 'text-yellow-600' : 'text-surface-foreground'}`}>
                     {selectedAlert.daysUntilReorder}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Last Restock:</span>
+                  <span className="text-surface-muted-fg">Last Restock:</span>
                   <span className="font-medium">{selectedAlert.lastRestockDate ? new Date(selectedAlert.lastRestockDate).toLocaleDateString() : 'Never'}</span>
                 </div>
               </div>

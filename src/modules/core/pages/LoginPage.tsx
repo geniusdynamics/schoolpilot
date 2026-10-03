@@ -105,31 +105,31 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" data-testid="login-page">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-indigo-100 flex items-center justify-center p-4" data-testid="login-page">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
             <LockClosedIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">SchoolPilot</h1>
-          <p className="text-gray-600">SchoolPilot</p>
+          <h1 className="text-3xl font-bold text-surface-foreground mb-2">SchoolPilot</h1>
+          <p className="text-surface-muted-fg">SchoolPilot</p>
         </div>
 
         {/* Login Form */}
         <Card className="p-8">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Sign In</h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Sign In</h2>
+            <p className="text-surface-muted-fg">
               {isDemoMode ? 'Demo Mode - Use any of the demo accounts below' : 'Enter your credentials'}
             </p>
           </div>
 
           {/* Demo Mode Notice */}
           {isDemoMode && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">Demo Mode Active</h3>
-              <p className="text-sm text-blue-700 mb-3">
+            <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+              <h3 className="font-medium text-primary-900 mb-2">Demo Mode Active</h3>
+              <p className="text-sm text-primary-700 mb-3">
                 You can use any of these demo accounts to test different user roles:
               </p>
               <div className="space-y-2">
@@ -138,10 +138,10 @@ const LoginPage: React.FC = () => {
                     key={demoUser.username}
                     onClick={() => handleDemoLogin(demoUser)}
                     disabled={isLoading}
-                    className="w-full text-left p-2 text-sm bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors disabled:opacity-50"
+                    className="w-full text-left p-2 text-sm bg-surface-card border border-primary-200 rounded hover:bg-primary-50 transition-colors disabled:opacity-50"
                   >
                     <span className="font-medium">{demoUser.username}</span>
-                    <span className="text-gray-500 ml-2">({demoUser.role})</span>
+                    <span className="text-surface-muted-fg ml-2">({demoUser.role})</span>
                   </button>
                 ))}
               </div>
@@ -152,12 +152,12 @@ const LoginPage: React.FC = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-surface-foreground mb-1">
                 Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserCircleIcon className="h-5 w-5 text-gray-400" />
+                  <UserCircleIcon className="h-5 w-5 text-surface-muted-fg" />
                 </div>
                 <Input
                   id="username"
@@ -174,12 +174,12 @@ const LoginPage: React.FC = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-surface-foreground mb-1">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                  <LockClosedIcon className="h-5 w-5 text-surface-muted-fg" />
                 </div>
                 <Input
                   id="password"
@@ -198,9 +198,9 @@ const LoginPage: React.FC = () => {
                   disabled={isLoading}
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                    <EyeSlashIcon className="h-5 w-5 text-surface-muted-fg" />
                   ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                    <EyeIcon className="h-5 w-5 text-surface-muted-fg" />
                   )}
                 </button>
               </div>
@@ -238,8 +238,8 @@ const LoginPage: React.FC = () => {
 
           {/* Demo Mode Info */}
           {isDemoMode && (
-            <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-xs text-gray-600 text-center">
+            <div className="mt-6 p-3 bg-surface-muted border border-surface-border rounded-lg">
+              <p className="text-xs text-surface-muted-fg text-center">
                 <strong>Demo Mode:</strong> All passwords are accepted. In production, proper password validation will be enforced.
               </p>
             </div>
@@ -248,7 +248,7 @@ const LoginPage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-surface-muted-fg">
             Â© 2024 SchoolPilot. All rights reserved.
           </p>
         </div>

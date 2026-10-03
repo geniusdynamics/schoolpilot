@@ -11,12 +11,18 @@ import App from './App';
 import './index.css';
 import { initializeI18n } from './i18n/i18n'; // Import your i18n configuration
 import { initializeUnifiedConfig } from './config/unifiedConfig';
+import { initializeTheme } from './hooks/useTheme';
 import { performanceEventManager } from './services/performance/performanceEventManager';
 import { logger } from './utils/logging';
 import { initializeDevTools } from './utils/devTools';
 
 // Initialize unified configuration
 initializeUnifiedConfig();
+
+// Apply the theme before first paint. While dark mode is disabled
+// (DARK_MODE_ENABLED=false in hooks/useTheme) this forces light mode, drops any
+// stray 'dark' class and clears a previously stored dark/system preference.
+initializeTheme();
 
 // Wait for i18n to be ready before rendering
 const initializeApp = async () => {
@@ -61,7 +67,7 @@ const renderApp = () => {
                 Loading...
               </span>
             </div>
-            <p className="mt-4 text-gray-600">Loading translations...</p>
+            <p className="mt-4 text-surface-muted-fg">Loading translations...</p>
           </div>
         </div>
       }>

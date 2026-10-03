@@ -10,8 +10,6 @@ import { useAdministration } from '../hooks/useAdministration';
 import { usePageActions } from '@/hooks/usePageActions';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Spinner from '@/components/ui/Spinner';
 import {
@@ -21,10 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { ActionDefinition } from '@/services/ui/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import EntityForm from '@/components/ui/forms/EntityForm';
 import { BulkStreamCreationContent } from './BulkStreamCreationPage';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
@@ -48,11 +43,6 @@ interface ClassStream {
   name: string;
   class_teacher_id?: string;
   class_teacher_name?: string;
-}
-
-interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
-interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {
-  class_teacher_id?: string; 
 }
 
 interface HubTab {
@@ -114,9 +104,6 @@ export const ClassesContent: React.FC = () => {
 
   usePageActions(baseActions, { autoRegister: true });
 
-  const [classFormData, setClassFormData] = useState<ClassFormData>({ name: '' });
-  const [streamFormData, setStreamFormData] = useState<StreamFormData>({ name: '' });
-
   const resolvedClassStreams = useMemo(() => {
     if (!classStreams || !Array.isArray(classStreams)) return [];
     return classStreams.map(cs => {
@@ -132,13 +119,11 @@ export const ClassesContent: React.FC = () => {
 
   const openClassModal = (cls?: SchoolClass) => {
     setEditingClass(cls || null);
-    setClassFormData(cls ? { name: cls.name } : { name: '' });
     setIsClassModalOpen(true);
   };
   const closeClassModal = () => {
     setIsClassModalOpen(false);
     setEditingClass(null);
-    setClassFormData({ name: '' });
   };
 
   const openStreamModal = (stream?: ClassStream, parentClass?: SchoolClass) => {
@@ -149,45 +134,14 @@ export const ClassesContent: React.FC = () => {
     }
     setSelectedClassForStream(currentParent);
     setEditingStream(stream || null);
-    setStreamFormData(stream ? { name: stream.name, class_teacher_id: stream.class_teacher_id } : { name: '' });
     setIsStreamModalOpen(true);
   };
   const closeStreamModal = () => {
     setIsStreamModalOpen(false);
     setEditingStream(null);
-    setStreamFormData({ name: '' });
-  };
-  
-  const handleClassSubmit = async () => {
-    if (!classFormData.name) {
-        toast.showWarning(t('validation.classNameIsRequired'));
-        return;
-    }
-    if (editingClass) {
-        await updateClass(editingClass.id, { name: classFormData.name });
-    } else {
-        await addClass({ name: classFormData.name });
-    }
-    closeClassModal();
   };
 
   const toast = useToast();
-  const handleStreamSubmit = async () => {
-    if (!selectedClassForStream || !streamFormData.name) {
-        toast.showWarning(t('validation.streamNameIsRequiredAndAClassMustBeSelected'));
-        return;
-    }
-    const payload = {
-        name: streamFormData.name,
-        class_teacher_id: streamFormData.class_teacher_id || undefined,
-    };
-    if (editingStream) {
-        await updateClassStream(editingStream.id, payload);
-    } else {
-        await addClassStream({ ...payload, class_id: selectedClassForStream.id });
-    }
-    closeStreamModal();
-  };
 
   const confirm = useConfirm();
   const handleDeleteClass = async (classId: string) => {
@@ -305,8 +259,8 @@ export const ClassesContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No classes found. Create your first class to get started.</p>
+              <PlusIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No classes found. Create your first class to get started.</p>
             </div>
           }
         />
@@ -322,8 +276,8 @@ export const ClassesContent: React.FC = () => {
             filterable={true}
             emptyState={
               <div className="text-center py-8">
-                <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">{t('classes.noStreamsMessage')}</p>
+                <PlusIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+                <p className="text-surface-muted-fg">{t('classes.noStreamsMessage')}</p>
               </div>
             }
           />
@@ -331,66 +285,60 @@ export const ClassesContent: React.FC = () => {
       )}
 
       {/* Class Modal */}
-      <DialogForm
+      <EntityForm
         isOpen={isClassModalOpen}
         onClose={closeClassModal}
         title={editingClass ? t('classes.modalEditTitle') : t('classes.modalAddTitle')}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleClassSubmit();
+        initialData={editingClass ? { name: editingClass.name } : undefined}
+        fields={[
+          { name: 'name', label: t('classes.nameLabel'), required: true },
+        ]}
+        onSubmit={async (values) => {
+          const payload = { name: String(values.name ?? '') };
+          if (editingClass) {
+            await updateClass(editingClass.id, payload);
+          } else {
+            await addClass(payload);
+          }
         }}
-      >
-        <FormSection title="Class Information">
-          <FormField label={t('classes.nameLabel')} required>
-            <Input
-              name="name"
-              value={classFormData.name || ''}
-              onChange={(e) => setClassFormData({...classFormData, name: e.target.value})}
-              required
-            />
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeClassModal}>{t('common:cancel')}</Button>
-          <Button type="submit" disabled={loading.classes}>
-            {loading.classes ? <Spinner size="sm"/> : t('common:save')}
-          </Button>
-        </FormActions>
-      </DialogForm>
+      />
 
       {/* Stream Modal */}
-      <DialogForm
+      <EntityForm
         isOpen={isStreamModalOpen}
         onClose={closeStreamModal}
-        title={editingStream ? t('classes.modalEditStreamTitle') : t('classes.modalAddStreamTitle', { className: selectedClassForStream?.name || ''})}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleStreamSubmit();
+        title={editingStream ? t('classes.modalEditStreamTitle') : t('classes.modalAddStreamTitle', { className: selectedClassForStream?.name || '' })}
+        initialData={editingStream
+          ? { name: editingStream.name, class_teacher_id: editingStream.class_teacher_id }
+          : undefined}
+        fields={[
+          { name: 'name', label: t('classes.streamNameLabel'), required: true },
+          {
+            name: 'class_teacher_id',
+            label: t('classes.teacherLabel'),
+            type: 'select',
+            placeholder: t('classes.selectTeacherOption'),
+            options: (staff || [])
+              .filter(s => s.is_active)
+              .map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name}` })),
+          },
+        ]}
+        onSubmit={async (values) => {
+          if (!selectedClassForStream) {
+            toast.showError(t('validation.selectClassFirst'));
+            return;
+          }
+          const payload = {
+            name: String(values.name ?? ''),
+            class_teacher_id: values.class_teacher_id ? String(values.class_teacher_id) : undefined,
+          };
+          if (editingStream) {
+            await updateClassStream(editingStream.id, payload);
+          } else {
+            await addClassStream({ ...payload, class_id: selectedClassForStream.id });
+          }
         }}
-      >
-        <FormSection title="Stream Information">
-          <FormField label={t('classes.streamNameLabel')} required>
-            <Input
-              name="name"
-              value={streamFormData.name || ''}
-              onChange={(e) => setStreamFormData({...streamFormData, name: e.target.value})}
-              required
-            />
-          </FormField>
-          <FormField label={t('classes.teacherLabel')}>
-            <Select name="class_teacher_id" value={streamFormData.class_teacher_id || ''} onChange={(e) => setStreamFormData({...streamFormData, class_teacher_id: e.target.value})}>
-              <option value="">{t('classes.selectTeacherOption')}</option>
-              {(staff || []).filter(s => s.is_active).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
-            </Select>
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeStreamModal}>{t('common:cancel')}</Button>
-          <Button type="submit" disabled={loading.classStreams}>
-            {loading.classStreams ? <Spinner size="sm"/> : t('common:save')}
-          </Button>
-        </FormActions>
-      </DialogForm>
+      />
     </div>
   );
 };

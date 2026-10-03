@@ -126,7 +126,7 @@ const CustomersPage: React.FC = () => {
           {t('customers.addCustomer')}
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           {t('customers.managementDescription')}
         </p>
         <DataGrid 
@@ -135,7 +135,7 @@ const CustomersPage: React.FC = () => {
           sortable 
           filterable 
           emptyState={{
-            icon: <CustomersIcon className="h-12 w-12 text-gray-400" />,
+            icon: <CustomersIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No customers found',
             description: 'Get started by adding your first customer.',
           }}

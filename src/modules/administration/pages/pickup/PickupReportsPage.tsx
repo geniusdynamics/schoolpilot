@@ -54,7 +54,7 @@ interface CodeUsage {
 
 const PickupReportsPage: React.FC = () => {
 
-  const { pickupCodes, pickupLogsgetTodaysPickupLogs } = usePickupData();
+  const { pickupCodes, pickupLogs, getTodaysPickupLogs } = usePickupData();
   const { showToast } = useToast();
 
   const today = new Date().toISOString().split('T')[0];
@@ -238,12 +238,12 @@ const PickupReportsPage: React.FC = () => {
       render: (v: string) => {
         const colors: Record<string, string> = {
           ACTIVE: 'bg-emerald-100 text-emerald-800',
-          EXPIRED: 'bg-gray-100 text-gray-800',
-          USED: 'bg-blue-100 text-blue-800',
+          EXPIRED: 'bg-surface-accent text-surface-foreground',
+          USED: 'bg-primary-100 text-primary-800',
           REVOKED: 'bg-red-100 text-red-800',
         };
         return (
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[v] || 'bg-gray-100'}`}>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[v] || 'bg-surface-accent'}`}>
             {v}
           </span>
         );
@@ -273,7 +273,7 @@ const PickupReportsPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-foreground mb-1">
                 <CalendarIcon className="w-4 h-4 inline mr-1" />
                 Date From
               </label>
@@ -284,7 +284,7 @@ const PickupReportsPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-foreground mb-1">
                 <CalendarIcon className="w-4 h-4 inline mr-1" />
                 Date To
               </label>
@@ -310,12 +310,12 @@ const PickupReportsPage: React.FC = () => {
 
         {/* Summary Statistics */}
         <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Summary Statistics</h3>
+          <h3 className="text-lg font-semibold text-surface-foreground mb-4">Summary Statistics</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
-              <TicketIcon className="w-6 h-6 text-blue-700 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-blue-700">{summaryStats.activeCodes}</p>
-              <p className="text-xs text-blue-600">Active Codes</p>
+            <div className="bg-primary-50 rounded-lg p-4 text-center">
+              <TicketIcon className="w-6 h-6 text-primary-700 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-primary-700">{summaryStats.activeCodes}</p>
+              <p className="text-xs text-primary-600">Active Codes</p>
             </div>
             <div className="bg-emerald-50 rounded-lg p-4 text-center">
               <ChartBarIcon className="w-6 h-6 text-emerald-700 mx-auto mb-2" />
@@ -352,7 +352,7 @@ const PickupReportsPage: React.FC = () => {
               sortable
               filterable={false}
               emptyState={
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-surface-muted-fg">
                   No pickup activity in the selected date range.
                 </div>
               }
@@ -367,7 +367,7 @@ const PickupReportsPage: React.FC = () => {
               sortable
               filterable={false}
               emptyState={
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-surface-muted-fg">
                   No pickup person data in the selected date range.
                 </div>
               }
@@ -392,7 +392,7 @@ const PickupReportsPage: React.FC = () => {
               filterable={false}
               className={flaggedIncidents.length > 0 ? '' : ''}
               emptyState={
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-surface-muted-fg">
                   <CheckCircleIcon className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
                   No flagged incidents in the selected date range.
                 </div>
@@ -408,7 +408,7 @@ const PickupReportsPage: React.FC = () => {
               sortable
               filterable={false}
               emptyState={
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-surface-muted-fg">
                   No pickup codes have been generated yet.
                 </div>
               }
@@ -422,10 +422,10 @@ const PickupReportsPage: React.FC = () => {
         <Card>
           <div className="text-center py-16">
             <DocumentTextIcon className="mx-auto h-16 w-16 text-gray-300" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-surface-foreground">
               Report generation coming soon
             </h3>
-            <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+            <p className="mt-2 text-sm text-surface-muted-fg max-w-sm mx-auto">
               Select your date range and click &quot;Generate Report&quot; to view detailed pickup statistics and activity reports.
             </p>
           </div>

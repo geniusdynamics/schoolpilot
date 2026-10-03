@@ -49,7 +49,7 @@ const StaffAttendancePage: React.FC = () => {
       'Present': 'bg-green-100 text-green-800',
       'Absent': 'bg-red-100 text-red-800',
       'Late': 'bg-yellow-100 text-yellow-800',
-      'On Leave': 'bg-blue-100 text-blue-800'
+      'On Leave': 'bg-primary-100 text-primary-800'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
@@ -103,25 +103,25 @@ const StaffAttendancePage: React.FC = () => {
         <div className="flex gap-1 flex-wrap">
           <button
             onClick={() => handleStatusChange(record.staff_id, 'Present')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Present' || (attendanceData[record.staff_id] === undefined && value === 'Present') ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Present' || (attendanceData[record.staff_id] === undefined && value === 'Present') ? 'bg-green-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
           >
             Present
           </button>
           <button
             onClick={() => handleStatusChange(record.staff_id, 'Absent')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Absent' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Absent' ? 'bg-red-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
           >
             Absent
           </button>
           <button
             onClick={() => handleStatusChange(record.staff_id, 'Late')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Late' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Late' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
           >
             Late
           </button>
           <button
             onClick={() => handleStatusChange(record.staff_id, 'On Leave')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'On Leave' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'On Leave' ? 'bg-primary-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
           >
             Leave
           </button>
@@ -163,7 +163,7 @@ const StaffAttendancePage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Staff Attendance</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Staff Attendance</h1>
         <Button onClick={handleSaveAttendance} variant="primary">
           Save Attendance
         </Button>
@@ -183,17 +183,17 @@ const StaffAttendancePage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Staff</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Present</span>
             </div>
@@ -201,8 +201,8 @@ const StaffAttendancePage: React.FC = () => {
               {totals.present}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <XCircleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Absent</span>
             </div>
@@ -210,8 +210,8 @@ const StaffAttendancePage: React.FC = () => {
               {totals.absent}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ClockIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Late</span>
             </div>
@@ -219,12 +219,12 @@ const StaffAttendancePage: React.FC = () => {
               {totals.late}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CalendarIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <CalendarIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">On Leave</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               {totals.onLeave}
             </p>
           </div>
@@ -233,20 +233,20 @@ const StaffAttendancePage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Date</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Department</label>
             <select
               value={selectedDepartment}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDepartment(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Departments</option>
               {uniqueDepartments.map(dept => (
@@ -255,13 +255,13 @@ const StaffAttendancePage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Staff, employee ID..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>

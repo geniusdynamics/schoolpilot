@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
+import Select from '@/components/ui/Select';
 import { CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon, CalendarIcon } from '@/components/ui/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -166,7 +167,7 @@ const TODOPage: React.FC = () => {
 
   const getPriorityBadge = (priority: Priority) => {
     const styles = {
-      'Low': 'bg-gray-100 text-gray-800',
+      'Low': 'bg-surface-accent text-surface-foreground',
       'Medium': 'bg-yellow-100 text-yellow-800',
       'High': 'bg-red-100 text-red-800'
     };
@@ -179,7 +180,7 @@ const TODOPage: React.FC = () => {
 
   const getStatusBadge = (status: Status) => {
     const styles = {
-      'Pending': 'bg-blue-100 text-blue-800',
+      'Pending': 'bg-primary-100 text-primary-800',
       'In Progress': 'bg-yellow-100 text-yellow-800',
       'Completed': 'bg-green-100 text-green-800'
     };
@@ -206,7 +207,7 @@ const TODOPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Tasks</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Tasks</h1>
         <Button onClick={() => openModal()} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Task
@@ -228,26 +229,26 @@ const TODOPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Tasks</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CheckCircleIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <CheckCircleIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">Pending</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               {totals.pending}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">In Progress</span>
             </div>
@@ -255,8 +256,8 @@ const TODOPage: React.FC = () => {
               {totals.inProgress}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Completed</span>
             </div>
@@ -269,39 +270,39 @@ const TODOPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
+            <Select
               value={selectedStatus}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Statuses</option>
               {statuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Priority</label>
+            <Select
               value={selectedPriority}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedPriority(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Priorities</option>
               {priorities.map(priority => (
                 <option key={priority} value={priority}>{priority}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Task, description, category..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -314,7 +315,7 @@ const TODOPage: React.FC = () => {
               className={`p-4 border rounded-lg ${
                 todo.status === 'Completed' 
                   ? 'bg-green-50 border-green-200' 
-                  : 'bg-white border-gray-200'
+                  : 'bg-surface-card border-surface-border'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -324,22 +325,22 @@ const TODOPage: React.FC = () => {
                     className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
                       todo.status === 'Completed'
                         ? 'bg-green-500 border-green-500 text-white'
-                        : 'border-gray-300 hover:border-green-500'
+                        : 'border-surface-border hover:border-green-500'
                     }`}
                   >
                     {todo.status === 'Completed' && <CheckCircleIcon className="w-3 h-3" />}
                   </button>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className={`font-semibold ${todo.status === 'Completed' ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                      <h4 className={`font-semibold ${todo.status === 'Completed' ? 'line-through text-surface-muted-fg' : 'text-surface-foreground'}`}>
                         {todo.title}
                       </h4>
                       {getPriorityBadge(todo.priority)}
                       {getStatusBadge(todo.status)}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <span className="bg-gray-100 px-2 py-1 rounded">{todo.category}</span>
+                    <p className="text-sm text-surface-muted-fg mt-1">{todo.description}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-surface-muted-fg">
+                      <span className="bg-surface-accent px-2 py-1 rounded">{todo.category}</span>
                       {todo.due_date && (
                         <span className="flex items-center gap-1">
                           <CalendarIcon className="w-3 h-3" />
@@ -377,7 +378,7 @@ const TODOPage: React.FC = () => {
               value={formData.title}
               onChange={handleInputChange}
               placeholder="Task title"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -388,47 +389,47 @@ const TODOPage: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Task description"
               rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Priority" required>
-            <select
+            <Select
               name="priority"
               value={formData.priority}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {priorities.map(priority => (
                 <option key={priority} value={priority}>{priority}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Status" required>
-            <select
+            <Select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {statuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Category" required>
-            <select
+            <Select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Due Date">
@@ -437,7 +438,7 @@ const TODOPage: React.FC = () => {
               name="due_date"
               value={formData.due_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>

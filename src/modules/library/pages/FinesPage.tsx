@@ -137,8 +137,8 @@ export const FinesPageContent: React.FC = () => {
         <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
           item.status === FineStatus.PAID ? 'bg-green-100 text-green-800' :
           item.status === FineStatus.PENDING ? 'bg-yellow-100 text-yellow-800' :
-          item.status === FineStatus.BILLED ? 'bg-blue-100 text-blue-800' :
-          item.status === FineStatus.WAIVED ? 'bg-gray-100 text-gray-700' :
+          item.status === FineStatus.BILLED ? 'bg-primary-100 text-primary-800' :
+          item.status === FineStatus.WAIVED ? 'bg-surface-accent text-surface-foreground' :
           'bg-red-100 text-red-800' // For other potential statuses or error
         }`}>
           {item.status}
@@ -177,7 +177,7 @@ export const FinesPageContent: React.FC = () => {
           Add Manual Fine
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           View and manage library fines. Fines for overdue books are often generated automatically upon return.
         </p>
         <DataGrid
@@ -188,8 +188,8 @@ export const FinesPageContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <SparklesIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No fines found</p>
+              <SparklesIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No fines found</p>
             </div>
           }
         />
@@ -242,8 +242,8 @@ export const FinesPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.fines}>
-            {loading.fines ? <Spinner size="sm"/> : (editingFine ? 'Save Changes' : 'Add Fine')}
+          <Button onClick={handleSubmit} loading={loading.fines}>
+            {editingFine ? 'Save Changes' : 'Add Fine'}
           </Button>
         </FormActions>
       </DialogForm>

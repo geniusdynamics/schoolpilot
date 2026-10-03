@@ -119,7 +119,7 @@ const AcademicStructurePage: React.FC = () => {
           Add Structure
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define the overall structure of an academic year (e.g., "Standard 3-Term System", "Semester System"). 
           Academic Period Definitions will be linked to these structures.
         </p>
@@ -130,7 +130,7 @@ const AcademicStructurePage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <PuzzlePieceIcon className="h-12 w-12 text-gray-400" />,
+            icon: <PuzzlePieceIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No academic structures found',
             description: 'Get started by creating your first academic year structure.',
           }}
@@ -151,8 +151,8 @@ const AcademicStructurePage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.academicYearStructures}>
-            {loading.academicYearStructures ? <Spinner size="sm"/> : (editingStructure ? 'Save Changes' : 'Add Structure')}
+          <Button onClick={handleSubmit} loading={loading.academicYearStructures}>
+            {editingStructure ? 'Save Changes' : 'Add Structure'}
           </Button>
         </FormActions>
       </DialogForm>

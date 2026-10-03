@@ -25,7 +25,7 @@ const DocumentIcon: React.FC<{ type?: string }> = ({ type }) => {
   return (
     <div className={cn(
       'flex items-center justify-center w-12 h-12 rounded-lg flex-shrink-0',
-      type === 'word' ? 'bg-blue-100 text-blue-600' :
+      type === 'word' ? 'bg-primary-100 text-primary-600' :
       type === 'pdf' ? 'bg-rose-100 text-rose-600' :
       'bg-cyan-100 text-cyan-600'
     )}>
@@ -44,8 +44,8 @@ export const NewsletterCard: React.FC<NewsletterCardProps> = ({
   return (
     <div
       className={cn(
-        'flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200',
-        'hover:shadow-md hover:border-gray-300 transition-all',
+        'flex items-center gap-4 p-4 bg-surface-card rounded-xl border border-surface-border',
+        'hover:shadow-md hover:border-surface-border transition-all',
         className
       )}
     >
@@ -54,15 +54,15 @@ export const NewsletterCard: React.FC<NewsletterCardProps> = ({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <h4 className="text-base font-semibold text-gray-900 truncate">
+        <h4 className="text-base font-semibold text-surface-foreground truncate">
           {newsletter.title}
         </h4>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-surface-muted-fg">
           <span>
-            Created By : <span className="text-gray-700 font-medium">{newsletter.createdBy}</span>
+            Created By : <span className="text-surface-foreground font-medium">{newsletter.createdBy}</span>
           </span>
           <span>
-            Created On : <span className="text-gray-700 font-medium">{newsletter.createdOn}</span>
+            Created On : <span className="text-surface-foreground font-medium">{newsletter.createdOn}</span>
           </span>
         </div>
       </div>
@@ -72,7 +72,7 @@ export const NewsletterCard: React.FC<NewsletterCardProps> = ({
         {onView && (
           <button
             onClick={onView}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-surface-foreground bg-surface-accent rounded-lg hover:bg-gray-200 transition-colors"
           >
             View
           </button>
@@ -80,7 +80,7 @@ export const NewsletterCard: React.FC<NewsletterCardProps> = ({
         {onEdit && (
           <button
             onClick={onEdit}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors"
           >
             Edit
           </button>

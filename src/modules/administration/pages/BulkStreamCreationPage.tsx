@@ -76,9 +76,9 @@ const BulkStreamCreationPage: React.FC = () => {
         <div className="space-y-6">
           {/* Class Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Class</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Select Class</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-surface-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
             >
@@ -97,7 +97,7 @@ const BulkStreamCreationPage: React.FC = () => {
 
           {/* Stream Name Inputs */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Stream Names</label>
+            <label className="block text-sm font-medium text-surface-foreground">Stream Names</label>
             {streamNames.map((name, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Input
@@ -119,10 +119,10 @@ const BulkStreamCreationPage: React.FC = () => {
           </div>
 
           {/* Summary */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="bg-surface-muted border border-surface-border rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-surface-muted-fg">
                   {selectedClassId
                     ? `Will create ${streamNames.filter(n => n.trim()).length} stream(s) for "${selectedClass?.name || selectedClassId}"`
                     : 'Select a class and enter stream names above'}

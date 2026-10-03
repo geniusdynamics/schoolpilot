@@ -124,7 +124,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value, row) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'adjustment_type', 
@@ -148,7 +148,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="text-gray-700">{value}</span>
+      render: (value, row) => <span className="text-surface-foreground">{value}</span>
     },
     { 
       key: 'applied_invoice_id', 
@@ -198,7 +198,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <DocumentDuplicateIcon className="w-12 h-12 text-gray-400" />,
+            icon: <DocumentDuplicateIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Fee Adjustments Found",
             description: "Create your first fee adjustment to manage student fee exemptions, discounts, or penalties.",
             action: {
@@ -217,8 +217,8 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.feeAdjustments}>
-              {loading.feeAdjustments ? <Spinner size="sm"/> : (editingAdjustment ? 'Save Changes' : 'Add Adjustment')}
+            <Button onClick={handleSubmit} loading={loading.feeAdjustments}>
+              {editingAdjustment ? 'Save Changes' : 'Add Adjustment'}
             </Button>
           </>
         }

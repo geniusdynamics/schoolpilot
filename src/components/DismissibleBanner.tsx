@@ -68,9 +68,9 @@ const DismissibleBanner: React.FC<DismissibleBannerProps> = ({
         };
       case 'info':
         return {
-          backgroundColor: 'rgba(59, 130, 246, 0.95)',
+          backgroundColor: 'rgba(99, 102, 241, 0.95)',
           color: 'white',
-          borderColor: 'rgba(37, 99, 235, 1)',
+          borderColor: 'rgba(79, 70, 229, 1)',
         };
       case 'success':
         return {

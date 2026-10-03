@@ -118,8 +118,8 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Student Financial Summary Report">
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 Summary of student fee balances for a selected period.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -151,7 +151,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>Print</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>Export CSV</Button>
                 </div>
-                <DataGrid columns={columns} data={reportData} loading={isGenerating} emptyState="No financial summary data found for the selected criteria."/>
+                <DataGrid columns={columns} data={reportData} loading={isGenerating} emptyState="No financial summary data found for the selected criteria." keyField="studentId"/>
             </>
         )}
       </Card>

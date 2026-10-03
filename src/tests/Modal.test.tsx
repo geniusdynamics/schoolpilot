@@ -126,14 +126,16 @@ describe('Modal Component', () => {
       render(<Modal {...defaultProps} variant="default" />);
       
       const modal = screen.getByRole('dialog');
-      expect(modal).toHaveClass('rounded-lg');
+      expect(modal).toHaveClass('rounded-2xl');
+      expect(modal).toHaveClass('shadow-xl');
     });
 
-    it('renders drawer variant correctly', () => {
+    it('renders drawer variant without crashing (uses centered panel)', () => {
       render(<Modal {...defaultProps} variant="drawer" />);
       
       const modal = screen.getByRole('dialog');
-      expect(modal).toHaveClass('fixed', 'right-0', 'top-0', 'h-full');
+      expect(modal).toBeInTheDocument();
+      expect(modal).toHaveClass('rounded-2xl');
     });
   });
 
@@ -171,7 +173,7 @@ describe('Modal Component', () => {
       render(<Modal {...defaultProps} />);
       
       const modal = screen.getByRole('dialog');
-      expect(modal.querySelector('.bg-gray-50')).not.toBeInTheDocument();
+      expect(modal.querySelector('.bg-surface-muted')).not.toBeInTheDocument();
     });
   });
 
@@ -201,15 +203,19 @@ describe('Modal Component', () => {
       
       const modal = screen.getByRole('dialog');
       expect(modal).toHaveAttribute('aria-modal', 'true');
-      expect(modal).toHaveAttribute('aria-labelledby', 'modal-title');
+      const labelledBy = modal.getAttribute('aria-labelledby');
+      expect(labelledBy).toBeTruthy();
+      expect(document.getElementById(labelledBy!)).toBeInTheDocument();
     });
 
     it('has proper heading structure', () => {
       render(<Modal {...defaultProps} />);
       
       const title = screen.getByText('Test Modal');
-      expect(title).toHaveAttribute('id', 'modal-title');
       expect(title.tagName).toBe('H2');
+      // Heading id matches the dialog's aria-labelledby reference
+      const modal = screen.getByRole('dialog');
+      expect(title).toHaveAttribute('id', modal.getAttribute('aria-labelledby'));
     });
   });
 });

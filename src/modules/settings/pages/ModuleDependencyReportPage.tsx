@@ -43,7 +43,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <RefreshCwIcon className="h-8 w-8 animate-spin mx-auto" />
-          <p className="mt-2 text-gray-600">{t('dependencyReport.loading')}</p>
+          <p className="mt-2 text-surface-muted-fg">{t('dependencyReport.loading')}</p>
         </div>
       </div>
     );
@@ -86,7 +86,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
                     {t(`dependencyReport.issueTypes.${issue.type}`)}
                   </Badge>
                 </div>
-                <p className="mt-2 text-sm text-gray-600">{issue.details}</p>
+                <p className="mt-2 text-sm text-surface-muted-fg">{issue.details}</p>
               </div>
             ))}
           </div>
@@ -108,16 +108,16 @@ export const ModuleDependencyReportContent: React.FC = () => {
                         {node.status === 'enabled' ? t('dependencyReport.enabled') : t('dependencyReport.disabled')}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">v{node.version}</p>
+                    <p className="text-sm text-surface-muted-fg mt-1">v{node.version}</p>
                     
                     {/* Show dependencies */}
                     <div className="mt-3">
-                      <h4 className="text-sm font-medium text-gray-700">{t('dependencyReport.dependencies')}:</h4>
+                      <h4 className="text-sm font-medium text-surface-foreground">{t('dependencyReport.dependencies')}:</h4>
                       <div className="mt-2">
                         {graphData.edges
                           .filter((edge: any) => edge.from === node.id)
                           .map((edge: any, idx: number) => (
-                            <div key={idx} className="flex items-center text-sm text-gray-600 ml-4">
+                            <div key={idx} className="flex items-center text-sm text-surface-muted-fg ml-4">
                               <span className="mr-2">â†’</span>
                               <span>{tNav(`${edge.to}.title`)}</span>
                               <Badge variant="secondary" className="ml-2 text-xs">
@@ -126,7 +126,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
                             </div>
                           ))}
                         {graphData.edges.filter((edge: any) => edge.from === node.id).length === 0 && (
-                          <p className="text-sm text-gray-500 italic ml-4">{t('dependencyReport.noDependencies')}</p>
+                          <p className="text-sm text-surface-muted-fg italic ml-4">{t('dependencyReport.noDependencies')}</p>
                         )}
                       </div>
                     </div>
@@ -140,7 +140,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
 
       {/* Raw Report Data */}
       <Card title={t('dependencyReport.rawData')}>
-        <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-x-auto">
+        <pre className="bg-surface-accent p-4 rounded-lg text-xs overflow-x-auto">
           {JSON.stringify(report, null, 2)}
         </pre>
       </Card>

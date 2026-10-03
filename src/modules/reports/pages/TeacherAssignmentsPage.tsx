@@ -59,8 +59,8 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('teacherAssignmentsPage.title')}>
-         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-600 mb-4">
+         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 {t('teacherAssignmentsPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">

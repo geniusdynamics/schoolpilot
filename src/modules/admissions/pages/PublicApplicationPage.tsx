@@ -225,16 +225,16 @@ export const PublicApplicationPageContent: React.FC = () => {
   // â”€â”€ Success Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-primary-50 flex items-center justify-center p-4">
         <Card variant="elevated" size="lg" className="max-w-lg w-full text-center">
           <div className="py-8">
             <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
               <CheckCircleIcon className="w-12 h-12 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-surface-foreground mb-2">
               {t('public.successTitle', 'Application Submitted!')}
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-surface-muted-fg mb-6">
               {t(
                 'public.successMessage',
                 'Your application has been received. Please save your reference number below to track your application status.'
@@ -291,11 +291,11 @@ export const PublicApplicationPageContent: React.FC = () => {
     onRemove: (idx: number) => void,
     multi = false
   ) => (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-indigo-400 transition-colors">
+    <div className="border-2 border-dashed border-surface-border rounded-lg p-4 hover:border-indigo-400 transition-colors">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <p className="font-medium text-gray-900">{label}</p>
-          <p className="text-xs text-gray-500">{description}</p>
+          <p className="font-medium text-surface-foreground">{label}</p>
+          <p className="text-xs text-surface-muted-fg">{description}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onTrigger} leftIcon={<UploadIcon className="w-4 h-4" />}>
           Upload
@@ -317,12 +317,12 @@ export const PublicApplicationPageContent: React.FC = () => {
           {files.map((f, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between bg-gray-50 rounded px-3 py-2 text-sm"
+              className="flex items-center justify-between bg-surface-muted rounded px-3 py-2 text-sm"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <DocumentReportIcon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
                 <span className="truncate">{f.name}</span>
-                <span className="text-gray-400 text-xs flex-shrink-0">({formatFileSize(f.size)})</span>
+                <span className="text-surface-muted-fg text-xs flex-shrink-0">({formatFileSize(f.size)})</span>
               </div>
               <button
                 type="button"
@@ -342,8 +342,8 @@ export const PublicApplicationPageContent: React.FC = () => {
   const renderStudentInfo = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">{t('public.studentInfo', 'Student Information')}</h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <h3 className="text-lg font-semibold text-surface-foreground">{t('public.studentInfo', 'Student Information')}</h3>
+        <p className="text-sm text-surface-muted-fg mt-1">
           {t('public.studentInfoDesc', 'Enter the prospective student\'s personal details')}
         </p>
       </div>
@@ -351,7 +351,7 @@ export const PublicApplicationPageContent: React.FC = () => {
       {/* Photo Upload */}
       <div className="flex items-center gap-4">
         <div
-          className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
+          className="w-24 h-24 rounded-full bg-surface-accent border-2 border-dashed border-surface-border flex items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
           onClick={() => photoRef.current?.click()}
           role="button"
           tabIndex={0}
@@ -365,8 +365,8 @@ export const PublicApplicationPageContent: React.FC = () => {
             />
           ) : (
             <div className="text-center">
-              <UserIcon className="w-8 h-8 text-gray-400 mx-auto" />
-              <span className="text-xs text-gray-400 mt-1 block">Photo</span>
+              <UserIcon className="w-8 h-8 text-surface-muted-fg mx-auto" />
+              <span className="text-xs text-surface-muted-fg mt-1 block">Photo</span>
             </div>
           )}
         </div>
@@ -382,8 +382,8 @@ export const PublicApplicationPageContent: React.FC = () => {
           }}
         />
         <div>
-          <p className="text-sm font-medium text-gray-900">Student Photo</p>
-          <p className="text-xs text-gray-500">Upload a recent passport-size photo (JPG, PNG)</p>
+          <p className="text-sm font-medium text-surface-foreground">Student Photo</p>
+          <p className="text-xs text-surface-muted-fg">Upload a recent passport-size photo (JPG, PNG)</p>
         </div>
       </div>
 
@@ -448,10 +448,10 @@ export const PublicApplicationPageContent: React.FC = () => {
   const renderGuardianInfo = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-surface-foreground">
           {t('public.parentGuardianInfo', 'Parent / Guardian Information')}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-surface-muted-fg mt-1">
           {t('public.parentGuardianDesc', 'Enter the primary contact person\'s details')}
         </p>
       </div>
@@ -506,7 +506,7 @@ export const PublicApplicationPageContent: React.FC = () => {
       </div>
 
       <div className="border-t pt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">Address</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">Address</h4>
         <div className="space-y-4">
           <Input
             name="residentialAddress"
@@ -537,10 +537,10 @@ export const PublicApplicationPageContent: React.FC = () => {
   const renderAcademicInfo = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-surface-foreground">
           {t('public.academicInfo', 'Academic Information')}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-surface-muted-fg mt-1">
           {t('public.academicInfoDesc', 'Provide details about the class you are applying for and previous schooling')}
         </p>
       </div>
@@ -564,9 +564,9 @@ export const PublicApplicationPageContent: React.FC = () => {
       </div>
 
       <div className="border-t pt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">
+        <h4 className="text-md font-medium text-surface-foreground mb-3">
           {t('public.previousSchooling', 'Previous Schooling')}{' '}
-          <span className="text-sm font-normal text-gray-400">(Optional)</span>
+          <span className="text-sm font-normal text-surface-muted-fg">(Optional)</span>
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -601,10 +601,10 @@ export const PublicApplicationPageContent: React.FC = () => {
   const renderDocuments = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-surface-foreground">
           {t('public.documents', 'Upload Documents')}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-surface-muted-fg mt-1">
           {t('public.documentsDesc', 'Upload any supporting documents. You can also bring these documents in person.')}
         </p>
       </div>
@@ -648,25 +648,25 @@ export const PublicApplicationPageContent: React.FC = () => {
   const renderReview = () => {
     const Field = ({ label, value }: { label: string; value?: string }) => (
       <div className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-        <span className="text-sm text-gray-500">{label}</span>
-        <span className="text-sm font-medium text-gray-900">{value || 'â€”'}</span>
+        <span className="text-sm text-surface-muted-fg">{label}</span>
+        <span className="text-sm font-medium text-surface-foreground">{value || 'â€”'}</span>
       </div>
     );
 
     return (
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-surface-foreground">
             {t('public.reviewTitle', 'Review Your Application')}
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-surface-muted-fg mt-1">
             {t('public.reviewDesc', 'Please verify all details before submitting. You cannot edit after submission.')}
           </p>
         </div>
 
         {/* Student */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+        <div className="bg-surface-muted rounded-lg p-4">
+          <h4 className="font-semibold text-surface-foreground mb-3 flex items-center gap-2">
             <UserIcon className="w-4 h-4 text-indigo-500" />
             {t('public.studentInfo', 'Student Information')}
           </h4>
@@ -679,8 +679,8 @@ export const PublicApplicationPageContent: React.FC = () => {
         </div>
 
         {/* Parent */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+        <div className="bg-surface-muted rounded-lg p-4">
+          <h4 className="font-semibold text-surface-foreground mb-3 flex items-center gap-2">
             <UsersIcon className="w-4 h-4 text-indigo-500" />
             {t('public.parentGuardianInfo', 'Parent / Guardian Information')}
           </h4>
@@ -701,8 +701,8 @@ export const PublicApplicationPageContent: React.FC = () => {
         </div>
 
         {/* Academic */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+        <div className="bg-surface-muted rounded-lg p-4">
+          <h4 className="font-semibold text-surface-foreground mb-3 flex items-center gap-2">
             <AcademicCapIcon className="w-4 h-4 text-indigo-500" />
             {t('public.academicInfo', 'Academic Information')}
           </h4>
@@ -721,8 +721,8 @@ export const PublicApplicationPageContent: React.FC = () => {
         </div>
 
         {/* Documents */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+        <div className="bg-surface-muted rounded-lg p-4">
+          <h4 className="font-semibold text-surface-foreground mb-3 flex items-center gap-2">
             <DocumentTextIcon className="w-4 h-4 text-indigo-500" />
             {t('public.documents', 'Documents')}
           </h4>
@@ -776,13 +776,13 @@ export const PublicApplicationPageContent: React.FC = () => {
 
   // â”€â”€ Main Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-primary-50 py-8 px-4">
       {/* Header */}
       <div className="max-w-3xl mx-auto mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-surface-foreground mb-2">
           {t('public.applyTitle', 'Apply for Admission')}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-surface-muted-fg">
           {t(
             'public.applySubtitle',
             'Complete the form below to start your application. All fields marked with * are required.'
@@ -816,7 +816,7 @@ export const PublicApplicationPageContent: React.FC = () => {
                           ? 'bg-green-500 text-white'
                           : isActive
                           ? 'bg-indigo-600 text-white ring-4 ring-indigo-100'
-                          : 'bg-gray-200 text-gray-500'
+                          : 'bg-gray-200 text-surface-muted-fg'
                       }`}
                     >
                       {isCompleted ? (
@@ -827,7 +827,7 @@ export const PublicApplicationPageContent: React.FC = () => {
                     </div>
                     <span
                       className={`text-xs mt-2 font-medium ${
-                        isActive ? 'text-indigo-700' : isCompleted ? 'text-green-700' : 'text-gray-400'
+                        isActive ? 'text-indigo-700' : isCompleted ? 'text-green-700' : 'text-surface-muted-fg'
                       }`}
                     >
                       {step.name}

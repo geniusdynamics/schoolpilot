@@ -80,11 +80,11 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center h-full w-full">
-          <div className="bg-white rounded-lg shadow p-8 max-w-xl w-full border border-red-200">
+          <div className="bg-surface-card rounded-lg shadow p-8 max-w-xl w-full border border-red-200">
             <h1 className="text-2xl font-bold text-red-700 mb-4">Something went wrong</h1>
             <pre className="text-red-600 bg-red-50 rounded p-4 overflow-x-auto mb-4">{this.state.error?.toString()}</pre>
             {this.state.errorInfo?.componentStack && (
-              <details className="text-xs text-gray-500 whitespace-pre-wrap">
+              <details className="text-xs text-surface-muted-fg whitespace-pre-wrap">
                 {this.state.errorInfo.componentStack}
               </details>
             )}

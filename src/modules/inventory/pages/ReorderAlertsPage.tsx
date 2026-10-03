@@ -46,22 +46,22 @@ export const ReorderAlertsContent: React.FC = () => {
         title: t('reorderAlerts.tabs.high'),
         value: highPriorityAlerts.length,
         icon: <ExclamationTriangleIcon className="h-4 w-4" />,
-        color: highPriorityAlerts.length > 0 ? 'text-red-600' : 'text-gray-600',
-        bgColor: highPriorityAlerts.length > 0 ? 'bg-red-50' : 'bg-gray-50'
+        color: highPriorityAlerts.length > 0 ? 'text-red-600' : 'text-surface-muted-fg',
+        bgColor: highPriorityAlerts.length > 0 ? 'bg-red-50' : 'bg-surface-muted'
       },
       {
         title: t('reorderAlerts.tabs.medium'),
         value: mediumPriorityAlerts.length,
         icon: <ClockIcon className="h-4 w-4" />,
-        color: mediumPriorityAlerts.length > 0 ? 'text-orange-600' : 'text-gray-600',
-        bgColor: mediumPriorityAlerts.length > 0 ? 'bg-orange-50' : 'bg-gray-50'
+        color: mediumPriorityAlerts.length > 0 ? 'text-orange-600' : 'text-surface-muted-fg',
+        bgColor: mediumPriorityAlerts.length > 0 ? 'bg-orange-50' : 'bg-surface-muted'
       },
       {
         title: t('reorderAlerts.summary.totalMonitored'),
         value: monitoringResult?.total_items_monitored || 0,
         icon: <ArchiveBoxIcon className="h-4 w-4" />,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50'
+        color: 'text-primary-600',
+        bgColor: 'bg-primary-50'
       }
     ];
   };
@@ -192,8 +192,8 @@ export const ReorderAlertsContent: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">0</div>
+                    <div className="text-center p-4 bg-primary-50 rounded-lg">
+                      <div className="text-2xl font-bold text-primary-600">0</div>
                       <div className="text-sm text-muted-foreground">
                         {t('reorderAlerts.analytics.alertsGenerated', 'Alerts Generated')}
                       </div>

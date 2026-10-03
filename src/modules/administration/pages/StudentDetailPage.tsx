@@ -175,16 +175,16 @@ const StudentDetailPage: React.FC = () => {
       label: 'Student Bio',
       content: (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <p><strong className="font-medium text-gray-700">Admission No:</strong> {admission_no}</p>
-          <p><strong className="font-medium text-gray-700">Full Name:</strong> {fullName}</p>
-          <p><strong className="font-medium text-gray-700">Date of Birth:</strong> {date_of_birth ? new Date(date_of_birth).toLocaleDateString() : 'N/A'}</p>
-          <p><strong className="font-medium text-gray-700">Gender:</strong> {gender}</p>
-          <p><strong className="font-medium text-gray-700">Class:</strong> {current_class_name || 'N/A'} - {current_class_stream_name || 'N/A'}</p>
-          <p><strong className="font-medium text-gray-700">Primary Guardian:</strong> {primary_guardian?.name || 'N/A'} ({primary_guardian?.relationship_type || 'N/A'})</p>
-          <p><strong className="font-medium text-gray-700">Guardian Phone:</strong> {primary_guardian?.phone || 'N/A'}</p>
-          <p><strong className="font-medium text-gray-700">Address:</strong> {address || 'N/A'}</p>
-          <p><strong className="font-medium text-gray-700">Religion:</strong> {religion || 'N/A'}</p>
-          <p className="md:col-span-2"><strong className="font-medium text-gray-700">Remarks/About:</strong> {remarks || 'N/A'}</p>
+          <p><strong className="font-medium text-surface-foreground">Admission No:</strong> {admission_no}</p>
+          <p><strong className="font-medium text-surface-foreground">Full Name:</strong> {fullName}</p>
+          <p><strong className="font-medium text-surface-foreground">Date of Birth:</strong> {date_of_birth ? new Date(date_of_birth).toLocaleDateString() : 'N/A'}</p>
+          <p><strong className="font-medium text-surface-foreground">Gender:</strong> {gender}</p>
+          <p><strong className="font-medium text-surface-foreground">Class:</strong> {current_class_name || 'N/A'} - {current_class_stream_name || 'N/A'}</p>
+          <p><strong className="font-medium text-surface-foreground">Primary Guardian:</strong> {primary_guardian?.name || 'N/A'} ({primary_guardian?.relationship_type || 'N/A'})</p>
+          <p><strong className="font-medium text-surface-foreground">Guardian Phone:</strong> {primary_guardian?.phone || 'N/A'}</p>
+          <p><strong className="font-medium text-surface-foreground">Address:</strong> {address || 'N/A'}</p>
+          <p><strong className="font-medium text-surface-foreground">Religion:</strong> {religion || 'N/A'}</p>
+          <p className="md:col-span-2"><strong className="font-medium text-surface-foreground">Remarks/About:</strong> {remarks || 'N/A'}</p>
         </div>
       )
     },
@@ -196,7 +196,7 @@ const StudentDetailPage: React.FC = () => {
         sortable 
         filterable 
         emptyState={{
-          icon: <AcademicCapIcon className="h-12 w-12 text-gray-400" />,
+          icon: <AcademicCapIcon className="h-12 w-12 text-surface-muted-fg" />,
           title: 'No subjects enrolled',
           description: 'This student is not enrolled in any subjects yet.',
         }}
@@ -210,7 +210,7 @@ const StudentDetailPage: React.FC = () => {
         sortable 
         filterable 
         emptyState={{
-          icon: <CurrencyDollarIcon className="h-12 w-12 text-gray-400" />,
+          icon: <CurrencyDollarIcon className="h-12 w-12 text-surface-muted-fg" />,
           title: 'No payment history found',
           description: 'No payments have been recorded for this student.',
         }}
@@ -223,8 +223,8 @@ const StudentDetailPage: React.FC = () => {
       <Card>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b">
             <div>
-                <h1 className="text-2xl font-bold text-gray-800">Student Profile</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-2xl font-bold text-surface-foreground">Student Profile</h1>
+                <p className="text-sm text-surface-muted-fg">
                 <Link to="/dashboard" className="hover:underline">Dashboard</Link> &gt;
                 <Link to="/administration/students" className="hover:underline"> Students</Link> &gt; {fullName}
                 </p>
@@ -249,15 +249,15 @@ const StudentDetailPage: React.FC = () => {
                   {isUploadingPhoto ? 'Uploading…' : 'Change photo'}
                   <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handlePhotoSelected} disabled={isUploadingPhoto} />
                 </label>
-                <h2 className="text-xl font-semibold text-gray-800">{fullName}</h2>
-                <p className="text-sm text-gray-500">ID: {admission_no}</p>
+                <h2 className="text-xl font-semibold text-surface-foreground">{fullName}</h2>
+                <p className="text-sm text-surface-muted-fg">ID: {admission_no}</p>
                 <p className="text-sm text-indigo-600 font-medium flex items-center justify-center mt-1">
                     <AcademicCapIcon className="w-4 h-4 mr-1" /> {current_class_name || 'N/A'} - {current_class_stream_name || 'N/A'}
                 </p>
               </div>
               <div className="border-t px-4 py-3 space-y-2">
-                {email && <p className="text-sm text-gray-600 flex items-center"><EnvelopeIcon className="w-4 h-4 mr-2 text-gray-400"/> {email}</p>}
-                {phone && <p className="text-sm text-gray-600 flex items-center"><PhoneIcon className="w-4 h-4 mr-2 text-gray-400"/> {phone}</p>}
+                {email && <p className="text-sm text-surface-muted-fg flex items-center"><EnvelopeIcon className="w-4 h-4 mr-2 text-surface-muted-fg"/> {email}</p>}
+                {phone && <p className="text-sm text-surface-muted-fg flex items-center"><PhoneIcon className="w-4 h-4 mr-2 text-surface-muted-fg"/> {phone}</p>}
               </div>
               <div className="px-4 py-3 border-t flex space-x-2">
                   <Button size="sm" variant="ghost" leftIcon={<MessageIcon className="w-4 h-4" />}>Send Message</Button>

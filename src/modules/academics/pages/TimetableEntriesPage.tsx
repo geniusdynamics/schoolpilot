@@ -152,7 +152,7 @@ export const TimetableEntriesContent: React.FC = () => {
   };
   
   const getSubjectColor = (subjectId: number): string => {
-    const colors = ['bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100'];
+    const colors = ['bg-primary-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100'];
     return colors[subjectId % colors.length];
   };
 
@@ -167,7 +167,7 @@ export const TimetableEntriesContent: React.FC = () => {
           {/* <Button variant="secondary" leftIcon={<PrinterIcon className="w-5 h-5" />}>Print Timetable</Button> */}
         </>
       }>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
           <Select
             label="Select Class Stream"
             value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
@@ -180,34 +180,34 @@ export const TimetableEntriesContent: React.FC = () => {
           </Select>
         </div>
 
-        {!selectedClassStreamId && <p className="text-center text-gray-500 py-4">Please select a class stream to view or manage its timetable.</p>}
+        {!selectedClassStreamId && <p className="text-center text-surface-muted-fg py-4">Please select a class stream to view or manage its timetable.</p>}
         
         {selectedClassStreamId && (
           <div className="table-responsive">
-            <table className="min-w-full border-collapse border border-gray-300">
+            <table className="min-w-full border-collapse border border-surface-border">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 p-2 text-xs font-medium text-gray-600">Time / Day</th>
+                <tr className="bg-surface-accent">
+                  <th className="border border-surface-border p-2 text-xs font-medium text-surface-muted-fg">Time / Day</th>
                   {daysOfWeekOrder.map(day => (
-                    <th key={day} className="border border-gray-300 p-2 text-xs font-medium text-gray-600 capitalize">{day.toLowerCase()}</th>
+                    <th key={day} className="border border-surface-border p-2 text-xs font-medium text-surface-muted-fg capitalize">{day.toLowerCase()}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {(sortedPeriods || []).map(period => (
                   <tr key={period.id}>
-                    <td className="border border-gray-300 p-2 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                    <td className="border border-surface-border p-2 text-xs font-semibold text-surface-foreground whitespace-nowrap">
                       {period.period_name}<br/>({period.start_time.slice(0,5)} - {period.end_time.slice(0,5)})
                     </td>
                     {daysOfWeekOrder.map(day => {
                       const entry = findEntry(day, period.id);
                       return (
-                        <td key={`${day}-${period.id}`} className={`border border-gray-300 p-1.5 text-xs relative group h-24 ${entry ? getSubjectColor(entry.subject_id) : 'hover:bg-gray-50'}`}>
+                        <td key={`${day}-${period.id}`} className={`border border-surface-border p-1.5 text-xs relative group h-24 ${entry ? getSubjectColor(entry.subject_id) : 'hover:bg-surface-muted'}`}>
                           {entry ? (
                             <div className="flex flex-col justify-between h-full">
                               <div>
-                                <p className="font-semibold text-gray-800">{entry.subject_name}</p>
-                                <p className="text-gray-600 text-[10px]">{entry.teacher_name}</p>
+                                <p className="font-semibold text-surface-foreground">{entry.subject_name}</p>
+                                <p className="text-surface-muted-fg text-[10px]">{entry.teacher_name}</p>
                               </div>
                               <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
                                 <Button size="sm" variant="ghost" className="p-0.5" onClick={() => openModal(entry, day, period.id)}><EditIcon className="w-3 h-3"/></Button>
@@ -217,7 +217,7 @@ export const TimetableEntriesContent: React.FC = () => {
                           ) : (
                             <div className="flex items-center justify-center h-full">
                               <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 p-0.5" onClick={() => openModal(undefined, day, period.id)}>
-                                <PlusIcon className="w-4 h-4 text-gray-400"/>
+                                <PlusIcon className="w-4 h-4 text-surface-muted-fg"/>
                               </Button>
                             </div>
                           )}
@@ -241,8 +241,8 @@ export const TimetableEntriesContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button type="submit" disabled={loading.timetableEntries}>
-              {loading.timetableEntries ? <Spinner size="sm"/> : (editingEntry ? 'Save Changes' : 'Add Slot')}
+            <Button type="submit" loading={loading.timetableEntries}>
+              {editingEntry ? 'Save Changes' : 'Add Slot'}
             </Button>
           </FormActions>
         }

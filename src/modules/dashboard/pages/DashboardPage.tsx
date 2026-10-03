@@ -157,7 +157,7 @@ const DashboardPage: React.FC = () => {
 
   // Department distribution (mock data for demo - can be connected to real data)
   const departmentData = useMemo(() => [
-    { name: 'Sciences', value: 450, color: '#3b82f6' },
+    { name: 'Sciences', value: 450, color: '#6366f1' },
     { name: 'Arts', value: 320, color: '#10b981' },
     { name: 'Commerce', value: 280, color: '#f59e0b' },
     { name: 'Technical', value: 200, color: '#8b5cf6' },
@@ -238,7 +238,7 @@ const DashboardPage: React.FC = () => {
   const performanceAnalyticsData = useMemo(() => [
     { name: t('belowBasic', 'Below 50%'), learners: 0, color: '#ef4444' },
     { name: t('developing', '50% - 69%'), learners: 0, color: '#f59e0b' },
-    { name: t('proficient', '70% - 84%'), learners: 0, color: '#3b82f6' },
+    { name: t('proficient', '70% - 84%'), learners: 0, color: '#6366f1' },
     { name: t('advanced', '85%+'), learners: 0, color: '#10b981' },
   ], [t]);
 
@@ -340,7 +340,7 @@ const DashboardPage: React.FC = () => {
 
   if (!canViewDashboard) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-14">
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-surface-card px-6 py-14">
         <h2 className="text-2xl font-semibold text-slate-800">
           {t('noDashboardPermissionTitle', 'Dashboard Access Restricted')}
         </h2>
@@ -360,12 +360,12 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-8">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-slate-800/50 pb-8">
       {/* ============================================================================
           HERO SECTION
       ============================================================================ */}
       {/* Compact Welcome Banner */}
-      <section className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-4 py-4 text-white shadow-md sm:px-6">
+      <section className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-primary-700 via-primary-600 to-indigo-700 px-4 py-4 text-white shadow-md sm:px-6">
         <div className="relative mx-auto max-w-7xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -376,14 +376,14 @@ const DashboardPage: React.FC = () => {
                 <h1 className="text-lg font-bold tracking-tight sm:text-xl">
                   {user?.fullName ? t('welcomeBack', { name: user.fullName }) : t('welcomeBackDefault', 'Welcome back!')}
                 </h1>
-                <p className="text-xs text-blue-100">
+                <p className="text-xs text-primary-100">
                   {t('dashboardSubtitle', 'Monitor academics, attendance, finance, and communication.')}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="rounded-lg bg-white/10 px-3 py-1.5 backdrop-blur-sm">
-                <p className="text-xs text-blue-200">{t('lastUpdated', 'Last updated')}</p>
+                <p className="text-xs text-primary-200">{t('lastUpdated', 'Last updated')}</p>
                 <p className="text-xs font-medium">{currentTime.toLocaleString()}</p>
               </div>
               <div className={`rounded-lg px-3 py-1.5 backdrop-blur-sm ${isOnline ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
@@ -400,7 +400,7 @@ const DashboardPage: React.FC = () => {
       {/* Quick Navigation */}
       <PageContainer>
         <section className="mt-4">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          <h2 className="text-sm font-semibold text-surface-muted-fg uppercase tracking-wider mb-3">
             Quick Navigation
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -459,7 +459,7 @@ const DashboardPage: React.FC = () => {
                 type="button"
                 onClick={() => navigate(item.path)}
                 className={`
-                  flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left
+                  flex items-start gap-4 rounded-xl border border-surface-border bg-surface-card p-4 text-left
                   transition-all duration-200 hover:shadow-md hover:border-${item.color}-200 hover:bg-${item.color}-50
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-${item.color}-500
                 `}
@@ -471,10 +471,10 @@ const DashboardPage: React.FC = () => {
                   {item.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900">{item.label}</p>
-                  <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.desc}</p>
+                  <p className="font-semibold text-surface-foreground">{item.label}</p>
+                  <p className="mt-1 text-xs text-surface-muted-fg line-clamp-2">{item.desc}</p>
                 </div>
-                <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-surface-muted-fg" />
               </button>
             ))}
           </div>
@@ -565,8 +565,8 @@ const DashboardPage: React.FC = () => {
           {/* Upcoming Events */}
           <Card
             title={t('upcomingEvents', 'Upcoming Events')}
-            className="border-gray-200 shadow-sm"
-            icon={<CalendarDaysIcon className="h-5 w-5 text-blue-600" />}
+            className="border-surface-border shadow-sm"
+            icon={<CalendarDaysIcon className="h-5 w-5 text-primary-600" />}
             actions={
               <Button variant="ghost" size="sm" onClick={() => navigate('/academics/timetable-entries')}>
                 {t('viewAll', 'View All')}
@@ -575,27 +575,27 @@ const DashboardPage: React.FC = () => {
           >
             <ul className="space-y-3" aria-label={t('upcomingEvents', 'Upcoming Events')}>
               {upcomingEvents.length === 0 && (
-                <li className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 text-center">
+                <li className="rounded-lg bg-surface-muted p-4 text-sm text-surface-muted-fg text-center">
                   {t('noUpcomingEvents', 'No upcoming events scheduled.')}
                 </li>
               )}
               {upcomingEvents.map((event, index) => (
                 <li
                   key={event.id}
-                  className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100"
+                  className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 dark:bg-slate-800/50 p-3 transition-colors hover:bg-surface-accent"
                 >
                   <div className={`
                     flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg
-                    ${index === 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}
+                    ${index === 0 ? 'bg-primary-100 text-primary-600' : 'bg-surface-accent text-surface-muted-fg'}
                   `}>
                     <CalendarDaysIcon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{event.title}</p>
-                    <p className="text-xs text-gray-500">{event.start?.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                    <p className="text-sm font-semibold text-surface-foreground truncate">{event.title}</p>
+                    <p className="text-xs text-surface-muted-fg">{event.start?.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</p>
                   </div>
                   {index === 0 && (
-                    <span className="flex-shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    <span className="flex-shrink-0 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700">
                       {t('soon', 'Soon')}
                     </span>
                   )}
@@ -607,7 +607,7 @@ const DashboardPage: React.FC = () => {
           {/* Recent Announcements */}
           <Card
             title={t('recentAnnouncements', 'Recent Announcements')}
-            className="border-gray-200 shadow-sm"
+            className="border-surface-border shadow-sm"
             icon={<MegaphoneIcon className="h-5 w-5 text-violet-600" />}
             actions={
               <Button variant="ghost" size="sm" onClick={() => navigate('/administration/message-campaigns')}>
@@ -617,19 +617,19 @@ const DashboardPage: React.FC = () => {
           >
             <ul className="space-y-3" aria-label={t('recentAnnouncements', 'Recent Announcements')}>
               {recentAnnouncements.length === 0 && (
-                <li className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 text-center">
+                <li className="rounded-lg bg-surface-muted p-4 text-sm text-surface-muted-fg text-center">
                   {t('noAnnouncements', 'No recent announcements yet.')}
                 </li>
               )}
               {recentAnnouncements.map((announcement) => (
                 <li
                   key={announcement.id}
-                  className="rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100"
+                  className="rounded-xl border border-gray-100 bg-gray-50/50 dark:bg-slate-800/50 p-3 transition-colors hover:bg-surface-accent"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{announcement.title}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-gray-600">{announcement.details}</p>
+                      <p className="text-sm font-semibold text-surface-foreground">{announcement.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-surface-muted-fg">{announcement.details}</p>
                     </div>
                     {announcement.priority === 'high' && (
                       <span className="flex-shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
@@ -637,7 +637,7 @@ const DashboardPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 text-xs text-gray-400">
+                  <p className="mt-2 text-xs text-surface-muted-fg">
                     {announcement.updatedAt?.toLocaleDateString()}
                   </p>
                 </li>
@@ -664,30 +664,30 @@ const DashboardPage: React.FC = () => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
               <ChartBarIcon className="h-5 w-5 text-emerald-600" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">{t('formPerformance', 'Form Performance Summaries')}</h2>
+            <h2 className="text-lg font-bold text-surface-foreground">{t('formPerformance', 'Form Performance Summaries')}</h2>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Form 1 */}
-            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+            <Card className="border-surface-border hover:shadow-md transition-shadow">
               <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
                   <AcademicCapIcon className="h-6 w-6" />
                 </div>
-                <h3 className="text-center text-lg font-bold text-gray-900">Form 1</h3>
-                <p className="text-center text-xs text-gray-500 mb-3">OPENER - (2024 Term 1)</p>
+                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 1</h3>
+                <p className="text-center text-xs text-surface-muted-fg mb-3">OPENER - (2024 Term 1)</p>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Points</span>
+                    <span className="text-surface-muted-fg">Mean Points</span>
                     <span className="font-semibold text-emerald-600">4.8904</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="text-surface-muted-fg">Mean Marks</span>
                     <span className="font-semibold text-emerald-600">46.3%</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-gray-600">Mean Grade</span>
+                    <span className="text-surface-muted-fg">Mean Grade</span>
                     <span className="px-2 py-0.5 bg-amber-50 text-amber-600 font-bold rounded">C-</span>
                   </div>
                 </div>
@@ -695,77 +695,77 @@ const DashboardPage: React.FC = () => {
             </Card>
 
             {/* Form 2 */}
-            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+            <Card className="border-surface-border hover:shadow-md transition-shadow">
               <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
                   <AcademicCapIcon className="h-6 w-6" />
                 </div>
-                <h3 className="text-center text-lg font-bold text-gray-900">Form 2</h3>
-                <p className="text-center text-xs text-gray-500 mb-3">OPENER - (2024 Term 1)</p>
+                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 2</h3>
+                <p className="text-center text-xs text-surface-muted-fg mb-3">OPENER - (2024 Term 1)</p>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Points</span>
+                    <span className="text-surface-muted-fg">Mean Points</span>
                     <span className="font-semibold text-emerald-600">5.2156</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="text-surface-muted-fg">Mean Marks</span>
                     <span className="font-semibold text-emerald-600">52.8%</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-gray-600">Mean Grade</span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold rounded">C+</span>
+                    <span className="text-surface-muted-fg">Mean Grade</span>
+                    <span className="px-2 py-0.5 bg-primary-50 text-primary-600 font-bold rounded">C+</span>
                   </div>
                 </div>
               </div>
             </Card>
 
             {/* Form 3 */}
-            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+            <Card className="border-surface-border hover:shadow-md transition-shadow">
               <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
                   <AcademicCapIcon className="h-6 w-6" />
                 </div>
-                <h3 className="text-center text-lg font-bold text-gray-900">Form 3</h3>
-                <p className="text-center text-xs text-gray-500 mb-3">MID TERM - (2024 Term 1)</p>
+                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 3</h3>
+                <p className="text-center text-xs text-surface-muted-fg mb-3">MID TERM - (2024 Term 1)</p>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Points</span>
+                    <span className="text-surface-muted-fg">Mean Points</span>
                     <span className="font-semibold text-emerald-600">6.1458</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="text-surface-muted-fg">Mean Marks</span>
                     <span className="font-semibold text-emerald-600">61.5%</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-gray-600">Mean Grade</span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold rounded">B</span>
+                    <span className="text-surface-muted-fg">Mean Grade</span>
+                    <span className="px-2 py-0.5 bg-primary-50 text-primary-600 font-bold rounded">B</span>
                   </div>
                 </div>
               </div>
             </Card>
 
             {/* Form 4 */}
-            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+            <Card className="border-surface-border hover:shadow-md transition-shadow">
               <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
                   <AcademicCapIcon className="h-6 w-6" />
                 </div>
-                <h3 className="text-center text-lg font-bold text-gray-900">Form 4</h3>
-                <p className="text-center text-xs text-gray-500 mb-3">MID TERM - (2024 Term 1)</p>
+                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 4</h3>
+                <p className="text-center text-xs text-surface-muted-fg mb-3">MID TERM - (2024 Term 1)</p>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Points</span>
+                    <span className="text-surface-muted-fg">Mean Points</span>
                     <span className="font-semibold text-emerald-600">7.2341</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="text-surface-muted-fg">Mean Marks</span>
                     <span className="font-semibold text-emerald-600">72.3%</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-gray-600">Mean Grade</span>
+                    <span className="text-surface-muted-fg">Mean Grade</span>
                     <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 font-bold rounded">B+</span>
                   </div>
                 </div>
@@ -780,10 +780,10 @@ const DashboardPage: React.FC = () => {
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                <UsersIcon className="h-5 w-5 text-blue-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100">
+                <UsersIcon className="h-5 w-5 text-primary-600" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">{t('studentsManagement', 'Students Management')}</h2>
+              <h2 className="text-lg font-bold text-surface-foreground">{t('studentsManagement', 'Students Management')}</h2>
             </div>
             <Button variant="outline" size="sm" leftIcon={<PlusIcon className="h-4 w-4" />} onClick={() => navigate('/administration/students/add')}>
               {t('addStudent', 'Add Student')}
@@ -813,7 +813,7 @@ const DashboardPage: React.FC = () => {
                       paddingAngle={3}
                       dataKey="value"
                     >
-                      <Cell fill="#3b82f6" />
+                      <Cell fill="#6366f1" />
                       <Cell fill="#ec4899" />
                       <Cell fill="#10b981" />
                     </Pie>
@@ -822,12 +822,12 @@ const DashboardPage: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center">
-                  <span className="text-3xl font-bold text-gray-900">440</span>
-                  <span className="text-xs text-gray-500">{t('totalApplicants', 'Total')}</span>
+                  <span className="text-3xl font-bold text-surface-foreground">440</span>
+                  <span className="text-xs text-surface-muted-fg">{t('totalApplicants', 'Total')}</span>
                 </div>
               </div>
               <div className="mt-2 flex justify-center gap-4 text-sm">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" />240 {t('male', 'Male')}</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary-500" />240 {t('male', 'Male')}</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-pink-500" />120 {t('female', 'Female')}</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" />80 {t('others', 'Others')}</span>
               </div>
@@ -835,33 +835,33 @@ const DashboardPage: React.FC = () => {
 
             {/* Gender Distribution Cards */}
             <div className="grid grid-cols-1 gap-3">
-              <Card className="border-gray-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
+              <Card className="border-surface-border bg-gradient-to-br from-primary-50 to-cyan-50 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">{t('male', 'Male')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{genderDistribution.male.toLocaleString()}</p>
+                    <p className="text-sm text-surface-muted-fg">{t('male', 'Male')}</p>
+                    <p className="text-2xl font-bold text-surface-foreground">{genderDistribution.male.toLocaleString()}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500 text-white">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-500 text-white">
                     <UsersIcon className="h-6 w-6" />
                   </div>
                 </div>
               </Card>
-              <Card className="border-gray-200 bg-gradient-to-br from-pink-50 to-rose-50 p-4">
+              <Card className="border-surface-border bg-gradient-to-br from-pink-50 to-rose-50 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">{t('female', 'Female')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{genderDistribution.female.toLocaleString()}</p>
+                    <p className="text-sm text-surface-muted-fg">{t('female', 'Female')}</p>
+                    <p className="text-2xl font-bold text-surface-foreground">{genderDistribution.female.toLocaleString()}</p>
                   </div>
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-pink-500 text-white">
                     <UsersIcon className="h-6 w-6" />
                   </div>
                 </div>
               </Card>
-              <Card className="border-gray-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+              <Card className="border-surface-border bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">{t('others', 'Others')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{genderDistribution.other.toLocaleString()}</p>
+                    <p className="text-sm text-surface-muted-fg">{t('others', 'Others')}</p>
+                    <p className="text-2xl font-bold text-surface-foreground">{genderDistribution.other.toLocaleString()}</p>
                   </div>
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500 text-white">
                     <UsersIcon className="h-6 w-6" />
@@ -920,10 +920,10 @@ const DashboardPage: React.FC = () => {
                 <Line 
                   type="monotone" 
                   dataKey="enrolled" 
-                  stroke="#3b82f6" 
+                  stroke="#6366f1" 
                   strokeWidth={2.5} 
                   name={t('newEnrollments', 'New Enrollments')}
-                  dot={{ fill: '#3b82f6', r: 4 }}
+                  dot={{ fill: '#6366f1', r: 4 }}
                   activeDot={{ r: 6 }}
                 />
                 <Line 
@@ -954,7 +954,7 @@ const DashboardPage: React.FC = () => {
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                 />
                 <Legend />
-                <Bar dataKey="male" name={t('male', 'Male')} fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="male" name={t('male', 'Male')} fill="#6366f1" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="female" name={t('female', 'Female')} fill="#ec4899" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -978,8 +978,8 @@ const DashboardPage: React.FC = () => {
                     <CheckCircleIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{subjectRegistrationStats.registered.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">{t('registered', 'Registered')}</p>
+                    <p className="text-2xl font-bold text-surface-foreground">{subjectRegistrationStats.registered.toLocaleString()}</p>
+                    <p className="text-sm text-surface-muted-fg">{t('registered', 'Registered')}</p>
                   </div>
                 </div>
               </div>
@@ -989,8 +989,8 @@ const DashboardPage: React.FC = () => {
                     <ExclamationTriangleIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{subjectRegistrationStats.notRegistered.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">{t('notRegistered', 'Not Registered')}</p>
+                    <p className="text-2xl font-bold text-surface-foreground">{subjectRegistrationStats.notRegistered.toLocaleString()}</p>
+                    <p className="text-sm text-surface-muted-fg">{t('notRegistered', 'Not Registered')}</p>
                   </div>
                 </div>
               </div>
@@ -1037,15 +1037,15 @@ const DashboardPage: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  <span className="text-sm text-gray-600">{t('active', 'Active')}: 700</span>
+                  <span className="text-sm text-surface-muted-fg">{t('active', 'Active')}: 700</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-amber-500" />
-                  <span className="text-sm text-gray-600">{t('suspended', 'Suspended')}: 45</span>
+                  <span className="text-sm text-surface-muted-fg">{t('suspended', 'Suspended')}: 45</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-rose-500" />
-                  <span className="text-sm text-gray-600">{t('dropped', 'Dropped')}: 90</span>
+                  <span className="text-sm text-surface-muted-fg">{t('dropped', 'Dropped')}: 90</span>
                 </div>
               </div>
             </div>
@@ -1094,8 +1094,8 @@ const DashboardPage: React.FC = () => {
                 />
               </AreaChart>
             </ResponsiveContainer>
-            <div className="mt-4 flex items-center justify-between rounded-lg bg-gray-50 p-3">
-              <span className="text-sm text-gray-600">{t('outstandingBalanceFull', 'Outstanding Balance')}</span>
+            <div className="mt-4 flex items-center justify-between rounded-lg bg-surface-muted p-3">
+              <span className="text-sm text-surface-muted-fg">{t('outstandingBalanceFull', 'Outstanding Balance')}</span>
               <span className="text-lg font-bold text-rose-600">{formatCurrency(outstandingBalance)}</span>
             </div>
           </ChartCard>
@@ -1103,23 +1103,23 @@ const DashboardPage: React.FC = () => {
           {/* Quick Info Column */}
           <div className="space-y-4">
             {/* Today's Attendance */}
-            <Card className="border-gray-200 bg-gradient-to-br from-cyan-50 to-blue-50">
+            <Card className="border-surface-border bg-gradient-to-br from-cyan-50 to-primary-50">
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <ClockIcon className="h-5 w-5 text-cyan-600" />
-                  <h3 className="font-semibold text-gray-900">{t('todaysAttendance', "Today's Attendance")}</h3>
+                  <h3 className="font-semibold text-surface-foreground">{t('todaysAttendance', "Today's Attendance")}</h3>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between rounded-lg bg-white/70 p-2">
-                    <span className="text-sm text-gray-600">{t('present', 'Present')}</span>
+                  <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
+                    <span className="text-sm text-surface-muted-fg">{t('present', 'Present')}</span>
                     <span className="font-semibold text-emerald-600">{attendanceSummary.present}</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-white/70 p-2">
-                    <span className="text-sm text-gray-600">{t('late', 'Late')}</span>
+                  <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
+                    <span className="text-sm text-surface-muted-fg">{t('late', 'Late')}</span>
                     <span className="font-semibold text-amber-600">12</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-white/70 p-2">
-                    <span className="text-sm text-gray-600">{t('absent', 'Absent')}</span>
+                  <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
+                    <span className="text-sm text-surface-muted-fg">{t('absent', 'Absent')}</span>
                     <span className="font-semibold text-rose-600">{attendanceSummary.total - attendanceSummary.present}</span>
                   </div>
                 </div>
@@ -1127,20 +1127,20 @@ const DashboardPage: React.FC = () => {
             </Card>
 
             {/* Transport Status */}
-            <Card className="border-gray-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <Card className="border-surface-border bg-gradient-to-br from-amber-50 to-orange-50">
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <TruckIcon className="h-5 w-5 text-amber-600" />
-                  <h3 className="font-semibold text-gray-900">{t('transportTracking', 'Transport Tracking')}</h3>
+                  <h3 className="font-semibold text-surface-foreground">{t('transportTracking', 'Transport Tracking')}</h3>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between rounded-lg bg-white/70 p-2">
-                    <span className="text-sm text-gray-600">{t('busesOnRoute', 'Buses on Route')}</span>
-                    <span className="font-semibold text-gray-900">8</span>
+                  <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
+                    <span className="text-sm text-surface-muted-fg">{t('busesOnRoute', 'Buses on Route')}</span>
+                    <span className="font-semibold text-surface-foreground">8</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-white/70 p-2">
-                    <span className="text-sm text-gray-600">{t('studentsTransported', 'Students Transported')}</span>
-                    <span className="font-semibold text-gray-900">342</span>
+                  <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
+                    <span className="text-sm text-surface-muted-fg">{t('studentsTransported', 'Students Transported')}</span>
+                    <span className="font-semibold text-surface-foreground">342</span>
                   </div>
                 </div>
                 <Button 
@@ -1159,16 +1159,16 @@ const DashboardPage: React.FC = () => {
         {/* ============================================================================
             FOOTER INFO
         ============================================================================ */}
-        <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <section className="mt-8 rounded-2xl border border-surface-border bg-surface-card p-4 shadow-sm">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2">
-              <AcademicCapIcon className="h-5 w-5 text-blue-600" />
-              <p className="text-sm text-gray-700">
+              <AcademicCapIcon className="h-5 w-5 text-primary-600" />
+              <p className="text-sm text-surface-foreground">
                 <span className="font-medium">{t('roleViewLabel', 'Current Role View')}:</span>{' '}
-                <span className="capitalize text-blue-600">{roleType}</span>
+                <span className="capitalize text-primary-600">{roleType}</span>
               </p>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-surface-muted-fg">
               <span className="flex items-center gap-1">
                 <span className={`h-2 w-2 rounded-full ${syncStatus.state === 'syncing' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
                 {syncStatus.state === 'syncing' ? t('syncing', 'Syncing...') : t('synced', 'Synced')}

@@ -182,6 +182,84 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
     modules?: string[];
     volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }) => Promise<{ success: boolean; message: string; stats?: any }>;
+
+  // Sync/conflict surface consumed by settings & feature UIs
+  pendingSyncCount: number;
+  conflicts: any[];
+  resolveConflict: (conflictId: any, resolution: any) => Promise<void>;
+  resolveAllConflicts: () => Promise<void>;
+  clearSyncQueue: () => Promise<void>;
+  getQueueStatus: () => any;
+  getSyncHistory: () => Promise<any[]>;
+  offlineCapabilities: any;
+  dataSource: string;
+  dataStrategy: any;
+  dataStrategyManager: any;
+
+  // Loading / error passthrough
+  isLoading: boolean;
+  error: string | null;
+
+  // Domain arrays not covered by module augmentations
+  academic_years?: any[];
+  exams?: any[];
+  feeStructures?: any[];
+  payments?: any[];
+  invoices?: any[];
+  workflows?: any[];
+  modules?: any[];
+  auditLogs?: any[];
+  vendors?: any[];
+  schoolProfile?: any;
+  student_clearances?: any[];
+  student_clearance_requests?: any[];
+
+  // Domain CRUD operations (entity payloads vary per module; typed loosely
+  // here because the provider wires them from many differently-typed hooks)
+  addDormitory: (item: any) => Promise<any>;
+  updateDormitory: (item: any) => Promise<any>;
+  deleteDormitory: (id: any) => Promise<void>;
+  addStudentCategory: (item: any) => Promise<any>;
+  updateStudentCategory: (item: any) => Promise<any>;
+  deleteStudentCategory: (id: any) => Promise<void>;
+  addTransportRoute: (item: any) => Promise<any>;
+  updateTransportRoute: (item: any) => Promise<any>;
+  deleteTransportRoute: (id: any) => Promise<void>;
+  addStudentTransportAssignment: (item: any) => Promise<any>;
+  updateStudentTransportAssignment: (item: any) => Promise<any>;
+  deleteStudentTransportAssignment: (id: any) => Promise<void>;
+  addStudentPayment: (item: any) => Promise<any>;
+  updateStudentPayment: (item: any) => Promise<any>;
+  deleteStudentPayment: (id: any) => Promise<void>;
+  addStudentOpeningBalance: (item: any) => Promise<any>;
+  updateStudentOpeningBalance: (item: any) => Promise<any>;
+  deleteStudentOpeningBalance: (id: any) => Promise<void>;
+  addStudentMealPlan: (item: any) => Promise<any>;
+  updateStudentMealPlan: (item: any) => Promise<any>;
+  deleteStudentMealPlan: (id: any) => Promise<void>;
+  addMealConsumptionLog: (item: any) => Promise<any>;
+  addWalletTransaction: (item: any) => Promise<any>;
+  addStockTransaction: (item: any) => Promise<any>;
+  addItemCategoryInv: (item: any) => Promise<any>;
+  updateItemCategoryInv: (item: any) => Promise<any>;
+  deleteItemCategoryInv: (id: any) => Promise<void>;
+  addGeneralPayment: (item: any) => Promise<any>;
+  updateGeneralPayment: (item: any) => Promise<any>;
+  deleteGeneralPayment: (id: any) => Promise<void>;
+  addCustomerInvoice: (item: any) => Promise<any>;
+  updateCustomerInvoice: (item: any) => Promise<any>;
+  deleteCustomerInvoice: (id: any) => Promise<void>;
+  addSupplierInvoice: (item: any) => Promise<any>;
+  updateSupplierInvoice: (item: any) => Promise<any>;
+  deleteSupplierInvoice: (id: any) => Promise<void>;
+  addFeeAdjustment: (item: any) => Promise<any>;
+  updateFeeAdjustment: (item: any) => Promise<any>;
+  deleteFeeAdjustment: (id: any) => Promise<void>;
+  addBookCategory: (item: any) => Promise<any>;
+  updateBookCategory: (item: any) => Promise<any>;
+  deleteBookCategory: (id: any) => Promise<void>;
+  updateFineStatus: (id: any, status: any) => Promise<any>;
+  updateSchoolDetails: (details: any) => Promise<any>;
 }
 
 // Create the context with a default undefined value
@@ -488,6 +566,29 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       } else if (Array.isArray(students) && fallbackStreamId == null) {
         logger.warn('[AppDataContext] No class_streams available – cannot repair student orphans');
+      }
+
+      // Derive display labels for class streams when denormalized fields were not
+      // persisted (class_name/class_teacher_name are display-only columns that
+      // schema-driven providers may drop). Every combobox label benefits.
+      {
+        const streams = loadedData['class_streams'];
+        const classList = loadedData['classes'];
+        const staffList = loadedData['staff'];
+        if (Array.isArray(streams) && streams.length > 0) {
+          const classNameById = new Map(((classList || []) as any[]).map((c) => [String(c.id), c.name]));
+          const staffNameById = new Map(
+            ((staffList || []) as any[]).map((s) => [String(s.id), [s.first_name, s.last_name].filter(Boolean).join(' ')])
+          );
+          for (const stream of streams as any[]) {
+            if (!stream.class_name && stream.class_id != null) {
+              stream.class_name = classNameById.get(String(stream.class_id)) || undefined;
+            }
+            if (!stream.class_teacher_name && stream.class_teacher_id != null) {
+              stream.class_teacher_name = staffNameById.get(String(stream.class_teacher_id)) || undefined;
+            }
+          }
+        }
       }
 
       setData(loadedData);
@@ -1764,8 +1865,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading application data...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <span className="ml-2 text-surface-muted-fg">Loading application data...</span>
       </div>
     );
   }
@@ -1776,7 +1877,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       <div className="flex items-center justify-center min-h-screen bg-red-50">
         <div className="text-center p-6 max-w-md">
           <div className="text-red-600 text-xl mb-2">Ã¢Å¡Â Ã¯Â¸Â Application Error</div>
-          <div className="text-gray-700 mb-4">
+          <div className="text-surface-foreground mb-4">
             {error.message || 'We\'re experiencing technical difficulties. Please try again later.'}
           </div>
           <div className="space-x-2">

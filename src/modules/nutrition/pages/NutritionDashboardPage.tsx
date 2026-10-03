@@ -257,23 +257,23 @@ export const NutritionDashboardPageContent: React.FC = () => {
       {/* Additional Nutrition Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Wallet Summary */}
-        <Card title="Wallet Summary" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Wallet Summary" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Total Balance</span>
+              <span className="text-sm text-surface-muted-fg">Total Balance</span>
               <span className="font-semibold text-violet-600">Ksh {aggregateWalletBalance.toLocaleString()}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Active Wallets</span>
+              <span className="text-sm text-surface-muted-fg">Active Wallets</span>
               <span className="font-semibold text-emerald-600">{(studentWallets || []).length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Zero Balance</span>
+              <span className="text-sm text-surface-muted-fg">Zero Balance</span>
               <span className="font-semibold text-rose-600">{zeroBalanceWallets}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Avg. Balance</span>
-              <span className="font-semibold text-gray-900">
+              <span className="text-sm text-surface-muted-fg">Avg. Balance</span>
+              <span className="font-semibold text-surface-foreground">
                 Ksh {(studentWallets || []).length > 0 ? Math.round(aggregateWalletBalance / (studentWallets || []).length) : 0}
               </span>
             </div>
@@ -281,7 +281,7 @@ export const NutritionDashboardPageContent: React.FC = () => {
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -298,8 +298,8 @@ export const NutritionDashboardPageContent: React.FC = () => {
                    <CakeIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -310,7 +310,7 @@ export const NutritionDashboardPageContent: React.FC = () => {
         </Card>
 
         {/* Quick Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-emerald-50 p-3 text-center">
@@ -346,7 +346,7 @@ export const NutritionDashboardPageContent: React.FC = () => {
             </div>
             <button
               onClick={() => window.location.hash = '#/nutrition/meal-consumption-log'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               Log Consumption <ArrowRightIcon className="h-4 w-4" />
             </button>

@@ -117,7 +117,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
               aria-hidden="true"
             />
           )}
-          <p className="text-sm text-gray-600">{options.message}</p>
+          <p className="text-sm text-surface-muted-fg">{options.message}</p>
         </div>
       </Modal>
     </ConfirmContext.Provider>

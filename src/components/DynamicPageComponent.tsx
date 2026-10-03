@@ -124,7 +124,7 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading page content...</p>
+          <p className="mt-4 text-surface-muted-fg">Loading page content...</p>
         </div>
       </div>
     );
@@ -140,11 +140,11 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-md">
           <AlertTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Page Not Found</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-xl font-semibold text-surface-foreground mb-2">Page Not Found</h2>
+          <p className="text-surface-muted-fg mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors"
           >
             Reload Page
           </button>
@@ -160,7 +160,7 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <Spinner size="lg" />
-            <p className="mt-4 text-gray-600">Loading page...</p>
+            <p className="mt-4 text-surface-muted-fg">Loading page...</p>
           </div>
         </div>
       }>
@@ -174,8 +174,8 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
         <div className="text-6xl mb-4">ðŸ“„</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Page Content</h3>
-        <p className="text-gray-500">Unable to load page content for {currentPath}</p>
+        <h3 className="text-lg font-medium text-surface-foreground mb-2">Page Content</h3>
+        <p className="text-surface-muted-fg">Unable to load page content for {currentPath}</p>
       </div>
     </div>
   );

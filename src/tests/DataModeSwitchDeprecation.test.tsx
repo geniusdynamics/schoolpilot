@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DataModeSwitch } from '@/components/DataModeSwitch';
 import { AppDataProvider } from '@/contexts/AppDataContext';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { RBACProvider } from '@/contexts/RBACContext';
+import { RBACProvider } from '@/rbac/RBACProvider';
 
 // Mock the contexts
 vi.mock('../contexts/AppDataContext', () => ({
@@ -28,7 +28,7 @@ vi.mock('../contexts/AuthContext', () => ({
   })
 }));
 
-vi.mock('../contexts/RBACContext', () => ({
+vi.mock('../rbac/RBACProvider', () => ({
   RBACProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useRBAC: () => ({
     hasPermission: () => true,

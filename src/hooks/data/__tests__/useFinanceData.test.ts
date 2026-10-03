@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useFinanceData } from '../useFinanceData';
+import { useFinanceData } from '@/modules/finance/data/useFinanceData';
 import { databaseService } from '@/services/database/databaseService';
 
 // Mock the database service

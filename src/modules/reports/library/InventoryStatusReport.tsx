@@ -9,7 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { ItemInv, Warehouse, ItemCategoryInv, StockLevel } from '@/types';
+import { formatKES } from '@/utils/format';
 
 interface InventoryStatusItem {
   itemId: string;
@@ -114,7 +114,7 @@ const InventoryStatusReport: React.FC = () => {
       adequate: { color: 'bg-green-100 text-green-800', text: 'Adequate' },
       low: { color: 'bg-yellow-100 text-yellow-800', text: 'Low Stock' },
       out_of_stock: { color: 'bg-red-100 text-red-800', text: 'Out of Stock' },
-      overstocked: { color: 'bg-blue-100 text-blue-800', text: 'Overstocked' }
+      overstocked: { color: 'bg-primary-100 text-primary-800', text: 'Overstocked' }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.adequate;
@@ -129,11 +129,12 @@ const InventoryStatusReport: React.FC = () => {
     { header: 'Item Name', key: 'itemName' as keyof InventoryStatusItem },
     { header: 'Category', key: 'categoryName' as keyof InventoryStatusItem },
     { header: 'Warehouse', key: 'warehouseName' as keyof InventoryStatusItem },
-    { header: 'Current Stock', key: 'current_stock', render: (_v: any, item: InventoryStatusItem) => `${item.currentStock} ${item.unitOfMeasure}` },
-    { header: 'Unit Cost', key: 'unit_cost', render: (_v: any, item: InventoryStatusItem) =>
-      item.unitCost ? `$${item.unitCost.toFixed(2)}` : 'N/A'
+    // Keys must match the camelCase fields so DataGrid sorting/filtering works
+    { header: 'Current Stock', key: 'currentStock', render: (_v: any, item: InventoryStatusItem) => `${item.currentStock} ${item.unitOfMeasure}` },
+    { header: 'Unit Cost', key: 'unitCost', align: 'right' as const, render: (_v: any, item: InventoryStatusItem) =>
+      item.unitCost ? formatKES(item.unitCost) : 'N/A'
     },
-    { header: 'Total Value', key: 'total_value', render: (_v: any, item: InventoryStatusItem) => `$${item.totalValue.toFixed(2)}` },
+    { header: 'Total Value', key: 'totalValue', align: 'right' as const, render: (_v: any, item: InventoryStatusItem) => formatKES(item.totalValue) },
     { header: 'Status', key: 'status', render: (_v: any, item: InventoryStatusItem) => getStatusBadge(item.status) },
   ];
 
@@ -151,8 +152,8 @@ const InventoryStatusReport: React.FC = () => {
       item.warehouseName,
       item.currentStock?.toString() ?? '',
       item.unitOfMeasure,
-      item.unitCost?.toFixed(2) || '0.00',
-      item.totalValue.toFixed(2),
+      item.unitCost?.toString() || '0',
+      item.totalValue.toString(),
       item.status.replace('_', ' ')
     ]);
 
@@ -182,8 +183,8 @@ const InventoryStatusReport: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Inventory Status Report" icon={CubeIcon}>
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+          <p className="text-sm text-surface-muted-fg mb-4">
             Generate a comprehensive report of inventory status including stock levels, alerts, and valuation.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
@@ -233,20 +234,20 @@ const InventoryStatusReport: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
-              <p className="text-sm text-gray-600">Total Items</p>
+              <p className="text-2xl font-bold text-primary-600">{totalItems}</p>
+              <p className="text-sm text-surface-muted-fg">Total Items</p>
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-red-600">{outOfStockItems}</p>
-              <p className="text-sm text-gray-600">Out of Stock</p>
+              <p className="text-sm text-surface-muted-fg">Out of Stock</p>
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">${totalValue.toFixed(2)}</p>
-              <p className="text-sm text-gray-600">Total Value</p>
+              <p className="text-2xl font-bold text-green-600">{formatKES(totalValue)}</p>
+              <p className="text-sm text-surface-muted-fg">Total Value</p>
             </div>
           </Card>
         </div>

@@ -115,11 +115,11 @@ export const FeesInstallmentsPageContent: React.FC = () => {
 
   const getStatusBadge = (status: InstallmentStatus) => {
     const styles = {
-      [InstallmentStatus.PENDING]: 'bg-gray-100 text-gray-800',
+      [InstallmentStatus.PENDING]: 'bg-surface-accent text-surface-foreground',
       [InstallmentStatus.PARTIAL]: 'bg-yellow-100 text-yellow-800',
       [InstallmentStatus.PAID]: 'bg-green-100 text-green-800',
       [InstallmentStatus.OVERDUE]: 'bg-red-100 text-red-800',
-      [InstallmentStatus.WAIVED]: 'bg-blue-100 text-blue-800'
+      [InstallmentStatus.WAIVED]: 'bg-primary-100 text-primary-800'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
@@ -195,7 +195,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => openModal(item)}
-            className="text-blue-600 hover:text-blue-800"
+            className="text-primary-600 hover:text-primary-800"
             title="Edit"
           >
             Edit
@@ -219,7 +219,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
       <Card 
         title={
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-6 h-6 text-blue-600" />
+            <CalendarIcon className="w-6 h-6 text-primary-600" />
             <span>Fee Installments</span>
           </div>
         }
@@ -230,12 +230,12 @@ export const FeesInstallmentsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <CalendarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">About Fee Installments</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">About Fee Installments</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 Fee installments allow you to break down fee payments into scheduled payments for students. 
                 Track due dates, payments, and balances for each installment across the academic period.
               </p>

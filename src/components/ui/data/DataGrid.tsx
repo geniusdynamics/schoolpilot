@@ -335,13 +335,13 @@ const DataGrid = <T extends Record<string, any>>({
     return (
       <span className="ml-2 flex-none">
         {isActive && direction === 'asc' ? (
-          <ChevronUpIcon className="h-4 w-4 text-blue-600" />
+          <ChevronUpIcon className="h-4 w-4 text-primary-600" />
         ) : isActive && direction === 'desc' ? (
-          <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+          <ChevronDownIcon className="h-4 w-4 text-primary-600" />
         ) : (
           <div className="flex flex-col">
-            <ChevronUpIcon className="h-3 w-3 text-gray-400" />
-            <ChevronDownIcon className="h-3 w-3 text-gray-400 -mt-1" />
+            <ChevronUpIcon className="h-3 w-3 text-surface-muted-fg" />
+            <ChevronDownIcon className="h-3 w-3 text-surface-muted-fg -mt-1" />
           </div>
         )}
       </span>
@@ -355,7 +355,7 @@ const DataGrid = <T extends Record<string, any>>({
   const renderEmptyState = () => {
     if (!emptyState) {
       return (
-        <div className="text-gray-500">
+        <div className="text-surface-muted-fg">
           <div className="text-lg mb-2 flex justify-center"><TableCellsIcon className="h-6 w-6" aria-hidden="true" /></div>
           <div className="text-sm">No data available</div>
         </div>
@@ -378,7 +378,7 @@ const DataGrid = <T extends Record<string, any>>({
         actionElement = (
           <button
             onClick={state.action.onClick}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             {state.action.icon && <span className="mr-2 -ml-1">{state.action.icon}</span>}
             {state.action.label}
@@ -388,9 +388,9 @@ const DataGrid = <T extends Record<string, any>>({
     }
 
     return (
-      <div className="text-gray-500 flex flex-col items-center py-4">
+      <div className="text-surface-muted-fg flex flex-col items-center py-4">
         {state.icon && <div className="mb-4">{state.icon}</div>}
-        {state.title && <div className="text-lg font-medium text-gray-900 mb-1">{state.title}</div>}
+        {state.title && <div className="text-lg font-medium text-surface-foreground mb-1">{state.title}</div>}
         {state.description && <div className="text-sm mb-4">{state.description}</div>}
         {actionElement && <div>{actionElement}</div>}
       </div>
@@ -407,19 +407,19 @@ return (
       tableName="DataGrid"
       fallback={<div>An error occurred while rendering the table. Please try again later.</div>}
     >
-      <div className={`bg-white shadow-sm border border-gray-200 rounded-lg ${className}`} style={{ overflow: 'visible' }}>
+      <div className={`bg-surface-card shadow-sm border border-surface-border rounded-lg ${className}`} style={{ overflow: 'visible' }}>
         {/* Filter Bar */}
       {filterable && (
-        <div className="border-b border-gray-200 bg-gray-50">
+        <div className="border-b border-surface-border bg-surface-muted">
           <div className="px-6 py-3 flex items-center justify-between">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center text-sm text-surface-muted-fg hover:text-surface-foreground transition-colors"
             >
               <FunnelIcon className="h-4 w-4 mr-2" />
               Filters
               {Object.keys(filterState).length > 0 && (
-                <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                <span className="ml-2 bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
                   {Object.keys(filterState).length}
                 </span>
               )}
@@ -430,7 +430,7 @@ return (
             <div className="px-6 pb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {validatedColumns.filter(col => col.filterable !== false).map((column) => (
                 <div key={String(column.key)} className="relative">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-surface-foreground mb-1">
                     {column.header}
                   </label>
                   <div className="relative">
@@ -439,9 +439,9 @@ return (
                       placeholder={`Filter ${column.header?.toLowerCase() ?? ''}...`}
                       value={filterState[column.key as string] || ''}
                       onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-8 pr-3 py-2 border border-surface-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
-                    <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-2.5" />
+                    <MagnifyingGlassIcon className="h-4 w-4 text-surface-muted-fg absolute left-2.5 top-2.5" />
                   </div>
                 </div>
               ))}
@@ -453,11 +453,11 @@ return (
       {/* Table Container — ensure horizontal scroll is not clipped by parent overflow-hidden */}
       <div className="overflow-x-auto w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
         <table
-          className="min-w-full divide-y divide-gray-200"
+          className="min-w-full divide-y divide-surface-border"
           style={{ tableLayout: columns.some(c => c.width) ? 'fixed' : 'auto' }}
           aria-label="Data grid"
         >
-          <thead className="bg-gray-50">
+          <thead className="bg-surface-muted">
             <tr>
               {selectable && (
                 <th className="px-6 py-3 text-left">
@@ -469,18 +469,18 @@ return (
                     }}
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     aria-label="Select all rows"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-surface-border rounded"
                   />
                 </th>
               )}
               {validatedColumns.map((column) => (
                 <th
                   key={String(column.key)}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable !== false && sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                  className={`px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider ${
+                    column.sortable !== false && sortable ? 'cursor-pointer hover:bg-surface-accent' : ''
                   } ${
-                    column.sticky === true || column.sticky === 'left' ? 'sticky left-0 bg-gray-50 z-10' :
-                    column.sticky === 'right' ? 'sticky right-0 bg-gray-50 z-10' : ''
+                    column.sticky === true || column.sticky === 'left' ? 'sticky left-0 bg-surface-muted z-10' :
+                    column.sticky === 'right' ? 'sticky right-0 bg-surface-muted z-10' : ''
                   }`}
                   style={columnStyle(column)}
                   onClick={() => column.sortable !== false && handleSort(column.key as string)}
@@ -496,7 +496,7 @@ return (
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-surface-card divide-y divide-surface-border">
             {effectiveLoading ? (
               <tr>
                 <td colSpan={validatedColumns.length + (selectable ? 1 : 0)} className="px-6 py-8 text-center">
@@ -517,9 +517,9 @@ return (
                 return (
                   <tr
                     key={rowKey}
-                    className={`hover:bg-gray-50 transition-colors duration-150 ${
+                    className={`hover:bg-surface-muted transition-colors duration-150 ${
                       onRowClick ? 'cursor-pointer' : ''
-                    } ${effectiveSelectedKeys.has(rowKey) ? 'bg-blue-50' : ''}`}
+                    } ${effectiveSelectedKeys.has(rowKey) ? 'bg-primary-50' : ''}`}
                     onClick={() => onRowClick?.(row)}
                   >
                     {selectable && (
@@ -532,19 +532,19 @@ return (
                             handleRowSelection(rowKey, e.target.checked);
                           }}
                           aria-label="Select row"
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-surface-border rounded"
                         />
                       </td>
                     )}
                     {validatedColumns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${
+                        className={`px-6 py-4 whitespace-nowrap text-sm text-surface-foreground ${
                           column.align === 'center' ? 'text-center' :
                           column.align === 'right' ? 'text-right' : 'text-left'
                         } ${
-                          column.sticky === true || column.sticky === 'left' ? 'sticky left-0 bg-white z-10' :
-                          column.sticky === 'right' ? 'sticky right-0 bg-white z-10' : ''
+                          column.sticky === true || column.sticky === 'left' ? 'sticky left-0 bg-surface-card z-10' :
+                          column.sticky === 'right' ? 'sticky right-0 bg-surface-card z-10' : ''
                         }`}
                         style={columnStyle(column)}
                       >
@@ -561,26 +561,26 @@ return (
 
       {/* Pagination */}
       {pagination && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div className="bg-surface-card px-4 py-3 flex items-center justify-between border-t border-surface-border sm:px-6">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
               disabled={currentPage <= 1}
               onClick={() => goToPage(currentPage - 1)}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-4 py-2 border border-surface-border text-sm font-medium rounded-md text-surface-foreground bg-surface-card hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
               disabled={currentPage >= totalPages}
               onClick={() => goToPage(currentPage + 1)}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-surface-border text-sm font-medium rounded-md text-surface-foreground bg-surface-card hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-surface-foreground">
                 Showing{' '}
                 <span className="font-medium">
                   {totalRows === 0 ? 0 : (currentPage - 1) * pageSize + 1}
@@ -593,12 +593,12 @@ return (
                 <span className="font-medium">{totalRows}</span> results
               </p>
               {(paginationConfig?.showSizeChanger ?? !isControlledPagination) && (
-                <label className="text-sm text-gray-700 flex items-center gap-2">
+                <label className="text-sm text-surface-foreground flex items-center gap-2">
                   <span className="sr-only">Rows per page</span>
                   <select
                     value={pageSize}
                     onChange={(e) => changePageSize(Number(e.target.value))}
-                    className="border border-gray-300 rounded-md text-sm py-1 px-2"
+                    className="border border-surface-border rounded-md text-sm py-1 px-2"
                     aria-label="Rows per page"
                   >
                     {(paginationConfig?.pageSizeOptions ?? DEFAULT_PAGE_SIZE_OPTIONS).map(size => (
@@ -613,17 +613,17 @@ return (
                 <button
                   disabled={currentPage <= 1}
                   onClick={() => goToPage(currentPage - 1)}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-surface-border bg-surface-card text-sm font-medium text-surface-muted-fg hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm text-gray-700" aria-current="page">
+                <span className="relative inline-flex items-center px-4 py-2 border border-surface-border bg-surface-card text-sm text-surface-foreground" aria-current="page">
                   {currentPage} / {totalPages}
                 </span>
                 <button
                   disabled={currentPage >= totalPages}
                   onClick={() => goToPage(currentPage + 1)}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-surface-border bg-surface-card text-sm font-medium text-surface-muted-fg hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

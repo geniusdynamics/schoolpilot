@@ -12,6 +12,7 @@ import Input from '@/components/ui/Input';
 import { PlusIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { useLoanData } from '@/modules/library/data/useLoanData';
 import { useLibrarySettingsData } from '@/modules/library/data/useLibrarySettingsData';
@@ -28,6 +29,8 @@ export const BookLoansPageContent: React.FC = () => {
   const { books, users, loading } = useAppData();
   const { data: loans, create: addLoan, update: updateLoan } = useLoanData();
   const { data: librarySettings } = useLibrarySettingsData();
+
+  const confirm = useConfirm();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
@@ -145,7 +148,7 @@ export const BookLoansPageContent: React.FC = () => {
   const handleMarkAsReturned = async (loanId: string) => {
     const loanToReturn = loans.find(l => l.id === loanId);
     if (loanToReturn) {
-      if (window.confirm(t('library:bookLoans.confirmMarkReturned', { bookTitle: loanToReturn.book_title }))) {
+      if (await confirm({ title: t('library:bookLoans.markReturned'), message: t('library:bookLoans.confirmMarkReturned', { bookTitle: loanToReturn.book_title }) })) {
         updateLoan(loanId, { ...loanToReturn, return_date: new Date().toISOString().split('T')[0] });
       }
     }
@@ -229,7 +232,7 @@ export const BookLoansPageContent: React.FC = () => {
           {t('library:bookLoans.issueNewLoan')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('library:bookLoans.description')}
         </p>
         <DataGrid
@@ -240,16 +243,16 @@ export const BookLoansPageContent: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">{t('library:bookLoans.noLoansFound')}</p>
+              <PlusIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">{t('library:bookLoans.noLoansFound')}</p>
             </div>
           }
         />
       </Card>
       <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingLoan ? t('library:bookLoans.viewLoanDetails') : t('library:bookLoans.issueNewBookLoan')} size="lg">
         {formData.user_id && !editingLoan && (
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm font-medium text-blue-900 mb-1">Borrowing Status:</p>
+          <div className="mb-4 p-3 bg-primary-50 rounded-lg">
+            <p className="text-sm font-medium text-primary-900 mb-1">Borrowing Status:</p>
             {(() => {
               const selectedUser = users.find(u => u.id === formData.user_id);
               if (!selectedUser) return null;
@@ -258,7 +261,7 @@ export const BookLoansPageContent: React.FC = () => {
               const activeLoans = getUserActiveLoans(selectedUser.id);
               
               return (
-                <div className="text-sm text-blue-800">
+                <div className="text-sm text-primary-800">
                   <p>Active Loans: {activeLoans}/{rule?.max_books_per_user || 'N/A'}</p>
                   <p>Max Loan Days: {rule?.max_loan_days || 'N/A'} days</p>
                   <p>Fine per Day: KES {rule?.fine_per_day || 'N/A'}</p>
@@ -322,8 +325,8 @@ export const BookLoansPageContent: React.FC = () => {
           ) : (
             <>
               <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
-              <Button onClick={handleIssueBook} disabled={loading.loans}>
-                {loading.loans ? <Spinner size="sm"/> : t('library:bookLoans.issueBook')}
+              <Button onClick={handleIssueBook} loading={loading.loans}>
+                {t('library:bookLoans.issueBook')}
               </Button>
             </>
           )}

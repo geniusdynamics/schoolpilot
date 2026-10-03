@@ -222,7 +222,7 @@ export const PaymentAllocationPageContent: React.FC = () => {
         width: 120,
         sortable: true,
         render: (value) => (
-          <span className="font-mono text-blue-600">{formatCurrency(value as number)}</span>
+          <span className="font-mono text-primary-600">{formatCurrency(value as number)}</span>
         ),
       },
       {
@@ -264,8 +264,8 @@ export const PaymentAllocationPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('paymentAllocation.title') || 'Payment Allocation'}>
         {/* Configuration */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
+          <p className="text-sm text-surface-muted-fg mb-4">
             {t('paymentAllocation.description') || 
               'Allocate payments to outstanding invoices for a student. Select a student and payment amount to see how it will be distributed.'}
           </p>
@@ -320,21 +320,21 @@ export const PaymentAllocationPageContent: React.FC = () => {
 
           {/* Student Summary */}
           {selectedStudentId && outstandingItems.length > 0 && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-md">
-              <div className="text-sm font-medium text-blue-800">
+            <div className="mt-4 p-3 bg-primary-50 rounded-md">
+              <div className="text-sm font-medium text-primary-800">
                 {t('paymentAllocation.outstandingSummary') || 'Outstanding Summary'}
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                 <div>
-                  <span className="text-gray-600">{t('paymentAllocation.invoices') || 'Invoices'}: </span>
+                  <span className="text-surface-muted-fg">{t('paymentAllocation.invoices') || 'Invoices'}: </span>
                   <span className="font-medium">{new Set(outstandingItems.map(i => i.invoiceId)).size}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">{t('paymentAllocation.items') || 'Items'}: </span>
+                  <span className="text-surface-muted-fg">{t('paymentAllocation.items') || 'Items'}: </span>
                   <span className="font-medium">{outstandingItems.length}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-gray-600">{t('paymentAllocation.totalOutstanding') || 'Total Outstanding'}: </span>
+                  <span className="text-surface-muted-fg">{t('paymentAllocation.totalOutstanding') || 'Total Outstanding'}: </span>
                   <span className="font-medium text-red-600">{formatCurrency(totalOutstanding)}</span>
                 </div>
               </div>
@@ -355,28 +355,28 @@ export const PaymentAllocationPageContent: React.FC = () => {
         {/* Allocation Preview */}
         {selectedStudentId && paymentAmount && parseFloat(paymentAmount) > 0 && (
           <div className="mb-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
+            <h3 className="text-sm font-medium text-surface-foreground mb-2">
               {t('paymentAllocation.preview') || 'Allocation Preview'}
             </h3>
             <div className="border rounded-md overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-surface-border">
+                <thead className="bg-surface-muted">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                       Invoice
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                       Votehead
                     </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-right text-xs font-medium text-surface-muted-fg uppercase">
                       Balance
                     </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-right text-xs font-medium text-surface-muted-fg uppercase">
                       Allocated
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-surface-card divide-y divide-surface-border">
                   {allocationPreview.map((preview, index) => (
                     <tr key={index}>
                       <td className="px-4 py-2 text-sm">{preview.item.invoiceNumber}</td>
@@ -391,7 +391,7 @@ export const PaymentAllocationPageContent: React.FC = () => {
                   ))}
                 </tbody>
                 {allocationPreview.length > 0 && (
-                  <tfoot className="bg-gray-50">
+                  <tfoot className="bg-surface-muted">
                     <tr>
                       <td colSpan={3} className="px-4 py-2 text-sm font-medium text-right">
                         Remaining:
@@ -412,17 +412,18 @@ export const PaymentAllocationPageContent: React.FC = () => {
         {/* Outstanding Invoices Table */}
         {selectedStudentId && outstandingItems.length > 0 && (
           <div className="mb-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
+            <h3 className="text-sm font-medium text-surface-foreground mb-2">
               {t('paymentAllocation.outstandingInvoices') || 'Outstanding Invoices'}
             </h3>
             <DataGrid
               columns={previewColumns}
               data={outstandingItems}
+              keyField="invoiceItemId"
               sortable
               filterable
-              pageSize={10}
+              pagination
               emptyState={{
-                icon: <CreditCardIcon className="w-12 h-12 text-gray-400" />,
+                icon: <CreditCardIcon className="w-12 h-12 text-surface-muted-fg" />,
                 title: t('paymentAllocation.noOutstanding') || 'No Outstanding Invoices',
                 description: 'All invoices are paid for this student.',
               }}
@@ -464,19 +465,19 @@ export const PaymentAllocationPageContent: React.FC = () => {
             </div>
             <div className="grid grid-cols-3 gap-4 mt-3">
               <div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-surface-muted-fg">
                   {t('paymentAllocation.invoicesPaid') || 'Invoices Paid'}
                 </div>
                 <div className="text-xl font-bold text-green-600">{result.invoicesAffected}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-surface-muted-fg">
                   {t('paymentAllocation.amountApplied') || 'Amount Applied'}
                 </div>
-                <div className="text-xl font-bold text-blue-600">{formatCurrency(result.amountApplied)}</div>
+                <div className="text-xl font-bold text-primary-600">{formatCurrency(result.amountApplied)}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-surface-muted-fg">
                   {t('paymentAllocation.remainingBalance') || 'Remaining Balance'}
                 </div>
                 <div className="text-xl font-bold text-red-600">{formatCurrency(result.remainingBalance)}</div>
@@ -497,7 +498,7 @@ export const PaymentAllocationPageContent: React.FC = () => {
 
         {/* Empty State */}
         {!result && !isAllocating && !selectedStudentId && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-surface-muted-fg">
             <CreditCardIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <p>{t('paymentAllocation.selectStudentMessage') || 'Select a student to view and allocate payments to their outstanding invoices'}</p>
           </div>

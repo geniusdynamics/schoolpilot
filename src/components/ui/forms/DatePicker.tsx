@@ -56,7 +56,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   maxDate,
   disabledDates = [],
   showTime = false,
-  format = 'MM/dd/yyyy',
+
   locale = 'en-US',
   className = '',
   isRange = false,
@@ -77,7 +77,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
-  const [isPending, startTransition] = useTransition();
+  
+
+  const [, startTransition] = useTransition();
 
   // Format date for display
   const formatDate = useCallback((date: Date | null): string => {
@@ -309,24 +311,24 @@ const DatePicker: React.FC<DatePickerProps> = ({
     size === 'lg' && 'px-5 py-4 text-lg',
     // Variant styles
     variant === 'outlined' && [
-      'bg-white border-gray-300',
+      'bg-surface-card border-surface-border',
       'hover:border-gray-400',
-      'focus:border-blue-500 focus:ring-blue-500',
+      'focus:border-primary-500 focus:ring-primary-500',
     ],
     variant === 'filled' && [
-      'bg-gray-50 border-transparent',
-      'hover:bg-gray-100',
-      'focus:bg-white focus:border-blue-500 focus:ring-blue-500',
+      'bg-surface-muted border-transparent',
+      'hover:bg-surface-accent',
+      'focus:bg-surface-card focus:border-primary-500 focus:ring-primary-500',
     ],
     // State styles
     error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
     success && 'border-green-500 focus:border-green-500 focus:ring-green-500',
-    disabled && 'bg-gray-100 text-gray-500 cursor-not-allowed',
+    disabled && 'bg-surface-accent text-surface-muted-fg cursor-not-allowed',
     className,
   ].filter(Boolean).flat().join(' ');
 
   const calendarClasses = [
-    'absolute z-50 mt-2 bg-white rounded-lg shadow-lg border border-gray-200',
+    'absolute z-50 mt-2 bg-surface-card rounded-lg shadow-lg border border-surface-border',
     'min-w-80 p-4',
     calendarState.isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
     'transition-all duration-200 ease-in-out',
@@ -365,7 +367,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       {/* Calendar Icon */}
       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <svg
-          className={`w-5 h-5 ${disabled ? 'text-gray-400' : 'text-gray-500'}`}
+          className={`w-5 h-5 ${disabled ? 'text-surface-muted-fg' : 'text-surface-muted-fg'}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -407,7 +409,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <button
               type="button"
               onClick={navigateToPreviousMonth}
-              className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg hover:bg-surface-accent focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label="Previous month"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -415,7 +417,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
               </svg>
             </button>
 
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-surface-foreground">
               {calendarState.currentMonth.toLocaleDateString(locale, { 
                 month: 'long', 
                 year: 'numeric' 
@@ -425,7 +427,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <button
               type="button"
               onClick={navigateToNextMonth}
-              className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg hover:bg-surface-accent focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label="Next month"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -439,7 +441,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
               <div
                 key={day}
-                className="p-2 text-xs font-medium text-gray-500 text-center"
+                className="p-2 text-xs font-medium text-surface-muted-fg text-center"
               >
                 {day}
               </div>
@@ -457,14 +459,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
               const dayClasses = [
                 'p-2 text-sm rounded-lg cursor-pointer transition-all duration-150',
-                'hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'hover:bg-surface-accent focus:outline-none focus:ring-2 focus:ring-primary-500',
                 // Current month styling
-                isCurrentMonthDate ? 'text-gray-900' : 'text-gray-400',
+                isCurrentMonthDate ? 'text-surface-foreground' : 'text-surface-muted-fg',
                 // Selection styling
-                isSelected && 'bg-blue-600 text-white hover:bg-blue-700',
-                isInRange && !isSelected && 'bg-blue-100 text-blue-900',
+                isSelected && 'bg-primary-600 text-white hover:bg-primary-700',
+                isInRange && !isSelected && 'bg-primary-100 text-primary-900',
                 // Focus styling
-                isFocused && !isSelected && 'ring-2 ring-blue-500',
+                isFocused && !isSelected && 'ring-2 ring-primary-500',
                 // Disabled styling
                 isDisabled && 'cursor-not-allowed opacity-50 hover:bg-transparent',
               ].filter(Boolean).join(' ');
@@ -494,7 +496,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
           {/* Range Selection Helper Text */}
           {isRange && (
-            <div className="mt-4 text-xs text-gray-600 text-center">
+            <div className="mt-4 text-xs text-surface-muted-fg text-center">
               {calendarState.selectedRange[0] && !calendarState.selectedRange[1] 
                 ? 'Select end date' 
                 : 'Select start date'

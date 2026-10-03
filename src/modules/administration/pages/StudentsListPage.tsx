@@ -450,7 +450,7 @@ const StudentsListPage: React.FC = () => {
         content: (
           <div className="space-y-6">
             <div className="space-y-4">
-              <h4 className="text-md font-semibold text-gray-700">Current Academic Status</h4>
+              <h4 className="text-md font-semibold text-surface-foreground">Current Academic Status</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Select 
                   name="current_class_stream_id" 
@@ -489,7 +489,7 @@ const StudentsListPage: React.FC = () => {
             </div>
             
             <div className="space-y-4">
-              <h4 className="text-md font-semibold text-gray-700">Exam Result Summary (e.g., KCPE)</h4>
+              <h4 className="text-md font-semibold text-surface-foreground">Exam Result Summary (e.g., KCPE)</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <Input 
                   name="exam_result_summary_exam_name" 
@@ -542,8 +542,23 @@ const StudentsListPage: React.FC = () => {
     ];
   }, [formData, handleFieldChange, classStreams, studentCategories, dormitories]);
 
-  // Use students directly since DataGrid handles filtering
-  const studentsData = students || [];
+  // Use students directly since DataGrid handles filtering.
+  // Project each row into a view model that materializes the computed
+  // 'name' / 'guardian' fields the columns reference — otherwise DataGrid's
+  // sort/filter read row['name'] / row['guardian'] (undefined) and silently no-op.
+  const studentsData = useMemo(
+    () =>
+      (students || []).map(s => ({
+        ...s,
+        name:
+          s.display_name ||
+          [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ') ||
+          s.admission_no ||
+          '—',
+        guardian: s.primary_guardian?.name || '—',
+      })),
+    [students]
+  );
 
 
   const columns = useMemo(() => [
@@ -554,14 +569,14 @@ const StudentsListPage: React.FC = () => {
       filterable: true,
       
     },
-    { 
+    {
       key: 'name',
       header: 'Name',
       sortable: true,
       filterable: true,
-      
-      render: (value: any, item: Student) => {
-        const displayName = item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.admission_no || 'Ã¢â‚¬â€';
+
+      render: (value: any, item: Student & { name?: string }) => {
+        const displayName = item.name || item.admission_no || '—';
         return (
           <Link to={`/administration/students/${item.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium truncate block max-w-[160px]" title={displayName}>
             {displayName}
@@ -601,22 +616,22 @@ const StudentsListPage: React.FC = () => {
         switch(item.status) {
           case StudentStatus.ACTIVE: colorClass = 'bg-green-100 text-green-800'; break;
           case StudentStatus.SUSPENDED: colorClass = 'bg-yellow-100 text-yellow-800'; break;
-          case StudentStatus.ALUMNI: colorClass = 'bg-blue-100 text-blue-800'; break;
-          case StudentStatus.TRANSFERRED: colorClass = 'bg-gray-200 text-gray-800'; break;
+          case StudentStatus.ALUMNI: colorClass = 'bg-primary-100 text-primary-800'; break;
+          case StudentStatus.TRANSFERRED: colorClass = 'bg-gray-200 text-surface-foreground'; break;
           case StudentStatus.EXPELLED: colorClass = 'bg-red-100 text-red-800'; break;
-          default: colorClass = 'bg-gray-100 text-gray-800';
+          default: colorClass = 'bg-surface-accent text-surface-foreground';
         }
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>
       }
     },
-    { 
+    {
       key: 'guardian',
       header: 'Guardian',
       sortable: true,
       filterable: true,
-      
-      render: (value: any, item: Student) => (
-        <span className="truncate block max-w-[130px]" title={item.primary_guardian?.name || ''}>{item.primary_guardian?.name || 'Ã¢â‚¬â€'}</span>
+
+      render: (value: any, item: Student & { guardian?: string }) => (
+        <span className="truncate block max-w-[130px]" title={item.primary_guardian?.name || ''}>{item.guardian || '—'}</span>
       )
     },
     {
@@ -679,7 +694,7 @@ const StudentsListPage: React.FC = () => {
           </Button>
         </div>
       }>
-        <div className="border-t border-gray-200">
+        <div className="border-t border-surface-border">
           <DataGrid
             columns={columns}
             data={studentsData}
@@ -692,7 +707,7 @@ const StudentsListPage: React.FC = () => {
               logger.info('Selected students:', selected);
             }}
             emptyState={{
-              icon: <UserCircleIcon className="h-12 w-12 text-gray-400" />,
+              icon: <UserCircleIcon className="h-12 w-12 text-surface-muted-fg" />,
               title: 'No students found',
               description: 'Get started by adding a new student using the Add Student action above.',
             }}
@@ -732,7 +747,7 @@ const StudentsListPage: React.FC = () => {
         <EntityForm
           isOpen
           onClose={() => setQuickEditStudent(null)}
-          title={'Quick Edit Ã¢â‚¬â€ ' + (quickEditStudent.display_name || [quickEditStudent.first_name, quickEditStudent.last_name].filter(Boolean).join(' ') || quickEditStudent.admission_no)}
+          title={'Quick Edit — ' + (quickEditStudent.display_name || [quickEditStudent.first_name, quickEditStudent.last_name].filter(Boolean).join(' ') || quickEditStudent.admission_no)}
           description={quickEditStudent.admission_no}
           initialData={{
             first_name: quickEditStudent.first_name || '',

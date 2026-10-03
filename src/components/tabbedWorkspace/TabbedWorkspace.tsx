@@ -349,7 +349,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const renderTabContent = useCallback(() => {
     if (!activeTabId) {
       return (
-        <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-500">
+        <div className="flex-1 flex items-center justify-center bg-surface-muted text-surface-muted-fg">
           <div className="text-center px-4">
             <div className="text-4xl mb-4">ðŸ“‹</div>
             <p className="text-lg font-medium mb-2">No tabs open</p>
@@ -397,9 +397,9 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     // Default content rendering based on tab type with responsive design
       // For route-based tabs, we render the actual route content
       return (
-        <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-white">
+        <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-surface-card">
           <div className="w-full">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-surface-foreground mb-3 sm:mb-4">{activeTab.title}</h1>
             {/* For route-based tabs, we render the actual route content */}
             {activeTab.content.type === 'component' && activeTab.content.component === 'DynamicPageComponent' ? (
               <DynamicPageComponent path={activeTab.path} />
@@ -426,10 +426,10 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
   // Memoize module style calculations
   const moduleStyles = useMemo(() => {
-    const baseStyles = 'flex flex-col h-full bg-gray-50 w-full tabbed-workspace-mobile';
-    const themeStyles = theme === 'dark' ? 'dark:bg-gray-900' : '';
+    const baseStyles = 'flex flex-col h-full bg-surface-muted w-full tabbed-workspace-mobile';
+    const themeStyles = `theme-${theme}`;
     const modeStyles = enableHierarchicalMode ? 'hierarchical-mode' : 'legacy-mode';
-    return `${baseStyles} ${themeStyles} ${modeStyles}`.trim();
+    return `${baseStyles} ${themeStyles} ${modeStyles}`;
   }, [theme, enableHierarchicalMode]);
 
   // Memoize action bar props to prevent unnecessary re-renders
@@ -483,10 +483,10 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50">
+      <div className="flex items-center justify-center h-64 bg-surface-muted">
         <div className="text-center">
           <ArrowPathIcon className="w-8 h-8 animate-spin mx-auto mb-4 text-green-600" />
-          <p className="text-gray-600">Loading workspace...</p>
+          <p className="text-surface-muted-fg">Loading workspace...</p>
         </div>
       </div>
     );
@@ -517,13 +517,13 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   
   return (
     <TabWorkspaceErrorBoundary onError={(error, errorInfo) => onError?.(error.message)}>
-      <div className={moduleStyles}>
+      <div className={moduleStyles} data-testid="tabbed-workspace">
         {/* Breadcrumb Navigation */}
         {enableHierarchicalMode && showBreadcrumbs && breadcrumbs.length > 0 && (
           <BreadcrumbNavigation
             items={breadcrumbs}
             onItemClick={handleBreadcrumbClick}
-            className="border-b border-gray-200 bg-white flex-shrink-0"
+            className="border-b border-surface-border bg-surface-card flex-shrink-0"
           />
         )}
         

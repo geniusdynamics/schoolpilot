@@ -110,7 +110,7 @@ export const TransportRoutesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value, row) => <span className="text-primary-600">{value}</span>
     },
     {
       key: 'id',
@@ -152,7 +152,7 @@ export const TransportRoutesPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <TruckIcon className="w-12 h-12 text-gray-400" />,
+            icon: <TruckIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No transport routes found",
             description: "Set up transport routes and their associated fees to manage student transportation services effectively.",
             action: {
@@ -167,8 +167,8 @@ export const TransportRoutesPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.transportRoutes}>
-              {loading.transportRoutes ? <Spinner size="sm"/> : (editingRoute ? 'Save Changes' : 'Add Route')}
+            <Button onClick={handleSubmit} loading={loading.transportRoutes}>
+              {editingRoute ? 'Save Changes' : 'Add Route'}
             </Button>
           </>
         }

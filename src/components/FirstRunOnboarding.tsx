@@ -210,16 +210,16 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
   // Show loading state while environment detection is in progress
   if (!envDefaults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 space-y-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
-            <CircleStackIcon className="w-8 h-8 text-blue-600" />
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full bg-surface-card rounded-2xl shadow-xl p-8 space-y-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100">
+            <CircleStackIcon className="w-8 h-8 text-primary-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome to SchoolPilot 3</h1>
-          <p className="text-lg text-gray-600 max-w-md mx-auto">
+          <h1 className="text-3xl font-bold text-surface-foreground">Welcome to SchoolPilot 3</h1>
+          <p className="text-lg text-surface-muted-fg max-w-md mx-auto">
             Detecting your environment...
           </p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto" />
         </div>
       </div>
     );
@@ -228,7 +228,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
   // Production setup wizard (Phase 2.1)
   if (showSetupWizard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4 overflow-y-auto">
         <SetupWizard onComplete={handleSetupComplete} />
       </div>
     );
@@ -237,24 +237,24 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
   // Welcome step
   if (step === 'welcome') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full bg-surface-card rounded-2xl shadow-xl p-8 space-y-8">
           {/* Logo / Brand */}
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
-              <CircleStackIcon className="w-8 h-8 text-blue-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100">
+              <CircleStackIcon className="w-8 h-8 text-primary-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome to SchoolPilot 3</h1>
-            <p className="text-lg text-gray-600 max-w-md mx-auto">
+            <h1 className="text-3xl font-bold text-surface-foreground">Welcome to SchoolPilot 3</h1>
+            <p className="text-lg text-surface-muted-fg max-w-md mx-auto">
               Let's set up your database. Choose how you'd like to get started.
             </p>
           </div>
 
           {/* Environment capabilities */}
           {showTechnical && (
-            <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
-              <div className="font-medium text-gray-700">Detected Environment</div>
-              <div className="grid grid-cols-2 gap-2 text-gray-600">
+            <div className="bg-surface-muted rounded-lg p-4 text-sm space-y-2">
+              <div className="font-medium text-surface-foreground">Detected Environment</div>
+              <div className="grid grid-cols-2 gap-2 text-surface-muted-fg">
                 <div>OPFS Storage: {envDefaults.hasOPFS ? 'Available' : 'Not available'}</div>
                 <div>WebAssembly: {envDefaults.hasWASM ? 'Available' : 'Not available'}</div>
                 <div>Electron: {envDefaults.isElectron ? 'Yes' : 'No'}</div>
@@ -278,7 +278,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           <div className="text-center">
             <button
               onClick={() => setShowTechnical(!showTechnical)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-surface-muted-fg hover:text-surface-foreground"
             >
               {showTechnical ? 'Hide' : 'Show'} technical details
             </button>
@@ -291,11 +291,11 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
   // Choose pathway step
   if (step === 'choose') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        <div className="max-w-3xl w-full bg-white rounded-2xl shadow-xl p-8 space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="max-w-3xl w-full bg-surface-card rounded-2xl shadow-xl p-8 space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">Choose Your Setup Path</h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl font-bold text-surface-foreground">Choose Your Setup Path</h2>
+            <p className="text-surface-muted-fg">
               {envDefaults.recommendedPath === 'production'
                 ? 'Your environment supports full production mode. You can also explore with demo data first.'
                 : 'We recommend starting with demo data to explore the system.'}
@@ -310,7 +310,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
               className={`p-6 rounded-xl border-2 text-left transition-all ${
                 selectedPath === 'demo'
                   ? 'border-green-500 bg-green-50 ring-2 ring-green-200'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  : 'border-surface-border hover:border-surface-border hover:bg-surface-muted'
               }`}
             >
               <div className="flex items-center justify-between mb-4">
@@ -319,11 +319,11 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
                 </div>
                 {selectedPath === 'demo' && <CheckCircleIcon className="w-5 h-5 text-green-600" />}
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Explore with Demo Data</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-semibold text-surface-foreground mb-2">Explore with Demo Data</h3>
+              <p className="text-sm text-surface-muted-fg mb-4">
                 Load realistic school data across all modules. Perfect for evaluating features and understanding workflows.
               </p>
-              <ul className="space-y-1 text-sm text-gray-500">
+              <ul className="space-y-1 text-sm text-surface-muted-fg">
                 <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />150+ sample students</li>
                 <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Complete academic & finance data</li>
                 <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Library, HR, inventory modules</li>
@@ -336,25 +336,25 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
               onClick={() => handleSelectPath('production')}
               className={`p-6 rounded-xl border-2 text-left transition-all ${
                 selectedPath === 'production'
-                  ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-200'
+                  : 'border-surface-border hover:border-surface-border hover:bg-surface-muted'
               }`}
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
-                  <ShieldCheckIcon className="w-5 h-5 text-blue-600" />
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100">
+                  <ShieldCheckIcon className="w-5 h-5 text-primary-600" />
                 </div>
-                {selectedPath === 'production' && <CheckCircleIcon className="w-5 h-5 text-blue-600" />}
+                {selectedPath === 'production' && <CheckCircleIcon className="w-5 h-5 text-primary-600" />}
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Go Direct to Production</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-semibold text-surface-foreground mb-2">Go Direct to Production</h3>
+              <p className="text-sm text-surface-muted-fg mb-4">
                 Start with a clean database optimized for your environment. All data you enter will be persistent.
               </p>
-              <ul className="space-y-1 text-sm text-gray-500">
-                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />{envDefaults.recommendedProvider} database</li>
-                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />Persistent local storage</li>
-                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />Offline-first architecture</li>
-                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />Ready for real data entry</li>
+              <ul className="space-y-1 text-sm text-surface-muted-fg">
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-primary-500" />{envDefaults.recommendedProvider} database</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-primary-500" />Persistent local storage</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-primary-500" />Offline-first architecture</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-primary-500" />Ready for real data entry</li>
               </ul>
             </button>
           </div>
@@ -368,7 +368,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-4 border-t border-surface-border">
             <Button variant="outline" onClick={handleSkip}>
               Skip for now
             </Button>
@@ -395,23 +395,23 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
     const isDemo = selectedPath === 'demo';
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl p-8 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="max-w-lg w-full bg-surface-card rounded-2xl shadow-xl p-8 space-y-6">
           {/* Icon */}
-          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full ${isDemo ? 'bg-green-100' : 'bg-blue-100'}`}>
+          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full ${isDemo ? 'bg-green-100' : 'bg-primary-100'}`}>
             {isDemo ? (
               <PlayCircleIcon className="w-7 h-7 text-green-600" />
             ) : (
-              <ShieldCheckIcon className="w-7 h-7 text-blue-600" />
+              <ShieldCheckIcon className="w-7 h-7 text-primary-600" />
             )}
           </div>
 
           {/* Confirmation message */}
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-xl font-bold text-surface-foreground">
               {isDemo ? 'Ready to Explore?' : 'Ready for Production?'}
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-surface-muted-fg">
               {isDemo
                 ? 'We\'ll load demo data with 150+ students, classes, finance records, and more. You can clear this data anytime to start fresh with production mode.'
                 : 'We\'ll initialize a clean database with your environment\'s optimal settings. All data you enter will be persistently stored.'}
@@ -442,14 +442,14 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-4 border-t border-surface-border">
             <Button variant="outline" onClick={() => setStep('choose')}>
               Back
             </Button>
             <Button
               onClick={handleProceed}
               disabled={isProcessing}
-              className={isDemo ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}
+              className={isDemo ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-600 hover:bg-primary-700'}
             >
               {isProcessing ? (
                 <>

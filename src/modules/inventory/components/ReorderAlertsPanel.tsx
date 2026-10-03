@@ -123,7 +123,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       align: 'right',
       render: (_v, alert) => (
         <div className="text-right">
-          <div className="font-medium text-blue-600">
+          <div className="font-medium text-primary-600">
             {alert.suggested_order_quantity}
           </div>
           <div className="text-sm text-muted-foreground">
@@ -259,7 +259,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <ArchiveBoxIcon className="h-4 w-4 text-blue-500" />
+                <ArchiveBoxIcon className="h-4 w-4 text-primary-500" />
                 <div>
                   <div className="text-2xl font-bold">{monitoringResult.total_items_monitored}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.totalMonitored')}</div>
@@ -390,7 +390,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>{t('reorderAlerts.detail.suggestedOrder')}</Label>
-                  <div className="text-2xl font-bold text-blue-600">{selectedAlert.suggested_order_quantity}</div>
+                  <div className="text-2xl font-bold text-primary-600">{selectedAlert.suggested_order_quantity}</div>
                 </div>
                 <div>
                   <Label>{t('reorderAlerts.detail.priority')}</Label>

@@ -192,7 +192,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
   const columnsForListing: DataGridColumn<StudentSubjectEnrollment>[] = [
     { key: 'id', header: 'ID' },
     { key: 'student_name', header: 'Student' },
-    { key: 'class_stream', header: 'Class-Stream', render: (_value: any, item: StudentSubjectEnrollment) => `${item.class_name || ''} - ${item.stream_name || ''}`},
+    { key: 'class_name', header: 'Class-Stream', render: (_value: any, item: StudentSubjectEnrollment) => `${item.class_name || ''} - ${item.stream_name || ''}`},
     { key: 'subject_name', header: 'Subject' },
     { key: 'academic_year_name', header: 'Academic Year' },
     { key: 'enrollment_date', header: 'Enrollment Date', render: (_value: any, item: StudentSubjectEnrollment) => new Date(item.enrollment_date).toLocaleDateString() },
@@ -217,10 +217,11 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
 
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
-    const studentCol = { header: 'Student Name', key: 'student_name', render: (_value: any, item: Student) => [item.first_name, item.last_name].filter(Boolean).join(' ') || 'â€”' };
+    const studentCol = { header: 'Student Name', key: 'student_name', render: (_value: any, item: Student) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—' };
     const subjectCols = (subjectsForGrid || []).map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
-      key: 'id', // Use student ID to look up enrollment
+      // Unique key per allocation — reusing 'id' for every column breaks React keys and filters
+      key: `allocation_${csa.id}`,
       render: (_value: any, student: Student) => {
         const isEnrolled = (studentSubjectEnrollments || []).some(
           e => e.student_id === student.id && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
@@ -228,7 +229,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
         return (
           <input
             type="checkbox"
-            className="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            className="h-5 w-5 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
             checked={isEnrolled}
             onChange={() => handleGridEnrollmentChange(student.id, csa.id, isEnrolled)}
             disabled={loading.studentSubjectEnrollments}
@@ -265,11 +266,11 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
           Single Enrollment
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Enroll students into subjects. Use filters to narrow down student list for grid enrollment, or use "Single Enrollment" for individual management.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Select label="Academic Year" value={selectedAcademicYearId ? String(selectedAcademicYearId) : ''} onChange={e => {setSelectedAcademicYearId(Number(e.target.value) || undefined); setSelectedSchoolPeriodId(undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}}>
                 <option value="">Select Year</option>
                 {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
@@ -295,12 +296,12 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
 
         {showEnrollmentGrid && studentsForGrid.length > 0 && subjectsForGrid.length > 0 && (
             <Card title={`Enrollment Grid for ${(classStreams || []).find(cs=>cs.id === selectedStreamId)?.name} - ${(academicYears || []).find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
-                <p className="text-xs text-gray-500 mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
+                <p className="text-xs text-surface-muted-fg mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
                 <DataGrid columns={gridColumns} data={studentsForGrid} loading={loading.studentSubjectEnrollments} />
             </Card>
         )}
          {showEnrollmentGrid && (studentsForGrid.length === 0 || subjectsForGrid.length === 0) && (
-            <p className="text-center text-gray-500 py-4">No students or no subjects allocated to this class stream for the selected academic year.</p>
+            <p className="text-center text-surface-muted-fg py-4">No students or no subjects allocated to this class stream for the selected academic year.</p>
         )}
 
         <h3 className="text-lg font-semibold mt-8 mb-2">All Enrollment Records</h3>
@@ -366,8 +367,8 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.studentSubjectEnrollments}>
-            {loading.studentSubjectEnrollments ? <Spinner size="sm"/> : (editingEnrollment ? 'Save Changes' : 'Enroll Student')}
+          <Button onClick={handleSubmit} loading={loading.studentSubjectEnrollments}>
+            {editingEnrollment ? 'Save Changes' : 'Enroll Student'}
           </Button>
         </FormActions>
       </DialogForm>

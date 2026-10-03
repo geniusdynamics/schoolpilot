@@ -100,17 +100,17 @@ export const IncomeStatementPageContent: React.FC = () => {
       <Card 
         title={
           <div className="flex items-center gap-2">
-            <ChartBarIcon className="w-6 h-6 text-blue-600" />
+            <ChartBarIcon className="w-6 h-6 text-primary-600" />
             <span>Income Statement</span>
           </div>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <ChartBarIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <ChartBarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">Revenue vs Expenses for Period</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">Revenue vs Expenses for Period</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 The Income Statement shows the financial performance over a period, comparing revenue against expenses 
                 to determine net income or loss. Use this to analyze profitability and identify cost-saving opportunities.
               </p>
@@ -121,7 +121,7 @@ export const IncomeStatementPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Start Date</label>
             <Input
               type="date"
               value={startDate}
@@ -130,7 +130,7 @@ export const IncomeStatementPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">End Date</label>
             <Input
               type="date"
               value={endDate}
@@ -146,15 +146,15 @@ export const IncomeStatementPageContent: React.FC = () => {
                 onChange={(e) => setComparisonPeriod(e.target.checked)}
                 className="w-4 h-4"
               />
-              <span className="text-sm font-medium text-gray-700">Compare with Previous Period</span>
+              <span className="text-sm font-medium text-surface-foreground">Compare with Previous Period</span>
             </label>
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChartBarIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Total Revenue</span>
             </div>
@@ -162,8 +162,8 @@ export const IncomeStatementPageContent: React.FC = () => {
               KES {totals.revenue?.toLocaleString?.() ?? '-'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChartBarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Total Expenses</span>
             </div>
@@ -171,8 +171,8 @@ export const IncomeStatementPageContent: React.FC = () => {
               KES {totals.expenses?.toLocaleString?.() ?? '-'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Net Income</span>
             </div>
@@ -180,8 +180,8 @@ export const IncomeStatementPageContent: React.FC = () => {
               KES {totals.netIncome?.toLocaleString?.() ?? '-'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChartBarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Profit Margin</span>
             </div>

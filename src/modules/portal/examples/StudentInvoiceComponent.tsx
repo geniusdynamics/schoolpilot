@@ -44,8 +44,8 @@ export function StudentInvoiceComponent({ studentId }: StudentInvoiceComponentPr
   if (isLoading) {
     return (
       <div className="p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="mt-2 text-gray-600">Loading finance services...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <p className="mt-2 text-surface-muted-fg">Loading finance services...</p>
       </div>
     );
   }
@@ -67,12 +67,12 @@ export function StudentInvoiceComponent({ studentId }: StudentInvoiceComponentPr
   }
 
   return (
-    <div className="p-4 bg-white border rounded-lg shadow-sm">
+    <div className="p-4 bg-surface-card border rounded-lg shadow-sm">
       <h2 className="text-xl font-semibold mb-4">Student Invoice Management</h2>
       <div className="space-y-3">
         <button
           onClick={handleGenerateInvoice}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
         >
           Generate Invoice
         </button>
@@ -83,7 +83,7 @@ export function StudentInvoiceComponent({ studentId }: StudentInvoiceComponentPr
           Process Payment
         </button>
       </div>
-      <p className="mt-4 text-sm text-gray-500">
+      <p className="mt-4 text-sm text-surface-muted-fg">
         Using InvoiceService from finance module via service registry
       </p>
     </div>

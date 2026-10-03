@@ -54,8 +54,8 @@ export const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Schedule New Exam</h2>
-        <p className="text-sm text-gray-500 mt-1">Configure exam details and assign resources</p>
+        <h2 className="text-2xl font-bold text-surface-foreground">Schedule New Exam</h2>
+        <p className="text-sm text-surface-muted-fg mt-1">Configure exam details and assign resources</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

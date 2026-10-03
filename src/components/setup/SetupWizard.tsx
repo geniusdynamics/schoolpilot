@@ -309,12 +309,12 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
             <label
               key={opt.key}
               className={`flex items-center justify-between border rounded-lg p-4 cursor-pointer transition-colors ${
-                draft.curriculum === opt.key ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:bg-gray-50'
+                draft.curriculum === opt.key ? 'border-indigo-500 bg-indigo-50' : 'border-surface-border hover:bg-surface-muted'
               }`}
             >
               <div>
-                <p className="font-medium text-gray-900">{opt.label}</p>
-                <p className="text-sm text-gray-500">{opt.subjectCount} subjects pre-loaded</p>
+                <p className="font-medium text-surface-foreground">{opt.label}</p>
+                <p className="text-sm text-surface-muted-fg">{opt.subjectCount} subjects pre-loaded</p>
               </div>
               <input
                 type="radio"
@@ -325,7 +325,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
               />
             </label>
           ))}
-          <p className="text-xs text-gray-400">You can customise subjects in the next steps.</p>
+          <p className="text-xs text-surface-muted-fg">You can customise subjects in the next steps.</p>
         </div>
       ),
       validate: () => draft.curriculum !== null,
@@ -347,7 +347,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
               <Input type="date" value={draft.yearEnd} onChange={e => update({ yearEnd: e.target.value })} />
             </FormField>
           </div>
-          <p className="text-xs text-gray-500">Three terms will be created and split evenly across these dates.</p>
+          <p className="text-xs text-surface-muted-fg">Three terms will be created and split evenly across these dates.</p>
         </div>
       ),
       validate: () => Boolean(draft.yearName.trim() && draft.yearStart && draft.yearEnd),
@@ -403,15 +403,15 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
       content: (
         <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
           {presetSubjects.length === 0 && (
-            <p className="text-sm text-gray-500">Choose an education system first.</p>
+            <p className="text-sm text-surface-muted-fg">Choose an education system first.</p>
           )}
           {presetSubjects.map(s => (
-            <label key={s.subject_code} className="flex items-center gap-3 border border-gray-100 rounded-md px-3 py-2 hover:bg-gray-50 cursor-pointer">
+            <label key={s.subject_code} className="flex items-center gap-3 border border-gray-100 rounded-md px-3 py-2 hover:bg-surface-muted cursor-pointer">
               <Checkbox
                 checked={draft.selectedSubjects[s.subject_code] !== false}
                 onChange={checked => update({ selectedSubjects: { ...draft.selectedSubjects, [s.subject_code]: checked } })}
               />
-              <span className="flex-1 text-sm text-gray-800">{s.name}</span>
+              <span className="flex-1 text-sm text-surface-foreground">{s.name}</span>
               {s.is_compulsory && <Badge variant="secondary">Compulsory</Badge>}
               <Badge>{s.grouping.replace(/\(.*\)/, '').trim()}</Badge>
             </label>
@@ -470,9 +470,9 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
       title: 'Administrator',
       description: 'How you sign in',
       content: (
-        <div className="space-y-3 text-sm text-gray-700">
+        <div className="space-y-3 text-sm text-surface-foreground">
           <p>Your app ships with a built-in administrator account:</p>
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-3 font-mono text-xs">
+          <div className="bg-surface-muted border border-surface-border rounded-md p-3 font-mono text-xs">
             <p>username: <strong>admin</strong></p>
             <p>password: <strong>admin123</strong></p>
           </div>

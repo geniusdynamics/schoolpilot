@@ -1,53 +1,29 @@
-// ABOUTME: Self-contained hook for stock transaction data management
-// ABOUTME: Provides CRUD operations for stock transactions without depending on AppDataContext
+// ABOUTME: Database-backed hook for stock transaction data management
+// ABOUTME: Provides CRUD operations for stock transactions against the 'stock_transactions' collection
 
-import { useState, useEffect } from 'react';
-import { initialMockStockTransactions } from './mockData';
-import { StockTransaction } from '@/core/types';
+import { useCallback } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { StockTransaction } from './types';
 
 const useStockTransactionData = () => {
-  const [stockTransactions, setStockTransactions] = useState<StockTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const stockTransactionsCollection = useDatabaseCollection<StockTransaction>('stock_transactions');
 
-  useEffect(() => {
-    try {
-      // Simulate fetching data from a mock source
-      setStockTransactions(initialMockStockTransactions);
-      setIsLoading(false);
-    } catch (e) {
-      setError('Failed to fetch StockTransactions');
-      setIsLoading(false);
-    }
-  }, []);
+  const create = useCallback(async (newItem: Partial<StockTransaction>) => {
+    return stockTransactionsCollection.insert(newItem as Omit<StockTransaction, 'id'> & { id?: string });
+  }, [stockTransactionsCollection]);
 
-  const create = async (newItem: Partial<StockTransaction>) => {
-    const newDataItem: StockTransaction = {
-      ...newItem,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as StockTransaction;
-    setStockTransactions((prev: StockTransaction[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
+  const update = useCallback(async (id: number | string, updatedData: Partial<StockTransaction>) => {
+    return stockTransactionsCollection.update(String(id), updatedData);
+  }, [stockTransactionsCollection]);
 
-  const update = async (id: string, updatedData: Partial<StockTransaction>) => {
-    setStockTransactions((prev: StockTransaction[]) => prev.map((item: StockTransaction) =>
-      item.id === id
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: string) => {
-    setStockTransactions((prev: StockTransaction[]) => prev.filter((item: StockTransaction) => item.id !== id));
-  };
+  const remove = useCallback(async (id: number | string) => {
+    return stockTransactionsCollection.remove(String(id));
+  }, [stockTransactionsCollection]);
 
   return {
-    data: stockTransactions,
-    isLoading,
-    error,
+    data: stockTransactionsCollection.data,
+    isLoading: stockTransactionsCollection.loading,
+    error: stockTransactionsCollection.error,
     create,
     update,
     remove

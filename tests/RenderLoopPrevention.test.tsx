@@ -1,8 +1,6 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { renderHook } from '@testing-library/react-hooks';
+import React from 'react';
+import { render, screen, fireEvent, act, renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
-import { TabbedWorkspace } from '../src/components/TabbedWorkspace';
-import { NavigationProvider } from '../src/providers/NavigationProvider';
 
 describe('Render Loop Prevention Tests', () => {
   describe('Component re-render prevention', () => {

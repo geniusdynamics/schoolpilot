@@ -1,16 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { ChatBubbleLeftRightIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { initialMockSMSReports } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { SMSReport, SMSStatus } from '../data/types';
 
 export const SMSReportsContent: React.FC = () => {
 
-  const { loading } = useAppData();
+  const smsReportsCollection = useDatabaseCollection<SMSReport>('sms_reports');
 
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -18,9 +17,9 @@ export const SMSReportsContent: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockSMSReports: SMSReport[] = useMemo(() => {
-    let filtered = initialMockSMSReports;
+  // Live SMS delivery reports from the database
+  const smsReports: SMSReport[] = useMemo(() => {
+    let filtered = smsReportsCollection.data;
 
     if (selectedStatus) {
       filtered = filtered.filter(r => r.status === selectedStatus);
@@ -31,7 +30,7 @@ export const SMSReportsContent: React.FC = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(r => 
+      filtered = filtered.filter(r =>
         (r.recipient_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         (r.recipient?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         r.phone.includes(searchTerm)
@@ -47,11 +46,11 @@ export const SMSReportsContent: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedStatus, selectedType, searchTerm, dateFrom, dateTo]);
+  }, [smsReportsCollection.data, selectedStatus, selectedType, searchTerm, dateFrom, dateTo]);
 
   const getStatusBadge = (status: SMSStatus) => {
     const styles = {
-      'Sent': 'bg-blue-100 text-blue-800',
+      'Sent': 'bg-primary-100 text-primary-800',
       'Delivered': 'bg-green-100 text-green-800',
       'Failed': 'bg-red-100 text-red-800',
       'Pending': 'bg-yellow-100 text-yellow-800'
@@ -135,15 +134,15 @@ export const SMSReportsContent: React.FC = () => {
 
   const totals = useMemo(() => {
     return {
-      total: mockSMSReports.length,
-      sent: mockSMSReports.filter(r => r.status === 'Sent').length,
-      delivered: mockSMSReports.filter(r => r.status === 'Delivered').length,
-      failed: mockSMSReports.filter(r => r.status === 'Failed').length,
-      pending: mockSMSReports.filter(r => r.status === 'Pending').length
+      total: smsReports.length,
+      sent: smsReports.filter(r => r.status === 'Sent').length,
+      delivered: smsReports.filter(r => r.status === 'Delivered').length,
+      failed: smsReports.filter(r => r.status === 'Failed').length,
+      pending: smsReports.filter(r => r.status === 'Pending').length
     };
-  }, [mockSMSReports]);
+  }, [smsReports]);
 
-  if (loading?.all && mockSMSReports.length === 0) {
+  if (smsReportsCollection.loading && smsReports.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -155,18 +154,18 @@ export const SMSReportsContent: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">SMS Reports</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">SMS Reports</h1>
         <Button variant="secondary">
           Export Report
         </Button>
       </div>
       <Card>
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <ChatBubbleLeftRightIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <ChatBubbleLeftRightIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">SMS Delivery and Status Reports</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">SMS Delivery and Status Reports</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 Track SMS delivery status, view delivery reports, and monitor failed messages. 
                 Filter by recipient type, status, date range, or search by recipient.
               </p>
@@ -176,26 +175,26 @@ export const SMSReportsContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total SMS</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <ClockIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <ClockIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">Sent</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               {totals.sent}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Delivered</span>
             </div>
@@ -203,8 +202,8 @@ export const SMSReportsContent: React.FC = () => {
               {totals.delivered}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <XCircleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Failed</span>
             </div>
@@ -212,8 +211,8 @@ export const SMSReportsContent: React.FC = () => {
               {totals.failed}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ClockIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Pending</span>
             </div>
@@ -226,11 +225,11 @@ export const SMSReportsContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
             <select
               value={selectedStatus}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Statuses</option>
               {statuses.map(status => (
@@ -239,11 +238,11 @@ export const SMSReportsContent: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Type</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Recipient Type</label>
             <select
               value={selectedType}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedType(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Types</option>
               {recipientTypes.map(type => (
@@ -252,37 +251,37 @@ export const SMSReportsContent: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">From Date</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateFrom(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">To Date</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateTo(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Recipient, phone..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockSMSReports}
+          data={smsReports}
           columns={columns}
         />
       </Card>

@@ -12,7 +12,6 @@ import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '@/components/ui/i
 import { useCampaignData } from '@/modules/administration/data/useCampaignData';
 import { useTemplateCommData } from '@/modules/administration/data/useTemplateCommData';
 import { useAppData } from '@/hooks/useAppData'; // For classStreams only
-import Spinner from '@/components/ui/Spinner';
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -185,9 +184,9 @@ export const MessageCampaignsContent: React.FC = () => {
       filterable: true, 
       width: 120,
       render: (value, item) => {
-        let colorClass = 'bg-gray-200 text-gray-800';
+        let colorClass = 'bg-gray-200 text-surface-foreground';
         if (item.status === CampaignStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
-        else if (item.status === CampaignStatus.APPROVED) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === CampaignStatus.APPROVED) colorClass = 'bg-primary-100 text-primary-800';
         else if (item.status === CampaignStatus.SENT) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === CampaignStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
@@ -249,7 +248,7 @@ export const MessageCampaignsContent: React.FC = () => {
           {t('MessageCampaignsPage.createCampaign')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('MessageCampaignsPage.designAndManageCommunicationCampaigns')}
         </p>
         <DataGrid 
@@ -258,7 +257,7 @@ export const MessageCampaignsContent: React.FC = () => {
           sortable 
           filterable 
           emptyState={{
-            icon: <MegaphoneIcon className="h-12 w-12 text-gray-400" />,
+            icon: <MegaphoneIcon className="h-12 w-12 text-surface-muted-fg" />,
             title: 'No message campaigns found',
             description: 'Get started by creating your first message campaign.',
           }}

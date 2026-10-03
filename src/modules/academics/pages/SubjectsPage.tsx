@@ -105,7 +105,7 @@ export const SubjectsContent: React.FC = () => {
       <Card title={t('subjects.management')} bodyClassName="p-0" actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>Add Subject</Button>
       }>
-        <div className="border-t border-gray-200">
+        <div className="border-t border-surface-border">
           <DataGrid columns={columns} data={subjects.items} loading={subjects.loading} sortable filterable pagination />
         </div>
       </Card>

@@ -270,19 +270,19 @@ const StudentPromotionPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <Card>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-surface-foreground flex items-center gap-2">
             <AcademicCapIcon className="w-6 h-6" />
             {t('studentPromotion')}
           </h1>
           
           {/* Mode Toggle */}
-          <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <div className="flex rounded-lg overflow-hidden border border-surface-border">
             <button
               onClick={() => setMode('single')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 mode === 'single'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-surface-card text-surface-foreground hover:bg-surface-muted'
               }`}
             >
               {t('singleStudent')}
@@ -291,8 +291,8 @@ const StudentPromotionPage: React.FC = () => {
               onClick={() => setMode('bulk')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 mode === 'bulk'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-surface-card text-surface-foreground hover:bg-surface-muted'
               }`}
             >
               {t('bulkPromotion')}
@@ -305,7 +305,7 @@ const StudentPromotionPage: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('selectStudent')} <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -324,18 +324,18 @@ const StudentPromotionPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('currentClass')}
                 </label>
                 <Input
                   value={selectedStudent?.current_class_stream_name || t('notAssigned')}
                   disabled
-                  className="bg-gray-50"
+                  className="bg-surface-muted"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('targetClass')} <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -353,7 +353,7 @@ const StudentPromotionPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('promotionDate')} <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -366,7 +366,7 @@ const StudentPromotionPage: React.FC = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('notes')}
               </label>
               <Input
@@ -380,7 +380,7 @@ const StudentPromotionPage: React.FC = () => {
             {/* Student Class History */}
             {selectedStudentId && (
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-surface-foreground mb-4 flex items-center gap-2">
                   <DocumentTextIcon className="w-5 h-5" />
                   {t('classHistory')}
                 </h3>
@@ -389,36 +389,36 @@ const StudentPromotionPage: React.FC = () => {
                   <Spinner />
                 ) : studentHistory.length > 0 ? (
                   <div className="border rounded-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-surface-border">
+                      <thead className="bg-surface-muted">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('date')}
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('class')}
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('stream')}
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('academicYear')}
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-surface-card divide-y divide-surface-border">
                         {studentHistory.map((entry, index) => (
-                          <tr key={index} className={index === 0 ? 'bg-blue-50' : ''}>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                          <tr key={index} className={index === 0 ? 'bg-primary-50' : ''}>
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {entry.promotionDate}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {entry.className || '-'}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {entry.streamName || '-'}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {entry.academicYearName || '-'}
                             </td>
                           </tr>
@@ -427,7 +427,7 @@ const StudentPromotionPage: React.FC = () => {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic">{t('noHistory')}</p>
+                  <p className="text-surface-muted-fg italic">{t('noHistory')}</p>
                 )}
               </div>
             )}
@@ -449,7 +449,7 @@ const StudentPromotionPage: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('sourceClass')} <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -470,7 +470,7 @@ const StudentPromotionPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('targetClass')} <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -488,7 +488,7 @@ const StudentPromotionPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-surface-foreground mb-2">
                   {t('promotionDate')} <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -501,7 +501,7 @@ const StudentPromotionPage: React.FC = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('notes')}
               </label>
               <Input
@@ -516,7 +516,7 @@ const StudentPromotionPage: React.FC = () => {
             {sourceClassStreamId && (
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-surface-foreground flex items-center gap-2">
                     <UserGroupIcon className="w-5 h-5" />
                     {t('studentsInClass')} ({studentsInSourceClass.length})
                   </h3>
@@ -532,49 +532,49 @@ const StudentPromotionPage: React.FC = () => {
                 
                 {studentsInSourceClass.length > 0 ? (
                   <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 sticky top-0">
+                    <table className="min-w-full divide-y divide-surface-border">
+                      <thead className="bg-surface-muted sticky top-0">
                         <tr>
                           <th className="px-4 py-2 text-left">
                             <input
                               type="checkbox"
                               checked={selectedStudentIds.length === studentsInSourceClass.length && studentsInSourceClass.length > 0}
                               onChange={(e) => e.target.checked ? selectAllStudents() : deselectAllStudents()}
-                              className="rounded border-gray-300"
+                              className="rounded border-surface-border"
                             />
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('admissionNo')}
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('name')}
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-surface-muted-fg uppercase">
                             {t('status')}
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-surface-card divide-y divide-surface-border">
                         {studentsInSourceClass.map(student => (
                           <tr 
                             key={student.id} 
-                            className={selectedStudentIds.includes(student.id) ? 'bg-blue-50' : ''}
+                            className={selectedStudentIds.includes(student.id) ? 'bg-primary-50' : ''}
                           >
                             <td className="px-4 py-2">
                               <input
                                 type="checkbox"
                                 checked={selectedStudentIds.includes(student.id)}
                                 onChange={() => toggleStudentSelection(student.id)}
-                                className="rounded border-gray-300"
+                                className="rounded border-surface-border"
                               />
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {student.admission_no}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {student.first_name} {student.last_name}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
+                            <td className="px-4 py-2 text-sm text-surface-foreground">
                               {student.status}
                             </td>
                           </tr>
@@ -583,10 +583,10 @@ const StudentPromotionPage: React.FC = () => {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic">{t('noStudentsInClass')}</p>
+                  <p className="text-surface-muted-fg italic">{t('noStudentsInClass')}</p>
                 )}
                 
-                <div className="mt-2 text-sm text-gray-500">
+                <div className="mt-2 text-sm text-surface-muted-fg">
                   {t('selected')}: {selectedStudentIds.length} {t('studentsCountLabel')}
                 </div>
               </div>
@@ -617,7 +617,7 @@ const StudentPromotionPage: React.FC = () => {
               <ExclamationTriangleIcon className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-yellow-800">{confirmMessage}</p>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-surface-muted-fg">
               {t('promotionWarning')}
             </p>
           </div>

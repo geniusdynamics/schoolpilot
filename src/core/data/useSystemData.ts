@@ -1,6 +1,6 @@
-﻿import { logger } from '@/utils/logging';
+import { logger } from '@/utils/logging';
 
-// ABOUTME: System domain hook â€” SchoolDetails, Roles, Users, AppSettings, RBAC, Audit, Workflows
+// ABOUTME: System domain hook — SchoolDetails, Roles, Users, AppSettings, RBAC, Audit, Workflows
 // ABOUTME: Uses real database-backed hooks for persistent data
 
 import { useEffect, useCallback } from 'react';
@@ -21,8 +21,8 @@ export function useSystemData() {
   const schoolDetailsDoc = useDatabaseDocument<allTypes.SchoolDetails>('school_details');
   const usersCollection = useDatabaseCollection<allTypes.User>('users');
   const rolesCollection = useDatabaseCollection<allTypes.Role>('roles');
-  const campaignsCollection = useDatabaseCollection<any>('campaigns');
-  const templatesCommCollection = useDatabaseCollection<any>('template_comms');
+  const campaignsCollection = useDatabaseCollection<any>('message_campaigns');
+  const templatesCommCollection = useDatabaseCollection<any>('communication_templates');
   const auditLogsCollection = useDatabaseCollection<allTypes.AuditLog>('audit_logs');
   const workflowsCollection = useDatabaseCollection<any>('workflows');
   const workflowStatesCollection = useDatabaseCollection<any>('workflow_states');
@@ -58,7 +58,7 @@ export function useSystemData() {
     });
   }, []);
 
-  // â”€â”€ Seed / Clear â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Seed / Clear ────────────────────────────────────────────────────────────
   const triggerSeedRxDB = useCallback(async () => {
     try {
       await databaseService.seedDatabaseWithMockData();
@@ -97,12 +97,12 @@ export function useSystemData() {
     }
   }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 
-  // â”€â”€ School Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── School Details ───────────────────────────────────────────────────────────
   const updateSchoolDetails = useCallback(async (schoolDetails: any) => {
     return schoolDetailsDoc.save(schoolDetails);
   }, [schoolDetailsDoc]);
 
-  // â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Users ────────────────────────────────────────────────────────────────────
   const addUser = useCallback(async (userData: Omit<allTypes.User, 'id'>) => {
     return usersCollection.insert(userData);
   }, [usersCollection]);
@@ -115,7 +115,7 @@ export function useSystemData() {
     return usersCollection.remove(userId);
   }, [usersCollection]);
 
-  // â”€â”€ Roles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Roles ────────────────────────────────────────────────────────────────────
   const addRole = useCallback(async (roleData: Omit<allTypes.Role, 'id'>) => {
     return rolesCollection.insert(roleData);
   }, [rolesCollection]);
@@ -128,12 +128,12 @@ export function useSystemData() {
     return rolesCollection.remove(roleId);
   }, [rolesCollection]);
 
-  // â”€â”€ Audit Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Audit Log ────────────────────────────────────────────────────────────────
   const addAuditLog = useCallback(async (logData: Omit<allTypes.AuditLog, 'id'>) => {
     return auditLogsCollection.insert(logData);
   }, [auditLogsCollection]);
 
-  // â”€â”€ Templates / Campaigns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Templates / Campaigns ────────────────────────────────────────────────────
   const addTemplateComm = useCallback(async (data: any) => {
     return templatesCommCollection.insert(data);
   }, [templatesCommCollection]);
@@ -158,7 +158,7 @@ export function useSystemData() {
     return campaignsCollection.remove(id);
   }, [campaignsCollection]);
 
-  // â”€â”€ Workflows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Workflows ────────────────────────────────────────────────────────────────
   const addWorkflow = useCallback(async (data: any) => {
     return workflowsCollection.insert(data);
   }, [workflowsCollection]);

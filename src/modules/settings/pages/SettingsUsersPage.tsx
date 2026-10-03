@@ -370,8 +370,8 @@ export const SettingsUsersContent: React.FC = () => {
       }>
         <div className="text-center py-4 border-b mb-4">
           <UserGroupIcon className="w-12 h-12 text-sky-500 mx-auto mb-2" />
-          <h2 className="text-xl font-semibold text-gray-700">Manage System Users</h2>
-          <p className="text-gray-500 text-sm">Create, edit, and manage user accounts and their roles.</p>
+          <h2 className="text-xl font-semibold text-surface-foreground">Manage System Users</h2>
+          <p className="text-surface-muted-fg text-sm">Create, edit, and manage user accounts and their roles.</p>
         </div>
          {loading.users ? (
           <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Loading users...</span></div>
@@ -420,27 +420,25 @@ export const SettingsUsersContent: React.FC = () => {
         </FormSection>
         <FormSection title="Security">
           {!editingUser && (
-            <FormField label="Password" required error={userFormErrors.password}>
+            <FormField label="Password" required error={userFormErrors.password} helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character">
               <Input
                 name="password"
                 type="password"
                 value={userFormData.password || ''}
                 onChange={handleUserInputChange}
                 required
-                error={userFormErrors.password}
-                helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+                errorState={Boolean(userFormErrors.password)}
               />
             </FormField>
           )}
           {editingUser && (
-            <FormField label="New Password (leave blank to keep current)" error={userFormErrors.password}>
+            <FormField label="New Password (leave blank to keep current)" error={userFormErrors.password} helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character">
               <Input
                 name="password"
                 type="password"
                 value={userFormData.password || ''}
                 onChange={handleUserInputChange}
-                error={userFormErrors.password}
-                helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+                errorState={Boolean(userFormErrors.password)}
               />
             </FormField>
           )}
@@ -452,7 +450,7 @@ export const SettingsUsersContent: React.FC = () => {
               value={userFormData.userType}
               onChange={handleUserInputChange}
               required
-              error={userFormErrors.userType}
+              errorState={Boolean(userFormErrors.userType)}
             >
               <option value="">Select User Type</option>
               {USER_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
@@ -468,9 +466,9 @@ export const SettingsUsersContent: React.FC = () => {
         <FormSection>
           <FormField>
             <label className="flex items-center gap-2">
-              <input id="isActive_user" name="isActive" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              <input id="isActive_user" name="isActive" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
                 checked={userFormData.isActive} onChange={handleUserInputChange} />
-              <span className="text-sm text-gray-900">Is Active User</span>
+              <span className="text-sm text-surface-foreground">Is Active User</span>
             </label>
           </FormField>
         </FormSection>
@@ -496,7 +494,7 @@ export const SettingsUsersContent: React.FC = () => {
               value={roleFormData.name || ''}
               onChange={handleRoleInputChange}
               required
-              error={roleFormErrors.name}
+              errorState={Boolean(roleFormErrors.name)}
             />
           </FormField>
           <FormField label="Description (Optional)">
@@ -525,18 +523,18 @@ export const SettingsUsersContent: React.FC = () => {
         <FormSection>
           <div className="text-center py-4">
             <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p className="text-gray-700 mb-2">
+            <p className="text-surface-foreground mb-2">
               Are you sure you want to delete the user <strong>{userToDelete?.username}</strong>?
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-surface-muted-fg">
               This action cannot be undone. The user will be permanently removed from the system.
             </p>
           </div>
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeDeleteUserModal} disabled={isDeletingUser}>Cancel</Button>
-          <Button variant="danger" onClick={handleDeleteUserConfirm} disabled={isDeletingUser}>
-            {isDeletingUser ? <Spinner size="sm"/> : 'Delete User'}
+          <Button variant="danger" onClick={handleDeleteUserConfirm} loading={isDeletingUser}>
+            {'Delete User'}
           </Button>
         </FormActions>
       </DialogForm>
@@ -551,18 +549,18 @@ export const SettingsUsersContent: React.FC = () => {
         <FormSection>
           <div className="text-center py-4">
             <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p className="text-gray-700 mb-2">
+            <p className="text-surface-foreground mb-2">
               Are you sure you want to delete the role <strong>{roleToDelete?.name}</strong>?
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-surface-muted-fg">
               Users with this role will have it unassigned. This action cannot be undone.
             </p>
           </div>
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeDeleteRoleModal} disabled={isDeletingRole}>Cancel</Button>
-          <Button variant="danger" onClick={handleDeleteRoleConfirm} disabled={isDeletingRole}>
-            {isDeletingRole ? <Spinner size="sm"/> : 'Delete Role'}
+          <Button variant="danger" onClick={handleDeleteRoleConfirm} loading={isDeletingRole}>
+            {'Delete Role'}
           </Button>
         </FormActions>
       </DialogForm>

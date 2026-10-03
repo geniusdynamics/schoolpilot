@@ -127,7 +127,7 @@ export const EducationSystemsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Configure education systems to support different curricula, grading schemes, and assessment methods.
         </p>
         <DataGrid columns={columns} data={educationSystemConfigurations} />

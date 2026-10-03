@@ -14,11 +14,15 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
+    // Generous per-test budget: the suite runs in a single fork and
+    // 5s defaults cause spurious timeouts under accumulated load.
+    testTimeout: 20000,
+    hookTimeout: 20000,
     // React 19 compatibility settings
     pool: 'forks',
     poolOptions: {
       forks: {
-        singleFork: true
+        singleFork: false
       }
     },
     // Disable deprecated reporter

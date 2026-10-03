@@ -335,9 +335,9 @@ export const ImportBooksPageContent: React.FC = () => {
         }
       >
         <div className="text-center py-12">
-          <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No import file selected</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <DocumentTextIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+          <h3 className="mt-2 text-sm font-medium text-surface-foreground">No import file selected</h3>
+          <p className="mt-1 text-sm text-surface-muted-fg">
             Upload a CSV or Excel file to bulk import books into the library catalog.
           </p>
           <div className="mt-6 space-y-2">
@@ -347,7 +347,7 @@ export const ImportBooksPageContent: React.FC = () => {
             >
               Select File to Import
             </Button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-surface-muted-fg">
               Supported formats: CSV, XLSX, XLS
             </p>
           </div>
@@ -362,21 +362,21 @@ export const ImportBooksPageContent: React.FC = () => {
       >
         <FormSection columns={1}>
           {isProcessing && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
               <div className="flex items-center space-x-2">
                 <Spinner size="sm" />
                 <span className="text-sm">
                   Processing: {processedCount} / {importData.filter(row => row.validation_errors.length === 0).length}
                 </span>
               </div>
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-surface-muted-fg">
                 Success: {successCount}, Errors: {errorCount}
               </div>
             </div>
           )}
 
           <div className="grid grid-cols-3 gap-4 text-sm">
-            <div className="bg-gray-50 p-3 rounded">
+            <div className="bg-surface-muted p-3 rounded">
               <div className="font-medium">Total Rows</div>
               <div className="text-lg">{importData.length}</div>
             </div>

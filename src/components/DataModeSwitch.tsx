@@ -159,13 +159,13 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
   const getModeColor = (mode: DataMode): string => {
     switch (mode) {
       case 'development':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-primary-100 text-primary-800 border-primary-200';
       case 'demo':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'production':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-surface-accent text-surface-foreground border-surface-border';
     }
   };
 
@@ -181,7 +181,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
   }
 
   return (
-    <div className={`p-4 border rounded-lg bg-white ${className}`}>
+    <div className={`p-4 border rounded-lg bg-surface-card ${className}`}>
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -192,7 +192,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
           {showAdvancedOptions && (
             <button
               onClick={() => setShowOptions(!showOptions)}
-              className="p-2 text-gray-500 hover:text-gray-700 rounded"
+              className="p-2 text-surface-muted-fg hover:text-surface-foreground rounded"
             >
               <Cog6ToothIcon className="w-4 h-4" />
             </button>
@@ -214,7 +214,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
             )}
           </div>
           
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-surface-muted-fg">
             <div>Provider: <span className="font-medium">{status.activeProvider}</span></div>
             <div>Data Records: <span className="font-medium">{status.dataCount}</span></div>
             <div>Last Switched: <span className="font-medium">{status.lastSwitched.toLocaleString()}</span></div>
@@ -240,8 +240,8 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
                 disabled={isLoading || status.isTransitioning || mode === status.currentMode}
                 className={`p-3 text-left border rounded transition-colors ${
                   mode === status.currentMode
-                    ? 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                    : 'hover:bg-gray-50 border-gray-200'
+                    ? 'bg-surface-muted border-surface-border cursor-not-allowed'
+                    : 'hover:bg-surface-muted border-surface-border'
                 } ${
                   isLoading || status.isTransitioning
                     ? 'opacity-50 cursor-not-allowed'
@@ -251,7 +251,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium capitalize">{mode}</div>
-                    <div className="text-sm text-gray-600">{getModeDescription(mode)}</div>
+                    <div className="text-sm text-surface-muted-fg">{getModeDescription(mode)}</div>
                   </div>
                   {mode === status.currentMode && (
                     <CheckCircleIcon className="w-4 h-4 text-green-600" />
@@ -264,7 +264,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
 
         {/* Advanced Options */}
         {showAdvancedOptions && showOptions && (
-          <div className="space-y-3 p-3 bg-gray-50 border rounded">
+          <div className="space-y-3 p-3 bg-surface-muted border rounded">
             <h4 className="text-sm font-medium">Transition Options</h4>
             
             <div className="space-y-2">
@@ -331,9 +331,9 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
 
         {/* Loading Indicator */}
         {(isLoading || status.isTransitioning) && (
-          <div className="flex items-center justify-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded">
-            <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
-            <span className="text-sm text-blue-700">
+          <div className="flex items-center justify-center space-x-2 p-3 bg-primary-50 border border-primary-200 rounded">
+            <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
+            <span className="text-sm text-primary-700">
               {status.isTransitioning ? 'Switching modes...' : 'Processing...'}
             </span>
           </div>

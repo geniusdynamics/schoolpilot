@@ -111,6 +111,12 @@ export const StaffListContent: React.FC = () => {
 
   const filteredStaff = useMemo(() => {
     return (staff || [])
+      .map(s => ({
+        ...s,
+        // Materialize the computed 'name' the grid column references so
+        // DataGrid sorting/filtering operate on a real field
+        name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ') || s.staff_no || '—',
+      }))
       .filter(s =>
         [s.first_name, s.last_name, s.staff_no, s.email, s.department_name, s.designation_title, s.display_name]
           .filter(Boolean)
@@ -123,56 +129,56 @@ export const StaffListContent: React.FC = () => {
       );
   }, [staff, searchTerm, statusFilter]);
 
-  const columns: DataGridColumn<Staff>[] = [
-    { 
+  const columns: DataGridColumn<(typeof filteredStaff)[number]>[] = [
+    {
       key: 'staff_no',
-      header: 'Staff No', 
+      header: 'Staff No',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.staff_no || 'â€”'
+            render: (_value, item) => item.staff_no || '—'
     },
-    { 
+    {
       key: 'name',
-      header: 'Name', 
+      header: 'Name',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || 'â€”'
+            render: (_value, item) => item.name || '—'
     },
-    { 
+    {
       key: 'department_name',
-      header: 'Department', 
+      header: 'Department',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.department_name || 'â€”'
+            render: (_value, item) => item.department_name || '—'
     },
-    { 
+    {
       key: 'designation_title',
-      header: 'Designation', 
+      header: 'Designation',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.designation_title || 'â€”'
+            render: (_value, item) => item.designation_title || '—'
     },
-    { 
+    {
       key: 'hod_of_department_name',
-      header: 'HOD Of', 
+      header: 'HOD Of',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.hod_of_department_name || 'â€”'
+            render: (_value, item) => item.hod_of_department_name || '—'
     },
-    { 
+    {
       key: 'phone',
-      header: 'Phone', 
+      header: 'Phone',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.phone || 'â€”'
+            render: (_value, item) => item.phone || '—'
     },
-    { 
+    {
       key: 'email',
-      header: 'Email', 
+      header: 'Email',
       sortable: true,
       filterable: true,
             render: (_value, item) => (
-        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || 'â€”'}</span>
+        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || '—'}</span>
       )
     },
     { 
@@ -230,15 +236,15 @@ export const StaffListContent: React.FC = () => {
         {pageIsLoading && !isModalOpen ? (
           <div className="flex justify-center items-center py-10"> <Spinner /> <span className="ml-2">Loading staff...</span> </div>
         ) : (
-          <div className="border-t border-gray-200">
+          <div className="border-t border-surface-border">
             <DataGrid 
               columns={columns} 
               data={filteredStaff} 
-              loading={loading.staff && isModalOpen}
+              loading={loading.staff && !isModalOpen}
               sortable
               filterable
               emptyState={{
-                icon: <UserGroupIcon className="h-12 w-12 text-gray-400" />,
+                icon: <UserGroupIcon className="h-12 w-12 text-surface-muted-fg" />,
                 title: 'No staff members found',
                 description: 'Get started by adding your first staff member.',
               }}
@@ -251,8 +257,8 @@ export const StaffListContent: React.FC = () => {
         footer={
           <>
             <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button type="button" onClick={handleSubmit} disabled={loading.staff}>
-              {loading.staff ? <Spinner size="sm"/> : (editingStaff ? 'Save Changes' : 'Add Staff Member')}
+            <Button type="button" onClick={handleSubmit} loading={loading.staff}>
+              {editingStaff ? 'Save Changes' : 'Add Staff Member'}
             </Button>
           </>
         }
@@ -277,9 +283,9 @@ export const StaffListContent: React.FC = () => {
             {departments.filter(d => d.is_academic).map(dep => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
           </Select>
           <div className="flex items-center mt-2 md:col-span-3">
-             <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
+             <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500" 
                 checked={formData.is_active || false} onChange={handleInputChange} />
-             <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Is Active Staff Member</label>
+             <label htmlFor="is_active" className="ml-2 block text-sm text-surface-foreground">Is Active Staff Member</label>
           </div>
         </div>
       </DialogForm>

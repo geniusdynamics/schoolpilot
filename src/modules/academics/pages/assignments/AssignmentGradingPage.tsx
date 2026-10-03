@@ -20,8 +20,8 @@ import { logger } from '@/utils/logging';
 
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
-  [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [SubmissionStatus.PENDING_REVIEW]: 'bg-surface-accent text-surface-foreground',
+  [SubmissionStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
   [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
   [SubmissionStatus.RETURNED]: 'bg-purple-100 text-purple-800',
@@ -312,7 +312,7 @@ const AssignmentGradingPage: React.FC = () => {
   if (!assignment) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">Assignment not found</h3>
+        <h3 className="text-lg font-medium text-surface-foreground">Assignment not found</h3>
         <Button className="mt-4" onClick={() => navigate('/assignments/all')}>
           Back to Assignments
         </Button>
@@ -333,10 +333,10 @@ const AssignmentGradingPage: React.FC = () => {
             {t('common.back')}
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-surface-foreground">
               Grade Submissions
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-surface-muted-fg mt-1">
               {assignment.title} - {assignment.subjectName}
             </p>
           </div>
@@ -348,18 +348,18 @@ const AssignmentGradingPage: React.FC = () => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <UsersIcon className="w-5 h-5 text-gray-500" />
-              <span className="text-sm text-gray-600">
+              <UsersIcon className="w-5 h-5 text-surface-muted-fg" />
+              <span className="text-sm text-surface-muted-fg">
                 {alreadyGraded} of {totalToGrade + alreadyGraded} graded
               </span>
             </div>
           </div>
-          <span className="text-sm font-medium text-gray-900">{progressPercentage}%</span>
+          <span className="text-sm font-medium text-surface-foreground">{progressPercentage}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div
             className={`h-3 rounded-full transition-all duration-300 ${
-              progressPercentage === 100 ? 'bg-green-500' : 'bg-blue-500'
+              progressPercentage === 100 ? 'bg-green-500' : 'bg-primary-500'
             }`}
             style={{ width: `${progressPercentage}%` }}
           ></div>
@@ -410,13 +410,13 @@ const AssignmentGradingPage: React.FC = () => {
           />
 
           {selectedIds.size > 0 && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
-              <p className="text-sm font-medium text-gray-900">
+            <div className="mt-4 p-4 bg-surface-muted rounded-lg space-y-3">
+              <p className="text-sm font-medium text-surface-foreground">
                 Grading {selectedIds.size} submission(s)
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Score *</label>
+                  <label className="block text-xs font-medium text-surface-foreground mb-1">Score *</label>
                   <Input
                     type="number"
                     value={bulkScore}
@@ -427,7 +427,7 @@ const AssignmentGradingPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Grade</label>
+                  <label className="block text-xs font-medium text-surface-foreground mb-1">Grade</label>
                   <Input
                     value={bulkGrade}
                     onChange={(e) => setBulkGrade(e.target.value)}
@@ -435,7 +435,7 @@ const AssignmentGradingPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Feedback</label>
+                  <label className="block text-xs font-medium text-surface-foreground mb-1">Feedback</label>
                   <Input
                     value={bulkFeedback}
                     onChange={(e) => setBulkFeedback(e.target.value)}
@@ -477,10 +477,10 @@ const AssignmentGradingPage: React.FC = () => {
         {submissionsToGrade.length === 0 ? (
           <div className="text-center py-12">
             <CheckCircleIcon className="mx-auto h-12 w-12 text-green-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
+            <h3 className="mt-2 text-sm font-medium text-surface-foreground">
               All submissions have been graded!
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-surface-muted-fg">
               There are no pending submissions to grade.
             </p>
           </div>
@@ -527,7 +527,7 @@ const AssignmentGradingPage: React.FC = () => {
                 header: t('submission.fields.feedback'),
                 sortable: false,
                 render: (value) => (
-                  <span className="text-sm text-gray-600 truncate block max-w-xs" title={value || ''}>
+                  <span className="text-sm text-surface-muted-fg truncate block max-w-xs" title={value || ''}>
                     {value || '-'}
                   </span>
                 ),

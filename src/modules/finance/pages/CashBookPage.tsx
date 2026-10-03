@@ -82,7 +82,7 @@ export const CashBookPageContent: React.FC = () => {
       header: 'Balance',
       sortable: true,
       render: (value) => (
-        <span className="font-bold text-gray-800">KES {value?.toLocaleString?.() ?? '-'}</span>
+        <span className="font-bold text-surface-foreground">KES {value?.toLocaleString?.() ?? '-'}</span>
       )
     }
   ];
@@ -122,7 +122,7 @@ export const CashBookPageContent: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Start Date</label>
             <Input
               type="date"
               value={startDate}
@@ -131,7 +131,7 @@ export const CashBookPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">End Date</label>
             <Input
               type="date"
               value={endDate}
@@ -140,7 +140,7 @@ export const CashBookPageContent: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Search by description or reference..."
@@ -153,8 +153,8 @@ export const CashBookPageContent: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowUpIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Total Cash Out</span>
             </div>
@@ -162,8 +162,8 @@ export const CashBookPageContent: React.FC = () => {
               KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowDownIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Total Cash In</span>
             </div>
@@ -171,17 +171,17 @@ export const CashBookPageContent: React.FC = () => {
               KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Transactions</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {mockCashBookEntries.length}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Cash Balance</span>
             </div>

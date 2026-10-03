@@ -1,6 +1,12 @@
 // ABOUTME: Exports collections for the Portal module
-// ABOUTME: The Portal module does NOT create new collections - it reads from existing ones
+// ABOUTME: 'announcements' is portal-owned; other portal views read from existing collections
 
-export const portalCollections = {};
+import * as schemas from './schema';
+
+export const portalCollections = {
+  announcements: {
+    schema: schemas.announcementSchema,
+  },
+};
 
 export type PortalCollections = typeof portalCollections;

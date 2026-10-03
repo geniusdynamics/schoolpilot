@@ -106,10 +106,10 @@ const SMSCategoriesPage: React.FC = () => {
           )}
 
           {selectedCategory && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-blue-600" />
-                <span className="text-sm text-blue-700">
+                <UsersIcon className="w-5 h-5 text-primary-600" />
+                <span className="text-sm text-primary-700">
                   Will send to <strong>{getRecipientCount()}</strong> recipients
                 </span>
               </div>

@@ -226,8 +226,8 @@ const CertificatesManagementPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No certificate requests found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No certificate requests found.</p>
             </div>
           }
         />
@@ -243,34 +243,34 @@ const CertificatesManagementPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Student</label>
+                <label className="text-sm font-medium text-surface-foreground">Student</label>
                 <p className="mt-1">{selectedCertificate.student_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Admission No</label>
+                <label className="text-sm font-medium text-surface-foreground">Admission No</label>
                 <p className="mt-1">{selectedCertificate.admission_number}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Type</label>
+                <label className="text-sm font-medium text-surface-foreground">Type</label>
                 <div className="mt-1"><Badge variant="neutral">{selectedCertificate.certificate_type}</Badge></div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">{getStatusBadge(selectedCertificate.status)}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Requested At</label>
+                <label className="text-sm font-medium text-surface-foreground">Requested At</label>
                 <p className="mt-1">{new Date(selectedCertificate.requested_at).toLocaleDateString()}</p>
               </div>
               {selectedCertificate.approved_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Approved At</label>
+                  <label className="text-sm font-medium text-surface-foreground">Approved At</label>
                   <p className="mt-1">{new Date(selectedCertificate.approved_at).toLocaleDateString()}</p>
                 </div>
               )}
               {selectedCertificate.issued_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Issued At</label>
+                  <label className="text-sm font-medium text-surface-foreground">Issued At</label>
                   <p className="mt-1">{new Date(selectedCertificate.issued_at).toLocaleDateString()}</p>
                 </div>
               )}
@@ -278,7 +278,7 @@ const CertificatesManagementPage: React.FC = () => {
 
             {selectedCertificate.purpose && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Purpose</label>
+                <label className="text-sm font-medium text-surface-foreground">Purpose</label>
                 <p className="mt-1">{selectedCertificate.purpose}</p>
               </div>
             )}

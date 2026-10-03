@@ -93,7 +93,7 @@ export const BanksPageContent: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value) => (
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -117,7 +117,7 @@ export const BanksPageContent: React.FC = () => {
       filterable: true,
       width: 250,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {value || 'Not linked'}
         </span>
       )
@@ -164,7 +164,7 @@ export const BanksPageContent: React.FC = () => {
           Add Bank Account
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           Manage the school's bank accounts. Each bank account must be linked to an Asset account in the Chart of Accounts.
         </p>
         <DataGrid 
@@ -174,9 +174,9 @@ export const BanksPageContent: React.FC = () => {
           filterable 
           emptyState={
             <div className="text-center py-12">
-              <BanknotesIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No bank accounts found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first bank account.</p>
+              <BanknotesIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No bank accounts found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">Get started by adding your first bank account.</p>
               <div className="mt-6">
                 <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
                   Add Bank Account
@@ -191,8 +191,8 @@ export const BanksPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.banks}>
-              {loading.banks ? <Spinner size="sm"/> : (editingBank ? 'Save Changes' : 'Add Bank')}
+            <Button onClick={handleSubmit} loading={loading.banks}>
+              {editingBank ? 'Save Changes' : 'Add Bank'}
             </Button>
           </>
         }

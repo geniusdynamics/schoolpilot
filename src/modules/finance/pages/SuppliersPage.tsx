@@ -107,7 +107,7 @@ export const SuppliersPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="text-blue-600">{row.phone || '-'}</span>
+      render: (value, row) => <span className="text-primary-600">{row.phone || '-'}</span>
     },
     { 
       key: 'email', 
@@ -123,7 +123,7 @@ export const SuppliersPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="text-gray-700">{row.address || '-'}</span>
+      render: (value, row) => <span className="text-surface-foreground">{row.address || '-'}</span>
     },
     { 
       key: 'contract_expiry_date', 
@@ -166,7 +166,7 @@ export const SuppliersPageContent: React.FC = () => {
           Add Supplier
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Maintain a database of school suppliers for inventory, services, and other procurement needs.
         </p>
         <DataGrid 
@@ -176,7 +176,7 @@ export const SuppliersPageContent: React.FC = () => {
             sortable
             filterable
             emptyState={{
-              icon: <BuildingStorefrontIcon className="w-12 h-12 text-gray-400" />,
+              icon: <BuildingStorefrontIcon className="w-12 h-12 text-surface-muted-fg" />,
               title: "No suppliers found",
               description: "Start building your supplier database by adding your first supplier. Track contact information, contracts, and manage procurement relationships.",
               action: {

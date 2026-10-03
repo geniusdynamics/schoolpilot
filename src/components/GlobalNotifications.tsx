@@ -92,7 +92,7 @@ const GlobalNotifications: React.FC = () => {
             type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
             type === 'warning' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
             type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
-            'bg-blue-100 text-blue-800 border border-blue-200'
+            'bg-primary-100 text-primary-800 border border-primary-200'
           }`}
         >
           <div className="flex justify-between items-start">
@@ -100,7 +100,7 @@ const GlobalNotifications: React.FC = () => {
             {!persistent && (
               <button
                 onClick={() => setNotifications(prev => prev.filter(n => n.id !== id))}
-                className="ml-2 text-gray-400 hover:text-gray-600"
+                className="ml-2 text-surface-muted-fg hover:text-surface-muted-fg"
               >
                 ×
               </button>

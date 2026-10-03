@@ -60,7 +60,7 @@ describe('DataModeSwitch', () => {
       render(<DataModeSwitch />);
       
       const developmentButton = screen.getByRole('button', { name: /development/i });
-      expect(developmentButton).toHaveClass('bg-blue-600');
+      expect(developmentButton).toHaveClass('bg-primary-600');
     });
 
     it('should display current status information', () => {
@@ -262,7 +262,7 @@ describe('DataModeSwitch', () => {
       expect(screen.getByText('SQLiteOPFS')).toBeInTheDocument();
       
       const demoButton = screen.getByRole('button', { name: /demo/i });
-      expect(demoButton).toHaveClass('bg-blue-600');
+      expect(demoButton).toHaveClass('bg-primary-600');
     });
 
     it('should format data count correctly', () => {
@@ -341,7 +341,7 @@ describe('DataModeSwitch', () => {
       const { container } = render(<DataModeSwitch className="custom-class" />);
       
       expect(container.firstChild).toHaveClass('custom-class');
-      expect(container.firstChild).toHaveClass('bg-white');
+      expect(container.firstChild).toHaveClass('bg-surface-card');
     });
   });
 

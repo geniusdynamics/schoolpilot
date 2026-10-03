@@ -108,40 +108,40 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
       {/* User Button */}
       <button
         onClick={toggleDropdown}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-slate-700 bg-surface-card border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
       >
         <div className="w-8 h-8 bg-slate-400 rounded-full flex items-center justify-center">
           <UserCircleIcon className="w-5 h-5 text-white" />
         </div>
         <div className="text-left">
-          <div className="font-medium text-gray-900">{user.fullName}</div>
-          <div className="text-xs text-gray-500 capitalize">{user.role.replace('_', ' ')}</div>
+          <div className="font-medium text-surface-foreground">{user.fullName}</div>
+          <div className="text-xs text-surface-muted-fg capitalize">{user.role.replace('_', ' ')}</div>
         </div>
-        <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+        <ChevronDownIcon className="w-4 h-4 text-surface-muted-fg" />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full right-2 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-4 border-b border-gray-200">
+        <div className="absolute top-full right-2 mt-2 w-56 bg-surface-card rounded-lg shadow-lg border border-surface-border z-50">
+          <div className="p-4 border-b border-surface-border">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
                 <UserCircleIcon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">{user.fullName}</div>
-                <div className="text-sm text-gray-500">{user.email}</div>
-                <div className="text-xs text-gray-400 capitalize">{user.role.replace('_', ' ')}</div>
+                <div className="font-medium text-surface-foreground">{user.fullName}</div>
+                <div className="text-sm text-surface-muted-fg">{user.email}</div>
+                <div className="text-xs text-surface-muted-fg capitalize">{user.role.replace('_', ' ')}</div>
               </div>
             </div>
             
             {/* Mode Indicator */}
-            <div className="mt-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="mt-3 p-2 bg-surface-muted border border-surface-border rounded-lg">
               <div className="flex items-center">
                 <div className={`w-2 h-2 rounded-full mr-2 ${
                   memoizedCurrentMode === 'demo' ? 'bg-yellow-400' : 'bg-green-400'
                 }`}></div>
-                <span className={`text-xs text-gray-500 font-medium ${
+                <span className={`text-xs text-surface-muted-fg font-medium ${
                   memoizedCurrentMode === 'demo' ? 'text-yellow-800' : 'text-green-800'
                 }`}>
                   {memoizedCurrentMode === 'demo' ? 'Demo Mode' : 'Production Mode'}
@@ -151,7 +151,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
           </div>
 
           {/* Sync Status Section */}
-          <div className="p-2 border-b border-gray-200">
+          <div className="p-2 border-b border-surface-border">
             <SyncStatusComponent className="!p-2 !shadow-none !bg-transparent" />
           </div>
 
@@ -159,9 +159,9 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
             {/* Settings Link */}
             <button
               onClick={handleSettingsClick}
-              className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="w-full flex items-center px-3 py-2 text-sm text-surface-foreground hover:bg-surface-accent rounded-lg transition-colors"
             >
-              <CogIcon className="w-4 h-4 mr-3 text-gray-400" />
+              <CogIcon className="w-4 h-4 mr-3 text-surface-muted-fg" />
               Settings
             </button>
 

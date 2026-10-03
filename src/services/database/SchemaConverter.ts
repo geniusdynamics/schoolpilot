@@ -145,13 +145,43 @@ export class SchemaConverter {
       unique: true
     });
 
-    // Extract indexes from schema.indexes array
+    // Extract indexes from schema.indexes array.
+    // Entries may be:
+    // - plain strings ('col')            -> single-column index
+    // - arrays of strings (['a','b'])    -> composite index
+    // - objects ({ name, fields|columns }) -> RxDB-style index definitions
+    // Objects must be normalized here; interpolating them directly into SQL
+    // produces "[object Object]" and invalid CREATE INDEX statements.
     if (Array.isArray(schema.indexes)) {
-      schema.indexes.forEach((indexField: string, idx: number) => {
-        if (indexField !== primaryKey) { // Don't duplicate primary key index
+      schema.indexes.forEach((entry: any) => {
+        let indexName: string | undefined;
+        let indexFields: string[] = [];
+
+        if (typeof entry === 'string') {
+          indexFields = [entry];
+        } else if (Array.isArray(entry)) {
+          indexFields = entry.filter((f: any) => typeof f === 'string');
+        } else if (entry && typeof entry === 'object') {
+          const rawFields = entry.fields ?? entry.columns ?? [];
+          const fieldList = Array.isArray(rawFields) ? rawFields : [rawFields];
+          indexFields = fieldList.filter((f: any) => typeof f === 'string');
+          if (typeof entry.name === 'string' && entry.name) {
+            indexName = entry.name;
+          }
+        }
+
+        // Skip empty/invalid entries and duplicates of the primary key index
+        if (indexFields.length === 0) return;
+        const isPrimaryKeyIndex =
+          indexFields.length === 1 && indexFields[0] === primaryKey;
+        if (isPrimaryKeyIndex) return;
+
+        const defaultName = `idx_${collectionName}_${indexFields.join('_')}`;
+        const finalName = indexName || defaultName;
+        if (!indexes.some(idx => idx.name === finalName || idx.fields.join(',') === indexFields.join(','))) {
           indexes.push({
-            name: `idx_${collectionName}_${indexField}`,
-            fields: [indexField],
+            name: finalName,
+            fields: indexFields,
             unique: false
           });
         }
@@ -304,13 +334,22 @@ export class SchemaConverter {
   }
 
   /**
+   * Safely quote an identifier (table/column/index name) for SQLite.
+   * Double-quoting also makes SQL reserved keywords (e.g. "references",
+   * "order", "group") usable as identifiers.
+   */
+  static quoteIdentifier(name: string): string {
+    return `"${String(name).replace(/"/g, '""')}"`;
+  }
+
+  /**
    * Generate SQL CREATE TABLE statement
    */
   static generateCreateTableSQL(sqlSchema: SQLiteTableSchema): string {
     const { tableName, columns, primaryKey } = sqlSchema;
     
     const columnDefinitions = columns.map(col => {
-      let def = `${col.name} ${col.type}`;
+      let def = `${this.quoteIdentifier(col.name)} ${col.type}`;
       
       if (!col.nullable && col.name !== primaryKey) {
         def += ' NOT NULL';
@@ -327,7 +366,7 @@ export class SchemaConverter {
       return def;
     });
 
-    return `CREATE TABLE IF NOT EXISTS ${tableName} (
+    return `CREATE TABLE IF NOT EXISTS ${this.quoteIdentifier(tableName)} (
       ${columnDefinitions.join(',\n      ')}
     )`;
   }
@@ -338,10 +377,10 @@ export class SchemaConverter {
   static generateCreateIndexSQL(tableName: string, indexes: IndexDefinition[]): string[] {
     return indexes.map(index => {
       const uniqueKeyword = index.unique ? 'UNIQUE ' : '';
-      const fieldsStr = index.fields.join(', ');
+      const fieldsStr = index.fields.map(field => this.quoteIdentifier(field)).join(', ');
       
-      return `CREATE ${uniqueKeyword}INDEX IF NOT EXISTS ${index.name} 
-              ON ${tableName} (${fieldsStr})`;
+      return `CREATE ${uniqueKeyword}INDEX IF NOT EXISTS ${this.quoteIdentifier(index.name)}
+              ON ${this.quoteIdentifier(tableName)} (${fieldsStr})`;
     });
   }
 

@@ -27,7 +27,7 @@ const RecentlyViewedApplicants: React.FC<RecentlyViewedApplicantsProps> = ({
 }) => {
   if (applicants.length === 0) {
     return (
-      <div className="p-4 text-center text-gray-500 text-sm">
+      <div className="p-4 text-center text-surface-muted-fg text-sm">
         No recently viewed applicants
       </div>
     );
@@ -39,7 +39,7 @@ const RecentlyViewedApplicants: React.FC<RecentlyViewedApplicantsProps> = ({
         <button
           key={applicant.id}
           onClick={() => onViewApplicant?.(applicant.id)}
-          className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left group"
+          className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-surface-muted transition-colors text-left group"
         >
           {applicant.avatarUrl ? (
             <img
@@ -49,18 +49,18 @@ const RecentlyViewedApplicants: React.FC<RecentlyViewedApplicantsProps> = ({
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <UserIcon className="w-6 h-6 text-gray-500" />
+              <UserIcon className="w-6 h-6 text-surface-muted-fg" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-surface-foreground truncate">
               {applicant.name}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-surface-muted-fg">
               {applicant.grade}, <span className={applicant.statusColor}>{applicant.status}</span>
             </p>
           </div>
-          <ArrowRightIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ArrowRightIcon className="w-4 h-4 text-surface-muted-fg opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       ))}
     </div>

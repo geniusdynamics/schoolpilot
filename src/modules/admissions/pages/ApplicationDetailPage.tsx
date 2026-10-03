@@ -14,11 +14,12 @@ import {
   ApplicationStatus,
 } from '../data/types';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { format } from 'date-fns';
 
 const statusColors: Record<ApplicationStatus, string> = {
-  [ApplicationStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [ApplicationStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [ApplicationStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [ApplicationStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [ApplicationStatus.UNDER_REVIEW]: 'bg-yellow-100 text-yellow-800',
   [ApplicationStatus.INTERVIEW_SCHEDULED]: 'bg-purple-100 text-purple-800',
   [ApplicationStatus.APPROVED]: 'bg-green-100 text-green-800',
@@ -33,6 +34,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
   const navigate = useNavigate();
   const { getApplication, getApplicationDocuments, getApplicationReviews, getApplicationNotes, deleteApplication } = useAdmissionsData();
   const { showToast } = useToast();
+  const confirm = useConfirm();
   
   const [application, setApplication] = useState<Application | null>(null);
   const [documents, setDocuments] = useState<ApplicationDocument[]>([]);
@@ -82,7 +84,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
   const handleDelete = async () => {
     if (!application) return;
     
-    if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+    if (await confirm({ title: 'Delete application', message: 'Are you sure you want to delete this application? This action cannot be undone.', variant: 'danger' })) {
       try {
         await deleteApplication(application.id);
         showToast({
@@ -114,7 +116,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
   if (!application) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">Application not found</h3>
+        <h3 className="text-lg font-medium text-surface-foreground">Application not found</h3>
         <Button onClick={handleBack} className="mt-4">
           Back to Applications
         </Button>
@@ -139,10 +141,10 @@ export const ApplicationDetailPageContent: React.FC = () => {
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-surface-foreground">
               Application #{application.applicationNumber}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-surface-muted-fg">
               Submitted on {application.submissionDate ? format(new Date(application.submissionDate), 'MMM d, yyyy') : 'N/A'}
             </p>
           </div>
@@ -182,27 +184,27 @@ export const ApplicationDetailPageContent: React.FC = () => {
             <Card title="Personal Information">
               <div className="p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Full Name:</span>
+                  <span className="text-surface-muted-fg">Full Name:</span>
                   <span className="font-medium">{`${application.firstName} ${application.middleName || ''} ${application.lastName}`}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Date of Birth:</span>
+                  <span className="text-surface-muted-fg">Date of Birth:</span>
                   <span>{application.dateOfBirth ? format(new Date(application.dateOfBirth), 'MMM d, yyyy') : 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Gender:</span>
+                  <span className="text-surface-muted-fg">Gender:</span>
                   <span>{application.gender}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Nationality:</span>
+                  <span className="text-surface-muted-fg">Nationality:</span>
                   <span>{application.nationality || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Religion:</span>
+                  <span className="text-surface-muted-fg">Religion:</span>
                   <span>{application.religion || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Birth Cert #:</span>
+                  <span className="text-surface-muted-fg">Birth Cert #:</span>
                   <span>{application.birthCertificateNumber || 'N/A'}</span>
                 </div>
               </div>
@@ -212,23 +214,23 @@ export const ApplicationDetailPageContent: React.FC = () => {
             <Card title="Guardian Information">
               <div className="p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Guardian Type:</span>
+                  <span className="text-surface-muted-fg">Guardian Type:</span>
                   <span>{application.guardianType || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Name:</span>
+                  <span className="text-surface-muted-fg">Name:</span>
                   <span className="font-medium">{`${application.guardianFirstName || ''} ${application.guardianLastName || ''}`}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Phone:</span>
+                  <span className="text-surface-muted-fg">Phone:</span>
                   <span>{application.guardianPhone || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Email:</span>
+                  <span className="text-surface-muted-fg">Email:</span>
                   <span>{application.guardianEmail || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Occupation:</span>
+                  <span className="text-surface-muted-fg">Occupation:</span>
                   <span>{application.guardianOccupation || 'N/A'}</span>
                 </div>
               </div>
@@ -238,19 +240,19 @@ export const ApplicationDetailPageContent: React.FC = () => {
             <Card title="Application Details">
               <div className="p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Application Type:</span>
+                  <span className="text-surface-muted-fg">Application Type:</span>
                   <span>{application.applicationType}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Intended Class:</span>
+                  <span className="text-surface-muted-fg">Intended Class:</span>
                   <span>{application.intendedClassName || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Academic Year:</span>
+                  <span className="text-surface-muted-fg">Academic Year:</span>
                   <span>{application.academicYearName || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Application #:</span>
+                  <span className="text-surface-muted-fg">Application #:</span>
                   <span className="font-mono">{application.applicationNumber}</span>
                 </div>
               </div>
@@ -260,23 +262,23 @@ export const ApplicationDetailPageContent: React.FC = () => {
             <Card title="Academic Background">
               <div className="p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Previous School:</span>
+                  <span className="text-surface-muted-fg">Previous School:</span>
                   <span>{application.previousSchool || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Previous Class:</span>
+                  <span className="text-surface-muted-fg">Previous Class:</span>
                   <span>{application.previousClass || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">KCPE Index #:</span>
+                  <span className="text-surface-muted-fg">KCPE Index #:</span>
                   <span>{application.kcpeIndexNumber || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">KCPE Marks:</span>
+                  <span className="text-surface-muted-fg">KCPE Marks:</span>
                   <span>{application.kcpeMarks || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">KCPE Grade:</span>
+                  <span className="text-surface-muted-fg">KCPE Grade:</span>
                   <span>{application.kcpeGrade || 'N/A'}</span>
                 </div>
               </div>
@@ -286,19 +288,19 @@ export const ApplicationDetailPageContent: React.FC = () => {
             <Card title="Address Information" className="lg:col-span-2">
               <div className="p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Residential Address:</span>
+                  <span className="text-surface-muted-fg">Residential Address:</span>
                   <span>{application.residentialAddress || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Postal Address:</span>
+                  <span className="text-surface-muted-fg">Postal Address:</span>
                   <span>{application.postalAddress || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">County:</span>
+                  <span className="text-surface-muted-fg">County:</span>
                   <span>{application.county || 'N/A'}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <span className="text-gray-600">Sub-County:</span>
+                  <span className="text-surface-muted-fg">Sub-County:</span>
                   <span>{application.subCounty || 'N/A'}</span>
                 </div>
               </div>
@@ -310,17 +312,17 @@ export const ApplicationDetailPageContent: React.FC = () => {
           <Card title="Submitted Documents">
             <div className="p-4">
               {documents.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No documents submitted yet.</p>
+                <p className="text-surface-muted-fg text-center py-8">No documents submitted yet.</p>
               ) : (
                 <div className="space-y-3">
                   {documents.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <DocumentTextIcon className="w-8 h-8 text-gray-400" />
+                        <DocumentTextIcon className="w-8 h-8 text-surface-muted-fg" />
                         <div>
                           <p className="font-medium">{doc.documentType}</p>
-                          <p className="text-sm text-gray-500">{doc.originalFilename}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-sm text-surface-muted-fg">{doc.originalFilename}</p>
+                          <p className="text-xs text-surface-muted-fg">
                             Uploaded on {format(new Date(doc.uploadedAt), 'MMM d, yyyy')}
                           </p>
                         </div>
@@ -349,34 +351,34 @@ export const ApplicationDetailPageContent: React.FC = () => {
           <Card title="Reviews">
             <div className="p-4">
               {reviews.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No reviews yet.</p>
+                <p className="text-surface-muted-fg text-center py-8">No reviews yet.</p>
               ) : (
                 <div className="space-y-4">
                   {reviews.map((review) => (
                     <div key={review.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">{review.reviewerName || 'Unknown Reviewer'}</span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-surface-muted-fg">
                           {format(new Date(review.reviewDate), 'MMM d, yyyy')}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 gap-4 mb-3">
                         <div>
-                          <span className="text-sm text-gray-600">Academic Score:</span>
+                          <span className="text-sm text-surface-muted-fg">Academic Score:</span>
                           <p className="font-medium">{review.academicScore || 'N/A'}/100</p>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-600">Interview Score:</span>
+                          <span className="text-sm text-surface-muted-fg">Interview Score:</span>
                           <p className="font-medium">{review.interviewScore || 'N/A'}/100</p>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-600">Recommendation:</span>
+                          <span className="text-sm text-surface-muted-fg">Recommendation:</span>
                           <p className="font-medium">{review.recommendation}</p>
                         </div>
                       </div>
                       {review.comments && (
-                        <div className="bg-gray-50 p-3 rounded">
-                          <span className="text-sm text-gray-600">Comments:</span>
+                        <div className="bg-surface-muted p-3 rounded">
+                          <span className="text-sm text-surface-muted-fg">Comments:</span>
                           <p className="mt-1">{review.comments}</p>
                         </div>
                       )}
@@ -392,14 +394,14 @@ export const ApplicationDetailPageContent: React.FC = () => {
           <Card title="Internal Notes">
             <div className="p-4">
               {notes.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No notes added yet.</p>
+                <p className="text-surface-muted-fg text-center py-8">No notes added yet.</p>
               ) : (
                 <div className="space-y-3">
                   {notes.map((note) => (
                     <div key={note.id} className="border rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">{note.authorName || 'Unknown'}</span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-surface-muted-fg">
                           {format(new Date(note.createdAt), 'MMM d, yyyy h:mm a')}
                         </span>
                       </div>
@@ -415,11 +417,11 @@ export const ApplicationDetailPageContent: React.FC = () => {
         {activeTab === 'history' && (
           <Card title="Decision History">
             <div className="p-4">
-              <div className="border-l-2 border-gray-200 ml-3 space-y-6">
+              <div className="border-l-2 border-surface-border ml-3 space-y-6">
                 <div className="relative pl-8">
-                  <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-blue-500" />
+                  <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary-500" />
                   <p className="font-medium">Application Created</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-surface-muted-fg">
                     {format(new Date(application.createdAt), 'MMM d, yyyy h:mm a')}
                   </p>
                 </div>
@@ -427,7 +429,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
                   <div className="relative pl-8">
                     <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-green-500" />
                     <p className="font-medium">Application Submitted</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-surface-muted-fg">
                       {format(new Date(application.submissionDate), 'MMM d, yyyy h:mm a')}
                     </p>
                   </div>
@@ -436,7 +438,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
                   <div className="relative pl-8">
                     <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-yellow-500" />
                     <p className="font-medium">Under Review</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-surface-muted-fg">
                       {format(new Date(application.reviewDate), 'MMM d, yyyy h:mm a')}
                     </p>
                   </div>
@@ -447,7 +449,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
                       application.status === ApplicationStatus.APPROVED ? 'bg-green-500' : 'bg-red-500'
                     }`} />
                     <p className="font-medium">Decision: {application.status}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-surface-muted-fg">
                       {format(new Date(application.decisionDate), 'MMM d, yyyy h:mm a')}
                     </p>
                   </div>
@@ -456,7 +458,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
                   <div className="relative pl-8">
                     <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-teal-500" />
                     <p className="font-medium">Student Enrolled</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-surface-muted-fg">
                       {format(new Date(application.enrollmentDate), 'MMM d, yyyy h:mm a')}
                     </p>
                   </div>

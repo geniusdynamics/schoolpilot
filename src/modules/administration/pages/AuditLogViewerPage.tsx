@@ -162,7 +162,7 @@ const AuditLogViewerPage: React.FC = () => {
             e.stopPropagation();
             toggleRowExpansion(entry.id);
           }}
-          className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+          className="flex items-center gap-1 text-primary-600 hover:text-primary-800"
         >
           {expandedRowId === entry.id ? (
             <ChevronUpIcon className="w-4 h-4" />
@@ -181,11 +181,11 @@ const AuditLogViewerPage: React.FC = () => {
       render: (value, entry) => {
         const actionColors: Record<string, string> = {
           'INSERT': 'bg-green-100 text-green-800',
-          'UPDATE': 'bg-blue-100 text-blue-800',
+          'UPDATE': 'bg-primary-100 text-primary-800',
           'DELETE': 'bg-red-100 text-red-800',
           'SOFT_DELETE': 'bg-yellow-100 text-yellow-800'
         };
-        const colorClass = actionColors[entry.action] || 'bg-gray-100 text-gray-800';
+        const colorClass = actionColors[entry.action] || 'bg-surface-accent text-surface-foreground';
         return (
           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
             {entry.action}
@@ -200,7 +200,7 @@ const AuditLogViewerPage: React.FC = () => {
       sortable: true,
       render: (value, entry) => (
         <span className="flex items-center gap-1">
-          <TableCellsIcon className="w-4 h-4 text-gray-400" />
+          <TableCellsIcon className="w-4 h-4 text-surface-muted-fg" />
           {entry.table_name}
         </span>
       )
@@ -218,7 +218,7 @@ const AuditLogViewerPage: React.FC = () => {
       sortable: true,
       render: (value, entry) => (
         <span className="flex items-center gap-1">
-          <UserIcon className="w-4 h-4 text-gray-400" />
+          <UserIcon className="w-4 h-4 text-surface-muted-fg" />
           {entry.user_name || t('system')}
         </span>
       )
@@ -249,30 +249,30 @@ const AuditLogViewerPage: React.FC = () => {
     
     return (
       <tr key={`expanded-${entry.id}`}>
-        <td colSpan={6} className="bg-gray-50 p-4">
+        <td colSpan={6} className="bg-surface-muted p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {entry.old_data && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                <h4 className="text-sm font-semibold text-surface-foreground mb-2">
                   {t('previousValues')}
                 </h4>
-                <pre className="bg-white p-3 rounded border text-xs overflow-x-auto max-h-48">
+                <pre className="bg-surface-card p-3 rounded border text-xs overflow-x-auto max-h-48">
                   {JSON.stringify(entry.old_data, null, 2)}
                 </pre>
               </div>
             )}
             {entry.new_data && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                <h4 className="text-sm font-semibold text-surface-foreground mb-2">
                   {t('newValues')}
                 </h4>
-                <pre className="bg-white p-3 rounded border text-xs overflow-x-auto max-h-48">
+                <pre className="bg-surface-card p-3 rounded border text-xs overflow-x-auto max-h-48">
                   {JSON.stringify(entry.new_data, null, 2)}
                 </pre>
               </div>
             )}
             {!entry.old_data && !entry.new_data && (
-              <div className="col-span-2 text-gray-500 italic">
+              <div className="col-span-2 text-surface-muted-fg italic">
                 {t('noDataChanges')}
               </div>
             )}
@@ -301,14 +301,14 @@ const AuditLogViewerPage: React.FC = () => {
     <div className="p-6 space-y-4">
       <Card>
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-surface-foreground flex items-center gap-2">
             <DocumentTextIcon className="w-6 h-6" />
             {t('auditLog')}
           </h1>
           
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-muted-fg" />
               <Input
                 placeholder={t('searchPlaceholder')}
                 value={searchTerm}
@@ -351,7 +351,7 @@ const AuditLogViewerPage: React.FC = () => {
             </Select>
             
             <div className="flex items-center gap-1">
-              <CalendarIcon className="w-4 h-4 text-gray-400" />
+              <CalendarIcon className="w-4 h-4 text-surface-muted-fg" />
               <Input
                 type="date"
                 value={dateFrom}
@@ -359,7 +359,7 @@ const AuditLogViewerPage: React.FC = () => {
                 className="w-32"
                 placeholder={t('from')}
               />
-              <span className="text-gray-400">-</span>
+              <span className="text-surface-muted-fg">-</span>
               <Input
                 type="date"
                 value={dateTo}
@@ -392,7 +392,7 @@ const AuditLogViewerPage: React.FC = () => {
               sortable={true}
               filterable={true}
               emptyState={{
-                icon: <DocumentTextIcon className="w-12 h-12 text-gray-400" />,
+                icon: <DocumentTextIcon className="w-12 h-12 text-surface-muted-fg" />,
                 title: t('noLogsFound'),
                 description: t('noLogsDescription')
               }}
@@ -403,7 +403,7 @@ const AuditLogViewerPage: React.FC = () => {
           </>
         )}
         
-        <div className="mt-4 text-sm text-gray-500 text-right">
+        <div className="mt-4 text-sm text-surface-muted-fg text-right">
           {t('showing')} {filteredData.length} {t('of')} {data.length} {t('entries')}
         </div>
       </Card>
@@ -419,51 +419,51 @@ const AuditLogViewerPage: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
+                  <label className="block text-sm font-medium text-surface-muted-fg">
                     {t('timestamp')}
                   </label>
-                  <p className="text-gray-900">{formatTimestamp(selectedLogEntry.changed_at)}</p>
+                  <p className="text-surface-foreground">{formatTimestamp(selectedLogEntry.changed_at)}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
+                  <label className="block text-sm font-medium text-surface-muted-fg">
                     {t('action')}
                   </label>
-                  <p className="text-gray-900">{selectedLogEntry.action}</p>
+                  <p className="text-surface-foreground">{selectedLogEntry.action}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
+                  <label className="block text-sm font-medium text-surface-muted-fg">
                     {t('table')}
                   </label>
-                  <p className="text-gray-900">{selectedLogEntry.table_name}</p>
+                  <p className="text-surface-foreground">{selectedLogEntry.table_name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
+                  <label className="block text-sm font-medium text-surface-muted-fg">
                     {t('record')}
                   </label>
-                  <p className="text-gray-900">{selectedLogEntry.record_pk}</p>
+                  <p className="text-surface-foreground">{selectedLogEntry.record_pk}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">
+                  <label className="block text-sm font-medium text-surface-muted-fg">
                     {t('user')}
                   </label>
-                  <p className="text-gray-900">{selectedLogEntry.user_name || t('system')}</p>
+                  <p className="text-surface-foreground">{selectedLogEntry.user_name || t('system')}</p>
                 </div>
                 {selectedLogEntry.ip_address && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">
+                    <label className="block text-sm font-medium text-surface-muted-fg">
                       {t('ipAddress')}
                     </label>
-                    <p className="text-gray-900">{selectedLogEntry.ip_address}</p>
+                    <p className="text-surface-foreground">{selectedLogEntry.ip_address}</p>
                   </div>
                 )}
               </div>
               
               {selectedLogEntry.old_data && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
+                  <label className="block text-sm font-medium text-surface-muted-fg mb-2">
                     {t('previousValues')}
                   </label>
-                  <pre className="bg-gray-50 p-4 rounded border text-sm overflow-x-auto max-h-64">
+                  <pre className="bg-surface-muted p-4 rounded border text-sm overflow-x-auto max-h-64">
                     {JSON.stringify(selectedLogEntry.old_data, null, 2)}
                   </pre>
                 </div>
@@ -471,17 +471,17 @@ const AuditLogViewerPage: React.FC = () => {
               
               {selectedLogEntry.new_data && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
+                  <label className="block text-sm font-medium text-surface-muted-fg mb-2">
                     {t('newValues')}
                   </label>
-                  <pre className="bg-gray-50 p-4 rounded border text-sm overflow-x-auto max-h-64">
+                  <pre className="bg-surface-muted p-4 rounded border text-sm overflow-x-auto max-h-64">
                     {JSON.stringify(selectedLogEntry.new_data, null, 2)}
                   </pre>
                 </div>
               )}
               
               {!selectedLogEntry.old_data && !selectedLogEntry.new_data && (
-                <p className="text-gray-500 italic">{t('noDataChanges')}</p>
+                <p className="text-surface-muted-fg italic">{t('noDataChanges')}</p>
               )}
             </div>
           )

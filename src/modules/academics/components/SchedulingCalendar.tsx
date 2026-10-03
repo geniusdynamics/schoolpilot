@@ -186,23 +186,23 @@ const SchedulingCalendar: React.FC = () => {
                     <div key={period.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-center mb-2">
                         <h4 className="font-medium">{period.period_name}</h4>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-surface-muted-fg">
                           {period.start_time} - {period.end_time}
                         </span>
                       </div>
 
                       {periodSchedule.length === 0 ? (
-                        <p className="text-gray-500 text-sm">No exams scheduled</p>
+                        <p className="text-surface-muted-fg text-sm">No exams scheduled</p>
                       ) : (
                         <div className="space-y-2">
                           {periodSchedule.map(schedule => (
-                            <div key={schedule.id} className="bg-gray-50 p-3 rounded">
+                            <div key={schedule.id} className="bg-surface-muted p-3 rounded">
                               <div className="flex justify-between items-start">
                                 <div>
                                   <p className="font-medium">
                                     {getExamSessionName(schedule.exam_session_id ?? '')}
                                   </p>
-                                  <p className="text-sm text-gray-600">
+                                  <p className="text-sm text-surface-muted-fg">
                                     {getClassStreamName(schedule.class_stream_id)}
                                   </p>
                                 </div>

@@ -239,7 +239,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     <div
       ref={menuRef}
       className={cn(
-        'fixed bg-white border border-green-200 rounded-lg shadow-xl z-[9999]',
+        'fixed bg-surface-card border border-green-200 rounded-lg shadow-xl z-[9999]',
         'min-w-[180px] py-1 text-sm'
       )}
       style={{
@@ -267,14 +267,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
             onClick={item.onClick}
             className={cn(
               'w-full px-3 py-2 text-left hover:bg-green-50 transition-colors',
-              'flex items-center gap-3 text-gray-700 hover:text-green-800'
+              'flex items-center gap-3 text-surface-foreground hover:text-green-800'
             )}
             role="menuitem"
           >
             <Icon className="w-4 h-4 text-green-600" />
             <span className="flex-1">{item.label}</span>
             {item.shortcut && (
-              <span className="text-xs text-gray-400">{item.shortcut}</span>
+              <span className="text-xs text-surface-muted-fg">{item.shortcut}</span>
             )}
           </button>
         );
@@ -408,7 +408,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         <div className={cn(
           'w-3 h-3 border-2 rounded-full animate-spin',
           tabStyle === 'modern'
-            ? 'border-gray-300 border-t-gray-600'
+            ? 'border-surface-border border-t-gray-600'
             : 'border-green-300 border-t-green-600'
         )} />
       );
@@ -436,23 +436,23 @@ export const Tab: React.FC<TabProps> = (props) => {
   const getTabStyling = () => {
     if (tabStyle === 'modern') {
       return {
-        base: 'bg-white border-gray-200 text-gray-700',
-        active: 'bg-white border-blue-500 text-blue-800 shadow-sm',
-        inactive: 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-        pinned: 'bg-blue-50 border-blue-200 text-blue-800',
+        base: 'bg-surface-card border-surface-border text-surface-foreground',
+        active: 'bg-surface-card border-primary-500 text-primary-800 shadow-sm',
+        inactive: 'bg-surface-muted border-transparent text-surface-muted-fg hover:bg-surface-accent hover:text-surface-foreground',
+        pinned: 'bg-primary-50 border-primary-200 text-primary-800',
         error: 'bg-red-50 border-red-300',
-        loading: 'bg-blue-50 border-blue-300'
+        loading: 'bg-primary-50 border-primary-300'
       };
     }
     
     // Legacy styling
     return {
       base: 'bg-green-50 border-green-200 text-green-700',
-      active: 'bg-white border-green-500 text-green-800 shadow-sm',
-      inactive: 'bg-green-50 border-transparent text-gray-600 hover:bg-green-100 hover:text-green-700',
+      active: 'bg-surface-card border-green-500 text-green-800 shadow-sm',
+      inactive: 'bg-green-50 border-transparent text-surface-muted-fg hover:bg-green-100 hover:text-green-700',
       pinned: 'bg-green-100 border-green-300 text-green-800',
       error: 'bg-red-50 border-red-300',
-      loading: 'bg-blue-50 border-blue-300'
+      loading: 'bg-primary-50 border-primary-300'
     };
   };
 
@@ -517,8 +517,8 @@ export const Tab: React.FC<TabProps> = (props) => {
             <span className={cn(
               'flex-shrink-0 text-sm',
               isActive 
-                ? (tabStyle === 'modern' ? 'text-blue-600' : 'text-green-600')
-                : (isPinned ? (tabStyle === 'modern' ? 'text-blue-700' : 'text-green-700') : 'text-gray-500')
+                ? (tabStyle === 'modern' ? 'text-primary-600' : 'text-green-600')
+                : (isPinned ? (tabStyle === 'modern' ? 'text-primary-700' : 'text-green-700') : 'text-surface-muted-fg')
             )}>
               {(() => {
                 const IconComponent = getIcon(tab.icon);
@@ -532,8 +532,8 @@ export const Tab: React.FC<TabProps> = (props) => {
             <span className={cn(
               'truncate text-sm font-medium min-w-0',
               isActive 
-                ? (tabStyle === 'modern' ? 'text-blue-800' : 'text-green-800')
-                : 'text-gray-700'
+                ? (tabStyle === 'modern' ? 'text-primary-800' : 'text-green-800')
+                : 'text-surface-foreground'
             )}>
               {tab.title}
             </span>
@@ -561,7 +561,7 @@ export const Tab: React.FC<TabProps> = (props) => {
               }}
               className={cn(
                 'flex-shrink-0 p-0.5 rounded transition-colors ml-1 relative z-10',
-                'text-gray-500 hover:text-red-600',
+                'text-surface-muted-fg hover:text-red-600',
                 tabStyle === 'modern'
                   ? 'hover:bg-gray-200'
                   : 'hover:bg-green-200'
@@ -590,7 +590,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         {isActive && !isPinned && (
           <div className={cn(
             'absolute bottom-0 left-0 right-0 h-0.5',
-            tabStyle === 'modern' ? 'bg-blue-500' : 'bg-green-500'
+            tabStyle === 'modern' ? 'bg-primary-500' : 'bg-green-500'
           )} />
         )}
 
@@ -599,7 +599,7 @@ export const Tab: React.FC<TabProps> = (props) => {
           'absolute inset-0 border-2 border-transparent transition-colors pointer-events-none',
           isPinned ? 'rounded-lg' : 'rounded-t',
           tabStyle === 'modern'
-            ? 'focus-within:border-blue-400 focus-within:shadow-sm'
+            ? 'focus-within:border-primary-400 focus-within:shadow-sm'
             : 'focus-within:border-green-400 focus-within:shadow-sm'
         )} />
       </div>

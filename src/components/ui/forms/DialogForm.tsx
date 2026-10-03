@@ -120,12 +120,11 @@ const DialogForm = forwardRef<DialogFormRef, DialogFormProps>(({
   ...modalProps
 }, ref) => {
   const formRef = useRef<HTMLFormElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
 
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     form: formRef.current,
-    modal: modalRef.current,
+    modal: null,
     submit: () => {
       if (formRef.current) {
         formRef.current.requestSubmit();
@@ -162,10 +161,10 @@ const DialogForm = forwardRef<DialogFormRef, DialogFormProps>(({
       isOpen={isOpen ?? open ?? false}
       footer={footer ?? actions}
       title={title}
+      subtitle={description}
       size={size}
       loading={loading}
       preventClose={preventClose}
-      ref={modalRef}
     >
       <FormContainer
         ref={formRef}
@@ -174,27 +173,24 @@ const DialogForm = forwardRef<DialogFormRef, DialogFormProps>(({
         onSubmit={onSubmit}
         {...formProps}
       >
-        {/* Form Header */}
-        {(title || description || showProgress) && (
+        {/* Progress / auto-save extras. Title & description live in the Modal
+            header — render them here only when not already shown above. */}
+        {(showProgress || stepLabel || autoSaveStatus !== 'idle' || icon || badge) && (
           <FormHeader
-            title={title}
-            description={description}
-            progress={progress}
             showProgress={showProgress}
+            progress={progress}
             stepLabel={stepLabel}
             icon={icon}
             badge={badge}
             autoSaveStatus={autoSaveStatus}
             lastSaved={lastSaved}
+            className="mb-4"
             {...headerProps}
           />
         )}
 
         {/* Form Content */}
-        <div className={`
-          ${paddingStyles[contentPadding]}
-          ${title || description ? 'mt-4' : ''}
-        `}>
+        <div className={paddingStyles[contentPadding]}>
           {children}
         </div>
       </FormContainer>

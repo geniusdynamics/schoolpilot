@@ -208,7 +208,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{value}</span>
+      render: (value, row) => <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">{value}</span>
     },
     { 
       key: 'payment_date', 
@@ -235,7 +235,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
       render: (value, row) => <span className="text-orange-600">{value}</span>
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -267,7 +267,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
           Record Receipt
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Record miscellaneous payments received by the school.
         </p>
         <DataGrid 
@@ -277,7 +277,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ReceiptRefundIcon className="w-12 h-12 text-gray-400" />,
+            icon: <ReceiptRefundIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No general receipts found",
             description: "Start recording miscellaneous payments received by the school from various sources like donations, facility rentals, or other services.",
             action: {
@@ -292,8 +292,8 @@ export const GeneralReceiptsPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.generalPayments}>
-              {loading.generalPayments ? <Spinner size="sm"/> : (editingPayment ? 'Save Changes' : 'Record Receipt')}
+            <Button onClick={handleSubmit} loading={loading.generalPayments}>
+              {editingPayment ? 'Save Changes' : 'Record Receipt'}
             </Button>
           </>
         }
@@ -326,7 +326,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
         </div>
 
         <div className="mt-6">
-            <h4 className="text-md font-semibold text-gray-700 mb-2">Receipt Items</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mb-2">Receipt Items</h4>
             {formData.items.map((item, index) => (
                 <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 mb-3 p-3 border rounded-md items-end">
                     <Input 

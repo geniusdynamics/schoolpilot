@@ -122,7 +122,7 @@ const AcademicModuleStatus: React.FC = () => {
       case 'high': return 'bg-red-100 text-red-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-surface-accent text-surface-foreground';
     }
   };
 
@@ -143,37 +143,37 @@ const AcademicModuleStatus: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Overall Status Card */}
-      <Card title="Academic Module Implementation Status" className="bg-gradient-to-r from-blue-50 to-indigo-50">
+      <Card title="Academic Module Implementation Status" className="bg-gradient-to-r from-primary-50 to-indigo-50">
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">{implementedPages}/{totalPages}</div>
-              <div className="text-sm text-gray-600">Pages Implemented</div>
+              <div className="text-3xl font-bold text-primary-600">{implementedPages}/{totalPages}</div>
+              <div className="text-sm text-surface-muted-fg">Pages Implemented</div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full" 
+                  className="bg-primary-600 h-2 rounded-full" 
                   style={{ width: `${(implementedPages / totalPages) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">{Object.keys(dataStatus).length}</div>
-              <div className="text-sm text-gray-600">Data Categories</div>
+              <div className="text-sm text-surface-muted-fg">Data Categories</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-600">
                 {Object.values(dataStatus).reduce((sum: number, count: unknown) => sum + (count as number), 0)}
               </div>
-              <div className="text-sm text-gray-600">Total Records</div>
+              <div className="text-sm text-surface-muted-fg">Total Records</div>
             </div>
           </div>
 
           {/* Data Status Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {Object.entries(dataStatus).map(([key, count]) => (
-              <div key={key} className="bg-white p-3 rounded-lg shadow-sm border">
-                <div className="text-lg font-semibold text-gray-700">{count}</div>
-                <div className="text-xs text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
+              <div key={key} className="bg-surface-card p-3 rounded-lg shadow-sm border">
+                <div className="text-lg font-semibold text-surface-foreground">{count}</div>
+                <div className="text-xs text-surface-muted-fg capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
               </div>
             ))}
           </div>
@@ -185,21 +185,21 @@ const AcademicModuleStatus: React.FC = () => {
         <Card key={section.id} title={section.name} className="shadow-md">
           <div className="p-6">
             <div className="flex items-center mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <div className="p-2 bg-primary-100 rounded-lg mr-3">
                 {section.icon}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">{section.name}</h3>
-                <p className="text-sm text-gray-600">{section.description}</p>
+                <h3 className="text-lg font-semibold text-surface-foreground">{section.name}</h3>
+                <p className="text-sm text-surface-muted-fg">{section.description}</p>
               </div>
             </div>
 
             <div className="space-y-2">
               {section.pages.map((page, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-surface-muted rounded-lg">
                   <div className="flex items-center">
                     {getStatusIcon(page.implemented)}
-                    <span className="ml-3 font-medium text-gray-700">{page.name}</span>
+                    <span className="ml-3 font-medium text-surface-foreground">{page.name}</span>
                     <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(page.priority)}`}>
                       {page.priority}
                     </span>

@@ -1,5 +1,5 @@
-// ABOUTME: Test suite for Input component glow effects
-// ABOUTME: Tests that glow CSS classes are applied correctly
+// ABOUTME: Test suite for Input component focus/state treatments
+// ABOUTME: Verifies the tokenized focus rings and status-state styling
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -12,55 +12,56 @@ vi.mock('../utils/animations', () => ({
   useTransition: () => ({}),
 }));
 
-describe('Input Glow Effects', () => {
-  it('applies glow-focus class when focused', async () => {
+describe('Input Focus & State Effects', () => {
+  it('applies the primary accent focus treatment', async () => {
     const user = userEvent.setup();
     render(<Input label="Test Input" />);
-    
+
     const input = screen.getByLabelText('Test Input');
     await user.click(input);
-    
-    // Check that the input has glow-focus class applied
-    expect(input).toHaveClass('glow-focus');
+
+    // Focus styling is CSS-driven via ring utilities
+    expect(input).toHaveClass('focus:border-primary-500');
+    expect(input).toHaveClass('focus:ring-4');
+    expect(input).toHaveClass('focus:ring-primary-500/15');
   });
 
-  it('applies glow-error class when focused with error', async () => {
+  it('applies error state styling', async () => {
     const user = userEvent.setup();
     render(<Input label="Test Input" error="Test error" />);
-    
+
     const input = screen.getByLabelText('Test Input');
+    expect(input).toHaveClass('border-red-400');
+    expect(input).toHaveClass('focus:ring-red-500/15');
+
     await user.click(input);
-    
-    // Check that the input has glow-error class applied
-    expect(input).toHaveClass('glow-error');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('applies glow-success class when focused with success', async () => {
+  it('applies success state styling', async () => {
     const user = userEvent.setup();
     render(<Input label="Test Input" success={true} />);
-    
+
     const input = screen.getByLabelText('Test Input');
-    await user.click(input);
-    
-    // Check that the input has glow-success class applied
-    expect(input).toHaveClass('glow-success');
+    expect(input).toHaveClass('border-green-400');
+    expect(input).toHaveClass('focus:ring-green-500/15');
   });
 
-  it('applies glow-pulse class when loading', () => {
+  it('disables interaction while loading and shows a spinner', () => {
     render(<Input label="Test Input" loading={true} />);
-    
+
     const input = screen.getByLabelText('Test Input');
-    
-    // Check that the input has glow-pulse class applied
-    expect(input).toHaveClass('glow-pulse');
+    expect(input).toBeDisabled();
+
+    // Loading adornment (spinner) is rendered inside the control row
+    const spinner = input.parentElement?.querySelector('.animate-spin');
+    expect(spinner).toBeInTheDocument();
   });
 
-  it('applies hover:glow-subtle class for hover effects', () => {
+  it('applies hover border treatment', () => {
     render(<Input label="Test Input" />);
-    
+
     const input = screen.getByLabelText('Test Input');
-    
-    // Check that the input has hover:glow-subtle class applied
-    expect(input).toHaveClass('hover:glow-subtle');
+    expect(input).toHaveClass('hover:border-surface-input-hover');
   });
 });
