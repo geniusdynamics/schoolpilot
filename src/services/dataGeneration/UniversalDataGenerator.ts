@@ -85,8 +85,10 @@ export class UniversalDataGenerator {
       this.adapter = await AdapterFactory.createAdapter(this.config.storageType);
       await this.adapter.initialize();
       
-      // Initialize relationship manager
-      this.relationshipManager = new RelationshipManager();
+      // Initialize relationship manager WITH the adapter so FK validation can
+      // resolve referenced rows against generated data (without it, every
+      // validateRelationships check failed and validateData was useless).
+      this.relationshipManager = new RelationshipManager(this.adapter);
       
       if (this.config.logProgress) {
         logger.info(`Universal Data Generator initialized with ${this.config.storageType} storage`);

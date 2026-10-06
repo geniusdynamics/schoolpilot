@@ -1,12 +1,18 @@
 // ABOUTME: This test file covers StudentExamResultsEntryPage loading and save behavior.
 // ABOUTME: It verifies the page reads live session paper settings and persists marks through AppDataContext.
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import StudentExamResultsEntryPage from '../StudentExamResultsEntryPage';
 import { AppDataContext } from '@/contexts/AppDataContext';
+import { ToastProvider } from '@/hooks/useToast';
 import { ExamSessionStatus } from '@/modules/academics/data/types';
+
+// This file imports RTL's render directly (bypassing the global provider
+// wrapper in setup.ts); the page calls useToast(), so wrap every render here.
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<ToastProvider>{ui}</ToastProvider>, options);
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -79,7 +85,6 @@ const renderPage = (contextOverrides: Record<string, unknown> = {}) => render(
 describe('StudentExamResultsEntryPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(window, 'alert').mockImplementation(() => undefined);
   });
 
   it('saves entered marks through saveStudentExamResult using live session papers', async () => {
@@ -139,7 +144,10 @@ describe('StudentExamResultsEntryPage', () => {
 
     await waitFor(() => {
       expect(mockSaveStudentExamResult).not.toHaveBeenCalled();
-      expect(window.alert).toHaveBeenCalled();
+      // Out-of-range marks are blocked with a warning toast (not window.alert)
+      expect(
+        screen.getByText('Score for Jane Doe in Paper 1 must be between 0 and 100.')
+      ).toBeInTheDocument();
     });
   }, 10000);
 });

@@ -148,15 +148,17 @@ describe('DataGrid Table Rendering - Various Data States', () => {
     });
 
     it('displays default empty state when no custom empty state is provided', () => {
-      render(
+      const { container } = render(
         <DataGrid
           columns={moduleColumns}
           data={[]}
         />
       );
 
+      // Default empty state: "No data available" plus a table icon (the
+      // former emoji placeholder was replaced by a proper icon)
       expect(screen.getByText('No data available')).toBeInTheDocument();
-      expect(screen.getByText('ðŸ“Š')).toBeInTheDocument();
+      expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
     it('renders table headers even when data is empty', () => {
@@ -436,9 +438,9 @@ describe('DataGrid Table Rendering - Various Data States', () => {
         expect(screen.getByText('Incomplete Module 1')).toBeInTheDocument();
       });
 
-      // Should have warnings for missing fields (this is expected behavior)
-      expect(consoleWarnSpy).toHaveBeenCalled();
-      // But should not have any render errors
+      // Missing fields render gracefully without warnings (placeholders, no noise)
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      // And without any render errors
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
@@ -467,8 +469,8 @@ describe('DataGrid Table Rendering - Various Data States', () => {
         expect(screen.getByText('Test Module')).toBeInTheDocument();
       });
 
-      // Should warn about missing data but not crash
-      expect(consoleWarnSpy).toHaveBeenCalled();
+      // Null/undefined values render as placeholders without warnings or crashes
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 

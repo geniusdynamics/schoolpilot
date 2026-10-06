@@ -28,10 +28,14 @@ export class MockAdapter extends BaseStorageAdapter {
     logger.info(`Created mock table: ${tableName}`);
   }
 
-  async insertBatch(tableName: string, data: any[]): Promise<void> {
+  async insertBatch(tableName: string, data: any[] | any): Promise<void> {
     this.validateInitialization();
     
-    if (!data || !data.length) return;
+    // Callers may pass a single record object (generateModuleData does) —
+    // normalize before the length guard, otherwise the insert is silently
+    // skipped and generated data never reaches storage.
+    const rows = Array.isArray(data) ? data : [data];
+    if (!rows || !rows.length) return;
 
     let table = this.tables.get(tableName);
     if (!table) {
@@ -40,7 +44,7 @@ export class MockAdapter extends BaseStorageAdapter {
     }
 
     // Add timestamps and ensure IDs
-    const processedData = data.map(record => ({
+    const processedData = rows.map(record => ({
       ...record,
       id: record.id || this.generateId(),
       created_at: record.created_at || new Date().toISOString(),
@@ -48,8 +52,8 @@ export class MockAdapter extends BaseStorageAdapter {
     }));
 
     table.push(...processedData);
-    
-    logger.info(`Inserted ${data.length} records into mock table ${tableName}`);
+
+    logger.info(`Inserted ${processedData.length} records into mock table ${tableName}`);
   }
 
   async query(sql: string, params: any[] = []): Promise<any[]> {
@@ -72,21 +76,31 @@ export class MockAdapter extends BaseStorageAdapter {
           return conditions.every(condition => {
             const { field, operator, value } = condition;
             const recordValue = record[field];
-            
+
+            // SQL literals arrive as strings; coerce to the record value's type
+            // so WHERE grade = 10 matches numeric columns and active = 1
+            // matches boolean columns.
+            let coerced = value;
+            if (typeof recordValue === 'number' && value !== null && value !== '' && !isNaN(Number(value))) {
+              coerced = Number(value);
+            } else if (typeof recordValue === 'boolean') {
+              coerced = value === 'true' || Number(value) === 1;
+            }
+
             switch (operator) {
               case '=':
-                return recordValue === value;
+                return recordValue === coerced;
               case '!=':
               case '<>':
-                return recordValue !== value;
+                return recordValue !== coerced;
               case '>':
-                return recordValue > value;
+                return recordValue > coerced;
               case '<':
-                return recordValue < value;
+                return recordValue < coerced;
               case '>=':
-                return recordValue >= value;
+                return recordValue >= coerced;
               case '<=':
-                return recordValue <= value;
+                return recordValue <= coerced;
               case 'LIKE':
                 return String(recordValue).toLowerCase().includes(String(value).toLowerCase().replace('%', ''));
               case 'IN':
@@ -135,9 +149,14 @@ export class MockAdapter extends BaseStorageAdapter {
     logger.info(`Cleared mock table: ${tableName}`);
   }
 
-  getTableStats(): Record<string, { count: number; schema: boolean }> {
+  getTableStats(tableName?: string): Record<string, { count: number; schema: boolean }> | { tableName: string; rowCount: number; schema: boolean } {
+    if (tableName) {
+      const rows = this.tables.get(tableName) ?? [];
+      return { tableName, rowCount: rows.length, schema: this.schemas.has(tableName) };
+    }
+
     const stats: Record<string, { count: number; schema: boolean }> = {};
-    
+
     for (const [tableName, data] of Array.from(this.tables.entries())) {
       stats[tableName] = {
         count: data.length,

@@ -118,14 +118,16 @@ describe('Database Configuration Integration', () => {
   });
 
   describe('Configuration Persistence', () => {
-    it('should persist configuration changes across sessions', () => {
+    it('should persist configuration changes across sessions', async () => {
       // Update configuration
       updateDatabaseConfig({
         performance: { cacheSize: 250 },
       });
 
-      // Simulate app restart by creating new manager instance
+      // Simulate app restart by creating new manager instance; init() is the
+      // async startup path that hydrates the config from localStorage.
       const newManager = new (unifiedConfigManager.constructor as any)();
+      await newManager.init();
       const config = newManager.getDatabaseConfig();
 
       expect(config.performance.cacheSize).toBe(250);

@@ -6,7 +6,7 @@ import { logger } from '@/utils/logging';
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { Tab, TabState, TabStore, TabContent } from '@/types/tabbedWorkspace';
 
@@ -855,7 +855,12 @@ export const useTabStore = create<TabStoreState>()
     })),
     {
       name: 'tabbed-workspace-storage',
-      storage: tabPersistenceAdapter, // Using TabPersistenceService for enhanced persistence
+      // tabPersistenceAdapter implements the string-based StateStorage interface
+      // (it JSON-parses/stringifies itself), so it must be wrapped with
+      // createJSONStorage. Without this, zustand v5 persist hands the raw
+      // { state, version } object to adapter.setItem and its JSON.parse throws,
+      // silently disabling all tab persistence.
+      storage: createJSONStorage(() => tabPersistenceAdapter),
       partialize: (state) => ({
         tabs: state.tabs,
         pinnedTabs: state.pinnedTabs,

@@ -122,8 +122,12 @@ describe('FeeAdjustmentsPage', () => {
   });
 
   test('handles loading state correctly', () => {
+    // The page only shows the loading screen on first load, while the
+    // collections have not been populated yet (see isLoadingData guard).
     const loadingContext = {
       ...mockContextValue,
+      feeAdjustments: undefined,
+      students: undefined,
       loading: {
         ...mockContextValue.loading,
         feeAdjustments: true

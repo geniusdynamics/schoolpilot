@@ -1,201 +1,156 @@
 // ABOUTME: Unit tests for deprecated navigation filtering functionality
-// ABOUTME: Tests moduleRegistry.getNavigationItems() filtering and empty group pruning
+// ABOUTME: The filtering contract now lives in useSecondarySidebar()'s subMenus
+// ABOUTME: memo (the former moduleRegistry.getNavigationItems() API was removed).
+// ABOUTME: Deprecated items must be hidden, empty groups pruned to no children,
+// ABOUTME: and active items preserved.
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { moduleRegistry } from '../../core/moduleRegistry';
 
-import { moduleConfigService } from '../../services/module/moduleConfigService';
-import type { ModuleDefinition } from '@/core/types';
+// The hook under test consumes several data hooks; mock their data sources and
+// render the hook through the global renderHook (which setup.ts wraps in
+// ToastProvider + FullWidthProvider — useFullWidth needs the latter).
+vi.mock('../../hooks/useDynamicNavigation', () => ({
+  useDynamicNavigation: () => ({
+    navigationItems: navFixture,
+    isLoading: false
+  })
+}));
 
-// Mock the moduleConfigService
-vi.mock('../../services/module/moduleConfigService', () => ({
-  moduleConfigService: {
-    enableModule: vi.fn(() => true),
-    disableModule: vi.fn(() => true),
-    isModuleEnabled: vi.fn(() => true),
-    getEnabledModules: vi.fn(() => [])
+vi.mock('../../hooks/useRBAC', () => ({
+  useRBAC: () => ({
+    accessibleModules: ['testmodule', 'mixed', 'deprecatedonly', 'nonav', 'emptyafterfilter'],
+    hasModuleAccess: vi.fn(() => true)
+  })
+}));
+
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'u1' }
+  })
+}));
+
+vi.mock('../../hooks/useTabNavigation', () => ({
+  useTabNavigation: () => ({
+    navigateToTab: vi.fn().mockResolvedValue({ tabId: 't1', wasCreated: true })
+  })
+}));
+
+vi.mock('../../hooks/useToast', () => ({
+  useToastHelpers: () => ({
+    showInfo: vi.fn(),
+    showError: vi.fn(),
+    showWarning: vi.fn()
+  })
+}));
+
+vi.mock('../../hooks/useFavorites', () => ({
+  useFavorites: () => ({
+    favorites: [],
+    reorderFavorites: vi.fn()
+  })
+}));
+
+let navFixture: any[] = [];
+
+import { useSecondarySidebar } from '../../hooks/useSecondarySidebar';
+
+const buildFixture = (children: any[]) => ([
+  {
+    id: 'testModule',
+    name: 'navigation:testModule.title',
+    modulePath: '/testModule',
+    path: '/testModule',
+    isGroup: true,
+    children
   }
-}));
+]);
 
-// Mock MODULE_ORDER
-vi.mock('../../moduleOrder', () => ({
-  MODULE_ORDER: ['dashboard', 'settings', 'testModule', 'academics']
-}));
+const renderHookWithProviders = (selectedModuleKey: string) =>
+  // Global renderHook is provider-wrapped by src/tests/setup.ts
+  renderHook(() => useSecondarySidebar({
+    selectedModuleKey,
+    isOpen: true,
+    onClose: vi.fn()
+  }));
 
 describe('Deprecated Navigation Filtering', () => {
   beforeEach(() => {
-    // Clear all registered modules before each test
-    const modules = moduleRegistry.getAllModules();
-    modules.forEach(module => moduleRegistry.unregisterModule(module.id));
-    
-    // Reset all mocks
     vi.clearAllMocks();
+    navFixture = [];
   });
 
-  it('should filter out deprecated nav items from module navigation', () => {
-    // Setup mock for moduleConfigService
-    vi.mocked(moduleConfigService.isModuleEnabled).mockReturnValue(true);
-
-    // Register test module with mixed deprecated and active nav items
-    const testModule: ModuleDefinition = {
-      id: 'testModule',
-      name: 'Test Module',
-      description: 'Test module with deprecated items',
-      icon: 'TestIcon',
-      path: '/test',
-      isActive: true,
-      version: '1.0.0',
-      navigation: [
-        { name: 'Active Item 1', path: '/test/active1', icon: 'Icon1', page: 'ActivePage1' },
-        { name: 'Deprecated Item 1', path: '/test/deprecated1', icon: 'Icon2', page: 'DeprecatedPage1', deprecated: true },
-        { name: 'Active Item 2', path: '/test/active2', icon: 'Icon3', page: 'ActivePage2' },
-        { name: 'Deprecated Item 2', path: '/test/deprecated2', icon: 'Icon4', page: 'DeprecatedPage2', deprecated: true }
-      ]
-    };
-
-    moduleRegistry.registerModule(testModule);
-    const navigationItems = moduleRegistry.getNavigationItems();
-
-    // Find the test module nav item
-    const testModuleNav = navigationItems.find(item => item.name === 'Test Module');
-    expect(testModuleNav).toBeDefined();
-    
-    // Check that deprecated items are filtered out
-    expect(testModuleNav!.children).toHaveLength(2);
-    expect(testModuleNav!.children!.map(child => child.name)).toEqual([
-      'Active Item 1',
-      'Active Item 2'
+  it('filters out deprecated nav items from module navigation', () => {
+    navFixture = buildFixture([
+      { name: 'Active Item 1', path: '/testModule/active1', id: 'active1' },
+      { name: 'Deprecated Item 1', path: '/testModule/deprecated1', id: 'deprecated1', deprecated: true },
+      { name: 'Active Item 2', path: '/testModule/active2', id: 'active2' },
+      { name: 'Deprecated Item 2', path: '/testModule/deprecated2', id: 'deprecated2', deprecated: true }
     ]);
-    
-    // Ensure deprecated items are not present
-    const childNames = testModuleNav!.children!.map(child => child.name);
-    expect(childNames).not.toContain('Deprecated Item 1');
-    expect(childNames).not.toContain('Deprecated Item 2');
+
+    const { result } = renderHookWithProviders('testModule');
+
+    const names = result.current.subMenus.map(item => item.name);
+    expect(names).toEqual(['Active Item 1', 'Active Item 2']);
+    expect(names).not.toContain('Deprecated Item 1');
+    expect(names).not.toContain('Deprecated Item 2');
   });
 
-  it('should prune modules that have no active nav items after filtering', () => {
-    // Setup mock for moduleConfigService
-    vi.mocked(moduleConfigService.isModuleEnabled).mockReturnValue(true);
+  it('prunes modules that have no active nav items after filtering', () => {
+    navFixture = buildFixture([
+      { name: 'Deprecated Item 1', path: '/testModule/item1', id: 'item1', deprecated: true },
+      { name: 'Deprecated Item 2', path: '/testModule/item2', id: 'item2', deprecated: true }
+    ]);
 
-    // Register module with only deprecated nav items
-    const deprecatedOnlyModule: ModuleDefinition = {
-      id: 'deprecatedOnly',
-      name: 'Deprecated Only Module',
-      description: 'Module with only deprecated items',
-      icon: 'DeprecatedIcon',
-      path: '/deprecated-only',
-      isActive: true,
-      version: '1.0.0',
-      navigation: [
-        { name: 'Deprecated Item 1', path: '/deprecated-only/item1', icon: 'Icon1', page: 'DeprecatedPage1', deprecated: true },
-        { name: 'Deprecated Item 2', path: '/deprecated-only/item2', icon: 'Icon2', page: 'DeprecatedPage2', deprecated: true }
-      ]
-    };
+    const { result } = renderHookWithProviders('testModule');
 
-    // Register module with active nav items
-    const activeModule: ModuleDefinition = {
-      id: 'activeModule',
-      name: 'Active Module',
-      description: 'Module with active items',
-      icon: 'ActiveIcon',
-      path: '/active',
-      isActive: true,
-      version: '1.0.0',
-      navigation: [
-        { name: 'Active Item', path: '/active/item', icon: 'Icon', page: 'ActivePage' }
-      ]
-    };
-
-    moduleRegistry.registerModule(deprecatedOnlyModule);
-    moduleRegistry.registerModule(activeModule);
-
-    const navigationItems = moduleRegistry.getNavigationItems();
-
-    // Check that deprecated-only module is pruned from navigation
-    const moduleNames = navigationItems.map(item => item.name);
-    expect(moduleNames).not.toContain('Deprecated Only Module');
-    expect(moduleNames).toContain('Active Module');
+    // A module whose items are all deprecated yields an empty submenu
+    expect(result.current.subMenus).toEqual([]);
   });
 
-  it('should handle modules with no navigation items gracefully', () => {
-    // Setup mock for moduleConfigService
-    vi.mocked(moduleConfigService.isModuleEnabled).mockReturnValue(true);
+  it('handles modules with no navigation items gracefully', () => {
+    navFixture = buildFixture([]);
 
-    // Register module with no navigation
-    const noNavModule: ModuleDefinition = {
-      id: 'noNav',
-      name: 'No Navigation Module',
-      description: 'Module without navigation',
-      icon: 'NoNavIcon',
-      path: '/no-nav',
-      isActive: true,
-      version: '1.0.0'
-      // No navigation property
-    };
+    const { result } = renderHookWithProviders('testModule');
 
-    moduleRegistry.registerModule(noNavModule);
-    const navigationItems = moduleRegistry.getNavigationItems();
-
-    // Should include module but with empty children
-    const noNavItem = navigationItems.find(item => item.name === 'No Navigation Module');
-    expect(noNavItem).toBeDefined();
-    expect(noNavItem!.children).toEqual([]);
+    expect(result.current.subMenus).toEqual([]);
   });
 
-  it('should preserve non-deprecated items while filtering deprecated ones', () => {
-    // Setup mock for moduleConfigService
-    vi.mocked(moduleConfigService.isModuleEnabled).mockReturnValue(true);
+  it('preserves non-deprecated items while filtering deprecated ones', () => {
+    navFixture = buildFixture([
+      { name: 'First Active', path: '/testModule/first', id: 'first' },
+      { name: 'First Deprecated', path: '/testModule/deprecated1', id: 'deprecated1', deprecated: true },
+      { name: 'Second Active', path: '/testModule/second', id: 'second' },
+      { name: 'Second Deprecated', path: '/testModule/deprecated2', id: 'deprecated2', deprecated: true },
+      { name: 'Third Active', path: '/testModule/third', id: 'third' }
+    ]);
 
-    const mixedModule: ModuleDefinition = {
-      id: 'mixed',
-      name: 'Mixed Module',
-      description: 'Module with mixed items',
-      icon: 'MixedIcon',
-      path: '/mixed',
-      isActive: true,
-      version: '1.0.0',
-      navigation: [
-        { name: 'First Active', path: '/mixed/first', icon: 'Icon1', page: 'FirstPage' },
-        { name: 'First Deprecated', path: '/mixed/deprecated1', icon: 'Icon2', page: 'DeprecatedPage1', deprecated: true },
-        { name: 'Second Active', path: '/mixed/second', icon: 'Icon3', page: 'SecondPage' },
-        { name: 'Second Deprecated', path: '/mixed/deprecated2', icon: 'Icon4', page: 'DeprecatedPage2', deprecated: true },
-        { name: 'Third Active', path: '/mixed/third', icon: 'Icon5', page: 'ThirdPage' }
-      ]
-    };
+    const { result } = renderHookWithProviders('testModule');
 
-    moduleRegistry.registerModule(mixedModule);
-    const navigationItems = moduleRegistry.getNavigationItems();
-
-    const mixedItem = navigationItems.find(item => item.name === 'Mixed Module');
-    expect(mixedItem).toBeDefined();
-    expect(mixedItem!.children).toHaveLength(3);
-    
-    const childNames = mixedItem!.children!.map(child => child.name);
-    expect(childNames).toEqual(['First Active', 'Second Active', 'Third Active']);
+    expect(result.current.subMenus.map(item => item.name)).toEqual([
+      'First Active',
+      'Second Active',
+      'Third Active'
+    ]);
   });
 
-  it('should handle empty navigation arrays after filtering', () => {
-    // Setup mock for moduleConfigService
-    vi.mocked(moduleConfigService.isModuleEnabled).mockReturnValue(true);
+  it('handles empty navigation arrays after filtering', () => {
+    navFixture = buildFixture([
+      { name: 'Only Deprecated', path: '/testModule/deprecated', id: 'deprecated', deprecated: true }
+    ]);
 
-    const emptyAfterFilterModule: ModuleDefinition = {
-      id: 'emptyAfterFilter',
-      name: 'Empty After Filter',
-      description: 'Module that becomes empty after filtering',
-      icon: 'EmptyIcon', 
-      path: '/empty-after-filter',
-      isActive: true,
-      version: '1.0.0',
-      navigation: [
-        { name: 'Only Deprecated', path: '/empty/deprecated', icon: 'Icon', page: 'DeprecatedPage', deprecated: true }
-      ]
-    };
+    const { result } = renderHookWithProviders('testModule');
 
-    moduleRegistry.registerModule(emptyAfterFilterModule);
-    const navigationItems = moduleRegistry.getNavigationItems();
+    expect(result.current.subMenus).toEqual([]);
+  });
 
-    // Module should be pruned since no active children remain
-    const moduleNames = navigationItems.map(item => item.name);
-    expect(moduleNames).not.toContain('Empty After Filter');
+  it('deduplicates items that share the same path', () => {
+    navFixture = buildFixture([
+      { name: 'First', path: '/testModule/dup', id: 'dup-1' },
+      { name: 'Second', path: '/testModule/dup', id: 'dup-2' }
+    ]);
+
+    const { result } = renderHookWithProviders('testModule');
+
+    expect(result.current.subMenus.map(item => item.name)).toEqual(['First']);
   });
 });

@@ -9,6 +9,11 @@ export abstract class BaseStorageAdapter implements IStorageAdapter {
   protected relationships: RelationshipDefinition[] = [];
   protected initialized = false;
 
+  /** Public read access for tests and health checks. */
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
   abstract initialize(): Promise<void>;
   abstract createSchema(tableName: string, schema: string): Promise<void>;
   abstract insertBatch(tableName: string, data: any[]): Promise<void>;

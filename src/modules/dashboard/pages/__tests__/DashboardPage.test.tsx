@@ -1,7 +1,14 @@
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DashboardPage from '../DashboardPage';
+import { FullWidthProvider } from '@/contexts/FullWidthContext';
+
+// This file imports RTL's render directly, bypassing the global provider
+// wrapper in setup.ts. The page's PageContainer calls useFullWidth(), so wrap
+// every render here (single-point wrapper pattern).
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<FullWidthProvider>{ui}</FullWidthProvider>, options);
 
 const mockNavigate = vi.fn();
 const mockHasPermission = vi.fn();

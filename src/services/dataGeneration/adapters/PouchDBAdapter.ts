@@ -49,10 +49,11 @@ export class PouchDBAdapter extends BaseStorageAdapter {
     }
   }
 
-  async insertBatch(tableName: string, data: any[]): Promise<void> {
+  async insertBatch(tableName: string, data: any[] | any): Promise<void> {
     this.validateInitialization();
-    
-    if (!data.length) return;
+
+    const rows = Array.isArray(data) ? data : [data];
+    if (!rows.length) return;
 
     const db = this.databases.get(tableName);
     if (!db) {
@@ -61,7 +62,7 @@ export class PouchDBAdapter extends BaseStorageAdapter {
 
     try {
       // Convert relational data to documents
-      const documents = data.map(record => ({
+      const documents = rows.map(record => ({
         _id: record.id || this.generateId(),
         type: tableName,
         ...record,
@@ -79,7 +80,7 @@ export class PouchDBAdapter extends BaseStorageAdapter {
         await this.handleConflicts(db, conflicts, documents);
       }
       
-      logger.info(`Inserted ${data.length} documents into ${tableName}`);
+      logger.info(`Inserted ${rows.length} documents into ${tableName}`);
     } catch (error) {
       logger.error(`Failed to insert batch into ${tableName}:`, error);
       throw error;

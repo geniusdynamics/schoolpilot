@@ -176,7 +176,10 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
   
   const isLoadingData = loading.feeAdjustments || loading.students || loading.schoolPeriods;
 
-  if (isLoadingData && !isModalOpen && !feeAdjustments && !students) {
+  // NOTE: feeAdjustments/students are coerced to arrays above, so a truthiness
+  // check here could never pass; compare lengths so the first-load spinner
+  // actually renders while the collections are still empty.
+  if (isLoadingData && !isModalOpen && feeAdjustments.length === 0 && students.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" /> <span className="ml-2">Loading Fee Adjustments...</span>

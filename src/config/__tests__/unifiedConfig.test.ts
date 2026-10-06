@@ -362,7 +362,7 @@ describe('Configuration Persistence', () => {
     expect(parsed.database.performance.cacheSize).toBe(250);
   });
 
-  it('should load configuration from localStorage on initialization', () => {
+  it('should load configuration from localStorage on initialization', async () => {
     // Set up localStorage with configuration
     const config = {
       database: {
@@ -372,8 +372,10 @@ describe('Configuration Persistence', () => {
 
     localStorage.setItem('unified_app_config', JSON.stringify(config));
 
-    // Create new manager instance (simulates app restart)
+    // Create new manager instance (simulates app restart); init() is the async
+    // startup path that hydrates the config from localStorage.
     const newManager = new (UnifiedConfigManager as any)();
+    await newManager.init();
     const dbConfig = newManager.getDatabaseConfig();
 
     expect(dbConfig.performance.cacheSize).toBe(350);

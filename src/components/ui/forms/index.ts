@@ -9,6 +9,8 @@ export { default as TabbedForm } from './TabbedForm';
 export type { TabbedFormProps, FormTab } from './TabbedForm';
 
 export { default as DatePicker } from './DatePicker';
+export { default as DateField } from './DateField';
+export type { DateFieldProps } from './DateField';
 
 // New foundation components
 export { default as FormContainer } from './FormContainer';

@@ -2,6 +2,22 @@
 // ABOUTME: Verifies that persistence adapter works correctly with Zustand store
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// The global IndexedDB stub in src/tests/setup.ts returns a request object
+// whose callbacks never fire, so TabPersistenceService.isIndexedDBAvailable()
+// never resolves and every service call (clearTabs/saveTabs/loadTabs) hangs
+// until the 20s hook/test timeout. Force the service onto its localStorage
+// backend. This must run before the imports below: importing tabStore starts
+// zustand persist rehydration, which is the first code path that initializes
+// the persistence service.
+vi.hoisted(() => {
+  Object.defineProperty(window, 'indexedDB', {
+    configurable: true,
+    writable: true,
+    value: undefined,
+  });
+});
+
 import { useTabStore } from '../tabStore';
 import { tabPersistenceService } from '@/services/tabs/TabPersistenceService';
 
@@ -117,9 +133,10 @@ describe('Tab Persistence Integration', () => {
       metadata: {}
     });
 
-    // Tab should still be created in memory
+    // Tab should still be created in memory (createTab replaces the zustand
+    // state object, so re-read fresh state instead of the pre-creation snapshot)
     expect(tabId).toBeDefined();
-    expect(store.tabs).toHaveLength(1);
+    expect(useTabStore.getState().tabs.find((tab) => tab.id === tabId)).toBeDefined();
 
     // Restore original function
     vi.restoreAllMocks();
@@ -147,6 +164,13 @@ describe('Tab Persistence Integration', () => {
   it('should enforce max tabs limit using validation service', async () => {
     const store = useTabStore.getState();
     store.initializeStore({ maxTabs: 2 });
+    // Simulate an existing (empty) persisted session so store.initialize()
+    // does not inject its default Dashboard tab, which would count against
+    // the maxTabs limit.
+    localStorage.setItem(
+      'tabbed-workspace-storage',
+      JSON.stringify({ state: { tabs: [] }, version: 0 })
+    );
     await store.initialize();
 
     // Create max tabs

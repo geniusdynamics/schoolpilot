@@ -31,6 +31,9 @@ export class AdministrationGenerator extends BaseGenerator {
 
     const studentData = await this.generateStudents(studentCount);
     results.push(...studentData);
+    const emittedStudentIds = studentData
+      .filter((item: any) => item.table === 'students')
+      .map((item: any) => item.data.id);
     
     const staffData = await this.generateStaff(staffCount);
     results.push(...staffData);
@@ -47,6 +50,24 @@ export class AdministrationGenerator extends BaseGenerator {
     const departmentsData = await this.generateDepartmentsData();
     results.push(...departmentsData);
     
+    // Emit designations from the SHARED supporting list — staff rows reference
+    // these ids; re-generating fresh ids here broke every staff → designation FK.
+    const designationsData = this.designations.map((desig) => ({
+      table: 'designations',
+      data: {
+        id: desig.id,
+        title: desig.title,
+        description: desig.description,
+        grade: desig.grade,
+        basic_salary: desig.basic_salary,
+        allowances: desig.allowances,
+        is_teaching: desig.is_teaching,
+        created_at: desig.created_at,
+        updated_at: desig.updated_at
+      }
+    }));
+    results.push(...designationsData);
+
     // Generate roles data
     const rolesData = await this.generateRoles();
     results.push(...rolesData);
@@ -61,10 +82,10 @@ export class AdministrationGenerator extends BaseGenerator {
     const schoolPeriodsData = await this.generateSchoolPeriods();
     results.push(...schoolPeriodsData);
 
-    const certificatesData = await this.generateCertificates(Math.max(10, Math.floor(count * 0.1)));
+    const certificatesData = await this.generateCertificates(Math.max(10, Math.floor(count * 0.1)), emittedStudentIds);
     results.push(...certificatesData);
 
-    const gatePassesData = await this.generateGatePasses(50);
+    const gatePassesData = await this.generateGatePasses(50, emittedStudentIds);
     results.push(...gatePassesData);
     
     return results;
@@ -176,19 +197,21 @@ export class AdministrationGenerator extends BaseGenerator {
     
     for (let i = 0; i < this.departments.length; i++) {
       const dept = this.departments[i];
+      // Emit the SAME department records that staff rows reference —
+      // re-generating fresh ids here broke every staff → department FK.
       const departmentData = {
-        id: this.generateId('department', i),
+        id: dept.id,
         name: dept.name,
-        code: dept.code,
+        code: dept.name,
         description: dept.description,
-        head_of_department_id: this.generateId('staff', this.randomInt(0, 99)),
-        budget_allocation: this.randomInt(50000, 500000),
+        head_of_department_id: null, // assigned after staff generation (kept FK-safe)
+        budget_allocation: dept.budget_allocation,
         staff_count: this.randomInt(5, 20),
-        is_active: true,
-        created_at: this.generateTimestamp(365),
-        updated_at: this.generateTimestamp(30)
+        is_active: dept.is_active,
+        created_at: dept.created_at,
+        updated_at: dept.updated_at
       };
-      
+
       results.push({
         table: 'departments',
         data: departmentData
@@ -427,7 +450,7 @@ export class AdministrationGenerator extends BaseGenerator {
     return results;
   }
 
-  private async generateCertificates(count: number): Promise<any[]> {
+  private async generateCertificates(count: number, studentIds: string[]): Promise<any[]> {
     const results: any[] = [];
     const types = ['Birth Certificate', 'KCPE Certificate', 'Transfer Certificate', 'Character Certificate'];
     for (let i = 0; i < count; i++) {
@@ -436,7 +459,7 @@ export class AdministrationGenerator extends BaseGenerator {
         data: {
           id: this.generateId('cert', i),
           certificate_type: this.randomChoice(types),
-          student_id: this.generateId('student', this.randomInt(0, 99)),
+          student_id: this.randomChoice(studentIds),
           issue_date: this.generateTimestamp(this.randomInt(0, 365)),
           certificate_number: `CERT${(i+1).toString().padStart(6,'0')}`,
           is_verified: this.randomBoolean(0.8),
@@ -448,7 +471,7 @@ export class AdministrationGenerator extends BaseGenerator {
     return results;
   }
 
-  private async generateGatePasses(count: number): Promise<any[]> {
+  private async generateGatePasses(count: number, studentIds: string[]): Promise<any[]> {
     const results: any[] = [];
     const passTypes = ['Early Departure', 'Medical Emergency', 'Personal', 'Official'];
     const statuses = ['Approved', 'Issued', 'Pending', 'Rejected'];
@@ -457,7 +480,7 @@ export class AdministrationGenerator extends BaseGenerator {
         table: 'gate_passes',
         data: {
           id: this.generateId('gatepass', i),
-          student_id: this.generateId('student', this.randomInt(0, 99)),
+          student_id: this.randomChoice(studentIds),
           student_name: `${this.generateName().first} ${this.generateName().last}`,
           pass_type: this.randomChoice(passTypes),
           reason: this.generateText(5, 10),

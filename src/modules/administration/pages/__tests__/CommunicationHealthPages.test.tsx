@@ -1,11 +1,17 @@
 // ABOUTME: Regression tests for administration communication and student health pages.
 // ABOUTME: Verifies the repaired hooks load data into the pages using the expected page-facing APIs.
 
-import { render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MessageCampaignsPage from '../MessageCampaignsPage';
 import StudentHealthRecordsPage from '../StudentHealthRecordsPage';
+import { ToastProvider } from '@/hooks/useToast';
 import { TemplateType } from '../../data/types';
+
+// This file imports RTL's render directly (bypassing the global provider
+// wrapper in setup.ts); MessageCampaignsPage calls useToast(), so wrap here.
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<ToastProvider>{ui}</ToastProvider>, options);
 
 const mockUseAppData = vi.fn();
 const mockUseAppDataInternal = vi.fn();

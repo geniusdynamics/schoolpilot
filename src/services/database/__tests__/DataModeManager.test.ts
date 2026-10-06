@@ -58,6 +58,8 @@ describe('DataModeManager', () => {
 
   describe('Environment Switching Thread Safety', () => {
     it('should queue multiple switchMode calls and resolve them sequentially', async () => {
+
+      localStorage.removeItem('schoolpilot_demo_data_cleared');
       const switchPromise1 = manager.switchMode('demo');
       const switchPromise2 = manager.switchMode('production');
       

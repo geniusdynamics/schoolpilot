@@ -12,6 +12,8 @@ vi.mock('../utils/accessibility', () => ({
 }));
 
 // Sample test data
+// NOTE: due dates use local-midnight constructors (not ISO strings) so that
+// toLocaleDateString() renders the same calendar date in any timezone.
 const sampleCards: KanbanCard[] = [
   {
     id: '1',
@@ -20,7 +22,7 @@ const sampleCards: KanbanCard[] = [
     tags: ['test', 'frontend'],
     priority: 'high',
     assignee: { id: '1', name: 'John Doe' },
-    dueDate: new Date('2025-01-30'),
+    dueDate: new Date(2025, 0, 30),
     progress: 75,
   },
   {
@@ -30,7 +32,7 @@ const sampleCards: KanbanCard[] = [
     tags: ['test', 'backend'],
     priority: 'medium',
     assignee: { id: '2', name: 'Jane Smith' },
-    dueDate: new Date('2025-02-05'),
+    dueDate: new Date(2025, 1, 5),
     progress: 30,
   },
 ];
@@ -125,10 +127,11 @@ describe('KanbanBoard - Basic Tests', () => {
 
     it('displays due dates', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
-      // Due dates should be formatted and displayed
-      expect(screen.getByText('1/30/2025')).toBeInTheDocument();
-      expect(screen.getByText('2/5/2025')).toBeInTheDocument();
+
+      // The component formats due dates with toLocaleDateString(); mirror the
+      // same call so the assertion holds regardless of the host locale/TZ.
+      expect(screen.getByText(sampleCards[0].dueDate!.toLocaleDateString())).toBeInTheDocument();
+      expect(screen.getByText(sampleCards[1].dueDate!.toLocaleDateString())).toBeInTheDocument();
     });
 
     it('shows progress bars when showProgress is true', () => {

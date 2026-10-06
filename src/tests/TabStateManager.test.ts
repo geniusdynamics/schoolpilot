@@ -133,9 +133,10 @@ describe('TabStateManager', () => {
       mockStore.createTab.mockResolvedValue('tab-123');
       
       return tabStateManager.createModuleTab(navigationItem, location).then(() => {
+        // generateTabTitle prefers module.displayName ('Settings')
         expect(mockStore.createTab).toHaveBeenCalledWith(
           expect.objectContaining({
-            title: 'Settings Title'
+            title: 'Settings'
           })
         );
       });
@@ -169,9 +170,10 @@ describe('TabStateManager', () => {
       mockStore.createTab.mockResolvedValue('tab-789');
       
       return tabStateManager.createModuleTab(navigationItem, location).then(() => {
+        // The '.title' suffix is stripped from navigation keys
         expect(mockStore.createTab).toHaveBeenCalledWith(
           expect.objectContaining({
-            title: 'Administration Title'
+            title: 'Administration'
           })
         );
       });
@@ -409,7 +411,7 @@ describe('TabStateManager Integration', () => {
     // Verify settings dashboard properties
     expect(mockStore.createTab).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Settings Title',
+        title: 'Settings',
         module: 'settings',
         path: '/settings',
         canClose: false,

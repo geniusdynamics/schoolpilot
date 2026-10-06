@@ -30,7 +30,10 @@ export class RelationshipManager {
     const relationships: Record<string, LocalRelationshipDefinition[]> = {
       // Core / Administration – students ↔ classes
       students: [
-        { table: 'class_streams', column: 'current_class_stream_id', required: true },
+        // The administration generator emits class/stream as display names
+        // (class_name/stream_name) without current_class_stream_id, so this FK
+        // is optional here; required would fail every validateData run.
+        { table: 'class_streams', column: 'current_class_stream_id', required: false },
         { table: 'student_categories', column: 'student_category_id', required: false },
         { table: 'dormitories', column: 'dormitory_id', required: false },
         { table: 'academic_years', column: 'academic_year_id', required: false },

@@ -5,7 +5,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DataLayerSettingsPage } from '@/modules/settings/pages/DataLayerSettingsPage';
+// The page has a default export only (the named export is DataLayerSettingsContent)
+import DataLayerSettingsPage from '@/modules/settings/pages/DataLayerSettingsPage';
 
 const mocks = vi.hoisted(() => ({
   switchMode: vi.fn().mockResolvedValue(undefined),
@@ -74,7 +75,8 @@ vi.mock('../../hooks/useUnifiedConfig', () => ({
   }),
 }));
 
-vi.mock('../../services/DataServiceFactory', () => ({
+// The page imports the factory from '@/services/data/DataServiceFactory'
+vi.mock('../../services/data/DataServiceFactory', () => ({
   DataServiceFactory: {
     getUserDatabaseConfig: () => ({ provider: 'sqlite-wasm', environment: 'demo' }),
     setUserDatabaseConfig: mocks.setUserDatabaseConfig,

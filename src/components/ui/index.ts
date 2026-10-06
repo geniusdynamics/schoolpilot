@@ -20,6 +20,8 @@ export type { TextareaProps } from './Textarea';
 export * from './forms';
 
 export { default as DatePicker } from './forms/DatePicker';
+export { default as DateField } from './forms/DateField';
+export type { DateFieldProps } from './forms/DateField';
 export type { DatePickerProps } from './forms/DatePicker';
 
 export { default as TabbedForm } from './forms/TabbedForm';

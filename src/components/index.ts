@@ -132,5 +132,3 @@ export { ErrorTrackingTest } from './ErrorTrackingTest';
 // These exports are kept for backward compatibility but will be removed in a future version
 // Please import from '@/components/settings' instead
 export { default as FeatureSettingsLegacy } from './FeatureSettings';
-export { default as DataModeSwitchLegacy } from './DataModeSwitch';
-export { DataModeSwitch } from './DataModeSwitch';

@@ -15,6 +15,8 @@ export interface DatePickerProps {
   placeholder?: string;
   disabled?: boolean;
   error?: string;
+  /** Red-border state without rendering a message (wrapper owns the message). */
+  errorState?: boolean;
   success?: boolean;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'outlined' | 'filled';
@@ -49,6 +51,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   placeholder = 'Select date',
   disabled = false,
   error,
+  errorState = false,
   success = false,
   size = 'md',
   variant = 'outlined',
@@ -321,7 +324,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       'focus:bg-surface-card focus:border-primary-500 focus:ring-primary-500',
     ],
     // State styles
-    error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+    (error || errorState) && 'border-red-500 focus:border-red-500 focus:ring-red-500',
     success && 'border-green-500 focus:border-green-500 focus:ring-green-500',
     disabled && 'bg-surface-accent text-surface-muted-fg cursor-not-allowed',
     className,

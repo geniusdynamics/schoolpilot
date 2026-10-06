@@ -7,6 +7,7 @@ import DialogForm from './DialogForm';
 import { FormSection, FormGrid, FormField, FormActions } from './index';
 import Input from '../Input';
 import Textarea from '../Textarea';
+import DateField from './DateField';
 import Select from '../Select';
 import Checkbox from '../Checkbox';
 import { RadioGroup } from '../Radio';
@@ -281,11 +282,25 @@ const EntityForm: React.FC<EntityFormProps> = ({
         );
         break;
       }
+      case 'date':
+        control = (
+          <DateField
+            name={field.name}
+            label={field.label}
+            value={value != null && value !== '' ? String(value).slice(0, 10) : ''}
+            onChange={(next) => handleChange(field, next)}
+            disabled={field.disabled || isSaving}
+            errorState={Boolean(error)}
+            minDate={field.min != null ? String(field.min) : undefined}
+            maxDate={field.max != null ? String(field.max) : undefined}
+          />
+        );
+        break;
       default:
         control = (
           <Input
             {...commonProps}
-            type={field.type === 'number' ? 'number' : field.type === 'tel' ? 'tel' : field.type === 'url' ? 'url' : field.type === 'password' ? 'password' : field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : field.type === 'email' ? 'email' : 'text'}
+            type={field.type === 'number' ? 'number' : field.type === 'tel' ? 'tel' : field.type === 'url' ? 'url' : field.type === 'password' ? 'password' : field.type === 'time' ? 'time' : field.type === 'email' ? 'email' : 'text'}
             value={value ?? ''}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               handleChange(field, field.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)

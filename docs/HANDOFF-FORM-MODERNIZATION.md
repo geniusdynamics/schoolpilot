@@ -140,7 +140,12 @@ Two config-level root-cause fixes drove most of the test improvement:
   message counts verified = 1).
 
 - **DARK MODE IS DISABLED SYSTEM-WIDE (Aug 2026)** until it is properly
-  implemented. Single kill-switch: `DARK_MODE_ENABLED = false` in
+  implemented. **QA status (Oct 2026): the implementation has been verified
+  under real dark rendering** — full demo journey (welcome → seed → login →
+  dashboard → staff → students) screenshotted with OS dark emulation; the token
+  sweep + StatCard dark companions hold up. Re-enabling is a one-flag flip
+  (below) once you approve it; remaining polish items are the logo text contrast
+  in the header and secondary-sidebar item brightness (minor). Single kill-switch: `DARK_MODE_ENABLED = false` in
   `src/hooks/useTheme.tsx`. While false: the app always resolves light (OS
   `prefers-color-scheme` ignored), a stored 'dark'/'system' preference is cleared
   on boot, `setTheme`/`toggleTheme` are no-ops, the overflow-menu toggle item is
@@ -150,11 +155,10 @@ Two config-level root-cause fixes drove most of the test improvement:
   `light` class, drops any stray `dark`). To re-enable: flip the flag — all
   token/`dark:` plumbing is intact. VERIFIED under emulated OS-dark + a planted
   stored-dark preference: renders light, zero errors.
-- The same shell suites `LayoutNewModuleTransitions`, `LayoutNewTabSession`,
-  `PrimarySecondaryNavigation` (+SettingsPopupNavigation) fail with
-  "useSecondarySidebar/useFullWidth must be used within a ...Provider" —
-  pre-existing test-provider-wrapping staleness; wrap their renders with
-  SecondarySidebarProvider/FullWidthProvider.
+- Shell suites `LayoutNewModuleTransitions`, `LayoutNewTabSession`,
+  `PrimarySecondaryNavigation` (+SettingsPopupNavigation) are GREEN — fixed by
+  wrapping renders with SecondarySidebarProvider/FullWidthProvider and updating
+  stale session-manager contracts.
 - After `pnpm add/remove`, a running Vite server serves 504 "Outdated Optimize
   Dep" and the app renders blank/spins: kill the node process (TaskStop doesn't
   kill the child on Windows — use `netstat -ano | grep :5199` + `taskkill //F`),
@@ -171,44 +175,17 @@ Two config-level root-cause fixes drove most of the test improvement:
 > Progress update (same session, later pass): items 2 and 4 are DONE, item 3 is
 > partially done, item 1's collect-error layer is being remediated. Details below.
 
-1. **Test-debt remediation project** *(major progress)*: 
-   - **Collect layer: FIXED** — zero import-resolution failures. 25 files repaired
-     (moved-module paths repointed, `@testing-library/react-hooks` → RTL `renderHook`,
-     one real source bug fixed: `CircuitBreaker.ts` contained a duplicated module),
-     18 obsolete test files deleted (they tested removed settings pages/providers).
-   - **Environmental root causes: FIXED** — the historic "shifting victims" flakiness
-     was a single wedge: setup.ts called `vi.setSystemTime()` at module scope, which
-     broke `vi.useFakeTimers()` in useSlideout.test.tsx; its abandoned async `act()`
-     permanently wedged React 19's act queue in the shared singleFork worker, so all
-     later files rendered null/empty. Also fixed: matchMedia mock surviving
-     `restoreAllMocks`, missing `cleanup`/`renderHook` globals, global render now
-     wrapped with ToastProvider+FullWidthProvider, and two real app bugs
-     (`useKanban.moveCard` state mutation, `useSlideout` act abandonment).
-   - **Hook-test cluster: GREEN** (useToast/useValidation/useFormValidation/
-     useTooltip/useModal/useKanban×2/useDataMode/useSlideout/Toast/Tooltip/
-     UnifiedModeSwitch/animations + React-19 canaries — 252/252).
-   - **In flight at time of writing**: services/database + services/tabs cluster
-     (CrossBrowserCompatibility, MigrationSeeding, EndToEndWorkflows,
-     CapabilityDetector, TabPersistenceService…) and the UI/integration cluster
-     (KanbanBoard's undefined `transitions`, DataLayerSettingsPage integration,
-     configurationSwitching, TabPerformance, SettingsRedirects, DataCard,
-     small tails).
-   - **Wave-2 outcome (agents killed by account quota mid-flight; verified state)**:
-     GREEN: KanbanBoard 32/32, CrossBrowserCompatibility 47/47,
-     TabPersistenceService 30/30, configurationSwitching 17/17,
-     CapabilityDetector 17/17, EndToEndWorkflows 3/3, PhaseEnhancements 31/31,
-     TabPerformance 22/22, DataGridModuleSpecific 17/17.
-     STILL RED (standalone-verified): `src/stores/__tests__/tabPersistence.integration.test.ts`
-     (6/6 — needs the same treatment as TabPersistenceService),
-     `src/tests/integration/DataLayerSettingsPage.test.tsx` (~27),
-     `src/tests/DataGridTableRenderingTests.test.tsx` (2),
-     FeeAdjustmentsPage (1) and StudentPaymentsPage (1) "handles loading state",
-     `src/tests/DataModeSwitch.test.tsx` (~24 — deprecated component; consider
-     deleting like DataModeSwitchDeprecation was, or rewriting against
-     UnifiedModeSwitch), SettingsRedirects/AuthLoginRedirect/DataCard tails.
-   - NOTE: batches of many files in one `vitest run` still cross-pollute
-     (singleFork). Always judge by standalone runs; splitting the pool is the
-     real fix (see gotchas).
+1. **Test-debt remediation project** ✅ **COMPLETE — FULL SUITE GREEN (exit 0)**.
+   Final state (Oct 2026): the ENTIRE vitest suite passes — zero failing test
+   files. Journey: 862 passing/783 failing at baseline → collect layer repaired
+   (25 files, CircuitBreaker duplicate-module bug) → environmental root causes
+   fixed (act-queue wedge, matchMedia, globals, provider-wrapped render) →
+   per-cluster remediation (hook tests 252/252, tab system 354/354 incl. a REAL
+   zustand persist bug fix, data-hooks/config 172/172, pages/UI 115/115,
+   dataGeneration pipeline fixed to actually write data with FK-consistent
+   records). Jest-era/unloadable dead files retired throughout.
+   singleFork was also removed (per-file isolation) which both fixed
+   cross-file pollution AND made the suite ~3x faster.
 2. **Dark-mode page sweep** *(DONE)*: 4,788 solid-color replacements
    (`bg-white`→`bg-surface-card`, `text-gray-900/800/700`→`text-surface-foreground`,
    `text-gray-600/500/400`→`text-surface-muted-fg`, `bg-gray-50/100`→muted/accent,
@@ -216,17 +193,25 @@ Two config-level root-cause fixes drove most of the test improvement:
    `dark:` companions added to high-opacity glass surfaces (`bg-white/90` →
    `dark:bg-slate-900/90`) in Header/sidebars/dashboards. Low-opacity white
    overlays (`/5`–`/25`) intentionally left — luminance tints work on dark.
-3. **EntityForm migrations** *(partially done)*: migrated so far — DepartmentsPage,
+3. **EntityForm migrations** *(most pages done)*: migrated — DepartmentsPage,
    DesignationsPage, DormitoriesPage, StudentCategoriesPage, ClassesPage (both
-   class and stream dialogs). This covers text/checkbox/number/select field types;
-   use remaining pages (StaffListPage, FeeTemplatesPage nested item editor,
-   SettingsUsersPage, finance dialogs) as follow-up — pattern is mechanical,
-   see DepartmentsPage for the reference conversion.
+   dialogs), StaffListPage, SettingsUsersPage (user + role dialogs, validation
+   moved into `validate` callbacks), FeeTemplatesPage (template dialog; the
+   manage-items editor intentionally stays a custom dialog because EntityForm
+   closes on success while that editor adds items in-place). Reference
+   conversion: DepartmentsPage / StaffListPage. Remaining candidates are
+   lower-traffic dialogs — adopt mechanically as they're touched.
 4. **window.confirm → useConfirm()** *(DONE)*: all 34 call sites across 22 files
    converted (admissions, inventory, library, nutrition, HR, settings, core);
    `ConfirmDialog.tsx`'s internal fallback and one test asserting it were kept.
-5. **DatePicker adoption**: NOT started. `<Input type="date">` still used widely;
-   the custom `DatePicker` component exists and is tested.
+5. **DatePicker adoption** *(systemic adoption done)*: new `DateField`
+   (`src/components/ui/forms/DateField.tsx`) wraps the calendar DatePicker with a
+   `YYYY-MM-DD` string contract matching `<Input type="date">`, exported from
+   `@/components/ui` and `@/components/ui/forms`. EntityForm `type: 'date'` fields
+   now render DateField (all EntityForm date pickers upgraded systemically).
+   DatePicker also gained `errorState` (border-only). The ~89 remaining
+   `<Input type="date">` page usages can migrate to DateField mechanically
+   (`value`/`onChange` contracts match) — adopt per-page as they're touched.
 
 ### Bonus fixes discovered during this pass
 

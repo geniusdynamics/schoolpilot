@@ -141,7 +141,10 @@ afterEach(() => {
 
 describe('App auth route regression', () => {
   it('redirects authenticated /login route requests to /dashboard without rendering login page', async () => {
-    window.location.hash = '#/login';
+    // Fresh test environments start at the onboarding gate; bypass it so /login
+    // routing is what's actually under test.
+    localStorage.setItem('schoolpilot_demo_cleared', 'true');
+    window.location.hash = '#/login?skipOnboarding=1';
 
     render(<App />);
 

@@ -1,12 +1,18 @@
 // ABOUTME: This test file covers ExamSessionsPage session and nested paper-setting CRUD interactions.
 // ABOUTME: It verifies the page uses AppDataContext mutations instead of the removed placeholder TODO handlers.
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import ExamSessionsPage from '../ExamSessionsPage';
 import { AppDataContext } from '@/contexts/AppDataContext';
+import { ToastProvider } from '@/hooks/useToast';
 import { ExamSessionStatus } from '@/modules/academics/data/types';
+
+// This file imports RTL's render directly (bypassing the global provider
+// wrapper in setup.ts); the page calls useToast(), so wrap every render here.
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<ToastProvider>{ui}</ToastProvider>, options);
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -84,7 +90,7 @@ describe('ExamSessionsPage', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add Exam Session' }));
-    fireEvent.change(screen.getByLabelText('Exam Session Name'), { target: { value: 'End Term' } });
+    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'End Term' } });
     fireEvent.change(document.querySelector('select[name="school_period_id"]') as HTMLSelectElement, { target: { value: '2' } });
     fireEvent.change(document.querySelector('select[name="status"]') as HTMLSelectElement, { target: { value: ExamSessionStatus.MARKS_ENTRY_OPEN } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Session' }));
@@ -102,7 +108,7 @@ describe('ExamSessionsPage', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    fireEvent.change(screen.getByLabelText('Exam Session Name'), { target: { value: 'Updated Mid Term' } });
+    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'Updated Mid Term' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
 
     await waitFor(() => {

@@ -48,55 +48,56 @@ describe('TabValidationService', () => {
   });
 
   describe('validateTabAccess', () => {
+    // Current signature: validateTabAccess(tab: Partial<Tab>, userRole, userPermissions)
     describe('with admin role', () => {
       it('should allow access for admin role with wildcard permission', () => {
-        const result = service.validateTabAccess('tab-1', 'admin', ['*']);
+        const result = service.validateTabAccess({ id: 'tab-1' }, 'admin', ['*']);
         expect(result).toBe(true);
       });
 
       it('should allow access for admin role with admin permission', () => {
-        const result = service.validateTabAccess('tab-1', 'admin', ['admin']);
+        const result = service.validateTabAccess({ id: 'tab-1' }, 'admin', ['admin']);
         expect(result).toBe(true);
       });
 
       it('should allow access for admin role regardless of other permissions', () => {
-        const result = service.validateTabAccess('tab-1', 'admin', ['read']);
+        const result = service.validateTabAccess({ id: 'tab-1' }, 'admin', ['read']);
         expect(result).toBe(true);
       });
     });
 
     describe('with teacher role', () => {
       it('should allow access for teacher role with allowed module permissions', () => {
-        const result = service.validateTabAccess('tab-1', 'teacher', ['academics']);
+        const result = service.validateTabAccess({ id: 'tab-1', module: 'academics' }, 'teacher', ['academics']);
         expect(result).toBe(true);
       });
 
       it('should return true for any tab access check (simplified validation)', () => {
         // The current implementation returns true for any valid role
-        const result = service.validateTabAccess('tab-1', 'teacher', []);
+        const result = service.validateTabAccess({ id: 'tab-1', module: 'academics' }, 'teacher', []);
         expect(result).toBe(true);
       });
     });
 
     describe('with unknown role', () => {
       it('should deny access for unknown role', () => {
-        const result = service.validateTabAccess('tab-1', 'unknown_role', []);
+        const result = service.validateTabAccess({ id: 'tab-1' }, 'unknown_role', []);
         expect(result).toBe(false);
       });
     });
 
-    describe('with invalid tabId', () => {
-      it('should return false for empty tabId', () => {
-        const result = service.validateTabAccess('', 'admin', ['*']);
+    describe('with invalid tab', () => {
+      it('should return false for empty tab id', () => {
+        const result = service.validateTabAccess({ id: '' }, 'admin', ['*']);
         expect(result).toBe(false);
       });
 
-      it('should return false for null tabId', () => {
+      it('should return false for null tab', () => {
         const result = service.validateTabAccess(null as any, 'admin', ['*']);
         expect(result).toBe(false);
       });
 
-      it('should return false for undefined tabId', () => {
+      it('should return false for undefined tab', () => {
         const result = service.validateTabAccess(undefined as any, 'admin', ['*']);
         expect(result).toBe(false);
       });
@@ -833,6 +834,17 @@ describe('TabValidationService', () => {
   });
 
   describe('Role Configuration', () => {
+    // Snapshot of the default role configs captured before any test mutates
+    // them. setRoleConfig writes to module-level mutable state, which would
+    // otherwise leak into later suites (e.g. Integration Tests below).
+    const pristineRoleConfigs = tabValidationService.getAllRoleConfigs();
+
+    afterEach(() => {
+      Object.values(pristineRoleConfigs).forEach((config) => {
+        service.setRoleConfig(config);
+      });
+    });
+
     describe('getRoleConfig', () => {
       it('should return config for admin role', () => {
         const config = service.getRoleConfig('admin');

@@ -12,15 +12,9 @@ import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon, EyeIcon } from '@/compon
 import { useAppData } from '@/hooks/useAppData'; // Import useAppData
 import Spinner from '@/components/ui/Spinner';
 
-import DialogForm from '@/components/ui/forms/DialogForm';
+import EntityForm from '@/components/ui/forms/EntityForm';
 import type { Staff } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-
-interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at' | 'department_id' | 'designation_id' | 'hod_of_department_id'> { 
-  department_id?: number | string | null; 
-  designation_id?: number | string | null;
-  hod_of_department_id?: number | string | null; 
-}
 
 export const StaffListContent: React.FC = () => {
   const navigate = useNavigate();
@@ -34,18 +28,20 @@ export const StaffListContent: React.FC = () => {
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | ''>('');
-
-  const initialStaffFormData: StaffFormData = { staff_no: '', first_name: '', last_name: '', is_active: true };
-  const [formData, setFormData] = useState<StaffFormData>(initialStaffFormData);
+  const [initialValues, setInitialValues] = useState<Record<string, any>>({ staff_no: '', first_name: '', last_name: '', is_active: true });
 
   const openModal = (staffMember?: Staff) => {
     setEditingStaff(staffMember || null);
     if (staffMember) {
-      setFormData({
-        ...staffMember,
+      setInitialValues({
+        staff_no: staffMember.staff_no,
+        first_name: staffMember.first_name,
+        last_name: staffMember.last_name,
+        phone: staffMember.phone,
         department_id: staffMember.department_id,
         designation_id: staffMember.designation_id,
         hod_of_department_id: staffMember.hod_of_department_id,
+        is_active: staffMember.is_active ?? true,
       });
     } else {
       const existingStaffNos = staff
@@ -53,7 +49,7 @@ export const StaffListContent: React.FC = () => {
         .filter(n => !isNaN(n));
       const nextStaffNoSuffix = existingStaffNos.length > 0 ? Math.max(...existingStaffNos) + 1 : 1;
       const nextStaffNo = `EMP${String(nextStaffNoSuffix).padStart(3, '0')}`;
-      setFormData({...initialStaffFormData, staff_no: nextStaffNo});
+      setInitialValues({ staff_no: nextStaffNo, first_name: '', last_name: '', phone: '', is_active: true });
     }
     setIsModalOpen(true);
   };
@@ -61,41 +57,6 @@ export const StaffListContent: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingStaff(null);
-    setFormData(initialStaffFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let val: string | number | boolean | undefined = value;
-
-    if (type === 'checkbox' && 'checked' in e.target) {
-        val = (e.target as HTMLInputElement).checked;
-    } else if (name === 'designation_id' || name === 'department_id' || name === 'hod_of_department_id') {
-        val = value ? parseInt(value, 10) : undefined;
-        if (Number.isNaN(val as number)) val = undefined;
-    }
-    setFormData(prev => ({ ...prev, [name]: val }));
-  };
-  
-
-  const handleSubmit = async () => {
-    const payload: Omit<Staff, 'id'|'created_at'|'updated_at'|'department_name'|'designation_title'|'hod_of_department_name'|'user_username'|'email'|'display_name'|'user_id'|'deleted_at'> = {
-      staff_no: formData.staff_no || '',
-      first_name: formData.first_name || '',
-      last_name: formData.last_name || '',
-      is_active: formData.is_active || false,
-      phone: formData.phone,
-      department_id: formData.department_id != null && formData.department_id !== '' ? String(formData.department_id) : undefined,
-      designation_id: formData.designation_id != null && formData.designation_id !== '' ? Number(formData.designation_id) : undefined,
-      hod_of_department_id: formData.hod_of_department_id != null && formData.hod_of_department_id !== '' ? String(formData.hod_of_department_id) : undefined,
-    };
-
-    if (editingStaff) {
-      await updateStaffMember(String(editingStaff.id), payload);
-    } else {
-      await addStaffMember(payload);
-    }
-    closeModal();
   };
 
   const confirm = useConfirm();
@@ -253,42 +214,59 @@ export const StaffListContent: React.FC = () => {
         )}
       </Card>
 
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'} size="xl"
-        footer={
-          <>
-            <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button type="button" onClick={handleSubmit} loading={loading.staff}>
-              {editingStaff ? 'Save Changes' : 'Add Staff Member'}
-            </Button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input name="staff_no" label="Staff No." value={formData.staff_no || ''} onChange={handleInputChange} required />
-          <Input name="first_name" label="First Name" value={formData.first_name || ''} onChange={handleInputChange} required />
-          <Input name="last_name" label="Last Name" value={formData.last_name || ''} onChange={handleInputChange} required />
-          <Input name="phone" label="Phone" value={formData.phone || ''} onChange={handleInputChange} />
-          
-          <Select name="department_id" label="Department" value={formData.department_id || ''} onChange={handleInputChange}>
-            <option value="">Select Department</option>
-            {departments.map(dep => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
-          </Select>
-
-          <Select name="designation_id" label="Designation" value={formData.designation_id || ''} onChange={handleInputChange}>
-            <option value="">Select Designation</option>
-            {designations.map(des => <option key={des.id} value={des.id}>{des.title}</option>)}
-          </Select>
-          <Select name="hod_of_department_id" label="Head of Department (If applicable)" value={formData.hod_of_department_id || ''} onChange={handleInputChange}>
-            <option value="">None</option>
-            {departments.filter(d => d.is_academic).map(dep => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
-          </Select>
-          <div className="flex items-center mt-2 md:col-span-3">
-             <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500" 
-                checked={formData.is_active || false} onChange={handleInputChange} />
-             <label htmlFor="is_active" className="ml-2 block text-sm text-surface-foreground">Is Active Staff Member</label>
-          </div>
-        </div>
-      </DialogForm>
+      <EntityForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
+        initialData={initialValues}
+        fields={[
+          { name: 'staff_no', label: 'Staff No.', required: true },
+          { name: 'first_name', label: 'First Name', required: true },
+          { name: 'last_name', label: 'Last Name', required: true },
+          { name: 'phone', label: 'Phone' },
+          {
+            name: 'department_id',
+            label: 'Department',
+            type: 'select',
+            placeholder: 'Select Department',
+            options: departments.map(dep => ({ value: dep.id, label: dep.name })),
+          },
+          {
+            name: 'designation_id',
+            label: 'Designation',
+            type: 'select',
+            placeholder: 'Select Designation',
+            options: designations.map(des => ({ value: des.id, label: des.title })),
+          },
+          {
+            name: 'hod_of_department_id',
+            label: 'Head of Department (If applicable)',
+            type: 'select',
+            placeholder: 'None',
+            options: departments.filter(d => d.is_academic).map(dep => ({ value: dep.id, label: dep.name })),
+          },
+          { name: 'is_active', label: 'Is Active Staff Member', type: 'checkbox' },
+        ]}
+        submitLabel={editingStaff ? 'Save Changes' : 'Add Staff Member'}
+        cancelLabel="Cancel"
+        onSubmit={async (values) => {
+          const payload = {
+            staff_no: String(values.staff_no ?? ''),
+            first_name: String(values.first_name ?? ''),
+            last_name: String(values.last_name ?? ''),
+            is_active: Boolean(values.is_active),
+            phone: values.phone ? String(values.phone) : undefined,
+            department_id: values.department_id != null && values.department_id !== '' ? String(values.department_id) : undefined,
+            designation_id: values.designation_id != null && values.designation_id !== '' ? Number(values.designation_id) : undefined,
+            hod_of_department_id: values.hod_of_department_id != null && values.hod_of_department_id !== '' ? String(values.hod_of_department_id) : undefined,
+          };
+          if (editingStaff) {
+            await updateStaffMember(String(editingStaff.id), payload);
+          } else {
+            await addStaffMember(payload);
+          }
+        }}
+      />
     </div>
   );
 };

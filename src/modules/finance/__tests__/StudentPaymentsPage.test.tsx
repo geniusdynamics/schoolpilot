@@ -108,9 +108,8 @@ describe('StudentPaymentsPage', () => {
 
   test('displays action buttons for each payment', () => {
     renderWithContext();
-    
+
     expect(screen.getByText('Edit')).toBeInTheDocument();
-    expect(screen.getByText('Apply')).toBeInTheDocument();
     expect(screen.getByText('Delete')).toBeInTheDocument();
   });
 

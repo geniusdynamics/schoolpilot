@@ -138,7 +138,12 @@ const DataGrid = <T extends Record<string, any>>({
   const keyFieldMissing = useRef(false);
 
   const effectiveLoading = loading || isLoading || false;
-  warnOnce(isLoadingDeprecated, '`isLoading` is deprecated — pass `loading` instead.');
+  // Only warn about the deprecated prop when it is actually passed — the
+  // unconditional warnOnce here used to flag every consumer, even ones that
+  // never used `isLoading`.
+  if (isLoading !== undefined) {
+    warnOnce(isLoadingDeprecated, '`isLoading` is deprecated — pass `loading` instead.');
+  }
 
   // Defensive data handling: never mutate, warn in dev instead
   const safeData = useMemo(() => {

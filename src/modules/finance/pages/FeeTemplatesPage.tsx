@@ -5,6 +5,7 @@ import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
+import EntityForm from "@/components/ui/forms/EntityForm";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TicketIcon, ListBulletIcon } from '@/components/ui/icons';
@@ -15,7 +16,6 @@ import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
-type FeeTemplateFormData = Omit<Partial<FeeTemplate>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'student_category_name' | 'items'>;
 type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;
 
 export const FeeTemplatesContent: React.FC = () => {
@@ -38,27 +38,24 @@ export const FeeTemplatesContent: React.FC = () => {
   const [editingItem, setEditingItem] = useState<FeeTemplateItem | null>(null);
   const [currentTemplateForItems, setCurrentTemplateForItems] = useState<FeeTemplate | null>(null);
 
-  const initialTemplateFormData: FeeTemplateFormData = { name: '', school_period_id: undefined, student_category_id: undefined };
   const initialItemFormData: FeeItemFormData = { description: '', amount: 0, revenue_account_id: undefined, linked_expense_category_id: undefined };
-
-  const [templateFormData, setTemplateFormData] = useState<FeeTemplateFormData>(initialTemplateFormData);
   const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
+  const [templateInitialValues, setTemplateInitialValues] = useState<Record<string, any>>({ name: '', school_period_id: undefined, student_category_id: undefined });
 
   const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Template Modal
   const openTemplateModal = (template?: FeeTemplate) => {
     setEditingTemplate(template || null);
-    setTemplateFormData(template ? 
-      { name: template.name, school_period_id: template.school_period_id, student_category_id: template.student_category_id } : 
-      initialTemplateFormData
+    setTemplateInitialValues(template ?
+      { name: template.name, school_period_id: template.school_period_id, student_category_id: template.student_category_id } :
+      { name: '', school_period_id: undefined, student_category_id: undefined }
     );
     setIsTemplateModalOpen(true);
   };
   const closeTemplateModal = () => {
     setIsTemplateModalOpen(false);
     setEditingTemplate(null);
-    setTemplateFormData(initialTemplateFormData);
   };
 
   // Item Modal
@@ -78,33 +75,9 @@ export const FeeTemplatesContent: React.FC = () => {
     setItemFormData(initialItemFormData);
   };
 
-  const handleTemplateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setTemplateFormData(prev => ({ ...prev, [name]: value ? (name.endsWith('_id') ? parseInt(value) : value) : undefined }));
-  };
-
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setItemFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value ? parseInt(value) : undefined) : (name === 'amount' ? parseFloat(value) : value) }));
-  };
-  
-  const handleTemplateSubmit = async () => {
-    if (!templateFormData.name || !templateFormData.school_period_id) {
-      toast.showWarning("Template name and school period are required.");
-      return;
-    }
-    const payload: Omit<FeeTemplate, 'id' | 'created_at' | 'updated_at' | 'items' | 'school_period_name' | 'student_category_name'> = {
-      name: templateFormData.name!,
-      school_period_id: Number(templateFormData.school_period_id!),
-      student_category_id: templateFormData.student_category_id ? Number(templateFormData.student_category_id) : undefined,
-    };
-
-    if (editingTemplate) {
-      await updateFeeTemplate({ ...editingTemplate, ...payload, items: editingTemplate.items || [] });
-    } else {
-      await addFeeTemplate({ ...payload, items: [] });
-    }
-    closeTemplateModal();
   };
 
   const toast = useToast();
@@ -315,47 +288,32 @@ export const FeeTemplatesContent: React.FC = () => {
         />
       </Card>
 
-      <DialogForm isOpen={isTemplateModalOpen} onClose={closeTemplateModal} title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeTemplateModal}>Cancel</Button>
-            <Button onClick={handleTemplateSubmit} loading={loading.feeTemplates}>
-              {editingTemplate ? 'Save Changes' : 'Add Template'}
-            </Button>
-          </>
-        }
-      >
-        <Input 
-          name="name" 
-          label="Template Name" 
-          value={templateFormData.name || ''} 
-          onChange={handleTemplateInputChange} 
-          required 
-        />
-        <Select 
-          name="school_period_id" 
-          label="School Period" 
-          value={templateFormData.school_period_id || ''} 
-          onChange={handleTemplateInputChange}
-          required
-        >
-          <option value="">Select School Period</option>
-          {(schoolPeriods || []).map((period: SchoolPeriod) => (
-            <option key={period.id} value={period.id}>{period.name}</option>
-          ))}
-        </Select>
-        <Select 
-          name="student_category_id" 
-          label="Student Category (Optional)" 
-          value={templateFormData.student_category_id || ''} 
-          onChange={handleTemplateInputChange}
-        >
-          <option value="">All Categories</option>
-          {(studentCategories || []).map((category: StudentCategory) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
-          ))}
-        </Select>
-      </DialogForm>
+      <EntityForm
+        isOpen={isTemplateModalOpen}
+        onClose={closeTemplateModal}
+        title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'}
+        initialData={templateInitialValues}
+        submitLabel={editingTemplate ? 'Save Changes' : 'Add Template'}
+        cancelLabel="Cancel"
+        onSubmit={async (values) => {
+          const payload = {
+            name: String(values.name ?? ''),
+            school_period_id: Number(values.school_period_id),
+            student_category_id: values.student_category_id ? Number(values.student_category_id) : undefined,
+          };
+
+          if (editingTemplate) {
+            await updateFeeTemplate({ ...editingTemplate, ...payload, items: editingTemplate.items || [] });
+          } else {
+            await addFeeTemplate({ ...payload, items: [] });
+          }
+        }}
+        fields={[
+          { name: 'name', label: 'Template Name', required: true },
+          { name: 'school_period_id', label: 'School Period', type: 'select', required: true, placeholder: 'Select School Period', options: (schoolPeriods || []).map((period: SchoolPeriod) => ({ value: period.id, label: period.name })) },
+          { name: 'student_category_id', label: 'Student Category (Optional)', type: 'select', placeholder: 'All Categories', options: (studentCategories || []).map((category: StudentCategory) => ({ value: category.id, label: String(category.name ?? '') })) },
+        ]}
+      />
 
       <DialogForm 
         isOpen={isItemModalOpen} 

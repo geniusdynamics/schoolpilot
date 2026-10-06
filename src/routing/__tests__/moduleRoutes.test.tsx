@@ -1,13 +1,23 @@
 // ABOUTME: Tests for module route generation from module registry
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { DynamicRoutes } from '../moduleRoutes';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import * as useDynamicNavigationModule from '@/hooks/useDynamicNavigation';
 import * as useRBACModule from '@/hooks/useRBAC';
+
+// Records the router location so redirect destinations can be asserted exactly.
+let currentLocation = { pathname: '', search: '' };
+const LocationProbe: React.FC = () => {
+  const location = useLocation();
+  useEffect(() => {
+    currentLocation = { pathname: location.pathname, search: location.search };
+  }, [location]);
+  return null;
+};
 
 // Mock the hooks and dependencies
 vi.mock('@/hooks/useDynamicNavigation', () => ({
@@ -298,13 +308,16 @@ describe('DynamicRoutes', () => {
 
       render(
         <MemoryRouter initialEntries={['/administration/departments']}>
+          <LocationProbe />
           <DynamicRoutes modulesInitialized={true} />
         </MemoryRouter>
       );
 
-      // Should redirect to the hub+tab specified in redirectTo
-      // Since we're mocking components, we verify no crash and redirect occurred
-      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
+      // Should redirect to the hub+tab specified in redirectTo. The fixture
+      // targets /administration/configuration, which itself is a redirectMap
+      // key chaining on to /administration/organization (query is dropped by
+      // the chain); live module definitions point straight at the final hub.
+      expect(currentLocation.pathname).toBe('/administration/organization');
     });
 
     it('should fall back to redirectMap when navItem.redirectTo is missing', () => {
@@ -330,12 +343,14 @@ describe('DynamicRoutes', () => {
 
       render(
         <MemoryRouter initialEntries={['/administration/designations']}>
+          <LocationProbe />
           <DynamicRoutes modulesInitialized={true} />
         </MemoryRouter>
       );
 
       // Should redirect using redirectMap fallback
-      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
+      expect(currentLocation.pathname).toBe('/administration/organization');
+      expect(currentLocation.search).toBe('?tab=designations');
     });
 
     it('should register cross-module redirects from redirectMap', () => {
@@ -353,34 +368,37 @@ describe('DynamicRoutes', () => {
 
       render(
         <MemoryRouter initialEntries={['/hr/staff-bio-data']}>
+          <LocationProbe />
           <DynamicRoutes modulesInitialized={true} />
         </MemoryRouter>
       );
 
       // Cross-module redirect from redirectMap should work even if not in module nav
-      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
+      expect(currentLocation.pathname).toBe('/administration/staff');
+      expect(currentLocation.search).toBe('?tab=bio-data');
     });
   });
 
   describe('Catch-all Route', () => {
-    it('should redirect unknown paths to dashboard', () => {
+    it('should show the not-found page for unknown paths', () => {
       render(
         <MemoryRouter initialEntries={['/unknown-path']}>
           <DynamicRoutes modulesInitialized={true} />
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
+      // The catch-all renders an explicit 404 instead of silently redirecting
+      expect(screen.getByText('Page not found')).toBeInTheDocument();
     });
 
-    it('should redirect deeply unknown paths to dashboard', () => {
+    it('should show the not-found page for deeply unknown paths', () => {
       render(
         <MemoryRouter initialEntries={['/very/deep/unknown/path']}>
           <DynamicRoutes modulesInitialized={true} />
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
+      expect(screen.getByText('Page not found')).toBeInTheDocument();
     });
   });
 

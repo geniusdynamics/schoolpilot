@@ -59,16 +59,17 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
     }
   }
 
-  async insertBatch(tableName: string, data: any[]): Promise<void> {
+  async insertBatch(tableName: string, data: any[] | any): Promise<void> {
     this.validateInitialization();
-    
-    if (!data.length) return;
+
+    const rows = Array.isArray(data) ? data : [data];
+    if (!rows.length) return;
 
     try {
       // Begin transaction for better performance
       this.db.exec('BEGIN TRANSACTION');
 
-      const columns = Object.keys(data[0]);
+      const columns = Object.keys(rows[0]);
       const placeholders = this.generatePlaceholders(columns.length);
       const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
       
@@ -82,7 +83,7 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
       stmt.finalize();
       this.db.exec('COMMIT');
       
-      logger.info(`Inserted ${data.length} records into ${tableName}`);
+      logger.info(`Inserted ${rows.length} records into ${tableName}`);
     } catch (error) {
       this.db.exec('ROLLBACK');
       logger.error(`Failed to insert batch into ${tableName}:`, error);

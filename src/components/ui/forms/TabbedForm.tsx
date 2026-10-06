@@ -40,7 +40,7 @@ export interface TabbedFormProps {
 
 const TabbedForm: React.FC<TabbedFormProps> = ({
   tabs,
-  activeTab = 0,
+  activeTab,
   onTabChange,
   validation = {},
   onSubmit,
@@ -57,8 +57,8 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
   onCancel,
   children,
 }) => {
-  const [currentTab, setCurrentTab] = useState(activeTab);
-  const [visitedTabs, setVisitedTabs] = useState<Set<number>>(new Set([activeTab]));
+  const [currentTab, setCurrentTab] = useState(activeTab ?? 0);
+  const [visitedTabs, setVisitedTabs] = useState<Set<number>>(new Set([activeTab ?? 0]));
   const [tabStates, setTabStates] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -71,7 +71,10 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
   
   // Update current tab when activeTab prop changes
   useEffect(() => {
-    if (activeTab !== currentTab) {
+    // Controlled mode only: sync when the consumer actually provides activeTab.
+    // Uncontrolled consumers (no activeTab prop) own their tab state — the old
+    // unconditional reset yanked every internal tab change back to the default.
+    if (activeTab !== undefined && activeTab !== currentTab) {
       setCurrentTab(activeTab);
       setVisitedTabs(prev => new Set([...prev, activeTab]));
     }
