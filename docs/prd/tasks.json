@@ -287,10 +287,10 @@
       ],
       "spec": "",
       "deps_install": true,
-      "status": "blocked",
+      "status": "done",
       "commit": null,
       "notes": "not integrated: consolidation had uncommitted tasks.json (P0-G00 ledger update); branch prd/P0-G01 approved; same .claude/worktrees vitest issue expected; confirm hand edit of gate-baseline.json lintRequired=true (§2.4 exception)",
-      "completed_at": null
+      "completed_at": "2026-10-07"
     },
     {
       "id": "P0-A01",

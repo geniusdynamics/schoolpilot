@@ -18,5 +18,5 @@
     "src/services/database/__tests__/SyncComponents.property.test.ts"
   ] },
   "probe": { "pass": 0, "total": 16 },
-  "lintRequired": false
+  "lintRequired": true
 }
