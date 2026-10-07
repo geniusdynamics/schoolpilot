@@ -68,3 +68,6 @@ full_file_list.txt
 .ratchet-tsc.log
 
 .ratchet-tsc.log
+
+# PRD gate reports (scripts/prd/gate.mjs)
+.prd-gate/
