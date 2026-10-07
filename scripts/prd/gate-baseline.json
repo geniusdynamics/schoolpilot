@@ -1,0 +1,22 @@
+{
+  "updated": "2026-10-07",
+  "note": "Thresholds for scripts/prd/gate.mjs. Only ever tightened via `node scripts/prd/gate.mjs baseline --update`. Numbers measured on consolidation@75d430e.",
+  "typecheck": { "total": 3056, "missingNames": 146 },
+  "contracts": {
+    "undefinedCollections": 10,
+    "missingAppDataFunctions": 94,
+    "singleArgUpdateCalls": 36,
+    "numericIdWrites": 38,
+    "numericIdSelectors": 28,
+    "mockBackedHooksInUi": 11,
+    "routesOutsideNavigation": 24
+  },
+  "tests": { "failedFiles": 4, "failedTests": 0, "totalTests": 1676, "knownFailingFiles": [
+    "src/core/__tests__/ModuleLoader.test.ts",
+    "src/core/__tests__/ModuleRegistry.integration.test.ts",
+    "src/services/database/__tests__/CapabilityDetector.property.test.ts",
+    "src/services/database/__tests__/SyncComponents.property.test.ts"
+  ] },
+  "probe": { "pass": 0, "total": 16 },
+  "lintRequired": false
+}
