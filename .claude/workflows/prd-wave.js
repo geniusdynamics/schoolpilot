@@ -143,7 +143,7 @@ Task card:
 ${card(t)}
 
 Steps:
-1. git switch -c prd/${t.id}   (if the branch already exists, use prd/${t.id}-retry).
+1. git switch -c prd/${t.id} consolidation   (always branch from consolidation, never from the worktree's default HEAD; if the branch already exists, use prd/${t.id}-retry).
 2. Read the spec section in the card (path is relative to docs/prd/), the audit finding(s), and every file you own.
 3. Write the failing test described in "test" first; run it and confirm it fails for the right reason.
 4. Implement the smallest change that meets every acceptance criterion. Edit ONLY files in the card's "files" list, plus new test/fixture files you create.
