@@ -71,3 +71,6 @@ full_file_list.txt
 
 # PRD gate reports (scripts/prd/gate.mjs)
 .prd-gate/
+
+# Sub-agent git worktrees (PRD waves)
+.claude/worktrees/
