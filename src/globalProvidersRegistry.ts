@@ -104,9 +104,9 @@ async function initializeProviders(): Promise<void> {
     }
     
     isInitialized = true;
-    logger.info('âœ… [GlobalProvidersRegistry] Initialized with', Object.keys(globalProviders).length, 'providers');
+    logger.info('✅ [GlobalProvidersRegistry] Initialized with', Object.keys(globalProviders).length, 'providers');
   } catch (error) {
-    logger.error('âŒ [GlobalProvidersRegistry] Failed to initialize:', error);
+    logger.error('❌ [GlobalProvidersRegistry] Failed to initialize:', error);
   }
 }
 

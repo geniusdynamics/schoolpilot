@@ -256,7 +256,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
               className="close-button" 
               onClick={() => setShowCreateModal(false)}
             >
-              Ã—
+              ×
             </button>
             <ExamSchedulingUI
               onScheduleComplete={handleCreateSchedule}
@@ -273,7 +273,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
               className="close-button" 
               onClick={() => setEditingSchedule(null)}
             >
-              Ã—
+              ×
             </button>
             <ExamSchedulingUI
               examId={editingSchedule.id}

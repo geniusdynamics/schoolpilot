@@ -249,7 +249,7 @@ const StudentsListPage: React.FC = () => {
     setQuickEditStudent(student);
   }, []);
 
-  // Quick-edit fields Ã¢â‚¬â€ student-specific (3.2). The former generic config shapes
+  // Quick-edit fields — student-specific (3.2). The former generic config shapes
   // never matched real Student columns; these mirror what the old slideout
   // actually intended to expose.
   const quickEditFields: EntityFieldConfig[] = useMemo(() => [
@@ -270,7 +270,7 @@ const StudentsListPage: React.FC = () => {
     },
   ], [classStreams]);
 
-  // Quick-edit save Ã¢â‚¬â€ provider contract is (id, partial)
+  // Quick-edit save — provider contract is (id, partial)
   const handleQuickEditSave = useCallback(async (values: Record<string, any>) => {
     if (!quickEditStudent) return;
     await updateStudent(String(quickEditStudent.id), values);

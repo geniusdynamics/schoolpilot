@@ -142,7 +142,7 @@ export class InvoiceStatusService {
     } else if (totalPaid > 0) {
       newStatus = InvoiceStatus.PARTIALLY_PAID;
     } else {
-      // Nothing paid â€” check if overdue
+      // Nothing paid — check if overdue
       newStatus = this.determineUnpaidStatus(invoice.due_date);
     }
 

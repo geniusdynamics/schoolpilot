@@ -128,9 +128,9 @@ export class PouchDBProvider implements DataProvider {
       // Create indexes for common queries
       await this.createIndexes();
 
-      logger.info('âœ… PouchDBProvider initialized successfully');
+      logger.info('✅ PouchDBProvider initialized successfully');
     } catch (error) {
-      logger.error('âŒ Failed to initialize PouchDBProvider:', error);
+      logger.error('❌ Failed to initialize PouchDBProvider:', error);
       throw error;
     }
   }

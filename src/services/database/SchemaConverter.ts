@@ -415,7 +415,7 @@ export class SchemaConverter {
         // Removed per-collection success log to reduce spam
       } catch (error) {
         const errorMsg = `Failed to convert collection ${collectionName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        logger.error(`[SchemaConverter] âŒ ${errorMsg}`);
+        logger.error(`[SchemaConverter] ❌ ${errorMsg}`);
         errors.push(errorMsg);
       }
     });
@@ -423,7 +423,7 @@ export class SchemaConverter {
     if (errors.length > 0) {
       logger.warn(`[SchemaConverter] Conversion completed with ${errors.length} errors:`, errors);
     } else {
-      logger.info(`[SchemaConverter] âœ… Successfully converted ${Object.keys(convertedCollections).length} collections`);
+      logger.info(`[SchemaConverter] ✅ Successfully converted ${Object.keys(convertedCollections).length} collections`);
     }
 
     return convertedCollections;

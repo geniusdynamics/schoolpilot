@@ -22,7 +22,7 @@ export function useDataHookRegistration<T extends EntityData>(
   }, [config.entityModule, config.entityName]);
 
   useEffect(() => {
-    logger.info(`ðŸ”§ [useDataHookRegistration] Registering data hook for ${config.entityName} in ${config.entityModule}`);
+    logger.info(`🔧 [useDataHookRegistration] Registering data hook for ${config.entityName} in ${config.entityModule}`);
     
     // Register the data hook with the global registry
     moduleDataRegistry.register({

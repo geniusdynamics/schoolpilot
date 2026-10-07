@@ -107,9 +107,9 @@ export class SQLiteProvider implements DataProvider {
         await this.initializeChangeTracking();
       }
 
-      logger.info('âœ… SQLiteProvider initialized successfully');
+      logger.info('✅ SQLiteProvider initialized successfully');
     } catch (error) {
-      logger.error('âŒ Failed to initialize SQLiteProvider:', error);
+      logger.error('❌ Failed to initialize SQLiteProvider:', error);
       throw error;
     }
   }
@@ -549,11 +549,11 @@ export class SQLiteProvider implements DataProvider {
 
       // Create database from file
       this.db = new this.SQLite.Database(data);
-      logger.info('ðŸ“‚ Loaded existing database from OPFS');
+      logger.info('📂 Loaded existing database from OPFS');
     } catch (error) {
       // Create new database
       this.db = new this.SQLite.Database();
-      logger.info('ðŸ†• Created new database');
+      logger.info('🆕 Created new database');
     }
   }
 

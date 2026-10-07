@@ -247,7 +247,7 @@ export const MarketplaceDiscovery: React.FC<MarketplaceDiscoveryProps> = ({
                 <span className="flex items-center gap-1">
                   <CheckCircleIcon className="h-4 w-4 text-green-500" />
                   {keyConfig.plan.charAt(0).toUpperCase() + keyConfig.plan.slice(1)} Plan
-                  {' â€¢ '}
+                  {' • '}
                   {keyConfig.permissions.maxPlugins} plugins max
                 </span>
               ) : (

@@ -164,7 +164,7 @@ export class DatabaseMemoryManager {
   }
 
   public forceCleanup(): void {
-    logger.info('ðŸ§¹ [MemoryManager] Forcing cleanup...');
+    logger.info('🧹 [MemoryManager] Forcing cleanup...');
     
     // Run GC callbacks
     this.gcCallbacks.forEach(callback => {

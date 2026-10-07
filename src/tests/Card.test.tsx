@@ -45,7 +45,7 @@ describe('Card Component', () => {
 
     it('renders with icon and actions', () => {
       const mockAction = <button>Action</button>;
-      const mockIcon = <span data-testid="card-icon">ðŸŽ¯</span>;
+      const mockIcon = <span data-testid="card-icon">🎯</span>;
 
       render(
         <Card title="Test Card" icon={mockIcon} actions={mockAction}>

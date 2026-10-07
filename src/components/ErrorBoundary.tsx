@@ -31,7 +31,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     // Check if this is a database-related error
     const isDatabaseError = this.isDatabaseRelatedError(error);
     
-    logger.error('ðŸš¨ðŸš¨ðŸš¨ [ErrorBoundary] Caught error:', {
+    logger.error('🚨🚨🚨 [ErrorBoundary] Caught error:', {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -40,7 +40,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     
     // Enhanced error reporting for database errors
     if (isDatabaseError) {
-      logger.error('ðŸ—„ï¸ [ErrorBoundary] Database-related error detected');
+      logger.error('🗄️ [ErrorBoundary] Database-related error detected');
       // Additional database context could be collected here
     }
     

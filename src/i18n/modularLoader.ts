@@ -18,7 +18,7 @@ const staticTranslations = import.meta.glob('./locales/**/*.json');
  * Semantics:
  *  - If both `target[k]` and `source[k]` are plain objects, recurse.
  *  - Otherwise, `source[k]` (the later value) wins.
- *  - Arrays and primitives are replaced wholesale Ã¢â‚¬â€ we never try to
+ *  - Arrays and primitives are replaced wholesale — we never try to
  *    "merge" an array, because doing so silently drops items.
  *  - The function is type-safe and side-effect free: it mutates and
  *    returns `target`.

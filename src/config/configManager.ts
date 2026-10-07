@@ -4,9 +4,9 @@ import { logger } from '@/utils/logging';
  * Unified Configuration Manager
  *
  * Contains:
- *  - createDefaultConfig() â€” factory function for UnifiedAppConfig
- *  - CONFIG_PRESETS â€” named configuration presets
- *  - UnifiedConfigManager â€” singleton class for config persistence, updates, listeners
+ *  - createDefaultConfig() — factory function for UnifiedAppConfig
+ *  - CONFIG_PRESETS — named configuration presets
+ *  - UnifiedConfigManager — singleton class for config persistence, updates, listeners
  *  - Singleton instance and utility accessor functions
  *
  * Imported by unifiedConfig.ts which re-exports everything for backward compat.
@@ -907,22 +907,22 @@ export class UnifiedConfigManager {
       const fileConfig = await loadDatabaseConfigFromFile();
 
       if (Object.keys(fileConfig).length > 0) {
-        logger.info('ðŸ“ [UnifiedConfig] Applying configuration from file');
+        logger.info('📁 [UnifiedConfig] Applying configuration from file');
         this.updateDatabaseConfig(fileConfig);
       }
     } catch (error) {
-      logger.warn('ðŸ“ [UnifiedConfig] Failed to load configuration file:', error);
+      logger.warn('📁 [UnifiedConfig] Failed to load configuration file:', error);
     }
   }
 
   public reloadFromEnvironment(): void {
-    logger.info('ðŸ”„ [UnifiedConfig] Reloading configuration from environment variables');
+    logger.info('🔄 [UnifiedConfig] Reloading configuration from environment variables');
 
     const envDatabaseConfig = loadDatabaseConfigFromEnvironment();
 
     if (Object.keys(envDatabaseConfig).length > 0) {
       this.updateDatabaseConfig(envDatabaseConfig);
-      logger.info('âœ… [UnifiedConfig] Applied environment variable overrides');
+      logger.info('✅ [UnifiedConfig] Applied environment variable overrides');
     }
   }
 
@@ -1053,7 +1053,7 @@ export class UnifiedConfigManager {
       if (!envConfig.allowedDatabaseProviders.includes(repaired.provider)) {
         repaired.provider = envConfig.allowedDatabaseProviders[0];
         changes.push(
-          `provider: ${this.config.database.provider} â†’ ${repaired.provider} (environment constraint)`,
+          `provider: ${this.config.database.provider} → ${repaired.provider} (environment constraint)`,
         );
       }
 

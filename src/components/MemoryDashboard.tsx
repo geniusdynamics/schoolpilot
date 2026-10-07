@@ -135,10 +135,10 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
               </div>
             </div>
             <div className="text-2xl font-bold text-surface-foreground">
-              {metrics ? formatBytes(metrics.usedMemory) : 'â€”'}
+              {metrics ? formatBytes(metrics.usedMemory) : '—'}
             </div>
             <div className="text-sm text-surface-muted-fg">
-              of {metrics ? formatBytes(metrics.totalMemory) : 'â€”'}
+              of {metrics ? formatBytes(metrics.totalMemory) : '—'}
             </div>
           </Card>
 

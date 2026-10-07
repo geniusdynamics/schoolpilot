@@ -151,7 +151,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
       // In demo mode, return all available modules regardless of userId
       // getEnabledModules() returns string[] of module IDs directly
       const modules = getEnabledModules();
-      logger.info('ðŸ” [useRBAC] Demo mode - accessible modules:', modules);
+      logger.info('🔍 [useRBAC] Demo mode - accessible modules:', modules);
       return Array.isArray(modules) ? modules : [];
     }
     

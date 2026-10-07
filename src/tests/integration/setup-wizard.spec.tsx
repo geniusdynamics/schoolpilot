@@ -5,7 +5,7 @@
 // ABOUTME right collections, plus localStorage draft resumability.
 //
 // NOTE on mechanics: each Next-click is followed by a short settle sleep
-// instead of findBy*/waitFor polling Ã¢â‚¬â€ the wizard's async validate+persist
+// instead of findBy*/waitFor polling — the wizard's async validate+persist
 // chain proved flaky under RTL's retry loop in this environment, while a
 // fixed settle window is deterministic here.
 
@@ -61,39 +61,39 @@ describe('SetupWizard (first-run smoke)', () => {
     clearWizardDraft();
   });
 
-  it('walks all steps and persists every stepÃ¢â‚¬â„¢s writes', async () => {
+  it('walks all steps and persists every step’s writes', async () => {
     const onDone = vi.fn();
     const user = userEvent.setup();
     render(<SetupWizard onComplete={onDone} />);
 
-    // Step 1 Ã¢â‚¬â€ School profile
+    // Step 1 — School profile
     await user.type(screen.getByPlaceholderText(/Greenfields Academy/i), 'Greenfields Academy');
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Step 2 Ã¢â‚¬â€ Education system (pick CBC primary: first radio)
+    // Step 2 — Education system (pick CBC primary: first radio)
     await user.click(screen.getAllByRole('radio')[0]);
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Step 3 Ã¢â‚¬â€ Academic year (defaults prefilled)
+    // Step 3 — Academic year (defaults prefilled)
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Step 4 Ã¢â‚¬â€ Classes & streams
+    // Step 4 — Classes & streams
     await user.type(screen.getByPlaceholderText(/Class 1/i), 'Form 1');
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Step 5 Ã¢â‚¬â€ Subjects preselected Ã¢â€ â€™ advance
+    // Step 5 — Subjects preselected → advance
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Step 6 Ã¢â‚¬â€ Fees left empty Ã¢â€ â€™ skip persistence
+    // Step 6 — Fees left empty → skip persistence
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Step 7 Ã¢â‚¬â€ Finish
+    // Step 7 — Finish
     await user.click(screen.getByRole('button', { name: /finish setup/i }));
     await new Promise(r => setTimeout(r, SETTLE));
     await waitFor(() => expect(onDone).toHaveBeenCalled(), { timeout: 4000 });
@@ -145,7 +145,7 @@ describe('SetupWizard (first-run smoke)', () => {
     next();
     await new Promise(r => setTimeout(r, SETTLE));
 
-    // Validation failed Ã¢â€ â€™ still on step 0; only the initial draft persisted
+    // Validation failed → still on step 0; only the initial draft persisted
     expect(screen.getByPlaceholderText(/Greenfields Academy/i)).toBeInTheDocument();
     const draft = JSON.parse(localStorage.getItem('schoolpilot_setup_wizard_draft') || '{}');
     expect(draft.stepIndex ?? 0).toBe(0);

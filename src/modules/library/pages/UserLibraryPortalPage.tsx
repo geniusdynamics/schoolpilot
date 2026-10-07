@@ -146,7 +146,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
         return (
           <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
             {new Date(item.due_date).toLocaleDateString()}
-            {isOverdue && <span className="ml-1">âš ï¸</span>}
+            {isOverdue && <span className="ml-1">⚠️</span>}
           </span>
         );
       },

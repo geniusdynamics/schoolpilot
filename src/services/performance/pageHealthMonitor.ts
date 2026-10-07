@@ -270,9 +270,9 @@ class PageHealthMonitor {
 
     // Log critical alerts
     if (severity === 'critical') {
-      logger.error(`ðŸš¨ [PageHealthMonitor] Critical alert: ${message}`);
+      logger.error(`🚨 [PageHealthMonitor] Critical alert: ${message}`);
     } else if (severity === 'high') {
-      logger.warn(`âš ï¸ [PageHealthMonitor] High severity alert: ${message}`);
+      logger.warn(`⚠️ [PageHealthMonitor] High severity alert: ${message}`);
     }
   }
 }

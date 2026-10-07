@@ -110,7 +110,7 @@ export class SyncEngine {
       this.sync();
     }, this.config.syncInterval);
 
-    logger.info('ðŸ”„ Auto-sync started');
+    logger.info('🔄 Auto-sync started');
   }
 
   /**
@@ -122,7 +122,7 @@ export class SyncEngine {
       this.syncIntervalId = null;
     }
 
-    logger.info('â¹ï¸ Auto-sync stopped');
+    logger.info('⏹️ Auto-sync stopped');
   }
 
   /**
@@ -228,7 +228,7 @@ export class SyncEngine {
     this.saveQueue();
     this.updateStatus({ pendingCount: this.operationQueue.length });
 
-    logger.info(`ðŸ“¤ Queued ${type} operation for ${collection}`);
+    logger.info(`📤 Queued ${type} operation for ${collection}`);
 
     // Try to sync immediately if online
     if (navigator.onLine && this.config.autoSync) {
@@ -267,7 +267,7 @@ export class SyncEngine {
         ]);
       }
 
-      logger.info(`âœ… Resolved conflict for ${conflict.collection}:${conflict.id}`);
+      logger.info(`✅ Resolved conflict for ${conflict.collection}:${conflict.id}`);
     } catch (error) {
       logger.error('Failed to resolve conflict:', error);
       throw error;
@@ -519,7 +519,7 @@ export class SyncEngine {
   }
 
   private handleOnline(): void {
-    logger.info('ðŸŒ Online - resuming sync');
+    logger.info('🌐 Online - resuming sync');
     this.updateStatus({ state: 'idle' });
     
     if (this.config.autoSync) {
@@ -528,7 +528,7 @@ export class SyncEngine {
   }
 
   private handleOffline(): void {
-    logger.info('ðŸ“´ Offline - pausing sync');
+    logger.info('📴 Offline - pausing sync');
     this.updateStatus({ state: 'offline' });
   }
 

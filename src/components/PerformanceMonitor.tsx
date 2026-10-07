@@ -123,7 +123,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
           className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-medium transition-colors"
           title="Show Performance Monitor"
         >
-          ðŸ“Š Perf
+          📊 Perf
         </button>
       </div>
     );
@@ -141,14 +141,14 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               className="text-primary-500 hover:text-primary-700 text-sm"
               title="Refresh data"
             >
-              ðŸ”„
+              🔄
             </button>
             <button
               onClick={handleToggleVisibility}
               className="text-surface-muted-fg hover:text-surface-foreground text-xl"
               title="Hide Performance Monitor"
             >
-              Ã—
+              ×
             </button>
           </div>
         </div>
@@ -229,7 +229,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                         metric.success ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {formatTime(metric.loadTime)}
-                        {!metric.success && ' âŒ'}
+                        {!metric.success && ' ❌'}
                       </span>
                     </div>
                   ))}

@@ -70,15 +70,15 @@ class AuthService {
   }
 
   private async initialize() {
-    logger.info('ðŸ” [AuthService] initialize() called');
+    logger.info('🔐 [AuthService] initialize() called');
     try {
       // Check if IndexedDB is available using centralized CapabilityDetector
       const detector = CapabilityDetector.getInstance();
       const hasIndexedDB = await detector.hasCapability('hasIndexedDB');
-      logger.info('ðŸ” [AuthService] IndexedDB available?', hasIndexedDB);
+      logger.info('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
       
       if (!hasIndexedDB) {
-        logger.warn('ðŸ” [AuthService] IndexedDB not available, forcing demo mode');
+        logger.warn('🔐 [AuthService] IndexedDB not available, forcing demo mode');
         this.isDemoMode = true;
         this.databaseAvailable = false;
         this.initializationComplete = true;
@@ -296,7 +296,7 @@ class AuthService {
 
   private async loginDemo(credentials: LoginCredentials): Promise<AuthResult> {
     // SECURITY WARNING: Demo mode accepts any password and should only be used for testing
-    logger.warn('ðŸ” [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
+    logger.warn('🔐 [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
     
     // Demo users for testing different roles
     const demoUsers: { [key: string]: AuthUser } = {
@@ -427,7 +427,7 @@ class AuthService {
   private async loginProduction(credentials: LoginCredentials): Promise<AuthResult> {
     // Ensure database is initialized before proceeding
     if (!this.databaseAvailable) {
-      logger.warn('ðŸ” [AuthService] Database not available, falling back to demo mode');
+      logger.warn('🔐 [AuthService] Database not available, falling back to demo mode');
       this.isDemoMode = true;
       await unifiedConfigManager.switchToDemo();
       return this.loginDemo(credentials);
@@ -440,7 +440,7 @@ class AuthService {
       // Get database provider from the dynamic service
       const provider = databaseService.getProvider();
       if (!provider) {
-        logger.warn('ðŸ” [AuthService] Database provider not available, falling back to demo mode');
+        logger.warn('🔐 [AuthService] Database provider not available, falling back to demo mode');
         this.isDemoMode = true;
         await unifiedConfigManager.switchToDemo();
         return this.loginDemo(credentials);
@@ -449,7 +449,7 @@ class AuthService {
       // Get users collection
       const usersCollection = databaseService.getCollection('users');
       if (!usersCollection) {
-        logger.warn('ðŸ” [AuthService] Users collection not available, falling back to demo mode');
+        logger.warn('🔐 [AuthService] Users collection not available, falling back to demo mode');
         this.isDemoMode = true;
         await unifiedConfigManager.switchToDemo();
         return this.loginDemo(credentials);
@@ -458,14 +458,14 @@ class AuthService {
       // Check if any users exist in the database
       const allUsers = await usersCollection.find({ selector: {} });
       if (!allUsers || allUsers.length === 0) {
-        logger.info('ðŸ” [AuthService] No users found in production database, switching to demo mode');
+        logger.info('🔐 [AuthService] No users found in production database, switching to demo mode');
         
         // Switch to demo mode automatically
         await unifiedConfigManager.switchToDemo();
         this.isDemoMode = true;
         
         // Log the fallback to demo mode
-        logger.warn('ðŸ” [AuthService] Automatically switched to demo mode due to empty user database');
+        logger.warn('🔐 [AuthService] Automatically switched to demo mode due to empty user database');
         reportError(new Error('Production database empty - switched to demo mode'), {
           username: credentials.username,
           loginType: 'production_fallback_to_demo',

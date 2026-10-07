@@ -98,7 +98,7 @@ export class DatabaseConnectionPool {
 
     this.startCleanupProcess();
     this.startMetricsCollection();
-    logger.info('ðŸŠ [ConnectionPool] Initialized with config:', this.config);
+    logger.info('🏊 [ConnectionPool] Initialized with config:', this.config);
   }
 
   /**
@@ -135,7 +135,7 @@ export class DatabaseConnectionPool {
         this.metrics.totalAcquired++;
         return newConnection;
       } catch (error) {
-        logger.error('âŒ [ConnectionPool] Failed to create new connection:', error);
+        logger.error('❌ [ConnectionPool] Failed to create new connection:', error);
         throw error;
       }
     }
@@ -239,7 +239,7 @@ export class DatabaseConnectionPool {
       this.metrics.totalDestroyed++;
       databaseMemoryManager.unregisterConnection(connection.id);
     } catch (error) {
-      logger.error(`âŒ [ConnectionPool] Error destroying connection ${connection.id}:`, error);
+      logger.error(`❌ [ConnectionPool] Error destroying connection ${connection.id}:`, error);
     }
   }
 
@@ -334,7 +334,7 @@ export class DatabaseConnectionPool {
         try {
           await this.createConnection();
         } catch (error) {
-          logger.error('âŒ [ConnectionPool] Failed to create minimum connection:', error);
+          logger.error('❌ [ConnectionPool] Failed to create minimum connection:', error);
           break;
         }
       }
@@ -358,7 +358,7 @@ export class DatabaseConnectionPool {
       try {
         listener(this.metrics);
       } catch (error) {
-        logger.error('âŒ [ConnectionPool] Listener error:', error);
+        logger.error('❌ [ConnectionPool] Listener error:', error);
       }
     });
   }

@@ -74,7 +74,7 @@ const MetricCard: React.FC<{
     <p className={`text-3xl font-bold ${color}`}>{value}</p>
     {trend && (
       <p className={`text-xs mt-1 ${trend.direction === 'up' ? 'text-emerald-600' : trend.direction === 'down' ? 'text-rose-600' : 'text-surface-muted-fg'}`}>
-        {trend.direction === 'up' ? 'â–²' : trend.direction === 'down' ? 'â–¼' : 'âˆ’'} {trend.value}
+        {trend.direction === 'up' ? '▲' : trend.direction === 'down' ? '▼' : '−'} {trend.value}
       </p>
     )}
   </div>
@@ -99,7 +99,7 @@ const PipelineCard: React.FC<{
   >
     <div className="flex items-center justify-between w-full mb-2">
       <span className={`text-sm font-medium ${isActive ? 'text-violet-700' : textClass}`}>
-        {label} {isActive && <span className="ml-1">â–¼</span>}
+        {label} {isActive && <span className="ml-1">▼</span>}
       </span>
       <ArrowRightIcon className={`w-4 h-4 ${isActive ? 'text-violet-600 opacity-100' : 'text-surface-muted-fg opacity-0 group-hover:opacity-100'} transition-opacity`} />
     </div>
@@ -212,20 +212,20 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <p className="text-sm text-surface-muted-fg mb-1">Applicants</p>
               <p className="text-3xl font-bold text-primary-600">{applicants}</p>
               <p className={`text-xs mt-1 ${statistics.trends.applications.direction === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                â–² {statistics.trends.applications.value}
+                ▲ {statistics.trends.applications.value}
               </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-sm text-surface-muted-fg mb-1">Enrollment</p>
               <p className="text-3xl font-bold text-primary-600">{enrolled}</p>
               <p className={`text-xs mt-1 ${statistics.trends.enrollment.direction === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                â–² {statistics.trends.enrollment.value}
+                ▲ {statistics.trends.enrollment.value}
               </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-sm text-surface-muted-fg mb-1">Events</p>
               <p className="text-3xl font-bold text-primary-600">{events}</p>
-              <p className="text-xs mt-1 text-emerald-600">â–² 0%</p>
+              <p className="text-xs mt-1 text-emerald-600">▲ 0%</p>
             </div>
           </div>
 
@@ -236,7 +236,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-primary-600">Enquiry & Conversion</h3>
                 <button className="text-surface-muted-fg hover:text-surface-muted-fg">
-                  <span className="text-lg">â˜°</span>
+                  <span className="text-lg">☰</span>
                 </button>
               </div>
               <EnquiryConversionChart data={statistics.monthlyData} />
@@ -247,7 +247,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-amber-600">Applications</h3>
                 <button className="text-surface-muted-fg hover:text-surface-muted-fg">
-                  <span className="text-lg">â˜°</span>
+                  <span className="text-lg">☰</span>
                 </button>
               </div>
               <ApplicationsChart data={statistics.monthlyData} />
@@ -258,7 +258,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-emerald-600">Total Enrolled Students</h3>
                 <button className="text-surface-muted-fg hover:text-surface-muted-fg">
-                  <span className="text-lg">â˜°</span>
+                  <span className="text-lg">☰</span>
                 </button>
               </div>
               <EnrollmentChart data={statistics.monthlyData} />
@@ -400,7 +400,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                         Copy link
                       </button>
                       <button className="flex items-center gap-2 px-3 py-1.5 bg-surface-card rounded-lg text-violet-900 text-sm font-medium hover:bg-surface-accent">
-                        <span className="text-violet-500">âœ¨</span>
+                        <span className="text-violet-500">✨</span>
                         AI Analyst Beta
                       </button>
                     </div>
@@ -412,7 +412,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       <button className="text-surface-muted-fg hover:text-surface-muted-fg">&lt;</button>
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-medium text-surface-foreground">All Academic Years</h3>
-                        <span className="text-surface-muted-fg cursor-pointer">â“˜</span>
+                        <span className="text-surface-muted-fg cursor-pointer">ⓘ</span>
                       </div>
                       <button className="text-surface-muted-fg hover:text-surface-muted-fg">&gt;</button>
                     </div>

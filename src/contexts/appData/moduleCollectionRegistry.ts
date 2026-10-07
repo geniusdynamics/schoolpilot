@@ -96,7 +96,7 @@ export const COLLECTION_KEY_ALIASES = MODULE_COLLECTIONS_REGISTRY.aliases;
  */
 export function getModuleRegistryInfo(): string {
   const lines = [
-    'ðŸ“¦ Module Collections Registry',
+    '📦 Module Collections Registry',
     `Total modules: ${MODULE_COLLECTIONS_REGISTRY.modules.length}`,
     `Total collections: ${MODULE_COLLECTIONS_REGISTRY.appDataKeys.length}`,
     '',
@@ -104,7 +104,7 @@ export function getModuleRegistryInfo(): string {
   ];
   
   for (const mod of MODULE_COLLECTIONS_REGISTRY.modules) {
-    lines.push(`  â€¢ ${mod.name}: ${mod.collectionCount} collections`);
+    lines.push(`  • ${mod.name}: ${mod.collectionCount} collections`);
   }
   
   return lines.join('\n');

@@ -171,7 +171,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
       }
     } catch (error) {
       const navError = error as Error;
-      logger.error(`ðŸ§­ [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
+      logger.error(`🧭 [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
       
       // Mark path as having an error
       setNavigationErrors(prev => new Set(prev).add(path));

@@ -226,7 +226,7 @@ const module: PluginModule = {
   async activate(context: PluginContext) {
     logger.info('[Payment Mock Plugin] Activating...');
     logger.info('[Payment Mock Plugin] Supported methods:', paymentMockPlugin.getSupportedMethods().join(', '));
-    logger.info('[Payment Mock Plugin] This is a MOCK provider â€” no real payments will be processed.');
+    logger.info('[Payment Mock Plugin] This is a MOCK provider — no real payments will be processed.');
   },
 
   async deactivate() {

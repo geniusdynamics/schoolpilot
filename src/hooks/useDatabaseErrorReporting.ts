@@ -220,7 +220,7 @@ export const useDatabaseErrorReporting = () => {
     
     // Check if we should throttle this error
     if (shouldThrottle(errorKey) && severity !== 'critical') {
-      logger.warn(`ðŸ”„ [DatabaseErrorReporting] Throttling error: ${errorKey}`);
+      logger.warn(`🔄 [DatabaseErrorReporting] Throttling error: ${errorKey}`);
       return {
         errorId,
         timestamp: new Date().toISOString(),
@@ -241,7 +241,7 @@ export const useDatabaseErrorReporting = () => {
     };
 
     // Log error locally
-    logger.error('ðŸ—„ï¸ [DatabaseErrorReporting] Database error:', {
+    logger.error('🗄️ [DatabaseErrorReporting] Database error:', {
       errorId,
       error: error.message,
       stack: error.stack,
@@ -285,7 +285,7 @@ export const useDatabaseErrorReporting = () => {
     const message = `Database operation: ${operation} ${success ? 'succeeded' : 'failed'}`;
     const level = success ? 'info' : 'warning';
     
-    logger.info(`ðŸ—„ï¸ [DatabaseErrorReporting] ${message}`, {
+    logger.info(`🗄️ [DatabaseErrorReporting] ${message}`, {
       operation,
       success,
       duration,

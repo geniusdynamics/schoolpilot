@@ -1,6 +1,6 @@
 import { logger } from '@/utils/logging';
 
-// ABOUTME: First-run setup wizard (Phase 2.1) â€” school profile, education system,
+// ABOUTME: First-run setup wizard (Phase 2.1) — school profile, education system,
 // ABOUTME academic year + terms, classes & streams, subjects (Kenyan presets), and an
 // ABOUTME optional fee structure. Rendered by FirstRunOnboarding for the production
 // ABOUTME pathway. Progress is persisted to localStorage so it is skippable/resumable.
@@ -131,7 +131,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
     [draft.curriculum]
   );
 
-  // â”€â”€ Step writers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step writers ────────────────────────────────────────────────
 
   const saveSchoolProfile = useCallback(async () => {
     if (!draft.school.name.trim()) throw new Error('School name is required.');
@@ -145,7 +145,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
   }, [draft.school, schoolSettingsCol]);
 
   const saveEducationSystem = useCallback(async () => {
-    if (!draft.curriculum) return; // optional choice â€” keep going without one
+    if (!draft.curriculum) return; // optional choice — keep going without one
     const preset = KENYAN_CURRICULUM_PRESETS[draft.curriculum];
     const template = EDUCATION_SYSTEM_TEMPLATES[preset.templateKey] ?? {};
     await eduSystemCol.insert({
@@ -168,7 +168,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
       updated_at: now,
     });
 
-    // Ensure Term 1â€“3 period definitions exist, then create this year's periods.
+    // Ensure Term 1–3 period definitions exist, then create this year's periods.
     const termNames = ['Term 1', 'Term 2', 'Term 3'];
     const existingDefs = periodDefsCol.data;
     const defIds: string[] = [];
@@ -255,7 +255,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
       onComplete();
     } catch (error) {
       logger.error('[SetupWizard] final step failed:', error);
-      toast.showError('Something went wrong on the last step. You can retry â€” earlier steps are already saved.');
+      toast.showError('Something went wrong on the last step. You can retry — earlier steps are already saved.');
     }
   }, [toast, onComplete]);
 
@@ -269,7 +269,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
     fees: saveFeeTemplate,
   }), [saveSchoolProfile, saveEducationSystem, saveAcademicYear, saveClassesAndStreams, saveSubjects, saveFeeTemplate]);
 
-  // â”€â”€ Step definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step definitions ────────────────────────────────────────────
 
   const steps: WizardStep[] = useMemo(() => [
     {
@@ -422,7 +422,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
     {
       id: 'fees',
       title: 'Fee Structure',
-      description: 'Optional â€” you can set this up later',
+      description: 'Optional — you can set this up later',
       optional: true,
       content: (
         <div className="space-y-4">
@@ -478,7 +478,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
           </div>
           <p>
             Sign in with these after setup completes, then change the password from
-            <strong> Settings â†’ Users</strong>. We recommend doing that before inviting other staff.
+            <strong> Settings → Users</strong>. We recommend doing that before inviting other staff.
           </p>
         </div>
       ),
@@ -486,7 +486,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
   ], [draft, update, presetSubjects]);
 
   // Persist resume point and RUN THE STEP'S WRITER when the user advances past
-  // it â€” each completed step is committed to the database immediately.
+  // it — each completed step is committed to the database immediately.
   const wrappedSteps = useMemo(() => steps.map((s, idx) => ({
     ...s,
     content: s.content,
@@ -513,7 +513,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
   return (
     <Card
       title="Set up your school"
-      subtitle={`Step ${resumeFrom + 1} of ${steps.length}${draft.stepIndex > 0 ? ' â€” progress saved, feel free to continue later' : ''}`}
+      subtitle={`Step ${resumeFrom + 1} of ${steps.length}${draft.stepIndex > 0 ? ' — progress saved, feel free to continue later' : ''}`}
       className="max-w-3xl mx-auto"
     >
       <WizardForm

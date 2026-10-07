@@ -62,7 +62,7 @@ for (const mod of Object.values(mockDataModules)) {
 const createLoadingStates = (isLoading: boolean): AppDataLoadingStates => createAppDataLoadingState(isLoading);
 
 export const useModularMockData = (): AppDataContextType => {
-  logger.info('ðŸ”§ [useModularMockData] DEBUG: Running with ACADEMICS hooks enabled.');
+  logger.info('🔧 [useModularMockData] DEBUG: Running with ACADEMICS hooks enabled.');
 
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates(true));
 

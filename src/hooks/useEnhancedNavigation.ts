@@ -37,7 +37,7 @@ export const useEnhancedNavigation = () => {
     // Check if tabbed mode is enabled for this module
     const isTabbedMode = useTabbedMode && tabbedModeFeatureFlag.isTabbedModeEnabled(module || 'global');
     
-    logger.info('ðŸ” [useEnhancedNavigation] Navigation decision:', {
+    logger.info('🔍 [useEnhancedNavigation] Navigation decision:', {
       path,
       module: module || 'global',
       useTabbedMode,
@@ -47,7 +47,7 @@ export const useEnhancedNavigation = () => {
 
     if (isTabbedMode) {
       try {
-        logger.info('ðŸš€ [useEnhancedNavigation] Attempting tabbed navigation:', { path, title, module });
+        logger.info('🚀 [useEnhancedNavigation] Attempting tabbed navigation:', { path, title, module });
         
         // Use tabbed navigation
         const result = await navigateToTab(path, {
@@ -57,7 +57,7 @@ export const useEnhancedNavigation = () => {
           activateImmediately: true
         });
 
-        logger.info('âœ… [useEnhancedNavigation] Tabbed navigation successful:', result);
+        logger.info('✅ [useEnhancedNavigation] Tabbed navigation successful:', result);
 
         if (showFeedback && result.wasCreated) {
           showInfo(`Opened ${title} in new tab`, {
@@ -69,14 +69,14 @@ export const useEnhancedNavigation = () => {
 
         return result;
       } catch (tabError) {
-        logger.error('âŒ [useEnhancedNavigation] Tabbed navigation failed, falling back to standard navigation:', tabError);
+        logger.error('❌ [useEnhancedNavigation] Tabbed navigation failed, falling back to standard navigation:', tabError);
         
         // Fallback to standard navigation
         try {
           navigate(path);
-          logger.info('âœ… [useEnhancedNavigation] Standard navigation fallback successful:', path);
+          logger.info('✅ [useEnhancedNavigation] Standard navigation fallback successful:', path);
         } catch (navError) {
-          logger.error('âŒ [useEnhancedNavigation] Standard navigation also failed:', navError);
+          logger.error('❌ [useEnhancedNavigation] Standard navigation also failed:', navError);
           throw new Error(`Navigation failed for path: ${path}`);
         }
         
@@ -92,14 +92,14 @@ export const useEnhancedNavigation = () => {
         };
       }
     } else {
-      logger.info('ðŸš€ [useEnhancedNavigation] Using standard navigation (tabbed mode disabled):', path);
+      logger.info('🚀 [useEnhancedNavigation] Using standard navigation (tabbed mode disabled):', path);
       
       // Use standard navigation
       try {
         navigate(path);
-        logger.info('âœ… [useEnhancedNavigation] Standard navigation successful:', path);
+        logger.info('✅ [useEnhancedNavigation] Standard navigation successful:', path);
       } catch (navError) {
-        logger.error('âŒ [useEnhancedNavigation] Standard navigation failed:', navError);
+        logger.error('❌ [useEnhancedNavigation] Standard navigation failed:', navError);
         throw new Error(`Navigation failed for path: ${path}`);
       }
       

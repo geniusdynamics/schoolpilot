@@ -1,6 +1,6 @@
 ﻿import { logger } from '@/utils/logging';
 
-// ABOUTME: HR domain hook â€” PayrollPeriods, PayrollItemTypes, Payslips,
+// ABOUTME: HR domain hook — PayrollPeriods, PayrollItemTypes, Payslips,
 // ABOUTME: StaffSalarySettings, LeaveRequests
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -14,7 +14,7 @@ export function useHRData() {
   const staffSalarySettingsCollection = useDatabaseCollection<any>('staff_salary_settings');
   const payslipsCollection = useDatabaseCollection<any>('payslips');
 
-  // â”€â”€ Payroll Periods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Payroll Periods ───────────────────────────────────────────────────────────
   const addPayrollPeriod = useCallback(async (data: any) => {
     return payrollPeriodsCollection.insert(data);
   }, [payrollPeriodsCollection]);
@@ -27,7 +27,7 @@ export function useHRData() {
     return payrollPeriodsCollection.remove(id);
   }, [payrollPeriodsCollection]);
 
-  // â”€â”€ Payroll Item Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Payroll Item Types ────────────────────────────────────────────────────────
   const addPayrollItemType = useCallback(async (data: any) => {
     return payrollItemTypesCollection.insert(data);
   }, [payrollItemTypesCollection]);
@@ -40,7 +40,7 @@ export function useHRData() {
     return payrollItemTypesCollection.remove(id);
   }, [payrollItemTypesCollection]);
 
-  // â”€â”€ Staff Salary Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Staff Salary Settings ─────────────────────────────────────────────────────
   const updateStaffSalarySetting = useCallback(async (staffId: string, salaryData: any) => {
     try {
       const db = await databaseService.getDatabase();
@@ -49,7 +49,7 @@ export function useHRData() {
     } catch (error) { logger.error('Error updating staff salary setting:', error); throw error; }
   }, []);
 
-  // â”€â”€ Payslip Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Payslip Generation ────────────────────────────────────────────────────────
   const generatePayslipsForPeriod = useCallback(async (periodId: string) => {
     return payrollPeriodsCollection.update(periodId, { payslips_generated: true });
   }, [payrollPeriodsCollection]);

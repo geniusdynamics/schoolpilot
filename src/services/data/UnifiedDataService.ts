@@ -112,7 +112,7 @@ export class UnifiedDataService {
         error: null
       });
 
-      logger.info(`âœ… UnifiedDataService initialized in ${mode} mode with ${this.provider.name}`);
+      logger.info(`✅ UnifiedDataService initialized in ${mode} mode with ${this.provider.name}`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       
@@ -123,7 +123,7 @@ export class UnifiedDataService {
         error: err
       });
 
-      logger.error('âŒ Failed to initialize UnifiedDataService:', err);
+      logger.error('❌ Failed to initialize UnifiedDataService:', err);
       throw err;
     }
   }

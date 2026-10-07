@@ -70,7 +70,7 @@ describe('DataGrid Edge Cases', () => {
     it('handles special characters and HTML entities', () => {
       const dataWithSpecialChars: TestItem[] = [
         { id: 1, name: 'Test & Co.', value: '<script>alert("xss")</script>' },
-        { id: 2, name: 'CafÃ© & RÃ©sumÃ©', value: '100% & 50â‚¬' },
+        { id: 2, name: 'Café & Résumé', value: '100% & 50€' },
         { id: 3, name: 'Line\nBreak', value: 'Tab\tCharacter' }
       ];
       
@@ -83,8 +83,8 @@ describe('DataGrid Edge Cases', () => {
       render(<DataGrid columns={columns} data={dataWithSpecialChars} />);
       
       expect(screen.getByText('Test & Co.')).toBeInTheDocument();
-      expect(screen.getByText('CafÃ© & RÃ©sumÃ©')).toBeInTheDocument();
-      expect(screen.getByText('100% & 50â‚¬')).toBeInTheDocument();
+      expect(screen.getByText('Café & Résumé')).toBeInTheDocument();
+      expect(screen.getByText('100% & 50€')).toBeInTheDocument();
       
       // Ensure XSS content is rendered as text, not executed
       expect(screen.getByText('<script>alert("xss")</script>')).toBeInTheDocument();

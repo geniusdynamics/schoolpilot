@@ -26,7 +26,7 @@ import {
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import { Application, ApplicationStatus } from '../data/types';
 
-// â”€â”€â”€ Status Timeline Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Status Timeline Configuration ────────────────────────────────
 interface TimelineStep {
   key: string;
   label: string;
@@ -95,7 +95,7 @@ const getStatusLabel = (status: ApplicationStatus, t: (key: string) => string): 
   return map[status] || status;
 };
 
-// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Component ─────────────────────────────────────────────────────
 export const ApplicationTrackingPageContent: React.FC = () => {
   const { t } = useTranslation('admissions');
   const { getApplicationByReference } = useAdmissionsData();
@@ -107,7 +107,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
   const [notFound, setNotFound] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // â”€â”€ Search Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Search Handler ────────────────────────────────────────────
   const handleSearch = async () => {
     const trimmed = referenceNumber.trim();
     if (!trimmed) {
@@ -144,7 +144,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
     if (e.key === 'Enter') handleSearch();
   };
 
-  // â”€â”€ Timeline Renderer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Timeline Renderer ─────────────────────────────────────────
   const renderTimeline = (app: Application) => {
     const currentKey = statusToTimelineKey[app.status] || 'submitted';
     const isRejected = app.status === ApplicationStatus.REJECTED;
@@ -226,7 +226,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
     );
   };
 
-  // â”€â”€ Main Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Main Render ───────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-primary-50 py-8 px-4">
       {/* Header */}
@@ -343,7 +343,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                     {t('application.fields.intendedClass', 'Applied Class')}
                   </p>
                   <p className="font-medium text-surface-foreground">
-                    {application.intendedClassName || application.intendedClassId || 'â€”'}
+                    {application.intendedClassName || application.intendedClassId || '—'}
                   </p>
                 </div>
               </div>
@@ -361,7 +361,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                           month: 'long',
                           day: 'numeric',
                         })
-                      : 'â€”'}
+                      : '—'}
                   </p>
                 </div>
               </div>

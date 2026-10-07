@@ -272,7 +272,7 @@ export class DatabasePerformanceOptimizer {
 
     // Log slow queries
     if (executionTime > this.config.slowQueryThreshold) {
-      logger.warn(`ðŸŒ [DatabasePerformanceOptimizer] Slow query detected:`, {
+      logger.warn(`🐌 [DatabasePerformanceOptimizer] Slow query detected:`, {
         collection,
         executionTime: `${executionTime}ms`,
         query: JSON.stringify(query),
@@ -407,10 +407,10 @@ export class DatabasePerformanceOptimizer {
       for (const indexDef of suggestedIndexes) {
         try {
           await collection.createIndex(indexDef);
-          logger.info(`ðŸ“ˆ [DatabasePerformanceOptimizer] Created index for ${collectionName}:`, indexDef);
+          logger.info(`📈 [DatabasePerformanceOptimizer] Created index for ${collectionName}:`, indexDef);
           stats.lastOptimized = new Date();
         } catch (error) {
-          logger.warn(`âš ï¸ [DatabasePerformanceOptimizer] Failed to create index for ${collectionName}:`, error);
+          logger.warn(`⚠️ [DatabasePerformanceOptimizer] Failed to create index for ${collectionName}:`, error);
         }
       }
     }

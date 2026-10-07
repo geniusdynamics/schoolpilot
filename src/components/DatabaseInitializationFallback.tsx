@@ -156,19 +156,19 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
               <div className="flex justify-between">
                 <span>IndexedDB:</span>
                 <span className={storageInfo?.indexedDBSupported ? 'text-green-600' : 'text-red-600'}>
-                  {storageInfo?.indexedDBSupported ? 'âœ“ Supported' : 'âœ— Not Supported'}
+                  {storageInfo?.indexedDBSupported ? '✓ Supported' : '✗ Not Supported'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>OPFS:</span>
                 <span className={storageInfo?.opfsSupported ? 'text-green-600' : 'text-red-600'}>
-                  {storageInfo?.opfsSupported ? 'âœ“ Supported' : 'âœ— Not Supported'}
+                  {storageInfo?.opfsSupported ? '✓ Supported' : '✗ Not Supported'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>WebAssembly:</span>
                 <span className={storageInfo?.webAssemblySupported ? 'text-green-600' : 'text-red-600'}>
-                  {storageInfo?.webAssemblySupported ? 'âœ“ Supported' : 'âœ— Not Supported'}
+                  {storageInfo?.webAssemblySupported ? '✓ Supported' : '✗ Not Supported'}
                 </span>
               </div>
             </div>
@@ -186,7 +186,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
               <div className="flex justify-between">
                 <span>Online:</span>
                 <span className={browserInfo?.onLine ? 'text-green-600' : 'text-red-600'}>
-                  {browserInfo?.onLine ? 'âœ“ Connected' : 'âœ— Offline'}
+                  {browserInfo?.onLine ? '✓ Connected' : '✗ Offline'}
                 </span>
               </div>
             </div>

@@ -13,7 +13,7 @@ class VersionManager {
     try {
       return semver.satisfies(moduleVersion, constraint);
     } catch (error) {
-      logger.error(`âŒ [VersionManager] Invalid version constraint: ${constraint}`, error);
+      logger.error(`❌ [VersionManager] Invalid version constraint: ${constraint}`, error);
       return false;
     }
   }
@@ -100,7 +100,7 @@ class VersionManager {
       
       return {};
     } catch (error) {
-      logger.error(`âŒ [VersionManager] Error parsing constraint: ${constraint}`, error);
+      logger.error(`❌ [VersionManager] Error parsing constraint: ${constraint}`, error);
       return {};
     }
   }

@@ -1,0 +1,6 @@
+# ABOUTME: Editor defaults for every file in the repo: save as UTF-8 (NFR-07).
+# ABOUTME: Encoding is enforced by `node scripts/prd/fix-encoding.mjs --check`.
+root = true
+
+[*]
+charset = utf-8

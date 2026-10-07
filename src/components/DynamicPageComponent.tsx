@@ -28,23 +28,23 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
   const currentPath = overridePath || location.pathname;
   
   // Force debug output
-  logger.info('ðŸš¨ [DynamicPageComponent] FORCE DEBUG - Current path:', currentPath);
+  logger.info('🚨 [DynamicPageComponent] FORCE DEBUG - Current path:', currentPath);
   if (typeof window !== 'undefined') {
     (window as any).debugPath = currentPath;
   }
   
   // Find navigation item for current path
   const navigationItem = useMemo(() => {
-    logger.info('ðŸ” [DynamicPageComponent] Looking for navigation item for path:', currentPath);
-    logger.info('ðŸ” [DynamicPageComponent] Available navigation items:', navigationItems);
+    logger.info('🔍 [DynamicPageComponent] Looking for navigation item for path:', currentPath);
+    logger.info('🔍 [DynamicPageComponent] Available navigation items:', navigationItems);
     
     for (const module of navigationItems) {
-      logger.info('ðŸ” [DynamicPageComponent] Checking module:', module.name, 'path:', module.path);
+      logger.info('🔍 [DynamicPageComponent] Checking module:', module.name, 'path:', module.path);
       if (module.children) {
         for (const child of module.children) {
-          logger.info('ðŸ” [DynamicPageComponent] Checking child:', child.name, 'path:', child.path);
+          logger.info('🔍 [DynamicPageComponent] Checking child:', child.name, 'path:', child.path);
           if (child.path === currentPath) {
-            logger.info('âœ… [DynamicPageComponent] Found matching child navigation item:', child);
+            logger.info('✅ [DynamicPageComponent] Found matching child navigation item:', child);
             return { module, child };
           }
         }
@@ -54,11 +54,11 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
       const moduleId = module.path.replace('/', ''); // Extract module ID from path like '/administration' -> 'administration'
       if (currentPath === `/${moduleId}` || 
           currentPath === `/${moduleId}/dashboard`) {
-        logger.info('âœ… [DynamicPageComponent] Found matching module dashboard:', module);
+        logger.info('✅ [DynamicPageComponent] Found matching module dashboard:', module);
         return { module, child: null };
       }
     }
-    logger.info('âŒ [DynamicPageComponent] No navigation item found for path:', currentPath);
+    logger.info('❌ [DynamicPageComponent] No navigation item found for path:', currentPath);
     return null;
   }, [navigationItems, currentPath]);
 
@@ -96,19 +96,19 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
           };
         }
         
-        logger.info('ðŸ” [DynamicPageComponent] Resolving page for:', pageInfo);
+        logger.info('🔍 [DynamicPageComponent] Resolving page for:', pageInfo);
         
         const result = await pageComponentResolver.resolvePageComponent(pageInfo);
         
         if (result.component) {
           setPageComponent(() => result.component);
-          logger.info('âœ… [DynamicPageComponent] Successfully resolved component using strategy:', result.strategy);
+          logger.info('✅ [DynamicPageComponent] Successfully resolved component using strategy:', result.strategy);
         } else {
           throw new Error(result.error?.message || 'Failed to resolve page component');
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-        logger.error('âŒ [DynamicPageComponent] Error resolving page component:', errorMessage);
+        logger.error('❌ [DynamicPageComponent] Error resolving page component:', errorMessage);
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -173,7 +173,7 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
   return (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
-        <div className="text-6xl mb-4">ðŸ“„</div>
+        <div className="text-6xl mb-4">📄</div>
         <h3 className="text-lg font-medium text-surface-foreground mb-2">Page Content</h3>
         <p className="text-surface-muted-fg">Unable to load page content for {currentPath}</p>
       </div>

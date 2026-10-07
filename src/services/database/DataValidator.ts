@@ -95,7 +95,7 @@ export class DataValidator {
    */
   public registerSchema(schema: ValidationSchema): void {
     this.schemas.set(schema.collection, schema);
-    logger.info(`ðŸ“‹ [DataValidator] Registered schema for collection: ${schema.collection}`);
+    logger.info(`📋 [DataValidator] Registered schema for collection: ${schema.collection}`);
   }
 
   /**
@@ -743,7 +743,7 @@ export class DataValidator {
       ],
     });
 
-    logger.info('ðŸ“‹ [DataValidator] Initialized default validation schemas');
+    logger.info('📋 [DataValidator] Initialized default validation schemas');
   }
 
   /**
@@ -772,7 +772,7 @@ export class DataValidator {
              /[!@#$%^&*]/.test(value);
     });
 
-    logger.info('ðŸ”§ [DataValidator] Initialized custom validators');
+    logger.info('🔧 [DataValidator] Initialized custom validators');
   }
 
   /**
@@ -783,7 +783,7 @@ export class DataValidator {
     validator: (value: any, constraint: any) => boolean
   ): void {
     this.customValidators.set(name, validator);
-    logger.info(`ðŸ”§ [DataValidator] Added custom validator: ${name}`);
+    logger.info(`🔧 [DataValidator] Added custom validator: ${name}`);
   }
 
   /**
@@ -811,7 +811,7 @@ export class DataValidator {
    */
   public updateSanitizationConfig(config: Partial<SanitizationConfig>): void {
     this.sanitizationConfig = { ...this.sanitizationConfig, ...config };
-    logger.info('ðŸ”§ [DataValidator] Updated sanitization configuration');
+    logger.info('🔧 [DataValidator] Updated sanitization configuration');
   }
 
   /**

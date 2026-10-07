@@ -20,7 +20,7 @@ export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children
   const toast = useToastHelpers();
   const validateData = useCallback(async () => {
     try {
-      logger.info('ðŸ” [ValidationContext] Validating data integrity...');
+      logger.info('🔍 [ValidationContext] Validating data integrity...');
       const dbManager = UnifiedDatabaseManager.getInstance();
       const issues: ValidationIssue[] = [];
 
@@ -87,10 +87,10 @@ export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children
         toast.showWarning(`Data validation found ${issues.filter(i => i.severity === 'error').length} errors`);
       }
 
-      logger.info(`âœ… [ValidationContext] Data validation completed. Found ${issues.length} issues.`);
+      logger.info(`✅ [ValidationContext] Data validation completed. Found ${issues.length} issues.`);
       return { isValid, issues };
     } catch (err) {
-      logger.error('âŒ [ValidationContext] Global validation error:', err);
+      logger.error('❌ [ValidationContext] Global validation error:', err);
       throw err;
     }
   }, [toast]);

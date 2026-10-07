@@ -1,6 +1,6 @@
 import { logger } from '@/utils/logging';
 
-// ABOUTME: Administration domain hook â€” Students, Staff, Classes, Departments, Dormitories,
+// ABOUTME: Administration domain hook — Students, Staff, Classes, Departments, Dormitories,
 // ABOUTME: Clubs, Partners, Attendance, Guardians, Health Records, Disciplinary records
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -33,7 +33,7 @@ export function useAdministrationData() {
 
   const toast = useToastHelpers();
 
-  // â”€â”€ Students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Students ─────────────────────────────────────────────────────────────────
   const getStudentDetailsById = useCallback(async (studentId: string): Promise<StudentDetailProfile | null> => {
     try {
       const db = await databaseService.getDatabase();
@@ -87,7 +87,7 @@ export function useAdministrationData() {
     }
   }, [studentsCollection, toast]);
 
-  // â”€â”€ Staff â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Staff ─────────────────────────────────────────────────────────────────────
   const addStaffMember = useCallback(async (staffData: Omit<any, 'id'>) => {
     return staffCollection.insert(staffData);
   }, [staffCollection]);
@@ -100,7 +100,7 @@ export function useAdministrationData() {
     return staffCollection.remove(staffId);
   }, [staffCollection]);
 
-  // â”€â”€ Parents / Guardians â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Parents / Guardians ───────────────────────────────────────────────────────
   const addParentGuardian = useCallback(async (guardianData: Omit<any, 'id'>) => {
     return parentsGuardiansCollection.insert(guardianData);
   }, [parentsGuardiansCollection]);
@@ -125,7 +125,7 @@ export function useAdministrationData() {
     return studentGuardianRelationshipsCollection.remove(id);
   }, [studentGuardianRelationshipsCollection]);
 
-  // â”€â”€ Departments / Designations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Departments / Designations ────────────────────────────────────────────────
   const addDepartment = useCallback(async (data: Omit<allTypes.Department, 'id'>) => {
     return departmentsCollection.insert(data);
   }, [departmentsCollection]);
@@ -150,7 +150,7 @@ export function useAdministrationData() {
     return designationsCollection.remove(id);
   }, [designationsCollection]);
 
-  // â”€â”€ Student Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Categories ────────────────────────────────────────────────────────
   const addStudentCategory = useCallback(async (data: Omit<allTypes.StudentCategory, 'id'>) => {
     return studentCategoriesCollection.insert(data);
   }, [studentCategoriesCollection]);
@@ -163,7 +163,7 @@ export function useAdministrationData() {
     return studentCategoriesCollection.remove(id);
   }, [studentCategoriesCollection]);
 
-  // â”€â”€ Dormitories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Dormitories ───────────────────────────────────────────────────────────────
   const addDormitory = useCallback(async (data: Omit<allTypes.Dormitory, 'id'>) => {
     return dormitoriesCollection.insert(data);
   }, [dormitoriesCollection]);
@@ -176,7 +176,7 @@ export function useAdministrationData() {
     return dormitoriesCollection.remove(id);
   }, [dormitoriesCollection]);
 
-  // â”€â”€ Classes / Streams â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Classes / Streams ─────────────────────────────────────────────────────────
   const addClass = useCallback(async (data: Omit<allTypes.Class, 'id'>) => {
     return classesCollection.insert(data);
   }, [classesCollection]);
@@ -201,7 +201,7 @@ export function useAdministrationData() {
     return classStreamsCollection.remove(id);
   }, [classStreamsCollection]);
 
-  // â”€â”€ Partners / Clubs / Customers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Partners / Clubs / Customers ──────────────────────────────────────────────
   const addPartner = useCallback(async (data: any) => {
     return partnersCollection.insert(data);
   }, [partnersCollection]);
@@ -238,7 +238,7 @@ export function useAdministrationData() {
     return customersCollection.remove(id);
   }, [customersCollection]);
 
-  // â”€â”€ Student Health â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Health ────────────────────────────────────────────────────────────
   const addStudentHealthRecord = useCallback(async (data: Omit<allTypes.StudentHealthRecord, 'id'>) => {
     return studentHealthRecordsCollection.insert(data);
   }, [studentHealthRecordsCollection]);
@@ -247,7 +247,7 @@ export function useAdministrationData() {
     return studentHealthRecordsCollection.update(id, data);
   }, [studentHealthRecordsCollection]);
 
-  // â”€â”€ Attendance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Attendance ────────────────────────────────────────────────────────────────
   const saveStudentAttendance = useCallback(async (attendanceData: any) => {
     return studentAttendanceCollection.insert(attendanceData);
   }, [studentAttendanceCollection]);

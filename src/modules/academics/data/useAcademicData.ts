@@ -1,6 +1,6 @@
 ﻿import { logger } from '@/utils/logging';
 
-// ABOUTME: Academic domain hook â€” Subjects, Exams, Timetables, Grading, Marks, Results,
+// ABOUTME: Academic domain hook — Subjects, Exams, Timetables, Grading, Marks, Results,
 // ABOUTME: Academic Years, Terms, Education levels, Class allocations
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -26,7 +26,7 @@ export function useAcademicData() {
   const academicYearStructuresCollection = useDatabaseCollection<allTypes.AcademicYearStructure>('academic_year_structures');
   const academicPeriodDefinitionsCollection = useDatabaseCollection<allTypes.AcademicPeriodDefinition>('academic_period_definitions');
 
-  // â”€â”€ Subjects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Subjects ──────────────────────────────────────────────────────────────────
   const addSubject = useCallback(async (data: Omit<any, 'id'>) => {
     return subjectsCollection.insert(data);
   }, [subjectsCollection]);
@@ -39,7 +39,7 @@ export function useAcademicData() {
     return subjectsCollection.remove(id);
   }, [subjectsCollection]);
 
-  // â”€â”€ Subject Papers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Subject Papers ────────────────────────────────────────────────────────────
   const addSubjectPaper = useCallback(async (data: Omit<any, 'id'>) => {
     return subjectPapersCollection.insert(data);
   }, [subjectPapersCollection]);
@@ -52,7 +52,7 @@ export function useAcademicData() {
     return subjectPapersCollection.remove(id);
   }, [subjectPapersCollection]);
 
-  // â”€â”€ Exam Sessions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Exam Sessions ─────────────────────────────────────────────────────────────
   const addExamSession = useCallback(async (data: Omit<allTypes.ExamSession, 'id'>) => {
     return examSessionsCollection.insert(data);
   }, [examSessionsCollection]);
@@ -65,7 +65,7 @@ export function useAcademicData() {
     return examSessionsCollection.remove(id);
   }, [examSessionsCollection]);
 
-  // â”€â”€ Exam Paper Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Exam Paper Settings ───────────────────────────────────────────────────────
   const addExamPaperSetting = useCallback(async (data: Omit<allTypes.ExamPaperSetting, 'id'>) => {
     return examPaperSettingsCollection.insert(data);
   }, [examPaperSettingsCollection]);
@@ -78,7 +78,7 @@ export function useAcademicData() {
     return examPaperSettingsCollection.remove(id);
   }, [examPaperSettingsCollection]);
 
-  // â”€â”€ Grading Schemes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Grading Schemes ───────────────────────────────────────────────────────────
   const addGradingScheme = useCallback(async (data: Omit<allTypes.GradingScheme, 'id'>) => {
     return gradingSchemesCollection.insert(data);
   }, [gradingSchemesCollection]);
@@ -91,7 +91,7 @@ export function useAcademicData() {
     return gradingSchemesCollection.remove(id);
   }, [gradingSchemesCollection]);
 
-  // â”€â”€ Exam Results helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Exam Results helpers ──────────────────────────────────────────────────────
   const getStudentsForExamEntry = useCallback(async (examSessionId: string, classId?: string) => {
     try {
       const db = await databaseService.getDatabase();
@@ -114,7 +114,7 @@ export function useAcademicData() {
     return studentExamResultsCollection.insert(resultData);
   }, [studentExamResultsCollection]);
 
-  // â”€â”€ Timetable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Timetable ─────────────────────────────────────────────────────────────────
   const getTimetablePeriodDefs = useCallback(() => {
     return timetablePeriodDefsCollection.data;
   }, [timetablePeriodDefsCollection.data]);
@@ -154,7 +154,7 @@ export function useAcademicData() {
     return timetableEntriesCollection.remove(id);
   }, [timetableEntriesCollection]);
 
-  // â”€â”€ Class Subject Allocations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Class Subject Allocations ─────────────────────────────────────────────────
   const addClassSubjectAllocation = useCallback(async (data: Omit<allTypes.ClassSubjectAllocation, 'id'>) => {
     return classSubjectAllocationsCollection.insert(data);
   }, [classSubjectAllocationsCollection]);
@@ -167,7 +167,7 @@ export function useAcademicData() {
     return classSubjectAllocationsCollection.remove(id);
   }, [classSubjectAllocationsCollection]);
 
-  // â”€â”€ Teacher Subject Assignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Teacher Subject Assignments ───────────────────────────────────────────────
   const addTeacherSubjectAssignment = useCallback(async (data: Omit<any, 'id'>) => {
     return teacherSubjectAssignmentsCollection.insert(data);
   }, [teacherSubjectAssignmentsCollection]);
@@ -180,7 +180,7 @@ export function useAcademicData() {
     return teacherSubjectAssignmentsCollection.remove(id);
   }, [teacherSubjectAssignmentsCollection]);
 
-  // â”€â”€ Student Subject Enrollments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Subject Enrollments ───────────────────────────────────────────────
   const addStudentSubjectEnrollment = useCallback(async (data: Omit<any, 'id'>) => {
     return studentSubjectEnrollmentsCollection.insert(data);
   }, [studentSubjectEnrollmentsCollection]);
@@ -193,7 +193,7 @@ export function useAcademicData() {
     return studentSubjectEnrollmentsCollection.remove(id);
   }, [studentSubjectEnrollmentsCollection]);
 
-  // â”€â”€ Academic Years / Periods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Academic Years / Periods ──────────────────────────────────────────────────
   const addAcademicYearStructure = useCallback(async (data: Omit<allTypes.AcademicYearStructure, 'id'>) => {
     return academicYearStructuresCollection.insert(data);
   }, [academicYearStructuresCollection]);

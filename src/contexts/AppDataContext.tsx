@@ -380,7 +380,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const initializeDatabase = async () => {
       try {
-        logger.info('Ã°Å¸Å¡â‚¬ [AppDataContext] Starting database initialization...');
+        logger.info('🚀 [AppDataContext] Starting database initialization...');
         setIsLoading(true);
         setIsInitialized(false);
 
@@ -406,7 +406,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Warn if running with mock provider (should not happen in normal operation)
         const providerType = dbManager.getProviderType();
         if (providerType === 'mock' || providerType === 'MockProvider') {
-          logger.warn('âš ï¸ [AppDataContext] Running with mock provider - data will not persist!');
+          logger.warn('⚠️ [AppDataContext] Running with mock provider - data will not persist!');
         }
 
         const loadPromise = loadAllCollections();
@@ -419,11 +419,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (mounted) {
           setIsInitialized(true);
           setIsLoading(false);
-          logger.info('Ã¢Å“â€¦ [AppDataContext] Database initialized successfully');
+          logger.info('✅ [AppDataContext] Database initialized successfully');
           toast.showSuccess('Database initialized successfully');
         }
       } catch (err) {
-        logger.warn('Ã¢Å¡Â Ã¯Â¸Â [AppDataContext] Database init failed/timed out, continuing without DB:', err);
+        logger.warn('⚠️ [AppDataContext] Database init failed/timed out, continuing without DB:', err);
         if (mounted) {
           setIsInitialized(false);
           setIsLoading(false);
@@ -461,12 +461,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
-    logger.info(`Ã°Å¸â€â€ž [AppDataContext] Setting up automatic sync (interval: ${syncSettingsRef.current.syncInterval}ms)`);
+    logger.info(`🔄 [AppDataContext] Setting up automatic sync (interval: ${syncSettingsRef.current.syncInterval}ms)`);
 
     // Set up interval for automatic sync
     syncIntervalRef.current = setInterval(() => {
       if (isOnline && networkState?.backendAvailable && syncStatus.state !== 'paused' && !isSyncingRef.current && performSyncRef.current) {
-        logger.info('Ã°Å¸â€â€ž [AppDataContext] Automatic sync triggered');
+        logger.info('🔄 [AppDataContext] Automatic sync triggered');
         performSyncRef.current().catch(err => {
           logger.error('Automatic sync failed:', err);
         });
@@ -640,7 +640,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Perform sync operation
   const performSync = useCallback(async () => {
-    logger.info('Ã°Å¸â€â€ž [DEBUG] performSync called with:', { 
+    logger.info('🔄 [DEBUG] performSync called with:', { 
       isOnline, 
       backendAvailable: networkState?.backendAvailable, 
       syncState: syncStatus.state 
@@ -649,22 +649,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Only sync if provider supports it (backend-api or pouchdb)
     const providerType = dbManager.getProviderType();
     if (providerType !== 'backend-api' && providerType !== 'pouchdb') {
-      logger.info('Ã¢â€žÂ¹Ã¯Â¸Â [AppDataContext] Sync not supported for provider:', providerType);
+      logger.info('ℹ️ [AppDataContext] Sync not supported for provider:', providerType);
       return;
     }
 
     if (!isOnline || !networkState?.backendAvailable) {
-      logger.info('Ã¢â€žÂ¹Ã¯Â¸Â [AppDataContext] Skipping sync - offline or backend unavailable');
+      logger.info('ℹ️ [AppDataContext] Skipping sync - offline or backend unavailable');
       return;
     }
 
     if (isSyncingRef.current) {
-      logger.info('Ã¢â€žÂ¹Ã¯Â¸Â [AppDataContext] Sync already in progress');
+      logger.info('ℹ️ [AppDataContext] Sync already in progress');
       return;
     }
 
     if (syncStatus.state === 'paused') {
-      logger.info('Ã¢â€žÂ¹Ã¯Â¸Â [AppDataContext] Sync is paused');
+      logger.info('ℹ️ [AppDataContext] Sync is paused');
       return;
     }
 
@@ -677,7 +677,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         lastError: null
       }));
 
-      logger.info('Ã°Å¸â€â€ž [AppDataContext] Starting sync...');
+      logger.info('🔄 [AppDataContext] Starting sync...');
       
       // Get the current provider and check if it has sync capability
       const provider = dbManager.getCurrentProvider();
@@ -695,14 +695,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           lastError: null
         }));
         
-        logger.info('Ã¢Å“â€¦ [AppDataContext] Sync completed successfully');
+        logger.info('✅ [AppDataContext] Sync completed successfully');
         toast.showSuccess('Data synchronized successfully');
       } else {
-        logger.warn('Ã¢Å¡Â Ã¯Â¸Â [AppDataContext] Provider does not support sync');
+        logger.warn('⚠️ [AppDataContext] Provider does not support sync');
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      logger.error('Ã¢ÂÅ’ [AppDataContext] Sync failed:', error);
+      logger.error('❌ [AppDataContext] Sync failed:', error);
       
       setSyncStatus(prev => ({
         ...prev,
@@ -755,20 +755,20 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Force sync
   const forceSync = useCallback(async () => {
-    logger.info('Ã°Å¸â€â€ž [AppDataContext] Force sync requested');
+    logger.info('🔄 [AppDataContext] Force sync requested');
     await performSync();
   }, [performSync]);
 
   // Pause sync
   const pauseSync = useCallback(() => {
-    logger.info('Ã¢ÂÂ¸Ã¯Â¸Â [AppDataContext] Sync paused');
+    logger.info('⏸️ [AppDataContext] Sync paused');
     setSyncStatus(prev => ({ ...prev, state: 'paused' }));
     toast.showInfo('Automatic sync paused');
   }, [toast]);
 
   // Resume sync
   const resumeSync = useCallback(() => {
-    logger.info('Ã¢â€“Â¶Ã¯Â¸Â [AppDataContext] Sync resumed');
+    logger.info('▶️ [AppDataContext] Sync resumed');
     setSyncStatus(prev => ({ ...prev, state: 'idle' }));
     toast.showInfo('Automatic sync resumed');
     
@@ -783,7 +783,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Cancel sync
   const cancelSync = useCallback(() => {
     if (isSyncingRef.current) {
-      logger.info('Ã°Å¸â€ºâ€˜ [AppDataContext] Sync cancelled');
+      logger.info('🛑 [AppDataContext] Sync cancelled');
       isSyncingRef.current = false;
       setSyncStatus(prev => ({ ...prev, state: 'idle', progress: 0 }));
       toast.showWarning('Sync cancelled');
@@ -848,7 +848,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
 
-      logger.info(`Ã°Å¸â€â€ž [AppDataContext] Refreshing collection: ${collectionName}`);
+      logger.info(`🔄 [AppDataContext] Refreshing collection: ${collectionName}`);
       
       if (typeof collection.find === 'function') {
         const docs = await collection.find({});
@@ -905,7 +905,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Task 4.4.3: Memory management - Cleanup old data
   const cleanupOldData = useCallback(async (daysOld: number = 30) => {
     try {
-      logger.info(`Ã°Å¸â€”â€˜Ã¯Â¸Â [AppDataContext] Cleaning up data older than ${daysOld} days...`);
+      logger.info(`🗑️ [AppDataContext] Cleaning up data older than ${daysOld} days...`);
       toast.showInfo(`Cleaning up data older than ${daysOld} days...`);
 
       const cutoffDate = new Date();
@@ -938,7 +938,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       }
 
-      logger.info(`Ã¢Å“â€¦ [AppDataContext] Cleaned up ${totalCleaned} old records`);
+      logger.info(`✅ [AppDataContext] Cleaned up ${totalCleaned} old records`);
       toast.showSuccess(`Cleaned up ${totalCleaned} old records`);
       
       // Refresh data after cleanup
@@ -1662,7 +1662,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Listen for data changed events from decoupled providers
   useEffect(() => {
     const handleDataChanged = () => {
-      logger.info('Ã°Å¸â€â€ž [AppDataContext] Received appDataChanged event, reloading collections...');
+      logger.info('🔄 [AppDataContext] Received appDataChanged event, reloading collections...');
       loadAllCollections();
     };
     window.addEventListener('appDataChanged', handleDataChanged);
@@ -1876,7 +1876,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-50">
         <div className="text-center p-6 max-w-md">
-          <div className="text-red-600 text-xl mb-2">Ã¢Å¡Â Ã¯Â¸Â Application Error</div>
+          <div className="text-red-600 text-xl mb-2">⚠️ Application Error</div>
           <div className="text-surface-foreground mb-4">
             {error.message || 'We\'re experiencing technical difficulties. Please try again later.'}
           </div>
@@ -1942,7 +1942,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       {/* Offline indicator */}
       {!isOnline && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 z-50">
-          Ã°Å¸â€œÂ¡ Offline Mode - Changes will sync when connection is restored
+          📡 Offline Mode - Changes will sync when connection is restored
         </div>
       )}
     </AppDataValueProvider>

@@ -87,7 +87,7 @@ export class TabStateManager {
       const existingTab = this.store.tabs.find((tab: Tab) => tab.path === location.pathname);
       if (existingTab) {
         await this.store.activateTab(existingTab.id);
-        logger.info('âœ… [TabStateManager] Activated existing tab:', existingTab.id);
+        logger.info('✅ [TabStateManager] Activated existing tab:', existingTab.id);
         return { tabId: existingTab.id, action: 'activated' };
       }
       
@@ -117,7 +117,7 @@ export class TabStateManager {
         }
       };
       
-      logger.info('ðŸ” [TabStateManager] Creating tab:', {
+      logger.info('🔍 [TabStateManager] Creating tab:', {
         title: tabTitle,
         isModuleDashboard,
         canClose: tabConfig.canClose,
@@ -129,12 +129,12 @@ export class TabStateManager {
       await this.performTabCleanup();
       
       const newTabId = await this.store.createTab(tabConfig);
-      logger.info('âœ… [TabStateManager] Created new tab:', newTabId);
+      logger.info('✅ [TabStateManager] Created new tab:', newTabId);
       
       return { tabId: newTabId, action: 'created' };
       
     } catch (error) {
-      logger.error('âŒ [TabStateManager] Error creating tab:', error);
+      logger.error('❌ [TabStateManager] Error creating tab:', error);
       return { 
         tabId: null, 
         action: 'error', 
@@ -207,7 +207,7 @@ export class TabStateManager {
         break;
     }
     
-    logger.info(`ðŸ”§ [TabStateManager] Adapted configuration for ${platform}:`, {
+    logger.info(`🔧 [TabStateManager] Adapted configuration for ${platform}:`, {
       maxTabs: this.config.maxTabs,
       defaultTabBehavior: this.config.defaultTabBehavior
     });
@@ -227,7 +227,7 @@ export class TabStateManager {
       return;
     }
     
-    logger.info(`ðŸ§¹ [TabStateManager] Performing tab cleanup - ${tabs.length}/${this.config.maxTabs} tabs`);
+    logger.info(`🧹 [TabStateManager] Performing tab cleanup - ${tabs.length}/${this.config.maxTabs} tabs`);
     
     // Find tabs that can be closed (not pinned, not module dashboards)
     const closeableTabs = tabs.filter((tab: Tab) => 
@@ -237,7 +237,7 @@ export class TabStateManager {
     );
     
     if (closeableTabs.length === 0) {
-      logger.info('âš ï¸ [TabStateManager] No closeable tabs found for cleanup');
+      logger.info('⚠️ [TabStateManager] No closeable tabs found for cleanup');
       return;
     }
     
@@ -255,11 +255,11 @@ export class TabStateManager {
     // Close the oldest tabs
     for (let i = 0; i < tabsToClose; i++) {
       const tabToClose = sortedTabs[i];
-      logger.info(`ðŸ—‘ï¸ [TabStateManager] Closing inactive tab: ${tabToClose.title}`);
+      logger.info(`🗑️ [TabStateManager] Closing inactive tab: ${tabToClose.title}`);
       await this.store.closeTab(tabToClose.id);
     }
     
-    logger.info(`âœ… [TabStateManager] Cleanup complete - closed ${tabsToClose} tabs`);
+    logger.info(`✅ [TabStateManager] Cleanup complete - closed ${tabsToClose} tabs`);
   }
   
   /**
@@ -274,7 +274,7 @@ export class TabStateManager {
    */
   updateConfig(updates: Partial<TabStateConfig>): void {
     this.config = { ...this.config, ...updates };
-    logger.info('ðŸ”§ [TabStateManager] Configuration updated:', updates);
+    logger.info('🔧 [TabStateManager] Configuration updated:', updates);
   }
   
   /**

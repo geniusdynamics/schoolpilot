@@ -97,20 +97,20 @@ export class DatabaseBackupManager {
 
   private loadBackupHistory(): void {
     try {
-      logger.info('ðŸ“š [BackupManager] Loaded backup history');
+      logger.info('📚 [BackupManager] Loaded backup history');
     } catch (error) {
-      logger.error('âŒ [BackupManager] Failed to load backup history:', error);
+      logger.error('❌ [BackupManager] Failed to load backup history:', error);
     }
   }
 
   public startAutomaticBackup(): void {
     if (!this.config.enableAutomaticBackup) {
-      logger.info('â¸ï¸ [BackupManager] Automatic backup is disabled');
+      logger.info('⏸️ [BackupManager] Automatic backup is disabled');
       return;
     }
 
     if (this.backupInterval) {
-      logger.warn('âš ï¸ [BackupManager] Automatic backup is already running');
+      logger.warn('⚠️ [BackupManager] Automatic backup is already running');
       return;
     }
 
@@ -118,7 +118,7 @@ export class DatabaseBackupManager {
       try {
         await this.createAutomaticBackup();
       } catch (error) {
-        logger.error('âŒ [BackupManager] Automatic backup failed:', error);
+        logger.error('❌ [BackupManager] Automatic backup failed:', error);
       }
     }, this.config.backupInterval);
 
@@ -131,7 +131,7 @@ export class DatabaseBackupManager {
     if (this.backupInterval) {
       clearInterval(this.backupInterval);
       this.backupInterval = undefined;
-      logger.info('â¹ï¸ [BackupManager] Stopped automatic backup');
+      logger.info('⏹️ [BackupManager] Stopped automatic backup');
     }
   }
 
@@ -230,11 +230,11 @@ export class DatabaseBackupManager {
 
       await this.cleanupOldBackups();
 
-      logger.info(`âœ… [BackupManager] Backup completed: ${backupId} (${metadata.recordCount} records)`);
+      logger.info(`✅ [BackupManager] Backup completed: ${backupId} (${metadata.recordCount} records)`);
       return backupId;
 
     } catch (error) {
-      logger.error(`âŒ [BackupManager] Backup failed: ${backupId}`, error);
+      logger.error(`❌ [BackupManager] Backup failed: ${backupId}`, error);
       
       const metadata: BackupMetadata = {
         id: backupId,
@@ -271,11 +271,11 @@ export class DatabaseBackupManager {
       throw new Error(`Backup is not in completed state: ${backup.status}`);
     }
 
-    logger.info(`ðŸ”„ [BackupManager] Starting restore from backup: ${backupId}`);
+    logger.info(`🔄 [BackupManager] Starting restore from backup: ${backupId}`);
 
     try {
       if (options.createBackupBeforeRestore) {
-        logger.info('ðŸ’¾ [BackupManager] Creating backup before restore');
+        logger.info('💾 [BackupManager] Creating backup before restore');
         await this.createBackup(provider, { validate: false });
       }
 
@@ -296,9 +296,9 @@ export class DatabaseBackupManager {
       const parsedData = JSON.parse(backupData);
       await this.restoreCollections(provider, parsedData, options);
 
-      logger.info(`âœ… [BackupManager] Restore completed from backup: ${backupId}`);
+      logger.info(`✅ [BackupManager] Restore completed from backup: ${backupId}`);
     } catch (error) {
-      logger.error(`âŒ [BackupManager] Restore failed from backup: ${backupId}`, error);
+      logger.error(`❌ [BackupManager] Restore failed from backup: ${backupId}`, error);
       throw error;
     }
   }
@@ -324,7 +324,7 @@ export class DatabaseBackupManager {
           totalRecords += count;
         }
       } catch (error) {
-        logger.warn(`âš ï¸ [BackupManager] Failed to count records in ${collectionName}:`, error);
+        logger.warn(`⚠️ [BackupManager] Failed to count records in ${collectionName}:`, error);
       }
     }
 
@@ -353,7 +353,7 @@ export class DatabaseBackupManager {
           }
         }
       } catch (error) {
-        logger.error(`âŒ [BackupManager] Failed to backup collection ${collectionName}:`, error);
+        logger.error(`❌ [BackupManager] Failed to backup collection ${collectionName}:`, error);
       }
     }
 
@@ -369,21 +369,21 @@ export class DatabaseBackupManager {
 
     for (const collectionName of collectionsToRestore) {
       if (!backupData[collectionName]) {
-        logger.warn(`âš ï¸ [BackupManager] Collection ${collectionName} not found in backup`);
+        logger.warn(`⚠️ [BackupManager] Collection ${collectionName} not found in backup`);
         continue;
       }
 
       try {
         const collection = await provider.getCollection(collectionName);
         if (!collection) {
-          logger.warn(`âš ï¸ [BackupManager] Collection ${collectionName} not found in database`);
+          logger.warn(`⚠️ [BackupManager] Collection ${collectionName} not found in database`);
           continue;
         }
 
         const records = backupData[collectionName];
 
         if (options.overwriteExisting) {
-          logger.info(`ðŸ—‘ï¸ [BackupManager] Clearing existing data in ${collectionName}`);
+          logger.info(`🗑️ [BackupManager] Clearing existing data in ${collectionName}`);
           // In real implementation, would clear the collection
         }
 
@@ -394,53 +394,53 @@ export class DatabaseBackupManager {
           try {
             await collection.insertMany(batch);
           } catch (error) {
-            logger.error(`âŒ [BackupManager] Failed to restore batch in ${collectionName}:`, error);
+            logger.error(`❌ [BackupManager] Failed to restore batch in ${collectionName}:`, error);
           }
         }
 
-        logger.info(`âœ… [BackupManager] Restored ${records.length} records to ${collectionName}`);
+        logger.info(`✅ [BackupManager] Restored ${records.length} records to ${collectionName}`);
       } catch (error) {
-        logger.error(`âŒ [BackupManager] Failed to restore collection ${collectionName}:`, error);
+        logger.error(`❌ [BackupManager] Failed to restore collection ${collectionName}:`, error);
       }
     }
   }
 
   private async createAutomaticBackup(): Promise<void> {
-    logger.info('ðŸ¤– [BackupManager] Creating automatic backup');
+    logger.info('🤖 [BackupManager] Creating automatic backup');
     // Would need access to current database provider
   }
 
   private async compressData(data: string): Promise<string> {
-    logger.info('ðŸ—œï¸ [BackupManager] Compressing backup data');
+    logger.info('🗜️ [BackupManager] Compressing backup data');
     await new Promise(resolve => setTimeout(resolve, 100));
     return `compressed:${data}`;
   }
 
   private async decompressData(data: string): Promise<string> {
-    logger.info('ðŸ“¦ [BackupManager] Decompressing backup data');
+    logger.info('📦 [BackupManager] Decompressing backup data');
     await new Promise(resolve => setTimeout(resolve, 100));
     return data.replace('compressed:', '');
   }
 
   private async encryptData(data: string): Promise<string> {
-    logger.info('ðŸ” [BackupManager] Encrypting backup data');
+    logger.info('🔐 [BackupManager] Encrypting backup data');
     await new Promise(resolve => setTimeout(resolve, 100));
     return `encrypted:${data}`;
   }
 
   private async decryptData(data: string): Promise<string> {
-    logger.info('ðŸ”“ [BackupManager] Decrypting backup data');
+    logger.info('🔓 [BackupManager] Decrypting backup data');
     await new Promise(resolve => setTimeout(resolve, 100));
     return data.replace('encrypted:', '');
   }
 
   private async saveBackupData(backupId: string, data: string, metadata: BackupMetadata): Promise<void> {
-    logger.info(`ðŸ’¾ [BackupManager] Saving backup data: ${backupId}`);
+    logger.info(`💾 [BackupManager] Saving backup data: ${backupId}`);
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 
   private async loadBackupData(backupId: string): Promise<string> {
-    logger.info(`ðŸ“‚ [BackupManager] Loading backup data: ${backupId}`);
+    logger.info(`📂 [BackupManager] Loading backup data: ${backupId}`);
     await new Promise(resolve => setTimeout(resolve, 100));
     return 'mock backup data';
   }
@@ -450,12 +450,12 @@ export class DatabaseBackupManager {
   }
 
   private async validateBackup(backupId: string, metadata: BackupMetadata): Promise<void> {
-    logger.info(`âœ… [BackupManager] Validating backup: ${backupId}`);
+    logger.info(`✅ [BackupManager] Validating backup: ${backupId}`);
     await new Promise(resolve => setTimeout(resolve, 50));
   }
 
   private async validateBackupData(data: string, metadata: BackupMetadata): Promise<void> {
-    logger.info(`âœ… [BackupManager] Validating backup data`);
+    logger.info(`✅ [BackupManager] Validating backup data`);
     await new Promise(resolve => setTimeout(resolve, 50));
   }
 
@@ -484,9 +484,9 @@ export class DatabaseBackupManager {
       for (const backup of toDelete) {
         try {
           await this.deleteBackup(backup.id);
-          logger.info(`ðŸ—‘ï¸ [BackupManager] Deleted old backup: ${backup.id}`);
+          logger.info(`🗑️ [BackupManager] Deleted old backup: ${backup.id}`);
         } catch (error) {
-          logger.error(`âŒ [BackupManager] Failed to delete backup ${backup.id}:`, error);
+          logger.error(`❌ [BackupManager] Failed to delete backup ${backup.id}:`, error);
         }
       }
     }
@@ -507,7 +507,7 @@ export class DatabaseBackupManager {
       try {
         listener(progress);
       } catch (error) {
-        logger.error('âŒ [BackupManager] Backup listener error:', error);
+        logger.error('❌ [BackupManager] Backup listener error:', error);
       }
     });
   }
@@ -517,7 +517,7 @@ export class DatabaseBackupManager {
       try {
         listener(metadata);
       } catch (error) {
-        logger.error('âŒ [BackupManager] Completed listener error:', error);
+        logger.error('❌ [BackupManager] Completed listener error:', error);
       }
     });
   }

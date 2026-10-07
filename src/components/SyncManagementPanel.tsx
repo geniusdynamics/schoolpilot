@@ -237,7 +237,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
                       </div>
                       <div className="text-sm text-surface-muted-fg">
                         {item.timestamp.toLocaleString()}
-                        {item.retryCount > 0 && ` â€¢ Retry ${item.retryCount}/${item.maxRetries}`}
+                        {item.retryCount > 0 && ` • Retry ${item.retryCount}/${item.maxRetries}`}
                       </div>
                     </div>
                   </div>

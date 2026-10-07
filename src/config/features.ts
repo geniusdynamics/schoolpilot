@@ -265,9 +265,9 @@ export function getFeatureStatus(): Record<keyof FeatureFlags, boolean> {
  * Called during application startup
  */
 export function logFeatureStatus(): void {
-  logger.info('ðŸ”§ Feature Flags:');
+  logger.info('🔧 Feature Flags:');
   for (const [key, value] of Object.entries(features)) {
-    const status = value ? 'âœ… enabled' : 'â¬œ disabled';
+    const status = value ? '✅ enabled' : '⬜ disabled';
     logger.info(`   ${key}: ${status}`);
   }
 }

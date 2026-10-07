@@ -390,10 +390,10 @@ export const DamagedLostBooksPageContent: React.FC = () => {
                 <strong>Note:</strong> The book status will be automatically updated based on the flags you select:
               </p>
               <ul className="text-xs text-primary-700 mt-1 ml-4 list-disc">
-                <li>Lost flag â†’ Status: Lost</li>
-                <li>Damaged flag only â†’ Status: Damaged</li>
-                <li>Both flags â†’ Status: Lost (takes precedence)</li>
-                <li>Neither flag â†’ Status: Available</li>
+                <li>Lost flag → Status: Lost</li>
+                <li>Damaged flag only → Status: Damaged</li>
+                <li>Both flags → Status: Lost (takes precedence)</li>
+                <li>Neither flag → Status: Available</li>
               </ul>
             </div>
           </>

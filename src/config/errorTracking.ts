@@ -71,7 +71,7 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
 
     // Log errors in development for debugging
     if (isDevelopment) {
-      console.group('ðŸ›¡ Error captured by Bugsink:');
+      console.group('🛡 Error captured by Bugsink:');
       logger.error('Error:', hint.originalException || event.exception);
       logger.info('Event:', event);
       console.groupEnd();
@@ -118,7 +118,7 @@ const createSilentTransport = (options: any) => {
 // Initialize error tracking
 export const initializeErrorTracking = (): void => {
   if (!BUGSINK_DSN) {
-    logger.warn('âš ï¸ Bugsink DSN not configured - error tracking disabled');
+    logger.warn('⚠️ Bugsink DSN not configured - error tracking disabled');
     return;
   }
 
@@ -127,7 +127,7 @@ export const initializeErrorTracking = (): void => {
     const dsnUrl = new URL(BUGSINK_DSN);
     fetch(`${dsnUrl.protocol}//${dsnUrl.host}`, { mode: 'no-cors', cache: 'no-store' })
       .catch(() => {
-        logger.warn('âš ï¸ Bugsink endpoint unreachable - error tracking will fail silently');
+        logger.warn('⚠️ Bugsink endpoint unreachable - error tracking will fail silently');
       });
   }
 
@@ -157,9 +157,9 @@ export const initializeErrorTracking = (): void => {
       }
     }
 
-    logger.info('âœ… Bugsink error tracking initialized successfully');
+    logger.info('✅ Bugsink error tracking initialized successfully');
   } catch (error) {
-    logger.error('âŒ Failed to initialize error tracking:', error);
+    logger.error('❌ Failed to initialize error tracking:', error);
   }
 };
 

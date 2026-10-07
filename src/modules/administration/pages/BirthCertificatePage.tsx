@@ -183,7 +183,7 @@ export const BirthCertificateContent: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
-              â† Back to Students
+              ← Back to Students
             </Button>
             <div className="flex gap-2">
               <Button onClick={printCertificate} variant="secondary">

@@ -44,7 +44,7 @@ export class DatabaseManager {
   }
 
   /**
-   * Initialize â€” delegates to UnifiedDatabaseManager to ensure single source of truth.
+   * Initialize — delegates to UnifiedDatabaseManager to ensure single source of truth.
    * Once UDM initializes, this manager's collections are populated from UDM's state.
    */
   async initialize(config: DatabaseConfig, collectionConfigs: CollectionConfig[]): Promise<void> {
@@ -68,7 +68,7 @@ export class DatabaseManager {
     }
   }
 
-  // Get a specific collection â€” delegates to UDM for live data
+  // Get a specific collection — delegates to UDM for live data
   getCollection<T>(name: string): ICollection<T> | null {
     // Try UDM first (primary source of truth)
     const udmCol = UnifiedDatabaseManager.getInstance().getCollection<T>(name);
@@ -82,7 +82,7 @@ export class DatabaseManager {
     return localCol as ICollection<T>;
   }
 
-  // Get all collections â€” delegates to UDM for live data
+  // Get all collections — delegates to UDM for live data
   getAllCollections(): Map<string, ICollection<any>> {
     const udm = UnifiedDatabaseManager.getInstance();
     if (udm.isReady()) {
@@ -341,15 +341,15 @@ export class DatabaseIntegrationHelper {
     databaseName: string = 'schoolpilot'
   ): Promise<void> {
     try {
-      logger.info('ðŸ” [DatabaseIntegrationHelper] Starting initialization...');
-      logger.info('ðŸ” [DatabaseIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
-      logger.info('ðŸ” [DatabaseIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
-      logger.info('ðŸ” [DatabaseIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
+      logger.info('🔍 [DatabaseIntegrationHelper] Starting initialization...');
+      logger.info('🔍 [DatabaseIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
+      logger.info('🔍 [DatabaseIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
+      logger.info('🔍 [DatabaseIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
       
       // Add guard for undefined or null collectionsDefinition
       if (!collectionsDefinition || typeof collectionsDefinition !== 'object') {
         const errorMsg = `collectionsDefinition is invalid: ${typeof collectionsDefinition}`;
-        logger.error('âŒ [DatabaseIntegrationHelper]', errorMsg);
+        logger.error('❌ [DatabaseIntegrationHelper]', errorMsg);
         throw new Error(errorMsg);
       }
       
@@ -357,10 +357,10 @@ export class DatabaseIntegrationHelper {
       let entries;
       try {
         entries = Object.entries(collectionsDefinition);
-        logger.info('ðŸ” [DatabaseIntegrationHelper] Successfully got entries, count:', entries.length);
+        logger.info('🔍 [DatabaseIntegrationHelper] Successfully got entries, count:', entries.length);
       } catch (entriesError) {
-        logger.error('âŒ [DatabaseIntegrationHelper] Failed to get Object.entries:', entriesError);
-        logger.error('âŒ [DatabaseIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
+        logger.error('❌ [DatabaseIntegrationHelper] Failed to get Object.entries:', entriesError);
+        logger.error('❌ [DatabaseIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
         throw new Error(`Cannot get entries from collectionsDefinition: ${entriesError.message}`);
       }
       
@@ -374,7 +374,7 @@ export class DatabaseIntegrationHelper {
       
       // Convert RxDB collection definitions to our format
       for (const [name, def] of entries) {
-        logger.info(`ðŸ” [DatabaseIntegrationHelper] Processing collection: ${name}`);
+        logger.info(`🔍 [DatabaseIntegrationHelper] Processing collection: ${name}`);
         
         // Derive the actual schema source - handle both { schema: ... } and raw schema forms
         const schemaSource = def && typeof def === 'object' && 'schema' in def ? def.schema : def;
@@ -382,14 +382,14 @@ export class DatabaseIntegrationHelper {
         // Validate schemaSource is an object
         if (!schemaSource || typeof schemaSource !== 'object') {
           const errorMsg = `Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`;
-          logger.error('âŒ [DatabaseIntegrationHelper]', errorMsg);
-          logger.error('âŒ [DatabaseIntegrationHelper] Schema source value:', schemaSource);
+          logger.error('❌ [DatabaseIntegrationHelper]', errorMsg);
+          logger.error('❌ [DatabaseIntegrationHelper] Schema source value:', schemaSource);
           throw new Error(errorMsg);
         }
         
         try {
           const convertedSchema = convertRxDBSchema(schemaSource);
-          logger.info(`âœ… [DatabaseIntegrationHelper] Successfully converted schema for collection '${name}'`);
+          logger.info(`✅ [DatabaseIntegrationHelper] Successfully converted schema for collection '${name}'`);
           
           collectionConfigs.push({
             name,
@@ -404,7 +404,7 @@ export class DatabaseIntegrationHelper {
             }
           });
         } catch (conversionError) {
-          logger.error(`âŒ [DatabaseIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
+          logger.error(`❌ [DatabaseIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
           throw new Error(`Failed to convert schema for collection '${name}': ${conversionError.message}`);
         }
       }
