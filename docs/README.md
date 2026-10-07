@@ -4,6 +4,10 @@ Welcome to the SchoolPilot3 documentation. This directory contains comprehensive
 
 ## Quick Navigation
 
+### Current status and direction
+- [School Operations Audit (Oct 2026)](audit/2026-10-school-operations/README.md) - End-to-end test of school workflows, findings and root causes
+- [Multi-Curriculum Platform Specification](specs/multi-curriculum-platform/README.md) - Stabilisation plan and target design (Kenya CBE, British, African systems)
+
 ### Getting Started
 - [Developer Onboarding](guides/onboarding.md) - New developer setup and introduction
 - [Code Structure Guide](guides/code-structure-dev-guide.md) - Project organization and conventions

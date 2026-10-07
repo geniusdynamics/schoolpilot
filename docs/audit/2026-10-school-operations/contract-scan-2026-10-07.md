@@ -1,0 +1,210 @@
+# Contract scan
+
+- Collections referenced but not defined: 10
+- useAppData() functions missing at runtime: 94 in 40 files
+- update(...) calls with one argument against an (id, data) contract: 36
+- Foreign keys coerced with Number()/parseInt on write: 38
+- Id selectors coerced with Number()/parseInt: 28
+- Mock-backed data hooks used by UI: 11
+- Routes declared outside navigation: 24 (registration copies routes: false)
+
+## Collections referenced but not defined
+- `settings` — src/components/setup/SetupWizard.tsx
+- `period_definitions` — src/components/setup/SetupWizard.tsx
+- `exam_paper_settings` — src/modules/academics/data/useAcademicData.ts
+- `timetable_period_defs` — src/modules/academics/data/useAcademicData.ts
+- `health_incident_reports` — src/modules/administration/data/useAdministrationData.ts
+- `student_class_history` — src/modules/administration/data/useAdministrationData.ts
+- `fee_template_items` — src/modules/finance/data/useFinanceData.ts, src/modules/finance/hooks/useFinanceServices.ts
+- `staff_salary_components` — src/modules/hr/pages/StaffSalarySettingsPage.tsx
+- `book_loans` — src/modules/library/data/useLibraryData.ts
+- `library_members` — src/modules/library/data/useLibraryData.ts
+
+## useAppData() functions missing at runtime
+- src/components/OfflineCapability.tsx:164 — getQueueStatus
+- src/components/SyncManagementPanel.tsx:48 — getQueueStatus, getSyncHistory
+- src/components/settings/FeatureSettings.tsx:46 — getQueueStatus
+- src/modules/academics/pages/ClassSubjectAllocationsPage.tsx:27 — addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation
+- src/modules/academics/pages/EducationSystemsPage.tsx:13 — addEducationSystemConfiguration, updateEducationSystemConfiguration
+- src/modules/academics/pages/GradingSchemesPage.tsx:23 — addGradingScheme, updateGradingScheme, deleteGradingScheme
+- src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx:30 — addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment
+- src/modules/academics/pages/SubjectPapersManagementPage.tsx:24 — addSubjectPaper, updateSubjectPaper, deleteSubjectPaper
+- src/modules/academics/pages/TeacherSubjectAssignmentPage.tsx:25 — addTeacherSubjectAssignment, deleteTeacherSubjectAssignment
+- src/modules/administration/pages/BulkStaffUpdatePage.tsx:27 — updateStaffMember
+- src/modules/administration/pages/DormitoriesPage.tsx:15 — addDormitory, updateDormitory, deleteDormitory
+- src/modules/administration/pages/StaffListPage.tsx:21 — addStaffMember, updateStaffMember, deleteStaffMember
+- src/modules/administration/pages/StudentCategoriesPage.tsx:15 — addStudentCategory, updateStudentCategory, deleteStudentCategory
+- src/modules/administration/pages/StudentDetailPage.tsx:17 — getStudentDetailsById
+- src/modules/administration/pages/StudentFinancialDetailPage.tsx:15 — getStudentFinancialDetailsById
+- src/modules/administration/pages/TransferCertificatePage.tsx:11 — transferCertificateStudents
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:25 — addCustomerInvoice, updateCustomerInvoice, deleteCustomerInvoice
+- src/modules/finance/pages/EffectFeeStructuresPage.tsx:15 — generateStudentInvoices
+- src/modules/finance/pages/FeesFinesPage.tsx:27 — addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment
+- src/modules/finance/pages/GeneralReceiptsPage.tsx:25 — addGeneralPayment, updateGeneralPayment, deleteGeneralPayment
+- src/modules/finance/pages/StudentOpeningBalancesPage.tsx:22 — addStudentOpeningBalance, updateStudentOpeningBalance, deleteStudentOpeningBalance
+- src/modules/finance/pages/StudentPaymentsPage.tsx:21 — addStudentPayment, updateStudentPayment, deleteStudentPayment
+- src/modules/finance/pages/SupplierInvoicesPage.tsx:21 — addSupplierInvoice, updateSupplierInvoice, deleteSupplierInvoice
+- src/modules/finance/pages/TransportRoutesPage.tsx:18 — addTransportRoute, updateTransportRoute, deleteTransportRoute
+- src/modules/inventory/pages/FixedAssetsPage.tsx:25 — addFixedAsset, updateFixedAsset, deleteFixedAsset
+- src/modules/inventory/pages/ItemCategoriesPage.tsx:20 — addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv
+- src/modules/inventory/pages/ItemsPage.tsx:26 — addItemInv, updateItemInv, deleteItemInv
+- src/modules/inventory/pages/PurchaseOrdersPage.tsx:24 — addPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder
+- src/modules/inventory/pages/RequisitionsPage.tsx:27 — addRequisition, updateRequisition, deleteRequisition
+- src/modules/inventory/pages/StockIssuancePage.tsx:23 — addStockTransaction
+- src/modules/inventory/pages/WarehousesPage.tsx:20 — addWarehouse, updateWarehouse, deleteWarehouse
+- src/modules/library/pages/BookCategoriesPage.tsx:20 — addBookCategory, updateBookCategory, deleteBookCategory
+- src/modules/library/pages/FinesPage.tsx:24 — addFine, updateFineStatus
+- src/modules/nutrition/pages/MealConsumptionLogPage.tsx:15 — addMealConsumptionLog
+- src/modules/nutrition/pages/MealPlansPage.tsx:13 — addMealPlan, updateMealPlan, deleteMealPlan
+- src/modules/nutrition/pages/MenusPage.tsx:24 — addMenu, updateMenu, deleteMenu
+- src/modules/nutrition/pages/MerchantsPage.tsx:20 — addMerchant, updateMerchant, deleteMerchant
+- src/modules/nutrition/pages/StudentMealAssignmentsPage.tsx:21 — addStudentMealPlan, updateStudentMealPlan, deleteStudentMealPlan
+- src/modules/nutrition/pages/StudentWalletPage.tsx:29 — addWalletTransaction
+- src/modules/settings/pages/SettingsSchoolProfilePage.tsx:16 — updateSchoolDetails
+
+## Single-argument update calls
+- src/modules/academics/pages/TimetableEntriesPage.tsx:126 — `updateTimetableEntry({ ...editingEntry, ...payload })`
+- src/modules/administration/pages/AcademicYearsPage.tsx:54 — `updateAcademicYear({ ...editingYear, ...payload })`
+- src/modules/administration/pages/CommunicationTemplatesPage.tsx:85 — `updateTemplateComm({ ...editingTemplate, ...payload })`
+- src/modules/administration/pages/CustomersPage.tsx:59 — `updateCustomer({ ...editingCustomer, ...payload })`
+- src/modules/administration/pages/DepartmentsPage.tsx:123 — `updateDepartment({ ...editingDepartment, ...payload })`
+- src/modules/administration/pages/DesignationsPage.tsx:114 — `updateDesignation({ ...editingDesignation, ...payload })`
+- src/modules/administration/pages/DormitoriesPage.tsx:148 — `updateDormitory({ ...editingDormitory, ...payload })`
+- src/modules/administration/pages/MessageCampaignsPage.tsx:149 — `updateCampaign({ ...editingCampaign, ...payload, created_by: editingCampaig)`
+- src/modules/administration/pages/PartnersPage.tsx:86 — `updatePartner({ ...editingPartner, ...payload })`
+- src/modules/administration/pages/StudentCategoriesPage.tsx:114 — `updateStudentCategory({ ...editingCategory, ...payload })`
+- src/modules/administration/pages/StudentHealthRecordsPage.tsx:77 — `updateStudentHealthRecord({ ...currentHealthRecord, ...payload })`
+- src/modules/finance/pages/BanksPage.tsx:67 — `updateBank({ ...editingBank, ...payload })`
+- src/modules/finance/pages/ChartOfAccountsPage.tsx:92 — `updateChartOfAccount({ ...editingAccount, ...payload })`
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:117 — `updateCustomerInvoice({ ...editingInvoice, ...payloadBase, items: editingInvoice.i)`
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:161 — `updateCustomerInvoice(updatedInvoice)`
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:182 — `updateCustomerInvoice(updatedInvoice)`
+- src/modules/finance/pages/FeeTemplatesPage.tsx:121 — `updateFeeTemplate(updatedTemplate)`
+- src/modules/finance/pages/FeeTemplatesPage.tsx:141 — `updateFeeTemplate(updatedTemplate)`
+- src/modules/finance/pages/FeeTemplatesPage.tsx:306 — `updateFeeTemplate({ ...editingTemplate, ...payload, items: editingTemplate.ite)`
+- src/modules/finance/pages/GeneralReceiptsPage.tsx:174 — `updateGeneralPayment(updatedDataForMock)`
+- src/modules/finance/pages/StudentOpeningBalancesPage.tsx:92 — `updateStudentOpeningBalance({ ...editingBalance, ...payload })`
+- src/modules/finance/pages/StudentTransportAssignmentsPage.tsx:86 — `updateStudentTransportAssignment({ ...editingAssignment, ...payload })`
+- src/modules/finance/pages/SupplierInvoicesPage.tsx:89 — `updateSupplierInvoice({ ...editingInvoice, ...payload })`
+- src/modules/finance/pages/SuppliersPage.tsx:73 — `updateSupplier({ ...editingSupplier, ...payload })`
+- src/modules/finance/pages/TransportRoutesPage.tsx:76 — `updateTransportRoute({ ...editingRoute, ...payload })`
+- src/modules/inventory/pages/FixedAssetsPage.tsx:109 — `updateFixedAsset({ ...editingAsset, ...payload })`
+- src/modules/inventory/pages/ItemCategoriesPage.tsx:54 — `updateItemCategoryInv({ ...editingCategory, ...payload })`
+- src/modules/inventory/pages/ItemsPage.tsx:90 — `updateItemInv({ ...editingItem, ...payload })`
+- src/modules/inventory/pages/WarehousesPage.tsx:54 — `updateWarehouse({ ...editingWarehouse, ...payload })`
+- src/modules/library/pages/BookCategoriesPage.tsx:54 — `updateBookCategory({ ...editingCategory, ...payload })`
+- src/modules/library/pages/BooksPage.tsx:240 — `updateBook({ ...editingBook, ...payload })`
+- src/modules/library/pages/FinesPage.tsx:88 — `updateFineStatus({ ...editingFine, ...payload })`
+- src/modules/nutrition/pages/MealPlansPage.tsx:57 — `updateMealPlan({ ...editingPlan, ...payload })`
+- src/modules/nutrition/pages/MenusPage.tsx:69 — `updateMenu({ ...editingMenu, ...payload })`
+- src/modules/nutrition/pages/MerchantsPage.tsx:70 — `updateMerchant({ ...editingMerchant, ...payload })`
+- src/modules/nutrition/pages/StudentMealAssignmentsPage.tsx:97 — `updateStudentMealPlan({ ...editingAssignment, ...payload })`
+
+## Numeric id coercions (writes)
+- src/components/setup/SetupWizard.tsx:191 — academic_year_id
+- src/components/setup/SetupWizard.tsx:212 — class_id
+- src/modules/academics/pages/ClassSubjectAllocationsPage.tsx:91 — class_stream_id
+- src/modules/academics/pages/ClassSubjectAllocationsPage.tsx:92 — subject_id
+- src/modules/academics/pages/ClassSubjectAllocationsPage.tsx:93 — academic_year_id
+- src/modules/academics/pages/ExamSessionsPage.tsx:129 — school_period_id
+- src/modules/academics/pages/ExamSessionsPage.tsx:171 — subject_paper_id
+- src/modules/academics/pages/SubjectPapersManagementPage.tsx:66 — subject_id
+- src/modules/academics/pages/TimetableEntriesPage.tsx:118 — class_stream_id
+- src/modules/academics/pages/TimetableEntriesPage.tsx:120 — period_id
+- src/modules/academics/pages/TimetableEntriesPage.tsx:121 — subject_id
+- src/modules/administration/pages/AcademicPeriodDefinitionsPage.tsx:89 — structure_id
+- src/modules/administration/pages/AcademicYearsPage.tsx:49 — structure_id
+- src/modules/administration/pages/SchoolPeriodsPage.tsx:65 — academic_year_id
+- src/modules/administration/pages/SchoolPeriodsPage.tsx:67 — financial_year_id
+- src/modules/finance/pages/BanksPage.tsx:63 — gl_account_id
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:109 — customer_id
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:141 — revenue_account_id
+- src/modules/finance/pages/CustomerInvoicesPage.tsx:149 — revenue_account_id
+- src/modules/finance/pages/FeeTemplatesPage.tsx:100 — revenue_account_id
+- src/modules/finance/pages/FeeTemplatesPage.tsx:112 — revenue_account_id
+- src/modules/finance/pages/FeeTemplatesPage.tsx:301 — school_period_id
+- src/modules/finance/pages/FeesFinesPage.tsx:98 — school_period_id
+- src/modules/finance/pages/GeneralReceiptsPage.tsx:153 — revenue_account_id
+- src/modules/finance/pages/StudentTransportAssignmentsPage.tsx:80 — route_id
+- src/modules/finance/pages/StudentTransportAssignmentsPage.tsx:81 — school_period_id
+- src/modules/finance/pages/SupplierInvoicesPage.tsx:79 — supplier_id
+- src/modules/finance/pages/TransportRoutesPage.tsx:72 — gl_revenue_account_id
+- src/modules/inventory/hooks/useStockLevelService.ts:52 — warehouse_id
+- src/modules/inventory/pages/StockIssuancePage.tsx:74 — warehouse_id
+- src/modules/inventory/pages/StockReceptionPage.tsx:200 — warehouse_id
+- src/modules/inventory/pages/StockReceptionPage.tsx:223 — item_id
+- src/modules/inventory/pages/StockReturnsPage.tsx:222 — warehouse_id
+- src/modules/inventory/pages/StockReturnsPage.tsx:249 — item_id
+- src/modules/inventory/pages/SupplierContractsPage.tsx:354 — supplier_id
+- src/modules/nutrition/pages/StudentMealAssignmentsPage.tsx:91 — school_period_id
+- src/modules/nutrition/pages/StudentMealAssignmentsPage.tsx:92 — meal_plan_id
+- src/modules/settings/pages/UnifiedSettingsPage.tsx:826 — role_id
+
+## Numeric id coercions (selectors)
+- src/modules/academics/pages/ExamAnalysisContent.tsx:470
+- src/modules/academics/pages/StudentExamResultsEntryPage.tsx:201
+- src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx:274
+- src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx:278
+- src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx:282
+- src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx:286
+- src/modules/academics/pages/TimetableEntriesPage.tsx:174
+- src/modules/finance/pages/EffectFeeStructuresPage.tsx:85
+- src/modules/finance/pages/EffectFeeStructuresPage.tsx:94
+- src/modules/finance/pages/EffectFeeStructuresPage.tsx:103
+- src/modules/finance/pages/EffectFeeStructuresPage.tsx:111
+- src/modules/finance/pages/FeeCollectionSummaryPage.tsx:182
+- src/modules/finance/pages/FeeCollectionSummaryPage.tsx:186
+- src/modules/inventory/pages/StockLevelsPage.tsx:74
+- src/modules/inventory/pages/StockLevelsPage.tsx:82
+- src/modules/nutrition/pages/StudentMealAssignmentsPage.tsx:192
+- src/modules/reports/pages/AccountLedgerPage.tsx:115
+- src/modules/reports/pages/ExamResultsHorizontalPage.tsx:137
+- src/modules/reports/pages/ExamResultsHorizontalPage.tsx:145
+- src/modules/reports/pages/FeeCollectionSummaryPage.tsx:143
+- src/modules/reports/pages/FeeCollectionSummaryPage.tsx:147
+- src/modules/reports/pages/StudentFinancialSummaryPage.tsx:126
+- src/modules/reports/pages/StudentFinancialSummaryPage.tsx:130
+- src/modules/reports/pages/StudentFinancialSummaryPage.tsx:134
+- src/modules/reports/pages/StudentMasterlistPage.tsx:119
+- src/modules/reports/pages/StudentMasterlistPage.tsx:123
+- src/modules/reports/pages/StudentVoteheadStatementPage.tsx:115
+- src/modules/reports/pages/TeacherAssignmentsPage.tsx:67
+
+## Mock-backed hooks used by UI
+- src/modules/administration/data/useAcademicPeriodDefinitionData.ts — src/modules/administration/pages/SchoolPeriodsPage.tsx
+- src/modules/administration/data/useAcademicYearData.ts — src/modules/administration/pages/SchoolPeriodsPage.tsx
+- src/modules/administration/data/useCampaignData.ts — src/modules/administration/pages/MessageCampaignsPage.tsx
+- src/modules/administration/data/useCustomerData.ts — src/modules/administration/pages/CustomersPage.tsx
+- src/modules/administration/data/useDepartmentData.ts — src/modules/administration/pages/DepartmentsPage.tsx
+- src/modules/administration/data/useDesignationData.ts — src/modules/administration/pages/DesignationsPage.tsx
+- src/modules/administration/data/usePartnerData.ts — src/modules/administration/pages/PartnersPage.tsx
+- src/modules/administration/data/useSchoolPeriodData.ts — src/modules/administration/pages/SchoolPeriodsPage.tsx
+- src/modules/administration/data/useStudentHealthRecordData.ts — src/modules/administration/pages/StudentHealthRecordsPage.tsx
+- src/modules/administration/data/useTemplateCommData.ts — src/modules/administration/pages/CommunicationTemplatesPage.tsx, src/modules/administration/pages/MessageCampaignsPage.tsx
+- src/modules/inventory/data/useItemData.ts — src/modules/inventory/pages/StockReceptionPage.tsx, src/modules/inventory/pages/StockReturnsPage.tsx
+
+## Routes declared outside navigation
+- /administration/configuration (src/modules/administration/moduleDefinition.tsx)
+- /administration/students/add (src/modules/administration/moduleDefinition.tsx)
+- /administration/students/:studentId (src/modules/administration/moduleDefinition.tsx)
+- /administration/students/:studentId/financial (src/modules/administration/moduleDefinition.tsx)
+- /administration/student-import (src/modules/administration/moduleDefinition.tsx)
+- /administration/student-clearance (src/modules/administration/moduleDefinition.tsx)
+- /administration/student-health (src/modules/administration/moduleDefinition.tsx)
+- /admissions/applications (src/modules/admissions/moduleDefinition.tsx)
+- /admissions/applications/:applicationId (src/modules/admissions/moduleDefinition.tsx)
+- /admissions/review-queue (src/modules/admissions/moduleDefinition.tsx)
+- /admissions/review/:applicationId (src/modules/admissions/moduleDefinition.tsx)
+- /admissions/track (src/modules/admissions/moduleDefinition.tsx)
+- /admissions/track/:applicationId (src/modules/admissions/moduleDefinition.tsx)
+- /admissions/form-builder (src/modules/admissions/moduleDefinition.tsx)
+- /hr/payroll-item-types (src/modules/hr/moduleDefinition.tsx)
+- /hr/payroll-periods (src/modules/hr/moduleDefinition.tsx)
+- /hr/payslips (src/modules/hr/moduleDefinition.tsx)
+- /hr/staff-salary-settings (src/modules/hr/moduleDefinition.tsx)
+- /library/books (src/modules/library/moduleDefinition.tsx)
+- /library/book-categories (src/modules/library/moduleDefinition.tsx)
+- /library/book-loans (src/modules/library/moduleDefinition.tsx)
+- /library/digital-resources (src/modules/library/moduleDefinition.tsx)
+- /library/damaged-lost-books (src/modules/library/moduleDefinition.tsx)
+- /library/import-books (src/modules/library/moduleDefinition.tsx)
