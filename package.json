@@ -127,6 +127,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@eslint/js": "^9.35.0",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
     "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1",
     "@playwright/test": "^1.54.2",
