@@ -102,7 +102,7 @@ export const useRoutePersistence = (enabled = true) => {
         performanceEventManager.markDiagnostic('route_storage_restored', {
           storedRoute
         });
-        logger.info('ðŸ”„ Restoring route after refresh:', storedRoute);
+        logger.info('🔄 Restoring route after refresh:', storedRoute);
         navigate(storedRoute, { replace: true });
         return true;
       }

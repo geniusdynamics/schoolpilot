@@ -580,7 +580,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
                       {conflict.entityName} #{conflict.entityId}
                     </div>
                     <div className="text-sm text-surface-muted-fg">
-                      {conflict.conflictType} conflict Ã¢â‚¬Â¢ {conflict.timestamp.toLocaleString()}
+                      {conflict.conflictType} conflict • {conflict.timestamp.toLocaleString()}
                     </div>
                   </div>
                   <div className="flex space-x-2">

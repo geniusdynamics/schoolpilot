@@ -7,7 +7,7 @@ import { logger } from '@/utils/logging';
  * Central registry for all module settings.
  * Each module registers its settings here.
  *
- * ABOUTME: Legacy config â€” the canonical source is now src/config/.
+ * ABOUTME: Legacy config — the canonical source is now src/config/.
  * This file is preserved for existing consumers only; new code
  * should import from '@/config/'.
  */

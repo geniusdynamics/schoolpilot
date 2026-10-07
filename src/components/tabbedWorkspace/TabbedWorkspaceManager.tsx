@@ -43,7 +43,7 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     const touchDevice = 'ontouchstart' in window;
     tabStateManager.current.setPlatformInfo({ platform, touchDevice });
     
-    logger.info('ðŸ”§ [TabbedWorkspaceManager] TabStateManager initialized for platform:', platform);
+    logger.info('🔧 [TabbedWorkspaceManager] TabStateManager initialized for platform:', platform);
   }, [tabs, createTab, activateTab]);
 
   // Find the module and navigation item for the current path
@@ -76,26 +76,26 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     previousPathRef.current = location.pathname;
     
     try {
-      logger.info('ðŸ” [TabbedWorkspaceManager] Handling route change to:', location.pathname);
+      logger.info('🔍 [TabbedWorkspaceManager] Handling route change to:', location.pathname);
       
       const navigationItem = findNavigationItemForPath(location.pathname);
       
       if (!navigationItem) {
-        logger.warn('âš ï¸ [TabbedWorkspaceManager] No navigation item found for path:', location.pathname);
+        logger.warn('⚠️ [TabbedWorkspaceManager] No navigation item found for path:', location.pathname);
         return;
       }
 
-      logger.info('ðŸ” [TabbedWorkspaceManager] Found navigation item:', navigationItem);
+      logger.info('🔍 [TabbedWorkspaceManager] Found navigation item:', navigationItem);
 
       // Use TabStateManager for enhanced tab creation with proper dashboard detection
       const result = await tabStateManager.current.createModuleTab(navigationItem, location);
       
       if (result.action === 'created') {
-        logger.info('âœ… [TabbedWorkspaceManager] Created new tab via TabStateManager:', result.tabId);
+        logger.info('✅ [TabbedWorkspaceManager] Created new tab via TabStateManager:', result.tabId);
       } else if (result.action === 'activated') {
-        logger.info('âœ… [TabbedWorkspaceManager] Activated existing tab via TabStateManager:', result.tabId);
+        logger.info('✅ [TabbedWorkspaceManager] Activated existing tab via TabStateManager:', result.tabId);
       } else if (result.action === 'error') {
-        logger.error('âŒ [TabbedWorkspaceManager] Error from TabStateManager:', result.message);
+        logger.error('❌ [TabbedWorkspaceManager] Error from TabStateManager:', result.message);
       }
       
     } finally {

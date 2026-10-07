@@ -42,7 +42,7 @@ export function useDatabaseCollection<T>(
     if (loading) {
       loadingTimeoutRef.current = setTimeout(() => {
         if (isMountedRef.current && loading) {
-          logger.warn(`[useDatabaseCollection] Loading timeout for '${collectionName}' â€” falling back to empty data`);
+          logger.warn(`[useDatabaseCollection] Loading timeout for '${collectionName}' — falling back to empty data`);
           setLoading(false);
         }
       }, 15000); // 15 second timeout

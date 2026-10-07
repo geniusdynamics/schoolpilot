@@ -9,13 +9,13 @@
  * 
  * ## Problem Solved
  * 
- * Before (âŒ cross-module import):
+ * Before (❌ cross-module import):
  * ```typescript
  * import { initialMockUsers } from '../../administration/data/mockData';
  * const [users] = useState(initialMockUsers);
  * ```
  * 
- * After (âœ… via hook):
+ * After (✅ via hook):
  * ```typescript
  * import { useSharedData } from '@/hooks/useSharedData';
  * const { users } = useSharedData(['users']);

@@ -411,7 +411,7 @@ export const ImportBooksPageContent: React.FC = () => {
                   .filter(row => row.validation_errors.length > 0)
                   .flatMap(row => row.validation_errors)
                   .map((error, index) => (
-                    <div key={index}>â€¢ {error}</div>
+                    <div key={index}>• {error}</div>
                   ))
                 }
               </div>

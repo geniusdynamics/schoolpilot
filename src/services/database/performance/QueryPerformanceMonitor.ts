@@ -67,7 +67,7 @@ export class QueryPerformanceMonitor {
       this.performPerformanceCheck();
     }, 60 * 1000);
 
-    logger.info('ðŸ“Š [QueryPerformanceMonitor] Performance monitoring started');
+    logger.info('📊 [QueryPerformanceMonitor] Performance monitoring started');
   }
 
   /**
@@ -83,7 +83,7 @@ export class QueryPerformanceMonitor {
       this.monitoringInterval = null;
     }
 
-    logger.info('ðŸ“Š [QueryPerformanceMonitor] Performance monitoring stopped');
+    logger.info('📊 [QueryPerformanceMonitor] Performance monitoring stopped');
   }
 
   /**
@@ -404,9 +404,9 @@ export class QueryPerformanceMonitor {
     
     // Log critical alerts
     if (alert.severity === 'critical') {
-      logger.error(`ðŸš¨ [QueryPerformanceMonitor] Critical performance alert:`, alert);
+      logger.error(`🚨 [QueryPerformanceMonitor] Critical performance alert:`, alert);
     } else if (alert.severity === 'high') {
-      logger.warn(`âš ï¸ [QueryPerformanceMonitor] High severity performance alert:`, alert);
+      logger.warn(`⚠️ [QueryPerformanceMonitor] High severity performance alert:`, alert);
     }
   }
 
@@ -468,7 +468,7 @@ export class QueryPerformanceMonitor {
       this.updatePerformanceTrends();
       
     } catch (error) {
-      logger.error('âŒ [QueryPerformanceMonitor] Performance check failed:', error);
+      logger.error('❌ [QueryPerformanceMonitor] Performance check failed:', error);
     }
   }
 

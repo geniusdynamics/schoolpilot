@@ -150,7 +150,7 @@ export function ValidationTooltip({ rules, examples, ...props }: ValidationToolt
         <ul className="space-y-1">
           {rules.map((rule, index) => (
             <li key={index} className="flex items-start text-xs">
-              <span className="text-primary-400 mr-1">â€¢</span>
+              <span className="text-primary-400 mr-1">•</span>
               {rule}
             </li>
           ))}

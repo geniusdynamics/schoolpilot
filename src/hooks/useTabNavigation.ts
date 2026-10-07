@@ -314,7 +314,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
               title: 'Tab Limit Reached',
               duration: 4000
             });
-            logger.info(`âœ… New tab created. Auto-closed "${oldestTab.title}" to make room.`);
+            logger.info(`✅ New tab created. Auto-closed "${oldestTab.title}" to make room.`);
             
             return {
               tabId,
@@ -342,7 +342,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
     // Extract module information from target path
     const targetModuleInfo = extractModuleFromPath(path);
     
-    logger.info('ðŸš€ Navigation Decision:', {
+    logger.info('🚀 Navigation Decision:', {
       targetPath: path,
       targetModule: targetModuleInfo.module,
       willUseTabSystem: true // Always use tab system for internal navigation

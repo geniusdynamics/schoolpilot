@@ -5,7 +5,7 @@ import { logger } from '@/utils/logging';
  * 
  * Mock implementation of the AnalyticsEnginePlugin interface for development and testing.
  * Returns realistic but randomized data for teacher, class, and subject metrics.
- * All values are plausible but entirely simulated â€” no real data is accessed.
+ * All values are plausible but entirely simulated — no real data is accessed.
  */
 
 import type {
@@ -456,7 +456,7 @@ export const analyticsMockManifest: PluginManifest = {
 const module: PluginModule = {
   async activate(context: PluginContext) {
     logger.info('[Analytics Mock Plugin] Activating...');
-    logger.info('[Analytics Mock Plugin] This is a MOCK engine â€” all analytics data is simulated.');
+    logger.info('[Analytics Mock Plugin] This is a MOCK engine — all analytics data is simulated.');
     logger.info('[Analytics Mock Plugin] Subjects:', MOCK_SUBJECTS.map((s) => s.name).join(', '));
   },
 

@@ -125,11 +125,11 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
           title="Click to expand performance details"
         >
           <div className="flex items-center space-x-2 text-sm font-medium">
-            <span>ðŸ“Š</span>
+            <span>📊</span>
             {report && (
               <div className="flex items-center space-x-1">
                 <span>{formatTime(report.startupTime)}</span>
-                <span>â€¢</span>
+                <span>•</span>
                 <span>{formatMemory(report.memoryUsage)}</span>
               </div>
             )}
@@ -142,7 +142,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-surface-foreground flex items-center">
-                <span className="mr-2">ðŸ“Š</span>
+                <span className="mr-2">📊</span>
                 Performance
               </h3>
               <div className="flex items-center space-x-2">
@@ -151,21 +151,21 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
                   className="text-primary-500 hover:text-primary-700 text-sm p-1"
                   title="Refresh data"
                 >
-                  ðŸ”„
+                  🔄
                 </button>
                 <button
                   onClick={handleToggleExpanded}
                   className="text-surface-muted-fg hover:text-surface-foreground text-sm p-1"
                   title="Collapse widget"
                 >
-                  âž–
+                  ➖
                 </button>
                 <button
                   onClick={handleHideWidget}
                   className="text-surface-muted-fg hover:text-surface-foreground text-lg p-1"
                   title="Hide widget"
                 >
-                  Ã—
+                  ×
                 </button>
               </div>
             </div>

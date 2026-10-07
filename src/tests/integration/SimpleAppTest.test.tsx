@@ -12,7 +12,7 @@ beforeAll(async () => {
 
 describe('Simple App Test', () => {
   it('should render App component and show debug logs', async () => {
-    console.log('ðŸ” [TEST] Starting simple App render test...');
+    console.log('🔍 [TEST] Starting simple App render test...');
     
     let appContentRendered = false;
     let dynamicRoutesRendered = false;
@@ -25,13 +25,13 @@ describe('Simple App Test', () => {
     console.error = (...args) => {
       const message = args[0];
       if (typeof message === 'string') {
-        if (message.includes('ðŸš¨ðŸš¨ðŸš¨ [AppContent] Component is rendering!')) {
+        if (message.includes('🚨🚨🚨 [AppContent] Component is rendering!')) {
           appContentRendered = true;
-          console.log('âœ… [TEST] AppContent rendered!');
+          console.log('✅ [TEST] AppContent rendered!');
         }
-        if (message.includes('ðŸš¨ðŸš¨ðŸš¨ [DynamicRoutes] Component is rendering!')) {
+        if (message.includes('🚨🚨🚨 [DynamicRoutes] Component is rendering!')) {
           dynamicRoutesRendered = true;
-          console.log('âœ… [TEST] DynamicRoutes rendered!');
+          console.log('✅ [TEST] DynamicRoutes rendered!');
         }
       }
       originalConsoleError(...args);
@@ -40,22 +40,22 @@ describe('Simple App Test', () => {
     console.warn = (...args) => {
       const message = args[0];
       if (typeof message === 'string') {
-        if (message.includes('ðŸš¨ðŸš¨ðŸš¨ [DynamicRoutes] Component is rendering!')) {
+        if (message.includes('🚨🚨🚨 [DynamicRoutes] Component is rendering!')) {
           dynamicRoutesRendered = true;
-          console.log('âœ… [TEST] DynamicRoutes rendered via warn!');
+          console.log('✅ [TEST] DynamicRoutes rendered via warn!');
         }
       }
       originalConsoleWarn(...args);
     };
     
-    console.log('ðŸ” [TEST] About to render App...');
+    console.log('🔍 [TEST] About to render App...');
     render(<App />);
-    console.log('ðŸ” [TEST] App render call completed');
+    console.log('🔍 [TEST] App render call completed');
     
     // Wait a bit for components to render
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    console.log('ðŸ” [TEST] Final state:');
+    console.log('🔍 [TEST] Final state:');
     console.log('  - AppContent rendered:', appContentRendered);
     console.log('  - DynamicRoutes rendered:', dynamicRoutesRendered);
     

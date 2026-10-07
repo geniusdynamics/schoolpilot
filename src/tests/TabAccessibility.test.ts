@@ -528,8 +528,8 @@ export const manualAccessibilityTestGuidelines = {
       '5. Verify focus indicators are clearly visible'
     ],
     expectedBehavior: [
-      'All text should have contrast ratio â‰¥ 4.5:1',
-      'Touch targets should be â‰¥ 44px on mobile',
+      'All text should have contrast ratio ≥ 4.5:1',
+      'Touch targets should be ≥ 44px on mobile',
       'Focus indicators should be clearly visible',
       'Interface should work at 200% zoom'
     ]

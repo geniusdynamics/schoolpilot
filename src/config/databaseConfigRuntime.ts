@@ -256,11 +256,11 @@ export async function loadDatabaseConfigFromFile(
     const response = await fetcher('/database-config.json');
     if (response.ok) {
       const config = await response.json();
-      logger.info('ðŸ“ [UnifiedConfig] Loaded database configuration from file');
+      logger.info('📁 [UnifiedConfig] Loaded database configuration from file');
       return config;
     }
   } catch {
-    logger.info('ðŸ“ [UnifiedConfig] No database configuration file found');
+    logger.info('📁 [UnifiedConfig] No database configuration file found');
   }
 
   return {};

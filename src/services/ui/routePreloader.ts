@@ -185,12 +185,12 @@ class RoutePreloader {
         this.updateMetrics(true, loadTime);
         this.preloadedRoutes.add(nav.path);
         
-        logger.info(`âœ… [RoutePreloader] Successfully preloaded: ${nav.path} (${loadTime}ms)`);
+        logger.info(`✅ [RoutePreloader] Successfully preloaded: ${nav.path} (${loadTime}ms)`);
       } catch (error) {
         const loadTime = Date.now() - startTime;
         this.updateMetrics(false, loadTime);
         
-        logger.warn(`âŒ [RoutePreloader] Failed to preload: ${nav.path}`, error);
+        logger.warn(`❌ [RoutePreloader] Failed to preload: ${nav.path}`, error);
       }
     });
 
@@ -275,7 +275,7 @@ class RoutePreloader {
   clearPreloadCache() {
     this.preloadedRoutes.clear();
     pageComponentResolver.clearCache();
-    logger.info('ðŸ§¹ [RoutePreloader] Preload cache cleared');
+    logger.info('🧹 [RoutePreloader] Preload cache cleared');
   }
 
   getPreloadMetrics(): PreloadMetrics & { 
@@ -310,7 +310,7 @@ class RoutePreloader {
       this.strategies = this.strategies.filter(s => s.name !== 'time-based');
     }
 
-    logger.info('âš™ï¸ [RoutePreloader] Configuration updated:', config);
+    logger.info('⚙️ [RoutePreloader] Configuration updated:', config);
   }
 
   // Integration with navigation system

@@ -22,13 +22,13 @@ async function testBackup() {
     
     // For this test, we'll just verify the backup method exists
     // In a real scenario, we would have initialized collections first
-    console.log('âœ… Database manager initialized');
-    console.log('âœ… Backup method is available');
+    console.log('✅ Database manager initialized');
+    console.log('✅ Backup method is available');
     
     console.log('Note: Backup test completed successfully (no active provider in test environment)');
     
   } catch (error) {
-    console.error('âŒ Backup test failed:', error);
+    console.error('❌ Backup test failed:', error);
     throw error;
   }
 }

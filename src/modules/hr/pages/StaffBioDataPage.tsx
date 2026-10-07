@@ -163,7 +163,7 @@ export const StaffBioDataPageContent: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStaffId(null)} variant="secondary">
-              Ã¢â€ Â Back to Staff List
+              ← Back to Staff List
             </Button>
             <h2 className="text-xl font-bold text-surface-foreground">{selectedStaff.name}</h2>
           </div>

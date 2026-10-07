@@ -29,7 +29,7 @@ import type {
   StudentPayment,
 } from '../data/types';
 
-// â”€â”€ useInvoiceStatus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── useInvoiceStatus ────────────────────────────────────────────────────────
 
 /**
  * Hook that provides InvoiceStatusService methods connected to the database.
@@ -131,7 +131,7 @@ export function useInvoiceStatus() {
   };
 }
 
-// â”€â”€ useInvoiceGeneration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── useInvoiceGeneration ────────────────────────────────────────────────────
 
 /**
  * Hook that provides InvoiceGenerationService methods connected to the database.
@@ -238,7 +238,7 @@ export function useInvoiceGeneration() {
   };
 }
 
-// â”€â”€ usePaymentAllocation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── usePaymentAllocation ────────────────────────────────────────────────────
 
 /**
  * Hook that provides PaymentAllocationService methods connected to the database.

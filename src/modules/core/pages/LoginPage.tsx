@@ -249,7 +249,7 @@ const LoginPage: React.FC = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-sm text-surface-muted-fg">
-            Â© 2024 SchoolPilot. All rights reserved.
+            © 2024 SchoolPilot. All rights reserved.
           </p>
         </div>
       </div>

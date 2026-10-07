@@ -16,12 +16,12 @@ import { collectionsDefinition } from './collections';
 
 // Validate collectionsDefinition at module load time
 if (!collectionsDefinition) {
-  logger.error('âŒ [CRITICAL] collectionsDefinition is undefined at import time!');
+  logger.error('❌ [CRITICAL] collectionsDefinition is undefined at import time!');
   logger.error('Please ensure collectionsDefinition is properly exported from collections.ts');
 } else if (typeof collectionsDefinition !== 'object') {
-  logger.error('âŒ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
+  logger.error('❌ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
 } else {
-  logger.info('âœ… [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
+  logger.info('✅ [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
 }
 
 // ID Generation (same as rxdbService)
@@ -37,7 +37,7 @@ let database: any = null;
 
 // Mock database interface to maintain compatibility
 // Uses live delegation to DatabaseManager (which delegates to UDM) so collection
-// lookups always reflect the current state â€” no stale snapshots.
+// lookups always reflect the current state — no stale snapshots.
 class MockDatabase {
   [key: string]: any;
   private databaseManager = getDatabaseManager();
@@ -96,8 +96,8 @@ const initializeDatabase = async (): Promise<MockDatabase> => {
   logger.info('DatabaseService: Initializing database...');
   
   try {
-    // MockDatabase now uses live delegation to DatabaseManager (â†’ UDM).
-    // The initial snapshot is unnecessary â€” every access is live.
+    // MockDatabase now uses live delegation to DatabaseManager (→ UDM).
+    // The initial snapshot is unnecessary — every access is live.
     const mockDb = new MockDatabase();
 
     if (typeof window !== 'undefined') {

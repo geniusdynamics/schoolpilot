@@ -87,7 +87,7 @@ export class AcademicsMigrationUtils {
 
   /**
    * Transform legacy examination to new exam session
-   * Rule TR-01: Term + Year â†’ school_period_id
+   * Rule TR-01: Term + Year → school_period_id
    */
   static transformExaminationToExamSession(
     legacyExam: LegacyExamination,
@@ -175,7 +175,7 @@ export class AcademicsMigrationUtils {
 
   /**
    * Transform subject column marks to student paper marks
-   * Rule TR-02: Split Subject Marks â†’ StudentPaperMark Rows
+   * Rule TR-02: Split Subject Marks → StudentPaperMark Rows
    */
   static transformSubjectMarksToStudentPaperMarks(
     legacyResult: LegacyExamResult,

@@ -118,7 +118,7 @@ const StudentBioDataPage: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
-              â† {t('studentBioData.backToStudents', 'Back to Students')}
+              ← {t('studentBioData.backToStudents', 'Back to Students')}
             </Button>
             <h2 className="text-xl font-bold text-surface-foreground">{selectedStudent.name}</h2>
           </div>

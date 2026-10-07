@@ -25,12 +25,12 @@ const mockIconOptions: SelectOption[] = [
   { 
     value: 'icon1', 
     label: 'Icon Option 1', 
-    icon: <span data-testid="icon-1">ðŸ”¥</span> 
+    icon: <span data-testid="icon-1">🔥</span> 
   },
   { 
     value: 'icon2', 
     label: 'Icon Option 2', 
-    icon: <span data-testid="icon-2">â­</span> 
+    icon: <span data-testid="icon-2">⭐</span> 
   },
 ];
 

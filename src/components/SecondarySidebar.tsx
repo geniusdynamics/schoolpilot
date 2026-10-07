@@ -37,7 +37,7 @@ const IconWrapper: React.FC<{
   isMobile?: boolean;
   isSecondaryAsPrimary?: boolean;
 }> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false, isSecondaryAsPrimary = false }) => {
-  // Enhanced icon sizing â€” larger when secondary acts as primary in fullwidth mode
+  // Enhanced icon sizing — larger when secondary acts as primary in fullwidth mode
   const isPrimaryMode = isMinimized && isSecondaryAsPrimary;
   const iconSize = isPrimaryMode ? "w-6 h-6" : isMobile ? "w-5 h-5" : "w-4 h-4";
   const wrapperSize = isPrimaryMode ? "w-9 h-9" : isMinimized ? "w-5 h-5" : isMobile ? "w-6 h-6" : "w-5 h-5";
@@ -125,8 +125,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
   /**
    * Determine if a nav item should be highlighted as the currently-active item.
-   * - Exact match: e.g. /portal === /portal â†’ active
-   * - Sub-path match: e.g. /portal/attendance is a sub-path of /portal â†’ active
+   * - Exact match: e.g. /portal === /portal → active
+   * - Sub-path match: e.g. /portal/attendance is a sub-path of /portal → active
    *   ONLY when no other item is a more specific match. We approximate this by
    *   always highlighting exact matches first; sub-path matches are highlighted
    *   only when no exact match exists in the visible list.
@@ -425,7 +425,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     if (!isOpen) return;
     
     if (!selectedModule) {
-      logger.warn('âš ï¸ [SecondarySidebar] No selected module found for:', selectedModuleKey);
+      logger.warn('⚠️ [SecondarySidebar] No selected module found for:', selectedModuleKey);
     }
   }, [isOpen, selectedModule, selectedModuleKey]);
 
@@ -642,7 +642,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                         />
                         {!isMinimized && <span className="truncate text-xs">{t(item.name)}</span>}
                       </span>
-                      {!isMinimized && <span className="flex-shrink-0 text-xs">{openGroups[item.name] ? 'â–¼' : 'â–¶'}</span>}
+                      {!isMinimized && <span className="flex-shrink-0 text-xs">{openGroups[item.name] ? '▼' : '▶'}</span>}
                     </button>
                     {/* Enhanced tooltip for group items - hidden on mobile to avoid touch conflicts */}
                     {isMinimized && !isMobile && (

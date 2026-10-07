@@ -24,7 +24,7 @@ class ModuleManagementService {
   // Enable a module at runtime
   async enableModule(moduleId: string): Promise<ModuleManagementResult> {
     try {
-      logger.info(`ðŸ”„ Enabling module: ${moduleId}`);
+      logger.info(`🔄 Enabling module: ${moduleId}`);
       
       // Check if module can be enabled
       const canEnable = moduleConfigService.enableModule(moduleId);
@@ -58,7 +58,7 @@ class ModuleManagementService {
         moduleInfo
       };
     } catch (error) {
-      logger.error(`âŒ Error enabling module ${moduleId}:`, error);
+      logger.error(`❌ Error enabling module ${moduleId}:`, error);
       return {
         success: false,
         message: `Error enabling module ${moduleId}`,
@@ -70,7 +70,7 @@ class ModuleManagementService {
   // Disable a module at runtime
   async disableModule(moduleId: string): Promise<ModuleManagementResult> {
     try {
-      logger.info(`ðŸ”„ Disabling module: ${moduleId}`);
+      logger.info(`🔄 Disabling module: ${moduleId}`);
       
       // Check if module can be disabled
       const canDisable = moduleConfigService.disableModule(moduleId);
@@ -96,7 +96,7 @@ class ModuleManagementService {
         moduleInfo
       };
     } catch (error) {
-      logger.error(`âŒ Error disabling module ${moduleId}:`, error);
+      logger.error(`❌ Error disabling module ${moduleId}:`, error);
       return {
         success: false,
         message: `Error disabling module ${moduleId}`,
@@ -108,7 +108,7 @@ class ModuleManagementService {
   // Reload a module
   async reloadModule(moduleId: string): Promise<ModuleManagementResult> {
     try {
-      logger.info(`ðŸ”„ Reloading module: ${moduleId}`);
+      logger.info(`🔄 Reloading module: ${moduleId}`);
       
       const module = await dynamicModuleLoader.reloadModule(moduleId);
       if (!module) {
@@ -131,7 +131,7 @@ class ModuleManagementService {
         moduleInfo
       };
     } catch (error) {
-      logger.error(`âŒ Error reloading module ${moduleId}:`, error);
+      logger.error(`❌ Error reloading module ${moduleId}:`, error);
       return {
         success: false,
         message: `Error reloading module ${moduleId}`,

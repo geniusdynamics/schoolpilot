@@ -35,7 +35,7 @@ class PageErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { pageName, onError } = this.props;
     
-    logger.error(`ðŸ“„ [PageErrorBoundary] Page "${pageName}" error:`, {
+    logger.error(`📄 [PageErrorBoundary] Page "${pageName}" error:`, {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack

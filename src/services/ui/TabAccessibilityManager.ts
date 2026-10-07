@@ -428,13 +428,13 @@ export class TabAccessibilityManager {
     
     if (mediaQuery.matches) {
       this.config.reducedMotion.disableAnimations = true;
-      logger.info('ðŸŽ¯ [TabAccessibilityManager] Reduced motion preference detected');
+      logger.info('🎯 [TabAccessibilityManager] Reduced motion preference detected');
     }
     
     // Listen for changes
     mediaQuery.addEventListener('change', (e) => {
       this.config.reducedMotion.disableAnimations = e.matches;
-      logger.info('ðŸŽ¯ [TabAccessibilityManager] Reduced motion preference changed:', e.matches);
+      logger.info('🎯 [TabAccessibilityManager] Reduced motion preference changed:', e.matches);
     });
   }
   
@@ -446,13 +446,13 @@ export class TabAccessibilityManager {
     
     if (mediaQuery.matches) {
       this.config.tabVisuals.highContrastMode = true;
-      logger.info('ðŸŽ¯ [TabAccessibilityManager] High contrast mode detected');
+      logger.info('🎯 [TabAccessibilityManager] High contrast mode detected');
     }
     
     // Listen for changes
     mediaQuery.addEventListener('change', (e) => {
       this.config.tabVisuals.highContrastMode = e.matches;
-      logger.info('ðŸŽ¯ [TabAccessibilityManager] High contrast mode changed:', e.matches);
+      logger.info('🎯 [TabAccessibilityManager] High contrast mode changed:', e.matches);
     });
   }
   
@@ -503,7 +503,7 @@ export class TabAccessibilityManager {
    */
   updateConfig(updates: Partial<TabAccessibilityConfig>): void {
     this.config = { ...this.config, ...updates };
-    logger.info('ðŸŽ¯ [TabAccessibilityManager] Configuration updated:', updates);
+    logger.info('🎯 [TabAccessibilityManager] Configuration updated:', updates);
   }
   
   /**

@@ -1,6 +1,6 @@
 import { logger } from '@/utils/logging';
 
-// ABOUTME: Finance domain hook â€” ChartOfAccounts, Banks/BankAccounts, Suppliers, FeeTemplates,
+// ABOUTME: Finance domain hook — ChartOfAccounts, Banks/BankAccounts, Suppliers, FeeTemplates,
 // ABOUTME: ExpenseClaims, ExpenseCategories, CustomerInvoices, SupplierInvoices, StudentOpeningBalances,
 // ABOUTME: FeeAdjustments, TransportRoutes, StudentTransportAssignments, StudentInvoices,
 // ABOUTME: StudentPayments, GeneralPayments, FinancialYears, GeneralLedgerEntries
@@ -35,7 +35,7 @@ export function useFinanceData() {
 
   const toast = useToastHelpers();
 
-  // â”€â”€ Chart of Accounts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Chart of Accounts ─────────────────────────────────────────────────────────
   const addChartOfAccount = useCallback(async (accountData: Omit<allTypes.ChartOfAccount, 'id'>) => {
     try {
       const result = await chartOfAccountsCollection.insert(accountData);
@@ -72,7 +72,7 @@ export function useFinanceData() {
     }
   }, [chartOfAccountsCollection, toast]);
 
-  // â”€â”€ Banks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Banks ─────────────────────────────────────────────────────────────────────
   const addBank = useCallback(async (bankData: Omit<allTypes.Bank, 'id'>) => {
     try {
       const result = await banksCollection.insert(bankData);
@@ -109,7 +109,7 @@ export function useFinanceData() {
     }
   }, [banksCollection, toast]);
 
-  // â”€â”€ Suppliers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Suppliers ─────────────────────────────────────────────────────────────────
   const addSupplier = useCallback(async (supplierData: Omit<allTypes.Supplier, 'id'>) => {
     try {
       const result = await suppliersCollection.insert(supplierData);
@@ -146,7 +146,7 @@ export function useFinanceData() {
     }
   }, [suppliersCollection, toast]);
 
-  // â”€â”€ Fee Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Fee Templates ─────────────────────────────────────────────────────────────
   const addFeeTemplate = useCallback(async (templateData: Omit<allTypes.FeeTemplate, 'id'>) => {
     try {
       const result = await feeTemplatesCollection.insert(templateData);
@@ -183,7 +183,7 @@ export function useFinanceData() {
     }
   }, [feeTemplatesCollection, toast]);
 
-  // â”€â”€ Expense Claims â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Expense Claims ────────────────────────────────────────────────────────────
   const addExpenseClaim = useCallback(async (claimData: Omit<allTypes.ExpenseClaim, 'id'>) => {
     return expenseClaimsCollection.insert(claimData);
   }, [expenseClaimsCollection]);
@@ -196,7 +196,7 @@ export function useFinanceData() {
     return expenseClaimsCollection.remove(claimId);
   }, [expenseClaimsCollection]);
 
-  // â”€â”€ Expense Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Expense Categories ────────────────────────────────────────────────────────
   const addExpenseCategory = useCallback(async (categoryData: Omit<allTypes.ExpenseCategory, 'id'>) => {
     return expenseCategoriesCollection.insert(categoryData);
   }, [expenseCategoriesCollection]);
@@ -209,7 +209,7 @@ export function useFinanceData() {
     return expenseCategoriesCollection.remove(categoryId);
   }, [expenseCategoriesCollection]);
 
-  // â”€â”€ Customer Invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Customer Invoices ─────────────────────────────────────────────────────────
   const addCustomerInvoice = useCallback(async (invoiceData: Omit<allTypes.CustomerInvoice, 'id'>) => {
     return customerInvoicesCollection.insert(invoiceData);
   }, [customerInvoicesCollection]);
@@ -222,7 +222,7 @@ export function useFinanceData() {
     return customerInvoicesCollection.remove(invoiceId);
   }, [customerInvoicesCollection]);
 
-  // â”€â”€ Supplier Invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Supplier Invoices ─────────────────────────────────────────────────────────
   const addSupplierInvoice = useCallback(async (invoiceData: Omit<allTypes.SupplierInvoice, 'id'>) => {
     return supplierInvoicesCollection.insert(invoiceData);
   }, [supplierInvoicesCollection]);
@@ -235,7 +235,7 @@ export function useFinanceData() {
     return supplierInvoicesCollection.remove(invoiceId);
   }, [supplierInvoicesCollection]);
 
-  // â”€â”€ Student Opening Balances â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Opening Balances ──────────────────────────────────────────────────
   const addStudentOpeningBalance = useCallback(async (balanceData: Omit<allTypes.StudentOpeningBalance, 'id'>) => {
     return studentOpeningBalancesCollection.insert(balanceData);
   }, [studentOpeningBalancesCollection]);
@@ -248,7 +248,7 @@ export function useFinanceData() {
     return studentOpeningBalancesCollection.remove(balanceId);
   }, [studentOpeningBalancesCollection]);
 
-  // â”€â”€ Fee Adjustments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Fee Adjustments ───────────────────────────────────────────────────────────
   const addFeeAdjustment = useCallback(async (adjustmentData: Omit<allTypes.FeeAdjustment, 'id'>) => {
     return feeAdjustmentsCollection.insert(adjustmentData);
   }, [feeAdjustmentsCollection]);
@@ -261,7 +261,7 @@ export function useFinanceData() {
     return feeAdjustmentsCollection.remove(adjustmentId);
   }, [feeAdjustmentsCollection]);
 
-  // â”€â”€ Transport Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Transport Routes ──────────────────────────────────────────────────────────
   const addTransportRoute = useCallback(async (routeData: Omit<allTypes.TransportRoute, 'id'>) => {
     return transportRoutesCollection.insert(routeData);
   }, [transportRoutesCollection]);
@@ -274,7 +274,7 @@ export function useFinanceData() {
     return transportRoutesCollection.remove(routeId);
   }, [transportRoutesCollection]);
 
-  // â”€â”€ Student Transport Assignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Transport Assignments ─────────────────────────────────────────────
   const addStudentTransportAssignment = useCallback(async (assignmentData: Omit<allTypes.StudentTransportAssignment, 'id'>) => {
     return studentTransportAssignmentsCollection.insert(assignmentData);
   }, [studentTransportAssignmentsCollection]);
@@ -287,7 +287,7 @@ export function useFinanceData() {
     return studentTransportAssignmentsCollection.remove(assignmentId);
   }, [studentTransportAssignmentsCollection]);
 
-  // â”€â”€ Student Invoices / Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Invoices / Payments ───────────────────────────────────────────────
   const generateStudentInvoices = useCallback(async (invoiceData: any) => {
     return customerInvoicesCollection.insert(invoiceData);
   }, [customerInvoicesCollection]);
@@ -308,7 +308,7 @@ export function useFinanceData() {
     return studentPaymentsCollection.update(paymentId, { applied_to_invoices: invoiceIds });
   }, [studentPaymentsCollection]);
 
-  // â”€â”€ General Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── General Payments ──────────────────────────────────────────────────────────
   const addGeneralPayment = useCallback(async (data: any) => {
     return generalPaymentsCollection.insert(data);
   }, [generalPaymentsCollection]);
@@ -321,7 +321,7 @@ export function useFinanceData() {
     return generalPaymentsCollection.remove(id);
   }, [generalPaymentsCollection]);
 
-  // â”€â”€ Financial Years â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Financial Years ───────────────────────────────────────────────────────────
   const addFinancialYear = useCallback(async (data: any) => {
     return financialYearsCollection.insert(data);
   }, [financialYearsCollection]);

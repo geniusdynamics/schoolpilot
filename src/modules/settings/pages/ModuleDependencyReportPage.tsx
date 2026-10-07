@@ -118,7 +118,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
                           .filter((edge: any) => edge.from === node.id)
                           .map((edge: any, idx: number) => (
                             <div key={idx} className="flex items-center text-sm text-surface-muted-fg ml-4">
-                              <span className="mr-2">â†’</span>
+                              <span className="mr-2">→</span>
                               <span>{tNav(`${edge.to}.title`)}</span>
                               <Badge variant="secondary" className="ml-2 text-xs">
                                 {edge.type}

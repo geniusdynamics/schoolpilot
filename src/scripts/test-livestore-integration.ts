@@ -21,7 +21,7 @@ class SQLiteWASMIntegrationTest {
   private results: TestResult[] = [];
 
   async initialize(): Promise<void> {
-    console.log('ðŸ§ª Initializing LiveStore Integration Test...');
+    console.log('🧪 Initializing LiveStore Integration Test...');
 
     const config: DatabaseConfig = {
       name: 'schoolpilot_test',
@@ -38,7 +38,7 @@ class SQLiteWASMIntegrationTest {
     try {
       this.provider = new SQLiteWASMProvider();
       await this.provider.initialize(config);
-      console.log('âœ… SQLite WASM provider initialized for testing');
+      console.log('✅ SQLite WASM provider initialized for testing');
     } catch (error) {
       throw new Error(`Failed to initialize LiveStore: ${error}`);
     }
@@ -46,7 +46,7 @@ class SQLiteWASMIntegrationTest {
 
   async runTest(testName: string, testFn: () => Promise<any>): Promise<TestResult> {
     const startTime = Date.now();
-    console.log(`\nðŸ”¬ Running test: ${testName}`);
+    console.log(`\n🔬 Running test: ${testName}`);
 
     try {
       const details = await testFn();
@@ -58,7 +58,7 @@ class SQLiteWASMIntegrationTest {
         details
       };
       
-      console.log(`âœ… ${testName} - PASSED (${duration}ms)`);
+      console.log(`✅ ${testName} - PASSED (${duration}ms)`);
       this.results.push(result);
       return result;
     } catch (error) {
@@ -70,7 +70,7 @@ class SQLiteWASMIntegrationTest {
         error: error instanceof Error ? error.message : String(error)
       };
       
-      console.log(`âŒ ${testName} - FAILED (${duration}ms): ${result.error}`);
+      console.log(`❌ ${testName} - FAILED (${duration}ms): ${result.error}`);
       this.results.push(result);
       return result;
     }
@@ -360,7 +360,7 @@ class SQLiteWASMIntegrationTest {
   }
 
   async runAllTests(): Promise<void> {
-    console.log('ðŸš€ Starting LiveStore Integration Tests...');
+    console.log('🚀 Starting LiveStore Integration Tests...');
     
     await this.runTest('Provider Status', () => this.testProviderStatus());
     await this.runTest('Collection Creation', () => this.testCollectionCreation());
@@ -374,9 +374,9 @@ class SQLiteWASMIntegrationTest {
     if (this.provider) {
       try {
         await this.provider.destroy();
-        console.log('ðŸ§¹ Test cleanup completed');
+        console.log('🧹 Test cleanup completed');
       } catch (error) {
-        console.warn(`âš ï¸  Cleanup warning: ${error}`);
+        console.warn(`⚠️  Cleanup warning: ${error}`);
       }
     }
   }
@@ -387,15 +387,15 @@ class SQLiteWASMIntegrationTest {
     const failedTests = totalTests - passedTests;
     const totalDuration = this.results.reduce((sum, r) => sum + r.duration, 0);
 
-    console.log('\nðŸ“Š Test Summary:');
-    console.log(`  ðŸ“‹ Total Tests: ${totalTests}`);
-    console.log(`  âœ… Passed: ${passedTests}`);
-    console.log(`  âŒ Failed: ${failedTests}`);
-    console.log(`  â±ï¸  Total Duration: ${totalDuration}ms`);
-    console.log(`  ðŸ“ˆ Success Rate: ${((passedTests / totalTests) * 100).toFixed(1)}%`);
+    console.log('\n📊 Test Summary:');
+    console.log(`  📋 Total Tests: ${totalTests}`);
+    console.log(`  ✅ Passed: ${passedTests}`);
+    console.log(`  ❌ Failed: ${failedTests}`);
+    console.log(`  ⏱️  Total Duration: ${totalDuration}ms`);
+    console.log(`  📈 Success Rate: ${((passedTests / totalTests) * 100).toFixed(1)}%`);
 
     if (failedTests > 0) {
-      console.log('\nâŒ Failed Tests:');
+      console.log('\n❌ Failed Tests:');
       this.results
         .filter(r => !r.success)
         .forEach(r => {
@@ -404,9 +404,9 @@ class SQLiteWASMIntegrationTest {
     }
 
     if (passedTests === totalTests) {
-      console.log('\nðŸŽ‰ All tests passed! LiveStore integration is working correctly.');
+      console.log('\n🎉 All tests passed! LiveStore integration is working correctly.');
     } else {
-      console.log('\nâš ï¸  Some tests failed. Please review the errors above.');
+      console.log('\n⚠️  Some tests failed. Please review the errors above.');
     }
   }
 }
@@ -424,7 +424,7 @@ export async function runIntegrationTests(): Promise<void> {
       process.exit(1);
     }
   } catch (error) {
-    console.error('ðŸ’¥ Integration test failed:', error);
+    console.error('💥 Integration test failed:', error);
     process.exit(1);
   } finally {
     await tester.cleanup();
@@ -434,7 +434,7 @@ export async function runIntegrationTests(): Promise<void> {
 // Run tests if this script is executed directly
 if (require.main === module) {
   runIntegrationTests().catch(error => {
-    console.error('ðŸ’¥ Unhandled test error:', error);
+    console.error('💥 Unhandled test error:', error);
     process.exit(1);
   });
 }

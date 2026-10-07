@@ -8,7 +8,7 @@ import { databaseService } from '@/services/database/databaseService';
 export { databaseService };
 
 /**
- * Unimplemented async stub â€“ used where a full DB operation is pending
+ * Unimplemented async stub – used where a full DB operation is pending
  */
 export const unimplementedAsync = async (..._args: any[]): Promise<any> => {
   logger.warn('Database function not implemented yet.');
@@ -17,7 +17,7 @@ export const unimplementedAsync = async (..._args: any[]): Promise<any> => {
 };
 
 /**
- * Unimplemented sync stub â€“ returns empty array where a getter is pending
+ * Unimplemented sync stub – returns empty array where a getter is pending
  */
 export const unimplementedSync = (..._args: any[]): any[] => {
   logger.warn('Database getter not implemented yet.');

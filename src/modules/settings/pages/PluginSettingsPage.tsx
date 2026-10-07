@@ -539,11 +539,11 @@ const MarketplaceTab: React.FC<{
 
   // Mock marketplace plugins
   const marketplacePlugins = [
-    { id: 'docker-terminal', name: 'Docker Terminal', author: '3clyp50', stars: 18, category: 'tools', description: 'Embedded multi-session terminal panel with tabbed PTY sessions', icon: 'ðŸ³' },
-    { id: 'bmad-method', name: 'BMAD Method', author: 'vanja-emichi', stars: 16, category: 'agents', description: 'Full software development lifecycle framework with 20 specialist agents', icon: 'ðŸ“Š' },
-    { id: 'chat-rename', name: 'Chat Rename', author: '3clyp50', stars: 13, category: 'ui', description: 'Rename chats from the sidebar and keep manual titles locked', icon: 'âœï¸' },
-    { id: 'telegram-integration', name: 'Telegram Integration', author: 'spinnakergit', stars: 8, category: 'integration', description: 'Send, receive, and manage messages via Telegram Bot API', icon: 'ðŸ“¨' },
-    { id: 'memory-manager', name: 'Memory Manager', author: 'community', stars: 25, category: 'memory', description: 'Advanced memory management with vector storage and retrieval', icon: 'ðŸ§ ' },
+    { id: 'docker-terminal', name: 'Docker Terminal', author: '3clyp50', stars: 18, category: 'tools', description: 'Embedded multi-session terminal panel with tabbed PTY sessions', icon: '🐳' },
+    { id: 'bmad-method', name: 'BMAD Method', author: 'vanja-emichi', stars: 16, category: 'agents', description: 'Full software development lifecycle framework with 20 specialist agents', icon: '📊' },
+    { id: 'chat-rename', name: 'Chat Rename', author: '3clyp50', stars: 13, category: 'ui', description: 'Rename chats from the sidebar and keep manual titles locked', icon: '✏️' },
+    { id: 'telegram-integration', name: 'Telegram Integration', author: 'spinnakergit', stars: 8, category: 'integration', description: 'Send, receive, and manage messages via Telegram Bot API', icon: '📨' },
+    { id: 'memory-manager', name: 'Memory Manager', author: 'community', stars: 25, category: 'memory', description: 'Advanced memory management with vector storage and retrieval', icon: '🧠' },
   ];
 
   const filters = [
@@ -896,7 +896,7 @@ const PluginDetailsPanel: React.FC<{
                   <span>Author: <span className="font-medium text-surface-foreground dark:text-gray-300">{plugin.manifest.author || 'Unknown'}</span></span>
                   {plugin.manifest.version && (
                     <>
-                      <span>â€¢</span>
+                      <span>•</span>
                       <span>v{plugin.manifest.version}</span>
                     </>
                   )}

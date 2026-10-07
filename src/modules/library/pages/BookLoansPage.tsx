@@ -266,7 +266,7 @@ export const BookLoansPageContent: React.FC = () => {
                   <p>Max Loan Days: {rule?.max_loan_days || 'N/A'} days</p>
                   <p>Fine per Day: KES {rule?.fine_per_day || 'N/A'}</p>
                   {activeLoans >= (rule?.max_books_per_user || 0) && (
-                    <p className="text-red-600 font-medium mt-1">âš ï¸ Borrowing limit reached!</p>
+                    <p className="text-red-600 font-medium mt-1">⚠️ Borrowing limit reached!</p>
                   )}
                 </div>
               );

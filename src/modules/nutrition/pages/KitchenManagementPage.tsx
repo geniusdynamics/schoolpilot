@@ -392,7 +392,7 @@ export const KitchenManagementPageContent: React.FC = () => {
                         ))}
                       </div>
                       <p className="text-sm text-surface-muted-fg mt-2">
-                        {meal.total_students} students Ã— KES {meal.estimated_cost_per_student} = KES {meal.total_cost.toLocaleString()}
+                        {meal.total_students} students × KES {meal.estimated_cost_per_student} = KES {meal.total_cost.toLocaleString()}
                       </p>
                     </div>
                     <Button size="sm" variant="secondary">Edit</Button>

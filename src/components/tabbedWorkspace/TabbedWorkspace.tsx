@@ -116,7 +116,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     const initializeWorkspace = async () => {
       if (!isMounted) return;
       if (isInitializedRef.current) {
-        logger.info('â­ï¸ [TabbedWorkspace] Already initialized, skipping');
+        logger.info('⏭️ [TabbedWorkspace] Already initialized, skipping');
         return;
       }
       
@@ -351,7 +351,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       return (
         <div className="flex-1 flex items-center justify-center bg-surface-muted text-surface-muted-fg">
           <div className="text-center px-4">
-            <div className="text-4xl mb-4">ðŸ“‹</div>
+            <div className="text-4xl mb-4">📋</div>
             <p className="text-lg font-medium mb-2">No tabs open</p>
             <p className="text-sm">Create a new tab to get started</p>
           </div>

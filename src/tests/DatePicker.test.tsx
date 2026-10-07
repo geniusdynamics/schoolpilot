@@ -476,7 +476,7 @@ describe('DatePicker Component', () => {
       
       // Should display French month name
       const monthHeader = screen.getByRole('heading', { level: 2 });
-      expect(monthHeader.textContent).toMatch(/janvier|fÃ©vrier|mars|avril|mai|juin|juillet|aoÃ»t|septembre|octobre|novembre|dÃ©cembre/i);
+      expect(monthHeader.textContent).toMatch(/janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre/i);
     });
   });
 });

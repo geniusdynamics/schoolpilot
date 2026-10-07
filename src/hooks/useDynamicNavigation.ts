@@ -15,7 +15,7 @@ import {
 } from '@/core/moduleLoader';
 // Removed unused hook utilities import
 
-// NOTE: Dashboard is NOT a module â€” it's a static page accessible via the logo and overflow menu.
+// NOTE: Dashboard is NOT a module — it's a static page accessible via the logo and overflow menu.
 // getEnabledModules returns module IDs only (no dashboard).
 
 export const useDynamicNavigation = (autoLoad: boolean = true) => {

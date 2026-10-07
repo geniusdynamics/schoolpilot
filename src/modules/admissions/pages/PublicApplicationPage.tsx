@@ -32,7 +32,7 @@ import {
   ApplicationType,
 } from '../data/types';
 
-// â”€â”€â”€ Step Definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Step Definitions ───────────────────────────────────────────────
 interface StepDef {
   id: number;
   name: string;
@@ -47,7 +47,7 @@ const steps: StepDef[] = [
   { id: 5, name: 'Review & Submit', icon: EyeIcon },
 ];
 
-// â”€â”€â”€ Initial Form State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Initial Form State ─────────────────────────────────────────────
 const initialFormData: ApplicationFormData = {
   firstName: '',
   middleName: '',
@@ -80,7 +80,7 @@ const initialFormData: ApplicationFormData = {
   subLocation: '',
 };
 
-// â”€â”€â”€ Uploaded Document â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Uploaded Document ──────────────────────────────────────────────
 interface UploadedDoc {
   name: string;
   type: string;
@@ -88,7 +88,7 @@ interface UploadedDoc {
   file: File;
 }
 
-// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Component ──────────────────────────────────────────────────────
 export const PublicApplicationPageContent: React.FC = () => {
   const { t } = useTranslation('admissions');
   const { createApplication } = useAdmissionsData();
@@ -110,7 +110,7 @@ export const PublicApplicationPageContent: React.FC = () => {
   const reportRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
-  // â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers ────────────────────────────────────────────────────
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -154,7 +154,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     }
   };
 
-  // â”€â”€ File Upload Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── File Upload Helpers ─────────────────────────────────────────
   const handleFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
     setter: React.Dispatch<React.SetStateAction<UploadedDoc[]>> | React.Dispatch<React.SetStateAction<UploadedDoc | null>>,
@@ -200,7 +200,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
-  // â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Submit ──────────────────────────────────────────────────────
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -222,7 +222,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     }
   };
 
-  // â”€â”€ Success Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Success Screen ──────────────────────────────────────────────
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-primary-50 flex items-center justify-center p-4">
@@ -280,7 +280,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     );
   }
 
-  // â”€â”€ File Upload Zone â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── File Upload Zone ────────────────────────────────────────────
   const renderFileUpload = (
     label: string,
     description: string,
@@ -338,7 +338,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     </div>
   );
 
-  // â”€â”€ Step 1: Student Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 1: Student Info ────────────────────────────────────────
   const renderStudentInfo = () => (
     <div className="space-y-6">
       <div>
@@ -444,7 +444,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     </div>
   );
 
-  // â”€â”€ Step 2: Parent / Guardian Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 2: Parent / Guardian Info ──────────────────────────────
   const renderGuardianInfo = () => (
     <div className="space-y-6">
       <div>
@@ -533,7 +533,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     </div>
   );
 
-  // â”€â”€ Step 3: Academic Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 3: Academic Info ───────────────────────────────────────
   const renderAcademicInfo = () => (
     <div className="space-y-6">
       <div>
@@ -597,7 +597,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     </div>
   );
 
-  // â”€â”€ Step 4: Documents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 4: Documents ───────────────────────────────────────────
   const renderDocuments = () => (
     <div className="space-y-6">
       <div>
@@ -644,12 +644,12 @@ export const PublicApplicationPageContent: React.FC = () => {
     </div>
   );
 
-  // â”€â”€ Step 5: Review â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step 5: Review ──────────────────────────────────────────────
   const renderReview = () => {
     const Field = ({ label, value }: { label: string; value?: string }) => (
       <div className="flex justify-between py-2 border-b border-gray-100 last:border-0">
         <span className="text-sm text-surface-muted-fg">{label}</span>
-        <span className="text-sm font-medium text-surface-foreground">{value || 'â€”'}</span>
+        <span className="text-sm font-medium text-surface-foreground">{value || '—'}</span>
       </div>
     );
 
@@ -753,7 +753,7 @@ export const PublicApplicationPageContent: React.FC = () => {
     );
   };
 
-  // â”€â”€ Render Current Step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render Current Step ─────────────────────────────────────────
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
@@ -771,10 +771,10 @@ export const PublicApplicationPageContent: React.FC = () => {
     }
   };
 
-  // â”€â”€ Step Indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Step Indicator ──────────────────────────────────────────────
   const progressPercent = ((currentStep - 1) / (steps.length - 1)) * 100;
 
-  // â”€â”€ Main Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Main Render ─────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-primary-50 py-8 px-4">
       {/* Header */}

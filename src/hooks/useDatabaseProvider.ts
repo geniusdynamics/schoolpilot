@@ -70,7 +70,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
   // Initialize database provider
   const initializeProvider = useCallback(async () => {
     try {
-      logger.info('ðŸš€ [useDatabaseProvider] Initializing database provider...');
+      logger.info('🚀 [useDatabaseProvider] Initializing database provider...');
       setLoading(true);
       setError(null);
 
@@ -81,7 +81,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
         throw new Error('Failed to create database service');
       }
 
-      logger.info(`âœ… [useDatabaseProvider] Database provider initialized: ${dataService.name}`);
+      logger.info(`✅ [useDatabaseProvider] Database provider initialized: ${dataService.name}`);
       setProvider(dataService);
       
       // Create collections from unified schema definition
@@ -96,7 +96,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
       await loadCollectionsData(dataService);
 
     } catch (error) {
-      logger.error('âŒ [useDatabaseProvider] Failed to initialize provider:', error);
+      logger.error('❌ [useDatabaseProvider] Failed to initialize provider:', error);
       setError(error as Error);
       setIsInitialized(false);
     } finally {
@@ -107,12 +107,12 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
   // Create collections from unified schema definition
   const createCollectionsFromSchema = useCallback(async (dataService: IDatabaseProvider) => {
     try {
-      logger.info('ðŸ“Š [useDatabaseProvider] Creating collections from unified schema...');
+      logger.info('📊 [useDatabaseProvider] Creating collections from unified schema...');
       
       // Convert all RxDB schemas to SQLite format
       const convertedSchemas = SchemaConverter.convertAllCollections(collectionsDefinition);
       
-      logger.info(`ðŸ“ [useDatabaseProvider] Converting ${Object.keys(convertedSchemas).length} collections...`);
+      logger.info(`📁 [useDatabaseProvider] Converting ${Object.keys(convertedSchemas).length} collections...`);
       
       let collectionsCreated = 0;
       let collectionsSkipped = 0;
@@ -123,7 +123,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
           // Check if collection already exists
           const existingCollection = dataService.getCollection(collectionName);
           if (existingCollection) {
-            logger.info(`ðŸ”„ [useDatabaseProvider] Collection '${collectionName}' already exists, skipping...`);
+            logger.info(`🔄 [useDatabaseProvider] Collection '${collectionName}' already exists, skipping...`);
             collectionsSkipped++;
             continue;
           }
@@ -131,17 +131,17 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
           // Create the collection
           await dataService.createCollection(collectionName, conversionResult.schema);
           collectionsCreated++;
-          logger.info(`âœ… [useDatabaseProvider] Created collection: ${collectionName}`);
+          logger.info(`✅ [useDatabaseProvider] Created collection: ${collectionName}`);
           
         } catch (error) {
-          logger.error(`âŒ [useDatabaseProvider] Failed to create collection '${collectionName}':`, error);
+          logger.error(`❌ [useDatabaseProvider] Failed to create collection '${collectionName}':`, error);
         }
       }
       
-      logger.info(`âœ… [useDatabaseProvider] Schema migration complete: ${collectionsCreated} created, ${collectionsSkipped} skipped`);
+      logger.info(`✅ [useDatabaseProvider] Schema migration complete: ${collectionsCreated} created, ${collectionsSkipped} skipped`);
       
     } catch (error) {
-      logger.error('âŒ [useDatabaseProvider] Failed to create collections from schema:', error);
+      logger.error('❌ [useDatabaseProvider] Failed to create collections from schema:', error);
       throw error;
     }
   }, []);
@@ -149,26 +149,26 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
   // Check if mock data migration is needed
   const checkAndMigrateMockData = useCallback(async (dataService: IDatabaseProvider) => {
     try {
-      logger.info('ðŸ” [useDatabaseProvider] Checking if migration is needed...');
+      logger.info('🔍 [useDatabaseProvider] Checking if migration is needed...');
       setMigrationStatus(prev => ({ ...prev, status: 'running' }));
 
       // Check if this is a first run by looking for any data in core collections
       const isFirstRun = await detectFirstRun(dataService);
       
       if (isFirstRun && mockData && !mockData.loading) {
-        logger.info('ðŸ“¦ [useDatabaseProvider] First run detected - starting mock data migration...');
+        logger.info('📦 [useDatabaseProvider] First run detected - starting mock data migration...');
         await migrateMockDataToProvider(dataService);
         setMigrationStatus(prev => ({ ...prev, status: 'complete' }));
-        logger.info('âœ… [useDatabaseProvider] Mock data migration completed successfully');
+        logger.info('✅ [useDatabaseProvider] Mock data migration completed successfully');
       } else if (!isFirstRun) {
-        logger.info('â„¹ï¸ [useDatabaseProvider] Data already exists - skipping migration');
+        logger.info('ℹ️ [useDatabaseProvider] Data already exists - skipping migration');
         setMigrationStatus(prev => ({ ...prev, status: 'complete' }));
       } else {
-        logger.info('âš ï¸ [useDatabaseProvider] Mock data not ready - migration deferred');
+        logger.info('⚠️ [useDatabaseProvider] Mock data not ready - migration deferred');
         setMigrationStatus(prev => ({ ...prev, status: 'pending' }));
       }
     } catch (error) {
-      logger.error('âŒ [useDatabaseProvider] Migration failed:', error);
+      logger.error('❌ [useDatabaseProvider] Migration failed:', error);
       setMigrationStatus({ 
         ...migrationStatus, 
         status: 'error', 
@@ -210,7 +210,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
     let collectionsCreated = 0;
     let recordsImported = 0;
 
-    logger.info('ðŸš€ [useDatabaseProvider] Starting comprehensive data migration...');
+    logger.info('🚀 [useDatabaseProvider] Starting comprehensive data migration...');
     
     const databaseManager = getDatabaseManager();
     const allCollections = databaseManager.getAllCollections();
@@ -227,7 +227,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
 
       if (collection && value.length > 0) {
         try {
-          logger.info(`ðŸ“ [useDatabaseProvider] Migrating ${value.length} records to ${collectionName}...`);
+          logger.info(`📝 [useDatabaseProvider] Migrating ${value.length} records to ${collectionName}...`);
           
           // Clear existing data first (in case of re-migration)
           const existingRecords = await collection.find();
@@ -256,12 +256,12 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
           }
           
           collectionsCreated++;
-          logger.info(`âœ… [useDatabaseProvider] Successfully migrated ${collectionName}: ${value.length} records`);
+          logger.info(`✅ [useDatabaseProvider] Successfully migrated ${collectionName}: ${value.length} records`);
         } catch (error) {
-          logger.error(`âŒ [useDatabaseProvider] Failed to migrate ${collectionName}:`, error);
+          logger.error(`❌ [useDatabaseProvider] Failed to migrate ${collectionName}:`, error);
         }
       } else if (!collection) {
-        logger.warn(`âš ï¸ [useDatabaseProvider] Collection '${collectionName}' not found for mock data key '${key}'`);
+        logger.warn(`⚠️ [useDatabaseProvider] Collection '${collectionName}' not found for mock data key '${key}'`);
       }
     }
 
@@ -271,18 +271,18 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
       recordsImported
     }));
 
-    logger.info(`ðŸŽ‰ [useDatabaseProvider] Migration complete: ${collectionsCreated} collections, ${recordsImported} records`);
+    logger.info(`🎉 [useDatabaseProvider] Migration complete: ${collectionsCreated} collections, ${recordsImported} records`);
   }, [mockData]);
 
   // Function to clear mock data after successful migration
   const clearMockData = useCallback(async () => {
-    logger.info('ðŸ§¹ [useDatabaseProvider] Clearing mock data...');
+    logger.info('🧹 [useDatabaseProvider] Clearing mock data...');
     try {
       // In a real implementation, this would clear the mock data from storage
       // For now, we'll just log that it would be cleared
-      logger.info('âœ… [useDatabaseProvider] Mock data cleared (in a real implementation, this would clear from storage)');
+      logger.info('✅ [useDatabaseProvider] Mock data cleared (in a real implementation, this would clear from storage)');
     } catch (error) {
-      logger.error('âŒ [useDatabaseProvider] Failed to clear mock data:', error);
+      logger.error('❌ [useDatabaseProvider] Failed to clear mock data:', error);
       throw error;
     }
   }, []);
@@ -340,7 +340,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
   // Load collections data into React state
   const loadCollectionsData = useCallback(async (dataService: IDatabaseProvider) => {
     try {
-      logger.info('ðŸ“Š [useDatabaseProvider] Loading collections data...');
+      logger.info('📊 [useDatabaseProvider] Loading collections data...');
 
       const databaseManager = getDatabaseManager();
       const allCollections = databaseManager.getAllCollections();
@@ -362,9 +362,9 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
       }
 
       setData(loadedData);
-      logger.info('âœ… [useDatabaseProvider] Collections data loaded successfully');
+      logger.info('✅ [useDatabaseProvider] Collections data loaded successfully');
     } catch (error) {
-      logger.error('âŒ [useDatabaseProvider] Failed to load collections data:', error);
+      logger.error('❌ [useDatabaseProvider] Failed to load collections data:', error);
     }
   }, []);
 
@@ -424,7 +424,7 @@ export const useDatabaseProvider = (): DatabaseProviderResult => {
 
   // Log status changes for debugging
   useEffect(() => {
-    logger.info('ðŸ”§ [useDatabaseProvider] Status update:', {
+    logger.info('🔧 [useDatabaseProvider] Status update:', {
       hasProvider: !!provider,
       isInitialized,
       loading,

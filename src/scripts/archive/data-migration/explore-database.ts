@@ -20,11 +20,11 @@ async function exploreDatabase() {
     let db;
     try {
       db = new sqlite3.oo1.DB('schoolpilot_dev.db', 'c');
-      console.log('âœ… Database opened successfully');
+      console.log('✅ Database opened successfully');
     } catch (openError) {
       console.log('Could not open database file directly, trying in-memory...');
       db = new sqlite3.oo1.DB(':memory:', 'c');
-      console.log('âœ… In-memory database opened');
+      console.log('✅ In-memory database opened');
     }
     
     // List all tables
@@ -83,10 +83,10 @@ async function exploreDatabase() {
     
     // Close database
     db.close();
-    console.log('\nâœ… Database exploration complete');
+    console.log('\n✅ Database exploration complete');
     
   } catch (error) {
-    console.error('âŒ Database exploration failed:', error);
+    console.error('❌ Database exploration failed:', error);
   }
 }
 

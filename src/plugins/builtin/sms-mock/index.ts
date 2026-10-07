@@ -253,7 +253,7 @@ const module: PluginModule = {
   async activate(context: PluginContext) {
     logger.info('[SMS Mock Plugin] Activating...');
     logger.info('[SMS Mock Plugin] Available templates:', Object.keys(MOCK_TEMPLATES).join(', '));
-    logger.info('[SMS Mock Plugin] This is a MOCK provider â€” no real SMS messages will be sent.');
+    logger.info('[SMS Mock Plugin] This is a MOCK provider — no real SMS messages will be sent.');
   },
 
   async deactivate() {

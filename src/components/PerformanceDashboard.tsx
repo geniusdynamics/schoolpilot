@@ -131,12 +131,12 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
       {/* Navigation */}
       <div className="flex space-x-1 mb-6 bg-surface-accent rounded-lg p-1">
         {[
-          { key: 'overview', label: 'Overview', icon: 'ðŸ“Š' },
-          { key: 'modules', label: 'Modules', icon: 'ðŸ“¦' },
-          { key: 'data', label: 'Data Ops', icon: 'ðŸ’¾' },
-          { key: 'interactions', label: 'User Actions', icon: 'ðŸ‘†' },
-          { key: 'charts', label: 'Charts', icon: 'ðŸ“ˆ' },
-          { key: 'benchmarks', label: 'Benchmarks', icon: 'ðŸŽ¯' }
+          { key: 'overview', label: 'Overview', icon: '📊' },
+          { key: 'modules', label: 'Modules', icon: '📦' },
+          { key: 'data', label: 'Data Ops', icon: '💾' },
+          { key: 'interactions', label: 'User Actions', icon: '👆' },
+          { key: 'charts', label: 'Charts', icon: '📈' },
+          { key: 'benchmarks', label: 'Benchmarks', icon: '🎯' }
         ].map(tab => (
           <button
             key={tab.key}
@@ -320,7 +320,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
             <div className="bg-surface-card p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-surface-foreground mb-4">Performance Trends</h3>
               <div className="text-center text-surface-muted-fg py-8">
-                <p>ðŸ“ˆ Performance charts would be implemented here</p>
+                <p>📈 Performance charts would be implemented here</p>
                 <p className="text-sm mt-2">Consider integrating with Chart.js or Recharts for visualization</p>
               </div>
             </div>

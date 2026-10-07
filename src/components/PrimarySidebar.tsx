@@ -21,7 +21,7 @@ class PrimarySidebarErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('ðŸ”¥ [PrimarySidebar] Error caught by boundary:', error, errorInfo);
+    logger.error('🔥 [PrimarySidebar] Error caught by boundary:', error, errorInfo);
   }
 
   render() {
@@ -144,7 +144,7 @@ const handleModuleClick = (moduleId: string, onModuleSelect: (key: string) => vo
   try {
     onModuleSelect(moduleId);
   } catch (error) {
-    logger.error('ðŸ”¥ [PrimarySidebar] Error selecting module:', error);
+    logger.error('🔥 [PrimarySidebar] Error selecting module:', error);
   }
 };
 

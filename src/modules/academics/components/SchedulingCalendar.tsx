@@ -164,7 +164,7 @@ const SchedulingCalendar: React.FC = () => {
                 <h3 className="font-semibold mb-2 text-red-600">Conflicts</h3>
                 <ul className="text-sm space-y-1">
                   {conflicts.map((conflict, index) => (
-                    <li key={index} className="text-red-600">â€¢ {conflict}</li>
+                    <li key={index} className="text-red-600">• {conflict}</li>
                   ))}
                 </ul>
               </Card>

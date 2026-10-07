@@ -254,10 +254,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/06-platform-architecture.md#6-internationalisation-and-localisation",
       "deps_install": false,
-      "status": "blocked",
+      "status": "done",
       "commit": null,
       "notes": "integration gate failed: G3 (failures only in .claude/worktrees/wf_75931219-281-6 and -7 communicationHealthHooks.test.tsx picked up by vitest, not in P0-G00 files) | integration gate G3 failed: vitest collected stale .claude/worktrees/wf_75931219-281-6/-7 communicationHealthHooks.test.tsx (not P0-G00 files); branch prd/P0-G00-fix1 approved, re-integrate after excluding .claude/worktrees",
-      "completed_at": null
+      "completed_at": "2026-10-07"
     },
     {
       "id": "P0-G01",

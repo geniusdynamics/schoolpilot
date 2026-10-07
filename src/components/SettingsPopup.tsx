@@ -60,7 +60,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
   
   const handleLinkClick = useCallback(async (path: string, title: string) => {
     try {
-      logger.info('ðŸš€ [SettingsPopup] Navigating to:', { path, title });
+      logger.info('🚀 [SettingsPopup] Navigating to:', { path, title });
       openTab(path, { pinned: false });
       
       // Close the popup after navigation

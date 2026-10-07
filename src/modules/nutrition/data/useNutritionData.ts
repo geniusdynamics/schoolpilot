@@ -1,6 +1,6 @@
 ﻿import { logger } from '@/utils/logging';
 
-// ABOUTME: Nutrition domain hook â€” MealPlans, Menus, StudentMealPlans,
+// ABOUTME: Nutrition domain hook — MealPlans, Menus, StudentMealPlans,
 // ABOUTME: MealConsumptionLogs, Merchants, StudentWallets, WalletTransactions
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -30,7 +30,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
   const getStudentMealPlans = useCallback(() => crossDomainRefs?.studentMealPlans ?? studentMealPlansCollection.data, [crossDomainRefs, studentMealPlansCollection.data]);
   const getStudentWallets = useCallback(() => crossDomainRefs?.studentWallets ?? studentWalletsCollection.data, [crossDomainRefs, studentWalletsCollection.data]);
 
-  // â”€â”€ Meal Plans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Meal Plans ────────────────────────────────────────────────────────────────
   const addMealPlan = useCallback(async (data: any) => {
     return mealPlansCollection.insert(data);
   }, [mealPlansCollection]);
@@ -43,7 +43,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
     return mealPlansCollection.remove(id);
   }, [mealPlansCollection]);
 
-  // â”€â”€ Menus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Menus ─────────────────────────────────────────────────────────────────────
   const addMenu = useCallback(async (data: any) => {
     return menusCollection.insert(data);
   }, [menusCollection]);
@@ -56,7 +56,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
     return menusCollection.remove(id);
   }, [menusCollection]);
 
-  // â”€â”€ Student Meal Plans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Student Meal Plans ────────────────────────────────────────────────────────
   const addStudentMealPlan = useCallback(async (data: any) => {
     return studentMealPlansCollection.insert(data);
   }, [studentMealPlansCollection]);
@@ -69,7 +69,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
     return studentMealPlansCollection.remove(id);
   }, [studentMealPlansCollection]);
 
-  // â”€â”€ Meal Consumption Logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Meal Consumption Logs ─────────────────────────────────────────────────────
   const addMealConsumptionLog = useCallback(async (logData: Omit<allTypes.MealConsumptionLog, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();
@@ -133,7 +133,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
     } catch (error) { logger.error('Error adding meal consumption log:', error); throw error; }
   }, [getStudents, getMenus, getStudentMealPlans, getStudentWallets]);
 
-  // â”€â”€ Merchants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Merchants ─────────────────────────────────────────────────────────────────
   const addMerchant = useCallback(async (data: any) => {
     return merchantsCollection.insert(data);
   }, [merchantsCollection]);
@@ -146,7 +146,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
     return merchantsCollection.remove(id);
   }, [merchantsCollection]);
 
-  // â”€â”€ Wallet Transactions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Wallet Transactions ───────────────────────────────────────────────────────
   const addWalletTransaction = useCallback(async (transactionData: Omit<allTypes.WalletTransaction, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();

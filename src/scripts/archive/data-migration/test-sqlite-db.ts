@@ -13,7 +13,7 @@ async function testSQLiteDatabase() {
     // Create SQLite service
     const sqliteService = new SQLiteOPFSService();
     await sqliteService.initialize('test_schoolpilot.db');
-    console.log('âœ… SQLite service initialized');
+    console.log('✅ SQLite service initialized');
 
     // Create a simple test collection
     const testSchema = {
@@ -37,7 +37,7 @@ async function testSQLiteDatabase() {
 
     const convertedSchema = convertRxDBSchema(testSchema);
     const testCollection = await sqliteService.createCollection('test_users', convertedSchema);
-    console.log('âœ… Test collection created');
+    console.log('✅ Test collection created');
 
     // Insert some test data
     const testData = [
@@ -48,48 +48,48 @@ async function testSQLiteDatabase() {
 
     console.log('Inserting test data...');
     const insertResults = await testCollection.insertMany(testData);
-    console.log(`âœ… Inserted ${insertResults.docs.length} records`);
+    console.log(`✅ Inserted ${insertResults.docs.length} records`);
 
     // Query the data
     console.log('Querying data...');
     const allUsers = await testCollection.find();
-    console.log(`âœ… Found ${allUsers.length} users`);
+    console.log(`✅ Found ${allUsers.length} users`);
 
     // Test specific queries
     const john = await testCollection.findOne({ selector: { name: 'John Doe' } });
-    console.log('âœ… Found user by name:', john?.name);
+    console.log('✅ Found user by name:', john?.name);
 
     const youngUsers = await testCollection.find({ 
       selector: { age: { $lt: 30 } },
       sort: [{ age: 'asc' }]
     });
-    console.log(`âœ… Found ${youngUsers.length} users under 30`);
+    console.log(`✅ Found ${youngUsers.length} users under 30`);
 
     // Test updates
     if (john && john.id) {
       const updateResult = await testCollection.update(john.id, { age: 31 });
-      console.log('âœ… Updated user age:', updateResult.doc?.age);
+      console.log('✅ Updated user age:', updateResult.doc?.age);
     }
 
     // Test deletion
     const bob = await testCollection.findOne({ selector: { name: 'Bob Johnson' } });
     if (bob && bob.id) {
       const deleteResult = await testCollection.remove(bob.id);
-      console.log('âœ… Deleted user:', deleteResult.ok);
+      console.log('✅ Deleted user:', deleteResult.ok);
     }
 
     // Count remaining records
     const count = await testCollection.count();
-    console.log(`âœ… Final count: ${count} users`);
+    console.log(`✅ Final count: ${count} users`);
 
     // Test backup
     const backup = await sqliteService.backup();
-    console.log('âœ… Backup created, size:', backup.length, 'characters');
+    console.log('✅ Backup created, size:', backup.length, 'characters');
 
-    console.log('\nâœ… SQLITE DATABASE TEST COMPLETED SUCCESSFULLY ===');
+    console.log('\n✅ SQLITE DATABASE TEST COMPLETED SUCCESSFULLY ===');
 
   } catch (error) {
-    console.error('âŒ SQLite database test failed:', error);
+    console.error('❌ SQLite database test failed:', error);
     throw error;
   }
 }

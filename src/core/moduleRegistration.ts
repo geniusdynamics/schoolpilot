@@ -9,7 +9,7 @@ import type { ModuleDefinition } from './types';
 import { logger } from '@/utils/logging';
 
 // Dynamic module import map - import directly from moduleDefinition files
-// Note: dashboard is NOT a module â€” it's a static page accessible via the logo and the overflow menu
+// Note: dashboard is NOT a module — it's a static page accessible via the logo and the overflow menu
 const moduleImports: Record<string, () => Promise<{ default: any }>> = {
   administration: () => import('@/modules/administration/moduleDefinition'),
   academics: () => import('@/modules/academics/moduleDefinition'),

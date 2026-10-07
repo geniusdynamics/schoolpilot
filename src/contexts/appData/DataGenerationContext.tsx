@@ -35,7 +35,7 @@ export const DataGenerationProvider: React.FC<{
     clearExisting?: boolean;
   }) => {
     try {
-      logger.info('ðŸŽ² [DataGenerationContext] Starting data generation...');
+      logger.info('🎲 [DataGenerationContext] Starting data generation...');
       toast.showInfo('Generating data...');
 
       const dbManager = UnifiedDatabaseManager.getInstance();
@@ -54,15 +54,15 @@ export const DataGenerationProvider: React.FC<{
           : 'Data generated successfully';
 
         toast.showSuccess(message);
-        logger.info('âœ… [DataGenerationContext] Data generation completed:', result.stats);
+        logger.info('✅ [DataGenerationContext] Data generation completed:', result.stats);
       } else {
         toast.showError(`Data generation failed: ${result.error}`);
-        logger.error('âŒ [DataGenerationContext] Data generation failed:', result.error);
+        logger.error('❌ [DataGenerationContext] Data generation failed:', result.error);
       }
         return result;
       } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Data generation failed';
-      logger.error('âŒ [DataGenerationContext] Data generation error:', err);
+      logger.error('❌ [DataGenerationContext] Data generation error:', err);
       toast.showError(errorMessage);
       return {
         success: false,
@@ -77,7 +77,7 @@ export const DataGenerationProvider: React.FC<{
     volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }) => {
     try {
-      logger.info('ðŸŒ± [DataGenerationContext] Seeding database...');
+      logger.info('🌱 [DataGenerationContext] Seeding database...');
       toast.showInfo('Seeding database...');
 
       const dbManager = UnifiedDatabaseManager.getInstance();
@@ -91,10 +91,10 @@ export const DataGenerationProvider: React.FC<{
         }
 
         toast.showSuccess(result.message);
-        logger.info('âœ… [DataGenerationContext] Database seeded:', result.stats);
+        logger.info('✅ [DataGenerationContext] Database seeded:', result.stats);
       } else {
         toast.showError(result.message);
-        logger.error('âŒ [DataGenerationContext] Database seeding failed:', result.message);
+        logger.error('❌ [DataGenerationContext] Database seeding failed:', result.message);
       }
 
       return result;

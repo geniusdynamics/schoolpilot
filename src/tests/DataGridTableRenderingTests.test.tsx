@@ -128,7 +128,7 @@ describe('DataGrid Table Rendering - Various Data States', () => {
     it('displays custom empty state message when no modules are provided', () => {
       const customEmptyState = (
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">ðŸ“¦</div>
+          <div className="text-4xl mb-4">📦</div>
           <div className="text-lg font-medium text-surface-foreground mb-2">No modules available</div>
           <div className="text-surface-muted-fg">Add your first module to get started</div>
         </div>
@@ -144,7 +144,7 @@ describe('DataGrid Table Rendering - Various Data States', () => {
 
       expect(screen.getByText('No modules available')).toBeInTheDocument();
       expect(screen.getByText('Add your first module to get started')).toBeInTheDocument();
-      expect(screen.getByText('ðŸ“¦')).toBeInTheDocument();
+      expect(screen.getByText('📦')).toBeInTheDocument();
     });
 
     it('displays default empty state when no custom empty state is provided', () => {

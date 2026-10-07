@@ -134,7 +134,7 @@ export class ModuleLoader extends EventEmitter {
         // Store loaded module
         this.loadedModules.set(moduleId, loadedModule);
         
-        // Register with module registry â€” handle already-registered modules gracefully
+        // Register with module registry — handle already-registered modules gracefully
         if (!moduleRegistry.isRegistered(moduleId)) {
           await moduleRegistry.register(loadedModule);
         }
@@ -466,7 +466,7 @@ export function getDynamicNavigationItems(): Array<{ id: string; name: string; p
     const navigationItems: any[] = [];
 
     // Get navigation from each enabled module's metadata
-    // Dashboard is excluded â€” it's a static page, not a module
+    // Dashboard is excluded — it's a static page, not a module
     for (const moduleId of enabledModules) {
       if (!moduleId || moduleId === 'dashboard') continue;
 
