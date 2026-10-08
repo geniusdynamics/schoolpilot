@@ -16,6 +16,7 @@ import { UnifiedAppConfig, unifiedConfigManager, BackendStatus, DataMode, Enviro
 export type { UnifiedAppConfig };
 import { backendDetectionService } from '../services/backend/backendDetection';
 import { getDataModeManager, DataModeManagerOptions } from '../services/data/dataModeManager';
+import { removeLegacyDataMode } from '../config/dataModePolicies';
 
 const dataModeManager = getDataModeManager();
 
@@ -382,13 +383,16 @@ export function UnifiedConfigProvider({
     };
 
     // An explicit data layer switch is recorded in the unified manager so that
-    // the unified configuration remains the only persisted dataMode.
+    // the unified configuration remains the only persisted dataMode. The data
+    // layer still writes the legacy key before emitting, so it is removed on
+    // every switch, not only when the manager's value differs.
     const handleModeChanged = (data: any) => {
       const mode: unknown = data?.mode ?? data;
       logger.info(`Data mode changed to: ${mode}`);
       if ((mode === 'demo' || mode === 'production') && unifiedConfigManager.getConfig().dataMode !== mode) {
         unifiedConfigManager.updateConfig({ dataMode: mode });
       }
+      removeLegacyDataMode();
     };
     
     dataModeManager.on('modeChanged', handleModeChanged);

@@ -68,6 +68,19 @@ export const takeLegacyDataMode = (): DataMode | null => {
   }
 };
 
+// Remove the legacy dataMode key so the unified config key stays the only one holding dataMode.
+export const removeLegacyDataMode = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(LEGACY_DATA_MODE_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 // Record when the data mode was switched. The mode itself is persisted by the unified config manager.
 const recordDataModeSwitch = (): void => {
   if (typeof window === 'undefined') {

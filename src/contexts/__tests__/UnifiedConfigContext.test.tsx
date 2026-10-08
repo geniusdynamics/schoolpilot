@@ -77,6 +77,40 @@ describe('UnifiedConfigContext delegates to the unified manager', () => {
     expect(screen.getByTestId('mode').textContent).toBe('production');
   });
 
+  it('removes the legacy dataMode key written by the data layer switch so only the unified config holds dataMode', () => {
+    render(<UnifiedConfigProvider><Probe /></UnifiedConfigProvider>);
+
+    act(() => {
+      // dataModeManager.switchMode writes the legacy key right before emitting modeChanged
+      localStorage.setItem(LEGACY_KEY, 'production');
+      modeEvents.emit('modeChanged', { mode: 'production' });
+    });
+
+    expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
+    expect(JSON.parse(localStorage.getItem(CONFIG_KEY) ?? '{}').dataMode).toBe('production');
+    const storedKeys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i) ?? '');
+    expect(storedKeys).toContain(CONFIG_KEY);
+    const keysHoldingDataMode = storedKeys.filter((key) => {
+      const value = localStorage.getItem(key) ?? '';
+      return value === 'production' || value.includes('"dataMode"');
+    });
+    expect(keysHoldingDataMode).toEqual([CONFIG_KEY]);
+  });
+
+  it('removes the legacy dataMode key even when the manager already holds the switched mode', () => {
+    render(<UnifiedConfigProvider><Probe /></UnifiedConfigProvider>);
+
+    act(() => {
+      // The settings switch calls updateConfig({ dataMode }) before dataModeManager.switchMode
+      latest?.updateConfig({ dataMode: 'production' });
+      localStorage.setItem(LEGACY_KEY, 'production');
+      modeEvents.emit('modeChanged', { mode: 'production' });
+    });
+
+    expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
+    expect(JSON.parse(localStorage.getItem(CONFIG_KEY) ?? '{}').dataMode).toBe('production');
+  });
+
   it('ignores data layer modes that are not configuration data modes', () => {
     render(<UnifiedConfigProvider><Probe /></UnifiedConfigProvider>);
 
