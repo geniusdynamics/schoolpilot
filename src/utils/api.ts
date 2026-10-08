@@ -1,7 +1,14 @@
-// Helper functions for data filtering and processing
-// Used with AppDataContext instead of API calls
+// ABOUTME: Helper functions that filter and resolve AppDataContext records (students, class streams).
+// ABOUTME: Ids are compared as strings so numeric, numeric-string and UUID ids all match without coercion.
 
 import type { Student, ClassStream } from '@/core/types';
+
+/** An entity id as it may arrive from storage or a <select>: strings at runtime, numbers in legacy types. */
+export type EntityId = string | number;
+
+/** True when both ids are present and equal as strings; never coerces to numbers. */
+const sameId = (a: EntityId | null | undefined, b: EntityId | null | undefined): boolean =>
+  a != null && b != null && String(a) !== '' && String(a) === String(b);
 
 /**
  * Filter students by class stream ID
@@ -9,8 +16,8 @@ import type { Student, ClassStream } from '@/core/types';
  * @param classStreamId - The class stream ID to filter by
  * @returns Array of students in the specified class stream
  */
-export const getStudentsByClassStream = (students: Student[], classStreamId: number): Student[] => {
-  return (students || []).filter(student => student.current_class_stream_id === classStreamId);
+export const getStudentsByClassStream = (students: Student[], classStreamId: EntityId): Student[] => {
+  return (students || []).filter(student => sameId(student.current_class_stream_id, classStreamId));
 };
 
 /**
@@ -19,8 +26,8 @@ export const getStudentsByClassStream = (students: Student[], classStreamId: num
  * @param classStreamId - The class stream ID to filter by
  * @returns Array of students eligible for exam entry
  */
-export const getStudentsForExamEntry = (students: Student[], classStreamId: number): Student[] => {
-  return getStudentsByClassStream(students, classStreamId).filter(student => 
+export const getStudentsForExamEntry = (students: Student[], classStreamId: EntityId): Student[] => {
+  return getStudentsByClassStream(students, classStreamId).filter(student =>
     student.status === 'Active' // Only active students can have exam results entered
   );
 };
@@ -31,7 +38,7 @@ export const getStudentsForExamEntry = (students: Student[], classStreamId: numb
  * @param classStreamId - The class stream ID to find
  * @returns Class stream name or 'Unknown'
  */
-export const getClassStreamName = (classStreams: ClassStream[], classStreamId: number): string => {
-  const classStream = (classStreams || []).find(cs => cs.id === classStreamId);
+export const getClassStreamName = (classStreams: ClassStream[], classStreamId: EntityId): string => {
+  const classStream = (classStreams || []).find(cs => sameId(cs.id, classStreamId));
   return classStream ? `${classStream.class_name} ${classStream.name}` : 'Unknown';
 };

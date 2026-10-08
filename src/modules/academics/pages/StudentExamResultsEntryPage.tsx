@@ -33,7 +33,8 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
   } = useAppData(); // Updated
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>(undefined);
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>(undefined);
+  // Stream ids are opaque strings (numeric seeds or UUIDs); never coerce them to numbers.
+  const [selectedClassStreamId, setSelectedClassStreamId] = useState<string | undefined>(undefined);
   
   const [studentsForEntry, setStudentsForEntry] = useState<Student[]>([]);
   const [paperSettingsForSession, setPaperSettingsForSession] = useState<ExamPaperSetting[]>([]);
@@ -197,13 +198,13 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
           </Select>
           <Select
             label="Select Class Stream"
-            value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
-            onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
+            value={selectedClassStreamId ?? ''}
+            onChange={(e) => setSelectedClassStreamId(e.target.value || undefined)}
             disabled={!selectedExamSessionId}
           >
             <option value="">-- Select Class Stream --</option>
             {(classStreams || []).map(cs => (
-              <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
+              <option key={cs.id} value={String(cs.id)}>{cs.class_name} - {cs.name}</option>
             ))}
           </Select>
         </div>
