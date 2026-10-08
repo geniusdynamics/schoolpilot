@@ -154,7 +154,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       throw new CollectionError('Collection has been destroyed', this.name);
     }
 
-    return this.trackQueryPerformance(() => {
+    const result = this.trackQueryPerformance(() => {
       try {
         const id = (doc as any).id || this.generateId();
         const docWithId = { ...doc, id } as T;
@@ -191,6 +191,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         throw new CollectionError(`Insert failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
     });
+    await flushPersistentWrites(this.db, this.name);
+    return result;
   }
 
   async insertMany(docs: Omit<T, 'id'>[]): Promise<BulkResult<T>> {
@@ -259,8 +261,6 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           `[SQLiteWASMCollection] ${this.name}: ${errors.length}/${docs.length} batch inserts failed (first: ${errors[0]?.reason})`
         );
       }
-
-      return { docs: results, errors };
     } catch (error) {
       this.db.exec('ROLLBACK');
       // Track performance even on failure
@@ -269,6 +269,9 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       this.totalQueryTime += (endTime - startTime);
       throw error;
     }
+
+    await flushPersistentWrites(this.db, this.name);
+    return { docs: results, errors };
   }
 
   async findOne(query: QueryOptions | string): Promise<T | null> {
@@ -387,6 +390,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         bind: values
       });
       
+      await flushPersistentWrites(this.db, this.name);
+
       // Get updated document
       const updatedDoc = await this.findById(id);
       
@@ -468,6 +473,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         sql: sql,
         bind: [id]
       });
+      await flushPersistentWrites(this.db, this.name);
       
       // Emit change event
       if (existing) {
@@ -604,14 +610,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
     try {
       const count = await this.count();
-      
-      // Get table info
-      const tableInfoResult = this.db.exec({
-        sql: `PRAGMA table_info(${this.tableName})`,
-        returnValue: 'resultRows'
-      });
-      const tableInfo = tableInfoResult as any[];
-      
+
       // Get index info
       const indexInfoResult = this.db.exec({
         sql: `PRAGMA index_list(${this.tableName})`,
@@ -646,6 +645,13 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       logger.error(`[SQLiteWASMCollection] Failed to compact ${this.name}:`, error);
       throw new CollectionError(`Failed to compact: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
+  }
+
+  /** Release this collection's streams without touching its table (used on provider shutdown). */
+  close(): void {
+    this.isDestroyed = true;
+    this.changeSubject.complete();
+    this.dataSubject.complete();
   }
 
   async destroy(): Promise<void> {
@@ -928,6 +934,185 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Persistent storage
+//
+// The OPFS VFSes need synchronous file handles, which browsers only expose to
+// Web Workers. The durable database therefore lives in `sqliteWorker.ts` on the
+// `opfs-sahpool` VFS. The main thread keeps a working copy, deserialised from the
+// worker's snapshot at start-up, so collection reads stay synchronous; every
+// mutating statement that succeeds locally is forwarded to the worker in order,
+// and collection writes resolve only after the worker has applied them.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Raised when no persistent storage can be opened; the app must not continue writing. */
+export class StorageUnavailableError extends DatabaseError {
+  constructor(message: string) {
+    super(message, 'STORAGE_UNAVAILABLE', 'SQLiteWASM');
+    this.name = 'StorageUnavailableError';
+  }
+}
+
+export type SQLiteStorageMode = 'uninitialised' | 'opfs-sahpool' | 'memory' | 'unavailable';
+
+export interface SQLiteStorageStatus {
+  mode: SQLiteStorageMode;
+  /** Result of navigator.storage.persist(); null when not requested or unsupported. */
+  persisted: boolean | null;
+  error?: string;
+}
+
+let storageStatus: SQLiteStorageStatus = { mode: 'uninitialised', persisted: null };
+const storageStatusListeners = new Set<() => void>();
+
+export function getSQLiteStorageStatus(): SQLiteStorageStatus {
+  return storageStatus;
+}
+
+export function subscribeSQLiteStorageStatus(listener: () => void): () => void {
+  storageStatusListeners.add(listener);
+  return () => {
+    storageStatusListeners.delete(listener);
+  };
+}
+
+function setSQLiteStorageStatus(next: SQLiteStorageStatus): void {
+  storageStatus = next;
+  storageStatusListeners.forEach((listener) => listener());
+}
+
+/** True for statements that change the database and must reach persistent storage. */
+export function isPersistentStatement(sql: string): boolean {
+  const statement = sql.trim();
+  if (/^(SELECT|EXPLAIN|VALUES)\b/i.test(statement)) return false;
+  if (/^PRAGMA\b/i.test(statement)) {
+    // Only settings assignments matter; the persistent VFS manages its own journal.
+    return /^PRAGMA\s+\w+\s*=/i.test(statement) && !/^PRAGMA\s+journal_mode\b/i.test(statement);
+  }
+  return true;
+}
+
+const STORAGE_OPEN_TIMEOUT_MS = 30000;
+
+/** Main-thread side of the storage worker protocol (see sqliteWorker.ts). */
+class StorageWorkerClient {
+  private nextId = 1;
+  private pending = new Map<number, { resolve: (bytes?: Uint8Array) => void; reject: (error: Error) => void }>();
+  private inFlight = new Set<Promise<unknown>>();
+  private writeFailure: Error | null = null;
+
+  constructor(private worker: Worker) {
+    worker.onmessage = (event: MessageEvent) => {
+      const response = event.data;
+      const entry = this.pending.get(response?.id);
+      if (!entry) return;
+      this.pending.delete(response.id);
+      if (response.ok) entry.resolve(response.bytes);
+      else entry.reject(new Error(response.error));
+    };
+    worker.onerror = (event: ErrorEvent) => {
+      const error = new Error(`Storage worker failed: ${event?.message || 'unknown error'}`);
+      this.pending.forEach((entry) => entry.reject(error));
+      this.pending.clear();
+    };
+  }
+
+  private request(message: Record<string, unknown>): Promise<Uint8Array | undefined> {
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      this.worker.postMessage({ id, ...message });
+    });
+  }
+
+  open(dbName: string): Promise<Uint8Array> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error(`Storage worker did not respond within ${STORAGE_OPEN_TIMEOUT_MS / 1000}s`)),
+        STORAGE_OPEN_TIMEOUT_MS
+      );
+      this.request({ type: 'open', dbName }).then(
+        (bytes) => { clearTimeout(timer); resolve(bytes ?? new Uint8Array()); },
+        (error) => { clearTimeout(timer); reject(error); }
+      );
+    });
+  }
+
+  forward(sql: string, bind: unknown): void {
+    const write = this.request(bind === undefined ? { type: 'exec', sql } : { type: 'exec', sql, bind })
+      .catch((error: Error) => {
+        this.writeFailure = this.writeFailure ?? error;
+        logger.error(`[SQLiteWASMProvider] Write was NOT persisted to OPFS: ${error.message} | SQL: ${sql.slice(0, 200)}`);
+      })
+      .finally(() => this.inFlight.delete(write));
+    this.inFlight.add(write);
+  }
+
+  /** Resolves once every forwarded write is persisted; rejects if any of them failed. */
+  async flush(): Promise<void> {
+    while (this.inFlight.size > 0) {
+      await Promise.all(Array.from(this.inFlight));
+    }
+    const failure = this.writeFailure;
+    this.writeFailure = null;
+    if (failure) throw failure;
+  }
+
+  async close(): Promise<void> {
+    try {
+      await this.flush();
+      await this.request({ type: 'close' });
+    } finally {
+      this.terminate();
+    }
+  }
+
+  terminate(): void {
+    this.worker.terminate();
+  }
+}
+
+const writeThroughClients = new WeakMap<object, StorageWorkerClient>();
+
+/** Mirror every successful mutating statement on `db` to the storage worker. */
+function attachWriteThrough(db: Database, client: StorageWorkerClient): void {
+  const localExec = (db.exec as (...args: any[]) => any).bind(db);
+  (db as any).exec = (arg: any, ...rest: any[]) => {
+    const result = localExec(arg, ...rest);
+    const options = typeof arg === 'string' ? { sql: arg, ...(rest[0] || {}) } : arg;
+    if (typeof options?.sql === 'string' && isPersistentStatement(options.sql)) {
+      client.forward(options.sql, options.bind);
+    }
+    return result;
+  };
+  writeThroughClients.set(db, client);
+}
+
+/** Wait until writes issued on `db` are durable; no-op for a temporary database. */
+async function flushPersistentWrites(db: Database, collectionName: string): Promise<void> {
+  const client = writeThroughClients.get(db);
+  if (!client) return;
+  try {
+    await client.flush();
+  } catch (error) {
+    throw new CollectionError(
+      `Write could not be saved to persistent storage: ${error instanceof Error ? error.message : String(error)}`,
+      collectionName
+    );
+  }
+}
+
+async function requestPersistentStorage(): Promise<boolean | null> {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.storage?.persist !== 'function') return null;
+    return await navigator.storage.persist();
+  } catch {
+    return null;
+  }
+}
+
+const memoryDatabaseAllowed = (): boolean => import.meta.env.VITE_DB_ALLOW_MEMORY === 'true';
+
 // SQLite WASM Provider Implementation
 export class SQLiteWASMProvider implements IDatabaseProvider {
   public readonly name = 'SQLiteWASM';
@@ -938,6 +1123,8 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   private isInitialized = false;
   private config: DatabaseConfig;
   private sqlite3: any = null;
+  private storageClient: StorageWorkerClient | null = null;
+  private initializing: Promise<void> | null = null;
 
   // Connection Pool / Query Queue
   private isExecuting = false;
@@ -987,17 +1174,29 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   }
 
   async initialize(config?: DatabaseConfig): Promise<void> {
+    // The persistent store allows a single connection: concurrent and repeated
+    // callers share the first initialisation instead of opening a second one.
+    if (this.isInitialized && this.db) {
+      if (config?.name && config.name !== this.config.name) {
+        logger.warn(`[SQLiteWASMProvider] Already initialized as '${this.config.name}'; ignoring request for '${config.name}'`);
+      }
+      return;
+    }
+    if (!this.initializing) {
+      this.initializing = this.openAndConfigure(config).finally(() => {
+        this.initializing = null;
+      });
+    }
+    return this.initializing;
+  }
+
+  private async openAndConfigure(config?: DatabaseConfig): Promise<void> {
     try {
       logger.info('[SQLiteWASMProvider] Initializing SQLite WASM + OPFS Provider for production...');
       
       // Update config if provided
       if (config) {
         this.config = { ...this.config, ...config };
-      }
-
-      // Check OPFS availability
-      if (!this.isOPFSAvailable()) {
-        throw new Error('OPFS (Origin Private File System) is not available in this environment');
       }
 
       // Initialize SQLite WASM
@@ -1010,33 +1209,22 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         throw new Error('Failed to initialize SQLite WASM module');
       }
 
-      // Create database with persistent storage.
-      // NOTE: the 'opfs' VFS (OpfsDb) requires Atomics.wait() and therefore only
-      // works inside a Web Worker. On the main thread, OpfsDb does not exist, so
-      // we fall back to the 'opfs-sahpool' VFS, which IS main-thread capable and
-      // still persists to OPFS. A pure in-memory DB is the last resort only.
-      const dbPath = `/opfs/${this.config.name}.db`;
-      
+      // Open the persistent store. There is deliberately no silent in-memory
+      // fallback: without durable storage every reload would erase the school's
+      // data, so initialisation fails unless memory is explicitly allowed.
       try {
-        this.db = new this.sqlite3.oo1.OpfsDb(dbPath);
-        logger.info(`[SQLiteWASMProvider] Created OPFS database: ${dbPath}`);
-      } catch (opfsError) {
-        logger.warn(`[SQLiteWASMProvider] 'opfs' VFS unavailable on this thread (${opfsError instanceof Error ? opfsError.message : String(opfsError)}), trying persistent 'opfs-sahpool' VFS...`);
-        
-        if (this.sqlite3?.oo1 && typeof this.sqlite3.oo1.DB !== 'function') {
-          logger.error('[SQLiteWASMProvider] sqlite3.oo1.DB is not available - cannot open any database.');
-          throw new Error('sqlite3.oo1.DB is not available in this environment');
+        this.db = await this.openPersistentDatabase();
+        setSQLiteStorageStatus({ mode: 'opfs-sahpool', persisted: await requestPersistentStorage() });
+        logger.info(`[SQLiteWASMProvider] Opened persistent database ${this.config.name}.sqlite3 (opfs-sahpool, via storage worker)`);
+      } catch (storageError) {
+        const detail = storageError instanceof Error ? storageError.message : String(storageError);
+        if (!memoryDatabaseAllowed()) {
+          setSQLiteStorageStatus({ mode: 'unavailable', persisted: null, error: detail });
+          throw storageError;
         }
-
-        try {
-          // 'c' = create if missing / open if existing; persists across reloads.
-          const sahpoolUri = `file:/${this.config.name}.sqlite3?vfs=opfs-sahpool`;
-          this.db = new this.sqlite3.oo1.DB(sahpoolUri, 'c');
-          logger.info(`[SQLiteWASMProvider] Created OPFS (opfs-sahpool) database: ${sahpoolUri}`);
-        } catch (sahpoolError) {
-          logger.error(`[SQLiteWASMProvider] Persistent storage unavailable ('opfs-sahpool' failed: ${sahpoolError instanceof Error ? sahpoolError.message : String(sahpoolError)}). Falling back to IN-MEMORY DATABASE - DATA WILL NOT PERSIST AND ALL USER DATA WILL BE LOST ON RELOAD.`, sahpoolError);
-          this.db = new this.sqlite3.oo1.DB();
-        }
+        logger.warn(`[SQLiteWASMProvider] Persistent storage unavailable (${detail}). VITE_DB_ALLOW_MEMORY=true: using a TEMPORARY database that is erased on reload.`);
+        this.db = new this.sqlite3.oo1.DB();
+        setSQLiteStorageStatus({ mode: 'memory', persisted: null, error: detail });
       }
 
       // Configure SQLCipher Encryption if a key is provided
@@ -1070,13 +1258,77 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
     }
   }
 
+  /** Spawn the Web Worker that owns the OPFS database (overridden in tests). */
+  protected createStorageWorker(): Worker {
+    if (typeof Worker === 'undefined') {
+      throw new Error('Web Workers are not supported in this environment');
+    }
+    return new Worker(new URL('./sqliteWorker.ts', import.meta.url), { type: 'module', name: 'schoolpilot-sqlite' });
+  }
+
+  /**
+   * Open the database file in the storage worker and return a main-thread
+   * working copy wired to persist every write. Throws StorageUnavailableError.
+   */
+  private async openPersistentDatabase(): Promise<Database> {
+    if (!this.isOPFSAvailable()) {
+      throw new StorageUnavailableError('OPFS (Origin Private File System) is not available in this browser');
+    }
+
+    let client: StorageWorkerClient;
+    try {
+      client = new StorageWorkerClient(this.createStorageWorker());
+    } catch (error) {
+      throw new StorageUnavailableError(`Cannot start the storage worker: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    let snapshot: Uint8Array;
+    try {
+      snapshot = await client.open(this.config.name);
+    } catch (error) {
+      client.terminate();
+      throw new StorageUnavailableError(
+        `Persistent storage (opfs-sahpool) could not be opened: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    const db = this.createWorkingCopy(snapshot);
+    attachWriteThrough(db, client);
+    this.storageClient = client;
+    return db;
+  }
+
+  /** Load the persisted database image into a main-thread SQLite connection. */
+  private createWorkingCopy(snapshot: Uint8Array): Database {
+    const db = new this.sqlite3.oo1.DB();
+    if (snapshot.byteLength > 0) {
+      const { capi, wasm } = this.sqlite3;
+      const pData = wasm.allocFromTypedArray(snapshot);
+      const rc = capi.sqlite3_deserialize(
+        db.pointer,
+        'main',
+        pData,
+        snapshot.byteLength,
+        snapshot.byteLength,
+        capi.SQLITE_DESERIALIZE_FREEONCLOSE | capi.SQLITE_DESERIALIZE_RESIZEABLE
+      );
+      db.checkRc(rc);
+    }
+    return db;
+  }
+
+  /** Where this provider's data lives and whether the browser granted durable storage. */
+  getStorageStatus(): SQLiteStorageStatus {
+    return getSQLiteStorageStatus();
+  }
+
   private isOPFSAvailable(): boolean {
     try {
       return typeof navigator !== 'undefined' &&
              'storage' in navigator &&
              'getDirectory' in navigator.storage &&
              typeof navigator.storage.getDirectory === 'function';
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -1159,17 +1411,25 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
     try {
       logger.info('[SQLiteWASMProvider] Destroying provider...');
       
-      // Destroy all collections
+      // Release all collections. Tables are kept: shutting the provider down
+      // must never erase the persisted school data.
       for (const collection of this.collections.values()) {
         try {
-          await collection.destroy();
+          collection.close();
         } catch (error) {
-          logger.error('[SQLiteWASMProvider] Error destroying collection:', error);
+          logger.error('[SQLiteWASMProvider] Error closing collection:', error);
         }
       }
-      
+
       this.collections.clear();
-      
+
+      // Flush pending writes and close the persistent store
+      if (this.storageClient) {
+        const client = this.storageClient;
+        this.storageClient = null;
+        await client.close();
+      }
+
       // Close database
       if (this.db) {
         this.db.close();
@@ -1234,7 +1494,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       return typeof WebAssembly !== 'undefined' &&
              typeof navigator !== 'undefined' &&
              this.isOPFSAvailable();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -1423,7 +1683,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         return (performance as any).memory.usedJSHeapSize;
       }
       return 0;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
@@ -1497,7 +1757,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
             documentCount: stats.documentCount,
             indexCount: stats.indexCount
           });
-        } catch (error) {
+        } catch {
           collections.push({
             name,
             documentCount: 0,
