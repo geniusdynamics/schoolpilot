@@ -9,6 +9,7 @@ export { default as FeeAdjustmentsPage } from './FeeAdjustmentsPage';
 export { default as FeeCollectionSummaryPage } from './FeeCollectionSummaryPage';
 export { default as FeeTemplatesPage } from './FeeTemplatesPage';
 export { default as FinanceDashboardPage } from './FinanceDashboardPage';
+export { default as FinancialYearsPage } from './FinancialYearsPage';
 export { default as GeneralReceiptsPage } from './GeneralReceiptsPage';
 export { default as StudentOpeningBalancesPage } from './StudentOpeningBalancesPage';
 export { default as StudentPaymentsPage } from './StudentPaymentsPage';
