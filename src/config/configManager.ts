@@ -1,3 +1,6 @@
+// ABOUTME: Unified configuration manager: the single source of truth for app configuration, including dataMode.
+// ABOUTME: Persists to one localStorage key; initUnifiedConfig() must be awaited before the app renders.
+
 import { logger } from '@/utils/logging';
 
 /**
@@ -25,7 +28,7 @@ import {
   getDefaultDataMode,
   getDefaultDatabaseProvider,
 } from './environmentMatrix';
-import { DataModeSwitchResult, DataModeState, switchDataMode, getDataModeState, getStoredDataMode } from './dataModePolicies';
+import { DataModeSwitchResult, DataModeState, switchDataMode, getDataModeState, getStoredDataMode, takeLegacyDataMode } from './dataModePolicies';
 import { getProductionDemoConfig, getProductionDemoState, transitionToLiveMode } from './productionDemo';
 import { databaseConfigValidator, ValidationResult, ValidationError } from './databaseConfigSchema';
 import {
@@ -34,7 +37,6 @@ import {
   exportDatabaseConfigToEnvVars,
 } from './databaseConfigRuntime';
 import type {
-  BackendEnvironment,
   BackendStatus,
   DevelopmentConfig,
   DemoConfig,
@@ -407,6 +409,7 @@ export class UnifiedConfigManager {
     this.config = await this.loadConfig();
     await this.loadConfigurationFile();
     this.initialized = true;
+    this.notifyListeners();
   }
 
   public static getInstance(): UnifiedConfigManager {
@@ -420,6 +423,10 @@ export class UnifiedConfigManager {
     let config = createDefaultConfig();
 
     if (typeof window !== 'undefined') {
+      // dataMode lives only in CONFIG_STORAGE_KEY; a legacy separate key is migrated once and removed.
+      const legacyDataMode = takeLegacyDataMode();
+      const migrateLegacyDataMode = legacyDataMode !== null && getStoredDataMode() === null;
+
       try {
         const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
         const storedVersion = localStorage.getItem(CONFIG_VERSION_KEY);
@@ -467,6 +474,17 @@ export class UnifiedConfigManager {
         }
       } catch (error) {
         logger.warn('Failed to load stored configuration:', error);
+      }
+
+      if (migrateLegacyDataMode && legacyDataMode) {
+        logger.info('Migrating legacy dataMode into the unified configuration:', legacyDataMode);
+        config.dataMode = legacyDataMode;
+        config.demo = { ...config.demo, active: legacyDataMode === 'demo' };
+        try {
+          localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+        } catch (error) {
+          logger.warn('Failed to persist migrated dataMode:', error);
+        }
       }
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -592,9 +610,7 @@ export class UnifiedConfigManager {
     }
   }
 
-  public async transitionToLiveMode(
-    confirmationInputs: Record<string, string> = {},
-  ): Promise<any> {
+  public async transitionToLiveMode(): Promise<any> {
     if (this.config.environment !== 'production') {
       throw new Error('Live mode transition is only available in production');
     }

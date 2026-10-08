@@ -1,3 +1,6 @@
+// ABOUTME: React context exposing the unified configuration to components.
+// ABOUTME: All reads and writes delegate to unifiedConfigManager, the single configuration source.
+
 import { logger } from '@/utils/logging';
 
 /**
@@ -365,6 +368,8 @@ export function UnifiedConfigProvider({
     const unsubscribeConfig = unifiedConfigManager.subscribe((newConfig) => {
       setConfig(newConfig);
     });
+    // Pick up any change made between the initial render and this subscription
+    setConfig(unifiedConfigManager.getConfig());
 
     // Subscribe to backend status changes
     const unsubscribeBackend = backendDetectionService.subscribe((status) => {
@@ -372,18 +377,26 @@ export function UnifiedConfigProvider({
     });
 
     // Subscribe to data mode changes
-    const handleModeChanged = (data: any) => {
-      // Configuration will be updated automatically by the manager
-      // This is just for additional side effects if needed
+    const handleModeInitialized = (data: any) => {
       logger.info(`Data mode changed to: ${data.mode || data}`);
+    };
+
+    // An explicit data layer switch is recorded in the unified manager so that
+    // the unified configuration remains the only persisted dataMode.
+    const handleModeChanged = (data: any) => {
+      const mode: unknown = data?.mode ?? data;
+      logger.info(`Data mode changed to: ${mode}`);
+      if ((mode === 'demo' || mode === 'production') && unifiedConfigManager.getConfig().dataMode !== mode) {
+        unifiedConfigManager.updateConfig({ dataMode: mode });
+      }
     };
     
     dataModeManager.on('modeChanged', handleModeChanged);
-    dataModeManager.on('modeInitialized', handleModeChanged);
+    dataModeManager.on('modeInitialized', handleModeInitialized);
     
     const unsubscribeDataMode = () => {
       dataModeManager.off('modeChanged', handleModeChanged);
-      dataModeManager.off('modeInitialized', handleModeChanged);
+      dataModeManager.off('modeInitialized', handleModeInitialized);
     };
 
     return () => {
