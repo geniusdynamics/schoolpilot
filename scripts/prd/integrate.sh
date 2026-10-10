@@ -25,6 +25,11 @@ for pair in "$@"; do
     continue
   fi
 
+  # Dependency changes must be installed before the gate runs the tests
+  if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
+    PUPPETEER_SKIP_DOWNLOAD=1 pnpm install --frozen-lockfile >/dev/null 2>&1 || { git reset -q --hard HEAD; echo "$id INSTALL FAILED"; continue; }
+  fi
+
   log=".prd-gate/integrate-$id.txt"; mkdir -p .prd-gate
   if node scripts/prd/gate.mjs task --task "$id" --base HEAD > "$log" 2>&1; then
     node scripts/prd/status.mjs --set "$id" done --date "$DATE" >/dev/null
