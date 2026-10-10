@@ -606,8 +606,8 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
-      "notes": "Gate-base artefact as E02; probe C12 unprovable without seeded exam sessions - decide accept unit evidence or defer. Branch prd/P0-F01-retry/-fix1",
+      "commit": "f5e713e",
+      "notes": "Gate-base artefact as E02; probe C12 unprovable without seeded exam sessions - decide accept unit evidence or defer. Branch prd/P0-F01-retry/-fix1 | Owner decision 2026-10-10: accepted on unit/component evidence; probe C12 deferred until real exam data is loaded",
       "completed_at": "2026-10-10"
     },
     {

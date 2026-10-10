@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-10, after P0-G02 and P0-G03 were integrated._
+_Last update: 2026-10-10, after P0-F01 was integrated._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ _Last update: 2026-10-10, after P0-G02 and P0-G03 were integrated._
 | G02 | done (`b5ad0be`) — widened to `BookCategoriesPage.tsx` (missing `FormSection` import found by probe C16) | on `prd/P0-W1` |
 | A01 | widened per decision → fix round making the app fail closed everywhere | `prd/P0-A01`; fix branch `prd/P0-A01-fix1` (cloud, local until integrated) |
 | G04, G05, B02 | being implemented by the cloud workflow run `wf_ddc982d0-a8d` | task branches are local to the cloud session until integrated; if the session dies, re-run §3a |
-| F01 | waiting on a decision (§3c) | `prd/P0-F01-retry` |
+| F01 | done (`f5e713e`) — accepted on unit evidence; probe C12 deferred until real data ([decision](./workflow-log/decisions/2026-10-10-f01-evidence.md)) | on `prd/P0-W1` |
 
 **Standing rule** ([decisions/2026-10-10-scope-widening.md](./workflow-log/decisions/2026-10-10-scope-widening.md)):
 a task blocked only by file ownership is widened and proceeds if it gates and merges cleanly.
