@@ -1,6 +1,8 @@
+// ABOUTME: Unit tests for ModuleLoader factory registration, loading, unloading and batching.
+// ABOUTME: Exercises the loader together with the shared moduleRegistry singleton.
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ModuleLoader } from '@/core/ModuleLoader';
-import { moduleRegistry } from '@/core/ModuleRegistry';
+import { ModuleLoader } from '@/core/moduleLoader';
+import { moduleRegistry } from '@/core/moduleRegistry';
 import type { LoadedModule } from '@/core/types/module';
 
 function createMockModule(id: string): LoadedModule {
