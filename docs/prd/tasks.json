@@ -352,10 +352,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws12-one-configuration-source",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-B01",

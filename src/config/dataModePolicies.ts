@@ -1,9 +1,13 @@
+// ABOUTME: Data mode switching rules and validation for the unified configuration.
+// ABOUTME: dataMode itself is persisted only in the unified config key; this module derives it from there.
+
 /**
  * Data Mode Policies
  * Defines switching rules and validation logic for data modes
  */
 
 import { DataMode, Environment, canSwitchDataModes, getAllowedDataModes, isValidDataMode } from './environmentMatrix';
+import { CONFIG_STORAGE_KEY } from './core';
 
 // Data Mode Switch Result
 export interface DataModeSwitchResult {
@@ -24,32 +28,66 @@ export interface DataModeState {
   lastSwitched?: Date;
 }
 
-// Storage key for data mode
-const DATA_MODE_STORAGE_KEY = 'app_data_mode';
+// Legacy key that used to hold dataMode separately from the unified config.
+// It is only read once to migrate old installations, then removed.
+export const LEGACY_DATA_MODE_STORAGE_KEY = 'app_data_mode';
 const DATA_MODE_TIMESTAMP_KEY = 'app_data_mode_timestamp';
 
-// Get stored data mode
+const isDataMode = (value: unknown): value is DataMode => value === 'demo' || value === 'production';
+
+// Get stored data mode, derived from the unified configuration key
 export const getStoredDataMode = (): DataMode | null => {
   if (typeof window === 'undefined') {
     return null;
   }
   
   try {
-    const stored = localStorage.getItem(DATA_MODE_STORAGE_KEY);
-    return stored as DataMode | null;
+    const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
+    if (!stored) return null;
+    const parsed: unknown = JSON.parse(stored);
+    const dataMode = parsed && typeof parsed === 'object' ? (parsed as { dataMode?: unknown }).dataMode : undefined;
+    return isDataMode(dataMode) ? dataMode : null;
   } catch {
     return null;
   }
 };
 
-// Store data mode
-const storeDataMode = (dataMode: DataMode): void => {
+// Read and remove the legacy dataMode key. Returns its value when it was a valid data mode.
+export const takeLegacyDataMode = (): DataMode | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const legacy = localStorage.getItem(LEGACY_DATA_MODE_STORAGE_KEY);
+    if (legacy === null) return null;
+    localStorage.removeItem(LEGACY_DATA_MODE_STORAGE_KEY);
+    return isDataMode(legacy) ? legacy : null;
+  } catch {
+    return null;
+  }
+};
+
+// Remove the legacy dataMode key so the unified config key stays the only one holding dataMode.
+export const removeLegacyDataMode = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(LEGACY_DATA_MODE_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+// Record when the data mode was switched. The mode itself is persisted by the unified config manager.
+const recordDataModeSwitch = (): void => {
   if (typeof window === 'undefined') {
     return;
   }
   
   try {
-    localStorage.setItem(DATA_MODE_STORAGE_KEY, dataMode);
     localStorage.setItem(DATA_MODE_TIMESTAMP_KEY, new Date().toISOString());
   } catch {
     // Ignore storage errors
@@ -137,8 +175,8 @@ export const switchDataMode = async (
   }
   
   try {
-    // Store the new data mode
-    storeDataMode(newMode);
+    // Record the switch; the caller persists the new mode in the unified config
+    recordDataModeSwitch();
     
     // Determine if reload is required
     const requiresReload = currentMode !== newMode;
@@ -168,7 +206,7 @@ export const clearStoredDataMode = (): void => {
   }
   
   try {
-    localStorage.removeItem(DATA_MODE_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_DATA_MODE_STORAGE_KEY);
     localStorage.removeItem(DATA_MODE_TIMESTAMP_KEY);
   } catch {
     // Ignore storage errors
