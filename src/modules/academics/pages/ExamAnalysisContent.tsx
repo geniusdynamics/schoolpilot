@@ -241,10 +241,10 @@ export const ExamAnalysisContent: React.FC = () => {
 
   // Tab navigation items
   const tabs = [
-    { id: 'my-classes', label: 'My Classes', icon: <HomeIcon className="h-4 w-4" />, to: '/academics/classes' },
-    { id: 'manage-exams', label: 'Manage Exams', icon: <BookOpenIcon className="h-4 w-4" />, to: '/academics/exam-sessions' },
-    { id: 'create-exam', label: 'Create Exam', icon: <ChartPieIcon className="h-4 w-4" />, to: '/academics/exam-sessions/new' },
-    { id: 'grading-systems', label: 'Grading Systems', icon: <ChartBarIcon className="h-4 w-4" />, to: '/academics/grading-schemes' },
+    { id: 'my-classes', label: 'My Classes', icon: <HomeIcon className="h-4 w-4" />, to: '/administration/classes' },
+    { id: 'manage-exams', label: 'Manage Exams', icon: <BookOpenIcon className="h-4 w-4" />, to: '/academics/exam-setup?tab=exam-sessions' },
+    { id: 'create-exam', label: 'Create Exam', icon: <ChartPieIcon className="h-4 w-4" />, to: '/academics/exam-setup?tab=exam-sessions' },
+    { id: 'grading-systems', label: 'Grading Systems', icon: <ChartBarIcon className="h-4 w-4" />, to: '/academics/grading-systems?tab=grading-schemes' },
   ];
 
   const toast = useToast();
@@ -392,7 +392,7 @@ export const ExamAnalysisContent: React.FC = () => {
 
     setAnalysisData(newAnalysisData);
     setIsAnalyzing(false);
-  }, [selectedExamSessionId, selectedClassStreamId, examSessions, schoolPeriods, academicYears, classSubjectAllocations, subjects, students, studentExamResults, subjectPapers, t]);
+  }, [selectedExamSessionId, selectedClassStreamId, examSessions, schoolPeriods, academicYears, classSubjectAllocations, subjects, students, studentExamResults, subjectPapers, t, toast]);
 
   // Convert analysis data to subject performance format
   const subjectPerformanceData: SubjectPerformance[] = useMemo(() => {

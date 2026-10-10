@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from 'react';
+// ABOUTME: Admissions review page - review queue of submitted applications and a per-application review/decision view.
+// ABOUTME: Reads applications via useAdmissionsData; tolerates applications captured without applicant names.
+
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -21,6 +24,10 @@ import {
 } from '../data/types';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext';
+
+/** Avatar initials; applications captured without a name must not crash the page. */
+const applicantInitials = (app: Pick<Application, 'firstName' | 'lastName'>): string =>
+  `${(app.firstName ?? '').charAt(0)}${(app.lastName ?? '').charAt(0)}` || '?';
 
 export const ApplicationReviewPageContent: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
@@ -58,9 +65,31 @@ export const ApplicationReviewPageContent: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load applications for queue view
-  const pendingApplications = applications.filter(
+  const pendingApplications = (applications ?? []).filter(
     app => app.status === ApplicationStatus.SUBMITTED || app.status === ApplicationStatus.UNDER_REVIEW
   );
+
+  // getApplication is recreated on every render by useAdmissionsData; read it
+  // through a ref so loading an application does not re-trigger itself.
+  const getApplicationRef = useRef(getApplication);
+  useEffect(() => {
+    getApplicationRef.current = getApplication;
+  });
+
+  const loadApplication = useCallback(async (id: string) => {
+    setLoading(true);
+    try {
+      const app = await getApplicationRef.current(id);
+      setApplication(app);
+    } catch {
+      showToast({
+        type: 'error',
+        message: 'Failed to load application.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
     if (applicationId) {
@@ -70,22 +99,7 @@ export const ApplicationReviewPageContent: React.FC = () => {
       setActiveView('queue');
       setLoading(false);
     }
-  }, [applicationId, applications]);
-
-  const loadApplication = async (id: string) => {
-    setLoading(true);
-    try {
-      const app = await getApplication(id);
-      setApplication(app);
-    } catch (error) {
-      showToast({
-        type: 'error',
-        message: 'Failed to load application.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [applicationId, applications, loadApplication]);
 
   const handleReviewChange = (field: keyof ReviewFormData, value: string | number) => {
     setReviewData(prev => ({ ...prev, [field]: value }));
@@ -107,7 +121,7 @@ export const ApplicationReviewPageContent: React.FC = () => {
       });
       // Reload application to get updated data
       await loadApplication(application.id);
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to save review.',
@@ -133,7 +147,7 @@ export const ApplicationReviewPageContent: React.FC = () => {
       });
       setShowDecisionModal(false);
       navigate('/admissions/applications');
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to process decision.',
@@ -163,7 +177,7 @@ export const ApplicationReviewPageContent: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                     <span className="text-primary-600 font-semibold">
-                      {app.firstName.charAt(0)}{app.lastName.charAt(0)}
+                      {applicantInitials(app)}
                     </span>
                   </div>
                   <div>
@@ -233,7 +247,7 @@ export const ApplicationReviewPageContent: React.FC = () => {
                 <div className="flex items-center space-x-3 pb-3 border-b">
                   <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
                     <span className="text-primary-600 font-semibold text-lg">
-                      {application.firstName.charAt(0)}{application.lastName.charAt(0)}
+                      {applicantInitials(application)}
                     </span>
                   </div>
                   <div>

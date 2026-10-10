@@ -1,3 +1,6 @@
+// ABOUTME: Analytics Subject Analysis page - subject pass rates, scores and grade distributions.
+// ABOUTME: Renders cards or a comparison table from useAnalyticsData; optional breakdowns may be absent.
+
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,13 +19,34 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { DashboardMetric } from '@/components/ModuleDashboardShell';
 import { useAnalyticsData } from '../../data/useAnalyticsData';
-import type { SubjectPassRate, GradeDistribution } from '../data/types';
+
+type Trend = 'up' | 'down' | 'stable';
+
+interface GradeDistribution {
+  grade: string;
+  count: number;
+  percentage: number;
+}
+
+// The analytics source guarantees only the base pass-rate fields; the richer
+// breakdowns are optional and every render path must tolerate their absence.
+type SubjectPassRate = ReturnType<typeof useAnalyticsData>['subjectPassRates'][number] & {
+  trend?: Trend;
+  studentCount?: number;
+  examCount?: number;
+  highestScore?: number;
+  medianScore?: number;
+  lowestScore?: number;
+  gradeDistribution?: GradeDistribution[];
+};
 
 const AnalyticsSubjectPage: React.FC = () => {
   const { t } = useTranslation('analytics');
-  const { subjectPassRates, loading, selectedPeriod } = useAnalyticsData();
+  const analytics = useAnalyticsData();
+  const subjectPassRates: SubjectPassRate[] = useMemo(() => analytics.subjectPassRates ?? [], [analytics.subjectPassRates]);
+  const loading = analytics.loading;
 
-  const [periodFilter, setPeriodFilter] = useState<string>(selectedPeriod?.type || 'term');
+  const [periodFilter, setPeriodFilter] = useState<string>('term');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
   // Aggregate stats
@@ -71,13 +95,13 @@ const AnalyticsSubjectPage: React.FC = () => {
     { value: 'custom', label: t('period.custom') },
   ];
 
-  const trendIcon = (trend: 'up' | 'down' | 'stable') => {
+  const trendIcon = (trend?: Trend) => {
     if (trend === 'up') return <ArrowUpIcon className="h-4 w-4 text-emerald-600" />;
     if (trend === 'down') return <ArrowDownIcon className="h-4 w-4 text-rose-600" />;
     return <span className="text-surface-muted-fg text-xs">--</span>;
   };
 
-  const trendLabel = (trend: 'up' | 'down' | 'stable') => {
+  const trendLabel = (trend?: Trend) => {
     if (trend === 'up') return t('subject.trendUp');
     if (trend === 'down') return t('subject.trendDown');
     return t('subject.trendStable');
@@ -143,7 +167,7 @@ const AnalyticsSubjectPage: React.FC = () => {
       key: 'subjectName',
       header: 'Subject',
       sortable: true,
-      render: (value: string, row: SubjectPassRate) => (
+      render: (value: string) => (
         <div className="flex items-center gap-2">
           <BookOpenIcon className="h-5 w-5 text-primary-600" />
           <span className="font-medium text-surface-foreground">{value}</span>
@@ -175,7 +199,7 @@ const AnalyticsSubjectPage: React.FC = () => {
       align: 'center',
       render: (value: number, row: SubjectPassRate) => (
         <span className="text-sm font-medium">
-          {value}% <span className="text-surface-muted-fg">(H: {row.highestScore} / L: {row.lowestScore})</span>
+          {value}% <span className="text-surface-muted-fg">(H: {row.highestScore ?? '-'} / L: {row.lowestScore ?? '-'})</span>
         </span>
       ),
     },
@@ -190,7 +214,7 @@ const AnalyticsSubjectPage: React.FC = () => {
       header: 'Trend',
       sortable: true,
       align: 'center',
-      render: (value: 'up' | 'down' | 'stable') => (
+      render: (value: Trend | undefined) => (
         <div className="flex items-center justify-center gap-1">
           {trendIcon(value)}
           <span className="text-xs text-surface-muted-fg">{trendLabel(value)}</span>
@@ -224,7 +248,7 @@ const AnalyticsSubjectPage: React.FC = () => {
             <label className="block text-xs font-medium text-surface-muted-fg mb-1">Academic Period</label>
             <Select
               value={periodFilter}
-              onChange={(val) => setPeriodFilter(val as string)}
+              onValueChange={(val) => setPeriodFilter(String(val))}
               options={periodOptions}
             />
           </div>
@@ -294,30 +318,30 @@ const AnalyticsSubjectPage: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between text-xs text-surface-muted-fg">
-                  <span>Students: <strong className="text-surface-foreground">{subject.studentCount}</strong></span>
-                  <span>Exams: <strong className="text-surface-foreground">{subject.examCount}</strong></span>
+                  <span>Students: <strong className="text-surface-foreground">{subject.studentCount ?? subject.totalStudents ?? '-'}</strong></span>
+                  <span>Exams: <strong className="text-surface-foreground">{subject.examCount ?? '-'}</strong></span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
                     <p className="text-surface-muted-fg">Highest</p>
-                    <p className="font-semibold text-emerald-600">{subject.highestScore}</p>
+                    <p className="font-semibold text-emerald-600">{subject.highestScore ?? '-'}</p>
                   </div>
                   <div>
                     <p className="text-surface-muted-fg">Median</p>
-                    <p className="font-semibold text-primary-600">{subject.medianScore}</p>
+                    <p className="font-semibold text-primary-600">{subject.medianScore ?? '-'}</p>
                   </div>
                   <div>
                     <p className="text-surface-muted-fg">Lowest</p>
-                    <p className="font-semibold text-rose-600">{subject.lowestScore}</p>
+                    <p className="font-semibold text-rose-600">{subject.lowestScore ?? '-'}</p>
                   </div>
                 </div>
 
                 {/* Grade Distribution */}
-                {subject.gradeDistribution.length > 0 && (
+                {(subject.gradeDistribution?.length ?? 0) > 0 && (
                   <div>
                     <p className="text-xs font-medium text-surface-muted-fg mb-2">{t('subject.gradeDistribution')}</p>
-                    <GradeDistributionBar distribution={subject.gradeDistribution} />
+                    <GradeDistributionBar distribution={subject.gradeDistribution ?? []} />
                   </div>
                 )}
               </div>

@@ -673,10 +673,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "review",
+      "status": "done",
       "commit": null,
       "notes": "Verify/fix round cut off by usage limit. Branch prd/P0-G02",
-      "completed_at": null
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-G03",
