@@ -49,12 +49,16 @@ async function loadModuleDefinition(moduleId: string): Promise<ModuleDefinition>
 
 // Lifecycle hooks map (will be populated dynamically)
 
+/** Module metadata plus the definition's custom routes, read by src/routing/moduleRoutes.tsx */
+type RoutedModuleMetadata = ModuleMetadata & {
+  routes: NonNullable<ModuleDefinition['routes']>;
+};
 
 /**
  * Convert ModuleDefinition to LoadedModule format
  */
 function convertToLoadedModule(def: ModuleDefinition): LoadedModule {
-  const metadata: ModuleMetadata = {
+  const metadata: RoutedModuleMetadata = {
     id: def.id,
     name: def.name,
     description: def.description,
@@ -62,6 +66,7 @@ function convertToLoadedModule(def: ModuleDefinition): LoadedModule {
     author: { name: 'SchoolPilot Team' },
     license: 'MIT',
     navigation: def.navigation || [],
+    routes: def.routes || [],
     path: def.path,
     icon: def.icon,
     dependencies: (def.dependencies || []).map(dep => ({
