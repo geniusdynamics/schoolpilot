@@ -1,0 +1,109 @@
+# ABOUTME: Pull-request CI for consolidation/main: install, PRD task gate vs the PR base, unit tests, build.
+# ABOUTME: The gate table (.prd-gate/report.md) and the unit-test summary are written to the job summary.
+name: CI
+
+on:
+  pull_request:
+    branches: [consolidation, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: '1'
+
+jobs:
+  actionlint:
+    name: Workflow lint (actionlint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:1.7.7
+        with:
+          args: -color
+
+  gate:
+    name: Gate, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout (full history for the gate diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: PRD task gate (vs PR base)
+        id: gate
+        env:
+          BASE_REF: ${{ github.base_ref || 'consolidation' }}
+        run: |
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" HEAD)
+          echo "Gate base: origin/$BASE_REF @ $BASE"
+          node scripts/prd/gate.mjs task --base "$BASE"
+
+      - name: Gate table to job summary
+        if: always()
+        run: |
+          {
+            echo "## PRD task gate"
+            echo
+            if [ -f .prd-gate/report.md ]; then
+              cat .prd-gate/report.md
+            else
+              echo "Gate did not produce .prd-gate/report.md (step outcome: ${{ steps.gate.outcome }})."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Unit tests (no failures beyond the baseline's knownFailingFiles)
+        if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
+        run: |
+          mkdir -p .prd-gate
+          pnpm -s vitest run --reporter=json --outputFile=.prd-gate/vitest.json || true
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const baseline = JSON.parse(fs.readFileSync('scripts/prd/gate-baseline.json', 'utf8'));
+          const known = new Set(baseline.tests.knownFailingFiles || []);
+          if (!fs.existsSync('.prd-gate/vitest.json')) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Unit tests\n\nvitest produced no JSON report.\n');
+            process.exit(1);
+          }
+          const json = JSON.parse(fs.readFileSync('.prd-gate/vitest.json', 'utf8'));
+          const failed = (json.testResults || []).filter((f) => f.status === 'failed').map((f) => path.relative(process.cwd(), f.name));
+          const unexpected = failed.filter((f) => !known.has(f));
+          const lines = [
+            '## Unit tests',
+            '',
+            `${json.numTotalTests} tests, ${json.numFailedTests} failed; failed files ${failed.length} (known: ${known.size}).`,
+            ...(unexpected.length ? ['', '**New failing files:**', ...unexpected.map((f) => `- \`${f}\``)] : []),
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          console.log(lines.join('\n'));
+          process.exit(unexpected.length ? 1 : 0);
+          EOF
+
+      - name: Production build
+        if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
+        run: pnpm -s build
