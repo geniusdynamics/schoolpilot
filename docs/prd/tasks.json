@@ -860,10 +860,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "d50d2ec",
+      "notes": "Widened per scope-widening rule to useExamResultsHorizontal.ts, useFinanceServices.ts (exam_sessions.paper_settings / fee_templates.items) and SyncContext.tsx (useSync().getSyncHistory). | Widened per scope-widening rule to useExamResultsHorizontal.ts, useFinanceServices.ts (exam_sessions.paper_settings / fee_templates.items) and SyncContext.tsx (useSync().getSyncHistory). Source changes landed in d50d2ec (concurrent handoff commit swept up the staged squash).",
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-B03",

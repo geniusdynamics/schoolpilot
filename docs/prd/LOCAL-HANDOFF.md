@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-10, P0-B02 being integrated into `consolidation` (`prd/P0-W1`)._
+_Last update: 2026-10-10, after P0-B02 was integrated._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ _Last update: 2026-10-10, P0-B02 being integrated into `consolidation` (`prd/P0-
 | G02 | done (`b5ad0be`) — widened to `BookCategoriesPage.tsx` (missing `FormSection` import found by probe C16) | on `prd/P0-W1` |
 | A01 | fix round done (gate PASS, probe C01 PASS); under independent verification | **`prd/P0-A01-fix1` on origin** (2 commits on `965475f`). If the session dies: verify it, then `scripts/prd/integrate.sh P0-A01=prd/P0-A01-fix1`. Follow-ups noted by the fixer: AppDataContext 15 s init timeout vs storage worker 30 s; unhandled `'error'` event from `dataModeManager` when OPFS is missing |
 | G04, G05 | being implemented by the cloud workflow run `wf_ddc982d0-a8d` | task branches are local to the cloud session until integrated; if the session dies, re-run §3a |
-| B02 | fix round 1 squash-merged onto `consolidation`; integration gate running — widened to `useExamResultsHorizontal.ts`, `useFinanceServices.ts` and `SyncContext.tsx` | `prd/P0-B02-fix1` (cloud, local until integrated) |
+| B02 | done — source changes landed in `d50d2ec` (a concurrent handoff commit swept up the staged squash; already pushed, so not rewritten), task record in the following `[P0-B02]` commit — integration gate PASSED (`--base HEAD`, 485 tests); widened to `useExamResultsHorizontal.ts`, `useFinanceServices.ts` and `SyncContext.tsx` (recorded in task notes) | on `prd/P0-W1` (source pushed in `d50d2ec`; push the record commit with `git push origin consolidation:prd/P0-W1`) |
 | F01 | done (`f5e713e`) — accepted on unit evidence; probe C12 deferred until real data ([decision](./workflow-log/decisions/2026-10-10-f01-evidence.md)) | on `prd/P0-W1` |
 
 **Standing rule** ([decisions/2026-10-10-scope-widening.md](./workflow-log/decisions/2026-10-10-scope-widening.md)):
