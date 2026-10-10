@@ -88,8 +88,9 @@ const StudentAttendancePage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="emerald"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

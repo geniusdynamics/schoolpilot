@@ -84,8 +84,9 @@ const FinancialReportsHubPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="purple"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

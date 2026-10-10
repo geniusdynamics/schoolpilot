@@ -8,6 +8,8 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 interface Props {
   children: ReactNode;
   pageName: string;
+  /** When this value changes (e.g. the active hub tab), a caught error is cleared. */
+  resetKey?: string | number;
   onError?: (pageName: string, error: Error) => void;
 }
 
@@ -43,6 +45,15 @@ class PageErrorBoundary extends Component<Props, State> {
 
     if (onError) {
       onError(pageName, error);
+    }
+  }
+
+  componentDidUpdate(prevProps: Readonly<Props>) {
+    if (this.state.hasError && this.props.resetKey !== prevProps.resetKey) {
+      this.setState({
+        hasError: false,
+        error: null
+      });
     }
   }
 

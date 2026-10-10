@@ -2,6 +2,7 @@
 // ABOUTME: Minimizes vertical space between navigation and content
 
 import React from 'react';
+import PageErrorBoundary from '@/components/PageErrorBoundary';
 
 export interface Tab {
   id: string;
@@ -19,6 +20,11 @@ interface PageHeaderWithTabsProps {
   action?: React.ReactNode;
   secondaryAction?: React.ReactNode;
   variant?: 'default' | 'compact' | 'minimal';
+  /**
+   * Content of the active tab. When provided it is rendered as the tab panel inside an
+   * error boundary keyed on the active tab, so a crashing tab never blanks its siblings.
+   */
+  children?: React.ReactNode;
   colorScheme?: 'blue' | 'emerald' | 'indigo' | 'violet' | 'amber' | 'rose' | 'green' | 'teal' | 'cyan' | 'purple' | 'orange' | 'slate';
 }
 
@@ -131,8 +137,26 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   secondaryAction,
   variant = 'compact',
   colorScheme = 'blue',
+  children,
 }) => {
   const colors = colorSchemes[colorScheme];
+
+  const renderTabPanel = () => {
+    if (children === undefined || children === null) return null;
+    const panelKey = activeTab ?? '';
+    return (
+      <div
+        role="tabpanel"
+        id={`tabpanel-${panelKey}`}
+        aria-labelledby={`tab-${panelKey}`}
+        className="mt-4"
+      >
+        <PageErrorBoundary pageName={title ? `${title} / ${panelKey}` : panelKey} resetKey={panelKey}>
+          {children}
+        </PageErrorBoundary>
+      </div>
+    );
+  };
 
   const renderCustomTabs = () => {
     if (!tabs || tabs.length === 0) return null;
@@ -157,6 +181,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
           return (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
               role="tab"
               aria-selected={isActive}
               aria-controls={`tabpanel-${tab.id}`}
@@ -191,15 +216,18 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
 
   if (variant === 'minimal') {
     return (
-      <div className="flex items-center justify-between py-2 border-b border-surface-border mb-3">
-        <div className="flex items-center gap-4">
-          {renderCustomTabs()}
+      <>
+        <div className="flex items-center justify-between py-2 border-b border-surface-border mb-3">
+          <div className="flex items-center gap-4">
+            {renderCustomTabs()}
+          </div>
+          <div className="flex items-center gap-2">
+            {secondaryAction}
+            {action}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {secondaryAction}
-          {action}
-        </div>
-      </div>
+        {renderTabPanel()}
+      </>
     );
   }
 
@@ -231,6 +259,8 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
           {renderCustomTabs()}
         </div>
       )}
+
+      {renderTabPanel()}
     </div>
   );
 };

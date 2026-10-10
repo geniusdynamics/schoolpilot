@@ -88,8 +88,9 @@ const StockOpsHubPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="green"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

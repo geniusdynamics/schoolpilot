@@ -86,8 +86,9 @@ const ConfigurationPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="slate"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

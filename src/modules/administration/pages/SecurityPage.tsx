@@ -73,8 +73,9 @@ const SecurityPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="rose"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

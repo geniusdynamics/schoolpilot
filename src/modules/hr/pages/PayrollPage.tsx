@@ -1,7 +1,7 @@
 // ABOUTME: Hub page for payroll management
 // ABOUTME: Consolidates item types, periods, payslips, and salary settings into tabbed interface
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -29,7 +29,7 @@ export const PayrollPageContent: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const tabs: HubTab[] = [
+  const tabs: HubTab[] = useMemo(() => [
     {
       id: 'item-types',
       label: t('payrollHub.itemTypes', 'Item Types'),
@@ -58,7 +58,7 @@ export const PayrollPageContent: React.FC = () => {
       component: <StaffSalarySettingsPageContent />,
       path: '/hr/payroll?tab=salary-settings',
     },
-  ];
+  ], [t]);
 
   const activeTabFromUrl = searchParams.get('tab') || 'item-types';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
@@ -97,8 +97,9 @@ export const PayrollPageContent: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="indigo"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };
