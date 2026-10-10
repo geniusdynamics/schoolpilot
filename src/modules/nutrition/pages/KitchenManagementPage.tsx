@@ -1,6 +1,10 @@
+// ABOUTME: Kitchen Management page - food inventory, kitchen meal plans and cost analysis tabs.
+// ABOUTME: Reads foodInventory and kitchenMealPlans from AppDataContext.
+
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
+import { DataGrid } from '@/components/ui/data';
 
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -9,12 +13,10 @@ import FormField from '@/components/ui/forms/FormField';
 import Select from '@/components/ui/Select';
 import { PlusIcon, TrashIcon, CubeIcon, CurrencyDollarIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { FoodItem, KitchenMealPlan, DietaryRestriction, InventoryStatus } from '../data/types';
+import { FoodItem, KitchenMealPlan, InventoryStatus } from '../data/types';
 import { logger } from '@/utils/logging';
 
 export const KitchenManagementPageContent: React.FC = () => {
-  const { t } = useTranslation('nutrition');
   const { foodInventory, kitchenMealPlans, loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,12 +69,11 @@ export const KitchenManagementPageContent: React.FC = () => {
 
   const categories = ['Grains', 'Proteins', 'Vegetables', 'Dairy', 'Bakery', 'Fruits', 'Oils', 'Spices'];
   const statuses: InventoryStatus[] = ['In Stock', 'Low Stock', 'Out of Stock'];
-  const dietaryOptions: DietaryRestriction[] = ['None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Nut-Free', 'Halal', 'Kosher', 'Other'];
 
   const totals = useMemo(() => {
     return {
       totalItems: filteredFoodInventory.length,
-      totalValue: filteredFoodInventory.reduce((sum, item) => sum + item.total_cost, 0),
+      totalValue: filteredFoodInventory.reduce((sum, item) => sum + (item.total_cost ?? 0), 0),
       lowStock: filteredFoodInventory.filter(i => i.status === 'Low Stock').length,
       outOfStock: filteredFoodInventory.filter(i => i.status === 'Out of Stock').length,
       dailyMealCost: mealPlans.reduce((sum, meal) => sum + meal.total_cost, 0)
@@ -284,7 +285,7 @@ export const KitchenManagementPageContent: React.FC = () => {
             </div>
 
             <DataGrid
-              data={mockFoodInventory}
+              data={filteredFoodInventory}
               columns={[
                 {
                   key: 'name',
@@ -317,7 +318,7 @@ export const KitchenManagementPageContent: React.FC = () => {
                   key: 'total_cost',
                   header: 'Total Cost',
                   sortable: true,
-                  render: (value) => `KES ${value.toLocaleString()}`
+                  render: (value) => `KES ${Number(value ?? 0).toLocaleString()}`
                 },
                 {
                   key: 'dietary_suitable',
@@ -325,12 +326,12 @@ export const KitchenManagementPageContent: React.FC = () => {
                   sortable: false,
                   render: (value) => (
                     <div className="flex flex-wrap gap-1">
-                      {value.slice(0, 2).map((diet: string, idx: number) => (
+                      {(value ?? []).slice(0, 2).map((diet: string, idx: number) => (
                         <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
                           {diet}
                         </span>
                       ))}
-                      {value.length > 2 && <span className="text-xs text-surface-muted-fg">+{value.length - 2}</span>}
+                      {(value ?? []).length > 2 && <span className="text-xs text-surface-muted-fg">+{value.length - 2}</span>}
                     </div>
                   )
                 },
@@ -410,9 +411,9 @@ export const KitchenManagementPageContent: React.FC = () => {
               <div className="p-4 bg-surface-muted border border-surface-border rounded-lg">
                 <h4 className="font-semibold text-surface-foreground mb-2">Inventory Value by Category</h4>
                 {categories.map(cat => {
-                  const catValue = mockFoodInventory
+                  const catValue = allFoodInventory
                     .filter(i => i.category === cat)
-                    .reduce((sum, i) => sum + i.total_cost, 0);
+                    .reduce((sum, i) => sum + (i.total_cost ?? 0), 0);
                   return (
                     <div key={cat} className="flex justify-between text-sm py-1">
                       <span>{cat}</span>

@@ -12,7 +12,8 @@ import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 
 import { useAppData } from '@/hooks/useAppData';
-import type { StudentPayment, StudentInvoice, StudentInvoiceItem, InvoicePaymentApplication } from '../data/types';
+import { usePaymentAllocation } from '../hooks/useFinanceServices';
+import type { StudentPayment } from '../data/types';
 import type { PaymentAllocationResult } from '../services/PaymentAllocationService';
 
 // Currency formatter for KES
@@ -52,6 +53,7 @@ export const PaymentAllocationPageContent: React.FC = () => {
   // Results state
   const [result, setResult] = useState<PaymentAllocationResult | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const allocationSucceeded = result !== null && result.errors.length === 0;
 
   // Get students with payments
   const studentsWithPayments = useMemo((): StudentWithPayments[] => {
@@ -447,18 +449,18 @@ export const PaymentAllocationPageContent: React.FC = () => {
         {/* Results */}
         {result && (
           <div className={`mt-4 p-4 rounded-md ${
-            result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+            allocationSucceeded ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
           }`}>
             <div className="flex items-center gap-2 mb-2">
-              {result.success ? (
+              {allocationSucceeded ? (
                 <CheckCircleIcon className="w-6 h-6 text-green-600" />
               ) : (
                 <ExclamationCircleIcon className="w-6 h-6 text-red-600" />
               )}
               <span className={`text-lg font-medium ${
-                result.success ? 'text-green-800' : 'text-red-800'
+                allocationSucceeded ? 'text-green-800' : 'text-red-800'
               }`}>
-                {result.success
+                {allocationSucceeded
                   ? t('paymentAllocation.success') || 'Payment Allocated Successfully'
                   : t('paymentAllocation.partialSuccess') || 'Partial Allocation'}
               </span>
@@ -468,19 +470,19 @@ export const PaymentAllocationPageContent: React.FC = () => {
                 <div className="text-sm text-surface-muted-fg">
                   {t('paymentAllocation.invoicesPaid') || 'Invoices Paid'}
                 </div>
-                <div className="text-xl font-bold text-green-600">{result.invoicesAffected}</div>
+                <div className="text-xl font-bold text-green-600">{result.updatedInvoiceIds.length}</div>
               </div>
               <div>
                 <div className="text-sm text-surface-muted-fg">
                   {t('paymentAllocation.amountApplied') || 'Amount Applied'}
                 </div>
-                <div className="text-xl font-bold text-primary-600">{formatCurrency(result.amountApplied)}</div>
+                <div className="text-xl font-bold text-primary-600">{formatCurrency(result.totalAllocated)}</div>
               </div>
               <div>
                 <div className="text-sm text-surface-muted-fg">
                   {t('paymentAllocation.remainingBalance') || 'Remaining Balance'}
                 </div>
-                <div className="text-xl font-bold text-red-600">{formatCurrency(result.remainingBalance)}</div>
+                <div className="text-xl font-bold text-red-600">{formatCurrency(result.remainingAmount)}</div>
               </div>
             </div>
             <div className="mt-3 flex justify-end">

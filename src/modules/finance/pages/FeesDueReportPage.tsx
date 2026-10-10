@@ -1,3 +1,6 @@
+// ABOUTME: Fees Due report listing students with an outstanding balance, bucketed by aging.
+// ABOUTME: Derives rows from useStudentFinancialSummary; filters by class, aging bucket and search.
+
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -5,7 +8,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { useStudentFinancialSummary } from '../hooks/useStudentFinancialSummary';
-import { formatKES } from '@/utils/format';
+import { formatDate, formatKES } from '@/utils/format';
 import { ExclamationTriangleIcon, UserGroupIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import type { FeeDueRecord, AgingCategory } from '../data/types';
 
