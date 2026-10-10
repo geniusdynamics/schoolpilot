@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-10, after P0-G05 was integrated (widened to package.json/pnpm-lock.yaml)._
+_Last update: 2026-10-10, A01 verifier: CHANGES_REQUIRED → fix round 2 running._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ _Last update: 2026-10-10, after P0-G05 was integrated (widened to package.json/p
 | E02 | done (`b20d180`) | on `prd/P0-W1` |
 | G03 | done (`d61e4fc`) — widened to all 48 hub pages; real-hub crash test | on `prd/P0-W1` |
 | G02 | done (`b5ad0be`) — widened to `BookCategoriesPage.tsx` (missing `FormSection` import found by probe C16) | on `prd/P0-W1` |
-| A01 | fix round done (gate PASS, probe C01 PASS); under independent verification | **`prd/P0-A01-fix1` on origin** (2 commits on `965475f`). If the session dies: verify it, then `scripts/prd/integrate.sh P0-A01=prd/P0-A01-fix1`. Follow-ups noted by the fixer: AppDataContext 15 s init timeout vs storage worker 30 s; unhandled `'error'` event from `dataModeManager` when OPFS is missing |
+| A01 | verifier on `prd/P0-A01-fix1` (`ab0ff25`): **CHANGES_REQUIRED** → fix round 2 running on `prd/P0-A01-fix2` (cloud, local until integrated) | `prd/P0-A01-fix1` on origin. If the session dies, redo round 2 locally from `prd/P0-A01-fix1` with these items, test-first: (1) any SQLite init failure must become `StorageUnavailableError` and skip pouchdb/backend-api fallbacks when memory is not allowed; (2) await `flushPersistentWrites` after COMMIT/ROLLBACK in `updateMany`, `removeMany`, `transaction()`, `restore()` and after DDL in `createIndex`/`compact`/`destroy`/`createTable`; (3) first failed worker write → status `unavailable`, block further writes, show storage screen; (4) timeout + worker error handling for exec forwards; (5) AppDataContext init timeout > worker open timeout, timeout shows storage screen; (6) schema-version change must not call `clearAllData`; (7) demo seeding must never clear existing rows. Then verify and `scripts/prd/integrate.sh P0-A01=<branch>` |
 | G04 | done (`0ab5ce6`) — integration gate PASSED (`--base HEAD`); CI + nightly-probe workflows; actionlint test skips locally unless `ACTIONLINT`/`actionlint` on PATH. CI unit step will fail until `TestCoverage.test.ts` (69.89 < 70) is fixed or baselined | on `prd/P0-W1` |
 | G05 | done (`158af75`) — widened per the standing rule: `fast-check@3.23.2` added as a devDependency; full suite 804 files, 0 failed | on `prd/P0-W1` |
 | B02 | done — source changes landed in `d50d2ec` (a concurrent handoff commit swept up the staged squash; already pushed, so not rewritten), task record in the following `[P0-B02]` commit — integration gate PASSED (`--base HEAD`, 485 tests); widened to `useExamResultsHorizontal.ts`, `useFinanceServices.ts` and `SyncContext.tsx` (recorded in task notes) | on `prd/P0-W1` |
