@@ -73,8 +73,9 @@ const MarksVerificationPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="amber"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

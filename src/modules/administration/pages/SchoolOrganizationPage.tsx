@@ -45,10 +45,9 @@ const SchoolOrganizationPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme={hubConfig.colorScheme}
-      />
-      <div className="mt-4">
+      >
         <ActiveComponent />
-      </div>
+      </PageHeaderWithTabs>
     </div>
   );
 };

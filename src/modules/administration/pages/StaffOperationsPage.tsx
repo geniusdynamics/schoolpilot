@@ -97,8 +97,9 @@ const StaffOperationsPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="cyan"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };
