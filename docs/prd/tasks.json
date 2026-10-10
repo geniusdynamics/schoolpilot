@@ -730,7 +730,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "0ab5ce6",
       "notes": "",
       "completed_at": "2026-10-10"
     },
@@ -757,9 +757,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "blocked",
       "commit": null,
-      "notes": "",
+      "notes": "2026-10-10: import-casing fix for ModuleLoader/ModuleRegistry tests done on prd/P0-G05 (6f969b2, 43 tests pass); property tests need fast-check 3.23.2 as a direct devDependency (package.json + pnpm-lock.yaml) - re-run with deps_install=true and those files in scope",
       "completed_at": null
     },
     {
