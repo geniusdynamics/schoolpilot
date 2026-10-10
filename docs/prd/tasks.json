@@ -385,10 +385,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws2--one-data-api-for-pages-so-11-so-23-so-24-so-25-so-26",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-C01",

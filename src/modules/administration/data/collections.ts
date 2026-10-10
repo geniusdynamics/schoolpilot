@@ -2,6 +2,48 @@
 // ABOUTME: This structure is imported by the central rxdbService to add module-specific collections.
 
 import * as schemas from './schema';
+import { createDatabaseSchema, type DatabaseSchema } from '@/utils/databaseAgnosticSchema';
+
+// Immutable record of each class stream a learner has belonged to (written by StudentPromotionService).
+// Superseded by enrolments in Phase 1; defined now so promotion history persists (audit SO-24).
+const studentClassHistorySchema: DatabaseSchema = createDatabaseSchema({
+  title: 'student_class_history',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    student_id: { type: 'ref', ref: 'students', maxLength: 100 },
+    class_stream_id: { type: 'ref', ref: 'class_streams', maxLength: 100 },
+    academic_year_id: { type: 'ref', ref: 'academic_years', maxLength: 100 },
+    start_date: { type: 'string', maxLength: 50 },
+    end_date: { type: 'string', nullable: true, maxLength: 50 },
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' }
+  },
+  primaryKey: 'id',
+  required: ['id', 'student_id', 'class_stream_id', 'start_date', 'created_at'],
+  indexes: ['student_id', 'class_stream_id', 'academic_year_id']
+});
+
+// Health incidents reported for a learner (sick bay visits, injuries), distinct from standing health records.
+const healthIncidentReportSchema: DatabaseSchema = createDatabaseSchema({
+  title: 'health_incident_report',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    student_id: { type: 'ref', ref: 'students', maxLength: 100 },
+    incident_date: { type: 'string', maxLength: 50 },
+    incident_type: { type: 'string', maxLength: 100 },
+    severity: { type: 'string', maxLength: 50 },
+    description: { type: 'string', maxLength: 2000 },
+    action_taken: { type: 'string', nullable: true, maxLength: 2000 },
+    reported_by: { type: 'string', nullable: true, maxLength: 200 },
+    guardian_notified: { type: 'boolean' },
+    follow_up_required: { type: 'boolean' },
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' }
+  },
+  primaryKey: 'id',
+  required: ['id', 'student_id', 'incident_date', 'description', 'created_at', 'updated_at'],
+  indexes: ['student_id', 'incident_date']
+});
 
 export const administrationCollections = {
   partners: {
@@ -18,6 +60,12 @@ export const administrationCollections = {
   },
   student_attendance: {
     schema: schemas.studentAttendanceSchema,
+  },
+  student_class_history: {
+    schema: studentClassHistorySchema,
+  },
+  health_incident_reports: {
+    schema: healthIncidentReportSchema,
   },
   communication_templates: { // Renamed from templateComm for consistency
     schema: schemas.templateCommSchema,
