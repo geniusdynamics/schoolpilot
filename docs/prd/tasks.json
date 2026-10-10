@@ -605,10 +605,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "review",
+      "status": "done",
       "commit": null,
       "notes": "Gate-base artefact as E02; probe C12 unprovable without seeded exam sessions - decide accept unit evidence or defer. Branch prd/P0-F01-retry/-fix1",
-      "completed_at": null
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-F02",
