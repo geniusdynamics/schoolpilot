@@ -1,3 +1,6 @@
+// ABOUTME: Fee templates page: manage templates per school period/category and their fee items (voteheads).
+// ABOUTME: Persists through updateFeeTemplate(id, patch); fee items carry stable UUIDs and string foreign keys.
+
 import React, { useState, useMemo } from 'react';
 
 import { SchoolPeriod, StudentCategory } from '@/core/types';
@@ -16,7 +19,40 @@ import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
-type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;
+/** A fee item as stored on a template: ids are opaque strings matching the fee_templates schema. */
+type StoredFeeItem = Omit<FeeTemplateItem, 'fee_template_id' | 'revenue_account_id' | 'linked_expense_category_id'> & {
+  fee_template_id: string;
+  revenue_account_id: string;
+  linked_expense_category_id?: string;
+};
+
+interface FeeItemFormData {
+  description: string;
+  amount?: number;
+  revenue_account_id?: string;
+  linked_expense_category_id?: string;
+}
+
+interface TemplateItemsContext {
+  id: string;
+  name: string;
+  items: StoredFeeItem[];
+}
+
+const optionalId = (value: unknown): string | undefined =>
+  value === undefined || value === null || value === '' ? undefined : String(value);
+
+/** Normalises a template's items to string ids, giving any item without an id a stable UUID. */
+const toStoredItems = (template: FeeTemplate): StoredFeeItem[] =>
+  (template.items || []).map((item) => ({
+    ...item,
+    id: item.id ? String(item.id) : crypto.randomUUID(),
+    fee_template_id: String(template.id),
+    revenue_account_id: optionalId(item.revenue_account_id) ?? '',
+    linked_expense_category_id: optionalId(item.linked_expense_category_id),
+  }));
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 export const FeeTemplatesContent: React.FC = () => {
   const { 
@@ -35,8 +71,8 @@ export const FeeTemplatesContent: React.FC = () => {
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   
   const [editingTemplate, setEditingTemplate] = useState<FeeTemplate | null>(null);
-  const [editingItem, setEditingItem] = useState<FeeTemplateItem | null>(null);
-  const [currentTemplateForItems, setCurrentTemplateForItems] = useState<FeeTemplate | null>(null);
+  const [editingItem, setEditingItem] = useState<StoredFeeItem | null>(null);
+  const [currentTemplateForItems, setCurrentTemplateForItems] = useState<TemplateItemsContext | null>(null);
 
   const initialItemFormData: FeeItemFormData = { description: '', amount: 0, revenue_account_id: undefined, linked_expense_category_id: undefined };
   const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
@@ -48,7 +84,7 @@ export const FeeTemplatesContent: React.FC = () => {
   const openTemplateModal = (template?: FeeTemplate) => {
     setEditingTemplate(template || null);
     setTemplateInitialValues(template ?
-      { name: template.name, school_period_id: template.school_period_id, student_category_id: template.student_category_id } :
+      { name: template.name, school_period_id: optionalId(template.school_period_id), student_category_id: optionalId(template.student_category_id) } :
       { name: '', school_period_id: undefined, student_category_id: undefined }
     );
     setIsTemplateModalOpen(true);
@@ -59,14 +95,15 @@ export const FeeTemplatesContent: React.FC = () => {
   };
 
   // Item Modal
-  const openItemModal = (template: FeeTemplate, item?: FeeTemplateItem) => {
-    setCurrentTemplateForItems(template);
-    setEditingItem(item || null);
-    setItemFormData(item ? 
-      { description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id, linked_expense_category_id: item.linked_expense_category_id } : 
-      initialItemFormData
-    );
+  const openItemModal = (template: FeeTemplate) => {
+    setCurrentTemplateForItems({ id: String(template.id), name: template.name, items: toStoredItems(template) });
+    setEditingItem(null);
+    setItemFormData(initialItemFormData);
     setIsItemModalOpen(true);
+  };
+  const startEditingItem = (item: StoredFeeItem) => {
+    setEditingItem(item);
+    setItemFormData({ description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id, linked_expense_category_id: item.linked_expense_category_id });
   };
   const closeItemModal = () => {
     setIsItemModalOpen(false);
@@ -77,7 +114,7 @@ export const FeeTemplatesContent: React.FC = () => {
 
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setItemFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value ? parseInt(value) : undefined) : (name === 'amount' ? parseFloat(value) : value) }));
+    setItemFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value || undefined) : (name === 'amount' ? parseFloat(value) : value) }));
   };
 
   const toast = useToast();
@@ -87,45 +124,33 @@ export const FeeTemplatesContent: React.FC = () => {
       return;
     }
 
-    let updatedItems: FeeTemplateItem[];
-    const now = new Date().toISOString(); 
+    const revenueAccountId = itemFormData.revenue_account_id;
+    const expenseCategoryId = itemFormData.linked_expense_category_id;
+    const itemFields = {
+      description: itemFormData.description,
+      amount: Number(itemFormData.amount),
+      revenue_account_id: revenueAccountId,
+      linked_expense_category_id: expenseCategoryId,
+      revenue_account_name: revenueAccounts.find(ra => String(ra.id) === revenueAccountId)?.name,
+      linked_expense_category_name: expenseCategoryId ? expenseCategories.find(ec => String(ec.id) === expenseCategoryId)?.name : undefined,
+    };
 
-    if (editingItem) {
-      updatedItems = (currentTemplateForItems.items || []).map(i => 
-        i.id === editingItem.id ? 
-        { 
-            ...editingItem, 
-            description: itemFormData.description!,
-            amount: Number(itemFormData.amount!), 
-            revenue_account_id: Number(itemFormData.revenue_account_id!),
-            linked_expense_category_id: itemFormData.linked_expense_category_id ? Number(itemFormData.linked_expense_category_id) : undefined,
-            revenue_account_name: revenueAccounts.find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
-            linked_expense_category_name: expenseCategories.find(ec => ec.id === Number(itemFormData.linked_expense_category_id))?.name,
-        } : i
-      );
-    } else {
-      const newItem: FeeTemplateItem = { 
-        id: `FTI_${Date.now()}`, 
-        fee_template_id: currentTemplateForItems.id,
-        description: itemFormData.description!,
-        amount: Number(itemFormData.amount!),
-        revenue_account_id: Number(itemFormData.revenue_account_id!),
-        linked_expense_category_id: itemFormData.linked_expense_category_id ? Number(itemFormData.linked_expense_category_id) : undefined,
-        revenue_account_name: revenueAccounts.find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
-        linked_expense_category_name: expenseCategories.find(ec => ec.id === Number(itemFormData.linked_expense_category_id))?.name,
-      };
-      updatedItems = [...(currentTemplateForItems.items || []), newItem];
+    const updatedItems: StoredFeeItem[] = editingItem
+      ? currentTemplateForItems.items.map(i => (i.id === editingItem.id ? { ...i, ...itemFields } : i))
+      : [...currentTemplateForItems.items, { ...itemFields, id: crypto.randomUUID(), fee_template_id: currentTemplateForItems.id }];
+
+    try {
+      await updateFeeTemplate(currentTemplateForItems.id, { items: updatedItems });
+    } catch (error) {
+      toast.showError(`Failed to save fee item: ${errorMessage(error)}`);
+      return;
     }
-    
-    const updatedTemplate = { ...currentTemplateForItems, items: updatedItems, updated_at: now };
-    await updateFeeTemplate(updatedTemplate);
-    
-    setCurrentTemplateForItems(updatedTemplate); 
-    
-    setEditingItem(null); 
-    setItemFormData(initialItemFormData); 
+
+    setCurrentTemplateForItems({ ...currentTemplateForItems, items: updatedItems });
+    setEditingItem(null);
+    setItemFormData(initialItemFormData);
   };
-  
+
   const confirm = useConfirm();
   const handleDeleteTemplate = async (id: number) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template? All its items will also be deleted.' }))) {
@@ -136,10 +161,18 @@ export const FeeTemplatesContent: React.FC = () => {
   const handleDeleteItem = async (itemId: string) => {
     if (!currentTemplateForItems) return;
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template item?' }))) {
-      const updatedItems = (currentTemplateForItems.items || []).filter(i => i.id !== itemId);
-      const updatedTemplate = { ...currentTemplateForItems, items: updatedItems, updated_at: new Date().toISOString() };
-      await updateFeeTemplate(updatedTemplate);
-      setCurrentTemplateForItems(updatedTemplate); 
+      const updatedItems = currentTemplateForItems.items.filter(i => i.id !== itemId);
+      try {
+        await updateFeeTemplate(currentTemplateForItems.id, { items: updatedItems });
+      } catch (error) {
+        toast.showError(`Failed to delete fee item: ${errorMessage(error)}`);
+        return;
+      }
+      setCurrentTemplateForItems({ ...currentTemplateForItems, items: updatedItems });
+      if (editingItem?.id === itemId) {
+        setEditingItem(null);
+        setItemFormData(initialItemFormData);
+      }
     }
   };
 
@@ -150,7 +183,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { 
       key: 'name', 
@@ -158,7 +191,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'school_period_name', 
@@ -166,7 +199,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-primary-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'student_category_name', 
@@ -174,7 +207,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-purple-600">{value || 'All Categories'}</span>
+      render: (value) => <span className="text-purple-600">{value || 'All Categories'}</span>
     },
     { 
       key: 'items_count', 
@@ -201,14 +234,14 @@ export const FeeTemplatesContent: React.FC = () => {
     },
   ];
 
-  const itemColumns: DataGridColumn<FeeTemplateItem>[] = [
+  const itemColumns: DataGridColumn<StoredFeeItem>[] = [
     { 
       key: 'description', 
       header: 'Description', 
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'amount', 
@@ -224,7 +257,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, row) => <span className="text-primary-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'linked_expense_category_name', 
@@ -232,7 +265,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-purple-600">{value || 'None'}</span>
+      render: (value) => <span className="text-purple-600">{value || 'None'}</span>
     },
     {
       key: 'id',
@@ -243,7 +276,7 @@ export const FeeTemplatesContent: React.FC = () => {
       sticky: 'right',
       render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openItemModal(currentTemplateForItems!, row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="ghost" onClick={() => startEditingItem(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteItem(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
         </div>
       ),
@@ -296,14 +329,18 @@ export const FeeTemplatesContent: React.FC = () => {
         submitLabel={editingTemplate ? 'Save Changes' : 'Add Template'}
         cancelLabel="Cancel"
         onSubmit={async (values) => {
+          const schoolPeriodId = optionalId(values.school_period_id);
+          const studentCategoryId = optionalId(values.student_category_id);
           const payload = {
             name: String(values.name ?? ''),
-            school_period_id: Number(values.school_period_id),
-            student_category_id: values.student_category_id ? Number(values.student_category_id) : undefined,
+            school_period_id: schoolPeriodId,
+            student_category_id: studentCategoryId ?? null,
+            school_period_name: (schoolPeriods || []).find((period: SchoolPeriod) => String(period.id) === schoolPeriodId)?.name ?? null,
+            student_category_name: studentCategoryId ? (studentCategories || []).find((category: StudentCategory) => String(category.id) === studentCategoryId)?.name ?? null : null,
           };
 
           if (editingTemplate) {
-            await updateFeeTemplate({ ...editingTemplate, ...payload, items: editingTemplate.items || [] });
+            await updateFeeTemplate(String(editingTemplate.id), payload);
           } else {
             await addFeeTemplate({ ...payload, items: [] });
           }
