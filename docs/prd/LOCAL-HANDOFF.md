@@ -1,8 +1,23 @@
 # Continuing the PRD on your own machine (local Claude Code)
 
-Everything needed is in the repository. State as of 2026-10-10: wave **P0-W1** is partly done on
-branch **`prd/P0-W1`** (PR into `consolidation`). Read the newest log first:
+Everything needed is in the repository. Wave **P0-W1** is being finished on branch
+**`prd/P0-W1`** (PR into `consolidation`). Read the newest log first:
 [`workflow-log/P0-W1-2026-10-10.md`](./workflow-log/P0-W1-2026-10-10.md).
+
+## 0. Current state (updated at every checkpoint)
+
+_Last update: 2026-10-10, after P0-E02 was integrated._
+
+| Task | State | Where |
+| --- | --- | --- |
+| A02 B01 C01 C02 D01 D02 E01 F02 | done | on `prd/P0-W1` |
+| E02 | done (`b20d180`) | on `prd/P0-W1` |
+| G02, G03 | under independent verification | `prd/P0-G02`, `prd/P0-G03` (origin copies are based on `origin/consolidation`; rebase per §3b) |
+| G04, G05, B02 | being implemented by the cloud workflow run `wf_ddc982d0-a8d` | task branches are local to the cloud session until integrated; if the session dies, re-run §3a |
+| A01, F01 | waiting on a decision (§3c) | `prd/P0-A01`, `prd/P0-F01-retry` |
+
+If the cloud session stops: pull `prd/P0-W1`, run `node scripts/prd/status.mjs`, and do whatever the
+table above still lists as open, using §3.
 
 ## 1. One-time setup
 

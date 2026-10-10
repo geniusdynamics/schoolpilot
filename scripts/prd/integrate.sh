@@ -31,7 +31,7 @@ for pair in "$@"; do
     title=$(node -e 'const t=require("./docs/prd/tasks.json").tasks.find(x=>x.id===process.argv[1]);console.log(t.title)' "$id")
     meta=$(node -e 'const t=require("./docs/prd/tasks.json").tasks.find(x=>x.id===process.argv[1]);console.log("Findings: "+((t.findings||[]).join(", ")||"none")+"\nRequirements: "+((t.reqs||[]).join(", ")||"none"))' "$id")
     gate=$(grep -E "^(PASS|FAIL|SKIP|WARN)" "$log" | awk '{print $1" "$2}' | paste -sd, -)
-    git add -A -- . ':!.prd-gate'
+    git add -A
     git commit -q -m "fix(p0): $title [$id]" -m "Squash of reviewed branch $br." -m "$meta
 Gate: task PASS — $gate" -m "$TRAILERS"
     sha=$(git rev-parse --short HEAD)
