@@ -573,10 +573,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "review",
+      "status": "done",
       "commit": null,
       "notes": "Code approved except gate-base artefact (local vs origin consolidation histories after PR #15 rebase-merge); re-gate on prd/P0-W1. Branch prd/P0-E02-retry/-fix1",
-      "completed_at": null
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-F01",
