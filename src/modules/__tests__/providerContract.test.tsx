@@ -1,9 +1,10 @@
 // ABOUTME: Contract test for the module data providers (administration, finance, academics) against an in-memory database.
-// ABOUTME: Pins create(data)/update(id, patch)/remove(id) arity, persistence, nested collections and the functions contract-scan reports missing.
+// ABOUTME: Pins CRUD arity, persistence, nested collections (incl. computed hooks) and that contract-scan missing functions exist on a module or sync hook.
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import type React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { databaseService } from '@/services/database/databaseService';
@@ -15,6 +16,9 @@ import { useAcademicData } from '@/modules/academics/data/useAcademicData';
 import { useInventoryData } from '@/modules/inventory/data/useInventoryData';
 import { useLibraryData } from '@/modules/library/data/useLibraryData';
 import { useNutritionData } from '@/modules/nutrition/data/useNutritionData';
+import { useExamResultsHorizontal } from '@/modules/academics/hooks/useExamResultsHorizontal';
+import { useInvoiceGeneration } from '@/modules/finance/hooks/useFinanceServices';
+import { SyncProvider, useSync } from '@/contexts/SyncContext';
 
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
@@ -25,6 +29,7 @@ vi.mock('@/services/database/databaseService', () => ({
 
 const toast = { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn(), showProgress: vi.fn() };
 vi.mock('@/hooks/useToast', () => ({ useToastHelpers: () => toast }));
+vi.mock('@/contexts/NetworkContext', () => ({ useNetwork: () => ({ isOnline: true }) }));
 
 // ── In-memory database ────────────────────────────────────────────────────────
 type Doc = Record<string, any>;
@@ -131,8 +136,8 @@ function entitiesOf(api: Record<string, unknown>): string[] {
     .filter((entity) => typeof api[`update${entity}`] === 'function' && typeof api[`delete${entity}`] === 'function');
 }
 
-async function renderProvider<T>(hook: () => T) {
-  const rendered = renderHook(hook);
+async function renderProvider<T>(hook: () => T, wrapper?: React.ComponentType<{ children: React.ReactNode }>) {
+  const rendered = renderHook(hook, { wrapper });
   await waitFor(() => expect(databaseService.getDatabase).toHaveBeenCalled());
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -199,7 +204,9 @@ describe.each(Object.entries(PROVIDERS))('%s contract', (_name, hook) => {
 
 describe('renamed collection literals', () => {
   it('never opens timetable_period_defs, exam_paper_settings or fee_template_items', async () => {
-    await renderProvider(() => [useAdministrationData(), useFinanceData(), useAcademicData()]);
+    await renderProvider(() => [
+      useAdministrationData(), useFinanceData(), useAcademicData(), useExamResultsHorizontal(), useInvoiceGeneration(),
+    ]);
     expect(requestedCollections.has('timetable_period_definitions')).toBe(true);
     for (const name of ['timetable_period_defs', 'exam_paper_settings', 'fee_template_items']) {
       expect(requestedCollections.has(name), name).toBe(false);
@@ -210,6 +217,8 @@ describe('renamed collection literals', () => {
     for (const file of [
       'src/modules/academics/data/useAcademicData.ts',
       'src/modules/finance/data/useFinanceData.ts',
+      'src/modules/academics/hooks/useExamResultsHorizontal.ts',
+      'src/modules/finance/hooks/useFinanceServices.ts',
     ]) {
       const text = fs.readFileSync(path.resolve(process.cwd(), file), 'utf8');
       expect(text).not.toMatch(/['"](timetable_period_defs|exam_paper_settings|fee_template_items)['"]/);
@@ -245,6 +254,39 @@ describe('nested records', () => {
       expect.objectContaining({ id: created.id, fee_template_id: 'FT1', amount: 500 }),
     ]);
     await waitFor(() => expect(result.current.feeTemplateItems).toHaveLength(1));
+  });
+});
+
+describe('nested records read by computed hooks', () => {
+  it('weights exam results with paper settings stored in exam_sessions.paper_settings', async () => {
+    seed('exam_sessions', [{
+      id: 'ES2', name: 'Mid Term', paper_settings: [{ id: 'PS1', subject_paper_id: 'SP1', marks_out_of: 50, weight_percentage: 100 }],
+    }]);
+    seed('subject_papers', [{ id: 'SP1', subject_id: 'SUB1' }]);
+    seed('subjects', [{ id: 'SUB1', name: 'Mathematics', abbreviation: 'MAT' }]);
+    seed('students', [{ id: 'S1', admission_no: 'A1', first_name: 'Amina', last_name: 'Otieno' }]);
+    seed('student_exam_results', [{ id: 'R1', student_id: 'S1', exam_session_id: 'ES2' }]);
+    seed('student_paper_marks', [{ id: 'M1', student_exam_result_id: 'R1', paper_setting_id: 'PS1', score: 40 }]);
+
+    const { result } = await renderProvider(useExamResultsHorizontal);
+    await waitFor(() => expect(result.current.data).toHaveLength(1));
+    expect(result.current.data[0]).toMatchObject({ examName: 'Mid Term', studentName: 'Amina Otieno', subjectScores: { MAT: 80 } });
+  });
+
+  it('bills termly invoices from fee_templates.items', async () => {
+    seed('fee_templates', [{
+      id: 'FT9', name: 'Boarders', school_period_id: 3, student_category_id: 'BOARD',
+      items: [{ id: 'FTI1', description: 'Tuition', amount: 10000 }, { id: 'FTI2', description: 'Boarding', amount: 5000 }],
+    }]);
+    seed('students', [{ id: 'S1', first_name: 'Amina', last_name: 'Otieno', status: 'Active', student_category_id: 'BOARD' }]);
+
+    const { result } = await renderProvider(useInvoiceGeneration);
+    let run: any;
+    await act(async () => {
+      run = await result.current.generateTermlyInvoices(3);
+    });
+    expect(run).toMatchObject({ generatedCount: 1, errors: [] });
+    expect([...table('student_invoices').values()][0]).toMatchObject({ student_id: 'S1', total_amount_billed: 15000 });
   });
 });
 
@@ -355,19 +397,38 @@ describe('finance additions', () => {
   });
 });
 
-describe('contract-scan missing functions', () => {
-  // Offline-queue telemetry lives in the sync engine, not in a module provider; it is wired by P0-B05.
-  const SYNC_ENGINE_FUNCTIONS = new Set(['getQueueStatus', 'getSyncHistory']);
+describe('sync hook', () => {
+  it('reports queue status and records each completed sync in the history', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { result } = renderHook(useSync, { wrapper: SyncProvider });
+      expect(result.current.getQueueStatus()).toMatchObject({ api: { pending: 0 }, sync: { pending: 0, errors: 0 } });
+      expect(result.current.getSyncHistory()).toEqual([]);
 
-  it('exist on a module hook', async () => {
+      await act(async () => {
+        await result.current.forceSync();
+        vi.advanceTimersByTime(2000);
+      });
+      expect(result.current.getSyncHistory()).toEqual([
+        expect.objectContaining({ status: 'success', startedAt: expect.any(Date), completedAt: expect.any(Date) }),
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('contract-scan missing functions', () => {
+  it('exist on a module or sync hook', async () => {
     const report = JSON.parse(execFileSync('node', ['scripts/audit/contract-scan.cjs', '--json'], { cwd: process.cwd(), encoding: 'utf8' }));
     const wanted = new Set<string>(report.missingAppDataFunctions.flatMap((entry: { missing: string[] }) => entry.missing));
 
     const { result } = await renderProvider(() => ({
+      ...useSync(),
       ...useInventoryData(), ...useLibraryData(), ...useNutritionData(),
       ...useFinance(), ...useFinanceData(), ...useAcademicData(), ...useAdministrationData(), ...useAdministration(),
-    }));
-    const missing = [...wanted].filter((name) => !SYNC_ENGINE_FUNCTIONS.has(name) && !(name in result.current));
+    }), SyncProvider);
+    const missing = [...wanted].filter((name) => !(name in result.current));
     expect(missing).toEqual([]);
   });
 });
