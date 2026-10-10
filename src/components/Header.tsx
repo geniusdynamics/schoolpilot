@@ -8,6 +8,7 @@ import UserMenu from './UserMenu';
 import { NetworkStatusIndicator } from './OfflineCapability';
 import ModuleHealthIndicator from './ModuleHealthIndicator';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
+import { TemporaryDataBadge } from './StorageUnavailableScreen';
 const notifications = 3; // Example notification count
 
 const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModuleSelect?: (moduleKey: string) => void }> = ({ onSettings }) => {
@@ -46,6 +47,7 @@ const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModul
             E
           </div>
           <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block">schoolpilot</span>
+          <TemporaryDataBadge />
         </div>
         
         {/* Center: Compact Search Bar - Hidden on mobile, responsive on tablet+ */}
