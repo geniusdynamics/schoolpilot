@@ -702,7 +702,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "d61e4fc",
       "notes": "Verify/fix round cut off by usage limit. Branch prd/P0-G03 | Owner decision 2026-10-10: widened to hub pages (SO-27); fix round prd/P0-G03-fix1",
       "completed_at": "2026-10-10"
     },
