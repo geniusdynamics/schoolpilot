@@ -415,10 +415,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws3--academic-structure-so-05-so-06-so-07",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-10"
     },
     {
       "id": "P0-C02",
