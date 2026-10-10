@@ -147,6 +147,8 @@ Template: [workflow-log/TEMPLATE.md](./workflow-log/TEMPLATE.md).
 
 ## 8. Resuming manually (runbook)
 
+On your own machine with local Claude Code, start with [LOCAL-HANDOFF.md](./LOCAL-HANDOFF.md) (setup, wave-branch convention, exact next commands).
+
 1. `git switch consolidation && git pull`
 2. `node scripts/prd/status.mjs` — shows the current phase, the last completed task (with commit), blocked tasks with reasons, and **the next runnable tasks per lane**.
 3. Read the newest file in `docs/prd/workflow-log/` — its *Next steps* section lists exact commands.
