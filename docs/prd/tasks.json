@@ -319,9 +319,9 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws11-persistent-sqlite-in-the-browser",
       "deps_install": false,
-      "status": "blocked",
+      "status": "review",
       "commit": null,
-      "notes": "Provider fails closed but DatabaseProviderFactory/UnifiedDatabaseManager still fall back to pouchdb/memory; screen+badge+settings status not mounted (files outside card). Branch prd/P0-A01",
+      "notes": "Provider fails closed but DatabaseProviderFactory/UnifiedDatabaseManager still fall back to pouchdb/memory; screen+badge+settings status not mounted (files outside card). Branch prd/P0-A01 | Owner decision 2026-10-10: widened to provider factory, manager, bootstrap, header, SystemManagementPage; fix round prd/P0-A01-fix1",
       "completed_at": null
     },
     {
@@ -703,7 +703,7 @@
       "deps_install": false,
       "status": "review",
       "commit": null,
-      "notes": "Verify/fix round cut off by usage limit. Branch prd/P0-G03",
+      "notes": "Verify/fix round cut off by usage limit. Branch prd/P0-G03 | Owner decision 2026-10-10: widened to hub pages (SO-27); fix round prd/P0-G03-fix1",
       "completed_at": null
     },
     {

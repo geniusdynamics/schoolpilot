@@ -6,15 +6,23 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-10, after P0-E02 was integrated._
+_Last update: 2026-10-10, after the scope-widening decision (G03, A01 in fix rounds)._
 
 | Task | State | Where |
 | --- | --- | --- |
 | A02 B01 C01 C02 D01 D02 E01 F02 | done | on `prd/P0-W1` |
 | E02 | done (`b20d180`) | on `prd/P0-W1` |
-| G02, G03 | under independent verification | `prd/P0-G02`, `prd/P0-G03` (origin copies are based on `origin/consolidation`; rebase per §3b) |
+| G02 | under independent verification | `prd/P0-G02` (origin copy based on `origin/consolidation`; rebase per §3b) |
+| G03 | verifier: CHANGES_REQUIRED (no hub used the reset path) → fix round widened to the hub pages | `prd/P0-G03`; fix branch `prd/P0-G03-fix1` (cloud, local until integrated) |
+| A01 | widened per decision → fix round making the app fail closed everywhere | `prd/P0-A01`; fix branch `prd/P0-A01-fix1` (cloud, local until integrated) |
 | G04, G05, B02 | being implemented by the cloud workflow run `wf_ddc982d0-a8d` | task branches are local to the cloud session until integrated; if the session dies, re-run §3a |
-| A01, F01 | waiting on a decision (§3c) | `prd/P0-A01`, `prd/P0-F01-retry` |
+| F01 | waiting on a decision (§3c) | `prd/P0-F01-retry` |
+
+**Standing rule** ([decisions/2026-10-10-scope-widening.md](./workflow-log/decisions/2026-10-10-scope-widening.md)):
+a task blocked only by file ownership is widened and proceeds if it gates and merges cleanly.
+
+If a fix round is lost with the cloud session, redo it locally from the task branch with the
+verifier's findings (they are in this file's history and the W1 log), then integrate per §3b.
 
 If the cloud session stops: pull `prd/P0-W1`, run `node scripts/prd/status.mjs`, and do whatever the
 table above still lists as open, using §3.
