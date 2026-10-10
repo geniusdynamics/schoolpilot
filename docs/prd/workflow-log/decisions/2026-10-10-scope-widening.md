@@ -19,3 +19,4 @@ decisions, spec ambiguity) still go to the owner.
 | --- | --- | --- |
 | P0-G03 | hub pages under `src/modules/**` that render `PageHeaderWithTabs` (incl. `SchoolOperationsPage.tsx`, also listed for P0-D06 in W2) | resettable tab panel only takes effect when hubs pass tab content as children (SO-27) |
 | P0-A01 | `DatabaseProviderFactory.ts`, `UnifiedDatabaseManager.ts`, app bootstrap, app header, `SystemManagementPage.tsx` | fail closed app-wide; show blocking screen, temporary-data badge and storage status |
+| P0-G02 | `src/modules/library/pages/BookCategoriesPage.tsx` | probe C16 still found 5 broken Library tabs: missing `FormSection` import (and `@/` imports so the file passes lint) |
