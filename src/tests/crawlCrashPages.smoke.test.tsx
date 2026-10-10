@@ -346,6 +346,7 @@ describe('crawl crash pages (SO-27) render without throwing', () => {
       'src/modules/finance/pages/FeesDueReportPage.tsx',
       'src/modules/finance/pages/TransportRoutesPage.tsx',
       'src/modules/library/pages/BooksPage.tsx',
+      'src/modules/library/pages/BookCategoriesPage.tsx',
       'src/modules/library/pages/FinesPage.tsx',
       'src/modules/nutrition/pages/KitchenManagementPage.tsx',
       'src/modules/reports/pages/analytics/AnalyticsSubjectPage.tsx',

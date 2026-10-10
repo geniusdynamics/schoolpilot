@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
+import FormSection from '../../../components/ui/forms/FormSection';
 import Input from '@/components/ui/Input';
 
 import { useAppData } from '@/hooks/useAppData'; // Updated
