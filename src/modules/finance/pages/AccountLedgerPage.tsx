@@ -13,7 +13,6 @@ import Spinner from '@/components/ui/Spinner';
 import { useAccountLedger } from '../hooks/useAccountLedger';
 import type { AccountLedgerRow } from '../hooks/useAccountLedger';
 import { useAppData } from '@/hooks/useAppData';
-import { formatDate } from '@/utils/format';
 
 // Currency formatter for KES
 const formatCurrency = (value: number | null) => {
@@ -108,7 +107,7 @@ export const AccountLedgerPageContent: React.FC = () => {
         header: t('tableHeaders.particulars') || 'Particulars',
         width: 280,
         sortable: true,
-        render: (value, row) => (
+        render: (value) => (
           <span className="text-surface-muted-fg">{value}</span>
         ),
       },
@@ -139,7 +138,7 @@ export const AccountLedgerPageContent: React.FC = () => {
         header: t('tableHeaders.account') || 'Account',
         width: 100,
         sortable: true,
-        render: (value, row) => {
+        render: (value) => {
           const account = chartOfAccounts?.find((a) => a.id === value);
           return account?.name || `ACCT-${value}`;
         },

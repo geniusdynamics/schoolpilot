@@ -1,3 +1,6 @@
+// ABOUTME: Library Resources (Books) page - catalogue of physical and digital books with search and filters.
+// ABOUTME: Uses useBookData/useBookCategoryData for CRUD and renders the catalogue in a DataGrid.
+
 import React, { useState, useEffect } from 'react';
 
 import { useBookData } from '../data/useBookData';
@@ -5,15 +8,17 @@ import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon, MagnifyingGlassIcon as SearchIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { LibBookStatusEnum, LibBookAvailabilityStatusEnum } from '../data/types';
+import type { LibBookType } from '../data/types';
 
 // Simple Checkbox component
 const Checkbox: React.FC<{
@@ -56,8 +61,8 @@ interface BookFormData {
 }
 
 export const BooksPageContent: React.FC = () => {
-  const { data: books, create: addBook, update: updateBook, remove: deleteBook, search, isLoading: booksLoading, error: booksError } = useBookData();
-  const { data: bookCategories, isLoading: categoriesLoading, error: categoriesError } = useBookCategoryData();
+  const { data: books, create: addBook, update: updateBook, remove: deleteBook, search, isLoading: booksLoading } = useBookData();
+  const { data: bookCategories, isLoading: categoriesLoading } = useBookCategoryData();
   const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -139,7 +144,7 @@ export const BooksPageContent: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, valuechecked } = e.target as HTMLInputElement;
+    const { name, value, checked, type } = e.target as HTMLInputElement;
     let processedValue: string | number | boolean | undefined = value;
 
     if (name === 'category_id') {
@@ -148,7 +153,7 @@ export const BooksPageContent: React.FC = () => {
       processedValue = parseFloat(value) || 0;
     } else if (name === 'publication_year') {
       processedValue = parseInt(value) || undefined;
-    } else if (name === 'is_digital') {
+    } else if (type === 'checkbox') {
       processedValue = checked;
     }
     setFormData(prev => ({ ...prev, [name]: processedValue }));
@@ -237,7 +242,7 @@ export const BooksPageContent: React.FC = () => {
     };
 
     if (editingBook) {
-      await updateBook({ ...editingBook, ...payload });
+      await updateBook(editingBook.id, payload);
     } else {
       await addBook(payload);
     }
@@ -280,17 +285,17 @@ export const BooksPageContent: React.FC = () => {
       {
         key: 'publication_year',
         header: 'Pub. Year',
-        render: (book) => book.publication_year || 'N/A',
+        render: (_, book) => book.publication_year || 'N/A',
       },
       {
         key: 'is_digital',
         header: 'Digital',
-        render: (book) => (book.is_digital ? 'Yes' : 'No'),
+        render: (_, book) => (book.is_digital ? 'Yes' : 'No'),
       },
       {
         key: 'digital_access_url',
         header: 'Digital Access URL',
-        render: (book) =>
+        render: (_, book) =>
           book.digital_access_url ? (
             <a href={book.digital_access_url} target="_blank" rel="noopener noreferrer">
               Link
@@ -302,27 +307,27 @@ export const BooksPageContent: React.FC = () => {
       {
         key: 'digital_format',
         header: 'Digital Format',
-        render: (book) => book.digital_format || 'N/A',
+        render: (_, book) => book.digital_format || 'N/A',
       },
       {
         key: 'availability_status',
         header: 'Availability',
-        render: (book) => book.availability_status || 'N/A',
+        render: (_, book) => book.availability_status || 'N/A',
       },
       {
         key: 'damaged_status',
         header: 'Damaged',
-        render: (book) => (book.damaged_status ? 'Yes' : 'No'),
+        render: (_, book) => (book.damaged_status ? 'Yes' : 'No'),
       },
       {
         key: 'lost_status',
         header: 'Lost',
-        render: (book) => (book.lost_status ? 'Yes' : 'No'),
+        render: (_, book) => (book.lost_status ? 'Yes' : 'No'),
       },
       {
         key: 'status',
         header: 'Status',
-        render: (book) => <span className={`status-${book.status?.toLowerCase() ?? ''}`}>{book.status}</span>,
+        render: (_, book) => <span className={`status-${book.status?.toLowerCase() ?? ''}`}>{book.status}</span>,
       },
     {
       key: 'actions',

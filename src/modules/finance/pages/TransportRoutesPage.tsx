@@ -1,3 +1,6 @@
+// ABOUTME: Transport Routes page - lists transport routes with their per-period cost and GL revenue account.
+// ABOUTME: Supports add/edit/delete of routes through AppDataContext mutations.
+
 import React, { useState, useMemo } from 'react';
 import { TransportRoute, ChartOfAccount, AccountType } from '@/modules/finance';
 import Card from '@/components/ui/Card';
@@ -94,7 +97,7 @@ export const TransportRoutesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'cost_per_period', 
@@ -102,7 +105,7 @@ export const TransportRoutesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, row) => <span className="font-mono text-green-600">{row.cost_per_period.toFixed(2)}</span>
+      render: (value) => <span className="font-mono text-green-600">{Number(value ?? 0).toFixed(2)}</span>
     },
     { 
       key: 'gl_revenue_account_name', 
@@ -110,7 +113,7 @@ export const TransportRoutesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => <span className="text-primary-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     {
       key: 'id',

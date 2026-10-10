@@ -1,4 +1,5 @@
-
+// ABOUTME: Settings Audit Log page - filterable list of create/update/delete actions recorded by the system.
+// ABOUTME: Reads auditLogs and users from AppDataContext.
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -8,7 +9,7 @@ import { AuditLog, AuditAction, User } from '@/types';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { ClockIcon } from '@/components/ui/icons';
+import { ArrowPathIcon, ClockIcon } from '@/components/ui/icons';
 
 export const AuditLogContent: React.FC = () => {
   const { auditLogs, users, loading } = useAppData();
@@ -145,7 +146,7 @@ export const AuditLogContent: React.FC = () => {
                 </Select>
             </div>
             <div className="p-4 text-right">
-                <Button onClick={resetFilters} variant="secondary" leftIcon={<ResetIcon className="w-4 h-4"/>}>
+                <Button onClick={resetFilters} variant="secondary" leftIcon={<ArrowPathIcon className="w-4 h-4"/>}>
                     Reset Filters
                 </Button>
             </div>
