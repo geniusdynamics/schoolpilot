@@ -15,7 +15,7 @@ import {
 } from './interfaces';
 import { PouchDBProvider } from './PouchDBProvider';
 import { SQLiteProvider } from './SQLiteProvider';
-import { SQLiteWASMProvider } from './SQLiteWASMProvider';
+import { SQLiteWASMProvider, StorageUnavailableError, memoryDatabaseAllowed } from './SQLiteWASMProvider';
 import { BackendAPIProvider } from './BackendAPIProvider';
 // RXDB removed - Phase 4: No longer importing RxDBProvider
 import { getCurrentUnifiedConfig } from '@/config/unifiedConfig';
@@ -544,12 +544,18 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
         }
       }
       
-      // As a last resort, create a mock provider to prevent app crash
+      // The mock provider keeps nothing, so once real stores were registered and
+      // all failed it is only acceptable when a temporary database was explicitly
+      // allowed; otherwise fail closed. (Unit tests register no stores at all.)
+      if (!memoryDatabaseAllowed() && this.providers.size > 0) {
+        throw new StorageUnavailableError('No persistent database provider could be initialised');
+      }
       logger.warn('[DatabaseProviderFactory] All providers failed, creating mock provider as fallback');
       const mockProvider = await this.createMockProvider();
       this.activeProvider = mockProvider;
       return mockProvider;
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(
         `Failed to create database provider: ${errorMessage}`,
@@ -577,8 +583,10 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
         return null;
       }
 
-      // Check if provider is available in current environment
-      if (!provider.isAvailable()) {
+      // Check if provider is available in current environment. SQLite WASM is
+      // exempt: its initialize() decides between persistent storage, an allowed
+      // temporary database, or StorageUnavailableError.
+      if (providerType !== 'sqlite-wasm' && !provider.isAvailable()) {
         logger.warn(`[DatabaseProviderFactory] Provider '${providerType}' not available in current environment`);
         return null;
       }
@@ -592,6 +600,8 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       return provider;
     } catch (error) {
       logger.error(`[DatabaseProviderFactory] Failed to initialize provider ${providerType}:`, error);
+      // Missing persistent storage is not a reason to try another store.
+      if (error instanceof StorageUnavailableError) throw error;
       return null;
     }
   }

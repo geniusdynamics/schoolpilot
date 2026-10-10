@@ -1111,7 +1111,8 @@ async function requestPersistentStorage(): Promise<boolean | null> {
   }
 }
 
-const memoryDatabaseAllowed = (): boolean => import.meta.env.VITE_DB_ALLOW_MEMORY === 'true';
+/** True only when VITE_DB_ALLOW_MEMORY=true opts in to a temporary database that is erased on reload. */
+export const memoryDatabaseAllowed = (): boolean => import.meta.env.VITE_DB_ALLOW_MEMORY === 'true';
 
 // SQLite WASM Provider Implementation
 export class SQLiteWASMProvider implements IDatabaseProvider {

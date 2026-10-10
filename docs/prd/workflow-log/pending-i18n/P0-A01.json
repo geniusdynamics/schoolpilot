@@ -17,6 +17,26 @@
           "hint": "Data is kept in memory only and is erased when the page reloads."
         }
       }
+    },
+    "settings": {
+      "systemManagement": {
+        "storage": {
+          "title": "Browser storage",
+          "modeLabel": "Storage mode",
+          "persistedLabel": "Persistent storage granted",
+          "mode": {
+            "opfs": "Persistent (OPFS)",
+            "memory": "Temporary (memory only)",
+            "unavailable": "Unavailable",
+            "uninitialised": "Not opened yet"
+          },
+          "persisted": {
+            "yes": "Yes",
+            "no": "No",
+            "unknown": "Unknown"
+          }
+        }
+      }
     }
   }
 }

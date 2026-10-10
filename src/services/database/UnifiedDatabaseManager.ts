@@ -13,6 +13,7 @@ import { UniversalDataGenerator, UniversalDataGenerationConfig, GenerationStats 
 import { StartupOptimizer } from './StartupOptimizer';
 import { seedProviderWithDemoData } from './demoDataSeed';
 import { CapabilityDetector, ProviderRecommendation } from './detection/CapabilityDetector';
+import { StorageUnavailableError, memoryDatabaseAllowed } from './SQLiteWASMProvider';
 
 export type DeploymentMode = 'development' | 'staging' | 'production';
 export type DatabaseProvider = 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'sqlite' | 'backend-api' | 'hybrid';
@@ -54,6 +55,8 @@ export class UnifiedDatabaseManager {
   private startupOptimizer: StartupOptimizer;
   private capabilityDetector: CapabilityDetector;
   private fallbackChain: DatabaseProvider[] = ['pouchdb', 'rxdb', 'backend-api', 'sqlite-wasm'];
+  /** Set when initialisation failed for lack of persistent storage; blocks store-swapping recovery. */
+  private storageUnavailable = false;
 
   private constructor() {
     this.deploymentMode = this.detectDeploymentMode();
@@ -112,7 +115,13 @@ export class UnifiedDatabaseManager {
       const isAvailable = await this.validateProviderAvailability(this.providerType);
       logger.info(`🔍 [UnifiedDatabaseManager] Provider ${this.providerType} availability check: ${isAvailable}`);
       
-      if (!isAvailable) {
+      // SQLite WASM is never swapped for another store. Without persistent
+      // storage it fails closed, unless a temporary database is explicitly
+      // allowed, in which case its initialize() opens one in memory.
+      if (!isAvailable && this.providerType === 'sqlite-wasm' && !memoryDatabaseAllowed()) {
+        throw new StorageUnavailableError('Persistent SQLite storage (OPFS) is not available in this environment');
+      }
+      if (!isAvailable && this.providerType !== 'sqlite-wasm') {
         logger.warn(`⚠️ [UnifiedDatabaseManager] Selected provider ${this.providerType} is not available, attempting fallback...`);
         
         // Try fallback providers in order of preference
@@ -160,6 +169,12 @@ export class UnifiedDatabaseManager {
       logger.error('❌ [UnifiedDatabaseManager] Initialization failed:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.status.errors.push(`Initialization failed: ${errorMessage}`);
+
+      // Missing persistent storage must surface to the user, not be papered over.
+      if (error instanceof StorageUnavailableError) {
+        this.storageUnavailable = true;
+        throw error;
+      }
       
       // Attempt automatic recovery
       logger.info('🔧 [UnifiedDatabaseManager] Attempting automatic recovery...');
@@ -325,6 +340,11 @@ export class UnifiedDatabaseManager {
   private async selectProviderWithCapabilities(): Promise<DatabaseProvider> {
     // First, get config-based selection
     const configSelectedProvider = this.selectProvider();
+
+    // Persistent SQLite fails closed in the provider; capabilities must not swap it out.
+    if (configSelectedProvider === 'sqlite-wasm') {
+      return configSelectedProvider;
+    }
     
     // Get capability-based recommendation
     let capabilityRecommendation: ProviderRecommendation | null = null;
@@ -1722,14 +1742,12 @@ export class UnifiedDatabaseManager {
         throw new Error('Database not initialized - cannot generate data');
       }
 
-      const config = getCurrentUnifiedConfig();
       const {
         modules = ['administration', 'academic', 'finance'],
         counts = {},
         useRealisticData = true,
         includeTestData = false,
-        clearExisting = false,
-        onProgress
+        clearExisting = false
       } = options;
 
       // Clear existing data if requested
@@ -1970,6 +1988,12 @@ export class UnifiedDatabaseManager {
     try {
       logger.info('🔧 [UnifiedDatabaseManager] Attempting recovery...');
       
+      // Recovering by switching stores would hide missing persistent storage.
+      if (this.storageUnavailable) {
+        logger.warn('⚠️ [UnifiedDatabaseManager] Persistent storage unavailable; refusing to recover onto another store');
+        return false;
+      }
+
       // Clear previous errors
       this.status.errors = [];
       this.status.warnings = [];
@@ -2018,6 +2042,7 @@ export class UnifiedDatabaseManager {
       
       // Reset internal state
       this.isInitialized = false;
+      this.storageUnavailable = false;
       this.provider = null;
       this.providerType = null;
       this.collections.clear();
