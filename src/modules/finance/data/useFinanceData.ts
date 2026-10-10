@@ -6,17 +6,40 @@ import { logger } from '@/utils/logging';
 // ABOUTME: StudentPayments, GeneralPayments, FinancialYears, GeneralLedgerEntries
 // ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { databaseService } from '@/services/database/databaseService';
+import { nextSequenceNumber, sequenceYear } from '@/domain/sequences';
 import { useToastHelpers } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/modules/finance/data/types';
+import type { StudentDetailProfile } from '@/core/types';
+
+export interface GenerateTermInvoicesParams {
+  feeTemplateId: string | number;
+  studentIds: string[];
+  schoolPeriodId?: string | number;
+  issueDate?: string;
+  dueDate?: string;
+  dryRun?: boolean;
+}
+
+export interface GenerateTermInvoicesResult {
+  invoices: allTypes.StudentInvoice[];
+  skippedStudentIds: string[];
+}
+
+const INVOICE_PREFIX = 'INV';
+
+async function readAll<T>(collectionName: string): Promise<T[]> {
+  const db = await databaseService.getDatabase();
+  return ((await db.getCollection(collectionName)?.find({})) || []) as T[];
+}
 
 export function useFinanceData() {
   const chartOfAccountsCollection = useDatabaseCollection<allTypes.ChartOfAccount>('chart_of_accounts');
   const banksCollection = useDatabaseCollection<allTypes.Bank>('banks');
   const suppliersCollection = useDatabaseCollection<allTypes.Supplier>('suppliers');
   const feeTemplatesCollection = useDatabaseCollection<allTypes.FeeTemplate>('fee_templates');
-  const feeTemplateItemsCollection = useDatabaseCollection<allTypes.FeeTemplateItem>('fee_template_items');
   const expenseCategoriesCollection = useDatabaseCollection<allTypes.ExpenseCategory>('expense_categories');
   const expenseClaimsCollection = useDatabaseCollection<allTypes.ExpenseClaim>('expense_claims');
   const supplierInvoicesCollection = useDatabaseCollection<allTypes.SupplierInvoice>('supplier_invoices');
@@ -183,6 +206,41 @@ export function useFinanceData() {
     }
   }, [feeTemplatesCollection, toast]);
 
+  // ── Fee Template Items (stored in fee_templates.items) ──────────────────────
+  const feeTemplateItems = useMemo<allTypes.FeeTemplateItem[]>(() =>
+    feeTemplatesCollection.data.flatMap((template: any) =>
+      (template.items || []).map((item: allTypes.FeeTemplateItem) => ({ ...item, fee_template_id: template.id }))
+    ), [feeTemplatesCollection.data]);
+
+  const findTemplateWithItem = useCallback(async (itemId: string) => {
+    const templates = await readAll<any>('fee_templates');
+    return templates.find((template) => (template.items || []).some((item: any) => item.id === itemId));
+  }, []);
+
+  const addFeeTemplateItem = useCallback(async (itemData: Omit<allTypes.FeeTemplateItem, 'id'>) => {
+    const db = await databaseService.getDatabase();
+    const template: any = await db.getCollection('fee_templates')?.findById(String(itemData.fee_template_id));
+    if (!template) throw new Error(`Fee template ${itemData.fee_template_id} not found`);
+    const item = { ...itemData, id: databaseService.generateId(), fee_template_id: template.id } as allTypes.FeeTemplateItem;
+    await feeTemplatesCollection.update(template.id, { items: [...(template.items || []), item] } as any);
+    return item;
+  }, [feeTemplatesCollection]);
+
+  const updateFeeTemplateItem = useCallback(async (itemId: string, itemData: Partial<allTypes.FeeTemplateItem>) => {
+    const template = await findTemplateWithItem(itemId);
+    if (!template) throw new Error(`Fee template item ${itemId} not found`);
+    const items = template.items.map((item: any) => (item.id === itemId ? { ...item, ...itemData, id: itemId } : item));
+    await feeTemplatesCollection.update(template.id, { items } as any);
+    return items.find((item: any) => item.id === itemId);
+  }, [feeTemplatesCollection, findTemplateWithItem]);
+
+  const deleteFeeTemplateItem = useCallback(async (itemId: string) => {
+    const template = await findTemplateWithItem(itemId);
+    if (!template) return false;
+    await feeTemplatesCollection.update(template.id, { items: template.items.filter((item: any) => item.id !== itemId) } as any);
+    return true;
+  }, [feeTemplatesCollection, findTemplateWithItem]);
+
   // ── Expense Claims ────────────────────────────────────────────────────────────
   const addExpenseClaim = useCallback(async (claimData: Omit<allTypes.ExpenseClaim, 'id'>) => {
     return expenseClaimsCollection.insert(claimData);
@@ -288,9 +346,120 @@ export function useFinanceData() {
   }, [studentTransportAssignmentsCollection]);
 
   // ── Student Invoices / Payments ───────────────────────────────────────────────
-  const generateStudentInvoices = useCallback(async (invoiceData: any) => {
-    return customerInvoicesCollection.insert(invoiceData);
-  }, [customerInvoicesCollection]);
+  // Bills each learner once per fee template and school period; a dry run returns the preview only.
+  const generateTermInvoices = useCallback(async (params: GenerateTermInvoicesParams): Promise<GenerateTermInvoicesResult> => {
+    const db = await databaseService.getDatabase();
+    const template: any = await db.getCollection('fee_templates')?.findById(String(params.feeTemplateId));
+    if (!template) throw new Error(`Fee template ${params.feeTemplateId} not found`);
+    const schoolPeriodId = String(params.schoolPeriodId ?? template.school_period_id);
+    const templateItems: allTypes.FeeTemplateItem[] = template.items || [];
+    const templateItemIds = new Set(templateItems.map((item) => String(item.id)));
+    const issueDate = params.issueDate || new Date().toISOString().slice(0, 10);
+
+    const existing = await readAll<allTypes.StudentInvoice>('student_invoices');
+    const alreadyBilled = new Set(existing
+      .filter((invoice) => !invoice.deleted_at && String(invoice.school_period_id) === schoolPeriodId &&
+        (invoice.items || []).some((item) => templateItemIds.has(String(item.fee_template_item_id))))
+      .map((invoice) => String(invoice.student_id)));
+
+    const invoiceNumbers = existing.map((invoice) => invoice.invoice_number);
+    const invoices: allTypes.StudentInvoice[] = [];
+    const skippedStudentIds: string[] = [];
+    for (const studentId of params.studentIds.map(String)) {
+      if (alreadyBilled.has(studentId)) { skippedStudentIds.push(studentId); continue; }
+      const id = databaseService.generateId();
+      const invoiceNumber = nextSequenceNumber(invoiceNumbers, { prefix: INVOICE_PREFIX, year: sequenceYear(issueDate) });
+      invoiceNumbers.push(invoiceNumber);
+      const now = new Date().toISOString();
+      invoices.push({
+        id,
+        student_id: studentId,
+        invoice_number: invoiceNumber,
+        school_period_id: schoolPeriodId,
+        issue_date: issueDate,
+        due_date: params.dueDate || issueDate,
+        total_amount_billed: templateItems.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+        amount_paid: 0,
+        status: allTypes.InvoiceStatus.DUE,
+        items: templateItems.map((item) => ({
+          id: databaseService.generateId(),
+          invoice_id: id,
+          description: item.description,
+          amount: Number(item.amount || 0),
+          fee_template_item_id: String(item.id),
+        })),
+        created_at: now,
+        updated_at: now,
+      } as unknown as allTypes.StudentInvoice);
+    }
+
+    if (!params.dryRun) {
+      for (const invoice of invoices) await studentInvoicesCollection.insert(invoice);
+    }
+    return { invoices, skippedStudentIds };
+  }, [studentInvoicesCollection]);
+
+  // Selects learners by category and/or class stream, then bills them with generateTermInvoices.
+  const generateStudentInvoices = useCallback(async (
+    feeTemplateId: string | number,
+    schoolPeriodId: string | number,
+    criteria: { categoryId?: string | number; classStreamId?: string | number } = {}
+  ) => {
+    const students = await readAll<any>('students');
+    const studentIds = students
+      .filter((student) => criteria.categoryId === undefined || String(student.student_category_id) === String(criteria.categoryId))
+      .filter((student) => criteria.classStreamId === undefined || String(student.current_class_stream_id) === String(criteria.classStreamId))
+      .map((student) => String(student.id));
+    const { invoices } = await generateTermInvoices({ feeTemplateId, schoolPeriodId, studentIds });
+    return invoices;
+  }, [generateTermInvoices]);
+
+  // Builds the learner's financial profile (invoices, payments, adjustments and balance).
+  const getStudentFinancialDetailsById = useCallback(async (studentId: string): Promise<StudentDetailProfile | null> => {
+    try {
+      const db = await databaseService.getDatabase();
+      const student: any = await db.getCollection('students')?.findById(studentId);
+      if (!student) return null;
+      const forStudent = <T extends { student_id: string }>(rows: T[]) => rows.filter((row) => String(row.student_id) === String(studentId));
+      const invoices = forStudent(await readAll<allTypes.StudentInvoice>('student_invoices')).filter((invoice) => !invoice.deleted_at);
+      const payments = forStudent(await readAll<allTypes.StudentPayment>('student_payments'));
+      const adjustments = forStudent(await readAll<allTypes.FeeAdjustment>('fee_adjustments'));
+
+      const sumOf = <T,>(rows: T[], pick: (row: T) => unknown) => rows.reduce((sum, row) => sum + Number(pick(row) || 0), 0);
+      const totalFees = sumOf(invoices, (invoice) => invoice.total_amount_billed);
+      const totalPaid = sumOf(payments, (payment) => payment.total_amount_paid);
+      const ofTypes = (types: allTypes.FeeAdjustmentType[]) => adjustments.filter((adjustment) => types.includes(adjustment.adjustment_type));
+      const totalFine = sumOf(ofTypes([allTypes.FeeAdjustmentType.FINE, allTypes.FeeAdjustmentType.PENALTY]), (adjustment) => adjustment.amount);
+      const totalDiscount = sumOf(ofTypes([
+        allTypes.FeeAdjustmentType.SCHOLARSHIP, allTypes.FeeAdjustmentType.DISCOUNT, allTypes.FeeAdjustmentType.EXEMPTION,
+      ]), (adjustment) => adjustment.amount);
+
+      return {
+        ...student,
+        financial_summary: { totalFees, totalPaid, totalDiscount, totalFine, currentBalance: totalFees + totalFine - totalDiscount - totalPaid },
+        invoices_charges: invoices.map((invoice) => ({
+          id: invoice.id,
+          invoiceId: invoice.invoice_number,
+          feeTypeDescription: (invoice.items || []).map((item) => item.description).join(', '),
+          dueDate: invoice.due_date,
+          amount: Number(invoice.total_amount_billed || 0),
+          status: invoice.status,
+        })),
+        payment_history: payments.map((payment) => ({
+          id: payment.id,
+          transactionId: payment.receipt_no,
+          paymentDate: payment.transaction_date,
+          amount: Number(payment.total_amount_paid || 0),
+          paymentMethod: payment.payment_method || '',
+          description: payment.notes || '',
+        })),
+        enrolled_subjects: [],
+      } as StudentDetailProfile;
+    } catch (error) {
+      logger.error('Error building student financial details:', error);
+      return null;
+    }
+  }, []);
 
   const addStudentPayment = useCallback(async (paymentData: Omit<allTypes.StudentPayment, 'id'>) => {
     return studentPaymentsCollection.insert(paymentData);
@@ -340,7 +509,7 @@ export function useFinanceData() {
     banks: banksCollection.data,
     suppliers: suppliersCollection.data,
     feeTemplates: feeTemplatesCollection.data,
-    feeTemplateItems: feeTemplateItemsCollection.data,
+    feeTemplateItems,
     expenseCategories: expenseCategoriesCollection.data,
     expenseClaims: expenseClaimsCollection.data,
     supplierInvoices: supplierInvoicesCollection.data,
@@ -362,6 +531,7 @@ export function useFinanceData() {
     addBank, updateBank, deleteBank,
     addSupplier, updateSupplier, deleteSupplier,
     addFeeTemplate, updateFeeTemplate, deleteFeeTemplate,
+    addFeeTemplateItem, updateFeeTemplateItem, deleteFeeTemplateItem,
     addExpenseClaim, updateExpenseClaim, deleteExpenseClaim,
     addExpenseCategory, updateExpenseCategory, deleteExpenseCategory,
     addCustomerInvoice, updateCustomerInvoice, deleteCustomerInvoice,
@@ -370,7 +540,7 @@ export function useFinanceData() {
     addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment,
     addTransportRoute, updateTransportRoute, deleteTransportRoute,
     addStudentTransportAssignment, updateStudentTransportAssignment, deleteStudentTransportAssignment,
-    generateStudentInvoices,
+    generateTermInvoices, generateStudentInvoices, getStudentFinancialDetailsById,
     addStudentPayment, updateStudentPayment, deleteStudentPayment,
     applyPaymentToInvoices,
     addGeneralPayment, updateGeneralPayment, deleteGeneralPayment,
@@ -381,6 +551,7 @@ export function useFinanceData() {
     createChartOfAccount: addChartOfAccount,
     createSupplier: addSupplier,
     createFeeTemplate: addFeeTemplate,
+    createFeeTemplateItem: addFeeTemplateItem,
     createExpenseClaim: addExpenseClaim,
     createExpenseCategory: addExpenseCategory,
     createCustomerInvoice: addCustomerInvoice,

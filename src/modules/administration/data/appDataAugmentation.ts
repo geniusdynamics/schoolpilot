@@ -60,6 +60,7 @@ declare module '@/core/types' {
     studentBioData: any[];
     studentIDCards: any[];
     transferCertificateStudents: any[];
+    studentClassHistory: any[];
   }
 
   export interface AppDataContextType {
@@ -141,5 +142,10 @@ declare module '@/core/types' {
     saveStudentAttendance: (records: any[]) => Promise<void>;
     getStudentAttendanceByFilters: (date: string, classStreamId: number, periodId: number) => any[];
     getTimetablePeriodDefs: () => TimetablePeriodDef[];
+    // Student Class History (student_class_history)
+    addStudentClassHistory: (data: any) => Promise<any>;
+    updateStudentClassHistory: (id: string, data: any) => Promise<any>;
+    deleteStudentClassHistory: (id: string) => Promise<boolean>;
+    getStudentClassHistory: (studentId: string) => any[];
   }
 }

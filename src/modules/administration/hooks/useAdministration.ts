@@ -8,19 +8,20 @@ import { useAdministrationData } from '../data/useAdministrationData';
 export const useAdministration = () => {
   // Get all data and CRUD operations from useAdministrationData
   const adminData = useAdministrationData();
+  const { addClass, updateClass, deleteClass } = adminData;
 
   // ── Bulk Operations ─────────────────────────────────────────────────────────────
   const bulkAddClasses = useCallback(async (items: { name: string; streams?: any[] }[]) => {
-    return Promise.all(items.map(item => adminData.addClass(item as any)));
-  }, [adminData.addClass]);
+    return Promise.all(items.map(item => addClass(item as any)));
+  }, [addClass]);
 
   const bulkUpdateClasses = useCallback(async (items: { id: string; name?: string; streams?: any[] }[]) => {
-    return Promise.all(items.map(item => adminData.updateClass(String(item.id), item as any)));
-  }, [adminData.updateClass]);
+    return Promise.all(items.map(item => updateClass(String(item.id), item as any)));
+  }, [updateClass]);
 
   const bulkDeleteClasses = useCallback(async (ids: (string | number)[]) => {
-    return Promise.all(ids.map(id => adminData.deleteClass(String(id))));
-  }, [adminData.deleteClass]);
+    return Promise.all(ids.map(id => deleteClass(String(id))));
+  }, [deleteClass]);
 
   // ── Validation Functions ───────────────────────────────────────────────────────
   const validateClass = useCallback((classData: { name?: string; academicYearId?: string }): { isValid: boolean; errors: string[] } => {
@@ -64,6 +65,10 @@ export const useAdministration = () => {
   const deleteStaff = adminData.deleteStaffMember;
 
   return {
+    // Every provider record and mutator (create(data) / update(id, patch) / delete(id)),
+    // including staff members, school details, class history and transfer certificates
+    ...adminData,
+
     // Data (from useAdministrationData)
     students: adminData.students,
     staff: adminData.staff,

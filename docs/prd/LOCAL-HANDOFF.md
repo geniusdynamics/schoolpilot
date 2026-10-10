@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-10, after P0-F01 was integrated._
+_Last update: 2026-10-10, P0-B02 being integrated into `consolidation` (`prd/P0-W1`)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -14,8 +14,9 @@ _Last update: 2026-10-10, after P0-F01 was integrated._
 | E02 | done (`b20d180`) | on `prd/P0-W1` |
 | G03 | done (`d61e4fc`) — widened to all 48 hub pages; real-hub crash test | on `prd/P0-W1` |
 | G02 | done (`b5ad0be`) — widened to `BookCategoriesPage.tsx` (missing `FormSection` import found by probe C16) | on `prd/P0-W1` |
-| A01 | widened per decision → fix round making the app fail closed everywhere | `prd/P0-A01`; fix branch `prd/P0-A01-fix1` (cloud, local until integrated) |
-| G04, G05, B02 | being implemented by the cloud workflow run `wf_ddc982d0-a8d` | task branches are local to the cloud session until integrated; if the session dies, re-run §3a |
+| A01 | fix round done (gate PASS, probe C01 PASS); under independent verification | **`prd/P0-A01-fix1` on origin** (2 commits on `965475f`). If the session dies: verify it, then `scripts/prd/integrate.sh P0-A01=prd/P0-A01-fix1`. Follow-ups noted by the fixer: AppDataContext 15 s init timeout vs storage worker 30 s; unhandled `'error'` event from `dataModeManager` when OPFS is missing |
+| G04, G05 | being implemented by the cloud workflow run `wf_ddc982d0-a8d` | task branches are local to the cloud session until integrated; if the session dies, re-run §3a |
+| B02 | fix round 1 squash-merged onto `consolidation`; integration gate running — widened to `useExamResultsHorizontal.ts`, `useFinanceServices.ts` and `SyncContext.tsx` | `prd/P0-B02-fix1` (cloud, local until integrated) |
 | F01 | done (`f5e713e`) — accepted on unit evidence; probe C12 deferred until real data ([decision](./workflow-log/decisions/2026-10-10-f01-evidence.md)) | on `prd/P0-W1` |
 
 **Standing rule** ([decisions/2026-10-10-scope-widening.md](./workflow-log/decisions/2026-10-10-scope-widening.md)):

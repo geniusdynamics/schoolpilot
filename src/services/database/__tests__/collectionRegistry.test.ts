@@ -1,5 +1,5 @@
 // ABOUTME: Guards the collection registry: every collection name used in src must be registered in collectionsDefinition.
-// ABOUTME: Also pins the CollectionName union and the collections added for audit finding SO-24 (P0-B01).
+// ABOUTME: Also pins the CollectionName union, the SO-24 collections (P0-B01) and the literals retired by P0-B02.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -20,10 +20,10 @@ const SRC = path.resolve(__dirname, '..', '..', '..');
 const PENDING_CALL_SITE_RENAMES: Record<string, { target: string; task: string }> = {
   settings: { target: 'school_details', task: 'P0-D06 / P0-A05' },
   period_definitions: { target: 'academic_period_definitions', task: 'P0-A05' },
-  timetable_period_defs: { target: 'timetable_period_definitions', task: 'P0-B02' },
-  exam_paper_settings: { target: 'exam_sessions', task: 'P0-B02 (nested in exam_sessions)' },
-  fee_template_items: { target: 'fee_templates', task: 'P0-B02 (nested in fee_templates)' },
 };
+
+// Renamed or nested by P0-B02; no source file may open them again.
+const RETIRED_COLLECTION_LITERALS = ['timetable_period_defs', 'exam_paper_settings', 'fee_template_items'] as const;
 
 const NEWLY_REGISTERED = [
   'student_class_history',
@@ -78,6 +78,14 @@ describe('collection registry', () => {
       expect(registered.has(name), `${name} should be renamed at the call site, not registered`).toBe(false);
       expect(registered.has(target), `rename target ${target} must be registered`).toBe(true);
     }
+  });
+
+  it.each(RETIRED_COLLECTION_LITERALS)('no source file opens the retired collection %s', (name) => {
+    // Looser than referencedCollectionNames so nested generics such as useDatabaseCollection<Record<string, any>>('x') match.
+    const opener = new RegExp(`(?:useDatabaseCollection|getCollection|useEntityCrud|useCrudFactory)[^(;]*\\(\\s*['"]${name}['"]`);
+    const users = sourceFiles(SRC).filter((file) => opener.test(fs.readFileSync(file, 'utf8')));
+    expect(users.map((file) => path.relative(SRC, file))).toEqual([]);
+    expect(name in PENDING_CALL_SITE_RENAMES).toBe(false);
   });
 
   it.each(NEWLY_REGISTERED)('defines %s with an id primary key', (name) => {

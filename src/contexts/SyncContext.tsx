@@ -1,7 +1,7 @@
 ﻿import { logger } from '@/utils/logging';
 
 // ABOUTME: Sync state management context for handling data synchronization
-// ABOUTME: Provides sync status, controls, and queue management functionality
+// ABOUTME: Provides sync status, controls, queue status and the history of completed sync runs
 
 import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react';
 import { useNetwork } from './NetworkContext';
@@ -34,6 +34,13 @@ export interface QueueStatus {
   };
 }
 
+export interface SyncHistoryEntry {
+  id: string;
+  startedAt: Date;
+  completedAt: Date;
+  status: 'success' | 'error';
+}
+
 export interface OfflineCapability {
   feature: string;
   available: boolean;
@@ -56,6 +63,7 @@ export interface SyncContextType {
   getQueueStatus: () => QueueStatus;
   clearQueue: () => void;
   clearSyncQueue: () => void;
+  getSyncHistory: () => SyncHistoryEntry[];
   
   // Sync settings
   getSyncSettings: () => SyncSettings;
@@ -85,6 +93,8 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     batchSize: 20
   });
 
+  const [syncHistory, setSyncHistory] = useState<SyncHistoryEntry[]>([]);
+
   // Sync controls
   const forceSync = useCallback(async () => {
     if (!isOnline) {
@@ -92,15 +102,21 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
     logger.info('Force sync triggered');
+    const startedAt = new Date();
     setSyncStatus(prev => ({ ...prev, state: 'syncing', progress: 0 }));
     // Simulate sync process
     setTimeout(() => {
+      const completedAt = new Date();
       setSyncStatus(prev => ({ 
         ...prev, 
         state: 'idle', 
         progress: 100, 
-        lastSyncTime: new Date() 
+        lastSyncTime: completedAt 
       }));
+      setSyncHistory(prev => [
+        ...prev,
+        { id: `sync-${startedAt.getTime()}-${prev.length}`, startedAt, completedAt, status: 'success' },
+      ]);
     }, 2000);
   }, [isOnline]);
 
@@ -126,6 +142,8 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     api: { pending: 0, processing: false, byPriority: {} },
     sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
   }), []);
+
+  const getSyncHistory = useCallback(() => syncHistory, [syncHistory]);
 
   const getSyncSettings = useCallback(() => syncSettings, [syncSettings]);
 
@@ -162,6 +180,7 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getQueueStatus,
     clearQueue,
     clearSyncQueue,
+    getSyncHistory,
     
     // Sync settings
     getSyncSettings,
@@ -178,6 +197,7 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getQueueStatus,
     clearQueue,
     clearSyncQueue,
+    getSyncHistory,
     getSyncSettings,
     updateSyncSettings,
     offlineCapabilities,

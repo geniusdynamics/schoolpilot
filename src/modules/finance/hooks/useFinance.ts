@@ -28,18 +28,20 @@ export const useFinance = () => {
   }, [customersCollection]);
 
   // ── Bulk Operations ────────────────────────────────────────────────────────────
-  const bulkAddBanks = useCallback(async (items: Parameters<typeof finance.addBank>[]) => {
-    return Promise.all(items.map(item => finance.addBank(item)));
-  }, [finance.addBank]);
+  const { addBank, deleteBank, updateFinancialYear } = finance;
+
+  const bulkAddBanks = useCallback(async (items: Parameters<typeof addBank>[]) => {
+    return Promise.all(items.map(item => addBank(item)));
+  }, [addBank]);
 
   const bulkDeleteBanks = useCallback(async (ids: string[]) => {
-    return Promise.all(ids.map(id => finance.deleteBank(id)));
-  }, [finance.deleteBank]);
+    return Promise.all(ids.map(id => deleteBank(id)));
+  }, [deleteBank]);
 
   // ── Close Financial Year ───────────────────────────────────────────────────────
   const closeFinancialYear = useCallback(async (id: string) => {
-    return finance.updateFinancialYear(id, { status: 'Closed', closed_at: new Date().toISOString() });
-  }, [finance.updateFinancialYear]);
+    return updateFinancialYear(id, { status: 'Closed', closed_at: new Date().toISOString() });
+  }, [updateFinancialYear]);
 
   // ── Validation Functions ──────────────────────────────────────────────────────
   const validateBank = useCallback((bank: { name?: string; account_number?: string; bank_code?: string }) => {
@@ -67,6 +69,10 @@ export const useFinance = () => {
   }, []);
 
   return {
+    // Every provider record and mutator (create(data) / update(id, patch) / delete(id)),
+    // including fee template items, term invoicing and learner financial profiles
+    ...finance,
+
     // Data from Finance module
     chartOfAccounts: finance.chartOfAccounts,
     banks: finance.banks,

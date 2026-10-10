@@ -4,22 +4,22 @@
 // ABOUTME: Academic Years, Terms, Education levels, Class allocations
 // ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/modules/academics/data/types';
+import { useEducationSystemData } from './useEducationSystemData';
 
 export function useAcademicData() {
   const subjectsCollection = useDatabaseCollection<any>('subjects');
   const subjectPapersCollection = useDatabaseCollection<any>('subject_papers');
   const examSessionsCollection = useDatabaseCollection<allTypes.ExamSession>('exam_sessions');
-  const examPaperSettingsCollection = useDatabaseCollection<allTypes.ExamPaperSetting>('exam_paper_settings');
   const gradingSchemesCollection = useDatabaseCollection<allTypes.GradingScheme>('grading_schemes');
   const studentExamResultsCollection = useDatabaseCollection<any>('student_exam_results');
   const classSubjectAllocationsCollection = useDatabaseCollection<allTypes.ClassSubjectAllocation>('class_subject_allocations');
   const teacherSubjectAssignmentsCollection = useDatabaseCollection<any>('teacher_subject_assignments');
   const studentSubjectEnrollmentsCollection = useDatabaseCollection<any>('student_subject_enrollments');
-  const timetablePeriodDefsCollection = useDatabaseCollection<allTypes.TimetablePeriodDef>('timetable_period_defs');
+  const timetablePeriodDefsCollection = useDatabaseCollection<allTypes.TimetablePeriodDef>('timetable_period_definitions');
   const timetableEntriesCollection = useDatabaseCollection<allTypes.TimetableEntry>('timetable_entries');
   const academicYearsCollection = useDatabaseCollection<allTypes.AcademicYear>('academic_years');
   const schoolPeriodsCollection = useDatabaseCollection<allTypes.SchoolPeriod>('school_periods');
@@ -65,18 +65,45 @@ export function useAcademicData() {
     return examSessionsCollection.remove(id);
   }, [examSessionsCollection]);
 
-  // ── Exam Paper Settings ───────────────────────────────────────────────────────
+  // ── Exam Paper Settings (stored in exam_sessions.paper_settings) ─────────────
+  const examPaperSettings = useMemo<allTypes.ExamPaperSetting[]>(() =>
+    examSessionsCollection.data.flatMap((session: any) =>
+      (session.paper_settings || []).map((setting: allTypes.ExamPaperSetting) => ({ ...setting, exam_session_id: session.id }))
+    ), [examSessionsCollection.data]);
+
+  const findSessionWithSetting = useCallback(async (settingId: string) => {
+    const db = await databaseService.getDatabase();
+    const sessions = (await db.getCollection('exam_sessions')?.find({})) || [];
+    return sessions.find((session: any) => (session.paper_settings || []).some((setting: any) => setting.id === settingId));
+  }, []);
+
   const addExamPaperSetting = useCallback(async (data: Omit<allTypes.ExamPaperSetting, 'id'>) => {
-    return examPaperSettingsCollection.insert(data);
-  }, [examPaperSettingsCollection]);
+    const db = await databaseService.getDatabase();
+    const session: any = await db.getCollection('exam_sessions')?.findById(String(data.exam_session_id));
+    if (!session) throw new Error(`Exam session ${data.exam_session_id} not found`);
+    const now = new Date().toISOString();
+    const setting = { created_at: now, ...data, id: databaseService.generateId(), exam_session_id: session.id, updated_at: now } as allTypes.ExamPaperSetting;
+    await examSessionsCollection.update(session.id, { paper_settings: [...(session.paper_settings || []), setting] } as any);
+    return setting;
+  }, [examSessionsCollection]);
 
   const updateExamPaperSetting = useCallback(async (id: string, data: Partial<allTypes.ExamPaperSetting>) => {
-    return examPaperSettingsCollection.update(id, data);
-  }, [examPaperSettingsCollection]);
+    const session: any = await findSessionWithSetting(id);
+    if (!session) throw new Error(`Exam paper setting ${id} not found`);
+    const paperSettings = session.paper_settings.map((setting: any) =>
+      setting.id === id ? { ...setting, ...data, id, updated_at: new Date().toISOString() } : setting);
+    await examSessionsCollection.update(session.id, { paper_settings: paperSettings } as any);
+    return paperSettings.find((setting: any) => setting.id === id);
+  }, [examSessionsCollection, findSessionWithSetting]);
 
   const deleteExamPaperSetting = useCallback(async (id: string) => {
-    return examPaperSettingsCollection.remove(id);
-  }, [examPaperSettingsCollection]);
+    const session: any = await findSessionWithSetting(id);
+    if (!session) return false;
+    await examSessionsCollection.update(session.id, {
+      paper_settings: session.paper_settings.filter((setting: any) => setting.id !== id),
+    } as any);
+    return true;
+  }, [examSessionsCollection, findSessionWithSetting]);
 
   // ── Grading Schemes ───────────────────────────────────────────────────────────
   const addGradingScheme = useCallback(async (data: Omit<allTypes.GradingScheme, 'id'>) => {
@@ -105,8 +132,8 @@ export function useAcademicData() {
   const getExamPaperSettingsForSession = useCallback(async (examSessionId: string) => {
     try {
       const db = await databaseService.getDatabase();
-      const results = await db.exam_paper_settings?.find({ exam_session_id: examSessionId });
-      return results?.docs || [];
+      const session: any = await db.getCollection('exam_sessions')?.findById(examSessionId);
+      return (session?.paper_settings || []).map((setting: any) => ({ ...setting, exam_session_id: examSessionId }));
     } catch (error) { logger.error('Error getting exam paper settings for session:', error); throw error; }
   }, []);
 
@@ -146,7 +173,8 @@ export function useAcademicData() {
     const entryId = typeof entryOrId === 'string' ? entryOrId : entryOrId.id;
     if (!entryId) throw new Error('Timetable entry id is required for updates.');
     const nextEntryData = typeof entryOrId === 'string' ? (entryData || {}) : entryOrId;
-    const { id: _id, ...updatePayload } = nextEntryData;
+    const updatePayload = { ...nextEntryData };
+    delete updatePayload.id;
     return timetableEntriesCollection.update(entryId, updatePayload);
   }, [timetableEntriesCollection]);
 
@@ -242,12 +270,38 @@ export function useAcademicData() {
     return schoolPeriodsCollection.remove(id);
   }, [schoolPeriodsCollection]);
 
+  // ── Education System Configurations (id, patch) facade ─────────────────────
+  const {
+    educationSystemConfigurations,
+    addEducationSystemConfiguration: addStoredEducationSystem,
+    updateEducationSystemConfiguration: replaceStoredEducationSystem,
+    deleteEducationSystemConfiguration: deleteStoredEducationSystem,
+    getEducationSystemConfiguration,
+  } = useEducationSystemData();
+
+  const addEducationSystemConfiguration = useCallback(async (data: Partial<allTypes.EducationSystemConfiguration>) => {
+    const record = { ...data, id: data.id || `edu-system-${databaseService.generateId()}` };
+    await addStoredEducationSystem(record);
+    return record;
+  }, [addStoredEducationSystem]);
+
+  const updateEducationSystemConfiguration = useCallback(async (id: string, data: Partial<allTypes.EducationSystemConfiguration>) => {
+    const current = getEducationSystemConfiguration(id);
+    if (!current) throw new Error(`Education system ${id} not found`);
+    return replaceStoredEducationSystem({ ...current, ...data, id });
+  }, [getEducationSystemConfiguration, replaceStoredEducationSystem]);
+
+  const deleteEducationSystemConfiguration = useCallback(async (id: string) => {
+    return deleteStoredEducationSystem(id);
+  }, [deleteStoredEducationSystem]);
+
   return {
     // Data
     subjects: subjectsCollection.data,
     subjectPapers: subjectPapersCollection.data,
     examSessions: examSessionsCollection.data,
-    examPaperSettings: examPaperSettingsCollection.data,
+    examPaperSettings,
+    educationSystemConfigurations,
     gradingSchemes: gradingSchemesCollection.data,
     studentExamResults: studentExamResultsCollection.data,
     classSubjectAllocations: classSubjectAllocationsCollection.data,
@@ -276,5 +330,6 @@ export function useAcademicData() {
     addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition,
     addAcademicYear, updateAcademicYear, deleteAcademicYear,
     addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod,
+    addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration,
   };
 }
