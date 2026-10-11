@@ -1,0 +1,15 @@
+{
+  "task": "P0-A04",
+  "locale": "en",
+  "note": "New keys used with inline English fallbacks in FirstRunOnboarding; merge into each locale (en shown; translate for fr, rw, sw).",
+  "namespaces": {
+    "common": {
+      "onboarding": {
+        "initialising": {
+          "title": "Preparing your database",
+          "detail": "Opening secure storage on this device. This can take a few seconds."
+        }
+      }
+    }
+  }
+}
