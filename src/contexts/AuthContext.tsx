@@ -73,9 +73,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Login method
+  // Login does not touch isLoading: that flag is the start-up state, and AppContent replaces the
+  // login page with a spinner while it is true, which would discard the page's error message.
+  // The login page shows its own progress indicator.
   const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResult> => {
     try {
-      setIsLoading(true);
       const result = await authService.login(credentials);
       
       if (result.success && result.user) {
@@ -91,8 +93,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         message: 'Login failed',
         errors: [error instanceof Error ? error.message : 'Unknown error']
       };
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
