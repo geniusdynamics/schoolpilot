@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Login method
-  const login = async (credentials: LoginCredentials): Promise<AuthResult> => {
+  const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResult> => {
     try {
       setIsLoading(true);
       const result = await authService.login(credentials);
@@ -94,10 +94,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Logout method
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       await authService.logout();
@@ -116,17 +116,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Refresh user data
-  const refreshUser = async (): Promise<void> => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
       logger.error('Error refreshing user:', error);
     }
-  };
+  }, []);
 
   // Permission check
   const hasPermission = useCallback(async (permissionId: string): Promise<boolean> => {
