@@ -12,6 +12,9 @@ describe('Configuration Switching Integration', () => {
   let dataModeManager: ReturnType<typeof getDataModeManager>;
 
   beforeEach(() => {
+    // jsdom has no OPFS, and SQLite now fails closed without it. These tests
+    // exercise mode switching, so opt in to a temporary database explicitly.
+    vi.stubEnv('VITE_DB_ALLOW_MEMORY', 'true');
     // Wipe persisted mode preferences and the demo-cleared flag so each test
     // starts from a deterministic development state
     localStorage.clear();
@@ -23,11 +26,12 @@ describe('Configuration Switching Integration', () => {
     // Clean up after each test
     try {
       dataModeManager.destroy();
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
     resetDataModeManager();
     localStorage.clear();
+    vi.unstubAllEnvs();
   });
 
   describe('Mode Configuration Loading', () => {
@@ -209,7 +213,7 @@ describe('Configuration Switching Integration', () => {
 
       try {
         await dataModeManager.switchMode('invalid' as never);
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
 

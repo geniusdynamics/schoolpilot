@@ -15,7 +15,12 @@ import {
 } from './interfaces';
 import { PouchDBProvider } from './PouchDBProvider';
 import { SQLiteProvider } from './SQLiteProvider';
-import { SQLiteWASMProvider, StorageUnavailableError, memoryDatabaseAllowed } from './SQLiteWASMProvider';
+import {
+  SQLiteWASMProvider,
+  StorageUnavailableError,
+  memoryDatabaseAllowed,
+  toStorageUnavailableError
+} from './SQLiteWASMProvider';
 import { BackendAPIProvider } from './BackendAPIProvider';
 // RXDB removed - Phase 4: No longer importing RxDBProvider
 import { getCurrentUnifiedConfig } from '@/config/unifiedConfig';
@@ -526,6 +531,12 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
         return provider;
       }
       
+      // Persistent SQLite is never swapped for another store unless a temporary
+      // database was explicitly allowed.
+      if (primaryProviderType === 'sqlite-wasm' && !memoryDatabaseAllowed()) {
+        throw new StorageUnavailableError('The SQLite database provider is not available');
+      }
+
       // If primary provider failed, try fallback providers
       logger.warn(`[DatabaseProviderFactory] Primary provider ${primaryProviderType} failed, trying fallbacks...`);
       
@@ -602,6 +613,10 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       logger.error(`[DatabaseProviderFactory] Failed to initialize provider ${providerType}:`, error);
       // Missing persistent storage is not a reason to try another store.
       if (error instanceof StorageUnavailableError) throw error;
+      // Any SQLite failure means there is no persistent store: fail closed.
+      if (providerType === 'sqlite-wasm' && !memoryDatabaseAllowed()) {
+        throw toStorageUnavailableError(error, 'SQLite database could not be opened');
+      }
       return null;
     }
   }

@@ -117,6 +117,33 @@ describe('DatabaseProviderFactory fail-closed storage', () => {
     expect(backend.initialize).not.toHaveBeenCalled();
   });
 
+  it('does not fall back to PouchDB when SQLite fails with a plain Error', async () => {
+    const sqlite = asType(
+      FakeSQLiteWASMProvider,
+      baseProvider('SQLiteWASM', true, async () => {
+        throw new Error('wasm init failed');
+      })
+    );
+    const factory = factoryWith(sqliteStrategy, sqlite);
+
+    const result = factory.createProviderWithRequirements(config, requirements);
+
+    await expect(result).rejects.toBeInstanceOf(StorageUnavailableError);
+    await expect(result).rejects.toThrow(/wasm init failed/);
+    expect(pouch.initialize).not.toHaveBeenCalled();
+    expect(backend.initialize).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when SQLite is the primary store but is not registered', async () => {
+    const factory = new DatabaseProviderFactory(sqliteStrategy);
+    factory.registerProvider(pouch);
+
+    await expect(factory.createProviderWithRequirements(config, requirements)).rejects.toBeInstanceOf(
+      StorageUnavailableError
+    );
+    expect(pouch.initialize).not.toHaveBeenCalled();
+  });
+
   it('does not substitute the in-memory mock provider unless VITE_DB_ALLOW_MEMORY=true', async () => {
     const failing = async () => {
       throw new Error('init failed');
@@ -125,10 +152,16 @@ describe('DatabaseProviderFactory fail-closed storage', () => {
     pouch = asType(FakePouchDBProvider, baseProvider('PouchDB', true, failing));
     backend = asType(FakeBackendAPIProvider, baseProvider('BackendAPI', true, failing));
 
-    const closed = factoryWith(sqliteStrategy, sqlite);
+    // SQLite primary no longer reaches the fallback chain, so exercise the mock
+    // refusal with a non-SQLite primary whose stores all fail.
+    const closed = new DatabaseProviderFactory(pouchStrategy);
+    closed.registerProvider(pouch);
+    closed.registerProvider(backend);
     await expect(closed.createProviderWithRequirements(config, requirements)).rejects.toMatchObject({
       code: 'STORAGE_UNAVAILABLE',
     });
+
+    // With memory explicitly allowed, a failing SQLite may still fall through to the mock.
 
     vi.stubEnv('VITE_DB_ALLOW_MEMORY', 'true');
     const open = factoryWith(sqliteStrategy, sqlite);
