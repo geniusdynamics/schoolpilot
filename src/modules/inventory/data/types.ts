@@ -212,6 +212,8 @@ export interface PurchaseOrder {
   order_date: string;
   status: PurchaseOrderStatus;
   notes?: string | null;
+  // Staff member who raised the order (staff.id)
+  requested_by?: string;
   created_at: string;
   updated_at: string;
   items?: PurchaseOrderItem[];

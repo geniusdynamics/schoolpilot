@@ -589,7 +589,9 @@ export const studentExamResults = initialMockStudentExamResults;
 export const initialMockExamSchedules: ExamSchedule[] = [
   {
     id: '1',
-    exam_session_id: '1',
+    exam_session_id: 'ES001',
+    subject_paper_id: 1,
+    subject_name: 'English',
     class_stream_id: 1,
     period_id: 1,
     room: 'Room 101',
@@ -600,7 +602,9 @@ export const initialMockExamSchedules: ExamSchedule[] = [
   },
   {
     id: '2',
-    exam_session_id: '1',
+    exam_session_id: 'ES001',
+    subject_paper_id: 7,
+    subject_name: 'Mathematics',
     class_stream_id: 2,
     period_id: 2,
     room: 'Room 102',
@@ -611,7 +615,9 @@ export const initialMockExamSchedules: ExamSchedule[] = [
   },
   {
     id: '3',
-    exam_session_id: '2',
+    exam_session_id: 'ES002',
+    subject_paper_id: 18,
+    subject_name: 'History',
     class_stream_id: 1,
     period_id: 1,
     room: 'Room 201',
