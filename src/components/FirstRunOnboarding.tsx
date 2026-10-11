@@ -1,3 +1,6 @@
+// ABOUTME: First-run onboarding: choose demo data or production; the production path opens the database
+// ABOUTME: (with a progress screen) before the setup wizard, and shows the storage error screen if that fails.
+
 import { logger } from '@/utils/logging';
 
 /**
@@ -12,6 +15,7 @@ import { logger } from '@/utils/logging';
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowRightIcon,
   BoltIcon,
@@ -23,6 +27,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import { SetupWizard } from '@/components/setup/SetupWizard';
+import { StorageUnavailableScreen } from '@/components/StorageUnavailableScreen';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { CapabilityDetector } from '@/services/database/detection/CapabilityDetector';
@@ -96,6 +101,7 @@ function defaultsFromReport(report: CapabilityReport): EnvironmentDefaults {
  * FirstRunOnboarding component
  */
 export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, onSkip }) => {
+  const { t } = useTranslation('common');
   const { config, updateConfig } = useUnifiedConfig();
   const [step, setStep] = useState<'welcome' | 'choose' | 'confirm'>('welcome');
   const [selectedPath, setSelectedPath] = useState<'demo' | 'production' | null>(null);
@@ -105,6 +111,9 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
   const [envDefaults, setEnvDefaults] = useState<EnvironmentDefaults | null>(null);
   // Production users continue into the setup wizard instead of reloading (2.1)
   const [showSetupWizard, setShowSetupWizard] = useState(false);
+  // The production database is opened before the wizard so its collections exist on first render.
+  const [isInitialisingDatabase, setIsInitialisingDatabase] = useState(false);
+  const [storageError, setStorageError] = useState<unknown>(null);
 
   const handleSetupComplete = useCallback(() => {
     setShowSetupWizard(false);
@@ -124,7 +133,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
     if (step === 'choose' && !selectedPath && envDefaults) {
       setSelectedPath(envDefaults.recommendedPath);
     }
-  }, [step, envDefaults?.recommendedPath, selectedPath]);
+  }, [step, envDefaults, selectedPath]);
 
   const handleSelectPath = useCallback((path: 'demo' | 'production') => {
     setSelectedPath(path);
@@ -156,14 +165,25 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           },
         });
 
-        // Mark onboarding complete
+        setIsInitialisingDatabase(true);
+        try {
+          await dbManager.initialize();
+        } catch (initError) {
+          logger.error('[FirstRunOnboarding] Database initialisation failed:', initError);
+          setStorageError(initError ?? new Error('Database initialisation failed'));
+          return;
+        } finally {
+          setIsInitialisingDatabase(false);
+          setIsProcessing(false);
+        }
+
+        // Only a database that opened counts as completed onboarding.
         saveOnboardingState({
           hasCompletedOnboarding: true,
           completedAt: new Date().toISOString(),
           initialPath: 'production',
         });
 
-        setIsProcessing(false);
         setShowSetupWizard(true);
         return;
       } else {
@@ -220,6 +240,35 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
             Detecting your environment...
           </p>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  if (storageError) {
+    return <StorageUnavailableScreen error={storageError} />;
+  }
+
+  if (isInitialisingDatabase) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="max-w-lg w-full bg-surface-card rounded-2xl shadow-xl p-8 space-y-6 text-center" aria-busy="true">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-100">
+            <CircleStackIcon className="w-7 h-7 text-primary-600" />
+          </div>
+          <h2 className="text-xl font-bold text-surface-foreground">
+            {t('onboarding.initialising.title', 'Preparing your database')}
+          </h2>
+          <p className="text-surface-muted-fg">
+            {t('onboarding.initialising.detail', 'Opening secure storage on this device. This can take a few seconds.')}
+          </p>
+          <div
+            role="progressbar"
+            aria-label={t('onboarding.initialising.title', 'Preparing your database')}
+            className="h-2 w-full overflow-hidden rounded-full bg-primary-100"
+          >
+            <div className="h-full w-1/3 animate-pulse rounded-full bg-primary-600" />
+          </div>
         </div>
       </div>
     );
