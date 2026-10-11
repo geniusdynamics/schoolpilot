@@ -1,0 +1,98 @@
+# ABOUTME: Nightly school-ops browser probe against a dev server built from consolidation (or a chosen ref).
+# ABOUTME: Uploads the probe report and fails only when PASS count drops below the gate baseline.
+name: Nightly probe
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or SHA to probe
+        required: false
+        default: consolidation
+
+permissions:
+  contents: read
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: '1'
+  PROBE_PORT: '5299'
+
+jobs:
+  probe:
+    name: School-ops probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || 'consolidation' }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for Playwright
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start dev server
+        run: |
+          nohup pnpm exec vite --port "$PROBE_PORT" --strictPort > vite.log 2>&1 &
+          for _ in $(seq 1 90); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PROBE_PORT/")" = "200" ]; then
+              echo "Dev server is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Dev server did not start"
+          cat vite.log
+          exit 1
+
+      - name: Run probe
+        id: probe
+        run: |
+          mkdir -p probe-report
+          BASE_URL="http://localhost:$PROBE_PORT" node scripts/audit/school-ops-probe.mjs --out probe-report/probe.md || echo "Probe reported failing checks"
+
+      - name: Probe report to job summary and compare with baseline
+        run: |
+          if [ ! -f probe-report/probe.md ]; then
+            echo "## School-ops probe" >> "$GITHUB_STEP_SUMMARY"
+            echo "No probe report was written." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          PASS=$(grep -c '| PASS |' probe-report/probe.md || true)
+          BASELINE=$(node -p "JSON.parse(require('fs').readFileSync('scripts/prd/gate-baseline.json','utf8')).probe.pass")
+          {
+            echo "## School-ops probe: $PASS PASS (baseline $BASELINE)"
+            echo
+            cat probe-report/probe.md
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$PASS" -lt "$BASELINE" ]; then
+            echo "Probe PASS count $PASS is below baseline $BASELINE"
+            exit 1
+          fi
+
+      - name: Upload probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-ops-probe-${{ github.run_id }}
+          path: |
+            probe-report/
+            vite.log
+          if-no-files-found: warn
+          retention-days: 14

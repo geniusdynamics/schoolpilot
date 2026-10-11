@@ -465,8 +465,12 @@ const userRoleSchema: DatabaseSchema = createDatabaseSchema({
   required: ['id', 'user_id', 'role_id', 'created_at', 'updated_at']
 });
 
+// housesCollections is typed Record<string, ...>, so its keys are listed here for the CollectionName union.
+// collectionRegistry.test.ts asserts this list matches the houses module.
+export const HOUSES_COLLECTION_NAMES = ['houses', 'point_categories', 'point_transactions'] as const;
+
 // --- Master Collections Definition (Provider-agnostic) ---
-export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> = {
+const registeredCollections = {
   // Core Collections (24 total)
   app_settings: { schema: appSettingsSchema },
   school_details: { schema: schoolDetailsSchema },
@@ -520,7 +524,17 @@ export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> =
   ...housesCollections,
   ...pickupCollections,
   ...portalCollections,
-};
+} satisfies Record<string, { schema: DatabaseSchema }>;
+
+// Drops index-signature keys (from Record-typed module maps) so only literal collection names remain.
+type LiteralKeys<T> = keyof { [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K] };
+
+/** Every registered collection name. useDatabaseCollection will require it once P0-B05 lands. */
+export type CollectionName =
+  | Extract<LiteralKeys<typeof registeredCollections>, string>
+  | (typeof HOUSES_COLLECTION_NAMES)[number];
+
+export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> = registeredCollections;
 
 // ID Generation utilities (moved from rxdbService.ts)
 export const generateId = (): string => crypto.randomUUID();

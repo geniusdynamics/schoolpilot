@@ -289,10 +289,9 @@ const AlumniManagementPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="indigo"
-      />
-      <div className="mt-4">
+      >
         {React.createElement(activeComponent)}
-      </div>
+      </PageHeaderWithTabs>
     </div>
   );
 };

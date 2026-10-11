@@ -89,8 +89,9 @@ const CertificatesPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="violet"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

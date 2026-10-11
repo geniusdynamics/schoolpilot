@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { UserGroupIcon, DocumentAddIcon } from '@/components/ui/icons';
 import { useAdministration } from '../hooks/useAdministration';
-import { usePageActions } from '@/hooks/usePageActions';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DataGrid, DataGridColumn } from '@/components/ui';
@@ -18,7 +17,6 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 
-import { ActionDefinition } from '@/services/ui/types';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import { BulkStreamCreationContent } from './BulkStreamCreationPage';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -73,36 +71,6 @@ export const ClassesContent: React.FC = () => {
   const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
   const [editingStream, setEditingStream] = useState<ClassStream | null>(null);
   const [selectedClassForStream, setSelectedClassForStream] = useState<SchoolClass | null>(null);
-
-  // Page actions hook (actions are registered by child hub components)
-
-  // Memoize action definitions to prevent infinite loops
-  const baseActions = useMemo((): ActionDefinition[] => {
-    const actions: ActionDefinition[] = [
-      {
-        id: 'add-class',
-        label: t('classes.addClassButton'),
-        icon: 'plus',
-        onClick: () => openClassModal(),
-        variant: 'primary'
-      }
-    ];
-    
-    // Add stream action if a class is selected
-    if (selectedClassForStream) {
-      actions.push({
-        id: 'add-stream',
-        label: t('classes.addStreamButton'),
-        icon: 'plus',
-        onClick: () => openStreamModal(undefined, selectedClassForStream),
-        variant: 'secondary'
-      });
-    }
-    
-    return actions;
-  }, [t, selectedClassForStream]);
-
-  usePageActions(baseActions, { autoRegister: true });
 
   const resolvedClassStreams = useMemo(() => {
     if (!classStreams || !Array.isArray(classStreams)) return [];
@@ -250,7 +218,14 @@ export const ClassesContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title={t('classes.title')}>
+      <Card
+        title={t('classes.title')}
+        actions={
+          <Button size="sm" onClick={() => openClassModal()} leftIcon={<PlusIcon className="w-4 h-4" />}>
+            {t('classes.addClassButton')}
+          </Button>
+        }
+      >
         <DataGrid 
           columns={classColumns} 
           data={classes || []} 
@@ -267,7 +242,19 @@ export const ClassesContent: React.FC = () => {
       </Card>
 
       {selectedClassForStream && (
-        <Card title={t('classes.streamsTitle', {className: selectedClassForStream.name})}>
+        <Card
+          title={t('classes.streamsTitle', {className: selectedClassForStream.name})}
+          actions={
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => openStreamModal(undefined, selectedClassForStream)}
+              leftIcon={<PlusIcon className="w-4 h-4" />}
+            >
+              {t('classes.addStreamButton')}
+            </Button>
+          }
+        >
           <DataGrid 
             columns={streamColumns} 
             data={streamsForSelectedClass} 
@@ -397,8 +384,9 @@ const ClassesPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="indigo"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

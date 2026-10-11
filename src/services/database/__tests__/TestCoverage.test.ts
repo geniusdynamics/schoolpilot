@@ -102,10 +102,11 @@ describe('Database Test Coverage Analysis', () => {
           const functions = (content.match(/(?:function|async\s+function|\w+\s*\()/g) || []).length;
           const branches = (content.match(/(?:if|else|switch|case|while|for|\?|&&|\|\|)/g) || []).length;
 
-          // Simulate coverage (in real implementation, this would come from coverage tools)
-          const lineCoverage = Math.random() * 40 + 60; // 60-100%
-          const functionCoverage = Math.random() * 30 + 70; // 70-100%
-          const branchCoverage = Math.random() * 50 + 50; // 50-100%
+          // Simulated coverage (in a real implementation this comes from coverage tools).
+          // Fixed at the midpoint of each simulated range so the result is deterministic.
+          const lineCoverage = 80; // midpoint of 60-100%
+          const functionCoverage = 85; // midpoint of 70-100%
+          const branchCoverage = 75; // midpoint of 50-100%
 
           coverageReport.totalLines += lines;
           coverageReport.totalFunctions += functions;
@@ -278,7 +279,6 @@ describe('Database Test Coverage Analysis', () => {
 
       // Test distribution should be balanced
       const unitTestRatio = qualityMetrics.unitTests / qualityMetrics.totalTests;
-      const integrationTestRatio = qualityMetrics.integrationTests / qualityMetrics.totalTests;
 
       // Ratios are informational after the test-remediation reshuffle: the
       // analyzed directory is now unit-oriented (integration suites moved to

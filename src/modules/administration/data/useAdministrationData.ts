@@ -4,12 +4,13 @@ import { logger } from '@/utils/logging';
 // ABOUTME: Clubs, Partners, Attendance, Guardians, Health Records, Disciplinary records
 // ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import { useToastHelpers } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from './types';
 import type { StudentDetailProfile } from '@/core/types';
+import { StudentStatus } from '@/core/types';
 
 export function useAdministrationData() {
   const studentsCollection = useDatabaseCollection<allTypes.Student>('students');
@@ -30,6 +31,7 @@ export function useAdministrationData() {
   const healthIncidentReportsCollection = useDatabaseCollection<any>('health_incident_reports');
   const studentClassHistoryCollection = useDatabaseCollection<any>('student_class_history');
   const studentGuardianRelationshipsCollection = useDatabaseCollection<allTypes.StudentGuardianRelationship>('student_guardian_relationships');
+  const schoolDetailsCollection = useDatabaseCollection<any>('school_details');
 
   const toast = useToastHelpers();
 
@@ -247,6 +249,56 @@ export function useAdministrationData() {
     return studentHealthRecordsCollection.update(id, data);
   }, [studentHealthRecordsCollection]);
 
+  const deleteStudentHealthRecord = useCallback(async (id: string) => {
+    return studentHealthRecordsCollection.remove(id);
+  }, [studentHealthRecordsCollection]);
+
+  // ── School Details (single profile record) ────────────────────────────────────
+  const updateSchoolDetails = useCallback(async (id: string, patch: Record<string, unknown>) => {
+    const db = await databaseService.getDatabase();
+    const existing = await db.getCollection('school_details')?.findById(id);
+    const now = new Date().toISOString();
+    if (existing) return schoolDetailsCollection.update(id, { ...patch, updated_at: now });
+    return schoolDetailsCollection.insert({ created_at: now, ...patch, id, updated_at: now });
+  }, [schoolDetailsCollection]);
+
+  // ── Student Class History ─────────────────────────────────────────────────────
+  const addStudentClassHistory = useCallback(async (data: Record<string, unknown>) => {
+    return studentClassHistoryCollection.insert({ created_at: new Date().toISOString(), ...data });
+  }, [studentClassHistoryCollection]);
+
+  const updateStudentClassHistory = useCallback(async (id: string, data: Record<string, unknown>) => {
+    return studentClassHistoryCollection.update(id, data);
+  }, [studentClassHistoryCollection]);
+
+  const deleteStudentClassHistory = useCallback(async (id: string) => {
+    return studentClassHistoryCollection.remove(id);
+  }, [studentClassHistoryCollection]);
+
+  const getStudentClassHistory = useCallback((studentId: string) => {
+    return studentClassHistoryCollection.data
+      .filter((entry: any) => String(entry.student_id) === String(studentId))
+      .sort((a: any, b: any) => String(a.start_date ?? '').localeCompare(String(b.start_date ?? '')));
+  }, [studentClassHistoryCollection.data]);
+
+  // ── Transfer Certificates ─────────────────────────────────────────────────────
+  const transferCertificateStudents = useMemo<allTypes.TransferCertificateStudent[]>(() =>
+    studentsCollection.data
+      .filter((student) => student.status === StudentStatus.TRANSFERRED)
+      .map((student: any) => ({
+        id: student.id,
+        student_id: student.admission_no ?? '',
+        name: [student.first_name, student.middle_name, student.last_name].filter(Boolean).join(' '),
+        class_name: student.current_class_name ?? '',
+        section: student.current_class_stream_name ?? '',
+        roll_number: student.admission_no ?? '',
+        admission_date: student.admission_date ?? '',
+        father_name: student.father_name ?? '',
+        mother_name: student.mother_name ?? '',
+        date_of_birth: student.date_of_birth ?? '',
+        address: student.address ?? '',
+      })), [studentsCollection.data]);
+
   // ── Attendance ────────────────────────────────────────────────────────────────
   const saveStudentAttendance = useCallback(async (attendanceData: any) => {
     return studentAttendanceCollection.insert(attendanceData);
@@ -307,6 +359,8 @@ export function useAdministrationData() {
     disciplinaryRecords: disciplinaryRecordsCollection.data,
     healthIncidentReports: healthIncidentReportsCollection.data,
     studentClassHistory: studentClassHistoryCollection.data,
+    schoolDetails: schoolDetailsCollection.data[0] ?? null,
+    transferCertificateStudents,
 
     // CRUD
     getStudentDetailsById,
@@ -323,7 +377,9 @@ export function useAdministrationData() {
     addPartner, updatePartner, deletePartner,
     addClub, updateClub, deleteClub,
     addCustomer, updateCustomer, deleteCustomer,
-    addStudentHealthRecord, updateStudentHealthRecord,
+    addStudentHealthRecord, updateStudentHealthRecord, deleteStudentHealthRecord,
+    updateSchoolDetails,
+    addStudentClassHistory, updateStudentClassHistory, deleteStudentClassHistory, getStudentClassHistory,
     saveStudentAttendance, getStudentAttendanceByFilters,
 
     // Aliases for page compatibility
@@ -340,5 +396,6 @@ export function useAdministrationData() {
     createClub: addClub,
     createCustomer: addCustomer,
     createStudentHealthRecord: addStudentHealthRecord,
+    createStudentClassHistory: addStudentClassHistory,
   };
 }

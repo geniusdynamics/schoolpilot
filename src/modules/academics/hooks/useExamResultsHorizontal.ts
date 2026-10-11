@@ -37,7 +37,7 @@ export interface ExamResultsHorizontalRow {
  * Aggregates data from:
  * - student_exam_results (core result records)
  * - student_paper_marks (individual paper scores)
- * - exam_paper_settings (paper weight/marks_out_of)
+ * - exam_sessions.paper_settings (paper weight/marks_out_of, nested in each session)
  * - subject_papers (link between paper settings and subjects)
  * - subjects (subject names and abbreviations)
  * - exam_sessions (exam name)
@@ -55,7 +55,6 @@ export interface ExamResultsHorizontalRow {
 export function useExamResultsHorizontal() {
   const studentExamResultsCol = useDatabaseCollection<Record<string, any>>('student_exam_results');
   const studentPaperMarksCol = useDatabaseCollection<Record<string, any>>('student_paper_marks');
-  const examPaperSettingsCol = useDatabaseCollection<Record<string, any>>('exam_paper_settings');
   const subjectPapersCol = useDatabaseCollection<Record<string, any>>('subject_papers');
   const subjectsCol = useDatabaseCollection<Record<string, any>>('subjects');
   const examSessionsCol = useDatabaseCollection<Record<string, any>>('exam_sessions');
@@ -65,7 +64,6 @@ export function useExamResultsHorizontal() {
     if (
       studentExamResultsCol.loading ||
       studentPaperMarksCol.loading ||
-      examPaperSettingsCol.loading ||
       subjectPapersCol.loading ||
       subjectsCol.loading ||
       examSessionsCol.loading ||
@@ -76,10 +74,10 @@ export function useExamResultsHorizontal() {
 
     const examResults = studentExamResultsCol.data;
     const paperMarks = studentPaperMarksCol.data;
-    const paperSettings = examPaperSettingsCol.data;
     const subjectPapersList = subjectPapersCol.data;
     const subjects = subjectsCol.data;
     const examSessions = examSessionsCol.data;
+    const paperSettings: Record<string, any>[] = examSessions.flatMap(session => session.paper_settings || []);
     const students = studentsCol.data;
 
     // Build lookup maps for O(1) access
@@ -181,35 +179,35 @@ export function useExamResultsHorizontal() {
     return result;
   }, [
     studentExamResultsCol.data, studentPaperMarksCol.data,
-    examPaperSettingsCol.data, subjectPapersCol.data,
+    subjectPapersCol.data,
     subjectsCol.data, examSessionsCol.data, studentsCol.data,
     studentExamResultsCol.loading, studentPaperMarksCol.loading,
-    examPaperSettingsCol.loading, subjectPapersCol.loading,
+    subjectPapersCol.loading,
     subjectsCol.loading, examSessionsCol.loading, studentsCol.loading,
   ]);
 
+  const { refresh: refreshExamResults } = studentExamResultsCol;
+  const { refresh: refreshPaperMarks } = studentPaperMarksCol;
+  const { refresh: refreshSubjectPapers } = subjectPapersCol;
+  const { refresh: refreshSubjects } = subjectsCol;
+  const { refresh: refreshExamSessions } = examSessionsCol;
+  const { refresh: refreshStudents } = studentsCol;
   const refresh = useCallback(async () => {
     await Promise.all([
-      studentExamResultsCol.refresh(),
-      studentPaperMarksCol.refresh(),
-      examPaperSettingsCol.refresh(),
-      subjectPapersCol.refresh(),
-      subjectsCol.refresh(),
-      examSessionsCol.refresh(),
-      studentsCol.refresh(),
+      refreshExamResults(),
+      refreshPaperMarks(),
+      refreshSubjectPapers(),
+      refreshSubjects(),
+      refreshExamSessions(),
+      refreshStudents(),
     ]);
-  }, [
-    studentExamResultsCol.refresh, studentPaperMarksCol.refresh,
-    examPaperSettingsCol.refresh, subjectPapersCol.refresh,
-    subjectsCol.refresh, examSessionsCol.refresh, studentsCol.refresh,
-  ]);
+  }, [refreshExamResults, refreshPaperMarks, refreshSubjectPapers, refreshSubjects, refreshExamSessions, refreshStudents]);
 
   return {
     data,
     loading:
       studentExamResultsCol.loading ||
       studentPaperMarksCol.loading ||
-      examPaperSettingsCol.loading ||
       subjectPapersCol.loading ||
       subjectsCol.loading ||
       examSessionsCol.loading ||
@@ -217,7 +215,6 @@ export function useExamResultsHorizontal() {
     error:
       studentExamResultsCol.error ||
       studentPaperMarksCol.error ||
-      examPaperSettingsCol.error ||
       subjectPapersCol.error ||
       subjectsCol.error ||
       examSessionsCol.error ||

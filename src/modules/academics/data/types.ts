@@ -198,6 +198,7 @@ export interface ExamSchedule {
   room_number?: string;
   // UI / seeded-data shape (SchedulingCalendar and mock data)
   exam_session_id?: string;
+  subject_paper_id?: number;
   room?: string;
   invigilator?: string;
   date?: string;

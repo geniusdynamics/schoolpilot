@@ -7,7 +7,14 @@ import { logger } from '@/utils/logging';
 import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getCurrentUnifiedConfig, updateAppConfig } from '../config/unifiedConfig';
 import { UnifiedDatabaseManager } from '../services/database/UnifiedDatabaseManager';
-import type { AppDataContextType, AppDataLoadingStates } from '../core/types';
+import {
+  StorageUnavailableError,
+  STORAGE_OPEN_TIMEOUT_MS,
+  getSQLiteStorageStatus,
+  subscribeSQLiteStorageStatus
+} from '../services/database/SQLiteWASMProvider';
+import { StorageUnavailableScreen } from '../components/StorageUnavailableScreen';
+import type { AppDataContextType } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
 import { NetworkStateManager, NetworkState } from '../services/data/NetworkStateManager';
 import { getDataModeManager } from '../services/data/dataModeManager';
@@ -18,8 +25,6 @@ import {
   createAppDataLoadingState,
   normalizeAppDataCollections
 } from './appData/appDataCollections';
-import { BackupRestoreProvider, useBackupRestoreContext } from './appData/BackupRestoreContext';
-import { DataGenerationProvider, useDataGenerationContext } from './appData/DataGenerationContext';
 import { usePaginationContext } from './appData/PaginationContext';
 import { useValidationContext } from './appData/ValidationContext';
 import {
@@ -282,7 +287,7 @@ const AppDataValueProvider: React.FC<{
   coreValue: Partial<AppDataContextType>;
 }> = ({ children, coreValue }) => {
 
-  const { getCollectionPage } = usePaginationContext();
+  usePaginationContext();
   const { validateData } = useValidationContext();
 
   const value = useMemo(() => ({
@@ -295,6 +300,9 @@ const AppDataValueProvider: React.FC<{
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
 };
+
+/** Database init budget: longer than the storage worker's open timeout so a slow OPFS open can finish. */
+export const APP_DATA_INIT_TIMEOUT_MS = STORAGE_OPEN_TIMEOUT_MS + 15000;
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -386,7 +394,15 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
         const initPromise = dbManager.initialize();
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database initialization timeout')), 15000);
+          setTimeout(() => {
+            // A SQLite store that never finished opening has no persistent storage.
+            const status = getSQLiteStorageStatus();
+            const opening = dbManager.getProviderType() === 'sqlite-wasm' &&
+              (status.mode === 'uninitialised' || status.mode === 'unavailable');
+            reject(opening
+              ? new StorageUnavailableError('Persistent storage did not open in time (it may be locked by another tab)')
+              : new Error('Database initialization timeout'));
+          }, APP_DATA_INIT_TIMEOUT_MS);
         });
 
         await Promise.race([initPromise, timeoutPromise]);
@@ -437,7 +453,23 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       mounted = false;
     };
+    // Initialisation runs once per data mode; loadAllCollections is read when it runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.dataMode, dbManager, toast]);
+
+  // A write that fails to persist makes storage unavailable: block the app.
+  useEffect(() => {
+    const check = () => {
+      const status = getSQLiteStorageStatus();
+      if (status.mode === 'unavailable') {
+        setError((current) => current instanceof StorageUnavailableError
+          ? current
+          : new StorageUnavailableError(status.error || 'Persistent storage is unavailable'));
+      }
+    };
+    check();
+    return subscribeSQLiteStorageStatus(check);
+  }, []);
 
   // Store sync settings in ref to avoid dependency
   const syncSettingsRef = useRef(syncSettings);
@@ -900,7 +932,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dbManager, toast]);
 
-  const { getCollectionPage } = usePaginationContext();
+  usePaginationContext();
 
   // Task 4.4.3: Memory management - Cleanup old data
   const cleanupOldData = useCallback(async (daysOld: number = 30) => {
@@ -949,6 +981,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
 
   // Task 4.4.4: Provider capability detection
@@ -1021,7 +1054,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return `Hybrid mode - Local ${providerType} with limited connectivity`;
   }, [dbManager, currentDataMode]);
 
-  const { validateData } = useValidationContext();
+  useValidationContext();
 
   // Task 4.4.8: Data strategy configuration
   const getDataSourceConfig = useCallback((): DataSourceConfig => {
@@ -1048,6 +1081,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     toast.showSuccess(`Data strategy updated to: ${newStrategy}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.environment]); // Removed toast to prevent re-render loop
 
   // ========== Task 5: Migrate Mock Data System to Database ==========
@@ -1831,9 +1865,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     addClass, updateClass, deleteClass,
     addClassStream, updateClassStream, deleteClassStream,
     addDepartment, updateDepartment, deleteDepartment,
-    addAcademicYear, updateAcademicYear, deleteAcademicYear,
-    config.environment,
-    loadAllCollections
+    addAcademicYear, updateAcademicYear, deleteAcademicYear
   ]); // Removed toast from dependencies to prevent re-render loop
 
   // Sync shared entities to SharedDataStore for non-React access
@@ -1869,6 +1901,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         <span className="ml-2 text-surface-muted-fg">Loading application data...</span>
       </div>
     );
+  }
+
+  // Without persistent storage nothing may be written: block the app.
+  if (error instanceof StorageUnavailableError) {
+    return <StorageUnavailableScreen error={error} />;
   }
 
   // Error state with recovery options

@@ -1,3 +1,6 @@
+// ABOUTME: Manual daily roll-call: pick a class stream, mark learners Present/Absent/Late and save.
+// ABOUTME: Options come from class streams (value = stream id); saving writes one mark per learner per date/session.
+
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
@@ -9,6 +12,9 @@ import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 type AttendanceStatus = 'Present' | 'Absent' | 'Late';
+
+/** Session key for a manual full-day roll-call; (student_id, date, session) identifies a mark. */
+const MANUAL_SESSION = 'full_day';
 
 /** Shape of a row in the manual attendance grid (derived from live students). */
 interface ManualAttendanceRecord {
@@ -24,7 +30,7 @@ interface ManualAttendanceRecord {
 }
 
 export const ManualAttendanceContent: React.FC = () => {
-  const { students, loading, saveStudentAttendance } = useAppData();
+  const { students, classes, classStreams, loading, saveStudentAttendance } = useAppData();
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedClass, setSelectedClass] = useState('');
@@ -32,9 +38,25 @@ export const ManualAttendanceContent: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<Record<string, AttendanceStatus>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Live student roster rows for the selected day
-  const attendanceRows: ManualAttendanceRecord[] = useMemo(() => {
-    let rows: ManualAttendanceRecord[] = (students || [])
+  // Class stream options: value is the stream id, label is "<level> · <stream>".
+  const streamOptions = useMemo(() => {
+    const levelNameById = new Map((classes || []).map(c => [String(c.id), c.name]));
+    return (classStreams || [])
+      .map(cs => {
+        const level = levelNameById.get(String(cs.class_id)) || cs.class_name || '';
+        return { value: String(cs.id), label: [level, cs.name].filter(Boolean).join(' · ') };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+  }, [classes, classStreams]);
+
+  const streamLabelById = useMemo(
+    () => new Map(streamOptions.map(o => [o.value, o.label])),
+    [streamOptions]
+  );
+
+  // Roll-call for the selected class stream (all learners when no class is chosen)
+  const rollCallRows: ManualAttendanceRecord[] = useMemo(() => {
+    const rows: ManualAttendanceRecord[] = (students || [])
       .filter(s => !s.deleted_at)
       .map(s => ({
         id: String(s.id),
@@ -42,16 +64,20 @@ export const ManualAttendanceContent: React.FC = () => {
         student_name: s.display_name || `${s.first_name} ${s.last_name}`.trim(),
         admission_no: s.admission_no,
         class_id: String(s.current_class_stream_id ?? ''),
-        class_name: [s.current_class_name, s.current_class_stream_name].filter(Boolean).join(' - ') || '-',
+        class_name: streamLabelById.get(String(s.current_class_stream_id ?? ''))
+          || [s.current_class_name, s.current_class_stream_name].filter(Boolean).join(' · ')
+          || '-',
         date: selectedDate,
         status: attendanceData[String(s.id)] || 'Present',
         notes: ''
       }));
 
-    if (selectedClass) {
-      rows = rows.filter(r => r.class_id === selectedClass);
-    }
+    return selectedClass ? rows.filter(r => r.class_id === selectedClass) : rows;
+  }, [students, selectedDate, selectedClass, attendanceData, streamLabelById]);
 
+  // Rows shown in the grid (roll-call narrowed by the search box)
+  const attendanceRows: ManualAttendanceRecord[] = useMemo(() => {
+    let rows = rollCallRows;
     if (searchTerm) {
       rows = rows.filter(r =>
         (r.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
@@ -60,7 +86,7 @@ export const ManualAttendanceContent: React.FC = () => {
     }
 
     return rows;
-  }, [students, selectedDate, selectedClass, searchTerm, attendanceData]);
+  }, [rollCallRows, searchTerm]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceData(prev => ({ ...prev, [studentId]: status }));
@@ -68,23 +94,26 @@ export const ManualAttendanceContent: React.FC = () => {
 
   const toast = useToast();
   const handleSaveAttendance = async () => {
-    if (Object.keys(attendanceData).length === 0) {
+    if (rollCallRows.length === 0) {
       toast.showWarning('Mark at least one student before saving.');
       return;
     }
     setIsSaving(true);
     logger.info('Saving attendance:', attendanceData);
     try {
-      const records = Object.entries(attendanceData).map(([studentId, status]) => {
-        const row = attendanceRows.find(r => r.student_id === studentId);
+      // One mark per learner on the roll-call; unmarked learners default to Present.
+      const records = rollCallRows.map(row => {
+        const status = attendanceData[row.student_id] ?? 'Present';
         return {
-          student_id: studentId,
+          student_id: row.student_id,
+          class_stream_id: row.class_id,
           period_id: 0, // Manual full-day entry (no timetable period)
           period_name: 'Manual Entry',
+          session: MANUAL_SESSION,
           date: selectedDate,
           status,
           reason_for_absence: status === 'Absent' ? 'Marked absent manually' : '',
-          student_name: row?.student_name || ''
+          student_name: row.student_name
         };
       });
       await saveStudentAttendance(records);
@@ -96,19 +125,6 @@ export const ManualAttendanceContent: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const getStatusBadge = (status: AttendanceStatus) => {
-    const styles = {
-      'Present': 'bg-green-100 text-green-800',
-      'Absent': 'bg-red-100 text-red-800',
-      'Late': 'bg-yellow-100 text-yellow-800'
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
-        {status}
-      </span>
-    );
   };
 
   const columns: DataGridColumn<ManualAttendanceRecord>[] = [
@@ -165,11 +181,6 @@ export const ManualAttendanceContent: React.FC = () => {
     }
   ];
 
-  const uniqueClasses = useMemo(() => {
-    const classNames = [...new Set(attendanceRows.map(r => r.class_name))];
-    return classNames.filter(name => name !== '-');
-  }, [attendanceRows]);
-
   const totals = useMemo(() => {
     return {
       total: attendanceRows.length,
@@ -197,7 +208,7 @@ export const ManualAttendanceContent: React.FC = () => {
             <span>Manual Attendance</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => void handleSaveAttendance()} variant="primary" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save Attendance'}
           </Button>
@@ -275,8 +286,8 @@ export const ManualAttendanceContent: React.FC = () => {
               className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Classes</option>
-              {uniqueClasses.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
+              {streamOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>

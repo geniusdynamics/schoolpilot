@@ -80,8 +80,9 @@ const ExpensesPage: React.FC = () => {
         onTabChange={handleTabChange}
         variant="compact"
         colorScheme="orange"
-      />
-      <div className="mt-4">{activeTabData.component}</div>
+      >
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };

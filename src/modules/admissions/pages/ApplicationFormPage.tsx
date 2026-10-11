@@ -1,4 +1,8 @@
-﻿import React, { useState } from 'react';
+// ABOUTME: Staff-facing admissions application form: a four-step wizard capturing student, guardian and academic details.
+// ABOUTME: Each step passes {id, title, content, validate} to WizardForm; required fields block progression and submission.
+
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -12,16 +16,26 @@ import {
   ApplicationType,
 } from '../data/types';
 import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 import FormContainer from '@/components/ui/forms/FormContainer';
 import FormHeader from '@/components/ui/forms/FormHeader';
-import WizardForm from '@/components/ui/forms/WizardForm';
+import WizardForm, { WizardStep } from '@/components/ui/forms/WizardForm';
 
-const steps = [
-  { id: 1, name: 'Student Information', icon: UserIcon },
-  { id: 2, name: 'Guardian Information', icon: UsersIcon },
-  { id: 3, name: 'Academic Background', icon: AcademicCapIcon },
-  { id: 4, name: 'Review & Submit', icon: EyeIcon },
-];
+type StepId = 'student' | 'guardian' | 'academic' | 'review';
+
+/** Fields that must be non-empty before the wizard may leave the given step. */
+const REQUIRED_FIELDS: Record<StepId, (keyof ApplicationFormData)[]> = {
+  student: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'intendedClassId'],
+  guardian: ['guardianFirstName', 'guardianLastName', 'guardianPhone'],
+  academic: [],
+  review: [],
+};
+
+const isBlank = (value: unknown) =>
+  value === undefined || value === null || String(value).trim() === '';
+
+const missingFields = (data: ApplicationFormData, stepIds: StepId[]) =>
+  stepIds.flatMap(stepId => REQUIRED_FIELDS[stepId].filter(field => isBlank(data[field])));
 
 const initialFormData: ApplicationFormData = {
   firstName: '',
@@ -57,37 +71,47 @@ const initialFormData: ApplicationFormData = {
 
 export const ApplicationFormPageContent: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('admissions');
   const { createApplication } = useAdmissionsData();
   const { showToast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ApplicationFormData>(initialFormData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [invalidStep, setInvalidStep] = useState<StepId | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'kcpeMarks' ? (value === '' ? undefined : Number(value)) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(prev => prev + 1);
-    }
+  /** Returns true when every required field of the given steps is filled; otherwise flags the step. */
+  const validateSteps = (flagStep: StepId, stepIds: StepId[]) => {
+    const valid = missingFields(formData, stepIds).length === 0;
+    setInvalidStep(valid ? null : flagStep);
+    return valid;
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
+  const showFieldError = (stepId: StepId, field: keyof ApplicationFormData) =>
+    invalidStep === stepId && isBlank(formData[field]);
+
+  const renderStepError = (stepId: StepId) =>
+    invalidStep === stepId ? (
+      <div
+        role="alert"
+        className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+      >
+        {stepId === 'review'
+          ? t('applicationForm.validation.incompleteApplication', 'Some required fields are missing. Go back and complete all required fields before submitting.')
+          : t('applicationForm.validation.requiredFields', 'Please fill in all required fields (marked *) before continuing.')}
+      </div>
+    ) : null;
 
   const handleCancel = () => {
     navigate('/admissions/applications');
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
     try {
       await createApplication(formData);
       showToast({
@@ -96,37 +120,11 @@ export const ApplicationFormPageContent: React.FC = () => {
       });
       navigate('/admissions/applications');
     } catch (error) {
+      logger.error('Failed to submit admission application:', error);
       showToast({
         type: 'error',
         message: 'Failed to submit application. Please try again.',
       });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          formData.firstName &&
-          formData.lastName &&
-          formData.dateOfBirth &&
-          formData.gender &&
-          formData.intendedClassId
-        );
-      case 2:
-        return (
-          formData.guardianFirstName &&
-          formData.guardianLastName &&
-          formData.guardianPhone
-        );
-      case 3:
-        return true; // Academic background is optional
-      case 4:
-        return true;
-      default:
-        return false;
     }
   };
 
@@ -134,6 +132,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   const renderStudentInfo = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-surface-foreground">Student Information</h3>
+      {renderStepError('student')}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Input
           name="firstName"
@@ -141,6 +140,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.firstName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'firstName')}
         />
         <Input
           name="middleName"
@@ -154,6 +154,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.lastName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'lastName')}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -164,6 +165,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.dateOfBirth}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'dateOfBirth')}
         />
         <Select
           name="gender"
@@ -171,6 +173,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.gender}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'gender')}
         >
           {Object.values(Gender).map(gender => (
             <option key={gender} value={gender}>
@@ -221,6 +224,7 @@ export const ApplicationFormPageContent: React.FC = () => {
             value={formData.intendedClassId}
             onChange={handleInputChange}
             required
+            errorState={showFieldError('student', 'intendedClassId')}
             placeholder="Enter class ID"
           />
           <Input
@@ -239,6 +243,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   const renderGuardianInfo = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-surface-foreground">Guardian Information</h3>
+      {renderStepError('guardian')}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Select
           name="guardianType"
@@ -259,6 +264,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.guardianFirstName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('guardian', 'guardianFirstName')}
         />
         <Input
           name="guardianLastName"
@@ -266,6 +272,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.guardianLastName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('guardian', 'guardianLastName')}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -275,6 +282,7 @@ export const ApplicationFormPageContent: React.FC = () => {
           value={formData.guardianPhone}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('guardian', 'guardianPhone')}
         />
         <Input
           name="guardianEmail"
@@ -381,6 +389,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   const renderReview = () => (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold text-surface-foreground">Review Application</h3>
+      {renderStepError('review')}
       
       <div className="bg-surface-muted p-4 rounded-lg">
         <h4 className="font-medium text-surface-foreground mb-2">Student Information</h4>
@@ -429,20 +438,36 @@ export const ApplicationFormPageContent: React.FC = () => {
     </div>
   );
 
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return renderStudentInfo();
-      case 2:
-        return renderGuardianInfo();
-      case 3:
-        return renderAcademicBackground();
-      case 4:
-        return renderReview();
-      default:
-        return null;
-    }
-  };
+  const steps: WizardStep[] = [
+    {
+      id: 'student',
+      title: 'Student Information',
+      icon: <UserIcon className="w-5 h-5" />,
+      content: renderStudentInfo(),
+      validate: () => validateSteps('student', ['student']),
+    },
+    {
+      id: 'guardian',
+      title: 'Guardian Information',
+      icon: <UsersIcon className="w-5 h-5" />,
+      content: renderGuardianInfo(),
+      validate: () => validateSteps('guardian', ['guardian']),
+    },
+    {
+      id: 'academic',
+      title: 'Academic Background',
+      icon: <AcademicCapIcon className="w-5 h-5" />,
+      content: renderAcademicBackground(),
+      optional: true,
+    },
+    {
+      id: 'review',
+      title: 'Review & Submit',
+      icon: <EyeIcon className="w-5 h-5" />,
+      content: renderReview(),
+      validate: () => validateSteps('review', ['student', 'guardian']),
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto">

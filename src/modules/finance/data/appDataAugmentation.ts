@@ -34,6 +34,7 @@ import type {
   StudentPaymentRecord,
   TrialBalanceItem,
 } from './types';
+import type { GenerateTermInvoicesParams, GenerateTermInvoicesResult } from './useFinanceData';
 
 declare module '@/core/types' {
   export interface AppDataType {
@@ -92,5 +93,11 @@ declare module '@/core/types' {
     addSupplierContract: (data: Partial<any>) => Promise<void>;
     updateSupplierContract: (id: string, data: Partial<any>) => Promise<void>;
     deleteSupplierContract: (id: string) => Promise<void>;
+    // Fee Template Items (nested in fee_templates.items)
+    addFeeTemplateItem: (data: Omit<FeeTemplateItem, 'id'>) => Promise<FeeTemplateItem>;
+    updateFeeTemplateItem: (id: string, data: Partial<FeeTemplateItem>) => Promise<FeeTemplateItem | undefined>;
+    deleteFeeTemplateItem: (id: string) => Promise<boolean>;
+    // Term billing: one invoice per learner per fee template and period; dryRun previews only
+    generateTermInvoices: (params: GenerateTermInvoicesParams) => Promise<GenerateTermInvoicesResult>;
   }
 }
