@@ -1,0 +1,23 @@
+{
+  "task": "P0-D04",
+  "locale": "en",
+  "namespaces": {
+    "administration": {
+      "students": {
+        "detail": {
+          "editBioData": "Edit Bio Data",
+          "firstName": "First Name",
+          "middleName": "Middle Name",
+          "lastName": "Last Name",
+          "gender": "Gender",
+          "dateOfBirth": "Date of Birth",
+          "religion": "Religion",
+          "email": "Email",
+          "phone": "Phone",
+          "address": "Address",
+          "remarks": "Remarks/About"
+        }
+      }
+    }
+  }
+}

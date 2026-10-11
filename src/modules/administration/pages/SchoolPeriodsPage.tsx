@@ -1,56 +1,76 @@
-// ABOUTME: Manages school period records and links them to academic years, period definitions, and financial years.
-// ABOUTME: EntityForm-driven create/edit with cross-field date validation (Phase 3.4).
+// ABOUTME: Manages school periods (terms) stored in the database and links them to academic years, period definitions, and financial years.
+// ABOUTME: Seeds a default financial year when none exist; term rules (inside the year, no overlap, one current term) live in useSchoolPeriodData.
 
-import React, { useMemo, useState } from 'react';
-import { SchoolPeriod, AcademicYear, AcademicPeriodDefinition } from '@/types';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useSchoolPeriodData } from '../data/useSchoolPeriodData';
+import { useSchoolPeriodData, type SchoolPeriodRecord } from '../data/useSchoolPeriodData';
 import { useAcademicYearData } from '../data/useAcademicYearData';
 import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
-import { useAppData } from '@/hooks/useAppData';
+import { ensureFinancialYear, useFinancialYearData } from '@/modules/finance/data/useFinancialYearData';
+import { logger } from '@/utils/logging';
 import { useTranslation } from 'react-i18next';
 import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { formatDate } from '@/utils/format';
+
+const asText = (value: unknown): string => (value === undefined || value === null ? '' : String(value));
 
 export const SchoolPeriodsContent: React.FC = () => {
   const { t } = useTranslation();
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { data: academicYears } = useAcademicYearData();
   const { data: academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
-  const { financialYears } = useAppData() as any;
+  const {
+    financialYears,
+    currentFinancialYear,
+    loading: financialYearsLoading,
+    error: financialYearsError,
+    refresh: refreshFinancialYears,
+  } = useFinancialYearData();
+
+  // A term needs a financial year. On a fresh school there is none, so seed the default
+  // (idempotent) once the collection has loaded empty, then reload so the picker shows it.
+  const financialYearSeedAttempted = useRef(false);
+  useEffect(() => {
+    if (financialYearsLoading || financialYearsError || financialYears.length > 0) return;
+    if (financialYearSeedAttempted.current) return;
+    financialYearSeedAttempted.current = true;
+    ensureFinancialYear()
+      .then((seeded) => (seeded ? refreshFinancialYears() : undefined))
+      .catch((err) => logger.error('[SchoolPeriodsPage] Could not seed a default financial year:', err));
+  }, [financialYearsLoading, financialYearsError, financialYears.length, refreshFinancialYears]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPeriod, setEditingPeriod] = useState<SchoolPeriod | null>(null);
+  const [editingPeriod, setEditingPeriod] = useState<SchoolPeriodRecord | null>(null);
 
   const academicYearOptions = useMemo(
-    () => (academicYears || []).map((academicYear: AcademicYear) => ({
-      value: String(academicYear.id),
+    () => academicYears.map((academicYear) => ({
+      value: academicYear.id,
       label: academicYear.name,
     })),
     [academicYears]
   );
 
   const periodDefinitionOptions = useMemo(
-    () => (academicPeriodDefinitions || []).map((periodDefinition: AcademicPeriodDefinition) => ({
-      value: String(periodDefinition.id),
-      label: `${periodDefinition.name} (${periodDefinition.structure_name})`,
+    () => academicPeriodDefinitions.map((periodDefinition) => ({
+      value: periodDefinition.id,
+      label: periodDefinition.structure_name ? `${periodDefinition.name} (${periodDefinition.structure_name})` : periodDefinition.name,
     })),
     [academicPeriodDefinitions]
   );
 
   const financialYearOptions = useMemo(
-    () => (financialYears || []).map((financialYear: { id: number | string; name: string }) => ({
-      value: String(financialYear.id),
+    () => financialYears.map((financialYear) => ({
+      value: financialYear.id,
       label: financialYear.name,
     })),
     [financialYears]
   );
 
-  const openModal = (period?: SchoolPeriod) => {
+  const openModal = (period?: SchoolPeriodRecord) => {
     setEditingPeriod(period || null);
     setIsModalOpen(true);
   };
@@ -60,34 +80,53 @@ export const SchoolPeriodsContent: React.FC = () => {
     setEditingPeriod(null);
   };
 
-  const handleSave = async (values: Record<string, any>) => {
-    const payload = {
-      academic_year_id: Number(values.academic_year_id),
-      period_definition_id: String(values.period_definition_id),
-      financial_year_id: Number(values.financial_year_id),
-      start_date: values.start_date,
-      end_date: values.end_date,
-      mid_break_start: values.mid_break_start || undefined,
-      mid_break_end: values.mid_break_end || undefined,
+  const handleSave = async (values: Record<string, unknown>) => {
+    const academicYearId = asText(values.academic_year_id);
+    const periodDefinitionId = asText(values.period_definition_id);
+    const financialYearId = asText(values.financial_year_id);
+    const academicYearName = academicYears.find((year) => year.id === academicYearId)?.name ?? '';
+    const periodDefinitionName = academicPeriodDefinitions.find((definition) => definition.id === periodDefinitionId)?.name ?? '';
+    const financialYearName = financialYears.find((year) => year.id === financialYearId)?.name ?? '';
+
+    const input = {
+      academic_year_id: academicYearId,
+      period_definition_id: periodDefinitionId,
+      financial_year_id: financialYearId,
+      start_date: asText(values.start_date),
+      end_date: asText(values.end_date),
+      mid_break_start: asText(values.mid_break_start) || null,
+      mid_break_end: asText(values.mid_break_end) || null,
       is_active: Boolean(values.is_active),
-      // Denormalized display names
-      academic_year_name: (academicYears || []).find(ay => String(ay.id) === String(values.academic_year_id))?.name || '',
-      period_definition_name: (academicPeriodDefinitions || []).find(pd => String(pd.id) === String(values.period_definition_id))?.name || '',
-      financial_year_name: (financialYears || []).find((fy: { id: number | string }) => String(fy.id) === String(values.financial_year_id))?.name || '',
-      name: `${(academicPeriodDefinitions || []).find(pd => String(pd.id) === String(values.period_definition_id))?.name || ''} - ${(academicYears || []).find(ay => String(ay.id) === String(values.academic_year_id))?.name || ''}`.trim(),
+      academic_year_name: academicYearName,
+      period_definition_name: periodDefinitionName,
+      financial_year_name: financialYearName,
+      name: [periodDefinitionName, academicYearName].filter(Boolean).join(' - '),
     };
 
     if (editingPeriod) {
-      await updateSchoolPeriod(editingPeriod.id, payload);
+      await updateSchoolPeriod(editingPeriod.id, input);
     } else {
-      await addSchoolPeriod(payload);
+      await addSchoolPeriod(input);
     }
   };
 
+  // Stable per open/edit target: EntityForm resets its values whenever initialData changes identity.
+  const currentFinancialYearId = currentFinancialYear?.id ?? '';
+  const formInitialData = useMemo(() => (editingPeriod ? {
+    academic_year_id: asText(editingPeriod.academic_year_id),
+    period_definition_id: asText(editingPeriod.period_definition_id),
+    financial_year_id: asText(editingPeriod.financial_year_id),
+    start_date: editingPeriod.start_date?.slice(0, 10) ?? '',
+    end_date: editingPeriod.end_date?.slice(0, 10) ?? '',
+    mid_break_start: editingPeriod.mid_break_start?.slice(0, 10) ?? '',
+    mid_break_end: editingPeriod.mid_break_end?.slice(0, 10) ?? '',
+    is_active: editingPeriod.is_active ?? false,
+  } : { financial_year_id: currentFinancialYearId, is_active: false }), [editingPeriod, currentFinancialYearId]);
+
   const confirm = useConfirm();
-  const handleDelete = async (id: number | string) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this school period?' }))) {
-      await deleteSchoolPeriod(id as never);
+      await deleteSchoolPeriod(id);
     }
   };
 
@@ -119,7 +158,7 @@ export const SchoolPeriodsContent: React.FC = () => {
     { name: 'is_active', label: t('schoolPeriods.setActive', 'Set as Active School Period'), type: 'checkbox' },
   ], [t, academicYearOptions, periodDefinitionOptions, financialYearOptions]);
 
-  const columns: DataGridColumn<SchoolPeriod>[] = [
+  const columns: DataGridColumn<SchoolPeriodRecord>[] = [
     {
       key: 'name',
       header: 'Name',
@@ -208,16 +247,7 @@ export const SchoolPeriodsContent: React.FC = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingPeriod ? 'Edit School Period' : 'Add New School Period'}
-        initialData={editingPeriod ? {
-          academic_year_id: editingPeriod.academic_year_id != null ? String(editingPeriod.academic_year_id) : '',
-          period_definition_id: editingPeriod.period_definition_id != null ? String(editingPeriod.period_definition_id) : '',
-          financial_year_id: editingPeriod.financial_year_id != null ? String(editingPeriod.financial_year_id) : '',
-          start_date: editingPeriod.start_date?.slice(0, 10) ?? '',
-          end_date: editingPeriod.end_date?.slice(0, 10) ?? '',
-          mid_break_start: editingPeriod.mid_break_start?.slice(0, 10) ?? '',
-          mid_break_end: editingPeriod.mid_break_end?.slice(0, 10) ?? '',
-          is_active: editingPeriod.is_active ?? false,
-        } : undefined}
+        initialData={formInitialData}
         fields={fields}
         onSubmit={handleSave}
       />

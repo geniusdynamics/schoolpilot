@@ -1,0 +1,12 @@
+{
+  "task": "P0-C05",
+  "locale": "en",
+  "namespaces": {
+    "common": {
+      "academicYears": {
+        "endBeforeStart": "End date must be after the start date.",
+        "overlapsYear": "These dates overlap {{name}}."
+      }
+    }
+  }
+}

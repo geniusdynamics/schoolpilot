@@ -791,10 +791,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws14-authentication-fails-closed",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "2004346",
+      "notes": "Two fix rounds + owner-approved AuthContext login fix; probe C04 PASS; independently verified (APPROVE). Widened: AuthContext.tsx, school-ops-probe.mjs",
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-A04",
@@ -824,10 +824,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "8f248fe",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-B02",
@@ -889,10 +889,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b56b35b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-C03",
@@ -925,10 +925,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b758977",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-C04",
@@ -959,10 +959,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "03b55d7",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-C05",
@@ -994,10 +994,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b4de32b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D03",
@@ -1064,10 +1064,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "bc06f0c",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D05",
