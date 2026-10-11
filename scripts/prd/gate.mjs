@@ -1,6 +1,7 @@
 // ABOUTME: Quality gate run before every PRD task commit ("task") and at every phase exit ("phase").
 // ABOUTME: Compares typecheck, contract-scan, tests, lint, encoding and probe results to scripts/prd/gate-baseline.json.
 
+import { summariseVitestRun } from './lib/vitestSummary.mjs';
 import { execSync, spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,7 +28,7 @@ if (!['task', 'phase', 'baseline'].includes(mode) || flag('help')) {
 }
 
 const sh = (cmd, opts = {}) => execSync(cmd, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 256 * 1024 * 1024, ...opts });
-const shOk = (cmd) => { try { return { ok: true, out: sh(cmd) }; } catch (e) { return { ok: false, out: `${e.stdout || ''}${e.stderr || ''}` }; } };
+const shOk = (cmd) => { try { return { ok: true, out: sh(cmd) }; } catch (e) { return { ok: false, out: `${e.stdout || ''}${e.stderr || ''}`, status: e.status ?? null, signal: e.signal ?? null }; } };
 const readBaseline = () => JSON.parse(fs.readFileSync(BASELINE_FILE, 'utf8'));
 
 const results = [];
@@ -157,7 +158,7 @@ async function runTaskChecks(base, baseline, files) {
     record('G3', 'Related tests pass', 'SKIP', 'no src/ files changed');
   } else {
     const r = shOk(`pnpm -s vitest related --run --passWithNoTests ${testTargets.map((f) => `"${f}"`).join(' ')}`);
-    const tail = r.out.split('\n').filter((l) => /Test Files|Tests |FAIL/.test(l)).slice(-4).join(' | ');
+    const tail = summariseVitestRun(r.out, r);
     record('G3', 'Related tests pass', r.ok ? 'PASS' : 'FAIL', tail);
   }
 
