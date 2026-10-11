@@ -171,15 +171,16 @@ export class RelationshipManager {
         { table: 'students', column: 'student_id', required: true },
         { table: 'chart_of_accounts', column: 'account_id', required: true }
       ],
+      // Columns match expenseClaimsSchema. claimant_id is polymorphic (claimant_type
+      // Staff | Student), so it is not modelled as a single-table FK here.
       expense_claims: [
-        { table: 'staff', column: 'staff_id', required: true },
-        { table: 'expense_categories', column: 'category_id', required: true }
+        { table: 'expense_categories', column: 'expense_category_id', required: true }
       ],
 
       // Library Module
+      // bookSchema has no type column and there is no book_types collection.
       books: [
-        { table: 'book_categories', column: 'category_id', required: true },
-        { table: 'book_types', column: 'type_id', required: true }
+        { table: 'book_categories', column: 'category_id', required: true }
       ],
       book_loans: [
         { table: 'books', column: 'book_id', required: true },

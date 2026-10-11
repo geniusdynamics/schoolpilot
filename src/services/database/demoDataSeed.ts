@@ -277,29 +277,57 @@ const applyVolume = (records: any[], volume: SeedVolume): any[] => {
   return shuffleArray(records).slice(0, count);
 };
 
-const buildVolumeSampleMap = (entries: SeedEntry[], volume: SeedVolume): Map<string, any[]> => {
+const buildVolumeSampleMap = (
+  entries: SeedEntry[],
+  volume: SeedVolume,
+  parentSource: SeedEntry[] = entries
+): Map<string, any[]> => {
   const map = new Map<string, any[]>();
   for (const entry of entries) {
     const collectionName = entry.collectionName!;
     map.set(collectionName, applyVolume(entry.records, volume));
   }
 
-  // FK closure: ensure class_streams referenced by sampled students are retained
-  const sampledStudents = map.get('students');
-  const sampledStreams = map.get('class_streams');
-  if (sampledStudents && sampledStreams) {
-    const neededIds = new Set(
-      sampledStudents
-        .map((r: any) => r.current_class_stream_id ?? r.current_class_streamId ?? r.class_stream_id ?? r.classStreamId)
-        .filter((v: any) => v != null)
-        .map((v: any) => String(v))
-    );
-    if (neededIds.size > 0) {
-      const existingIds = new Set(sampledStreams.map((r: any) => String(r.id)));
-      const allStreamsEntry = entries.find((e) => e.collectionName === 'class_streams');
-      const missing = (allStreamsEntry?.records ?? []).filter((r: any) => neededIds.has(String(r.id)) && !existingIds.has(String(r.id)));
-      if (missing.length > 0) {
-        map.set('class_streams', [...sampledStreams, ...missing]);
+  // FK closure: random sampling (and module filtering) can keep a child row
+  // while dropping the parent it references. Using the same relationship
+  // definitions the strict validation checks, pull every referenced parent
+  // record back in from the full mock data until nothing new is added.
+  const fullRecordsById = new Map<string, Map<string, any>>();
+  for (const entry of parentSource) {
+    const byId = fullRecordsById.get(entry.collectionName!) ?? new Map<string, any>();
+    for (const record of entry.records) {
+      if (record?.id != null && !byId.has(String(record.id))) {
+        byId.set(String(record.id), record);
+      }
+    }
+    fullRecordsById.set(entry.collectionName!, byId);
+  }
+
+  const relationships = new RelationshipManager().getRelationships();
+  let added = true;
+  while (added) {
+    added = false;
+    for (const [table, rows] of Array.from(map.entries())) {
+      for (const dep of relationships[table] ?? []) {
+        const parents = fullRecordsById.get(dep.table);
+        if (!parents) continue;
+        const current = map.get(dep.table) ?? [];
+        const presentIds = new Set(current.map((r: any) => String(r.id)));
+        const missing: any[] = [];
+        for (const row of rows) {
+          const fk = row?.[dep.column];
+          if (fk == null) continue;
+          const key = String(fk);
+          const parent = parents.get(key);
+          if (parent && !presentIds.has(key)) {
+            presentIds.add(key);
+            missing.push(parent);
+          }
+        }
+        if (missing.length > 0) {
+          map.set(dep.table, [...current, ...missing]);
+          added = true;
+        }
       }
     }
   }
@@ -402,7 +430,19 @@ export const seedProviderWithDemoData = async (
   const volume = options.volume || 'medium';
   const insertedCounts: Record<string, number> = {};
   const skippedCollections: string[] = [];
-  const seedEntries = getSeedEntries(options.modules);
+  const requestedEntries = getSeedEntries(options.modules);
+  const allEntries = options.modules?.length ? getSeedEntries() : requestedEntries;
+  const volumeSampleMap = buildVolumeSampleMap(requestedEntries, volume, allEntries);
+  // Parent collections pulled in by the FK closure from modules outside the
+  // requested set must be seeded too, or the seeded data is not closed.
+  const requestedCollections = new Set(requestedEntries.map((entry) => entry.collectionName));
+  const parentEntries = allEntries.filter(
+    (entry, index) =>
+      !requestedCollections.has(entry.collectionName) &&
+      volumeSampleMap.has(entry.collectionName!) &&
+      allEntries.findIndex((other) => other.collectionName === entry.collectionName) === index
+  );
+  const seedEntries = [...parentEntries, ...requestedEntries];
   const targetCollections = new Set(seedEntries.map((entry) => entry.collectionName).filter(Boolean) as string[]);
 
   if (options.clearExisting) {
@@ -413,8 +453,6 @@ export const seedProviderWithDemoData = async (
       }
     }
   }
-
-  const volumeSampleMap = buildVolumeSampleMap(seedEntries, volume);
 
   for (const entry of seedEntries) {
     const collectionName = entry.collectionName;

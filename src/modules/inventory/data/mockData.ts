@@ -208,10 +208,10 @@ export const initialMockRequisitionItems: RequisitionItem[] = [
 ];
 
 export const initialMockPurchaseOrders: PurchaseOrder[] = [
-    { id: 'PO001', supplier_id: 1, order_date: '2024-06-20', status: PurchaseOrderStatus.FULLY_RECEIVED, notes: 'Q3 Stationery Restock', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Text Book Centre' },
-    { id: 'PO002', supplier_id: 7, order_date: '2024-06-25', status: PurchaseOrderStatus.PARTIALLY_RECEIVED, notes: 'Laboratory equipment upgrade', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Scientific Equipment Ltd' },
-    { id: 'PO003', supplier_id: 10, order_date: '2024-07-01', status: PurchaseOrderStatus.PENDING, notes: 'Kitchen supplies for Term 3', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Fresh Foods Catering' },
-    { id: 'PO004', supplier_id: 5, order_date: '2024-07-05', status: PurchaseOrderStatus.APPROVED, notes: 'Office furniture and supplies', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Office Depot Kenya' }
+    { id: 'PO001', supplier_id: 1, order_date: '2024-06-20', status: PurchaseOrderStatus.FULLY_RECEIVED, notes: 'Q3 Stationery Restock', requested_by: 'STF003', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Text Book Centre' },
+    { id: 'PO002', supplier_id: 7, order_date: '2024-06-25', status: PurchaseOrderStatus.PARTIALLY_RECEIVED, notes: 'Laboratory equipment upgrade', requested_by: 'STF002', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Scientific Equipment Ltd' },
+    { id: 'PO003', supplier_id: 10, order_date: '2024-07-01', status: PurchaseOrderStatus.PENDING, notes: 'Kitchen supplies for Term 3', requested_by: 'STF008', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Fresh Foods Catering' },
+    { id: 'PO004', supplier_id: 5, order_date: '2024-07-05', status: PurchaseOrderStatus.APPROVED, notes: 'Office furniture and supplies', requested_by: 'STF001', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Office Depot Kenya' }
 ];
 
 export const initialMockPurchaseOrderItems: PurchaseOrderItem[] = [
