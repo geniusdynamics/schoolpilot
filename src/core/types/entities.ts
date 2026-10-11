@@ -143,6 +143,11 @@ export interface Staff {
   user_username?: string | null;
   email?: string | null;
   display_name?: string | null;
+  // Identity and employment (SO-31)
+  gender?: string | null;
+  national_id?: string | null;
+  employer_number?: string | null;
+  employment_type?: string | null;
 }
 
 export interface Class {
