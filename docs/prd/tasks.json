@@ -1097,7 +1097,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "7d2c159",
       "notes": "Owner decision: staff columns + additive column sync; independently verified (column sync stress-tested); UUID designation fix",
       "completed_at": "2026-10-11"
     },
