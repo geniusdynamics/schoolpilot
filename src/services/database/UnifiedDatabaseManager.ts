@@ -175,6 +175,10 @@ export class UnifiedDatabaseManager {
         this.storageUnavailable = true;
         throw error;
       }
+      // Recovery switches to PouchDB; persistent SQLite must never be swapped out.
+      if (this.providerType === 'sqlite-wasm' && !memoryDatabaseAllowed()) {
+        throw error;
+      }
       
       // Attempt automatic recovery
       logger.info('🔧 [UnifiedDatabaseManager] Attempting automatic recovery...');
@@ -497,9 +501,8 @@ export class UnifiedDatabaseManager {
       const storedVersion = localStorage.getItem('sp-db-version');
 
       if (storedVersion && storedVersion !== appVersion) {
-        logger.info(`🔄 [UnifiedDatabaseManager] Schema version changed from ${storedVersion} to ${appVersion}. Clearing database...`);
-        await this.clearAllData();
-        logger.info('✅ [UnifiedDatabaseManager] Database cleared for schema update');
+        // Data now persists: never wipe it on upgrade. Schema migrations arrive in P1.
+        logger.info(`🔄 [UnifiedDatabaseManager] App version changed from ${storedVersion} to ${appVersion}; keeping existing data.`);
       }
 
       localStorage.setItem('sp-db-version', appVersion);
@@ -1844,7 +1847,9 @@ export class UnifiedDatabaseManager {
       const stats = await seedProviderWithDemoData(this.provider, {
         modules,
         volume,
-        clearExisting: true
+        // Never wipe stored records: seed only collections that are still empty.
+        clearExisting: false,
+        onlyIfEmpty: true
       });
 
       return {

@@ -90,6 +90,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       logger.info(`[SQLiteWASMCollection] Successfully created table ${this.tableName} with ${conversionResult.indexes.length} indexes`);
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Failed to create table ${this.tableName}: ${detail}`, error);
       throw new CollectionError(`Failed to create table ${this.tableName}: ${detail}`, this.name);
     }
@@ -187,6 +188,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           ok: true
         };
       } catch (error) {
+        if (error instanceof StorageUnavailableError) throw error;
         logger.error(`[SQLiteWASMCollection] Insert failed in ${this.name}:`, error);
         throw new CollectionError(`Insert failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
@@ -305,6 +307,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         const rows = result as any[];
         return rows.length > 0 ? this.deserializeRow(rows[0]) : null;
       } catch (error) {
+        if (error instanceof StorageUnavailableError) throw error;
         logger.error(`[SQLiteWASMCollection] FindOne failed in ${this.name}:`, error);
         throw new CollectionError(`FindOne failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
@@ -355,6 +358,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         const rows = result as any[];
         return rows.map(row => this.deserializeRow(row));
       } catch (error) {
+        if (error instanceof StorageUnavailableError) throw error;
         logger.error(`[SQLiteWASMCollection] Find failed in ${this.name}:`, error);
         throw new CollectionError(`Find failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
@@ -421,6 +425,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       this.queryCount++;
       this.totalQueryTime += (endTime - startTime);
       
+      if (error instanceof StorageUnavailableError) throw error;
+      
       logger.error(`[SQLiteWASMCollection] Update failed in ${this.name}:`, error);
       throw new CollectionError(`Update failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -448,12 +454,15 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         }
         
         this.db.exec('COMMIT');
+        await flushPersistentWrites(this.db, this.name);
         return results;
       } catch (error) {
         this.db.exec('ROLLBACK');
+        await flushPersistentWrites(this.db, this.name);
         throw error;
       }
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] UpdateMany failed in ${this.name}:`, error);
       throw new CollectionError(`UpdateMany failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -493,6 +502,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         deleted: true
       };
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Remove failed in ${this.name}:`, error);
       throw new CollectionError(`Remove failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -520,12 +530,15 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         }
         
         this.db.exec('COMMIT');
+        await flushPersistentWrites(this.db, this.name);
         return results;
       } catch (error) {
         this.db.exec('ROLLBACK');
+        await flushPersistentWrites(this.db, this.name);
         throw error;
       }
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] RemoveMany failed in ${this.name}:`, error);
       throw new CollectionError(`RemoveMany failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -572,6 +585,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         const rows = result as any[];
         return rows.length > 0 ? (rows[0][0] as number) : 0;
       } catch (error) {
+        if (error instanceof StorageUnavailableError) throw error;
         logger.error(`[SQLiteWASMCollection] Count failed in ${this.name}:`, error);
         throw new CollectionError(`Count failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
@@ -596,8 +610,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       const sql = `CREATE ${unique} INDEX IF NOT EXISTS ${indexName} ON ${this.tableName} (${fields})`;
       
       this.db.exec(sql);
+      await flushPersistentWrites(this.db, this.name);
       logger.info(`[SQLiteWASMCollection] Created index ${indexName} on ${this.tableName}`);
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Failed to create index on ${this.name}:`, error);
       throw new CollectionError(`Failed to create index: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -626,6 +642,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         lastModified: new Date()
       };
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Failed to get stats for ${this.name}:`, error);
       throw new CollectionError(`Failed to get stats: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -640,8 +657,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       // SQLite doesn't need explicit compaction, but we can run VACUUM
       logger.info(`[SQLiteWASMCollection] Compacting collection ${this.name}...`);
       this.db.exec('VACUUM');
+      await flushPersistentWrites(this.db, this.name);
       logger.info(`[SQLiteWASMCollection] Collection ${this.name} compacted successfully`);
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Failed to compact ${this.name}:`, error);
       throw new CollectionError(`Failed to compact: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -666,9 +685,11 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       
       // Drop table
       this.db.exec(`DROP TABLE IF EXISTS ${this.tableName}`);
+      await flushPersistentWrites(this.db, this.name);
       
       logger.info(`[SQLiteWASMCollection] Collection ${this.name} destroyed successfully`);
     } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Failed to destroy ${this.name}:`, error);
       throw new CollectionError(`Failed to destroy: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
@@ -947,10 +968,17 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
 /** Raised when no persistent storage can be opened; the app must not continue writing. */
 export class StorageUnavailableError extends DatabaseError {
-  constructor(message: string) {
+  constructor(message: string, public readonly cause?: unknown) {
     super(message, 'STORAGE_UNAVAILABLE', 'SQLiteWASM');
     this.name = 'StorageUnavailableError';
   }
+}
+
+/** Wrap any error as StorageUnavailableError, keeping its message and the original as `cause`. */
+export function toStorageUnavailableError(error: unknown, prefix?: string): StorageUnavailableError {
+  if (error instanceof StorageUnavailableError) return error;
+  const detail = error instanceof Error ? error.message : String(error);
+  return new StorageUnavailableError(prefix ? `${prefix}: ${detail}` : detail, error);
 }
 
 export type SQLiteStorageMode = 'uninitialised' | 'opfs-sahpool' | 'memory' | 'unavailable';
@@ -976,7 +1004,7 @@ export function subscribeSQLiteStorageStatus(listener: () => void): () => void {
   };
 }
 
-function setSQLiteStorageStatus(next: SQLiteStorageStatus): void {
+export function setSQLiteStorageStatus(next: SQLiteStorageStatus): void {
   storageStatus = next;
   storageStatusListeners.forEach((listener) => listener());
 }
@@ -992,14 +1020,19 @@ export function isPersistentStatement(sql: string): boolean {
   return true;
 }
 
-const STORAGE_OPEN_TIMEOUT_MS = 30000;
+/** How long the storage worker may take to open the database file. */
+export const STORAGE_OPEN_TIMEOUT_MS = 30000;
+/** How long the storage worker may take to confirm a single forwarded write. */
+export const STORAGE_WRITE_TIMEOUT_MS = 30000;
 
 /** Main-thread side of the storage worker protocol (see sqliteWorker.ts). */
 class StorageWorkerClient {
   private nextId = 1;
   private pending = new Map<number, { resolve: (bytes?: Uint8Array) => void; reject: (error: Error) => void }>();
   private inFlight = new Set<Promise<unknown>>();
-  private writeFailure: Error | null = null;
+  /** First persistence failure; once set the store is unavailable and every later write is refused. */
+  private failure: StorageUnavailableError | null = null;
+  private opened = false;
 
   constructor(private worker: Worker) {
     worker.onmessage = (event: MessageEvent) => {
@@ -1010,58 +1043,70 @@ class StorageWorkerClient {
       if (response.ok) entry.resolve(response.bytes);
       else entry.reject(new Error(response.error));
     };
-    worker.onerror = (event: ErrorEvent) => {
-      const error = new Error(`Storage worker failed: ${event?.message || 'unknown error'}`);
+    const crashed = (kind: string) => (event: any) => {
+      const error = new StorageUnavailableError(`Storage worker ${kind}: ${event?.message || 'unknown error'}`);
+      if (this.opened) this.markFailed(error);
       this.pending.forEach((entry) => entry.reject(error));
       this.pending.clear();
     };
+    worker.onerror = crashed('failed');
+    worker.onmessageerror = crashed('sent an unreadable message');
   }
 
-  private request(message: Record<string, unknown>): Promise<Uint8Array | undefined> {
+  get failed(): StorageUnavailableError | null {
+    return this.failure;
+  }
+
+  private markFailed(error: unknown): void {
+    if (this.failure) return;
+    this.failure = toStorageUnavailableError(error, 'Write could not be saved to persistent storage');
+    setSQLiteStorageStatus({ mode: 'unavailable', persisted: null, error: this.failure.message });
+  }
+
+  private request(message: Record<string, unknown>, timeoutMs: number): Promise<Uint8Array | undefined> {
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new StorageUnavailableError(`Storage worker did not respond within ${timeoutMs / 1000}s`));
+      }, timeoutMs);
+      this.pending.set(id, {
+        resolve: (bytes) => { clearTimeout(timer); resolve(bytes); },
+        reject: (error) => { clearTimeout(timer); reject(error); },
+      });
       this.worker.postMessage({ id, ...message });
     });
   }
 
-  open(dbName: string): Promise<Uint8Array> {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error(`Storage worker did not respond within ${STORAGE_OPEN_TIMEOUT_MS / 1000}s`)),
-        STORAGE_OPEN_TIMEOUT_MS
-      );
-      this.request({ type: 'open', dbName }).then(
-        (bytes) => { clearTimeout(timer); resolve(bytes ?? new Uint8Array()); },
-        (error) => { clearTimeout(timer); reject(error); }
-      );
-    });
+  async open(dbName: string): Promise<Uint8Array> {
+    const bytes = await this.request({ type: 'open', dbName }, STORAGE_OPEN_TIMEOUT_MS);
+    this.opened = true;
+    return bytes ?? new Uint8Array();
   }
 
   forward(sql: string, bind: unknown): void {
-    const write = this.request(bind === undefined ? { type: 'exec', sql } : { type: 'exec', sql, bind })
+    const message = bind === undefined ? { type: 'exec', sql } : { type: 'exec', sql, bind };
+    const write = this.request(message, STORAGE_WRITE_TIMEOUT_MS)
       .catch((error: Error) => {
-        this.writeFailure = this.writeFailure ?? error;
+        this.markFailed(error);
         logger.error(`[SQLiteWASMProvider] Write was NOT persisted to OPFS: ${error.message} | SQL: ${sql.slice(0, 200)}`);
       })
       .finally(() => this.inFlight.delete(write));
     this.inFlight.add(write);
   }
 
-  /** Resolves once every forwarded write is persisted; rejects if any of them failed. */
+  /** Resolves once every forwarded write is persisted; rejects once any write has failed. */
   async flush(): Promise<void> {
     while (this.inFlight.size > 0) {
       await Promise.all(Array.from(this.inFlight));
     }
-    const failure = this.writeFailure;
-    this.writeFailure = null;
-    if (failure) throw failure;
+    if (this.failure) throw this.failure;
   }
 
   async close(): Promise<void> {
     try {
       await this.flush();
-      await this.request({ type: 'close' });
+      await this.request({ type: 'close' }, STORAGE_WRITE_TIMEOUT_MS);
     } finally {
       this.terminate();
     }
@@ -1078,9 +1123,16 @@ const writeThroughClients = new WeakMap<object, StorageWorkerClient>();
 function attachWriteThrough(db: Database, client: StorageWorkerClient): void {
   const localExec = (db.exec as (...args: any[]) => any).bind(db);
   (db as any).exec = (arg: any, ...rest: any[]) => {
-    const result = localExec(arg, ...rest);
     const options = typeof arg === 'string' ? { sql: arg, ...(rest[0] || {}) } : arg;
-    if (typeof options?.sql === 'string' && isPersistentStatement(options.sql)) {
+    const persistent = typeof options?.sql === 'string' && isPersistentStatement(options.sql);
+    if (persistent && client.failed) {
+      // The durable copy has diverged: refuse further changes. A ROLLBACK only
+      // discards local changes, so it is still applied to the working copy.
+      if (/^\s*ROLLBACK\b/i.test(options.sql)) return localExec(arg, ...rest);
+      throw client.failed;
+    }
+    const result = localExec(arg, ...rest);
+    if (persistent) {
       client.forward(options.sql, options.bind);
     }
     return result;
@@ -1095,10 +1147,8 @@ async function flushPersistentWrites(db: Database, collectionName: string): Prom
   try {
     await client.flush();
   } catch (error) {
-    throw new CollectionError(
-      `Write could not be saved to persistent storage: ${error instanceof Error ? error.message : String(error)}`,
-      collectionName
-    );
+    logger.error(`[SQLiteWASMProvider] ${collectionName}: write not persisted`, error);
+    throw toStorageUnavailableError(error, 'Write could not be saved to persistent storage');
   }
 }
 
@@ -1255,7 +1305,17 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
     } catch (error) {
       logger.error('[SQLiteWASMProvider] Initialization failed:', error);
-      throw error;
+      if (memoryDatabaseAllowed()) throw error;
+      // Without an explicitly allowed temporary database, any failure to open
+      // SQLite means there is no persistent store: fail closed, never fall back.
+      const storageError = toStorageUnavailableError(error, 'SQLite database could not be opened');
+      setSQLiteStorageStatus({ mode: 'unavailable', persisted: null, error: storageError.message });
+      if (this.storageClient) {
+        this.storageClient.terminate();
+        this.storageClient = null;
+      }
+      this.db = null;
+      throw storageError;
     }
   }
 
@@ -1293,7 +1353,13 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       );
     }
 
-    const db = this.createWorkingCopy(snapshot);
+    let db: Database;
+    try {
+      db = this.createWorkingCopy(snapshot);
+    } catch (error) {
+      client.terminate();
+      throw toStorageUnavailableError(error, 'Persisted database could not be loaded');
+    }
     attachWriteThrough(db, client);
     this.storageClient = client;
     return db;
@@ -1381,6 +1447,8 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       logger.info(`[SQLiteWASMProvider] Creating collection: ${name}`);
       
       const collection = new SQLiteWASMCollection<T>(this.db, name, schema);
+      // CREATE TABLE / CREATE INDEX must be durable before the collection is used.
+      await flushPersistentWrites(this.db, name);
       this.collections.set(name, collection);
       
       logger.info(`[SQLiteWASMProvider] Collection '${name}' created successfully`);
@@ -1460,12 +1528,14 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         if (isCommitted || isRolledBack) return;
         this.db!.exec('COMMIT;');
         isCommitted = true;
+        await flushPersistentWrites(this.db!, txId);
         logger.info(`[SQLiteWASMProvider] Transaction ${txId} committed.`);
       },
       rollback: async () => {
         if (isCommitted || isRolledBack) return;
         this.db!.exec('ROLLBACK;');
         isRolledBack = true;
+        await flushPersistentWrites(this.db!, txId);
         logger.info(`[SQLiteWASMProvider] Transaction ${txId} rolled back.`);
       }
     };
@@ -1616,9 +1686,11 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         }
 
         this.db.exec('COMMIT');
+        await flushPersistentWrites(this.db, 'restore');
         logger.info('[SQLiteWASMProvider] Restore completed successfully');
       } catch (error) {
         this.db.exec('ROLLBACK');
+        await flushPersistentWrites(this.db, 'restore');
         throw error;
       }
     } catch (error) {
