@@ -254,6 +254,11 @@ class AuthService {
     return this.initializationComplete;
   }
 
+  /** True only when the persisted data mode is demo (false until initialisation has decided). */
+  public isDemoDatabase(): boolean {
+    return this.initializationComplete && this.isDemoMode;
+  }
+
   // ===== AUTHENTICATION METHODS =====
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {

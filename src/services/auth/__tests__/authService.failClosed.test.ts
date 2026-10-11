@@ -373,4 +373,11 @@ describe('authService fails closed', () => {
     expect(result.session?.isDemo).toBe(true);
     expect((await auth.getLoginState()).mode).toBe('demo');
   });
+
+  it('reports isDemoDatabase() from the persisted data mode only', async () => {
+    expect((await freshAuthService()).isDemoDatabase()).toBe(false);
+
+    state.storedDataMode = 'demo';
+    expect((await freshAuthService()).isDemoDatabase()).toBe(true);
+  });
 });

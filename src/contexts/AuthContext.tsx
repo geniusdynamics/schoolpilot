@@ -30,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Initialize authentication state
   useEffect(() => {
@@ -60,21 +60,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(currentUser);
         }
         
-        // Determine if we're in demo mode — prefer session flag, fallback to config
-        const session = authService.getCurrentSession();
-        let demoMode = session?.isDemo;
-        if (demoMode === undefined) {
-          try {
-            const { unifiedConfigManager } = await import('@/config/unifiedConfig');
-            const cfg: any = unifiedConfigManager.getConfig();
-            demoMode = cfg?.dataMode === 'demo' || cfg?.demo?.active === true;
-            // default to true if config not yet loaded (login should show demo hints)
-            if (demoMode === undefined) demoMode = true;
-          } catch {
-            demoMode = true;
-          }
-        }
-        setIsDemoMode(!!demoMode);
+        // Demo mode is decided by authService from the persisted data mode only
+        setIsDemoMode(authService.isDemoDatabase());
       } catch (error) {
         logger.error('Error initializing auth:', error);
       } finally {
@@ -115,7 +102,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       await authService.logout();
       setUser(null);
-      setIsDemoMode(true);
+      setIsDemoMode(authService.isDemoDatabase());
       
       // Clear any stored route information on logout
       try {

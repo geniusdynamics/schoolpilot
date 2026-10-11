@@ -12,9 +12,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import { LockClosedIcon, UserCircleIcon, EyeIcon, EyeSlashIcon } from '@/components/ui/icons';
-import type { LoginState } from '@/services/auth/authService';
-
-const MIN_ADMIN_PASSWORD_LENGTH = 10;
+import { MIN_ADMIN_PASSWORD_LENGTH, type LoginState } from '@/services/auth/authService';
 
 // Loaded lazily so the page only touches live storage when it is not a demo database.
 let authServiceModule: Promise<typeof import('@/services/auth/authService')> | null = null;
