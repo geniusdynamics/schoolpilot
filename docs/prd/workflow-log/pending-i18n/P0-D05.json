@@ -1,0 +1,27 @@
+{
+  "task": "P0-D05",
+  "locale": "en",
+  "namespaces": {
+    "administration": {
+      "staff": {
+        "form": {
+          "email": "Email",
+          "gender": "Gender",
+          "genderPlaceholder": "Select gender",
+          "genderFemale": "Female",
+          "genderMale": "Male",
+          "genderOther": "Other",
+          "nationalId": "National ID / Passport No.",
+          "employerNumber": "Employer No. (e.g. TSC number)",
+          "employmentType": "Employment Type",
+          "employmentTypePlaceholder": "Select employment type",
+          "employmentPermanent": "Permanent",
+          "employmentContract": "Contract",
+          "employmentPartTime": "Part-time",
+          "employmentBoard": "Board of Management",
+          "employmentIntern": "Intern / Attachment"
+        }
+      }
+    }
+  }
+}
