@@ -74,6 +74,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       const createTableSQL = SchemaConverter.generateCreateTableSQL(conversionResult.sqlSchema);
       
       this.db.exec(createTableSQL);
+      // CREATE TABLE IF NOT EXISTS leaves an older table untouched: add any schema columns it lacks.
+      this.addMissingColumns(conversionResult.sqlSchema.columns);
       
       // Create indexes for performance
       const indexSQLs = SchemaConverter.generateCreateIndexSQL(this.tableName, conversionResult.indexes);
@@ -93,6 +95,44 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       if (error instanceof StorageUnavailableError) throw error;
       logger.error(`[SQLiteWASMCollection] Failed to create table ${this.tableName}: ${detail}`, error);
       throw new CollectionError(`Failed to create table ${this.tableName}: ${detail}`, this.name);
+    }
+  }
+
+  /**
+   * Additive schema sync: for each schema column the existing table lacks, run
+   * ALTER TABLE ... ADD COLUMN as a nullable column with no default, so existing
+   * rows are never rewritten. Existing columns are never dropped, renamed or
+   * retyped. The statements go through db.exec, so they are forwarded to the
+   * storage worker like other DDL; createCollection awaits their persistence.
+   * Any failure is a StorageUnavailableError: the store cannot hold this schema.
+   */
+  private addMissingColumns(columns: Array<{ name: string; type: string }>): void {
+    let info: any[];
+    try {
+      info = this.db.exec({ sql: `PRAGMA table_info(${this.tableName})`, returnValue: 'resultRows' }) as any[];
+    } catch (error) {
+      throw toStorageUnavailableError(error, `Could not read the columns of table ${this.tableName}`);
+    }
+    // PRAGMA table_info row: [cid, name, type, notnull, dflt_value, pk]
+    const existing = new Set((info || []).map((r: any) => String(Array.isArray(r) ? r[1] : r.name ?? r[1])));
+    if (existing.size === 0) {
+      // A table that exists always has columns; an empty answer means there is nothing to compare against.
+      logger.warn(`[SQLiteWASMCollection] ${this.tableName}: no column info returned; skipping column sync`);
+      return;
+    }
+    const missing = columns.filter((column) => !existing.has(column.name));
+    for (const column of missing) {
+      const sql = `ALTER TABLE ${this.quoteIdentifier(this.tableName)} ADD COLUMN ${this.quoteIdentifier(column.name)} ${column.type}`;
+      try {
+        this.db.exec(sql);
+      } catch (error) {
+        throw toStorageUnavailableError(error, `Could not add column ${column.name} to table ${this.tableName}`);
+      } finally {
+        this.columnNamesCache = null;
+      }
+    }
+    if (missing.length > 0) {
+      logger.info(`[SQLiteWASMCollection] ${this.tableName}: added missing columns ${missing.map((c) => c.name).join(', ')}`);
     }
   }
 

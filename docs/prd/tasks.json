@@ -1096,10 +1096,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
-      "notes": "",
-      "completed_at": null
+      "notes": "Owner decision: staff columns + additive column sync; independently verified (column sync stress-tested); UUID designation fix",
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D06",

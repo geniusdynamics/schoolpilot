@@ -1,5 +1,8 @@
+// ABOUTME: Bulk staff update page — filter staff by department or selection and set one field on all of them.
+// ABOUTME: Writes go through useAdministration().updateStaff; department/designation changes store id and label.
+
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { useAdministration } from '../hooks/useAdministration';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -10,6 +13,7 @@ import { UserIcon, ArrowPathIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
+import type { Staff } from '@/core/types';
 
 interface StaffRecord {
   id: string;
@@ -24,7 +28,7 @@ interface StaffRecord {
 }
 
 export const BulkStaffUpdateContent: React.FC = () => {
-  const { staff, loading, updateStaffMember } = useAppData();
+  const { staff, loading, updateStaff, departments, designations } = useAdministration();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -36,15 +40,15 @@ export const BulkStaffUpdateContent: React.FC = () => {
 
   // Live staff records from the database
   const staffRows: StaffRecord[] = useMemo(() => {
-    let rows: StaffRecord[] = (staff || [])
+    let rows: StaffRecord[] = ((staff || []) as Staff[])
       .filter(s => !s.deleted_at)
       .map(s => ({
         id: String(s.id),
         staff_id: String(s.id),
         staff_name: s.display_name || `${s.first_name} ${s.last_name}`.trim(),
         employee_id: s.staff_no,
-        department: s.department_name || '',
-        designation: s.designation_title || '',
+        department: departments.find(d => String(d.id) === String(s.department_id))?.name || s.department_name || '',
+        designation: designations.find(d => String(d.id) === String(s.designation_id))?.title || s.designation_title || '',
         phone: s.phone || '',
         email: s.email || '',
         address: ''
@@ -62,7 +66,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
     }
 
     return rows;
-  }, [staff, selectedDepartment, searchTerm]);
+  }, [staff, departments, designations, selectedDepartment, searchTerm]);
 
   const toast = useToast();
   const openUpdateModal = () => {
@@ -79,21 +83,25 @@ export const BulkStaffUpdateContent: React.FC = () => {
     setUpdateValue('');
   };
 
-  // Maps grid fields onto real staff entity fields persisted via updateStaffMember
-  const resolveStaffPatch = (field: string, value: string): Record<string, unknown> => {
+  const sameName = (a: string | null | undefined, b: string) => (a ?? '').trim().toLowerCase() === b.trim().toLowerCase();
+
+  // Maps grid fields onto real staff entity fields persisted via updateStaff; null when the value is unknown
+  const resolveStaffPatch = (field: string, value: string): Record<string, unknown> | null => {
     switch (field) {
-      case 'department':
-        return { department_name: value };
-      case 'designation':
-        return { designation_title: value };
+      case 'department': {
+        const department = departments.find(d => sameName(d.name, value));
+        return department ? { department_id: String(department.id), department_name: department.name } : null;
+      }
+      case 'designation': {
+        const designation = designations.find(d => sameName(d.title, value));
+        return designation ? { designation_id: designation.id, designation_title: designation.title } : null;
+      }
       case 'phone':
         return { phone: value };
       case 'email':
         return { email: value };
-      case 'address':
-        return {};
       default:
-        return {};
+        return null;
     }
   };
 
@@ -107,6 +115,12 @@ export const BulkStaffUpdateContent: React.FC = () => {
       return;
     }
 
+    const patch = resolveStaffPatch(updateField, updateValue);
+    if (!patch) {
+      toast.showWarning(`No ${updateField} named "${updateValue}" exists.`);
+      return;
+    }
+
     setIsUpdating(true);
     logger.info('Bulk updating staff:', {
       field: updateField,
@@ -114,9 +128,8 @@ export const BulkStaffUpdateContent: React.FC = () => {
       staffIds: staffToUpdate
     });
     try {
-      const patch = resolveStaffPatch(updateField, updateValue);
       for (const staffId of staffToUpdate) {
-        await updateStaffMember(String(staffId), patch);
+        await updateStaff(String(staffId), patch);
       }
       toast.showSuccess(`Updated ${staffToUpdate.length} staff member(s).`);
       closeModal();
@@ -168,12 +181,12 @@ export const BulkStaffUpdateContent: React.FC = () => {
     }
   ];
 
-  const uniqueDepartments = useMemo(() => {
-    const depts = [...new Set(staffRows.map(s => s.department))];
-    return depts.filter(Boolean);
-  }, [staffRows]);
+  const uniqueDepartments = useMemo(
+    () => [...new Set(departments.map(d => d.name).filter(Boolean))],
+    [departments]
+  );
 
-  const updateFields = ['department', 'designation', 'phone', 'email', 'address'];
+  const updateFields = ['department', 'designation', 'phone', 'email'];
 
   const totals = useMemo(() => {
     return {
@@ -182,7 +195,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
     };
   }, [staffRows, selectedStaff]);
 
-  if (loading?.all && staffRows.length === 0) {
+  if (loading === true && staffRows.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
