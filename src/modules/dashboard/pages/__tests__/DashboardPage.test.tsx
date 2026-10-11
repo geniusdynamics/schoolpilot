@@ -1,5 +1,6 @@
-
-import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
+// ABOUTME: Tests for the main DashboardPage — permissions, navigation, and that every
+// ABOUTME: figure is computed from live data (empty school shows zeros / empty states).
+import { fireEvent, render as rtlRender, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DashboardPage from '../DashboardPage';
 import { FullWidthProvider } from '@/contexts/FullWidthContext';
@@ -205,5 +206,145 @@ describe('DashboardPage', () => {
     fireEvent.click(analyticsCard);
 
     expect(mockNavigate).toHaveBeenCalledWith('/reports');
+  });
+});
+
+// SO-29 / P0-G06: the dashboard must never show demo figures to a real school.
+const emptySchool = () =>
+  createAppData({
+    students: [],
+    staff: [],
+    classes: [],
+    classStreams: [],
+    studentAttendance: [],
+    schoolPeriods: [],
+    campaigns: [],
+    templatesComm: [],
+    studentExamResults: [],
+    studentInvoices: [],
+    studentPayments: [],
+    applications: [],
+    studentSubjectEnrollments: [],
+    studentTransportAssignments: [],
+    schoolDetails: null,
+  });
+
+const daysAgo = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString();
+};
+
+describe('DashboardPage live data (P0-G06)', () => {
+  beforeEach(() => {
+    mockHasPermission.mockReset();
+    mockUseAppData.mockReset();
+    mockUseAuth.mockReset();
+    mockHasPermission.mockResolvedValue(true);
+    mockUseAuth.mockReturnValue({
+      user: { id: 'u1', fullName: 'Alex Principal', role: 'super_admin' },
+      hasPermission: mockHasPermission,
+    });
+  });
+
+  it('shows zeros and empty states for an empty production school', async () => {
+    mockUseAppData.mockReturnValue(emptySchool());
+    render(<DashboardPage />);
+
+    expect(await screen.findByText('Total Students')).toBeInTheDocument();
+    const text = document.body.textContent ?? '';
+
+    // Demo figures named in the audit must be gone.
+    const demoFigures = [
+      '4.8904', '46.3%', 'Intake: Dec 2024', 'Form 1', 'Form 4', '440', '240 Male',
+      '342', '700', 'Suspended: 45', 'Academic Year 2024', '12%', '8.5%',
+    ];
+    for (const demo of demoFigures) {
+      expect(text).not.toContain(demo);
+    }
+    // Hard-coded alert counters (15 / 5 / 14) are gone; every counter reads zero.
+    const alertSection = screen.getByText('Pending Tasks').closest('section') as HTMLElement;
+    for (const demoCount of ['15', '5', '14']) {
+      expect(within(alertSection).queryByText(demoCount)).not.toBeInTheDocument();
+    }
+    expect(within(alertSection).getAllByText('0')).toHaveLength(4);
+
+    // No dollar currency; the default institution currency is KES.
+    expect(text).not.toContain('$');
+    expect(text).toMatch(/KES\s0/);
+
+    // Empty states instead of charts with fake data.
+    expect(screen.getByText('No exam results recorded yet.')).toBeInTheDocument();
+    expect(screen.getByText('No applications received yet.')).toBeInTheDocument();
+    expect(screen.getByText('No students assigned to classes yet.')).toBeInTheDocument();
+    expect(screen.getByText('No disciplinary cases recorded.')).toBeInTheDocument();
+  });
+
+  it('shows figures computed from seeded data in the institution currency', async () => {
+    mockUseAppData.mockReturnValue(
+      createAppData({
+        schoolDetails: { id: 1, name: 'Greenfields', currency: 'UGX' },
+        classStreams: [
+          { id: 10, class_id: 'c1', name: 'East', class_name: 'Grade 7' },
+          { id: 20, class_id: 'c2', name: 'West', class_name: 'Grade 8' },
+        ],
+        students: [
+          { id: 's1', gender: 'Male', status: 'Active', current_class_stream_id: 10, createdAt: daysAgo(10) },
+          { id: 's2', gender: 'Female', status: 'Active', current_class_stream_id: 10, createdAt: daysAgo(10) },
+          { id: 's3', gender: 'Male', status: 'Suspended', current_class_stream_id: 20, createdAt: daysAgo(10) },
+        ],
+        studentAttendance: [
+          { id: 'a1', status: 'present' },
+          { id: 'a2', status: 'late' },
+          { id: 'a3', status: 'absent' },
+        ],
+        studentExamResults: [
+          { id: 'r1', student_id: 's1', averageMark: 60 },
+          { id: 'r2', student_id: 's2', averageMark: 80 },
+          { id: 'r3', student_id: 's3', averageMark: 55 },
+        ],
+        applications: [
+          { id: 'ap1', gender: 'Male', status: 'Submitted' },
+          { id: 'ap2', gender: 'Male', status: 'Under Review' },
+          { id: 'ap3', gender: 'Female', status: 'Enrolled' },
+        ],
+        studentSubjectEnrollments: [
+          { id: 'e1', student_id: 's1' },
+          { id: 'e2', student_id: 's1' },
+          { id: 'e3', student_id: 's2' },
+        ],
+        studentTransportAssignments: [
+          { id: 't1', student_id: 's1', route_id: 1, status: 'Active' },
+          { id: 't2', student_id: 's2', route_id: 1, status: 'Active' },
+        ],
+        studentInvoices: [{ id: 'i1', invoiceDate: daysAgo(5), total_amount: 12000 }],
+        studentPayments: [{ id: 'p1', paymentDate: daysAgo(3), amount: 8500 }],
+      })
+    );
+    render(<DashboardPage />);
+
+    expect(await screen.findByText('Total Students')).toBeInTheDocument();
+    const text = document.body.textContent ?? '';
+
+    // Currency comes from institution settings.
+    expect(text).not.toContain('$');
+    expect(text).toMatch(/UGX\s8,500/);
+    expect(text).toMatch(/UGX\s3,500/);
+
+    // Class performance from exam results, grouped by the resolved class name.
+    expect(screen.getByText('Grade 7')).toBeInTheDocument();
+    expect(screen.getByText('70.0%')).toBeInTheDocument();
+    expect(screen.getByText('55.0%')).toBeInTheDocument();
+
+    expect(screen.getByTestId('applicants-total')).toHaveTextContent('3');
+    expect(screen.getByTestId('alert-approvals')).toHaveTextContent('2');
+    expect(screen.getByTestId('cumulative-active')).toHaveTextContent('2');
+    expect(screen.getByTestId('cumulative-suspended')).toHaveTextContent('1');
+    expect(screen.getByTestId('subject-registered')).toHaveTextContent('2');
+    expect(screen.getByTestId('subject-not-registered')).toHaveTextContent('1');
+    expect(screen.getByTestId('attendance-late')).toHaveTextContent('1');
+    expect(screen.getByTestId('attendance-absent')).toHaveTextContent('1');
+    expect(screen.getByTestId('transport-students')).toHaveTextContent('2');
+    expect(screen.getByTestId('transport-routes')).toHaveTextContent('1');
   });
 });
