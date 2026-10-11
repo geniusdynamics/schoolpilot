@@ -1,3 +1,5 @@
+// ABOUTME: Main school dashboard — every figure is computed from live app data; an empty
+// ABOUTME: school sees zeros and empty states, and money is shown in the institution currency.
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Area,
@@ -50,6 +52,30 @@ type DashboardRole = 'administrator' | 'teacher' | 'student' | 'parent' | 'gener
 // ============================================================================
 // Helper Functions
 // ============================================================================
+const EXAM_SCORE_KEYS = ['average_mark', 'averageMark', 'percentage', 'total_percentage', 'finalScore'];
+
+const readExamScore = (result: any): number | null => {
+  for (const key of EXAM_SCORE_KEYS) {
+    const value = result?.[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+  }
+  return null;
+};
+
+const countBy = <T,>(items: T[], keyOf: (item: T) => string | null): Array<{ name: string; value: number }> => {
+  const counts = new Map<string, number>();
+  items.forEach((item) => {
+    const key = keyOf(item);
+    if (!key) return;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return Array.from(counts, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+};
+
+const lower = (value: unknown) => String(value ?? '').trim().toLowerCase();
+
+const CHART_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#ef4444', '#84cc16'];
+
 const parseDate = (value: unknown): Date | null => {
   if (!value) return null;
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
@@ -57,7 +83,15 @@ const parseDate = (value: unknown): Date | null => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const formatCurrency = (value: number, currency = 'USD') => {
+const DEFAULT_CURRENCY = 'KES';
+
+const resolveCurrency = (schoolDetails: unknown): string => {
+  const details = (schoolDetails ?? {}) as { currency?: unknown; currency_code?: unknown };
+  const candidate = String(details.currency || details.currency_code || '').trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(candidate) ? candidate : DEFAULT_CURRENCY;
+};
+
+const formatCurrency = (value: number, currency: string) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
@@ -79,6 +113,11 @@ const DashboardPage: React.FC = () => {
     studentExamResults,
     studentInvoices,
     studentPayments,
+    classStreams,
+    applications,
+    studentSubjectEnrollments,
+    studentTransportAssignments,
+    schoolDetails,
     loading,
     syncStatus,
     isOnline,
@@ -113,6 +152,9 @@ const DashboardPage: React.FC = () => {
     checkPermission();
   }, [hasPermission, user]);
 
+  const currency = useMemo(() => resolveCurrency(schoolDetails), [schoolDetails]);
+  const money = (value: number) => formatCurrency(value, currency);
+
   // Determine user role
   const roleType: DashboardRole = useMemo(() => {
     const role = (user?.role || '').toLowerCase();
@@ -132,17 +174,17 @@ const DashboardPage: React.FC = () => {
   // Attendance summary
   const attendanceSummary = useMemo(() => {
     const records = studentAttendance || [];
-    if (records.length === 0) return { percent: 0, present: 0, total: 0 };
-    
+    if (records.length === 0) return { percent: 0, present: 0, late: 0, total: 0 };
+
     const presentStatuses = new Set(['present', 'on_time', 'attended', 'in_class']);
-    const present = records.filter((record: any) => {
-      const status = String(record?.status || record?.attendanceStatus || record?.state || '').toLowerCase();
-      return presentStatuses.has(status);
-    }).length;
-    
+    const statusOf = (record: any) => lower(record?.status || record?.attendanceStatus || record?.state);
+    const present = records.filter((record: any) => presentStatuses.has(statusOf(record))).length;
+    const late = records.filter((record: any) => statusOf(record) === 'late').length;
+
     return {
       percent: Number(((present / records.length) * 100).toFixed(1)),
       present,
+      late,
       total: records.length,
     };
   }, [studentAttendance]);
@@ -155,14 +197,54 @@ const DashboardPage: React.FC = () => {
     return { male, female, other, total: (students || []).length };
   }, [students]);
 
-  // Department distribution (mock data for demo - can be connected to real data)
-  const departmentData = useMemo(() => [
-    { name: 'Sciences', value: 450, color: '#6366f1' },
-    { name: 'Arts', value: 320, color: '#10b981' },
-    { name: 'Commerce', value: 280, color: '#f59e0b' },
-    { name: 'Technical', value: 200, color: '#8b5cf6' },
-    { name: 'Languages', value: 150, color: '#ec4899' },
-  ], []);
+  // Class name per student, resolved at read time from the class stream (R3).
+  const classNameByStudentId = useMemo(() => {
+    const streamClass = new Map<string, string>();
+    (classStreams || []).forEach((stream: any) => {
+      const name = stream?.class_name || stream?.className;
+      if (stream?.id != null && name) streamClass.set(String(stream.id), String(name));
+    });
+    const result = new Map<string, string>();
+    (students || []).forEach((student: any) => {
+      const streamId = student?.current_class_stream_id;
+      const name = (streamId != null && streamClass.get(String(streamId))) || student?.current_class_name || student?.class_name;
+      if (student?.id != null && name) result.set(String(student.id), String(name));
+    });
+    return result;
+  }, [students, classStreams]);
+
+  // Students per class
+  const classDistribution = useMemo(
+    () =>
+      countBy(students || [], (student: any) => classNameByStudentId.get(String(student?.id)) ?? null)
+        .map((entry, index) => ({ ...entry, color: CHART_COLORS[index % CHART_COLORS.length] })),
+    [students, classNameByStudentId],
+  );
+
+  // Class performance: mean exam score per class
+  const classPerformance = useMemo(() => {
+    const byClass = new Map<string, { sum: number; count: number }>();
+    (studentExamResults || []).forEach((result: any) => {
+      const score = readExamScore(result);
+      const className = classNameByStudentId.get(String(result?.student_id ?? result?.studentId));
+      if (score === null || !className) return;
+      const entry = byClass.get(className) || { sum: 0, count: 0 };
+      entry.sum += score;
+      entry.count += 1;
+      byClass.set(className, entry);
+    });
+    return Array.from(byClass, ([name, { sum, count }]) => ({ name, mean: sum / count, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [studentExamResults, classNameByStudentId]);
+
+  // Applicants by gender (admissions)
+  const applicantSummary = useMemo(() => {
+    const list = applications || [];
+    const male = list.filter((a: any) => lower(a?.gender) === 'male').length;
+    const female = list.filter((a: any) => lower(a?.gender) === 'female').length;
+    const awaitingReview = list.filter((a: any) => ['submitted', 'under review'].includes(lower(a?.status))).length;
+    return { male, female, other: list.length - male - female, total: list.length, awaitingReview };
+  }, [applications]);
 
   // Upcoming events
   const upcomingEvents = useMemo(() => {
@@ -235,31 +317,23 @@ const DashboardPage: React.FC = () => {
   }, [students]);
 
   // Performance analytics
-  const performanceAnalyticsData = useMemo(() => [
-    { name: t('belowBasic', 'Below 50%'), learners: 0, color: '#ef4444' },
-    { name: t('developing', '50% - 69%'), learners: 0, color: '#f59e0b' },
-    { name: t('proficient', '70% - 84%'), learners: 0, color: '#6366f1' },
-    { name: t('advanced', '85%+'), learners: 0, color: '#10b981' },
-  ], [t]);
-
-  // Calculate actual performance data
-  useMemo(() => {
+  const performanceAnalyticsData = useMemo(() => {
+    const bands = [
+      { name: t('belowBasic', 'Below 50%'), learners: 0, color: '#ef4444' },
+      { name: t('developing', '50% - 69%'), learners: 0, color: '#f59e0b' },
+      { name: t('proficient', '70% - 84%'), learners: 0, color: '#6366f1' },
+      { name: t('advanced', '85%+'), learners: 0, color: '#10b981' },
+    ];
     (studentExamResults || []).forEach((result: any) => {
-      const scoreCandidates = [
-        result?.average_mark,
-        result?.averageMark,
-        result?.percentage,
-        result?.total_percentage,
-        result?.finalScore,
-      ];
-      const score = scoreCandidates.find((c) => typeof c === 'number' && Number.isFinite(c));
-      if (typeof score !== 'number') return;
-      if (score < 50) performanceAnalyticsData[0].learners += 1;
-      else if (score < 70) performanceAnalyticsData[1].learners += 1;
-      else if (score < 85) performanceAnalyticsData[2].learners += 1;
-      else performanceAnalyticsData[3].learners += 1;
+      const score = readExamScore(result);
+      if (score === null) return;
+      if (score < 50) bands[0].learners += 1;
+      else if (score < 70) bands[1].learners += 1;
+      else if (score < 85) bands[2].learners += 1;
+      else bands[3].learners += 1;
     });
-  }, [studentExamResults, performanceAnalyticsData]);
+    return bands;
+  }, [studentExamResults, t]);
 
   // Financial summary
   const financialSummaryData = useMemo(() => {
@@ -305,26 +379,39 @@ const DashboardPage: React.FC = () => {
     return Math.max(0, billed - collected);
   }, [financialSummaryData]);
 
-  // Reported students data (mock - can be connected to discipline module)
-  const reportedStudentsData = useMemo(() => [
-    { month: 'Jan', male: 12, female: 8 },
-    { month: 'Feb', male: 15, female: 10 },
-    { month: 'Mar', male: 18, female: 12 },
-    { month: 'Apr', male: 10, female: 6 },
-    { month: 'May', male: 22, female: 15 },
-    { month: 'Jun', male: 14, female: 9 },
-    { month: 'Jul', male: 8, female: 5 },
-    { month: 'Aug', male: 16, female: 11 },
-    { month: 'Sep', male: 20, female: 14 },
-  ], []);
-
-  // Subject registration stats
+  // Subject registration: students with at least one subject enrolment
   const subjectRegistrationStats = useMemo(() => {
-    const total = (students || []).length;
-    const registered = Math.floor(total * 0.75); // Mock: 75% registered
-    const notRegistered = total - registered;
-    return { registered, notRegistered, total };
+    const studentIds = new Set((students || []).map((s: any) => String(s?.id)));
+    const enrolled = new Set(
+      (studentSubjectEnrollments || [])
+        .map((e: any) => String(e?.student_id ?? e?.studentId))
+        .filter((id) => studentIds.has(id)),
+    );
+    const total = studentIds.size;
+    return { registered: enrolled.size, notRegistered: total - enrolled.size, total };
+  }, [students, studentSubjectEnrollments]);
+
+  // Student status overview
+  const studentStatusSummary = useMemo(() => {
+    const list = students || [];
+    const active = list.filter((s: any) => lower(s?.status) === 'active').length;
+    const suspended = list.filter((s: any) => lower(s?.status) === 'suspended').length;
+    const dropped = list.filter((s: any) => ['withdrawn', 'expelled', 'dropped'].includes(lower(s?.status))).length;
+    const activePercent = list.length > 0 ? Math.round((active / list.length) * 100) : 0;
+    return { active, suspended, dropped, activePercent };
   }, [students]);
+
+  // Transport: students with an active assignment and the routes they use
+  const transportSummary = useMemo(() => {
+    const active = (studentTransportAssignments || []).filter((a: any) => {
+      const status = lower(a?.status);
+      return status === '' || status === 'active';
+    });
+    return {
+      students: new Set(active.map((a: any) => String(a?.student_id))).size,
+      routes: new Set(active.map((a: any) => String(a?.route_id))).size,
+    };
+  }, [studentTransportAssignments]);
 
   // ============================================================================
   // Render Helpers
@@ -491,25 +578,27 @@ const DashboardPage: React.FC = () => {
           />
           <AlertBanner
             type="task"
-            count={15}
+            count={0}
             label={t('pendingTasks', 'Pending Tasks')}
             description={t('tasksAwaiting', 'Tasks awaiting action')}
             to="/administration/tasks"
           />
           <AlertBanner
             type="overdue"
-            count={5}
+            count={0}
             label={t('overdueTasks', 'Overdue Tasks')}
             description={t('requiresAttention', 'Requires immediate attention')}
             to="/administration/tasks?filter=overdue"
           />
-          <AlertBanner
-            type="approval"
-            count={14}
-            label={t('approvalsPending', 'Approvals Pending')}
-            description={t('awaitingApproval', 'Awaiting your approval')}
-            to="/administration/approvals"
-          />
+          <div data-testid="alert-approvals">
+            <AlertBanner
+              type="approval"
+              count={applicantSummary.awaitingReview}
+              label={t('approvalsPending', 'Approvals Pending')}
+              description={t('awaitingApproval', 'Awaiting your approval')}
+              to="/administration/approvals"
+            />
+          </div>
         </section>
 
         {/* ============================================================================
@@ -521,8 +610,6 @@ const DashboardPage: React.FC = () => {
             value={(students || []).length.toLocaleString()}
             subtitle={t('activeEnrollment', 'Active enrollment')}
             icon={<UsersIcon className="h-6 w-6" />}
-            trend="up"
-            trendValue="12%"
             colorScheme="blue"
             to="/administration/students"
           />
@@ -531,8 +618,6 @@ const DashboardPage: React.FC = () => {
             value={(staff || []).length.toLocaleString()}
             subtitle={t('teachingSupportStaff', 'Teaching & support staff')}
             icon={<UserGroupIcon className="h-6 w-6" />}
-            trend="neutral"
-            trendValue="0%"
             colorScheme="emerald"
             to="/administration/staff"
           />
@@ -541,18 +626,16 @@ const DashboardPage: React.FC = () => {
             value={`${attendanceSummary.percent}%`}
             subtitle={t('studentsPresentToday', '{{present}} of {{total}} present', { present: attendanceSummary.present, total: attendanceSummary.total })}
             icon={<CheckCircleIcon className="h-6 w-6" />}
-            trend={attendanceSummary.percent >= 85 ? 'up' : 'down'}
-            trendValue={`${attendanceSummary.percent >= 85 ? '+' : '-'}${Math.abs(attendanceSummary.percent - 85).toFixed(1)}%`}
+            trend={attendanceSummary.total > 0 ? (attendanceSummary.percent >= 85 ? 'up' : 'down') : undefined}
+            trendValue={attendanceSummary.total > 0 ? `${attendanceSummary.percent >= 85 ? '+' : '-'}${Math.abs(attendanceSummary.percent - 85).toFixed(1)}%` : undefined}
             colorScheme={attendanceSummary.percent >= 85 ? 'cyan' : 'amber'}
             to="/administration/student-attendance"
           />
           <StatCard
             title={t('feeCollection', 'Fee Collection')}
-            value={formatCurrency(financialSummaryData.reduce((sum, m) => sum + m.collected, 0))}
-            subtitle={t('outstandingBalance', 'Outstanding: {{amount}}', { amount: formatCurrency(outstandingBalance) })}
+            value={money(financialSummaryData.reduce((sum, m) => sum + m.collected, 0))}
+            subtitle={t('outstandingBalance', 'Outstanding: {{amount}}', { amount: money(outstandingBalance) })}
             icon={<CurrencyDollarIcon className="h-6 w-6" />}
-            trend="up"
-            trendValue="8.5%"
             colorScheme="violet"
             to="/finance/student-payments"
           />
@@ -657,121 +740,41 @@ const DashboardPage: React.FC = () => {
         </section>
 
         {/* ============================================================================
-            FORM PERFORMANCE SUMMARIES
+            CLASS PERFORMANCE SUMMARIES
         ============================================================================ */}
         <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
               <ChartBarIcon className="h-5 w-5 text-emerald-600" />
             </div>
-            <h2 className="text-lg font-bold text-surface-foreground">{t('formPerformance', 'Form Performance Summaries')}</h2>
+            <h2 className="text-lg font-bold text-surface-foreground">{t('classPerformance', 'Class Performance Summaries')}</h2>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Form 1 */}
-            <Card className="border-surface-border hover:shadow-md transition-shadow">
-              <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
-                  <AcademicCapIcon className="h-6 w-6" />
-                </div>
-                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 1</h3>
-                <p className="text-center text-xs text-surface-muted-fg mb-3">OPENER - (2024 Term 1)</p>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Points</span>
-                    <span className="font-semibold text-emerald-600">4.8904</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Marks</span>
-                    <span className="font-semibold text-emerald-600">46.3%</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-surface-muted-fg">Mean Grade</span>
-                    <span className="px-2 py-0.5 bg-amber-50 text-amber-600 font-bold rounded">C-</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
 
-            {/* Form 2 */}
-            <Card className="border-surface-border hover:shadow-md transition-shadow">
-              <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
-                  <AcademicCapIcon className="h-6 w-6" />
-                </div>
-                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 2</h3>
-                <p className="text-center text-xs text-surface-muted-fg mb-3">OPENER - (2024 Term 1)</p>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Points</span>
-                    <span className="font-semibold text-emerald-600">5.2156</span>
+          {classPerformance.length === 0 ? (
+            <p className="rounded-lg bg-surface-muted p-4 text-center text-sm text-surface-muted-fg">
+              {t('noExamResults', 'No exam results recorded yet.')}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {classPerformance.map((entry) => (
+                <Card key={entry.name} className="border-surface-border hover:shadow-md transition-shadow">
+                  <div className="p-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
+                      <AcademicCapIcon className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-center text-lg font-bold text-surface-foreground">{entry.name}</h3>
+                    <p className="text-center text-xs text-surface-muted-fg mb-3">
+                      {t('examResultsCount', '{{count}} results', { count: entry.count })}
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-surface-muted-fg">{t('meanMarks', 'Mean Marks')}</span>
+                      <span className="font-semibold text-emerald-600">{`${entry.mean.toFixed(1)}%`}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Marks</span>
-                    <span className="font-semibold text-emerald-600">52.8%</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-surface-muted-fg">Mean Grade</span>
-                    <span className="px-2 py-0.5 bg-primary-50 text-primary-600 font-bold rounded">C+</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Form 3 */}
-            <Card className="border-surface-border hover:shadow-md transition-shadow">
-              <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
-                  <AcademicCapIcon className="h-6 w-6" />
-                </div>
-                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 3</h3>
-                <p className="text-center text-xs text-surface-muted-fg mb-3">MID TERM - (2024 Term 1)</p>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Points</span>
-                    <span className="font-semibold text-emerald-600">6.1458</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Marks</span>
-                    <span className="font-semibold text-emerald-600">61.5%</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-surface-muted-fg">Mean Grade</span>
-                    <span className="px-2 py-0.5 bg-primary-50 text-primary-600 font-bold rounded">B</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Form 4 */}
-            <Card className="border-surface-border hover:shadow-md transition-shadow">
-              <div className="p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-accent text-surface-muted-fg mb-3 mx-auto">
-                  <AcademicCapIcon className="h-6 w-6" />
-                </div>
-                <h3 className="text-center text-lg font-bold text-surface-foreground">Form 4</h3>
-                <p className="text-center text-xs text-surface-muted-fg mb-3">MID TERM - (2024 Term 1)</p>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Points</span>
-                    <span className="font-semibold text-emerald-600">7.2341</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-surface-muted-fg">Mean Marks</span>
-                    <span className="font-semibold text-emerald-600">72.3%</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-surface-muted-fg">Mean Grade</span>
-                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 font-bold rounded">B+</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ============================================================================
@@ -794,43 +797,50 @@ const DashboardPage: React.FC = () => {
             {/* Applicants Donut Chart */}
             <ChartCard
               title={t('applicants', 'Applicants')}
-              subtitle={t('intakeDec2024', 'Intake: Dec 2024')}
               icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
             >
-              <div className="flex items-center justify-center py-4">
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: t('male', 'Male'), value: 240 },
-                        { name: t('female', 'Female'), value: 120 },
-                        { name: t('others', 'Others'), value: 80 },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      <Cell fill="#6366f1" />
-                      <Cell fill="#ec4899" />
-                      <Cell fill="#10b981" />
-                    </Pie>
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center">
-                  <span className="text-3xl font-bold text-surface-foreground">440</span>
-                  <span className="text-xs text-surface-muted-fg">{t('totalApplicants', 'Total')}</span>
-                </div>
-              </div>
-              <div className="mt-2 flex justify-center gap-4 text-sm">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary-500" />240 {t('male', 'Male')}</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-pink-500" />120 {t('female', 'Female')}</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" />80 {t('others', 'Others')}</span>
-              </div>
+              {applicantSummary.total === 0 ? (
+                <p className="rounded-lg bg-surface-muted p-4 text-center text-sm text-surface-muted-fg">
+                  {t('noApplications', 'No applications received yet.')}
+                </p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center py-4">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: t('male', 'Male'), value: applicantSummary.male },
+                            { name: t('female', 'Female'), value: applicantSummary.female },
+                            { name: t('others', 'Others'), value: applicantSummary.other },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          <Cell fill="#6366f1" />
+                          <Cell fill="#ec4899" />
+                          <Cell fill="#10b981" />
+                        </Pie>
+                        <Tooltip />
+                        <Legend verticalAlign="bottom" height={36} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute flex flex-col items-center">
+                      <span className="text-3xl font-bold text-surface-foreground" data-testid="applicants-total">{applicantSummary.total}</span>
+                      <span className="text-xs text-surface-muted-fg">{t('totalApplicants', 'Total')}</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex justify-center gap-4 text-sm">
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary-500" />{applicantSummary.male} {t('male', 'Male')}</span>
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-pink-500" />{applicantSummary.female} {t('female', 'Female')}</span>
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" />{applicantSummary.other} {t('others', 'Others')}</span>
+                  </div>
+                </>
+              )}
             </ChartCard>
 
             {/* Gender Distribution Cards */}
@@ -870,30 +880,36 @@ const DashboardPage: React.FC = () => {
               </Card>
             </div>
 
-            {/* Department Distribution */}
+            {/* Students by Class */}
             <ChartCard
-              title={t('studentsByDepartment', 'Students by Department')}
+              title={t('studentsByClass', 'Students by Class')}
               icon={<BuildingLibraryIcon className="h-5 w-5" />}
             >
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={departmentData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {departmentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => [`${value} students`, 'Count']} />
-                </PieChart>
-              </ResponsiveContainer>
+              {classDistribution.length === 0 ? (
+                <p className="rounded-lg bg-surface-muted p-4 text-center text-sm text-surface-muted-fg">
+                  {t('noClassAssignments', 'No students assigned to classes yet.')}
+                </p>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={classDistribution}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {classDistribution.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value} ${t('students', 'students')}`, t('count', 'Count')]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </ChartCard>
           </div>
         </section>
@@ -945,19 +961,9 @@ const DashboardPage: React.FC = () => {
             subtitle={t('disciplinaryCases', 'Disciplinary cases by month')}
             icon={<ExclamationTriangleIcon className="h-5 w-5" />}
           >
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={reportedStudentsData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 12 }} />
-                <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                />
-                <Legend />
-                <Bar dataKey="male" name={t('male', 'Male')} fill="#6366f1" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="female" name={t('female', 'Female')} fill="#ec4899" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <p className="rounded-lg bg-surface-muted p-4 text-center text-sm text-surface-muted-fg">
+              {t('noDisciplinaryCases', 'No disciplinary cases recorded.')}
+            </p>
           </ChartCard>
         </section>
 
@@ -968,8 +974,7 @@ const DashboardPage: React.FC = () => {
           {/* Subject Registration */}
           <ChartCard
             title={t('subjectRegistration', 'Subject Registration')}
-            subtitle={t('academicYear2024', 'Academic Year 2024')}
-            icon={<BookOpenIcon className="h-5 w-5" />}
+icon={<BookOpenIcon className="h-5 w-5" />}
           >
             <div className="space-y-4 py-2">
               <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-4">
@@ -978,7 +983,7 @@ const DashboardPage: React.FC = () => {
                     <CheckCircleIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-surface-foreground">{subjectRegistrationStats.registered.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-surface-foreground" data-testid="subject-registered">{subjectRegistrationStats.registered.toLocaleString()}</p>
                     <p className="text-sm text-surface-muted-fg">{t('registered', 'Registered')}</p>
                   </div>
                 </div>
@@ -989,7 +994,7 @@ const DashboardPage: React.FC = () => {
                     <ExclamationTriangleIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-surface-foreground">{subjectRegistrationStats.notRegistered.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-surface-foreground" data-testid="subject-not-registered">{subjectRegistrationStats.notRegistered.toLocaleString()}</p>
                     <p className="text-sm text-surface-muted-fg">{t('notRegistered', 'Not Registered')}</p>
                   </div>
                 </div>
@@ -1028,24 +1033,24 @@ const DashboardPage: React.FC = () => {
           >
             <div className="flex items-center justify-around py-4">
               <ProgressRing
-                progress={85}
+                progress={studentStatusSummary.activePercent}
                 size={100}
                 strokeWidth={8}
                 label={t('active', 'Active')}
-                sublabel={`700 ${t('students', 'students')}`}
+                sublabel={`${studentStatusSummary.active} ${t('students', 'students')}`}
               />
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  <span className="text-sm text-surface-muted-fg">{t('active', 'Active')}: 700</span>
+                  <span className="text-sm text-surface-muted-fg">{t('active', 'Active')}: <span data-testid="cumulative-active">{studentStatusSummary.active}</span></span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-amber-500" />
-                  <span className="text-sm text-surface-muted-fg">{t('suspended', 'Suspended')}: 45</span>
+                  <span className="text-sm text-surface-muted-fg">{t('suspended', 'Suspended')}: <span data-testid="cumulative-suspended">{studentStatusSummary.suspended}</span></span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-rose-500" />
-                  <span className="text-sm text-surface-muted-fg">{t('dropped', 'Dropped')}: 90</span>
+                  <span className="text-sm text-surface-muted-fg">{t('dropped', 'Dropped')}: <span data-testid="cumulative-dropped">{studentStatusSummary.dropped}</span></span>
                 </div>
               </div>
             </div>
@@ -1068,11 +1073,11 @@ const DashboardPage: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
                 <YAxis 
-                  tickFormatter={(value) => formatCurrency(value)} 
+                  tickFormatter={(value) => money(value)}
                   tick={{ fill: '#6b7280', fontSize: 11 }} 
                 />
                 <Tooltip 
-                  formatter={(value: number) => formatCurrency(value)}
+                  formatter={(value: number) => money(value)}
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                 />
                 <Legend />
@@ -1096,7 +1101,7 @@ const DashboardPage: React.FC = () => {
             </ResponsiveContainer>
             <div className="mt-4 flex items-center justify-between rounded-lg bg-surface-muted p-3">
               <span className="text-sm text-surface-muted-fg">{t('outstandingBalanceFull', 'Outstanding Balance')}</span>
-              <span className="text-lg font-bold text-rose-600">{formatCurrency(outstandingBalance)}</span>
+              <span className="text-lg font-bold text-rose-600">{money(outstandingBalance)}</span>
             </div>
           </ChartCard>
 
@@ -1116,11 +1121,11 @@ const DashboardPage: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
                     <span className="text-sm text-surface-muted-fg">{t('late', 'Late')}</span>
-                    <span className="font-semibold text-amber-600">12</span>
+                    <span className="font-semibold text-amber-600" data-testid="attendance-late">{attendanceSummary.late}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
                     <span className="text-sm text-surface-muted-fg">{t('absent', 'Absent')}</span>
-                    <span className="font-semibold text-rose-600">{attendanceSummary.total - attendanceSummary.present}</span>
+                    <span className="font-semibold text-rose-600" data-testid="attendance-absent">{attendanceSummary.total - attendanceSummary.present - attendanceSummary.late}</span>
                   </div>
                 </div>
               </div>
@@ -1135,12 +1140,12 @@ const DashboardPage: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
-                    <span className="text-sm text-surface-muted-fg">{t('busesOnRoute', 'Buses on Route')}</span>
-                    <span className="font-semibold text-surface-foreground">8</span>
+                    <span className="text-sm text-surface-muted-fg">{t('routesInUse', 'Routes in Use')}</span>
+                    <span className="font-semibold text-surface-foreground" data-testid="transport-routes">{transportSummary.routes}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-white/70 dark:bg-slate-900/70 p-2">
                     <span className="text-sm text-surface-muted-fg">{t('studentsTransported', 'Students Transported')}</span>
-                    <span className="font-semibold text-surface-foreground">342</span>
+                    <span className="font-semibold text-surface-foreground" data-testid="transport-students">{transportSummary.students}</span>
                   </div>
                 </div>
                 <Button 
