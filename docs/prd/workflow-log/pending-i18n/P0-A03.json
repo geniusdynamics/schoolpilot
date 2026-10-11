@@ -1,0 +1,26 @@
+{
+  "task": "P0-A03",
+  "locale": "en",
+  "namespaces": {
+    "common": {
+      "auth": {
+        "login": {
+          "storageUnavailable": "The school database is not available on this device. Sign-in is disabled until storage is working."
+        },
+        "createAdministrator": {
+          "title": "Create administrator",
+          "intro": "No accounts exist yet. Create the administrator who will manage this school.",
+          "username": "Username",
+          "displayName": "Display name",
+          "password": "Password",
+          "confirmPassword": "Confirm password",
+          "submit": "Create administrator",
+          "passwordTooShort": "The password must be at least 10 characters.",
+          "passwordMismatch": "The passwords do not match.",
+          "failed": "Could not create the administrator.",
+          "created": "Administrator created. Sign in with your new account."
+        }
+      }
+    }
+  }
+}

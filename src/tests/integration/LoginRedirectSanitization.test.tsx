@@ -1,3 +1,6 @@
+// ABOUTME: Integration tests that the login page sanitises the post-login redirect target.
+// ABOUTME: authService is mocked as a demo database so demo-account buttons are offered.
+
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -12,6 +15,15 @@ vi.mock('@/contexts/AuthContext', () => ({
     isAuthenticated: false,
     isDemoMode: true
   })
+}));
+
+// The login page lists demo accounts only when authService reports a demo database.
+vi.mock('@/services/auth/authService', () => ({
+  MIN_ADMIN_PASSWORD_LENGTH: 10,
+  authService: {
+    getLoginState: vi.fn(async () => ({ mode: 'demo', status: 'ready' })),
+    createInitialAdministrator: vi.fn(),
+  },
 }));
 
 describe('Login redirect sanitization', () => {

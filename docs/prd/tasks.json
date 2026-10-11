@@ -791,10 +791,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws14-authentication-fails-closed",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
-      "notes": "",
-      "completed_at": null
+      "notes": "Two fix rounds + owner-approved AuthContext login fix; probe C04 PASS; independently verified (APPROVE). Widened: AuthContext.tsx, school-ops-probe.mjs",
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-A04",

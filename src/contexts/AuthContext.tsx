@@ -30,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Initialize authentication state
   useEffect(() => {
@@ -60,21 +60,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(currentUser);
         }
         
-        // Determine if we're in demo mode — prefer session flag, fallback to config
-        const session = authService.getCurrentSession();
-        let demoMode = session?.isDemo;
-        if (demoMode === undefined) {
-          try {
-            const { unifiedConfigManager } = await import('@/config/unifiedConfig');
-            const cfg: any = unifiedConfigManager.getConfig();
-            demoMode = cfg?.dataMode === 'demo' || cfg?.demo?.active === true;
-            // default to true if config not yet loaded (login should show demo hints)
-            if (demoMode === undefined) demoMode = true;
-          } catch {
-            demoMode = true;
-          }
-        }
-        setIsDemoMode(!!demoMode);
+        // Demo mode is decided by authService from the persisted data mode only
+        setIsDemoMode(authService.isDemoDatabase());
       } catch (error) {
         logger.error('Error initializing auth:', error);
       } finally {
@@ -86,9 +73,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Login method
-  const login = async (credentials: LoginCredentials): Promise<AuthResult> => {
+  // Login does not touch isLoading: that flag is the start-up state, and AppContent replaces the
+  // login page with a spinner while it is true, which would discard the page's error message.
+  // The login page shows its own progress indicator.
+  const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResult> => {
     try {
-      setIsLoading(true);
       const result = await authService.login(credentials);
       
       if (result.success && result.user) {
@@ -104,18 +93,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         message: 'Login failed',
         errors: [error instanceof Error ? error.message : 'Unknown error']
       };
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, []);
 
   // Logout method
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       await authService.logout();
       setUser(null);
-      setIsDemoMode(true);
+      setIsDemoMode(authService.isDemoDatabase());
       
       // Clear any stored route information on logout
       try {
@@ -129,17 +116,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Refresh user data
-  const refreshUser = async (): Promise<void> => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
       logger.error('Error refreshing user:', error);
     }
-  };
+  }, []);
 
   // Permission check
   const hasPermission = useCallback(async (permissionId: string): Promise<boolean> => {
