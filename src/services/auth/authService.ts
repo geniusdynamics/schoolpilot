@@ -167,6 +167,8 @@ class AuthService {
     if (!this.initializationComplete && this.initializationPromise) {
       await this.initializationPromise;
     }
+    // Re-read on every call so a data-mode switch after start-up (e.g. the setup wizard) is honoured.
+    this.isDemoMode = await this.persistedModeIsDemo();
   }
 
   private storageUnavailable(): AuthResult {

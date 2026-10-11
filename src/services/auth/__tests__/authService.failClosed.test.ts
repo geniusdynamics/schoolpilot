@@ -373,4 +373,29 @@ describe('authService fails closed', () => {
     expect(result.session?.isDemo).toBe(true);
     expect((await auth.getLoginState()).mode).toBe('demo');
   });
+
+  it('re-reads the stored data mode at login, so a switch to production after start-up rejects a wrong password', async () => {
+    state.storedDataMode = 'demo';
+    state.collections.users.rows.push({
+      id: 'u1', username: 'admin', isActive: true, hashed_password: await storedHash('correct horse battery'),
+    });
+    const auth = await freshAuthService();
+    state.storedDataMode = 'production';
+
+    const result = await auth.login({ username: 'admin', password: 'definitely-wrong' });
+
+    expect(result.success).toBe(false);
+    expect(result.session).toBeUndefined();
+    expect(await auth.getLoginState()).toEqual({ mode: 'live', status: 'ready' });
+  });
+
+  it('re-reads the stored data mode for the login state, so a later switch to demo is picked up', async () => {
+    state.storedDataMode = null;
+    const auth = await freshAuthService();
+    expect((await auth.getLoginState()).mode).toBe('live');
+
+    state.storedDataMode = 'demo';
+
+    expect(await auth.getLoginState()).toEqual({ mode: 'demo', status: 'ready' });
+  });
 });
