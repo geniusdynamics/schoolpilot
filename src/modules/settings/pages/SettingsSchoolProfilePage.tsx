@@ -1,7 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿// ABOUTME: Settings › School Profile — edits the single school_details record (name, code, contacts, motto)
+// ABOUTME: Reads and saves through useDatabaseDocument so the profile persists and refreshes live (SO-17)
+
+import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import { IdentificationIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
+import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import { SchoolDetails } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -12,11 +15,20 @@ import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 
+// school_details rows are keyed by string ids in the database layer
+type SchoolProfile = Omit<SchoolDetails, 'id'> & { id?: string };
+
 export const SettingsSchoolProfileContent: React.FC = () => {
-  const { schoolDetails: initialSchoolDetails, updateSchoolDetails, loading } = useAppData();
+  const {
+    data: initialSchoolDetails,
+    save: saveSchoolDetails,
+    loading,
+  } = useDatabaseDocument<SchoolProfile>('school_details');
+  // Only block the form on the first load; refreshes after a save keep it on screen
+  const pageIsLoading = loading && !initialSchoolDetails;
   const { t } = useTranslation('settings');
-  
-  const [schoolDetails, setSchoolDetails] = useState<Partial<SchoolDetails>>(initialSchoolDetails || {});
+
+  const [schoolDetails, setSchoolDetails] = useState<Partial<SchoolProfile>>(initialSchoolDetails || {});
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -34,7 +46,12 @@ export const SettingsSchoolProfileContent: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await updateSchoolDetails(schoolDetails);
+      const now = new Date().toISOString();
+      await saveSchoolDetails({
+        ...schoolDetails,
+        ...(schoolDetails.id ? {} : { created_at: now }),
+        updated_at: now,
+      });
       toast.showSuccess(t('schoolProfile.saveSuccess'));
     } catch (error) {
       logger.error("Failed to save school details:", error);
@@ -44,7 +61,6 @@ export const SettingsSchoolProfileContent: React.FC = () => {
     }
   };
   
-  const pageIsLoading = loading.schoolDetails || (loading.all && !initialSchoolDetails);
 
 
   return (
