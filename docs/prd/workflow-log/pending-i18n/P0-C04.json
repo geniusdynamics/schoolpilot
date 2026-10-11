@@ -1,0 +1,40 @@
+{
+  "task": "P0-C04",
+  "note": "New keys used with inline English fallbacks in BulkStreamCreationPage; merge into each locale (en shown; translate for fr, rw, sw). common.remove: add only if missing.",
+  "en": {
+    "administration": {
+      "bulkStreams": {
+        "title": "Bulk Stream Creation",
+        "subtitle": "Add multiple streams to a class at once",
+        "addField": "Add Stream Field",
+        "selectClass": "Select Class",
+        "selectClassPlaceholder": "-- Select a class --",
+        "streamNames": "Stream Names",
+        "streamPlaceholder": "Stream {{index}} name (e.g., East, West, North)",
+        "summary": "Will create {{count}} stream(s) for \"{{className}}\"",
+        "summaryEmpty": "Select a class and enter stream names above",
+        "duplicatesHint": "Already exists or repeated, will be skipped: {{names}}",
+        "duplicatesSkipped": "Skipped existing or repeated stream names: {{names}}",
+        "badge": "{{count}} streams",
+        "create": "Create {{count}} Stream(s)",
+        "createdToast": "Created {{count}} stream(s) for {{className}}",
+        "createFailed": "One or more streams could not be created.",
+        "createdTitle": "Streams created",
+        "repair": {
+          "title": "Corrupt streams",
+          "subtitle": "These streams have no name or no class. Move their students to a valid stream, then remove them.",
+          "unnamed": "Unnamed stream",
+          "studentCount": "({{count}} student(s))",
+          "moveTo": "Move students to",
+          "chooseStream": "-- Choose a stream --",
+          "action": "Repair streams",
+          "done": "Removed {{deleted}} corrupt stream(s); moved {{reassigned}} student(s)",
+          "failed": "Repair failed. No further streams were removed."
+        }
+      }
+    },
+    "common": {
+      "remove": "Remove"
+    }
+  }
+}
