@@ -44,6 +44,26 @@ describe('LoginPage fails closed', () => {
     expect(screen.getByRole('button', { name: /^Sign In$/ })).toBeInTheDocument();
   });
 
+  it('hides demo accounts when the context still says demo (e.g. after logout) but the database is live', async () => {
+    auth.isDemoMode = true;
+    auth.getLoginState.mockResolvedValue({ mode: 'live', status: 'ready' });
+    renderPage();
+
+    await waitFor(() => expect(auth.getLoginState).toHaveBeenCalled());
+    await screen.findByText(/Enter your credentials/i);
+    expect(screen.queryByText(/Demo Mode/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/All passwords are accepted/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /teacher/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/admin123/)).not.toBeInTheDocument();
+  });
+
+  it('lists demo accounts only when authService reports a demo database', async () => {
+    auth.getLoginState.mockResolvedValue({ mode: 'demo', status: 'ready' });
+    renderPage();
+
+    expect(await screen.findByText(/All passwords are accepted/i)).toBeInTheDocument();
+  });
+
   it('offers "Create administrator" (and no demo hint) on a fresh install', async () => {
     auth.getLoginState.mockResolvedValue({ mode: 'live', status: 'needs-administrator' });
     renderPage();

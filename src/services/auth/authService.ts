@@ -7,7 +7,7 @@ import { databaseService } from '../database/databaseService';
 // Using unified database service (SQLite-WASM/PouchDB)
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../../core/rbacService';
-import { unifiedConfigManager } from '../../config/unifiedConfig';
+import { unifiedConfigManager, getStoredDataMode } from '../../config/unifiedConfig';
 import { reportError } from '../../config/errorTracking';
 import { hashPassword, verifyPassword, generateSecureToken } from '../../utils/passwordHash';
 import { CapabilityDetector } from '@/services/database/detection/CapabilityDetector';
@@ -69,6 +69,12 @@ const SUPER_ADMIN_ROLE = 'super_admin';
 const STORAGE_UNAVAILABLE_MESSAGE = 'The school database is not available on this device. Sign-in is disabled until storage is working.';
 const NO_ADMINISTRATOR_MESSAGE = 'No administrator account exists yet. Create the administrator to continue.';
 
+/** True when a users row is active. SQLite rows carry the schema column is_active (1/0); older rows use isActive. */
+const isUserRowActive = (user: { is_active?: unknown; isActive?: unknown }): boolean => {
+  const flag = user.is_active ?? user.isActive;
+  return flag === true || flag === 1 || flag === '1' || flag === 'true';
+};
+
 // Service Result Types
 export interface ServiceResult<T> {
   success: boolean;
@@ -94,8 +100,8 @@ class AuthService {
   private async initialize() {
     logger.info('🔐 [AuthService] initialize() called');
     try {
-      // Demo login is decided only by the persisted data mode, never by failures.
-      this.isDemoMode = this.configSaysDemo();
+      // Demo login is decided only by the persisted data mode, never by failures or environment defaults.
+      this.isDemoMode = await this.persistedModeIsDemo();
 
       // Check if IndexedDB is available using centralized CapabilityDetector
       const detector = CapabilityDetector.getInstance();
@@ -138,12 +144,21 @@ class AuthService {
     }
   }
 
-  private configSaysDemo(): boolean {
+  /**
+   * True only when the stored configuration says this is a demo database. The configuration is
+   * loaded first (so a legacy data-mode key is migrated); unloaded or default values never count.
+   */
+  private async persistedModeIsDemo(): Promise<boolean> {
     try {
-      const cfg = unifiedConfigManager.getConfig() as { dataMode?: string; demo?: { active?: boolean } };
-      return cfg?.dataMode === 'demo' || cfg?.demo?.active === true;
+      await unifiedConfigManager.init();
     } catch (error) {
-      logger.error('🔐 [AuthService] Could not read configuration; treating as live mode:', error);
+      logger.error('🔐 [AuthService] Could not load configuration; treating as live mode:', error);
+      return false;
+    }
+    try {
+      return getStoredDataMode() === 'demo';
+    } catch (error) {
+      logger.error('🔐 [AuthService] Could not read the stored data mode; treating as live mode:', error);
       return false;
     }
   }
@@ -479,7 +494,7 @@ class AuthService {
       }
       
       // Check if user is active
-      if (!user.isActive) {
+      if (!isUserRowActive(user)) {
         // Report production login failure to Bugsink
         const loginError = new Error('Production login failed: Account deactivated');
         reportError(loginError, {
@@ -565,12 +580,13 @@ class AuthService {
       const userRolesCollection = databaseService.getCollection('user_roles');
       const rolesCollection = databaseService.getCollection('rbac_roles');
       
-      const userRoles = userRolesCollection ? await userRolesCollection.find({ selector: { userId: user.id } }) : [];
+      // user_roles rows use the schema columns user_id/role_id.
+      const userRoles = userRolesCollection ? await userRolesCollection.find({ selector: { user_id: user.id } }) : [];
       const moduleAccess: string[] = [];
       
       for (const userRole of userRoles) {
         if (rolesCollection) {
-          const role = await rolesCollection.findOne({ selector: { id: userRole.roleId } });
+          const role = await rolesCollection.findOne({ selector: { id: userRole.role_id } });
           if (role) {
             Object.keys(role.moduleAccess || {}).forEach(moduleId => {
               if (role.moduleAccess[moduleId].enabled && !moduleAccess.includes(moduleId)) {
@@ -587,8 +603,8 @@ class AuthService {
         username: user.username,
         email: user.email,
         fullName: user.display_name,
-        role: userRoles[0]?.roleId || user.role || 'user',
-        isActive: user.isActive,
+        role: userRoles[0]?.role_id || user.role || 'user',
+        isActive: isUserRowActive(user),
         lastLoginAt: new Date(),
         createdAt: new Date(user.created_at),
         updatedAt: new Date(user.updated_at),
@@ -687,7 +703,8 @@ class AuthService {
         email: input.email?.trim() || '',
         userType: 'Administrator',
         role: SUPER_ADMIN_ROLE,
-        isActive: true,
+        role_id: SUPER_ADMIN_ROLE,
+        is_active: true,
         hashed_password: `${hashed.hash}:${hashed.salt}:${hashed.iterations}`,
         created_at: now,
         updated_at: now,
@@ -695,7 +712,7 @@ class AuthService {
 
       const userRolesCollection = databaseService.getCollection('user_roles');
       if (userRolesCollection && created?.id) {
-        await userRolesCollection.insert({ userId: created.id, roleId: SUPER_ADMIN_ROLE });
+        await userRolesCollection.insert({ user_id: created.id, role_id: SUPER_ADMIN_ROLE, created_at: now, updated_at: now });
       }
       return { success: true, message: 'Administrator created. You can now sign in.' };
     } catch (error) {

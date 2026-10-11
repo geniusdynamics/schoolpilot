@@ -107,13 +107,13 @@ const LoginPage: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [loginState, setLoginState] = useState<LoginState | null>(null);
 
-  const { login, isDemoMode, isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('common');
 
+  // authService.getLoginState() is authoritative; AuthContext.isDemoMode may be stale (e.g. after logout).
   useEffect(() => {
-    if (isDemoMode) return;
     let cancelled = false;
     loadAuthService()
       .then(service => service.getLoginState())
@@ -123,10 +123,10 @@ const LoginPage: React.FC = () => {
         if (!cancelled) setLoginState({ mode: 'live', status: 'storage-unavailable' });
       });
     return () => { cancelled = true; };
-  }, [isDemoMode]);
+  }, []);
 
   // Demo accounts are offered only for demo databases, never because something failed.
-  const showDemoAccounts = isDemoMode && loginState?.mode !== 'live';
+  const showDemoAccounts = loginState?.mode === 'demo';
   const needsAdministrator = loginState?.status === 'needs-administrator';
   const storageUnavailable = loginState?.status === 'storage-unavailable';
 
