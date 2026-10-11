@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-11 — **PR #16 (P0-W1) merged into `consolidation`** (merge commit `b300322`, CI green after fixes P0-Q01..Q03). P0-W2 continues on `prd/P0-W2` (PR #17, now based on `consolidation`)._
+_Last update: 2026-10-11 — W1 merged (`b300322`). **P0-W2: 7 of 14 integrated** on `prd/P0-W2` (PR #17)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -27,6 +27,17 @@ If a fix round is lost with the cloud session, redo it locally from the task bra
 verifier's findings (they are in this file's history and the W1 log), then integrate per §3b.
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
+
+### P0-W2 status
+| Task | State | Where |
+| --- | --- | --- |
+| A03 | done (`2004346`) — 2 fix rounds + owner-approved AuthContext fix; probe C04 PASS; verified | `prd/P0-W2` |
+| A04 B03 C03 C04 C05 D04 | done (`8f248fe` `b56b35b` `b758977` `03b55d7` `b4de32b` `bc06f0c`) | `prd/P0-W2` |
+| D05 | owner decision 2026-10-11: add staff columns + additive "add missing columns at startup" step; fix round running on `prd/P0-D05-fix1` | base branch `prd/P0-D05` on origin |
+| D03 | implemented (`prd/P0-D03`); verification re-running in workflow `wf_d39c2da3-a0c` | origin |
+| D06 E03 F03 G06 G07 | being implemented (same workflow, `only` filter) | cloud session until integrated |
+
+Resume locally if the session dies: `git switch -C consolidation origin/prd/P0-W2`, then for each open task follow §3 (`only: [...]` with the open ids).
 
 ### P0-W2 (in progress)
 Branch `prd/P0-W2` (based on `consolidation` after the W1 merge; `consolidation` was merged into it as `6574256`). Tasks: A03 A04 B03 C03 C04 C05 D03 D04 D05 D06 E03 F03 G06 G07, run by cloud workflow `prd-wave` (wave P0-W2). Local `consolidation` points at the W2 tip; publish with `git push origin consolidation:prd/P0-W2`.
