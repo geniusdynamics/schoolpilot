@@ -960,7 +960,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "03b55d7",
       "notes": "",
       "completed_at": "2026-10-11"
     },
@@ -994,10 +994,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D03",

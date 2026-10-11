@@ -1,12 +1,15 @@
+// ABOUTME: Academic Period Definitions admin page: the ordered periods (terms, semesters) of each year structure.
+// ABOUTME: Uses string structure ids and resolves structure names from the structures collection at read time.
+
 import React, { useState, useMemo } from 'react';
 import { AcademicPeriodDefinition, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/components/ui/icons';
@@ -20,8 +23,14 @@ type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | '
 
 const AcademicPeriodDefinitionsPage: React.FC = () => {
   const appData = useAppData();
-  const academicPeriodDefinitionsData = appData.academicPeriodDefinitions || [];
-  const academicYearStructures = appData.academicYearStructures || [];
+  const academicPeriodDefinitionsData = useMemo(
+    () => appData.academicPeriodDefinitions || [],
+    [appData.academicPeriodDefinitions],
+  );
+  const academicYearStructures = useMemo(
+    () => appData.academicYearStructures || [],
+    [appData.academicYearStructures],
+  );
   const loading = appData.loading || {};
   const addAcademicPeriodDefinition = appData.addAcademicPeriodDefinition;
   const updateAcademicPeriodDefinition = appData.updateAcademicPeriodDefinition;
@@ -45,7 +54,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     } else {
         const defaultStructureId = formData.structure_id || (academicYearStructures.length > 0 ? academicYearStructures[0].id : undefined);
         const defaultSequence = defaultStructureId 
-            ? (academicPeriodDefinitionsData.filter(apd => apd.structure_id === defaultStructureId).length || 0) + 1 
+            ? (academicPeriodDefinitionsData.filter(apd => String(apd.structure_id) === String(defaultStructureId)).length || 0) + 1 
             : 1;
         setFormData({...initialFormData, structure_id: defaultStructureId, sequence_order: defaultSequence });
     }
@@ -62,7 +71,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     const { name, value } = e.target;
     let processedValue: string | number | undefined = value;
     if (name === 'structure_id') { 
-        processedValue = value ? parseInt(value) : undefined; 
+        processedValue = value || undefined; 
     } else if (name === 'sequence_order') {
         processedValue = value ? parseInt(value) : undefined;
         if (Number.isNaN(processedValue as number)) processedValue = 1;
@@ -71,7 +80,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     setFormData(prev => {
         const newState = { ...prev, [name]: processedValue };
         if (name === 'structure_id' && processedValue) {
-            const existingForStructure = academicPeriodDefinitionsData.filter(apd => apd.structure_id === Number(processedValue));
+            const existingForStructure = academicPeriodDefinitionsData.filter(apd => String(apd.structure_id) === String(processedValue));
             newState.sequence_order = (existingForStructure.length || 0) + 1;
         }
         return newState;
@@ -86,7 +95,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     }
     const payload = { 
         name: formData.name!, 
-        structure_id: Number(formData.structure_id!), 
+        structure_id: String(formData.structure_id!), 
         sequence_order: Number(formData.sequence_order!),
     };
 
@@ -142,10 +151,13 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     },
   ];
 
-  const sortedDefinitions = useMemo(() => 
-    [...academicPeriodDefinitionsData].sort((a,b) => String(a.structure_id ?? '').localeCompare(String(b.structure_id ?? '')) || a.sequence_order - b.sequence_order),
-    [academicPeriodDefinitionsData]
-  );
+  // Structure names are resolved from the structures collection, never trusted from the row.
+  const sortedDefinitions = useMemo(() => {
+    const structureNames = new Map(academicYearStructures.map(s => [String(s.id), s.name]));
+    return academicPeriodDefinitionsData
+      .map(apd => ({ ...apd, structure_name: structureNames.get(String(apd.structure_id)) ?? null }))
+      .sort((a,b) => String(a.structure_id ?? '').localeCompare(String(b.structure_id ?? '')) || a.sequence_order - b.sequence_order);
+  }, [academicPeriodDefinitionsData, academicYearStructures]);
 
   if ((loading.academicPeriodDefinitions || loading.academicYearStructures) && !isModalOpen) {
     return (
