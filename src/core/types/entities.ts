@@ -130,7 +130,7 @@ export interface Staff {
   last_name: string;
   phone?: string | null;
   department_id?: string | null;
-  designation_id?: number | null;
+  designation_id?: string | number | null;
   hod_of_department_id?: string | null;
   is_active: boolean;
   created_at: string;

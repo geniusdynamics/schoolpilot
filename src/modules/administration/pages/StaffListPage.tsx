@@ -311,7 +311,7 @@ export const StaffListContent: React.FC = () => {
             phone: values.phone ? String(values.phone) : undefined,
             ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, optionalString(values[field])])),
             department_id: optionalString(values.department_id),
-            designation_id: values.designation_id != null && values.designation_id !== '' ? Number(values.designation_id) : undefined,
+            designation_id: optionalString(values.designation_id),
             hod_of_department_id: optionalString(values.hod_of_department_id),
             // Keep the stored denormalised labels in step with the chosen ids
             department_name: departmentName(values.department_id),

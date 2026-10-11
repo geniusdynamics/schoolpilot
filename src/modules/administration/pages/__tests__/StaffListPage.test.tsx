@@ -145,6 +145,23 @@ describe('StaffListContent (P0-D05)', () => {
     );
   });
 
+  it('keeps a string (UUID) designation id unchanged when editing', async () => {
+    const uuid = 'a1b2c3d4-0000-4000-8000-000000000001';
+    mockUseAdministration.mockReturnValue(
+      buildAdministration({
+        staff: [{ ...existing, designation_id: uuid }],
+        designations: [{ id: uuid, title: 'Teacher' }],
+      })
+    );
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Save Changes/i }));
+
+    await waitFor(() => expect(updateStaff).toHaveBeenCalledTimes(1));
+    expect(updateStaff).toHaveBeenCalledWith('STF-1', expect.objectContaining({ designation_id: uuid }));
+  });
+
   it('deletes a staff member with deleteStaff(id) after confirmation', async () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: /^Delete$/i }));
