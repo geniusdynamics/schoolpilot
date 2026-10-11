@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-11 — **P0-W1 complete** (all 16 tasks on `prd/P0-W1`). Next: merge PR #16, then wave P0-W2 (§4)._
+_Last update: 2026-10-11 — P0-W1 complete (PR #16, awaiting merge). **P0-W2 started** on `prd/P0-W2`, stacked on `prd/P0-W1` (PR into `prd/P0-W1`; re-target to `consolidation` once #16 merges)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -27,6 +27,11 @@ If a fix round is lost with the cloud session, redo it locally from the task bra
 verifier's findings (they are in this file's history and the W1 log), then integrate per §3b.
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
+
+### P0-W2 (in progress)
+Branch `prd/P0-W2` (stacked on `prd/P0-W1`). Tasks: A03 A04 B03 C03 C04 C05 D03 D04 D05 D06 E03 F03 G06 G07, run by cloud workflow `prd-wave` (wave P0-W2). Local `consolidation` points at the W2 tip; publish with `git push origin consolidation:prd/P0-W2`.
+If the session dies: `git switch -C consolidation origin/prd/P0-W2`, `node scripts/prd/status.mjs --wave P0-W2`, then run §3a with the tasks still `todo` (wave `P0-W2`). Task branches of unfinished tasks live only in the cloud session unless listed here.
+If PR #16 is rebase-merged first: `git rebase --onto origin/consolidation origin/prd/P0-W1 prd/P0-W2`, re-gate, push to a fresh branch and re-target the PR.
 
 Known follow-ups (not W1 blockers): `src/services/database/__tests__/TestCoverage.test.ts` derives coverage from `Math.random()` and fails intermittently (will redden the new CI unit step) — needs a Q task to make it deterministic; never skip it.
 
