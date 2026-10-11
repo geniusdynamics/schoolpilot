@@ -319,10 +319,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws11-persistent-sqlite-in-the-browser",
       "deps_install": false,
-      "status": "review",
+      "status": "done",
       "commit": null,
       "notes": "Provider fails closed but DatabaseProviderFactory/UnifiedDatabaseManager still fall back to pouchdb/memory; screen+badge+settings status not mounted (files outside card). Branch prd/P0-A01 | Owner decision 2026-10-10: widened to provider factory, manager, bootstrap, header, SystemManagementPage; fix round prd/P0-A01-fix1",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-A02",

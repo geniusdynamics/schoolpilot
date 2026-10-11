@@ -119,7 +119,9 @@ export class DataModeManager extends EventEmitter {
       this.emit('modeInitialized', this.currentMode);
     } catch (error) {
       logger.error('Failed to initialize data mode:', error);
-      this.emit('error', error);
+      // An unlistened 'error' event throws; the failure is already logged and
+      // surfaced to the user by AppDataContext.
+      if (this.listenerCount('error') > 0) this.emit('error', error);
     }
   }
 
