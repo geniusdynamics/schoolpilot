@@ -1032,7 +1032,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "ea67b8e8a2e41d4b5660179707658f5994a4488a",
       "notes": "",
       "completed_at": "2026-10-11"
     },
@@ -1135,9 +1135,9 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "review",
       "commit": null,
-      "notes": "",
+      "notes": "Acceptance partly unmet: settings save fixed (probe C15) but header, receipts and reports do not read school_details; narrow acceptance + follow-up, or widen files. Branch prd/P0-D06-retry",
       "completed_at": null
     },
     {
@@ -1172,9 +1172,9 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "blocked",
       "commit": null,
-      "notes": "",
+      "notes": "Applicable levels on fee templates need files outside lane: finance/data/schema.ts, finance/data/types.ts, FeeTemplatesPage.tsx. In-lane work gated on prd/P0-E03; widen files or add lane-E follow-up",
       "completed_at": null
     },
     {
@@ -1207,7 +1207,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "897f63a8be1ebea61e1e17868a8818fe5ff3a9ec",
       "notes": "",
       "completed_at": "2026-10-11"
     },
@@ -1235,7 +1235,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "f8c25bdc3c7bca9db9fed6ec734148d6ed1bc086",
       "notes": "",
       "completed_at": "2026-10-11"
     },
@@ -1266,7 +1266,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "9262191a6d61060454a359a1e64f0802bfffc279",
       "notes": "",
       "completed_at": "2026-10-11"
     },
