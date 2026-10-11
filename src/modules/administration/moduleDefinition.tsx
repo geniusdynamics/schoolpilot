@@ -108,6 +108,7 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/attendance', page: 'StudentAttendancePage' },
     { path: '/administration/staff/operations', page: 'StaffOperationsPage' },
     { path: '/administration/students/bulk-ops', page: 'StudentBulkOperationsPage' },
+    { path: '/administration/students/promotion', page: 'StudentPromotionPage' },
     // Existing routes
     { path: '/administration/entry-marks', page: 'EntryMarksPage' },
     { path: '/administration/classes', page: 'ClassesPage' },
