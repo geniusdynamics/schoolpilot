@@ -1,3 +1,6 @@
+// ABOUTME: Student directory: lists learners with class, stream and guardian resolved at read time from live collections.
+// ABOUTME: Add/Edit modal persists the learner and its primary guardian (guardian + relationship rows) via the guardian service.
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
 
@@ -9,6 +12,15 @@ import Card from '@/components/ui/Card';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon, UsersIcon, AcademicCapIcon } from '@/components/ui/icons';
 // import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/hooks/useAppData'; // Import useAppData
+import { useLookups, resolveClassPlacement } from '@/hooks/useLookups';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import {
+  saveStudentGuardian,
+  resolvePrimaryGuardian,
+  type GuardianInput,
+  type GuardianRecord,
+  type GuardianRelationshipRecord,
+} from '@/domain/students/guardianService';
 
 import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
 import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
@@ -21,17 +33,26 @@ import { PersonGender, StudentStatus } from '@/core/types';
 import type { ExamResultSummary, Student } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
-interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
+/** Foreign keys held as strings: UI-created records use UUIDs, so ids are never coerced to numbers. */
+const ID_FIELDS = ['current_class_stream_id', 'student_category_id', 'dormitory_id'] as const;
+type IdField = typeof ID_FIELDS[number];
+
+/** Denormalised display copies: never written by this page (names are resolved at read time). */
+const DENORMALISED_FIELDS = [
+  'current_class_name', 'current_class_stream_name', 'student_category_name', 'dormitory_name', 'primary_guardian',
+] as const;
+
+interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name' | IdField> {
   admission_no: string; // Required
   first_name: string;   // Required
   last_name: string;    // Required
   gender: PersonGender; // Required
   status: StudentStatus;// Required
 
-  // IDs for dropdowns
-  current_class_stream_id?: number | null;
-  student_category_id?: number | null;
-  dormitory_id?: number | null;
+  // IDs for dropdowns (string ids, '' or undefined when unset)
+  current_class_stream_id?: string;
+  student_category_id?: string;
+  dormitory_id?: string;
 
   // Primary Guardian Details (for the form)
   primary_guardian_id?: string; // Existing guardian ID
@@ -49,63 +70,66 @@ interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | '
   exam_result_summary_total_marks?: string; // Input as string, convert to number
 }
 
+const createInitialFormData = (): StudentFormData => ({
+  admission_no: '',
+  first_name: '',
+  last_name: '',
+  gender: PersonGender.MALE,
+  status: StudentStatus.ACTIVE,
+  primary_guardian_relationship_type: 'Guardian',
+});
+
+const idToString = (value: unknown): string => (value == null ? '' : String(value));
+const idOrNull = (value: string | undefined): string | null => (value ? value : null);
 
 const StudentsListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { 
+  const {
     students, loading, addStudent, updateStudent, deleteStudent: mockDeleteStudent,
     studentCategories,
     dormitories,
-    classStreams
   } = useAppData(); // Use useAppData
-  
+
+  // Live id → name maps (class, stream, guardian) so UI-created learners never render blank.
+  const lookups = useLookups();
+  // Write ports for the guardian service (reads come from `lookups`).
+  const guardiansCollection = useDatabaseCollection<GuardianRecord>('parents_guardians', { loadOnMount: false, subscribeToChanges: false });
+  const relationshipsCollection = useDatabaseCollection<GuardianRelationshipRecord>('student_guardian_relationships', { loadOnMount: false, subscribeToChanges: false });
+
   const { showToast } = useToast();
 
-  // Opens the in-page add/edit modal. (The old ActionBar registry this used to
-  // register with is not rendered anywhere in the current layout.)
-  const handleAddStudent = useCallback(() => {
-    openModal();
-  }, []);
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [quickEditStudent, setQuickEditStudent] = useState<Student | null>(null);
 
   const [activeTab, setActiveTab] = useState(0);
 
-  const initialFormData: StudentFormData = {
-    admission_no: '',
-    first_name: '',
-    last_name: '',
-    gender: PersonGender.MALE,
-    status: StudentStatus.ACTIVE,
-    primary_guardian_relationship_type: 'Guardian',
-  };
-
-  const [formData, setFormData] = useState<StudentFormData>(initialFormData);
-
-
-  // handleAddStudent moved above to fix temporal dead zone error
+  const [formData, setFormData] = useState<StudentFormData>(createInitialFormData);
 
   const openModal = useCallback((student?: Student) => {
     setEditingStudent(student || null);
     setActiveTab(0); // Reset to first tab
-    
+
     if (student) {
+      const guardian = resolvePrimaryGuardian(student, lookups.guardianRelationships, lookups.guardiansById);
+      const editableFields: Partial<Student> = { ...student };
+      for (const field of [...DENORMALISED_FIELDS, 'id', 'created_at', 'updated_at', 'exam_result_summary'] as const) {
+        delete editableFields[field];
+      }
       const studentFormData: StudentFormData = {
-        ...student, // Spread all student properties that match StudentFormData
+        ...editableFields, // Spread the remaining editable student properties
         admission_no: student.admission_no,
         first_name: student.first_name,
         last_name: student.last_name,
         gender: student.gender,
         status: student.status,
-        current_class_stream_id: student.current_class_stream_id,
-        student_category_id: student.student_category_id,
-        dormitory_id: student.dormitory_id,
-        primary_guardian_id: student.primary_guardian?.id,
-        primary_guardian_name: student.primary_guardian?.name || '',
-        primary_guardian_phone: student.primary_guardian?.phone || '',
-        primary_guardian_relationship_type: student.primary_guardian?.relationship_type || 'Guardian',
+        current_class_stream_id: idToString(student.current_class_stream_id),
+        student_category_id: idToString(student.student_category_id),
+        dormitory_id: idToString(student.dormitory_id),
+        primary_guardian_id: guardian?.id || undefined,
+        primary_guardian_name: guardian?.name || '',
+        primary_guardian_phone: guardian?.phone || '',
+        primary_guardian_relationship_type: guardian?.relationship_type || 'Guardian',
         exam_result_summary_exam_name: student.exam_result_summary?.exam_name || '',
         exam_result_summary_english: String(student.exam_result_summary?.english || ''),
         exam_result_summary_kiswahili: String(student.exam_result_summary?.kiswahili || ''),
@@ -116,35 +140,36 @@ const StudentsListPage: React.FC = () => {
       };
       setFormData(studentFormData);
     } else {
-      setFormData(initialFormData);
+      setFormData(createInitialFormData());
     }
     setIsModalOpen(true);
-  }, [initialFormData]);
+  }, [lookups.guardianRelationships, lookups.guardiansById]);
+
+  // Opens the in-page add/edit modal. (The old ActionBar registry this used to
+  // register with is not rendered anywhere in the current layout.)
+  const handleAddStudent = useCallback(() => {
+    openModal();
+  }, [openModal]);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingStudent(null);
-    setFormData(initialFormData);
+    setFormData(createInitialFormData());
     setActiveTab(0);
-  }, [initialFormData]);
+  }, []);
 
-  // Handle form field changes with proper type conversion
+  // Handle form field changes. Id fields stay strings (UUIDs must not be parsed as numbers).
   const handleFieldChange = useCallback((name: string, value: any) => {
-    const safeParseInt = (val: string): number | undefined => {
-        const num = parseInt(val, 10);
-        return isNaN(num) ? undefined : num;
-    };
-
     let processedValue: any = value;
 
     if (name === 'gender') {
         processedValue = value as PersonGender;
     } else if (name === 'status') {
         processedValue = value as StudentStatus;
-    } else if (['current_class_stream_id', 'student_category_id', 'dormitory_id'].includes(name)) {
-        processedValue = safeParseInt(value);
+    } else if ((ID_FIELDS as readonly string[]).includes(name)) {
+        processedValue = idToString(value);
     }
-    
+
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   }, []);
 
@@ -154,6 +179,7 @@ const StudentsListPage: React.FC = () => {
   }, [navigate]);
 
   const toast = useToast();
+  const { guardianRelationships: guardianRelationshipsForSave, refresh: refreshLookups } = lookups;
   const handleSubmit = useCallback(async () => {
     // Simple validation
     if (!formData.admission_no || !formData.first_name || !formData.last_name) {
@@ -169,30 +195,23 @@ const StudentsListPage: React.FC = () => {
       ...coreStudentData // this will contain admission_no, first_name etc directly from StudentFormData
     } = formData;
 
-    const studentPayload: Omit<Student, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'deleted_at' | 'current_class_name' | 'current_class_stream_name' | 'student_category_name' | 'dormitory_name' | 'display_name' | 'user_id' | 'email' | 'phone' | 'address' | 'remarks' | 'religion' | 'county' | 'district' | 'student_type' | 'primary_school' | 'marks_attained_primary' | 'class_admitted' | 'stream_admitted'> & { admission_no: string; first_name: string; last_name: string; gender: PersonGender; status: StudentStatus; current_class_stream_id?: number | null; student_category_id?: number | null; dormitory_id?: number | null; } = {
+    const studentPayload: Record<string, unknown> = {
       ...coreStudentData, // contains fields like admission_no, upi_no, first_name, etc.
-      // Ensure all required fields are correctly typed
-      admission_no: coreStudentData.admission_no!,
-      first_name: coreStudentData.first_name!,
-      last_name: coreStudentData.last_name!,
-      gender: coreStudentData.gender!,
-      status: coreStudentData.status!,
-      current_class_stream_id: coreStudentData.current_class_stream_id ? Number(coreStudentData.current_class_stream_id) : undefined,
-      student_category_id: coreStudentData.student_category_id ? Number(coreStudentData.student_category_id) : undefined,
-      dormitory_id: coreStudentData.dormitory_id ? Number(coreStudentData.dormitory_id) : undefined,
+      current_class_stream_id: idOrNull(coreStudentData.current_class_stream_id),
+      student_category_id: idOrNull(coreStudentData.student_category_id),
+      dormitory_id: idOrNull(coreStudentData.dormitory_id),
     };
-    
-    let guardianPayload: { name: string; phone?: string; relationship_type: string; id?: string } | undefined = undefined;
-    if (primary_guardian_name && primary_guardian_relationship_type) {
-        guardianPayload = {
-            id: primary_guardian_id, // Important for updates
-            name: primary_guardian_name,
-            phone: primary_guardian_phone || '',
-            relationship_type: primary_guardian_relationship_type,
-            // email, user_id, etc., would be handled in a more complex setup
-        };
-    }
-    
+    for (const field of DENORMALISED_FIELDS) delete studentPayload[field];
+
+    const guardianInput: GuardianInput | undefined = primary_guardian_name
+      ? {
+          id: primary_guardian_id || undefined, // Important for updates
+          name: primary_guardian_name,
+          phone: primary_guardian_phone || '',
+          relationship_type: primary_guardian_relationship_type || 'Guardian',
+        }
+      : undefined;
+
     let examSummaryPayload: ExamResultSummary | undefined = undefined;
     if (exam_result_summary_exam_name) {
         examSummaryPayload = {
@@ -206,33 +225,47 @@ const StudentsListPage: React.FC = () => {
         };
     }
 
+    const guardianStore = {
+      guardians: guardiansCollection,
+      relationships: relationshipsCollection,
+      existingRelationships: guardianRelationshipsForSave,
+    };
+
     try {
       if (editingStudent) {
-        const studentToUpdate: Student = {
-          ...editingStudent, // existing IDs and timestamps
-          ...studentPayload, // core form data
+        const studentId = String(editingStudent.id);
+        await updateStudent(studentId, {
+          ...studentPayload,
           exam_result_summary: examSummaryPayload || editingStudent.exam_result_summary, // Keep existing if not changed
-          // primary_guardian will be handled by the mock update function based on guardianPayload
-        };
-        await updateStudent(String(editingStudent.id), studentToUpdate, guardianPayload);
+        });
+        await saveStudentGuardian(guardianStore, studentId, guardianInput);
         showToast({
           variant: 'success',
           title: 'Student Updated',
           message: 'Student information has been successfully updated.',
         });
       } else {
-        // For new student, exam_result_summary and primary_guardian are set directly
-        const newStudentPayload = {
+        // The id is chosen here so the guardian relationship can reference the new learner.
+        const studentId = crypto.randomUUID();
+        const newStudent = {
           ...studentPayload,
+          id: studentId,
+          admission_no: coreStudentData.admission_no,
+          first_name: coreStudentData.first_name,
+          last_name: coreStudentData.last_name,
+          gender: coreStudentData.gender,
+          status: coreStudentData.status,
           exam_result_summary: examSummaryPayload,
-        }
-        await addStudent(newStudentPayload, guardianPayload as any);
+        };
+        await addStudent(newStudent);
+        await saveStudentGuardian(guardianStore, studentId, guardianInput);
         showToast({
           variant: 'success',
           title: 'Student Added',
           message: 'New student has been successfully added.',
         });
       }
+      await refreshLookups();
       closeModal();
     } catch (error) {
       logger.error('Error saving student:', error);
@@ -242,8 +275,8 @@ const StudentsListPage: React.FC = () => {
         message: 'Failed to save student information. Please try again.',
       });
     }
-  }, [editingStudent, formData, updateStudent, addStudent, closeModal, showToast]);
-  
+  }, [editingStudent, formData, updateStudent, addStudent, closeModal, showToast, toast, guardiansCollection, relationshipsCollection, guardianRelationshipsForSave, refreshLookups]);
+
   // Quick edit functionality - memoized to prevent column re-creation
   const handleQuickEdit = useCallback((student: Student) => {
     setQuickEditStudent(student);
@@ -259,7 +292,7 @@ const StudentsListPage: React.FC = () => {
       name: 'current_class_stream_id',
       label: 'Class Stream',
       type: 'select',
-      options: (classStreams || []).map(cs => ({ value: String(cs.id), label: `${cs.class_name} - ${cs.name}` })),
+      options: lookups.streamOptions.map(o => ({ value: o.value, label: o.label })),
     },
     {
       name: 'status',
@@ -268,12 +301,14 @@ const StudentsListPage: React.FC = () => {
       required: true,
       options: Object.values(StudentStatus).map(s => ({ value: s, label: s })),
     },
-  ], [classStreams]);
+  ], [lookups.streamOptions]);
 
   // Quick-edit save — provider contract is (id, partial)
   const handleQuickEditSave = useCallback(async (values: Record<string, any>) => {
     if (!quickEditStudent) return;
-    await updateStudent(String(quickEditStudent.id), values);
+    // An emptied stream picker clears the placement; ids stay strings.
+    const patch: Record<string, unknown> = { ...values, current_class_stream_id: idOrNull(values.current_class_stream_id) };
+    await updateStudent(String(quickEditStudent.id), patch);
   }, [quickEditStudent, updateStudent]);
 
   // Memoized delete handler to prevent column re-creation
@@ -288,6 +323,7 @@ const StudentsListPage: React.FC = () => {
           message: 'Student has been successfully deleted.',
         });
       } catch (error) {
+        logger.error('Error deleting student:', error);
         showToast({
           variant: 'error',
           title: 'Delete Failed',
@@ -295,7 +331,7 @@ const StudentsListPage: React.FC = () => {
         });
       }
     }
-  }, [mockDeleteStudent, showToast]);
+  }, [confirm, mockDeleteStudent, showToast]);
 
   // Create form tabs
   const createFormTabs = useCallback((): FormTab[] => {
@@ -459,8 +495,8 @@ const StudentsListPage: React.FC = () => {
                   onChange={(e) => handleFieldChange('current_class_stream_id', e.target.value)}
                 >
                   <option value="">Select Stream</option>
-                  {(classStreams || []).map(cs => (
-                    <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
+                  {lookups.streamOptions.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </Select>
                 <Select 
@@ -471,7 +507,7 @@ const StudentsListPage: React.FC = () => {
                 >
                   <option value="">Select Category</option>
                   {(studentCategories || []).map(sc => (
-                    <option key={sc.id} value={sc.id}>{sc.name}</option>
+                    <option key={sc.id} value={String(sc.id)}>{sc.name}</option>
                   ))}
                 </Select>
                 <Select 
@@ -482,7 +518,7 @@ const StudentsListPage: React.FC = () => {
                 >
                   <option value="">Select Dormitory</option>
                   {(dormitories || []).map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
+                    <option key={d.id} value={String(d.id)}>{d.name}</option>
                   ))}
                 </Select>
               </div>
@@ -540,24 +576,32 @@ const StudentsListPage: React.FC = () => {
         ),
       },
     ];
-  }, [formData, handleFieldChange, classStreams, studentCategories, dormitories]);
+  }, [formData, handleFieldChange, lookups.streamOptions, studentCategories, dormitories]);
 
   // Use students directly since DataGrid handles filtering.
   // Project each row into a view model that materializes the computed
-  // 'name' / 'guardian' fields the columns reference — otherwise DataGrid's
-  // sort/filter read row['name'] / row['guardian'] (undefined) and silently no-op.
+  // 'name' / 'className' / 'streamName' / 'guardian' fields the columns reference —
+  // resolved at read time from live lookups (never from denormalised *_name fields),
+  // so DataGrid's sort/filter work and UI-created learners do not render blank.
+  const { streamById, guardianRelationships, guardiansById } = lookups;
   const studentsData = useMemo(
     () =>
-      (students || []).map(s => ({
-        ...s,
-        name:
-          s.display_name ||
-          [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ') ||
-          s.admission_no ||
-          '—',
-        guardian: s.primary_guardian?.name || '—',
-      })),
-    [students]
+      (students || []).map(s => {
+        const placement = resolveClassPlacement({ streamById }, s.current_class_stream_id);
+        const guardian = resolvePrimaryGuardian(s, guardianRelationships, guardiansById);
+        return {
+          ...s,
+          name:
+            s.display_name ||
+            [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ') ||
+            s.admission_no ||
+            '—',
+          className: placement.className || '—',
+          streamName: placement.streamName || '—',
+          guardian: guardian?.name || '—',
+        };
+      }),
+    [students, streamById, guardianRelationships, guardiansById]
   );
 
 
@@ -585,14 +629,14 @@ const StudentsListPage: React.FC = () => {
       }
     },
     { 
-      key: 'current_class_name' as keyof Student, 
+      key: 'className', 
       header: 'Class',
       sortable: true,
       filterable: true,
       
     },
     { 
-      key: 'current_class_stream_name' as keyof Student, 
+      key: 'streamName', 
       header: 'Stream',
       sortable: true,
       filterable: true,
@@ -631,7 +675,7 @@ const StudentsListPage: React.FC = () => {
       filterable: true,
 
       render: (value: any, item: Student & { guardian?: string }) => (
-        <span className="truncate block max-w-[130px]" title={item.primary_guardian?.name || ''}>{item.guardian || '—'}</span>
+        <span className="truncate block max-w-[130px]" title={item.guardian || ''}>{item.guardian || '—'}</span>
       )
     },
     {
@@ -680,7 +724,7 @@ const StudentsListPage: React.FC = () => {
         </div>
       ),
     },
-  ], []);
+  ], [handleQuickEdit, openModal, handleDelete]);
   
   // Using a more specific loading state key if available, else fallback to `all` or `students`
   const pageIsLoading = loading.students || loading.all;
