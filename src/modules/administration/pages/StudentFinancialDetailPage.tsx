@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
+// ABOUTME: Student financial overview — loads one learner's invoices, payments and balance by route id.
+// ABOUTME: Reads through useFinance() and resolves class/stream names from useAdministration() lookups.
+
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAppData } from '@/hooks/useAppData';
+import { useFinance } from '@/modules/finance/hooks';
+import { useAdministration } from '../hooks/useAdministration';
+import type { StudentDetailProfile } from '@/core/types';
 
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
@@ -10,26 +15,41 @@ import Button from '@/components/ui/Button';
 import { UserCircleIcon, CurrencyDollarIcon, DownloadIcon, PrinterIcon, EyeIcon } from '@/components/ui/icons';
 import { InvoiceStatus } from '@/core/types';
 
+type StudentInvoiceChargeItem = StudentDetailProfile['invoices_charges'][number];
+type StudentPaymentLogItem = StudentDetailProfile['payment_history'][number];
+
 const StudentFinancialDetailPage: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
-  const { getStudentFinancialDetailsById } = useAppData();
+  const { getStudentFinancialDetailsById } = useFinance();
+  const { classes, classStreams } = useAdministration();
   const [studentData, setStudentData] = useState<StudentDetailProfile | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
 
   useEffect(() => {
-    if (studentId) {
-      setIsLoadingPage(true);
-      getStudentFinancialDetailsById(studentId)
-        .then(data => {
-          setStudentData(data);
-          setIsLoadingPage(false);
-        })
-        .catch(() => {
-          setStudentData(null);
-          setIsLoadingPage(false);
-        });
+    let isMounted = true;
+    if (!studentId) {
+      setStudentData(null);
+      setIsLoadingPage(false);
+      return undefined;
     }
+    setIsLoadingPage(true);
+    getStudentFinancialDetailsById(studentId)
+      .then((data) => { if (isMounted) setStudentData(data); })
+      .catch(() => { if (isMounted) setStudentData(null); })
+      .finally(() => { if (isMounted) setIsLoadingPage(false); });
+    return () => { isMounted = false; };
   }, [studentId, getStudentFinancialDetailsById]);
+
+  // Display names come from live collections; denormalised names are a fallback only.
+  const classLabel = useMemo(() => {
+    if (!studentData) return { className: null, streamName: null };
+    const stream = (classStreams || []).find((s) => String(s.id) === String(studentData.current_class_stream_id));
+    const klass = stream ? (classes || []).find((c) => String(c.id) === String(stream.class_id)) : undefined;
+    return {
+      className: klass?.name ?? stream?.class_name ?? studentData.current_class_name ?? null,
+      streamName: stream?.name ?? studentData.current_class_stream_name ?? null,
+    };
+  }, [studentData, classes, classStreams]);
 
   if (isLoadingPage) {
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /> <span className="ml-2">Loading financial details...</span></div>;
@@ -40,11 +60,12 @@ const StudentFinancialDetailPage: React.FC = () => {
   }
 
   const {
-    photo_path, first_name, last_name, admission_no, current_class_name, current_class_stream_name,
+    photo_path, first_name, last_name, admission_no,
     financial_summary, invoices_charges, payment_history
   } = studentData;
+  const { className: current_class_name, streamName: current_class_stream_name } = classLabel;
 
-  const fullName = `${first_name} ${last_name}`;
+  const fullName = [first_name, last_name].filter(Boolean).join(' ');
 
   const invoiceColumns: DataGridColumn<StudentInvoiceChargeItem>[] = [
     { 
@@ -53,7 +74,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => item.invoiceId
+      render: (_value, item) => item.invoiceId
     },
     { 
       key: 'feeTypeDescription',
@@ -61,7 +82,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.feeTypeDescription
+      render: (_value, item) => item.feeTypeDescription
     },
     { 
       key: 'dueDate',
@@ -69,7 +90,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => new Date(item.dueDate).toLocaleDateString()
+      render: (_value, item) => new Date(item.dueDate).toLocaleDateString()
     },
     { 
       key: 'amount',
@@ -77,7 +98,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => item.amount.toFixed(2)
+      render: (_value, item) => item.amount.toFixed(2)
     },
     { 
       key: 'status',
@@ -85,7 +106,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => {
+      render: (_value, item) => {
         let colorClass = '';
         if (item.status === InvoiceStatus.PAID) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === InvoiceStatus.DUE) colorClass = 'bg-yellow-100 text-yellow-800';
@@ -103,7 +124,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       filterable: false,
       width: 100,
       sticky: 'right',
-      render: (value, item) => <Button size="sm" variant="ghost" leftIcon={<EyeIcon className="w-4 h-4"/>}>View</Button>
+      render: () => <Button size="sm" variant="ghost" leftIcon={<EyeIcon className="w-4 h-4"/>}>View</Button>
     },
   ];
 
@@ -114,7 +135,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.transactionId
+      render: (_value, item) => item.transactionId
     },
     { 
       key: 'paymentDate',
@@ -122,7 +143,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => new Date(item.paymentDate).toLocaleDateString()
+      render: (_value, item) => new Date(item.paymentDate).toLocaleDateString()
     },
     { 
       key: 'amount',
@@ -130,7 +151,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 140,
-      render: (value, item) => item.amount.toFixed(2)
+      render: (_value, item) => item.amount.toFixed(2)
     },
     { 
       key: 'paymentMethod',
@@ -138,7 +159,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => item.paymentMethod
+      render: (_value, item) => item.paymentMethod
     },
     { 
       key: 'description',
@@ -146,7 +167,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.description
+      render: (_value, item) => item.description
     },
     { 
       key: 'actions',
@@ -155,7 +176,7 @@ const StudentFinancialDetailPage: React.FC = () => {
       filterable: false,
       width: 100,
       sticky: 'right',
-      render: (value, item) => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button>
+      render: () => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button>
     },
   ];
 
