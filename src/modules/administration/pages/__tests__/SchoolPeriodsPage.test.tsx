@@ -1,5 +1,5 @@
 // ABOUTME: Component tests for the Academic Calendar › School Periods tab backed by the database.
-// ABOUTME: Covers listing stored terms, database-backed pickers, creating a term with string ids, and validation errors.
+// ABOUTME: Covers listing stored terms, database-backed pickers, default financial year seeding, creating terms, and validation errors.
 
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -154,6 +154,26 @@ describe('SchoolPeriodsPage', () => {
 
     expect(await within(dialog).findByText(/overlap Term 1 - 2027/)).toBeInTheDocument();
     expect(collections.school_periods.insert).not.toHaveBeenCalled();
+  });
+
+  it('seeds a default financial year when none exist and pre-selects it in the term form', async () => {
+    collections.financial_years = memoryCollection([]);
+    const year = new Date().getFullYear();
+
+    const { dialog } = await openAddForm();
+
+    expect(collections.financial_years.insert).toHaveBeenCalledTimes(1);
+    expect(collections.financial_years.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ name: `FY ${year}`, start_date: `${year}-01-01`, end_date: `${year}-12-31`, status: FinancialYearStatus.OPEN })
+    );
+    const select = dialog.querySelector('select[name=financial_year_id]') as HTMLSelectElement;
+    expect(Array.from(select.options).map((option) => option.textContent)).toContain(`FY ${year}`);
+    await waitFor(() => expect(select.selectedOptions[0]?.textContent).toBe(`FY ${year}`));
+  });
+
+  it('does not seed a financial year when one already exists', async () => {
+    await openAddForm();
+    expect(collections.financial_years.insert).not.toHaveBeenCalled();
   });
 
   it('deletes a term by its string id after confirmation', async () => {

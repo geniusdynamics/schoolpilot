@@ -1,7 +1,7 @@
 // ABOUTME: Manages school periods (terms) stored in the database and links them to academic years, period definitions, and financial years.
-// ABOUTME: EntityForm-driven create/edit; term rules (inside the year, no overlap, one current term) are enforced by useSchoolPeriodData.
+// ABOUTME: Seeds a default financial year when none exist; term rules (inside the year, no overlap, one current term) live in useSchoolPeriodData.
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -9,7 +9,8 @@ import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useSchoolPeriodData, type SchoolPeriodRecord } from '../data/useSchoolPeriodData';
 import { useAcademicYearData } from '../data/useAcademicYearData';
 import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
-import { useFinancialYearData } from '@/modules/finance/data/useFinancialYearData';
+import { ensureFinancialYear, useFinancialYearData } from '@/modules/finance/data/useFinancialYearData';
+import { logger } from '@/utils/logging';
 import { useTranslation } from 'react-i18next';
 import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -22,7 +23,25 @@ export const SchoolPeriodsContent: React.FC = () => {
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { data: academicYears } = useAcademicYearData();
   const { data: academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
-  const { financialYears, currentFinancialYear } = useFinancialYearData();
+  const {
+    financialYears,
+    currentFinancialYear,
+    loading: financialYearsLoading,
+    error: financialYearsError,
+    refresh: refreshFinancialYears,
+  } = useFinancialYearData();
+
+  // A term needs a financial year. On a fresh school there is none, so seed the default
+  // (idempotent) once the collection has loaded empty, then reload so the picker shows it.
+  const financialYearSeedAttempted = useRef(false);
+  useEffect(() => {
+    if (financialYearsLoading || financialYearsError || financialYears.length > 0) return;
+    if (financialYearSeedAttempted.current) return;
+    financialYearSeedAttempted.current = true;
+    ensureFinancialYear()
+      .then((seeded) => (seeded ? refreshFinancialYears() : undefined))
+      .catch((err) => logger.error('[SchoolPeriodsPage] Could not seed a default financial year:', err));
+  }, [financialYearsLoading, financialYearsError, financialYears.length, refreshFinancialYears]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<SchoolPeriodRecord | null>(null);
