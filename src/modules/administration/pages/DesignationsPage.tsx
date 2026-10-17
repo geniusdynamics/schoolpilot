@@ -1,12 +1,13 @@
+// ABOUTME: Designations page — grid plus add/edit/delete dialog backed by the 'designations' collection.
+// ABOUTME: Designations saved here feed the staff form; edits use updateDesignation(id, patch).
+
 import React, { useState } from 'react';
-import { Designation } from '@/types'; // Designation is a core type
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import { PlusIcon, EditIcon, DeleteIcon, IdentificationIcon } from '@/components/ui/icons';
-import { useDesignationData } from '@/modules/administration/data/useDesignationData';
-import Spinner from '@/components/ui/Spinner';
+import { useDesignationData, type DesignationRecord } from '@/modules/administration/data/useDesignationData';
 import { useTranslation } from 'react-i18next';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -16,9 +17,9 @@ export const DesignationsContent: React.FC = () => {
   const { t } = useTranslation('administration');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
+  const [editingDesignation, setEditingDesignation] = useState<DesignationRecord | null>(null);
 
-  const openModal = (desig?: Designation) => {
+  const openModal = (desig?: DesignationRecord) => {
     setEditingDesignation(desig || null);
     setIsModalOpen(true);
   };
@@ -29,20 +30,20 @@ export const DesignationsContent: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this designation?' }))) {
       await deleteDesignation(id);
     }
   };
 
-  const columns: DataGridColumn<Designation>[] = [
+  const columns: DataGridColumn<DesignationRecord>[] = [
     {
       key: 'id',
       header: 'ID',
       sortable: true,
       filterable: true,
       width: 80,
-      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     {
       key: 'title',
@@ -50,7 +51,7 @@ export const DesignationsContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 250,
-      render: (value, item) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     {
       key: 'actions',
@@ -68,14 +69,6 @@ export const DesignationsContent: React.FC = () => {
     },
   ];
 
-  if (loading.designations && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Designations...</span>
-      </div>
-    );
-  }
-
   return (
     <>
       <Card title={t('designations.management')} actions={
@@ -85,8 +78,8 @@ export const DesignationsContent: React.FC = () => {
       }>
         <DataGrid
           columns={columns}
-          data={designations || []}
-          loading={loading.designations}
+          data={designations}
+          loading={loading.designations && designations.length === 0}
           sortable={true}
           filterable={true}
           emptyState={
@@ -111,7 +104,7 @@ export const DesignationsContent: React.FC = () => {
         onSubmit={async (values) => {
           const payload = { title: String(values.title ?? '') };
           if (editingDesignation) {
-            await updateDesignation({ ...editingDesignation, ...payload });
+            await updateDesignation(String(editingDesignation.id), payload);
           } else {
             await addDesignation(payload);
           }

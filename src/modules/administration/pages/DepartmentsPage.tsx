@@ -1,23 +1,25 @@
+// ABOUTME: Departments page — grid plus add/edit/delete dialog backed by the 'departments' collection.
+// ABOUTME: Departments saved here are the ones the staff form offers; edits use updateDepartment(id, patch).
+
 import React, { useState } from 'react';
-import { Department } from '@/types'; // Department is a core type
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useDepartmentData } from '../data/useDepartmentData';
+import { useDepartmentData, type DepartmentRecord } from '../data/useDepartmentData';
 import { useTranslation } from 'react-i18next';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 const DepartmentsPage: React.FC = () => {
-  const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
+  const { departments, loading, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
   const { t } = useTranslation('administration');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<DepartmentRecord | null>(null);
 
-  const openModal = (dept?: Department) => {
+  const openModal = (dept?: DepartmentRecord) => {
     setEditingDepartment(dept || null);
     setIsModalOpen(true);
   };
@@ -34,14 +36,14 @@ const DepartmentsPage: React.FC = () => {
     }
   };
 
-  const columns: DataGridColumn<Department>[] = [
+  const columns: DataGridColumn<DepartmentRecord>[] = [
     { 
       key: 'id', 
       header: 'ID', 
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { 
       key: 'name', 
@@ -49,7 +51,7 @@ const DepartmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'is_academic', 
@@ -57,7 +59,7 @@ const DepartmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, item) => (
+      render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
           value ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'
         }`}>
@@ -90,8 +92,8 @@ const DepartmentsPage: React.FC = () => {
       }>
         <DataGrid 
           columns={columns} 
-          data={departments || []} 
-          loading={false}
+          data={departments}
+          loading={loading.departments && departments.length === 0}
           sortable={true}
           filterable={true}
           emptyState={
@@ -107,7 +109,9 @@ const DepartmentsPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingDepartment ? t('departments.editDepartment') : t('departments.addNewDepartment')}
-        initialData={editingDepartment ?? undefined}
+        initialData={editingDepartment
+          ? { name: editingDepartment.name, is_academic: editingDepartment.is_academic }
+          : undefined}
         fields={[
           { name: 'name', label: t('departments.departmentName'), required: true },
           { name: 'is_academic', label: t('departments.isAcademicDepartment'), type: 'checkbox' },
@@ -120,7 +124,7 @@ const DepartmentsPage: React.FC = () => {
             is_academic: Boolean(values.is_academic),
           };
           if (editingDepartment) {
-            await updateDepartment({ ...editingDepartment, ...payload });
+            await updateDepartment(String(editingDepartment.id), payload);
           } else {
             await addDepartment(payload);
           }
