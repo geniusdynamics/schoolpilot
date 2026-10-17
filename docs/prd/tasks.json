@@ -1302,10 +1302,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws13-onboarding--wizard-ordering-and-correctness",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-C06",
