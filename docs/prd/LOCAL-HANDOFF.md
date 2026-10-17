@@ -44,7 +44,7 @@ git fetch origin && git switch -C consolidation origin/prd/P0-W3   # local alias
 PUPPETEER_SKIP_DOWNLOAD=1 pnpm install --frozen-lockfile
 node scripts/prd/status.mjs --wave P0-W3
 ```
-In Claude Code (repo root): `Workflow({ name: "prd-wave", args: { wave: "P0-W3", date: "<YYYY-MM-DD>", push: false, maxParallel: 2, only: ["P0-E04","P0-E05","P0-F04","P0-F05","P0-G08","P0-H01","P0-H02","P0-H03","P0-H04"] } })`
+In Claude Code (repo root): `Workflow({ name: "prd-wave", args: { wave: "P0-W3", date: "<YYYY-MM-DD>", push: false, pushTo: "prd/P0-W3", maxParallel: 2, only: ["P0-E04","P0-E05","P0-F04","P0-F05","P0-G08","P0-H01","P0-H02","P0-H03","P0-H04"] } })`
 then `git push origin consolidation:prd/P0-W3`. For A05: verify, then `git merge --squash origin/prd/P0-A05` on consolidation, `node scripts/prd/gate.mjs task --task P0-A05 --base HEAD`, commit, `status.mjs --set P0-A05 done --commit <sha>`.
 When W3 is all done: append "Wave closure" to the W3 log, push, mark PR #18 ready, merge when CI is green. Then W4 (B05, G09–G13, Z01), then `Workflow({ name: "prd-phase-exit", args: { phase: "P0", date: "<date>" } })`.
 

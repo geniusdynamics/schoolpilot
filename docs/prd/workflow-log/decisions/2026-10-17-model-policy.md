@@ -13,7 +13,7 @@ Implemented by `route()` in `.claude/workflows/prd-wave.js`. Task size comes fro
 | verify | Sonnet, high | Sonnet, high | **Opus**, medium |
 | fix round | Sonnet, high | Sonnet, high | **Opus**, medium |
 | re-verify (after a rejection) | **Opus**, medium | **Opus**, medium | **Opus**, medium |
-| integrate | Sonnet, medium | Sonnet, medium | Sonnet, medium |
+| integrate, commit, push (command running) | Haiku, medium | Haiku, medium | Haiku, medium |
 | wave log | Haiku, medium | Haiku, medium | Haiku, medium |
 
 Overrides:
@@ -22,3 +22,8 @@ Overrides:
 
 Escalate a task to Opus (`opusTasks`) when Sonnet's fix round is rejected twice for the same finding.
 The gate and the verifier still decide what merges. The model choice only changes cost and the number of rounds.
+
+## Commit and push per task (same date)
+Each task is integrated, committed and pushed as soon as its review approves it (`args.pushTo`, e.g. `"prd/P0-W3"`),
+instead of waiting for the whole wave. Integration stays strictly serial. The Haiku integrator never resolves
+conflicts: any conflict returns the task as blocked for the orchestrator.
