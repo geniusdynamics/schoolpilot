@@ -228,6 +228,103 @@ describe('generateTermInvoices', () => {
     }
   });
 
+  const invoiceFor = (id: string, itemIds: string[], extra: Partial<BillingInvoice> = {}): BillingInvoice => {
+    const amounts: Record<string, number> = { 'item-tuition': 15000, 'item-boarding': 12000, 'item-exam': 1500 };
+    return {
+      id,
+      student_id: 's1',
+      school_period_id: TERM_1,
+      invoice_number: `${INVOICE_PREFIX}/2027/${id}`,
+      issue_date: '2027-01-02',
+      due_date: '2027-01-02',
+      total_amount_billed: itemIds.reduce((sum, itemId) => sum + amounts[itemId], 0),
+      amount_paid: 0,
+      status: 'Due',
+      items: itemIds.map((itemId) => ({
+        id: `${id}-${itemId}`, invoice_id: id, description: itemId, amount: amounts[itemId], fee_template_item_id: itemId,
+      })),
+      ...extra,
+    };
+  };
+
+  it('bills each item once across every invoice the learner has for the period', async () => {
+    const { repository, inserted, updated } = createRepository({
+      students,
+      templates: [form1Boarders],
+      invoices: [invoiceFor('inv-a', ['item-tuition']), invoiceFor('inv-b', ['item-boarding'])],
+    });
+
+    const result = await generateTermInvoices(repository, { periodId: TERM_1, dryRun: false, studentIds: ['s1'] });
+
+    expect(inserted).toHaveLength(0);
+    expect(updated).toHaveLength(1);
+    const added = result.lines[0].items.map((item) => item.fee_template_item_id);
+    expect(added).toEqual(['item-exam']);
+    expect(result.lines[0].amount).toBe(1500);
+  });
+
+  it('ignores Voided invoices: their items are billed again on a live invoice', async () => {
+    const voided = invoiceFor('inv-void', ['item-tuition', 'item-boarding', 'item-exam'], { status: 'Voided' });
+    const { repository, inserted, updated } = createRepository({ students, templates: [form1Boarders], invoices: [voided] });
+
+    const result = await generateTermInvoices(repository, { periodId: TERM_1, dryRun: false, studentIds: ['s1'] });
+
+    expect(updated).toHaveLength(0);
+    expect(inserted).toHaveLength(1);
+    expect(inserted[0].id).not.toBe('inv-void');
+    expect(inserted[0].total_amount_billed).toBe(28500);
+    expect(result.summary).toMatchObject({ invoicesCreated: 1, invoicesUpdated: 0 });
+  });
+
+  it('adds missing items to the live invoice, never to a Voided one', async () => {
+    const voided = invoiceFor('inv-void', ['item-tuition'], { status: 'Voided' });
+    const live = invoiceFor('inv-live', ['item-tuition']);
+    const { repository, inserted, updated } = createRepository({ students, templates: [form1Boarders], invoices: [live, voided] });
+
+    await generateTermInvoices(repository, { periodId: TERM_1, dryRun: false, studentIds: ['s1'] });
+
+    expect(inserted).toHaveLength(0);
+    expect(updated.map((update) => update.id)).toEqual(['inv-live']);
+    expect(updated[0].patch.items?.map((item) => item.fee_template_item_id)).toEqual(['item-tuition', 'item-boarding', 'item-exam']);
+  });
+
+  it('rejects templates with items missing ids, before any write and in dry run', async () => {
+    const broken: BillingTemplate = {
+      ...form1Boarders,
+      name: 'Broken Template',
+      items: [
+        { id: undefined as unknown as string, description: 'Tuition', amount: 15000 },
+        { id: undefined as unknown as string, description: 'Boarding', amount: 12000 },
+      ],
+    };
+    for (const dryRun of [true, false]) {
+      const { repository, inserted, updated } = createRepository({ students, templates: [broken] });
+      await expect(generateTermInvoices(repository, { periodId: TERM_1, dryRun })).rejects.toThrow(/Broken Template.*Fee Templates/);
+      expect(inserted).toHaveLength(0);
+      expect(updated).toHaveLength(0);
+    }
+  });
+
+  it.each([
+    ['not a number', 'abc'],
+    ['zero', 0],
+    ['negative', -500],
+    ['empty', ''],
+  ])('rejects template items with an invalid amount (%s) before any write', async (_label, amount) => {
+    const valid: BillingTemplate = { ...form1Boarders, id: 'tpl-ok', name: 'Fine', items: [{ id: 'ok', description: 'Ok', amount: 100 }] };
+    const broken: BillingTemplate = {
+      ...form1Boarders,
+      name: 'Bad Amounts',
+      items: [{ id: 'item-x', description: 'Lab', amount: amount as number }],
+    };
+    for (const dryRun of [true, false]) {
+      const { repository, inserted, updated } = createRepository({ students, templates: [valid, broken] });
+      await expect(generateTermInvoices(repository, { periodId: TERM_1, dryRun })).rejects.toThrow(/Bad Amounts.*Lab/);
+      expect(inserted).toHaveLength(0);
+      expect(updated).toHaveLength(0);
+    }
+  });
+
   it('requires a period', async () => {
     const { repository } = createRepository({ students, templates: [form1Boarders] });
     await expect(generateTermInvoices(repository, { periodId: '', dryRun: true })).rejects.toThrow(/period/i);

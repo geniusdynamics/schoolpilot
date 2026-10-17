@@ -255,9 +255,33 @@ export function useInvoiceGeneration() {
 
 // ── useTermBilling ──────────────────────────────────────────────────────────
 
+/** Reads every row of a collection; a missing collection is an error, never an empty list to bill from. */
 async function readCollection<T>(collectionName: string): Promise<T[]> {
   const db = await databaseService.getDatabase();
-  return ((await db.getCollection(collectionName)?.find({})) || []) as T[];
+  const collection = db.getCollection(collectionName);
+  if (!collection || typeof collection.find !== 'function') {
+    throw new Error(`Term billing cannot run: the "${collectionName}" collection is not available in the database`);
+  }
+  return ((await collection.find({})) ?? []) as T[];
+}
+
+/**
+ * The database-backed repository for the term billing service. Shared by useTermBilling and the
+ * finance data provider so there is one billing path.
+ */
+export function createBillingRepository(writes: {
+  insertStudentInvoice: (invoice: BillingInvoice) => Promise<unknown>;
+  updateStudentInvoice: (id: string, patch: Partial<BillingInvoice>) => Promise<unknown>;
+}): BillingRepository {
+  return {
+    listStudents: () => readCollection<BillingStudent>('students'),
+    listClassStreams: () => readCollection<BillingClassStream>('class_streams'),
+    listFeeTemplates: () => readCollection<BillingTemplate>('fee_templates'),
+    listStudentInvoices: () => readCollection<BillingInvoice>('student_invoices'),
+    insertStudentInvoice: writes.insertStudentInvoice,
+    updateStudentInvoice: writes.updateStudentInvoice,
+    generateId: () => databaseService.generateId(),
+  };
 }
 
 /**
@@ -280,15 +304,10 @@ export function useTermBilling() {
     setIsRunning(true);
     setError(null);
     try {
-      const repository: BillingRepository = {
-        listStudents: () => readCollection<BillingStudent>('students'),
-        listClassStreams: () => readCollection<BillingClassStream>('class_streams'),
-        listFeeTemplates: () => readCollection<BillingTemplate>('fee_templates'),
-        listStudentInvoices: () => readCollection<BillingInvoice>('student_invoices'),
+      const repository = createBillingRepository({
         insertStudentInvoice: (invoice) => insertStudentInvoiceRecord(invoice),
         updateStudentInvoice: (id, patch) => updateStudentInvoiceRecord(id, patch),
-        generateId: () => databaseService.generateId(),
-      };
+      });
       return await runTermBilling(repository, params);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));

@@ -8,7 +8,8 @@ import { logger } from '@/utils/logging';
 
 import { useCallback, useMemo } from 'react';
 import { databaseService } from '@/services/database/databaseService';
-import { nextSequenceNumber, sequenceYear } from '@/domain/sequences';
+import { generateTermInvoices as runTermBilling } from '@/domain/finance/billingService';
+import { createBillingRepository } from '@/modules/finance/hooks/useFinanceServices';
 import { useToastHelpers } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/modules/finance/data/types';
@@ -27,8 +28,6 @@ export interface GenerateTermInvoicesResult {
   invoices: allTypes.StudentInvoice[];
   skippedStudentIds: string[];
 }
-
-const INVOICE_PREFIX = 'INV';
 
 async function readAll<T>(collectionName: string): Promise<T[]> {
   const db = await databaseService.getDatabase();
@@ -346,57 +345,40 @@ export function useFinanceData() {
   }, [studentTransportAssignmentsCollection]);
 
   // ── Student Invoices / Payments ───────────────────────────────────────────────
-  // Bills each learner once per fee template and school period; a dry run returns the preview only.
+  // Bills the given learners from one fee template through the term billing service
+  // (src/domain/finance/billingService.ts): one invoice per learner per period; a dry run returns the preview only.
+  // Each returned invoice carries the items (and total_amount_billed) this run adds.
   const generateTermInvoices = useCallback(async (params: GenerateTermInvoicesParams): Promise<GenerateTermInvoicesResult> => {
     const db = await databaseService.getDatabase();
     const template: any = await db.getCollection('fee_templates')?.findById(String(params.feeTemplateId));
     if (!template) throw new Error(`Fee template ${params.feeTemplateId} not found`);
     const schoolPeriodId = String(params.schoolPeriodId ?? template.school_period_id);
-    const templateItems: allTypes.FeeTemplateItem[] = template.items || [];
-    const templateItemIds = new Set(templateItems.map((item) => String(item.id)));
-    const issueDate = params.issueDate || new Date().toISOString().slice(0, 10);
+    const studentIds = params.studentIds.map(String);
 
-    const existing = await readAll<allTypes.StudentInvoice>('student_invoices');
-    const alreadyBilled = new Set(existing
-      .filter((invoice) => !invoice.deleted_at && String(invoice.school_period_id) === schoolPeriodId &&
-        (invoice.items || []).some((item) => templateItemIds.has(String(item.fee_template_item_id))))
-      .map((invoice) => String(invoice.student_id)));
+    const repository = createBillingRepository({
+      insertStudentInvoice: (invoice) => studentInvoicesCollection.insert(invoice as unknown as allTypes.StudentInvoice),
+      updateStudentInvoice: (id, patch) => studentInvoicesCollection.update(id, patch as unknown as Partial<allTypes.StudentInvoice>),
+    });
+    const result = await runTermBilling(repository, {
+      periodId: schoolPeriodId,
+      templateIds: [String(template.id)],
+      studentIds,
+      dryRun: Boolean(params.dryRun),
+      issueDate: params.issueDate,
+      dueDate: params.dueDate,
+    });
 
-    const invoiceNumbers = existing.map((invoice) => invoice.invoice_number);
-    const invoices: allTypes.StudentInvoice[] = [];
-    const skippedStudentIds: string[] = [];
-    for (const studentId of params.studentIds.map(String)) {
-      if (alreadyBilled.has(studentId)) { skippedStudentIds.push(studentId); continue; }
-      const id = databaseService.generateId();
-      const invoiceNumber = nextSequenceNumber(invoiceNumbers, { prefix: INVOICE_PREFIX, year: sequenceYear(issueDate) });
-      invoiceNumbers.push(invoiceNumber);
-      const now = new Date().toISOString();
-      invoices.push({
-        id,
-        student_id: studentId,
-        invoice_number: invoiceNumber,
-        school_period_id: schoolPeriodId,
-        issue_date: issueDate,
-        due_date: params.dueDate || issueDate,
-        total_amount_billed: templateItems.reduce((sum, item) => sum + Number(item.amount || 0), 0),
-        amount_paid: 0,
-        status: allTypes.InvoiceStatus.DUE,
-        items: templateItems.map((item) => ({
-          id: databaseService.generateId(),
-          invoice_id: id,
-          description: item.description,
-          amount: Number(item.amount || 0),
-          fee_template_item_id: String(item.id),
-        })),
-        created_at: now,
-        updated_at: now,
-      } as unknown as allTypes.StudentInvoice);
-    }
-
-    if (!params.dryRun) {
-      for (const invoice of invoices) await studentInvoicesCollection.insert(invoice);
-    }
-    return { invoices, skippedStudentIds };
+    const invoices = result.lines.map((line) => ({
+      id: line.invoiceId,
+      student_id: line.studentId,
+      invoice_number: line.invoiceNumber,
+      school_period_id: result.periodId,
+      total_amount_billed: line.amount,
+      items: line.items,
+      is_new_invoice: line.isNewInvoice,
+    }) as unknown as allTypes.StudentInvoice);
+    const billedIds = new Set(result.lines.map((line) => line.studentId));
+    return { invoices, skippedStudentIds: studentIds.filter((id) => !billedIds.has(id)) };
   }, [studentInvoicesCollection]);
 
   // Selects learners by category and/or class stream, then bills them with generateTermInvoices.

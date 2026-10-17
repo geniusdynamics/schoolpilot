@@ -345,8 +345,12 @@ export const FeeTemplatesContent: React.FC = () => {
             student_category_id: studentCategoryId ?? null,
             school_period_name: (schoolPeriods || []).find((period: SchoolPeriod) => String(period.id) === schoolPeriodId)?.name ?? null,
             student_category_name: studentCategoryId ? (studentCategories || []).find((category: StudentCategory) => String(category.id) === studentCategoryId)?.name ?? null : null,
-            // Keep the class order stable regardless of click order.
-            applicable_level_ids: levelOptions.filter(level => templateLevelIds.includes(level.id)).map(level => level.id),
+            // Keep the class order stable regardless of click order; keep stored ids that are not in the
+            // loaded class list (classes not loaded yet, or a retired class) so a save never wipes them.
+            applicable_level_ids: [
+              ...levelOptions.filter(level => templateLevelIds.includes(level.id)).map(level => level.id),
+              ...templateLevelIds.filter(id => !levelOptions.some(level => level.id === id)),
+            ],
           };
 
           if (editingTemplate) {

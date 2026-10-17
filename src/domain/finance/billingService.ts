@@ -1,10 +1,11 @@
 // ABOUTME: Term billing service: generateTermInvoices bills active learners for a period from matching fee templates.
-// ABOUTME: Templates match by period, level (applicable_level_ids) and category; runs are idempotent and support dry-run previews.
+// ABOUTME: Templates match by period, level and category; items are billed once across a learner's live invoices; dry-run supported.
 
 import { nextSequenceNumber, sequenceYear } from '@/domain/sequences';
 
 export const INVOICE_PREFIX = 'INV';
 const INVOICE_STATUS_DUE = 'Due';
+const INVOICE_STATUS_VOIDED = 'Voided';
 
 type AnyId = string | number;
 
@@ -127,6 +128,21 @@ const toSet = (values?: AnyId[]): Set<string> | null =>
 
 const roundMoney = (value: number) => Math.round(value * 100) / 100;
 
+/** Throws when any item of the template has no id or an amount that is not a positive number. */
+function assertTemplateItemsValid(template: BillingTemplate): void {
+  const problems: string[] = [];
+  for (const item of template.items ?? []) {
+    const label = item.description || '(unnamed item)';
+    if (key(item.id) === null) problems.push(`${label}: no id`);
+    const amount = typeof item.amount === 'string' && item.amount.trim() === '' ? NaN : Number(item.amount);
+    if (!Number.isFinite(amount) || amount <= 0) problems.push(`${label}: invalid amount ${JSON.stringify(item.amount ?? null)}`);
+  }
+  if (problems.length) {
+    throw new Error(`Fee template "${template.name}" has items without ids / invalid amounts (${problems.join('; ')}); `
+      + 'open and save it in Fee Templates');
+  }
+}
+
 const isActive = (student: BillingStudent) =>
   !student.deleted_at && String(student.status ?? 'active').toLowerCase() === 'active';
 
@@ -172,10 +188,14 @@ export async function generateTermInvoices(
   const periodTemplates = templates.filter((template) =>
     key(template.school_period_id) === periodId && (!templateFilter || templateFilter.has(String(template.id))));
 
-  const invoiceByStudent = new Map<string, BillingInvoice>();
+  // Every live (non-deleted, non-Voided) invoice of the period, per learner, in stored order.
+  const invoicesByStudent = new Map<string, BillingInvoice[]>();
   for (const invoice of invoices) {
-    if (!invoice.deleted_at && key(invoice.school_period_id) === periodId) invoiceByStudent.set(String(invoice.student_id), invoice);
+    if (invoice.deleted_at || invoice.status === INVOICE_STATUS_VOIDED || key(invoice.school_period_id) !== periodId) continue;
+    const studentKey = String(invoice.student_id);
+    invoicesByStudent.set(studentKey, [...(invoicesByStudent.get(studentKey) ?? []), invoice]);
   }
+  const validatedTemplates = new Set<string>();
 
   const issueDate = params.issueDate || (repository.now?.() ?? new Date().toISOString()).slice(0, 10);
   const dueDate = params.dueDate || issueDate;
@@ -198,9 +218,17 @@ export async function generateTermInvoices(
     const applicable = periodTemplates.filter((template) => templateAppliesTo(template, { levelId, categoryId }));
     if (!applicable.length) { unmatchedStudentIds.push(studentId); continue; }
 
-    const existing = invoiceByStudent.get(studentId);
+    for (const template of applicable) {
+      if (validatedTemplates.has(String(template.id))) continue;
+      assertTemplateItemsValid(template);
+      validatedTemplates.add(String(template.id));
+    }
+
+    const studentInvoices = invoicesByStudent.get(studentId) ?? [];
+    const existing = studentInvoices[0];
     const invoiceId = existing?.id ?? repository.generateId();
-    const billed = new Set((existing?.items ?? []).map((item) => key(item.fee_template_item_id)).filter(Boolean));
+    const billed = new Set(studentInvoices.flatMap((invoice) => invoice.items ?? [])
+      .map((item) => key(item.fee_template_item_id)).filter(Boolean));
     const newItems: BillingInvoiceItem[] = [];
     for (const template of applicable) {
       for (const item of template.items ?? []) {
@@ -211,7 +239,7 @@ export async function generateTermInvoices(
           id: repository.generateId(),
           invoice_id: invoiceId,
           description: item.description,
-          amount: roundMoney(Number(item.amount) || 0),
+          amount: roundMoney(Number(item.amount)),
           fee_template_item_id: itemKey,
         });
       }

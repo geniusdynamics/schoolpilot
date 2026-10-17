@@ -53,7 +53,7 @@ const now = () => new Date().toISOString();
  * Supplies the slice of app data the page reads, with fee-template writes going
  * through a real SQLite collection using the provider's (id, patch) signature.
  */
-const RepositoryBackedAppData: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const RepositoryBackedAppData: React.FC<{ children: React.ReactNode; classList?: typeof classes }> = ({ children, classList = classes }) => {
   const [feeTemplates, setFeeTemplates] = useState<FeeTemplateRow[]>([]);
   const reload = useCallback(async () => setFeeTemplates(await collection.find()), []);
   useEffect(() => { void reload(); }, [reload]);
@@ -62,7 +62,7 @@ const RepositoryBackedAppData: React.FC<{ children: React.ReactNode }> = ({ chil
     feeTemplates,
     schoolPeriods,
     studentCategories: [],
-    classes,
+    classes: classList,
     chartOfAccounts,
     expenseCategories: [],
     loading: {},
@@ -80,7 +80,7 @@ const RepositoryBackedAppData: React.FC<{ children: React.ReactNode }> = ({ chil
       await collection.remove(templateId);
       await reload();
     },
-  }), [feeTemplates, reload]);
+  }), [feeTemplates, reload, classList]);
 
   return (
     <AppDataContext.Provider value={value as unknown as EnhancedAppDataContextType}>
@@ -89,11 +89,11 @@ const RepositoryBackedAppData: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
-const renderPage = () =>
+const renderPage = (classList: typeof classes = classes) =>
   render(
     <ToastProvider>
       <ConfirmProvider>
-        <RepositoryBackedAppData>
+        <RepositoryBackedAppData classList={classList}>
           <FeeTemplatesContent />
         </RepositoryBackedAppData>
       </ConfirmProvider>
@@ -305,6 +305,37 @@ describe('FeeTemplatesPage (repository-backed)', () => {
 
     await waitFor(async () => {
       expect((await storedTemplate(template.id)).applicable_level_ids).toEqual([]);
+    });
+  });
+
+  it('keeps stored levels that are not in the loaded class list when saving (classes empty or not loaded)', async () => {
+    const template = await seedTemplate({ applicable_level_ids: [classes[0].id, classes[2].id] });
+    renderPage([]);
+
+    const row = (await screen.findByText(template.name)).closest('tr') as HTMLElement;
+    fireEvent.click(within(row).getByRole('button', { name: /Edit/ }));
+    const dialog = await screen.findByText('Edit Fee Template').then((el) => el.closest('[role="dialog"]') as HTMLElement);
+    fireEvent.change(within(dialog).getByLabelText(/Template Name/), { target: { value: 'Form 1 Boarders (Renamed)' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(async () => {
+      expect((await storedTemplate(template.id)).name).toBe('Form 1 Boarders (Renamed)');
+    });
+    expect((await storedTemplate(template.id)).applicable_level_ids).toEqual([classes[0].id, classes[2].id]);
+  });
+
+  it('keeps a stored level missing from the class list while saving changes to the listed ones', async () => {
+    const template = await seedTemplate({ applicable_level_ids: ['retired-class-id', classes[0].id] });
+    renderPage();
+
+    const row = (await screen.findByText(template.name)).closest('tr') as HTMLElement;
+    fireEvent.click(within(row).getByRole('button', { name: /Edit/ }));
+    const dialog = await screen.findByText('Edit Fee Template').then((el) => el.closest('[role="dialog"]') as HTMLElement);
+    fireEvent.click(within(within(dialog).getByRole('group', { name: /Applicable Levels/ })).getByLabelText('Form 2'));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(async () => {
+      expect((await storedTemplate(template.id)).applicable_level_ids).toEqual([classes[0].id, classes[1].id, 'retired-class-id']);
     });
   });
 });
