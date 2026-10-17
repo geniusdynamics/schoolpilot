@@ -1,41 +1,42 @@
-// ABOUTME: Self-contained hook for academicperioddefinition data management
-// ABOUTME: Provides CRUD operations for academicperioddefinition without depending on AppDataContext
+// ABOUTME: Database-backed academic period definitions (collection 'academic_period_definitions'), e.g. "Term 1".
+// ABOUTME: Replaces the former mock hook; feeds the term form's period picker in sequence order.
 
-import { initialMockAcademicPeriodDefinitions } from './mockData';
+import { useCallback, useMemo } from 'react';
 import { AcademicPeriodDefinition } from '@/core/types';
-import { useState } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+export const ACADEMIC_PERIOD_DEFINITIONS_COLLECTION = 'academic_period_definitions';
 
 export const useAcademicPeriodDefinitionData = () => {
-  const [data, setData] = useState<AcademicPeriodDefinition[]>(initialMockAcademicPeriodDefinitions);
+  const collection = useDatabaseCollection<AcademicPeriodDefinition>(ACADEMIC_PERIOD_DEFINITIONS_COLLECTION);
+  const { data, insert, update: updateDocument, remove: removeDocument, refresh } = collection;
 
-  const create = async (newItem: Partial<AcademicPeriodDefinition>) => {
-    const newDataItem: AcademicPeriodDefinition = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as AcademicPeriodDefinition;
-    setData((prev: AcademicPeriodDefinition[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
+  const definitions = useMemo(
+    () => [...data].sort((a, b) => (a.sequence_order ?? 0) - (b.sequence_order ?? 0)),
+    [data]
+  );
 
-  const update = async (id: number, updatedData: Partial<AcademicPeriodDefinition>) => {
-    setData((prev: AcademicPeriodDefinition[]) => prev.map((item: AcademicPeriodDefinition) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
+  const create = useCallback(
+    async (newItem: Omit<AcademicPeriodDefinition, 'id'>) => insert(newItem),
+    [insert]
+  );
 
-  const remove = async (id: number) => {
-    setData((prev: AcademicPeriodDefinition[]) => prev.filter((item: AcademicPeriodDefinition) => item.id !== id));
-  };
+  const update = useCallback(
+    async (id: string, patch: Partial<AcademicPeriodDefinition>) => updateDocument(String(id), patch),
+    [updateDocument]
+  );
+
+  const remove = useCallback(async (id: string) => removeDocument(String(id)), [removeDocument]);
 
   return {
-    data,
+    data: definitions,
+    academicPeriodDefinitions: definitions,
+    loading: collection.loading,
+    error: collection.error,
+    refresh,
     create,
     update,
-    remove
+    remove,
   };
 };
 

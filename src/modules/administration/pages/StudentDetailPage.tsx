@@ -1,24 +1,122 @@
-import React, { useEffect, useState } from 'react';
+// ABOUTME: Student profile page — loads one learner by route id through useAdministration().
+// ABOUTME: Resolves class, stream and guardian at read time and edits bio-data in an in-page dialog.
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAppData } from '@/hooks/useAppData';
-import { StudentDetailProfile, StudentPaymentLogItem } from '@/types';
+import { useTranslation } from 'react-i18next';
+import { useAdministration } from '../hooks/useAdministration';
+import type { ParentsGuardian, StudentDetailProfile } from '@/core/types';
+import { PersonGender } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Tabs from '@/components/ui/Tabs';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
+import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
 import { UserCircleIcon, AcademicCapIcon, EnvelopeIcon, PhoneIcon, DownloadIcon, MessageIcon, EditIcon, CurrencyDollarIcon, PrinterIcon } from '@/components/ui/icons';
 import { CameraIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/hooks/useToast';
 import { fileToImageDataUrl, ImageUploadError } from '@/services/storage/imageUpload';
 
+type StudentProfile = Partial<StudentDetailProfile> & Pick<StudentDetailProfile, 'id'> & {
+  guardians?: ParentsGuardian[];
+};
+type PaymentLogItem = StudentDetailProfile['payment_history'][number];
+type EnrolledSubject = StudentDetailProfile['enrolled_subjects'][number];
+
+/** Bio-data fields the profile's Edit button can change. */
+const BIO_DATA_FIELDS = [
+  'first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth',
+  'religion', 'address', 'email', 'phone', 'remarks',
+] as const;
+
 const StudentDetailPage: React.FC = () => {
+  const { t } = useTranslation('administration');
   const { studentId } = useParams<{ studentId: string }>();
-  const { getStudentDetailsById, updateStudent } = useAppData() as any;
+  const { getStudentDetailsById, updateStudent, students, classes, classStreams } = useAdministration();
   const toast = useToast();
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [studentProfile, setStudentProfile] = useState<StudentDetailProfile | null>(null);
+  const [loadedProfile, setLoadedProfile] = useState<StudentProfile | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
+  const [isEditingBioData, setIsEditingBioData] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!studentId) {
+      setLoadedProfile(null);
+      setIsLoadingPage(false);
+      return undefined;
+    }
+    setIsLoadingPage(true);
+    getStudentDetailsById(studentId)
+      .then((data) => { if (isMounted) setLoadedProfile(data); })
+      .catch(() => { if (isMounted) setLoadedProfile(null); })
+      .finally(() => { if (isMounted) setIsLoadingPage(false); });
+    return () => { isMounted = false; };
+  }, [studentId, getStudentDetailsById]);
+
+  // A learner just created in the UI may already be in the live collection before
+  // the repository read sees it; ids are compared as strings (seeded ids vs uuids).
+  const studentProfile = useMemo<StudentProfile | null>(() => {
+    if (loadedProfile) return loadedProfile;
+    const live = (students || []).find((student) => String(student.id) === String(studentId));
+    return live ? (live as StudentProfile) : null;
+  }, [loadedProfile, students, studentId]);
+
+  // Display names are resolved from live collections; denormalised names are a fallback only.
+  const classLabel = useMemo(() => {
+    if (!studentProfile) return { className: null, streamName: null };
+    const stream = (classStreams || []).find((s) => String(s.id) === String(studentProfile.current_class_stream_id));
+    const klass = stream ? (classes || []).find((c) => String(c.id) === String(stream.class_id)) : undefined;
+    return {
+      className: klass?.name ?? stream?.class_name ?? studentProfile.current_class_name ?? null,
+      streamName: stream?.name ?? studentProfile.current_class_stream_name ?? null,
+    };
+  }, [studentProfile, classes, classStreams]);
+
+  const primaryGuardian = studentProfile?.primary_guardian ?? studentProfile?.guardians?.[0] ?? null;
+
+  const bioDataFields: EntityFieldConfig[] = useMemo(() => [
+    { name: 'first_name', label: t('students.detail.firstName', 'First Name'), required: true },
+    { name: 'middle_name', label: t('students.detail.middleName', 'Middle Name') },
+    { name: 'last_name', label: t('students.detail.lastName', 'Last Name'), required: true },
+    {
+      name: 'gender',
+      label: t('students.detail.gender', 'Gender'),
+      type: 'select',
+      required: true,
+      options: Object.values(PersonGender).map((value) => ({ value, label: value })),
+    },
+    { name: 'date_of_birth', label: t('students.detail.dateOfBirth', 'Date of Birth'), type: 'date' },
+    { name: 'religion', label: t('students.detail.religion', 'Religion') },
+    { name: 'email', label: t('students.detail.email', 'Email'), type: 'email' },
+    { name: 'phone', label: t('students.detail.phone', 'Phone'), type: 'tel' },
+    { name: 'address', label: t('students.detail.address', 'Address'), colSpan: 2 },
+    { name: 'remarks', label: t('students.detail.remarks', 'Remarks/About'), type: 'textarea', colSpan: 2 },
+  ], [t]);
+
+  const bioDataInitial = useMemo(() => {
+    const initial: Record<string, string> = {};
+    if (!studentProfile) return initial;
+    for (const field of BIO_DATA_FIELDS) {
+      const value = studentProfile[field];
+      initial[field] = value == null ? '' : String(value);
+    }
+    if (initial.date_of_birth) initial.date_of_birth = initial.date_of_birth.slice(0, 10);
+    return initial;
+  }, [studentProfile]);
+
+  // EntityForm shows the toast and keeps the dialog open when this throws.
+  const handleBioDataSave = useCallback(async (values: Record<string, unknown>) => {
+    if (!studentProfile) return;
+    const patch: Record<string, unknown> = {};
+    for (const field of BIO_DATA_FIELDS) {
+      const value = values[field];
+      patch[field] = value === '' || value === undefined ? null : value;
+    }
+    await updateStudent(String(studentProfile.id), patch);
+    setLoadedProfile({ ...studentProfile, ...patch } as StudentProfile);
+  }, [studentProfile, updateStudent]);
 
   // Photo upload — size/type-guarded data URL persisted on the student record (2.6)
   const handlePhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +127,7 @@ const StudentDetailPage: React.FC = () => {
       setIsUploadingPhoto(true);
       const dataUrl = await fileToImageDataUrl(file);
       await updateStudent(String(studentProfile.id ?? studentId), { photo_path: dataUrl });
-      setStudentProfile(prev => prev ? { ...prev, photo_path: dataUrl } : prev);
+      setLoadedProfile({ ...studentProfile, photo_path: dataUrl });
       toast.showSuccess('Profile photo updated.');
     } catch (error) {
       if (error instanceof ImageUploadError) {
@@ -42,38 +140,7 @@ const StudentDetailPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    if (studentId) {
-      setIsLoadingPage(true);
-      getStudentDetailsById(studentId)
-        .then(data => {
-          if (isMounted) {
-            setStudentProfile(data);
-          }
-        })
-        .catch(() => {
-          if (isMounted) {
-            setStudentProfile(null);
-          }
-        })
-        .finally(() => {
-            if (isMounted) {
-                setIsLoadingPage(false);
-            }
-        });
-    } else {
-        if (isMounted) {
-            setStudentProfile(null);
-            setIsLoadingPage(false);
-        }
-    }
-    return () => {
-        isMounted = false;
-    };
-  }, [studentId, getStudentDetailsById]);
-
-  if (isLoadingPage) {
+  if (isLoadingPage && !studentProfile) {
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /> <span className="ml-2">Loading student details...</span></div>;
   }
 
@@ -83,90 +150,48 @@ const StudentDetailPage: React.FC = () => {
 
   const {
     photo_path, first_name, last_name, admission_no,
-    current_class_name, current_class_stream_name, email, phone,
-    primary_guardian, remarks, date_of_birth, gender,
+    email, phone, remarks, date_of_birth, gender,
     address, religion,
     enrolled_subjects, payment_history
   } = studentProfile;
+  const { className: current_class_name, streamName: current_class_stream_name } = classLabel;
 
-  const fullName = `${first_name} ${last_name}`;
+  const fullName = [first_name, last_name].filter(Boolean).join(' ');
 
-  const enrolledSubjectsColumns: DataGridColumn<typeof enrolled_subjects[0]>[] = [
-    { 
-      key: 'courseName', 
-      header: 'Course Name', 
-      sortable: true, 
-      filterable: true, 
-      width: 200,
-      render: (value, item) => value
-    },
-    { 
-      key: 'professorInstructorName', 
-      header: 'Instructor', 
-      sortable: true, 
-      filterable: true, 
-      width: 180,
-      render: (value, item) => value
-    },
-    { 
-      key: 'status', 
-      header: 'Status', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (value, item) => value
-    },
+  const enrolledSubjectsColumns: DataGridColumn<EnrolledSubject>[] = [
+    { key: 'courseName', header: 'Course Name', sortable: true, filterable: true, width: 200 },
+    { key: 'professorInstructorName', header: 'Instructor', sortable: true, filterable: true, width: 180 },
+    { key: 'status', header: 'Status', sortable: true, filterable: true, width: 120 },
   ];
 
-  const paymentHistoryColumns: DataGridColumn<StudentPaymentLogItem>[] = [
-    { 
-      key: 'transactionId', 
-      header: 'Receipt No', 
-      sortable: true, 
-      filterable: true, 
+  const paymentHistoryColumns: DataGridColumn<PaymentLogItem>[] = [
+    { key: 'transactionId', header: 'Receipt No', sortable: true, filterable: true, width: 120 },
+    {
+      key: 'paymentDate',
+      header: 'Date',
+      sortable: true,
+      filterable: true,
       width: 120,
-      render: (value, item) => value
+      render: (_value, item) => new Date(item.paymentDate).toLocaleDateString()
     },
-    { 
-      key: 'paymentDate', 
-      header: 'Date', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (value, item) => new Date(item.paymentDate).toLocaleDateString()
-    },
-    { 
-      key: 'amount', 
-      header: 'Amount Paid (KES)', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'amount',
+      header: 'Amount Paid (KES)',
+      sortable: true,
+      filterable: true,
       width: 150,
-      render: (value, item) => item.amount.toFixed(2)
+      render: (_value, item) => item.amount.toFixed(2)
     },
-    { 
-      key: 'paymentMethod', 
-      header: 'Method', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (value, item) => value
-    },
-    { 
-      key: 'description', 
-      header: 'Reference/Notes', 
-      sortable: true, 
-      filterable: true, 
-      width: 180,
-      render: (value, item) => value
-    },
-    { 
-      key: 'actions', 
-      header: 'Action', 
-      sortable: false, 
-      filterable: false, 
+    { key: 'paymentMethod', header: 'Method', sortable: true, filterable: true, width: 120 },
+    { key: 'description', header: 'Reference/Notes', sortable: true, filterable: true, width: 180 },
+    {
+      key: 'actions',
+      header: 'Action',
+      sortable: false,
+      filterable: false,
       width: 100,
       sticky: 'right',
-      render: (value, item) => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button>
+      render: () => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button>
     },
   ];
 
@@ -180,8 +205,8 @@ const StudentDetailPage: React.FC = () => {
           <p><strong className="font-medium text-surface-foreground">Date of Birth:</strong> {date_of_birth ? new Date(date_of_birth).toLocaleDateString() : 'N/A'}</p>
           <p><strong className="font-medium text-surface-foreground">Gender:</strong> {gender}</p>
           <p><strong className="font-medium text-surface-foreground">Class:</strong> {current_class_name || 'N/A'} - {current_class_stream_name || 'N/A'}</p>
-          <p><strong className="font-medium text-surface-foreground">Primary Guardian:</strong> {primary_guardian?.name || 'N/A'} ({primary_guardian?.relationship_type || 'N/A'})</p>
-          <p><strong className="font-medium text-surface-foreground">Guardian Phone:</strong> {primary_guardian?.phone || 'N/A'}</p>
+          <p><strong className="font-medium text-surface-foreground">Primary Guardian:</strong> {primaryGuardian?.name || 'N/A'} ({primaryGuardian?.relationship_type || 'N/A'})</p>
+          <p><strong className="font-medium text-surface-foreground">Guardian Phone:</strong> {primaryGuardian?.phone || 'N/A'}</p>
           <p><strong className="font-medium text-surface-foreground">Address:</strong> {address || 'N/A'}</p>
           <p><strong className="font-medium text-surface-foreground">Religion:</strong> {religion || 'N/A'}</p>
           <p className="md:col-span-2"><strong className="font-medium text-surface-foreground">Remarks/About:</strong> {remarks || 'N/A'}</p>
@@ -190,11 +215,11 @@ const StudentDetailPage: React.FC = () => {
     },
     {
       label: 'Enrolled Subjects',
-      content: <DataGrid 
-        columns={enrolledSubjectsColumns} 
-        data={enrolled_subjects || []} 
-        sortable 
-        filterable 
+      content: <DataGrid
+        columns={enrolledSubjectsColumns}
+        data={enrolled_subjects || []}
+        sortable
+        filterable
         emptyState={{
           icon: <AcademicCapIcon className="h-12 w-12 text-surface-muted-fg" />,
           title: 'No subjects enrolled',
@@ -204,11 +229,11 @@ const StudentDetailPage: React.FC = () => {
     },
     {
       label: 'Payment History',
-      content: <DataGrid 
-        columns={paymentHistoryColumns} 
-        data={payment_history || []} 
-        sortable 
-        filterable 
+      content: <DataGrid
+        columns={paymentHistoryColumns}
+        data={payment_history || []}
+        sortable
+        filterable
         emptyState={{
           icon: <CurrencyDollarIcon className="h-12 w-12 text-surface-muted-fg" />,
           title: 'No payment history found',
@@ -231,7 +256,7 @@ const StudentDetailPage: React.FC = () => {
             </div>
             <div className="flex space-x-2 mt-3 md:mt-0">
                 <Button variant="primary" leftIcon={<CurrencyDollarIcon className="w-5 h-5"/>} as={Link} to={`/administration/students/${studentId}/financial`}>View Financials</Button>
-                <Button variant="secondary" leftIcon={<EditIcon className="w-5 h-5" />} as={Link} to="/administration/students?tab=bio-data">Edit Profile</Button>
+                <Button variant="secondary" leftIcon={<EditIcon className="w-5 h-5" />} onClick={() => setIsEditingBioData(true)}>Edit Profile</Button>
             </div>
         </div>
 
@@ -271,6 +296,18 @@ const StudentDetailPage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {isEditingBioData && (
+        <EntityForm
+          isOpen
+          onClose={() => setIsEditingBioData(false)}
+          title={t('students.detail.editBioData', 'Edit Bio Data')}
+          description={[fullName, admission_no].filter(Boolean).join(' · ')}
+          initialData={bioDataInitial}
+          fields={bioDataFields}
+          onSubmit={handleBioDataSave}
+        />
+      )}
     </div>
   );
 };

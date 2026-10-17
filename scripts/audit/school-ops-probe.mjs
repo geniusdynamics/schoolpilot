@@ -62,7 +62,7 @@ await check('C01', 'Database storage is persistent (no in-memory fallback)', asy
   return /IN-MEMORY DATABASE/.test(log) ? { fail: 'SQLite WASM fell back to an in-memory database' } : {};
 });
 
-await check('C02', 'Production setup wizard saves the school profile step', async (mark) => {
+await check('C02', 'Production setup wizard saves the school profile step', async () => {
   const start = page.getByRole('button', { name: /Get Started/i });
   if (!(await start.count())) return { skip: 'onboarding already completed in this browser profile' };
   await start.click(); await wait(1200);
@@ -84,18 +84,38 @@ await check('C03', 'Production database is not auto-seeded with demo data', asyn
   return students > 0 ? { fail: `${students} demo students present after choosing production` } : {};
 });
 
-await check('C04', 'Login rejects a wrong password', async (mark) => {
-  await page.locator('input').first().fill('admin');
-  await page.locator('input[type=password]').fill('definitely-wrong');
-  await page.getByRole('button', { name: /^Sign In$/ }).click(); await wait(5000);
+// The probe's own administrator, created through the first-run "Create administrator" form.
+const PROBE_ADMIN = { username: 'probe-admin', displayName: 'Probe Administrator', password: 'probe-admin-pass-1' };
+
+await check('C04', 'Login rejects a wrong password and accepts the right one', async (mark) => {
+  const createForm = page.getByTestId('create-administrator-form');
+  await page.locator('#username, #admin-username').first().waitFor({ timeout: 60000 });
+  if (await createForm.count()) {
+    await createForm.locator('#admin-username').fill(PROBE_ADMIN.username);
+    await createForm.locator('#admin-display-name').fill(PROBE_ADMIN.displayName);
+    await createForm.locator('#admin-password').fill(PROBE_ADMIN.password);
+    await createForm.locator('#admin-confirm').fill(PROBE_ADMIN.password);
+    await createForm.getByRole('button', { name: /Create administrator/i }).click();
+    await page.locator('#username').waitFor({ timeout: 10000 }).catch(() => {});
+    if (await createForm.count()) return { fail: `could not create the first administrator: ${await createForm.innerText()}` };
+  }
+  const signIn = page.locator('form', { has: page.locator('#password') });
+  if (!(await signIn.count())) return { fail: 'sign-in form not shown' };
+  await signIn.locator('#username').fill(PROBE_ADMIN.username);
+  await signIn.locator('#password').fill('definitely-wrong');
+  await signIn.getByRole('button', { name: /^Sign In$/ }).click(); await wait(5000);
   if (/#\/dashboard/.test(page.url())) return { fail: 'signed in with a wrong password' + (/DEMO MODE LOGIN/.test(consoleSince(mark)) ? ' (DEMO MODE LOGIN)' : '') };
-  await page.locator('input[type=password]').fill('admin123');
-  await page.getByRole('button', { name: /^Sign In$/ }).click(); await wait(5000);
+  if (!(await signIn.count())) return { fail: 'wrong password left the sign-in form without reaching the dashboard' };
+  if (!(await signIn.locator('.text-red-700').count())) return { fail: 'wrong password stayed on the sign-in form but no error message was shown' };
+  await signIn.locator('#username').fill(PROBE_ADMIN.username);
+  await signIn.locator('#password').fill(PROBE_ADMIN.password);
+  await signIn.getByRole('button', { name: /^Sign In$/ }).click(); await wait(5000);
+  if (!/#\/dashboard/.test(page.url())) return { fail: `correct password did not sign in: ${(await page.locator('body').innerText()).match(/[^\n]*(invalid|incorrect|error|failed)[^\n]*/i)?.[0] || 'still on ' + page.url()}` };
   return {};
 });
 
 if (!/#\/dashboard/.test(page.url())) {
-  record('C00', 'Signed in as admin', 'FAIL', 'could not reach the dashboard; remaining checks skipped');
+  record('C00', 'Signed in as the probe administrator', 'FAIL', 'could not reach the dashboard; remaining checks skipped');
 } else {
   // -------------------------------------------------------------------------
   // Academic structure
