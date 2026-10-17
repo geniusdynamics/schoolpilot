@@ -1,5 +1,5 @@
 // ABOUTME: Library Fines page - lists library fines and lets staff add manual fines or update their status.
-// ABOUTME: Reads fines and loans from AppDataContext.
+// ABOUTME: Reads fines and loans from the database through the library module hook.
 
 import React, { useState } from 'react';
 
@@ -14,7 +14,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, SparklesIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+import { useLibraryData } from '../data/useLibraryData';
 import Spinner from '@/components/ui/Spinner';
 import { FineStatus } from '@/core/types';
 import type { Fine } from '@/core/types';
@@ -29,8 +29,8 @@ export const FinesPageContent: React.FC = () => {
     loans,
     loading, 
     addFine, 
-    updateFineStatus // Assuming this specific function exists or using generic update
-  } = useAppData(); // Updated
+    updateFineStatus
+  } = useLibraryData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFine, setEditingFine] = useState<Fine | null>(null);
@@ -87,8 +87,8 @@ export const FinesPageContent: React.FC = () => {
     };
 
     if (editingFine) {
-      // Use a specific updateFineStatus or generic update from useMockData
-      await updateFineStatus({ ...editingFine, ...payload }); // Assuming updateFineStatus takes full Fine object
+      // Only the status is editable on an existing fine.
+      await updateFineStatus(editingFine.id, payload.status);
     } else {
       await addFine(payload);
     }
