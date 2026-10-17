@@ -35,7 +35,7 @@ import { useToast } from '@/hooks/useToast';
 
 interface SubjectAnalysisData {
   id: string;
-  subjectId: number;
+  subjectId: string | number;
   subjectName: string;
   studentsSat: number;
   highestScore: number;
@@ -63,6 +63,9 @@ const meanOf = (values: number[]): number =>
 
 const round1 = (value: number): number => Math.round(value * 10) / 10;
 
+/** Ids may be numeric seed values or UUID strings; compare them as strings, never coerce to numbers. */
+const sameId = (a: unknown, b: unknown): boolean => a != null && b != null && String(a) === String(b);
+
 const createdAtTime = (iso: string): number => {
   const time = new Date(iso).getTime();
   return Number.isNaN(time) ? 0 : time;
@@ -87,7 +90,7 @@ export const ExamAnalysisContent: React.FC = () => {
   } = useAppData();
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>();
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>();
+  const [selectedClassStreamId, setSelectedClassStreamId] = useState<string | undefined>();
   const [analysisData, setAnalysisData] = useState<SubjectAnalysisData[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -255,7 +258,7 @@ export const ExamAnalysisContent: React.FC = () => {
     }
     setIsAnalyzing(true);
 
-    const selectedSession = (examSessions || []).find(es => es.id === selectedExamSessionId);
+    const selectedSession = (examSessions || []).find(es => sameId(es.id, selectedExamSessionId));
     if (!selectedSession) {
         setIsAnalyzing(false);
         console.warn("Selected exam session not found.");
@@ -263,8 +266,8 @@ export const ExamAnalysisContent: React.FC = () => {
         return;
     }
     
-    const currentSchoolPeriod = (schoolPeriods || []).find(sp => sp.id === selectedSession.school_period_id);
-    const currentAcademicYear = (academicYears || []).find(ay => ay.id === currentSchoolPeriod?.academic_year_id);
+    const currentSchoolPeriod = (schoolPeriods || []).find(sp => sameId(sp.id, selectedSession.school_period_id));
+    const currentAcademicYear = (academicYears || []).find(ay => sameId(ay.id, currentSchoolPeriod?.academic_year_id));
     if (!currentAcademicYear) {
         setIsAnalyzing(false);
         console.warn("Academic year for the session not found.");
@@ -273,29 +276,29 @@ export const ExamAnalysisContent: React.FC = () => {
     }
 
     const allocatedSubjectsForStream = (classSubjectAllocations || [])
-      .filter(csa => csa.class_stream_id === selectedClassStreamId && csa.academic_year_id === currentAcademicYear.id)
-      .map(csa => (subjects || []).find(s => s.id === csa.subject_id))
+      .filter(csa => sameId(csa.class_stream_id, selectedClassStreamId) && sameId(csa.academic_year_id, currentAcademicYear.id))
+      .map(csa => (subjects || []).find(s => sameId(s.id, csa.subject_id)))
       .filter((s): s is Subject => !!s);
 
-    const studentsInStream = (students || []).filter(s => s.current_class_stream_id === selectedClassStreamId);
+    const studentsInStream = (students || []).filter(s => sameId(s.current_class_stream_id, selectedClassStreamId));
     const resultsForSessionAndStream = (studentExamResults || []).filter(
-      res => res.exam_session_id === selectedExamSessionId && studentsInStream.some(s => s.id === res.student_id)
+      res => sameId(res.exam_session_id, selectedExamSessionId) && studentsInStream.some(s => sameId(s.id, res.student_id))
     );
 
     // Previous session for the same stream — used for per-subject change values.
     const sessionsAsc = [...(examSessions || [])].sort(
       (a, b) => createdAtTime(a.created_at) - createdAtTime(b.created_at)
     );
-    const sessionIndex = sessionsAsc.findIndex(es => es.id === selectedExamSessionId);
+    const sessionIndex = sessionsAsc.findIndex(es => sameId(es.id, selectedExamSessionId));
     const prevSessionId = sessionIndex > 0 ? sessionsAsc[sessionIndex - 1].id : null;
 
     // Mean percentage for one subject in one session, for this stream.
-    const computeSubjectAverageForSession = (sessionId: string, subjectId: number): number | null => {
-      const session = (examSessions || []).find(es => es.id === sessionId);
+    const computeSubjectAverageForSession = (sessionId: string, subjectId: string | number): number | null => {
+      const session = (examSessions || []).find(es => sameId(es.id, sessionId));
       if (!session) return null;
       const paperSettingsForSubject = (session.paper_settings || []).filter(ps => {
-        const paper = (subjectPapers || []).find(sp => sp.id === ps.subject_paper_id);
-        return paper?.subject_id === subjectId;
+        const paper = (subjectPapers || []).find(sp => sameId(sp.id, ps.subject_paper_id));
+        return sameId(paper?.subject_id, subjectId);
       });
       if (paperSettingsForSubject.length === 0) return null;
 
@@ -303,8 +306,8 @@ export const ExamAnalysisContent: React.FC = () => {
       let averageSum = 0;
       let studentsCounted = 0;
       (studentExamResults || []).forEach(result => {
-        if (result.exam_session_id !== sessionId) return;
-        if (!studentsInStream.some(s => s.id === result.student_id)) return;
+        if (!sameId(result.exam_session_id, sessionId)) return;
+        if (!studentsInStream.some(s => sameId(s.id, result.student_id))) return;
         const marks = (result.marks || []).filter(m => settingIds.has(String(m.paper_setting_id)));
         if (marks.length === 0) return;
         let weightedSum = 0;
@@ -344,8 +347,8 @@ export const ExamAnalysisContent: React.FC = () => {
       let totalMarksPossibleForSubject = 0;
 
       const subjectPaperSettings = (selectedSession.paper_settings || []).filter(ps => {
-        const paper = (subjectPapers || []).find(sp => sp.id === ps.subject_paper_id);
-        return paper?.subject_id === subject.id;
+        const paper = (subjectPapers || []).find(sp => sameId(sp.id, ps.subject_paper_id));
+        return sameId(paper?.subject_id, subject.id);
       });
       
       totalMarksPossibleForSubject = subjectPaperSettings.reduce((sum, ps) => sum + ps.marks_out_of, 0);
@@ -355,7 +358,7 @@ export const ExamAnalysisContent: React.FC = () => {
         let studentTookSubjectPapersForThisSubject = false;
 
         const marksForThisSubject = result.marks?.filter(mark => {
-            const paperSetting = subjectPaperSettings.find(ps => ps.id === mark.paper_setting_id);
+            const paperSetting = subjectPaperSettings.find(ps => sameId(ps.id, mark.paper_setting_id));
             return !!paperSetting;
         }) || [];
 
@@ -430,12 +433,12 @@ export const ExamAnalysisContent: React.FC = () => {
   }, [analysisData]);
 
   const selectedSessionName = useMemo(() => {
-    const session = examSessions?.find(s => s.id === selectedExamSessionId);
+    const session = examSessions?.find(s => sameId(s.id, selectedExamSessionId));
     return session?.name || 'Selected Exam';
   }, [examSessions, selectedExamSessionId]);
 
   const selectedStreamName = useMemo(() => {
-    const stream = classStreams?.find(s => s.id === selectedClassStreamId);
+    const stream = classStreams?.find(s => sameId(s.id, selectedClassStreamId));
     return stream ? `${stream.class_name} ${stream.name}` : 'Selected Stream';
   }, [classStreams, selectedClassStreamId]);
 
@@ -466,8 +469,8 @@ export const ExamAnalysisContent: React.FC = () => {
             </Select>
             <Select
               label="Select Class Stream"
-              value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
-              onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
+              value={selectedClassStreamId ?? ''}
+              onChange={(e) => setSelectedClassStreamId(e.target.value || undefined)}
             >
               <option value="">-- Select Class Stream --</option>
               {(classStreams || []).map(cs => (
