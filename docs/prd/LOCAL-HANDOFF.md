@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-17 — **PR #17 (P0-W2) merged** into `consolidation` (`4c4d68e`). **P0-W3 started** on `prd/P0-W3` (12 tasks)._
+_Last update: 2026-10-17 — **Cloud session handed over to local.** W1+W2 merged into `consolidation`. W3: C06, C07 done on `prd/P0-W3`; rest open (see §0 W3 table)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -28,11 +28,27 @@ verifier's findings (they are in this file's history and the W1 log), then integ
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
 
-### P0-W3 (in progress)
-Branch `prd/P0-W3` from `consolidation` @ `4c4d68e`; one PR into `consolidation`, merged with a merge commit.
-Tasks: A05 C06 C07 E04 E05 F04 F05 G08 H01 H02 H03 H04 — run by the cloud `prd-wave` workflow (wave `P0-W3`).
-Local `consolidation` points at the W3 tip; publish with `git push origin consolidation:prd/P0-W3`.
-If the session dies: `git switch -C consolidation origin/prd/P0-W3`, `node scripts/prd/status.mjs --wave P0-W3`, run §3a with the tasks still `todo` (wave `P0-W3`); task branches pushed to origin as `prd/P0-<id>*`.
+### P0-W3 — START HERE when continuing locally
+Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + W3 work so far. Merge PRs with a **merge commit** only.
+
+| Task | State | Where / next action |
+| --- | --- | --- |
+| C06 | done (`4c37e91`) | on `prd/P0-W3` |
+| C07 | done (`4954d7f`) | on `prd/P0-W3`; follow-up: pages swallow save/delete errors (add try/catch + toast) |
+| A05 | built, **not reviewed** | `origin/prd/P0-A05` (`2940222`). Verify (prompt pattern in §3b), then integrate. Open: re-open-from-Settings and DB completion state not done; `subjects.id` declared integer in `src/modules/academics/data/schema.ts` (wizard works around with numeric ids) |
+| E04 E05 F04 F05 G08 H01 H02 H03 H04 | todo | run the wave (below) |
+
+Local steps:
+```bash
+git fetch origin && git switch -C consolidation origin/prd/P0-W3   # local alias the workflow integrates into
+PUPPETEER_SKIP_DOWNLOAD=1 pnpm install --frozen-lockfile
+node scripts/prd/status.mjs --wave P0-W3
+```
+In Claude Code (repo root): `Workflow({ name: "prd-wave", args: { wave: "P0-W3", date: "<YYYY-MM-DD>", push: false, maxParallel: 2, only: ["P0-E04","P0-E05","P0-F04","P0-F05","P0-G08","P0-H01","P0-H02","P0-H03","P0-H04"] } })`
+then `git push origin consolidation:prd/P0-W3`. For A05: verify, then `git merge --squash origin/prd/P0-A05` on consolidation, `node scripts/prd/gate.mjs task --task P0-A05 --base HEAD`, commit, `status.mjs --set P0-A05 done --commit <sha>`.
+When W3 is all done: append "Wave closure" to the W3 log, push, mark PR #18 ready, merge when CI is green. Then W4 (B05, G09–G13, Z01), then `Workflow({ name: "prd-phase-exit", args: { phase: "P0", date: "<date>" } })`.
+
+Rules that held throughout (keep them): one squashed commit per task, gate before every commit, independent verifier before integration, owner's widening rule (decisions/2026-10-10-scope-widening.md), never commit in the main checkout while a workflow is integrating, merge wave PRs with merge commits.
 
 ### P0-W2 status
 All 14 tasks done on `prd/P0-W2` — see the "Wave closure" section of [`workflow-log/P0-W2-2026-10-11.md`](./workflow-log/P0-W2-2026-10-11.md) for commits and follow-ups.
