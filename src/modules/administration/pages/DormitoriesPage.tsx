@@ -1,24 +1,56 @@
-import React, { useState } from 'react';
-import { Dormitory } from '@/types';
+// ABOUTME: Dormitories page — grid plus add/edit/delete dialog backed by the 'dormitories' collection.
+// ABOUTME: CRUD goes through useAdministration() with update(id, patch); the master's name is resolved from staff.
+
+import React, { useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import { PlusIcon, EditIcon, DeleteIcon, BuildingLibraryIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useAdministration } from '../hooks/useAdministration';
 import { useTranslation } from 'react-i18next';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
+/** A dormitory row as shown in the grid; ids are strings and the master's name is resolved at read time. */
+interface DormitoryRow {
+  id: string;
+  name: string;
+  capacity?: number | null;
+  master_id?: string | null;
+  master_name?: string | null;
+}
+
+interface StaffOption {
+  id: string | number;
+  first_name?: string;
+  last_name?: string;
+  designation_title?: string | null;
+  is_active?: boolean;
+}
+
 export const DormitoriesContent: React.FC = () => {
-  const { dormitories, staff, loading, addDormitory, updateDormitory, deleteDormitory } = useAppData();
+  const { dormitories, staff, addDormitory, updateDormitory, deleteDormitory } = useAdministration();
   const { t } = useTranslation('administration');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDormitory, setEditingDormitory] = useState<Dormitory | null>(null);
+  const [editingDormitory, setEditingDormitory] = useState<DormitoryRow | null>(null);
 
-  const openModal = (dorm?: Dormitory) => {
+  const staffMembers = staff as StaffOption[];
+  const rows = useMemo<DormitoryRow[]>(() => {
+    const staffName = (id: unknown) => {
+      const member = staffMembers.find(s => String(s.id) === String(id));
+      return member ? `${member.first_name ?? ''} ${member.last_name ?? ''}`.trim() : null;
+    };
+    return (dormitories as unknown as DormitoryRow[]).map(dorm => ({
+      ...dorm,
+      id: String(dorm.id),
+      master_id: dorm.master_id == null ? dorm.master_id : String(dorm.master_id),
+      master_name: (dorm.master_id != null ? staffName(dorm.master_id) : null) ?? dorm.master_name ?? null,
+    }));
+  }, [dormitories, staffMembers]);
+
+  const openModal = (dorm?: DormitoryRow) => {
     setEditingDormitory(dorm || null);
     setIsModalOpen(true);
   };
@@ -29,20 +61,20 @@ export const DormitoriesContent: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this dormitory?' }))) {
       await deleteDormitory(id);
     }
   };
 
-  const columns: DataGridColumn<Dormitory>[] = [
+  const columns: DataGridColumn<DormitoryRow>[] = [
     {
       key: 'id',
       header: 'ID',
       sortable: true,
       filterable: true,
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     {
       key: 'name',
@@ -50,7 +82,7 @@ export const DormitoriesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     {
       key: 'master_name',
@@ -58,7 +90,7 @@ export const DormitoriesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 180,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'capacity',
@@ -66,7 +98,7 @@ export const DormitoriesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'actions',
@@ -84,14 +116,6 @@ export const DormitoriesContent: React.FC = () => {
     },
   ];
 
-  if ((loading.dormitories || loading.staff) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Dormitories...</span>
-      </div>
-    );
-  }
-
   return (
     <>
       <Card title={t('dormitories.management')} actions={
@@ -101,8 +125,7 @@ export const DormitoriesContent: React.FC = () => {
       }>
         <DataGrid
           columns={columns}
-          data={dormitories}
-          loading={loading.dormitories && isModalOpen}
+          data={rows}
           sortable
           filterable
           emptyState={{
@@ -128,10 +151,10 @@ export const DormitoriesContent: React.FC = () => {
             label: t('dormitories.dormitoryMasterMistress'),
             type: 'select',
             placeholder: t('dormitories.selectStaffMember'),
-            options: staff
-              .filter((s: any) => s.is_active)
-              .map((staffMember: any) => ({
-                value: staffMember.id,
+            options: staffMembers
+              .filter(s => s.is_active)
+              .map(staffMember => ({
+                value: String(staffMember.id),
                 label: `${staffMember.first_name} ${staffMember.last_name} (${staffMember.designation_title || 'N/A'})`,
               })),
           },
@@ -141,13 +164,14 @@ export const DormitoriesContent: React.FC = () => {
         onSubmit={async (values) => {
           const payload = {
             name: String(values.name ?? ''),
-            master_id: values.master_id ? Number(values.master_id) : undefined,
-            capacity: values.capacity ? parseInt(String(values.capacity)) : undefined,
+            master_id: values.master_id ? String(values.master_id) : null,
+            capacity: values.capacity !== undefined && values.capacity !== '' ? Number(values.capacity) : null,
           };
           if (editingDormitory) {
-            await updateDormitory({ ...editingDormitory, ...payload });
+            await updateDormitory(editingDormitory.id, payload);
           } else {
-            await addDormitory(payload);
+            const now = new Date().toISOString();
+            await addDormitory({ ...payload, created_at: now, updated_at: now });
           }
         }}
       />
