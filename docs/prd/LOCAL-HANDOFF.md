@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-11 — W1 merged (`b300322`). **P0-W2: 12 of 14 integrated** on `prd/P0-W2` (PR #17); D06 and E03 in widened fix rounds._
+_Last update: 2026-10-17 — **P0-W2 complete** (14/14 on `prd/P0-W2`, PR #17). Next: merge PR #17, then P0-W3._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -29,13 +29,7 @@ verifier's findings (they are in this file's history and the W1 log), then integ
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
 
 ### P0-W2 status
-| Task | State | Where |
-| --- | --- | --- |
-| A03 A04 B03 C03 C04 C05 D03 D04 D05 F03 G06 G07 | done (see `git log --oneline origin/prd/P0-W2`) | `prd/P0-W2` |
-| D06 | settings save works (C15); widened fix round: school name in header, receipts, reports + SetupWizard on `school_details` | fix branch `prd/P0-D06-fix2` (cloud until integrated; base `prd/P0-D06-retry` on origin) |
-| E03 | billing dry-run done; widened fix round: fee templates store `applicable_level_ids` + form multi-select | fix branch `prd/P0-E03-fix1` (cloud until integrated) |
-
-To finish locally: take the D06/E03 base branches from origin, redo the fix rounds described above test-first, then `git merge --squash <branch>` on `prd/P0-W2`, `node scripts/prd/gate.mjs task --task <id> --base HEAD`, commit, `status.mjs --set <id> done --commit <sha>`.
+All 14 tasks done on `prd/P0-W2` — see the "Wave closure" section of [`workflow-log/P0-W2-2026-10-11.md`](./workflow-log/P0-W2-2026-10-11.md) for commits and follow-ups.
 
 ### P0-W2 (in progress)
 Branch `prd/P0-W2` (based on `consolidation` after the W1 merge; `consolidation` was merged into it as `6574256`). Tasks: A03 A04 B03 C03 C04 C05 D03 D04 D05 D06 E03 F03 G06 G07, run by cloud workflow `prd-wave` (wave P0-W2). Local `consolidation` points at the W2 tip; publish with `git push origin consolidation:prd/P0-W2`.
