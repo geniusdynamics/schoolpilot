@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Staff, Class, ClassStream } from '@/types';
-import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
+import { CampaignStatus, CampaignAudienceType, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -9,8 +8,8 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '@/components/ui/icons';
-import { useCampaignData } from '@/modules/administration/data/useCampaignData';
-import { useTemplateCommData } from '@/modules/administration/data/useTemplateCommData';
+import { useCampaignData, type CampaignRecord as Campaign } from '@/modules/administration/data/useCampaignData';
+import { useTemplateCommData, type TemplateCommRecord as TemplateComm } from '@/modules/administration/data/useTemplateCommData';
 import { useAppData } from '@/hooks/useAppData'; // For classStreams only
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';
@@ -23,7 +22,7 @@ import { useToast } from '@/hooks/useToast';
 
 type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'template_name' | 'created_by_name' | 'target_audience_display' | 'approved_by' | 'status' | 'template_id' | 'target_audience_type' | 'approved_by_name'> & {
     status: CampaignStatus;
-    template_id?: number;
+    template_id?: string;
     target_audience_type?: CampaignAudienceType;
 };
 
@@ -92,9 +91,9 @@ export const MessageCampaignsContent: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    let processedValue: string | number | undefined = value;
+    let processedValue: string | undefined = value;
     if (name === 'template_id') {
-        processedValue = value ? parseInt(value) : undefined;
+        processedValue = value || undefined;
     }
     
     setFormData(prev => {
@@ -134,7 +133,7 @@ export const MessageCampaignsContent: React.FC = () => {
 
     const payload: Omit<Campaign, 'id' | 'created_at' | 'updated_at' | 'approved_by' | 'template_name' | 'created_by_name' | 'target_audience_display'| 'approved_by_name'> = {
       name: formData.name!,
-      template_id: formData.template_id ? Number(formData.template_id) : undefined,
+      template_id: formData.template_id || undefined,
       subject: formData.subject || undefined,
       body: formData.body!,
       status: formData.status!,
@@ -156,7 +155,7 @@ export const MessageCampaignsContent: React.FC = () => {
   const confirm = useConfirm();
   const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this message campaign?' }))) {
-      deleteCampaign(id);
+      await deleteCampaign(id);
     }
   };
 
@@ -167,7 +166,7 @@ export const MessageCampaignsContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'name', 
@@ -175,7 +174,7 @@ export const MessageCampaignsContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'status', 
@@ -206,7 +205,7 @@ export const MessageCampaignsContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'scheduled_for', 

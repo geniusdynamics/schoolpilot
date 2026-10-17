@@ -1375,10 +1375,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-E04",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
+import { TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -8,12 +8,12 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, PencilIcon, TrashIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { useTemplateCommData } from '../data/useTemplateCommData'; // Use module-specific hook
+import { useTemplateCommData, type TemplateCommRecord as TemplateComm } from '../data/useTemplateCommData';
 
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
@@ -90,7 +90,7 @@ const CommunicationTemplatesPage: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this communication template?' }))) {
       await deleteTemplateComm(id);
     }

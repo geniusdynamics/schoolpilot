@@ -1,12 +1,13 @@
 // ABOUTME: Regression tests for administration communication and student health pages.
-// ABOUTME: Verifies the repaired hooks load data into the pages using the expected page-facing APIs.
+// ABOUTME: Verifies the database-backed hooks load stored data into the pages using the expected page-facing APIs.
 
 import { render as rtlRender, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MessageCampaignsPage from '../MessageCampaignsPage';
 import StudentHealthRecordsPage from '../StudentHealthRecordsPage';
 import { ToastProvider } from '@/hooks/useToast';
-import { TemplateType } from '../../data/types';
+import { CampaignAudienceType, CampaignStatus, TemplateType } from '../../data/types';
+import { databaseService } from '@/services/database/databaseService';
 
 // This file imports RTL's render directly (bypassing the global provider
 // wrapper in setup.ts); MessageCampaignsPage calls useToast(), so wrap here.
@@ -32,8 +33,53 @@ vi.mock('react-i18next', () => ({
   })
 }));
 
+vi.mock('@/services/database/databaseService', () => ({
+  databaseService: { getDatabase: vi.fn(), generateId: vi.fn(() => 'generated-id') }
+}));
+
+// Campaigns, templates and health records now come from the database, not mock arrays.
+const storedRows: Record<string, Array<Record<string, unknown>>> = {
+  communication_templates: [
+    {
+      id: 'tpl-1',
+      name: 'Welcome Message',
+      type: TemplateType.SMS,
+      body_template: 'Welcome {{student_name}}',
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z'
+    }
+  ],
+  message_campaigns: [
+    {
+      id: 'CAMP001',
+      name: 'New Term Welcome',
+      template_id: 'tpl-1',
+      body: 'Welcome to the new academic term!',
+      status: CampaignStatus.SENT,
+      target_audience_type: CampaignAudienceType.ALL_STUDENTS,
+      created_by: 'STF001_USR',
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z'
+    }
+  ],
+  student_health_records: [
+    {
+      id: 'SHR001',
+      student_id: 'S001',
+      blood_type: 'O+',
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z'
+    }
+  ]
+};
+
 describe('administration communication and health pages', () => {
   beforeEach(() => {
+    vi.mocked(databaseService.getDatabase).mockResolvedValue({
+      getCollection: (name: string) => ({
+        find: async () => (storedRows[name] ?? []).map((row) => ({ ...row }))
+      })
+    } as never);
     const appData = {
       students: [
         {
@@ -97,19 +143,19 @@ describe('administration communication and health pages', () => {
     });
   });
 
-  it('renders student rows and existing health record state', () => {
+  it('renders student rows and existing health record state', async () => {
     render(<StudentHealthRecordsPage />);
 
     expect(screen.getByText('Jim Halpert')).toBeInTheDocument();
     expect(screen.getByText('ADM001')).toBeInTheDocument();
-    expect(screen.getAllByText('Record Exists').length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Record Exists')).length).toBeGreaterThan(0);
   });
 
-  it('renders populated campaign details from the repaired campaign and template hooks', () => {
+  it('renders populated campaign details from the repaired campaign and template hooks', async () => {
     render(<MessageCampaignsPage />);
 
-    expect(screen.getByText('New Term Welcome')).toBeInTheDocument();
-    expect(screen.getByText('Welcome Message')).toBeInTheDocument();
+    expect(await screen.findByText('New Term Welcome')).toBeInTheDocument();
+    expect(await screen.findByText('Welcome Message')).toBeInTheDocument();
     expect(screen.getByText('Michael Scott')).toBeInTheDocument();
     expect(screen.getByText('All Students')).toBeInTheDocument();
   });

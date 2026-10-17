@@ -1,40 +1,44 @@
-// ABOUTME: Self-contained hook for partner data management
-// ABOUTME: Provides CRUD operations for partner without depending on AppDataContext
+// ABOUTME: Database-backed partners (collection 'partners') with create/update/remove that persist across reloads.
+// ABOUTME: Replaces the former in-memory mock hook; ids are strings and update accepts a record or (id, patch).
 
-import { initialMockPartners } from '../../administration/data/mockData';
+import { useCallback, useMemo } from 'react';
 import { AdminPartnerType } from './types';
-import { useState } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+export const PARTNERS_COLLECTION = 'partners';
+
+type PartnerInput = Omit<AdminPartnerType, 'id' | 'created_at' | 'updated_at'>;
+
+const stamp = () => new Date().toISOString();
+
+/** Drop undefined values and the id so only storable fields are written. */
+const toStored = (record: Partial<AdminPartnerType>) =>
+  Object.fromEntries(Object.entries(record).filter(([key, value]) => key !== 'id' && value !== undefined)) as Partial<AdminPartnerType>;
 
 export const usePartnerData = () => {
-  const [data, setData] = useState<AdminPartnerType[]>(initialMockPartners || []);
+  const collection = useDatabaseCollection<AdminPartnerType>(PARTNERS_COLLECTION);
+  const { data, insert, update: updateDocument, remove: removeDocument, refresh } = collection;
 
-  const create = async (newItem: Omit<AdminPartnerType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newDataItem: AdminPartnerType = {
-      ...newItem,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    setData((prev: AdminPartnerType[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
+  const partners = useMemo(() => [...data].sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? ''))), [data]);
 
-  const update = async (updatedItem: AdminPartnerType) => {
-    setData((prev: AdminPartnerType[]) => prev.map((item: AdminPartnerType) => 
-      item.id === updatedItem.id 
-        ? { ...updatedItem, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
+  const create = useCallback(
+    async (newItem: PartnerInput) => {
+      const now = stamp();
+      return insert({ ...(toStored(newItem) as PartnerInput), created_at: now, updated_at: now });
+    },
+    [insert]
+  );
 
-  const remove = async (id: string) => {
-    setData((prev: AdminPartnerType[]) => prev.filter((item: AdminPartnerType) => item.id !== id));
-  };
+  const update = useCallback(
+    async (idOrRecord: string | AdminPartnerType, patch?: Partial<AdminPartnerType>) => {
+      const id = typeof idOrRecord === 'object' ? idOrRecord.id : idOrRecord;
+      const changes = typeof idOrRecord === 'object' ? idOrRecord : patch ?? {};
+      return updateDocument(String(id), { ...toStored(changes), updated_at: stamp() });
+    },
+    [updateDocument]
+  );
 
-  return {
-    data,
-    create,
-    update,
-    remove
-  };
+  const remove = useCallback(async (id: string) => removeDocument(String(id)), [removeDocument]);
+
+  return { data: partners, partners, loading: collection.loading, error: collection.error, refresh, create, update, remove };
 };
