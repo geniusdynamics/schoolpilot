@@ -1,3 +1,6 @@
+// ABOUTME: Inventory items list and add/edit/delete dialog.
+// ABOUTME: Reads and writes 'items_inv' through the useInventory module hook; category ids stay strings.
+
 import React, { useState } from 'react';
 
 import Card from '@/components/ui/Card';
@@ -11,24 +14,32 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { ItemTypeInv } from '@/core/types';
 import type { ItemInv } from '@/core/types';
 
-type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 'category_name' | 'item_type'> & {
+/** A stored item; ids (including category_id) are strings at runtime. */
+type ItemRecord = Omit<ItemInv, 'category_id'> & { category_id?: string | null };
+
+type ItemFormData = Omit<Partial<ItemRecord>, 'id' | 'created_at' | 'updated_at' | 'category_name' | 'item_type'> & {
     item_type: ItemTypeInv; // Ensure item_type is required in the form
 };
 
 export const ItemsPageContent: React.FC = () => {
-  const { itemsInv, itemCategoriesInv, loading, addItemInv, updateItemInv, deleteItemInv } = useAppData(); // Updated
+  const {
+    items: itemsInv,
+    itemCategories: itemCategoriesInv,
+    addItem: addItemInv,
+    updateItem: updateItemInv,
+    deleteItem: deleteItemInv,
+  } = useInventory();
   const { t } = useTranslation('inventory');
   const confirm = useConfirm();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<ItemInv | null>(null);
+  const [editingItem, setEditingItem] = useState<ItemRecord | null>(null);
   const initialFormData: ItemFormData = { 
     name: '', 
     description: '', 
@@ -39,7 +50,7 @@ export const ItemsPageContent: React.FC = () => {
   };
   const [formData, setFormData] = useState<ItemFormData>(initialFormData);
 
-  const openModal = (item?: ItemInv) => {
+  const openModal = (item?: ItemRecord) => {
     setEditingItem(item || null);
     setFormData(item ? 
       { 
@@ -65,7 +76,7 @@ export const ItemsPageContent: React.FC = () => {
     const { name, value } = e.target;
     let processedValue: string | number | undefined = value;
     if (name === 'category_id') {
-        processedValue = value ? parseInt(value) : undefined;
+        processedValue = value || undefined;
     } else if (name === 'current_price') {
         processedValue = parseFloat(value) || 0;
     }
@@ -77,17 +88,17 @@ export const ItemsPageContent: React.FC = () => {
       alert(t('validation.itemNameUnitTypeRequired'));
       return;
     }
-    const payload: Omit<ItemInv, 'id' | 'created_at' | 'updated_at' | 'category_name'> = {
+    const payload: Omit<ItemRecord, 'id' | 'created_at' | 'updated_at' | 'category_name'> = {
       name: formData.name!,
       description: formData.description || undefined,
-      category_id: formData.category_id ? Number(formData.category_id) : undefined,
+      category_id: formData.category_id || undefined,
       unit_of_measure: formData.unit_of_measure!,
       item_type: formData.item_type,
       current_price: formData.current_price ? Number(formData.current_price) : undefined,
     };
 
     if (editingItem) {
-      await updateItemInv({ ...editingItem, ...payload });
+      await updateItemInv(editingItem.id, payload);
     } else {
       await addItemInv(payload);
     }
@@ -100,7 +111,7 @@ export const ItemsPageContent: React.FC = () => {
     }
   };
 
-  const columns: DataGridColumn<ItemInv>[] = [
+  const columns: DataGridColumn<ItemRecord>[] = [
     {
       key: 'id',
       header: 'ID',
@@ -199,13 +210,6 @@ export const ItemsPageContent: React.FC = () => {
     }
   ];
 
-  if ((loading.itemsInv || loading.itemCategoriesInv) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Inventory Items...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -241,7 +245,7 @@ export const ItemsPageContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('inventory.items.cancel')}</Button>
-            <Button onClick={handleSubmit} loading={loading.itemsInv}>
+            <Button onClick={handleSubmit}>
               {editingItem ? t('inventory.items.saveChanges') : t('inventory.items.addItem')}
             </Button>
           </FormActions>

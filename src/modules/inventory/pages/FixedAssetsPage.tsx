@@ -1,4 +1,8 @@
+// ABOUTME: Fixed assets register with add/edit/delete dialog.
+// ABOUTME: Assets and items come from the useInventory module hook; staff come from the app-wide snapshot.
+
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
@@ -7,7 +11,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -22,15 +26,9 @@ type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updat
 };
 
 export const FixedAssetsPageContent: React.FC = () => {
-  const { 
-    fixedAssets, 
-    itemsInv,
-    staff,
-    loading, 
-    addFixedAsset, 
-    updateFixedAsset, 
-    deleteFixedAsset 
-  } = useAppData(); // Updated
+  const { staff } = useAppData();
+  const { fixedAssets, items: itemsInv, addFixedAsset, updateFixedAsset, deleteFixedAsset } = useInventory();
+  const { t } = useTranslation('inventory');
   const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,7 +48,7 @@ export const FixedAssetsPageContent: React.FC = () => {
   const [formData, setFormData] = useState<FixedAssetFormData>(initialFormData);
 
   const fixedAssetItems = useMemo(() => itemsInv.filter(item => item.item_type === ItemTypeInv.FIXED_ASSET), [itemsInv]);
-  const activeStaff = useMemo(() => staff.filter(s => s.is_active), [staff]);
+  const activeStaff = useMemo(() => (staff ?? []).filter(s => s.is_active), [staff]);
 
   const openModal = (asset?: FixedAsset) => {
     setEditingAsset(asset || null);
@@ -106,7 +104,7 @@ export const FixedAssetsPageContent: React.FC = () => {
     };
 
     if (editingAsset) {
-      await updateFixedAsset({ ...editingAsset, ...payload });
+      await updateFixedAsset(editingAsset.id, payload);
     } else {
       await addFixedAsset(payload);
     }
@@ -184,13 +182,6 @@ export const FixedAssetsPageContent: React.FC = () => {
     },
   ];
 
-  if ((loading.fixedAssets || loading.itemsInv || loading.staff) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Fixed Assets...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -263,7 +254,7 @@ export const FixedAssetsPageContent: React.FC = () => {
 
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button variant="primary" type="submit" loading={loading.fixedAssets}>
+          <Button variant="primary" type="submit">
             {editingAsset ? 'Save Changes' : 'Add Asset'}
           </Button>
         </FormActions>

@@ -1,16 +1,21 @@
+// ABOUTME: Stock requisitions list, add/edit dialog and per-requisition line items.
+// ABOUTME: Requisitions and items come from useInventory; staff from the app-wide snapshot; items nest on the requisition.
+
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
+import Modal from '@/components/ui/Modal';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useAppData } from '@/hooks/useAppData';
+import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { RequisitionStatus } from '@/core/types';
 import type { Requisition, RequisitionItem } from '@/core/types';
@@ -24,15 +29,10 @@ type RequisitionItemFormData = Omit<Partial<RequisitionItem>, 'id' | 'requisitio
 };
 
 export const RequisitionsPageContent: React.FC = () => {
-  const { 
-    requisitions, 
-    staff,
-    itemsInv,
-    loading, 
-    addRequisition, 
-    updateRequisition, 
-    deleteRequisition: mockDeleteRequisition 
-  } = useAppData(); // Updated
+  const { staff: staffList } = useAppData();
+  const staff = staffList ?? [];
+  const { requisitions, items: itemsInv, addRequisition, updateRequisition, deleteRequisition } = useInventory();
+  const { t } = useTranslation('inventory');
   const confirm = useConfirm();
 
   const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
@@ -123,9 +123,9 @@ export const RequisitionsPageContent: React.FC = () => {
     };
 
     if (editingRequisition) {
-      await updateRequisition({ ...editingRequisition, ...payloadBase }, editingRequisition.items || []);
+      await updateRequisition(editingRequisition.id, { ...payloadBase, items: editingRequisition.items || [] });
     } else {
-      await addRequisition(payloadBase, []); // New requisitions start with no items
+      await addRequisition({ ...payloadBase, items: [] }); // New requisitions start with no items
     }
     closeRequisitionModal();
   };
@@ -169,12 +169,8 @@ export const RequisitionsPageContent: React.FC = () => {
       newItemsList = [...existingItems, newItem];
     }
     
-    await updateRequisition(currentRequisitionForItems, newItemsList);
-    
-    const updatedReq = requisitions.find(r => r.id === currentRequisitionForItems.id);
-    if (updatedReq) {
-        setCurrentRequisitionForItems(updatedReq);
-    }
+    await updateRequisition(currentRequisitionForItems.id, { items: newItemsList });
+    setCurrentRequisitionForItems({ ...currentRequisitionForItems, items: newItemsList });
 
     setEditingReqItem(null);
     setItemFormData(initialItemFormData); 
@@ -182,7 +178,7 @@ export const RequisitionsPageContent: React.FC = () => {
   
   const handleDeleteReq = async (id: string) => {
     if (await confirm({ title: 'Delete requisition', message: 'Are you sure you want to delete this requisition? This will also delete all its items.', variant: 'danger' })) {
-      await mockDeleteRequisition(id);
+      await deleteRequisition(id);
     }
   };
 
@@ -190,11 +186,8 @@ export const RequisitionsPageContent: React.FC = () => {
       if (!currentRequisitionForItems) return;
       if (await confirm({ title: 'Remove item', message: 'Are you sure you want to delete this item from the requisition?', variant: 'danger' })) {
           const updatedItems = (currentRequisitionForItems.items || []).filter(i => i.id !== itemId);
-          await updateRequisition(currentRequisitionForItems, updatedItems);
-           const updatedReq = requisitions.find(r => r.id === currentRequisitionForItems.id);
-            if (updatedReq) {
-                setCurrentRequisitionForItems(updatedReq);
-            }
+          await updateRequisition(currentRequisitionForItems.id, { items: updatedItems });
+          setCurrentRequisitionForItems({ ...currentRequisitionForItems, items: updatedItems });
       }
   };
 
@@ -383,15 +376,6 @@ export const RequisitionsPageContent: React.FC = () => {
     }
   ];
   
-  const isLoadingPage = loading.requisitions || loading.staff || loading.itemsInv;
-
-  if (isLoadingPage && !isRequisitionModalOpen && !isItemModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Requisitions...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -425,7 +409,7 @@ export const RequisitionsPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeRequisitionModal}>Cancel</Button>
-            <Button onClick={handleReqSubmit} loading={loading.requisitions}>
+            <Button onClick={handleReqSubmit}>
               {editingRequisition ? 'Save Changes' : 'Add Requisition'}
             </Button>
           </>
@@ -464,7 +448,7 @@ export const RequisitionsPageContent: React.FC = () => {
                 <Input name="unit_price" label="Unit Price (KES)" type="number" step="0.01" value={itemFormData.unit_price ?? ''} onChange={handleItemInputChange} placeholder="Auto from item, or override"/>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" loading={loading.requisitions}>
+                <Button onClick={handleItemSubmit} size="sm">
                   {editingReqItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>

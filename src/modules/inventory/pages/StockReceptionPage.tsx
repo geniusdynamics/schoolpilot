@@ -1,10 +1,15 @@
+// ABOUTME: Stock reception: groups 'Receipt' transactions and records incoming stock per warehouse.
+// ABOUTME: Items, warehouses and transactions come from useInventory; stock levels move via useStockLevelService.
+
 import React, { useState, useEffect } from 'react';
 import {
   PlusIcon,
   TrashIcon,
   ArchiveBoxIcon,
 } from '@heroicons/react/24/outline';
-import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData, StockTransactionType } from '../data';
+import { StockTransactionType } from '../data/types';
+import { useInventory } from '../hooks/useInventory';
+import { useStockLevelService } from '../hooks/useStockLevelService';
 import { Card, Input, Select, Button, Alert } from '@/components/ui';
 import { DialogForm } from '@/components/ui/forms';
 
@@ -15,7 +20,7 @@ interface StockReceptionItem {
   quantity: number;
   batch_number?: string;
   expiry_date?: string;
-  warehouse_id: number;
+  warehouse_id: string;
   warehouse_name: string;
   notes?: string;
 }
@@ -36,11 +41,9 @@ export const StockReceptionPageContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Data hooks — the hooks expose { data, create, update, remove }
-  const { data: items } = useItemData();
-  const { data: warehouses } = useWarehouseData();
-  const { data: stockTransactions, create: createStockTransaction } = useStockTransactionData();
-  const { data: stockLevels, create: createStockLevel, update: updateStockLevel } = useStockLevelData();
+  // Database-backed module hooks
+  const { items, warehouses, stockTransactions, addStockTransaction } = useInventory();
+  const { processTransaction } = useStockLevelService();
 
   // Derive receptions from receipt transactions whenever the data changes
   useEffect(() => {
@@ -50,7 +53,7 @@ export const StockReceptionPageContent: React.FC = () => {
         t => String(t.transaction_type) === StockTransactionType.RECEIPT
       );
       setReceptions(groupTransactionsByReception(receiptTransactions));
-    } catch (err) {
+    } catch {
       setError('Failed to load stock receptions');
     } finally {
       setLoading(false);
@@ -124,7 +127,7 @@ export const StockReceptionPageContent: React.FC = () => {
       quantity: 0,
       batch_number: '',
       expiry_date: '',
-      warehouse_id: 0,
+      warehouse_id: '',
       warehouse_name: '',
       notes: ''
     };
@@ -195,9 +198,9 @@ export const StockReceptionPageContent: React.FC = () => {
 
       // Create stock transactions for each item and upsert stock levels
       for (const item of editingReception.items) {
-        await createStockTransaction({
-          item_id: item.item_id,
-          warehouse_id: Number(item.warehouse_id),
+        const transaction = {
+          item_id: String(item.item_id),
+          warehouse_id: String(item.warehouse_id),
           transaction_type: StockTransactionType.RECEIPT,
           quantity: item.quantity,
           source_table: 'stock_reception',
@@ -209,27 +212,15 @@ export const StockReceptionPageContent: React.FC = () => {
             item.batch_number ? `Batch: ${item.batch_number}` : '',
             item.expiry_date ? `Expiry: ${item.expiry_date}` : ''
           ].filter(Boolean).join(' | ')
-        });
-
-        // Update stock levels (add to existing or create)
-        const warehouseId = Number(item.warehouse_id);
-        const existingLevel = stockLevels.find(
-          l => String(l.item_id) === String(item.item_id) && l.warehouse_id === warehouseId
-        );
-        if (existingLevel) {
-          await updateStockLevel(existingLevel.id, { quantity: existingLevel.quantity + item.quantity });
-        } else {
-          await createStockLevel({
-            item_id: Number(item.item_id),
-            warehouse_id: warehouseId,
-            quantity: item.quantity
-          });
-        }
+        };
+        const saved = await addStockTransaction(transaction);
+        // Add to the existing stock level or create one (StockLevelService upsert)
+        await processTransaction({ ...transaction, id: saved?.id ?? undefined });
       }
 
       setSuccess('Stock reception recorded successfully');
       handleCloseDialog();
-    } catch (err) {
+    } catch {
       setError('Failed to save stock reception');
     } finally {
       setLoading(false);
