@@ -1,5 +1,5 @@
 // ABOUTME: React hook wrappers for finance P0 services
-// ABOUTME: Provides useInvoiceStatus, useInvoiceGeneration, usePaymentAllocation
+// ABOUTME: Provides useInvoiceStatus, useInvoiceGeneration, usePaymentAllocation, useTermBilling
 // ABOUTME: These hooks wire service classes to database access via useDatabaseCollection
 
 import { useCallback, useState } from 'react';
@@ -18,6 +18,16 @@ import {
   type PaymentAllocationResult,
   type PaymentAllocationServiceDependencies,
 } from '../services/PaymentAllocationService';
+import {
+  generateTermInvoices as runTermBilling,
+  type BillingClassStream,
+  type BillingInvoice,
+  type BillingRepository,
+  type BillingStudent,
+  type BillingTemplate,
+  type GenerateTermInvoicesParams,
+  type GenerateTermInvoicesResult,
+} from '@/domain/finance/billingService';
 import type {
   StudentInvoice,
   StudentInvoiceItem,
@@ -241,6 +251,73 @@ export function useInvoiceGeneration() {
     isGenerating,
     error,
   };
+}
+
+// ── useTermBilling ──────────────────────────────────────────────────────────
+
+/** Reads every row of a collection; a missing collection is an error, never an empty list to bill from. */
+async function readCollection<T>(collectionName: string): Promise<T[]> {
+  const db = await databaseService.getDatabase();
+  const collection = db.getCollection(collectionName);
+  if (!collection || typeof collection.find !== 'function') {
+    throw new Error(`Term billing cannot run: the "${collectionName}" collection is not available in the database`);
+  }
+  return ((await collection.find({})) ?? []) as T[];
+}
+
+/**
+ * The database-backed repository for the term billing service. Shared by useTermBilling and the
+ * finance data provider so there is one billing path.
+ */
+export function createBillingRepository(writes: {
+  insertStudentInvoice: (invoice: BillingInvoice) => Promise<unknown>;
+  updateStudentInvoice: (id: string, patch: Partial<BillingInvoice>) => Promise<unknown>;
+}): BillingRepository {
+  return {
+    listStudents: () => readCollection<BillingStudent>('students'),
+    listClassStreams: () => readCollection<BillingClassStream>('class_streams'),
+    listFeeTemplates: () => readCollection<BillingTemplate>('fee_templates'),
+    listStudentInvoices: () => readCollection<BillingInvoice>('student_invoices'),
+    insertStudentInvoice: writes.insertStudentInvoice,
+    updateStudentInvoice: writes.updateStudentInvoice,
+    generateId: () => databaseService.generateId(),
+  };
+}
+
+/**
+ * Hook over the term billing service (src/domain/finance/billingService.ts). Reads learners, streams,
+ * templates and invoices fresh on every run so re-runs see the invoices a previous run created.
+ *
+ * Usage:
+ *   const { generateTermInvoices, isRunning } = useTermBilling();
+ *   const preview = await generateTermInvoices({ periodId, levelIds: [form1Id], dryRun: true });
+ */
+export function useTermBilling() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const studentInvoicesCollection = useDatabaseCollection<BillingInvoice>('student_invoices');
+  const insertStudentInvoiceRecord = studentInvoicesCollection.insert;
+  const updateStudentInvoiceRecord = studentInvoicesCollection.update;
+
+  const generateTermInvoices = useCallback(async (params: GenerateTermInvoicesParams): Promise<GenerateTermInvoicesResult | null> => {
+    setIsRunning(true);
+    setError(null);
+    try {
+      const repository = createBillingRepository({
+        insertStudentInvoice: (invoice) => insertStudentInvoiceRecord(invoice),
+        updateStudentInvoice: (id, patch) => updateStudentInvoiceRecord(id, patch),
+      });
+      return await runTermBilling(repository, params);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      return null;
+    } finally {
+      setIsRunning(false);
+    }
+  }, [insertStudentInvoiceRecord, updateStudentInvoiceRecord]);
+
+  return { generateTermInvoices, isRunning, error };
 }
 
 // ── usePaymentAllocation ────────────────────────────────────────────────────

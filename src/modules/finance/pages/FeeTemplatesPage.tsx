@@ -1,9 +1,9 @@
 // ABOUTME: Fee templates page: manage templates per school period/category and their fee items (voteheads).
-// ABOUTME: Persists through updateFeeTemplate(id, patch); fee items carry stable UUIDs and string foreign keys.
+// ABOUTME: Persists through updateFeeTemplate(id, patch); fee items carry stable UUIDs and string foreign keys; templates store applicable level (class) ids.
 
 import React, { useState, useMemo } from 'react';
 
-import { SchoolPeriod, StudentCategory } from '@/core/types';
+import { SchoolPeriod, StudentCategory, Class } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import DialogForm from "@/components/ui/forms/DialogForm";
 import EntityForm from "@/components/ui/forms/EntityForm";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import Checkbox from '@/components/ui/Checkbox';
 import { PlusIcon, EditIcon, DeleteIcon, TicketIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
@@ -59,6 +60,7 @@ export const FeeTemplatesContent: React.FC = () => {
     feeTemplates, 
     schoolPeriods,
     studentCategories,
+    classes,
     chartOfAccounts,
     expenseCategories,
     loading, 
@@ -77,6 +79,11 @@ export const FeeTemplatesContent: React.FC = () => {
   const initialItemFormData: FeeItemFormData = { description: '', amount: 0, revenue_account_id: undefined, linked_expense_category_id: undefined };
   const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
   const [templateInitialValues, setTemplateInitialValues] = useState<Record<string, any>>({ name: '', school_period_id: undefined, student_category_id: undefined });
+  /** Class (level) ids selected for the template being edited; empty means every level. */
+  const [templateLevelIds, setTemplateLevelIds] = useState<string[]>([]);
+  const levelOptions = useMemo(() => (classes || []).map((cls: Class) => ({ id: String(cls.id), name: String(cls.name ?? '') })), [classes]);
+  const toggleTemplateLevel = (levelId: string, checked: boolean) =>
+    setTemplateLevelIds(prev => (checked ? (prev.includes(levelId) ? prev : [...prev, levelId]) : prev.filter(id => id !== levelId)));
 
   const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
@@ -87,6 +94,7 @@ export const FeeTemplatesContent: React.FC = () => {
       { name: template.name, school_period_id: optionalId(template.school_period_id), student_category_id: optionalId(template.student_category_id) } :
       { name: '', school_period_id: undefined, student_category_id: undefined }
     );
+    setTemplateLevelIds((template?.applicable_level_ids || []).map(String));
     setIsTemplateModalOpen(true);
   };
   const closeTemplateModal = () => {
@@ -337,6 +345,12 @@ export const FeeTemplatesContent: React.FC = () => {
             student_category_id: studentCategoryId ?? null,
             school_period_name: (schoolPeriods || []).find((period: SchoolPeriod) => String(period.id) === schoolPeriodId)?.name ?? null,
             student_category_name: studentCategoryId ? (studentCategories || []).find((category: StudentCategory) => String(category.id) === studentCategoryId)?.name ?? null : null,
+            // Keep the class order stable regardless of click order; keep stored ids that are not in the
+            // loaded class list (classes not loaded yet, or a retired class) so a save never wipes them.
+            applicable_level_ids: [
+              ...levelOptions.filter(level => templateLevelIds.includes(level.id)).map(level => level.id),
+              ...templateLevelIds.filter(id => !levelOptions.some(level => level.id === id)),
+            ],
           };
 
           if (editingTemplate) {
@@ -350,7 +364,27 @@ export const FeeTemplatesContent: React.FC = () => {
           { name: 'school_period_id', label: 'School Period', type: 'select', required: true, placeholder: 'Select School Period', options: (schoolPeriods || []).map((period: SchoolPeriod) => ({ value: period.id, label: period.name })) },
           { name: 'student_category_id', label: 'Student Category (Optional)', type: 'select', placeholder: 'All Categories', options: (studentCategories || []).map((category: StudentCategory) => ({ value: category.id, label: String(category.name ?? '') })) },
         ]}
-      />
+      >
+        <fieldset className="mt-4">
+          <legend className="text-sm font-medium text-surface-foreground">Applicable Levels (Optional)</legend>
+          <p className="text-xs text-surface-muted-fg mb-2">Leave all unticked to apply the template to every level.</p>
+          {levelOptions.length === 0 ? (
+            <p className="text-sm text-surface-muted-fg">No classes defined yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {levelOptions.map(level => (
+                <Checkbox
+                  key={level.id}
+                  checked={templateLevelIds.includes(level.id)}
+                  onChange={(checked) => toggleTemplateLevel(level.id, checked)}
+                >
+                  {level.name}
+                </Checkbox>
+              ))}
+            </div>
+          )}
+        </fieldset>
+      </EntityForm>
 
       <DialogForm 
         isOpen={isItemModalOpen} 

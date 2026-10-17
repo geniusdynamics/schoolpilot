@@ -19,6 +19,7 @@ import { useNutritionData } from '@/modules/nutrition/data/useNutritionData';
 import { useExamResultsHorizontal } from '@/modules/academics/hooks/useExamResultsHorizontal';
 import { useInvoiceGeneration } from '@/modules/finance/hooks/useFinanceServices';
 import { SyncProvider, useSync } from '@/contexts/SyncContext';
+import { generateTermInvoices as billingServiceGenerate } from '@/domain/finance/billingService';
 
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
@@ -26,6 +27,11 @@ vi.mock('@/services/database/databaseService', () => ({
     generateId: vi.fn(() => `gen-${Math.random().toString(36).slice(2, 10)}`),
   },
 }));
+
+vi.mock('@/domain/finance/billingService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/domain/finance/billingService')>();
+  return { ...actual, generateTermInvoices: vi.fn(actual.generateTermInvoices) };
+});
 
 const toast = { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn(), showProgress: vi.fn() };
 vi.mock('@/hooks/useToast', () => ({ useToastHelpers: () => toast }));
@@ -370,6 +376,44 @@ describe('finance additions', () => {
     expect(rerun.invoices).toHaveLength(0);
     expect(rerun.skippedStudentIds).toEqual(['S1', 'S2']);
     expect(table('student_invoices').size).toBe(2);
+  });
+
+  it('generateTermInvoices bills through the term billing service: one invoice per learner per period across templates', async () => {
+    seed('fee_templates', [
+      ...table('fee_templates').values(),
+      { id: 'FT3', name: 'Exams', school_period_id: 'T1', items: [{ id: 'FTI3', fee_template_id: 'FT3', description: 'Exam', amount: 1500 }] },
+    ]);
+    const { result } = await renderProvider(useFinanceData);
+
+    await act(async () => {
+      await result.current.generateTermInvoices({ feeTemplateId: 'FT2', schoolPeriodId: 'T1', studentIds: ['S1'] });
+    });
+    let second: any;
+    await act(async () => {
+      second = await result.current.generateTermInvoices({ feeTemplateId: 'FT3', schoolPeriodId: 'T1', studentIds: ['S1'] });
+    });
+
+    expect(vi.mocked(billingServiceGenerate)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ periodId: 'T1', templateIds: ['FT3'], studentIds: ['S1'], dryRun: false }),
+    );
+    expect(table('student_invoices').size).toBe(1);
+    const [invoice] = [...table('student_invoices').values()];
+    expect(invoice.items.map((item: Doc) => item.fee_template_item_id)).toEqual(['FTI1', 'FTI2', 'FTI3']);
+    expect(invoice.total_amount_billed).toBe(16500);
+    expect(second.invoices).toHaveLength(1);
+    expect(second.invoices[0].items.map((item: Doc) => item.fee_template_item_id)).toEqual(['FTI3']);
+  });
+
+  it('generateStudentInvoices bills through the term billing service', async () => {
+    const { result } = await renderProvider(useFinanceData);
+    await act(async () => {
+      await result.current.generateStudentInvoices('FT2', 'T1', { categoryId: 'BOARD' });
+    });
+    expect(vi.mocked(billingServiceGenerate)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ periodId: 'T1', templateIds: ['FT2'], dryRun: false }),
+    );
   });
 
   it('generateStudentInvoices targets learners by category or stream', async () => {

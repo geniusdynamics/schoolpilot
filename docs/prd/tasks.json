@@ -1172,10 +1172,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "blocked",
+      "status": "done",
       "commit": null,
-      "notes": "Applicable levels on fee templates need files outside lane: finance/data/schema.ts, finance/data/types.ts, FeeTemplatesPage.tsx. In-lane work gated on prd/P0-E03; widen files or add lane-E follow-up",
-      "completed_at": null
+      "notes": "Applicable levels on fee templates need files outside lane: finance/data/schema.ts, finance/data/types.ts, FeeTemplatesPage.tsx. In-lane work gated on prd/P0-E03; widen files or add lane-E follow-up | Widened (standing rule): finance schema/types, FeeTemplatesPage, useFinanceData; 3 fix rounds; reviews found B1/B2/F1 money bugs, all fixed with tests",
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-F03",
