@@ -791,10 +791,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws14-authentication-fails-closed",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "2004346",
+      "notes": "Two fix rounds + owner-approved AuthContext login fix; probe C04 PASS; independently verified (APPROVE). Widened: AuthContext.tsx, school-ops-probe.mjs",
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-A04",
@@ -824,10 +824,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "8f248fe",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-B02",
@@ -889,10 +889,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b56b35b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-C03",
@@ -925,10 +925,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b758977",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-C04",
@@ -959,10 +959,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "03b55d7",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-C05",
@@ -994,10 +994,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b4de32b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D03",
@@ -1031,10 +1031,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "ea67b8e8a2e41d4b5660179707658f5994a4488a",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D04",
@@ -1064,10 +1064,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "bc06f0c",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D05",
@@ -1096,10 +1096,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "7d2c159",
+      "notes": "Owner decision: staff columns + additive column sync; independently verified (column sync stress-tested); UUID designation fix",
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-D06",
@@ -1135,9 +1135,9 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "review",
       "commit": null,
-      "notes": "",
+      "notes": "Acceptance partly unmet: settings save fixed (probe C15) but header, receipts and reports do not read school_details; narrow acceptance + follow-up, or widen files. Branch prd/P0-D06-retry",
       "completed_at": null
     },
     {
@@ -1172,9 +1172,9 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "blocked",
       "commit": null,
-      "notes": "",
+      "notes": "Applicable levels on fee templates need files outside lane: finance/data/schema.ts, finance/data/types.ts, FeeTemplatesPage.tsx. In-lane work gated on prd/P0-E03; widen files or add lane-E follow-up",
       "completed_at": null
     },
     {
@@ -1206,10 +1206,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "897f63a8be1ebea61e1e17868a8818fe5ff3a9ec",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-G06",
@@ -1234,10 +1234,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "f8c25bdc3c7bca9db9fed6ec734148d6ed1bc086",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-G07",
@@ -1265,10 +1265,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "9262191a6d61060454a359a1e64f0802bfffc279",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-11"
     },
     {
       "id": "P0-A05",

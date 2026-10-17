@@ -304,6 +304,45 @@ const AppDataValueProvider: React.FC<{
 /** Database init budget: longer than the storage worker's open timeout so a slow OPFS open can finish. */
 export const APP_DATA_INIT_TIMEOUT_MS = STORAGE_OPEN_TIMEOUT_MS + 15000;
 
+/** Coerces numeric ids and *_id references to strings in place (handles legacy data). */
+const normalizeDocIds = (docs: any[]): any[] => {
+  for (const doc of docs) {
+    if (!doc || typeof doc !== 'object') continue;
+    if (doc.id != null) doc.id = String(doc.id);
+    for (const k of Object.keys(doc)) {
+      if (k.endsWith('_id') && typeof doc[k] === 'number') doc[k] = String(doc[k]);
+    }
+  }
+  return docs;
+};
+
+/**
+ * Derives display labels for class streams when denormalized fields were not
+ * persisted (class_name/class_teacher_name are display-only columns that
+ * schema-driven providers may drop). Every combobox label benefits.
+ */
+const deriveStreamLabels = (loadedData: Record<string, any[]>): void => {
+  const streams = loadedData['class_streams'];
+  const classList = loadedData['classes'];
+  const staffList = loadedData['staff'];
+  if (!Array.isArray(streams) || streams.length === 0) return;
+  const classNameById = new Map(((classList || []) as any[]).map((c) => [String(c.id), c.name]));
+  const staffNameById = new Map(
+    ((staffList || []) as any[]).map((s) => [String(s.id), [s.first_name, s.last_name].filter(Boolean).join(' ')])
+  );
+  for (const stream of streams as any[]) {
+    if (!stream.class_name && stream.class_id != null) {
+      stream.class_name = classNameById.get(String(stream.class_id)) || undefined;
+    }
+    if (!stream.class_teacher_name && stream.class_teacher_id != null) {
+      stream.class_teacher_name = staffNameById.get(String(stream.class_teacher_id)) || undefined;
+    }
+  }
+};
+
+/** Change events arriving within this window are coalesced into one read per collection. */
+export const LIVE_REFRESH_DEBOUNCE_MS = 30;
+
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -533,14 +572,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Phase 2: ID normalization – coerce numeric ids to strings in-memory (handles legacy data)
       for (const docs of Object.values(loadedData)) {
-        for (const doc of docs as any[]) {
-          if (doc.id != null) doc.id = String(doc.id);
-          for (const k of Object.keys(doc)) {
-            if (k.endsWith('_id') && typeof doc[k] === 'number') doc[k] = String(doc[k]);
-            if (k === 'class_stream_id' && typeof doc[k] === 'number') doc[k] = String(doc[k]);
-            if (k === 'current_class_stream_id' && typeof doc[k] === 'number') doc[k] = String(doc[k]);
-          }
-        }
+        normalizeDocIds(docs);
       }
 
       // Orphan repair: students referencing missing class_stream
@@ -600,28 +632,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         logger.warn('[AppDataContext] No class_streams available – cannot repair student orphans');
       }
 
-      // Derive display labels for class streams when denormalized fields were not
-      // persisted (class_name/class_teacher_name are display-only columns that
-      // schema-driven providers may drop). Every combobox label benefits.
-      {
-        const streams = loadedData['class_streams'];
-        const classList = loadedData['classes'];
-        const staffList = loadedData['staff'];
-        if (Array.isArray(streams) && streams.length > 0) {
-          const classNameById = new Map(((classList || []) as any[]).map((c) => [String(c.id), c.name]));
-          const staffNameById = new Map(
-            ((staffList || []) as any[]).map((s) => [String(s.id), [s.first_name, s.last_name].filter(Boolean).join(' ')])
-          );
-          for (const stream of streams as any[]) {
-            if (!stream.class_name && stream.class_id != null) {
-              stream.class_name = classNameById.get(String(stream.class_id)) || undefined;
-            }
-            if (!stream.class_teacher_name && stream.class_teacher_id != null) {
-              stream.class_teacher_name = staffNameById.get(String(stream.class_teacher_id)) || undefined;
-            }
-          }
-        }
-      }
+      deriveStreamLabels(loadedData);
 
       setData(loadedData);
     } catch (err) {
@@ -647,6 +658,62 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       dataModeManager.off('modeChanged', refreshFromEvent);
     };
   }, [loadAllCollections]);
+
+  // Live shared lookups (SO-26): any write through any hook emits a collection change
+  // event; re-read only the affected collections so every picker stays current.
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    let disposed = false;
+    const pending = new Set<string>();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const flush = async () => {
+      timer = null;
+      const names = Array.from(pending);
+      pending.clear();
+      const fresh: Record<string, any[]> = {};
+      for (const name of names) {
+        const collection = dbManager.getCollection<any>(name);
+        if (!collection || typeof collection.find !== 'function') continue;
+        try {
+          fresh[name] = normalizeDocIds(await collection.find({}));
+        } catch (err) {
+          logger.warn(`[AppDataContext] Live refresh of ${name} failed:`, err);
+        }
+      }
+      if (disposed || Object.keys(fresh).length === 0) return;
+      setData((prev) => {
+        const next = { ...prev, ...fresh };
+        if ('class_streams' in fresh || 'classes' in fresh || 'staff' in fresh) {
+          if (!('class_streams' in fresh) && Array.isArray(next.class_streams)) {
+            next.class_streams = next.class_streams.map((stream) => ({ ...stream }));
+          }
+          deriveStreamLabels(next);
+        }
+        return next;
+      });
+    };
+
+    const subscriptions: Array<{ unsubscribe: () => void }> = [];
+    for (const [name, collection] of dbManager.getAllCollections()) {
+      if (!collection || typeof collection.subscribeToChanges !== 'function') continue;
+      try {
+        subscriptions.push(collection.subscribeToChanges().subscribe(() => {
+          pending.add(name);
+          if (!timer) timer = setTimeout(() => { void flush(); }, LIVE_REFRESH_DEBOUNCE_MS);
+        }));
+      } catch (err) {
+        logger.warn(`[AppDataContext] Could not watch ${name} for changes:`, err);
+      }
+    }
+
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+      subscriptions.forEach((subscription) => subscription.unsubscribe());
+    };
+  }, [isInitialized, dbManager]);
 
   // Refresh all data
   const refreshData = useCallback(async () => {

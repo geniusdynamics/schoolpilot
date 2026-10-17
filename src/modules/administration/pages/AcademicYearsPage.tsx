@@ -1,3 +1,6 @@
+// ABOUTME: Academic Years admin page: list, create, edit and delete academic years.
+// ABOUTME: Validates start < end with no overlap and resolves structure names from structures at read time.
+
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AcademicYear } from '@/types';
@@ -23,12 +26,27 @@ type AcademicYearRow = Omit<AcademicYear, 'id' | 'structure_id'> & {
 export const AcademicYearsContent: React.FC = () => {
   const { t } = useTranslation();
   const appData = useAppData() as any;
-  const academicYears = (appData.academicYears || []) as AcademicYearRow[];
-  const academicYearStructures = appData.academicYearStructures || [];
+  const rawAcademicYears = useMemo<AcademicYearRow[]>(
+    () => appData.academicYears || [],
+    [appData.academicYears],
+  );
+  const academicYearStructures = useMemo<{ id: number | string; name: string }[]>(
+    () => appData.academicYearStructures || [],
+    [appData.academicYearStructures],
+  );
   const loading = appData.loading || {};
   const addAcademicYear = appData.addAcademicYear;
   const updateAcademicYear = appData.updateAcademicYear;
   const deleteAcademicYear = appData.deleteAcademicYear;
+
+  // Structure names are resolved from the structures collection, never trusted from the row.
+  const academicYears = useMemo<AcademicYearRow[]>(() => {
+    const structureNames = new Map(academicYearStructures.map(s => [String(s.id), s.name]));
+    return rawAcademicYears.map(year => ({
+      ...year,
+      structure_name: year.structure_id != null ? structureNames.get(String(year.structure_id)) ?? null : null,
+    }));
+  }, [rawAcademicYears, academicYearStructures]);
 
   const [editingYear, setEditingYear] = useState<AcademicYearRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,12 +64,12 @@ export const AcademicYearsContent: React.FC = () => {
   const handleSave = async (values: Record<string, any>) => {
     const payload = {
       name: values.name,
-      structure_id: Number(values.structure_id),
+      structure_id: String(values.structure_id),
       start_date: values.start_date,
       end_date: values.end_date,
     };
     if (editingYear) {
-      await updateAcademicYear({ ...editingYear, ...payload });
+      await updateAcademicYear(editingYear.id, payload);
     } else {
       await addAcademicYear(payload);
     }
@@ -79,12 +97,24 @@ export const AcademicYearsContent: React.FC = () => {
       label: t('academicYears.endDate', 'End Date'),
       type: 'date',
       required: true,
-      validate: (value, allValues) =>
-        value && allValues.start_date && new Date(value) <= new Date(allValues.start_date)
-          ? 'End date must be after the start date.'
-          : null,
+      validate: (value, allValues) => {
+        if (!value || !allValues.start_date) return null;
+        if (new Date(value) <= new Date(allValues.start_date)) {
+          return t('academicYears.endBeforeStart', 'End date must be after the start date.');
+        }
+        const start = new Date(allValues.start_date);
+        const end = new Date(value);
+        const clash = academicYears.find(year =>
+          year.id !== editingYear?.id &&
+          year.start_date && year.end_date &&
+          start <= new Date(year.end_date) && new Date(year.start_date) <= end,
+        );
+        return clash
+          ? t('academicYears.overlapsYear', { name: clash.name, defaultValue: 'These dates overlap {{name}}.' })
+          : null;
+      },
     },
-  ], [t, academicYearStructures]);
+  ], [t, academicYearStructures, academicYears, editingYear]);
 
   const columns: DataGridColumn<AcademicYearRow>[] = [
     {
