@@ -1,0 +1,299 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ReportCard > matches the printable layout snapshot 1`] = `
+<article
+  class="report-card bg-white text-black border border-surface-border rounded-lg p-6 mb-6 break-after-page print:border-0 print:rounded-none print:m-0 print:p-0"
+  data-testid="report-card"
+>
+  <header
+    class="text-center border-b border-surface-border pb-3 mb-4"
+  >
+    <h2
+      class="text-xl font-bold"
+    >
+      Greenfields Academy
+    </h2>
+    <p
+      class="text-sm"
+    >
+      P.O. Box 1, Nairobi
+    </p>
+    <p
+      class="text-sm"
+    >
+      0700 000 000 | info@greenfields.ke
+    </p>
+    <p
+      class="text-sm italic"
+    >
+      Strive
+    </p>
+    <p
+      class="mt-2 text-base font-semibold uppercase"
+    >
+      Term Report Card
+    </p>
+    <p
+      class="text-sm"
+    >
+      Term 1 2026 · End of Term 1
+    </p>
+  </header>
+  <section
+    class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"
+  >
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Learner
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        Learner1 Pupil
+      </div>
+    </div>
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Adm. No.
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        ADM001
+      </div>
+    </div>
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Class
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        Grade 7 Blue
+      </div>
+    </div>
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Position
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        1 of 2
+      </div>
+    </div>
+  </section>
+  <table
+    class="w-full text-sm border-collapse mb-4"
+  >
+    <thead>
+      <tr
+        class="border-b-2 border-surface-border text-left"
+      >
+        <th
+          class="py-1 pr-2"
+        >
+          Subject
+        </th>
+        <th
+          class="py-1 pr-2 text-right"
+        >
+          Score
+        </th>
+        <th
+          class="py-1 pr-2 text-center"
+        >
+          Grade
+        </th>
+        <th
+          class="py-1"
+        >
+          Remark
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="border-b border-surface-border"
+      >
+        <td
+          class="py-1 pr-2"
+        >
+          English
+        </td>
+        <td
+          class="py-1 pr-2 text-right"
+        >
+          70
+        </td>
+        <td
+          class="py-1 pr-2 text-center font-semibold"
+        >
+          B
+        </td>
+        <td
+          class="py-1"
+        >
+          Good
+        </td>
+      </tr>
+      <tr
+        class="border-b border-surface-border"
+      >
+        <td
+          class="py-1 pr-2"
+        >
+          Mathematics
+        </td>
+        <td
+          class="py-1 pr-2 text-right"
+        >
+          85
+        </td>
+        <td
+          class="py-1 pr-2 text-center font-semibold"
+        >
+          A
+        </td>
+        <td
+          class="py-1"
+        >
+          Excellent
+        </td>
+      </tr>
+      <tr
+        class="border-b border-surface-border"
+      >
+        <td
+          class="py-1 pr-2"
+        >
+          Science
+        </td>
+        <td
+          class="py-1 pr-2 text-right"
+        >
+          55
+        </td>
+        <td
+          class="py-1 pr-2 text-center font-semibold"
+        >
+          C
+        </td>
+        <td
+          class="py-1"
+        >
+          Fair
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <section
+    class="grid grid-cols-3 gap-3 mb-4"
+  >
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Total
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        210
+      </div>
+    </div>
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Average
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        70
+      </div>
+    </div>
+    <div>
+      <span
+        class="text-xs uppercase tracking-wide text-surface-muted-fg"
+      >
+        Mean grade
+      </span>
+      <div
+        class="font-semibold text-surface-foreground"
+      >
+        B
+      </div>
+    </div>
+  </section>
+  <section
+    class="mb-4 text-sm"
+    data-testid="report-attendance"
+  >
+    <span
+      class="font-semibold"
+    >
+      Attendance
+      : 
+    </span>
+    Present 3 of 4 days, absent 1, late 1
+  </section>
+  <section
+    class="mb-3 text-sm"
+  >
+    <p
+      class="font-semibold"
+    >
+      Class teacher's comment
+       (Mrs Wanjiru)
+    </p>
+    <p
+      class="min-h-[1.5rem] border-b border-dotted border-surface-border"
+    >
+      A focused and helpful learner.
+    </p>
+  </section>
+  <section
+    class="mb-4 text-sm"
+  >
+    <p
+      class="font-semibold"
+    >
+      Head teacher's comment
+    </p>
+    <p
+      class="min-h-[1.5rem] border-b border-dotted border-surface-border"
+    >
+      Keep it up.
+    </p>
+  </section>
+  <footer
+    class="flex justify-between text-sm"
+  >
+    <p
+      data-testid="report-next-term"
+    >
+      <span
+        class="font-semibold"
+      >
+        Next term begins
+        : 
+      </span>
+      4 May 2026
+    </p>
+    <p>
+      Signature & stamp
+      : ____________
+    </p>
+  </footer>
+</article>
+`;
