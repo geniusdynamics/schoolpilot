@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-17 — **P0-W2 complete** (14/14 on `prd/P0-W2`, PR #17). Next: merge PR #17, then P0-W3._
+_Last update: 2026-10-17 — **PR #17 (P0-W2) merged** into `consolidation` (`4c4d68e`). **P0-W3 started** on `prd/P0-W3` (12 tasks)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -27,6 +27,12 @@ If a fix round is lost with the cloud session, redo it locally from the task bra
 verifier's findings (they are in this file's history and the W1 log), then integrate per §3b.
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
+
+### P0-W3 (in progress)
+Branch `prd/P0-W3` from `consolidation` @ `4c4d68e`; one PR into `consolidation`, merged with a merge commit.
+Tasks: A05 C06 C07 E04 E05 F04 F05 G08 H01 H02 H03 H04 — run by the cloud `prd-wave` workflow (wave `P0-W3`).
+Local `consolidation` points at the W3 tip; publish with `git push origin consolidation:prd/P0-W3`.
+If the session dies: `git switch -C consolidation origin/prd/P0-W3`, `node scripts/prd/status.mjs --wave P0-W3`, run §3a with the tasks still `todo` (wave `P0-W3`); task branches pushed to origin as `prd/P0-<id>*`.
 
 ### P0-W2 status
 All 14 tasks done on `prd/P0-W2` — see the "Wave closure" section of [`workflow-log/P0-W2-2026-10-11.md`](./workflow-log/P0-W2-2026-10-11.md) for commits and follow-ups.
