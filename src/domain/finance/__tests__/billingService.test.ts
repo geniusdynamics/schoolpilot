@@ -197,6 +197,37 @@ describe('generateTermInvoices', () => {
     expect(byStudent.lines.map((line) => line.studentId)).toEqual(['s2']);
   });
 
+  it('dry run bills each template only to learners in its applicable levels; no levels means every level', async () => {
+    const form2Only: BillingTemplate = {
+      id: 'tpl-f2', name: 'Form 2 Lab', school_period_id: TERM_1, student_category_id: null,
+      applicable_level_ids: [FORM_2],
+      items: [{ id: 'item-lab', description: 'Lab', amount: 2000 }],
+    };
+    const everyLevel: BillingTemplate = {
+      id: 'tpl-all', name: 'Activity', school_period_id: TERM_1, student_category_id: null,
+      applicable_level_ids: [],
+      items: [{ id: 'item-activity', description: 'Activity', amount: 500 }],
+    };
+    const legacyNoLevels: BillingTemplate = {
+      id: 'tpl-legacy', name: 'Library', school_period_id: TERM_1, student_category_id: null,
+      applicable_level_ids: null,
+      items: [{ id: 'item-library', description: 'Library', amount: 300 }],
+    };
+    const { repository, inserted } = createRepository({ students, templates: [form2Only, everyLevel, legacyNoLevels] });
+
+    const preview = await generateTermInvoices(repository, { periodId: TERM_1, dryRun: true });
+
+    expect(inserted).toHaveLength(0);
+    const byStudent = Object.fromEntries(preview.lines.map((line) => [line.studentId, line]));
+    expect(Object.keys(byStudent).sort()).toEqual(['s1', 's2', 's3', 's4']);
+    expect(byStudent.s4.templateIds.sort()).toEqual(['tpl-all', 'tpl-f2', 'tpl-legacy']);
+    expect(byStudent.s4.items.map((item) => item.description).sort()).toEqual(['Activity', 'Lab', 'Library']);
+    for (const form1Learner of ['s1', 's2', 's3']) {
+      expect(byStudent[form1Learner].templateIds.sort()).toEqual(['tpl-all', 'tpl-legacy']);
+      expect(byStudent[form1Learner].amount).toBe(800);
+    }
+  });
+
   it('requires a period', async () => {
     const { repository } = createRepository({ students, templates: [form1Boarders] });
     await expect(generateTermInvoices(repository, { periodId: '', dryRun: true })).rejects.toThrow(/period/i);

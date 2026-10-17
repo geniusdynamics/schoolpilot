@@ -131,6 +131,8 @@ export const feeTemplatesSchema: DatabaseSchema = createDatabaseSchema({
         school_period_name: SchemaHelpers.string({ maxLength: 100 }),
         student_category_name: SchemaHelpers.string({ maxLength: 100 }),
         items: SchemaHelpers.array(SchemaHelpers.object(feeTemplateItemProperties)),
+        /** Class (level) ids the template applies to; empty or missing means every level. */
+        applicable_level_ids: SchemaHelpers.array(SchemaHelpers.string({ maxLength: 100 })),
         created_at: SchemaHelpers.timestamp(),
         updated_at: SchemaHelpers.timestamp(),
     },

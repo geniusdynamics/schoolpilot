@@ -22,6 +22,7 @@ type FeeTemplateRow = {
   student_category_id?: string | null;
   school_period_name?: string | null;
   items?: Array<Record<string, unknown>>;
+  applicable_level_ids?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -31,6 +32,11 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const schoolPeriods = [
   { id: 'a3f1c2d4-0000-4000-8000-000000000001', name: 'Term 1 2027' },
   { id: 'a3f1c2d4-0000-4000-8000-000000000002', name: 'Term 2 2027' },
+];
+const classes = [
+  { id: 'd1c2b3a4-0000-4000-8000-000000000201', name: 'Form 1' },
+  { id: 'd1c2b3a4-0000-4000-8000-000000000202', name: 'Form 2' },
+  { id: 'd1c2b3a4-0000-4000-8000-000000000203', name: 'Form 3' },
 ];
 const chartOfAccounts = [
   { id: 'b7e2d3c4-0000-4000-8000-000000000010', account_code: '4000', name: 'Tuition Revenue', type: AccountType.REVENUE, is_active: true },
@@ -56,6 +62,7 @@ const RepositoryBackedAppData: React.FC<{ children: React.ReactNode }> = ({ chil
     feeTemplates,
     schoolPeriods,
     studentCategories: [],
+    classes,
     chartOfAccounts,
     expenseCategories: [],
     loading: {},
@@ -247,6 +254,58 @@ describe('FeeTemplatesPage (repository-backed)', () => {
     expect(stored.school_period_id).toBe(schoolPeriods[1].id);
     expect(stored.school_period_name).toBe('Term 2 2027');
     expect(stored.items!.map((i) => i.id)).toEqual(['item-tuition']);
+  });
+
+  it('offers every class as an applicable level and saves the selection on a new template', async () => {
+    renderPage();
+
+    fireEvent.click((await screen.findAllByRole('button', { name: /Add Fee Template/ }))[0]);
+    const dialog = await screen.findByText('Add New Fee Template').then((el) => el.closest('[role="dialog"]') as HTMLElement);
+    const levels = within(dialog).getByRole('group', { name: /Applicable Levels/ });
+    expect(within(levels).getAllByRole('checkbox').map((box) => box.closest('label')?.textContent?.trim()))
+      .toEqual(['Form 1', 'Form 2', 'Form 3']);
+
+    fireEvent.change(within(dialog).getByLabelText(/Template Name/), { target: { value: 'Senior Lab Fees' } });
+    fireEvent.change(field(dialog, 'school_period_id'), { target: { name: 'school_period_id', value: schoolPeriods[0].id } });
+    fireEvent.click(within(levels).getByLabelText('Form 2'));
+    fireEvent.click(within(levels).getByLabelText('Form 3'));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add Template' }));
+
+    await waitFor(async () => {
+      expect(await collection.find()).toHaveLength(1);
+    });
+    const [stored] = await collection.find();
+    expect(stored.name).toBe('Senior Lab Fees');
+    expect(stored.applicable_level_ids).toEqual([classes[1].id, classes[2].id]);
+  });
+
+  it('shows the stored levels when editing and saves a changed selection (none = all levels)', async () => {
+    const template = await seedTemplate({ applicable_level_ids: [classes[0].id] });
+    renderPage();
+
+    const row = (await screen.findByText(template.name)).closest('tr') as HTMLElement;
+    fireEvent.click(within(row).getByRole('button', { name: /Edit/ }));
+    const dialog = await screen.findByText('Edit Fee Template').then((el) => el.closest('[role="dialog"]') as HTMLElement);
+    const levels = within(dialog).getByRole('group', { name: /Applicable Levels/ });
+    expect((within(levels).getByLabelText('Form 1') as HTMLInputElement).checked).toBe(true);
+    expect((within(levels).getByLabelText('Form 2') as HTMLInputElement).checked).toBe(false);
+
+    fireEvent.click(within(levels).getByLabelText('Form 1'));
+    fireEvent.click(within(levels).getByLabelText('Form 2'));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(async () => {
+      expect((await storedTemplate(template.id)).applicable_level_ids).toEqual([classes[1].id]);
+    });
+
+    fireEvent.click(within((await screen.findByText(template.name)).closest('tr') as HTMLElement).getByRole('button', { name: /Edit/ }));
+    const again = await screen.findByText('Edit Fee Template').then((el) => el.closest('[role="dialog"]') as HTMLElement);
+    fireEvent.click(within(within(again).getByRole('group', { name: /Applicable Levels/ })).getByLabelText('Form 2'));
+    fireEvent.click(within(again).getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(async () => {
+      expect((await storedTemplate(template.id)).applicable_level_ids).toEqual([]);
+    });
   });
 });
 
