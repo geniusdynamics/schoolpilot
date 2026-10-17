@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { Customer } from '@/types';
+import { useCustomerData, type CustomerRecord as Customer } from '@/modules/administration/data/useCustomerData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon as CustomersIcon } from '@/components/ui/icons';
-import { useCustomerData } from '@/modules/administration/data/useCustomerData';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
@@ -64,7 +63,7 @@ const CustomersPage: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this customer?' }))) {
       await deleteCustomer(id);
     }
@@ -77,7 +76,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'name', 
@@ -85,7 +84,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'phone', 
@@ -93,7 +92,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     { 
       key: 'email', 
@@ -101,7 +100,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'actions',

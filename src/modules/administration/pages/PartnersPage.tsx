@@ -104,7 +104,7 @@ export const PartnersContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'name', 
@@ -112,7 +112,7 @@ export const PartnersContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'partner_type', 
@@ -120,7 +120,7 @@ export const PartnersContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'contact_person', 
@@ -128,7 +128,7 @@ export const PartnersContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     { 
       key: 'email', 
@@ -136,7 +136,7 @@ export const PartnersContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     { 
       key: 'phone', 
@@ -144,7 +144,7 @@ export const PartnersContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'actions',
