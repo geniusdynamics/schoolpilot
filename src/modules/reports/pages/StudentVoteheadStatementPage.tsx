@@ -9,6 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
+import SchoolLetterhead from '@/components/SchoolLetterhead';
 import { useTranslation } from 'react-i18next';
 import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 import {
@@ -128,6 +129,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
             <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Generating statement...</span></div>
         ) : reportData.length > 0 ? (
           <>
+            <SchoolLetterhead title="Student Votehead Statement" />
             <div className="mb-4 p-3 bg-indigo-50 rounded-md">
                 <h3 className="text-md font-semibold">Student: {students.find(s => s.id === selectedStudentId)?.display_name}</h3>
                 <p className="text-sm">Period: {schoolPeriods.find(p => p.id === selectedSchoolPeriodId)?.name}</p>

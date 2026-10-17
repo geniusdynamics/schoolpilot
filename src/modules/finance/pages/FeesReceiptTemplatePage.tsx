@@ -13,14 +13,15 @@ import { PrinterIcon, DocumentTextIcon, EyeIcon, PlusIcon, TrashIcon } from '@/c
 import { useToast } from '@/hooks/useToast';
 import { fileToImageDataUrl, ImageUploadError } from '@/services/storage/imageUpload';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
 import { logger } from '@/utils/logging';
 import { formatDate } from '@/utils/format';
+import { useSchoolProfile, formatSchoolAddress, formatSchoolContact } from '@/hooks/useSchoolProfile';
 
 export const FeesReceiptTemplatePageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
   const { receiptTemplates, loading } = useAppData();
+  // The saved school profile (school_details) fills receipt headers a template leaves blank
+  const { profile: schoolProfile, schoolName } = useSchoolProfile();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -43,7 +44,13 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
 
   const openModal = (template?: ReceiptTemplate) => {
     setEditingTemplate(template || null);
-    setFormData(template ? { ...template } : initialFormData);
+    setFormData(template ? { ...template } : {
+      ...initialFormData,
+      school_name: schoolName ?? '',
+      school_address: formatSchoolAddress(schoolProfile),
+      school_phone: schoolProfile?.telephone || schoolProfile?.phone || '',
+      school_email: schoolProfile?.email || '',
+    });
     setIsModalOpen(true);
   };
 
@@ -104,6 +111,13 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
     window.print();
   };
 
+  // Receipt header: the template's own school details, else the saved school profile
+  const receiptSchoolName = formData.school_name || schoolName || '';
+  const receiptSchoolAddress = formData.school_address || formatSchoolAddress(schoolProfile);
+  const receiptSchoolContact = (formData.school_phone || formData.school_email)
+    ? [formData.school_phone, formData.school_email].filter(Boolean).join(' | ')
+    : formatSchoolContact(schoolProfile);
+
   const columns: DataGridColumn<ReceiptTemplate>[] = [
     {
       key: 'name',
@@ -123,7 +137,8 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
       key: 'school_name',
       header: 'School Name',
       sortable: true,
-      filterable: true
+      filterable: true,
+      render: (value) => value || schoolName || '-'
     },
     {
       key: 'school_address',
@@ -186,7 +201,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
             <span>Custom Fees Receipt Templates</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             <PlusIcon className="w-4 h-4 mr-2" />
             New Template
@@ -340,9 +355,9 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
             {formData.logo_url && (
               <img src={formData.logo_url} alt="School Logo" className="h-16 mx-auto mb-2" />
             )}
-            <h1 className="text-2xl font-bold text-surface-foreground">{formData.school_name}</h1>
-            <p className="text-sm text-surface-muted-fg">{formData.school_address}</p>
-            <p className="text-sm text-surface-muted-fg">{formData.school_phone} | {formData.school_email}</p>
+            <h1 className="text-2xl font-bold text-surface-foreground">{receiptSchoolName}</h1>
+            {receiptSchoolAddress && <p className="text-sm text-surface-muted-fg">{receiptSchoolAddress}</p>}
+            {receiptSchoolContact && <p className="text-sm text-surface-muted-fg">{receiptSchoolContact}</p>}
           </div>
 
           <div className="border-t-2 border-b-2 border-gray-800 py-3 mb-6 text-center">

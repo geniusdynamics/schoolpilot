@@ -1,5 +1,5 @@
 // ABOUTME: Hub page for student bulk operations
-// ABOUTME: Consolidates bulk student updates, data import, and roll number assignment into tabbed interface
+// ABOUTME: Consolidates bulk student updates, data import, roll number assignment and year-end promotion into tabs
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -9,10 +9,12 @@ import {
   UserIcon,
   ArrowUpTrayIcon,
   ArrowPathIcon,
+  AcademicCapIcon,
 } from '@/components/ui/icons';
 import { BulkStudentUpdateContent } from './BulkStudentUpdatePage';
 import { StudentDataImportContent } from './StudentDataImportPage';
 import { BulkAssignRollNumbersContent } from './BulkAssignRollNumbersPage';
+import { StudentPromotionContent } from './StudentPromotionPage';
 
 interface HubTab {
   id: string;
@@ -44,6 +46,12 @@ const StudentBulkOperationsPage: React.FC = () => {
       label: t('bulkOperations.rollNumbers', 'Roll Numbers'),
       icon: <ArrowPathIcon className="w-4 h-4" />,
       component: <BulkAssignRollNumbersContent />,
+    },
+    {
+      id: 'promotion',
+      label: t('bulkOperations.promotion', 'Promotion'),
+      icon: <AcademicCapIcon className="w-4 h-4" />,
+      component: <StudentPromotionContent />,
     },
   ];
 

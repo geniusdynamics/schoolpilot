@@ -163,6 +163,8 @@ export interface FeeTemplate {
   school_period_name?: string | null;
   student_category_name?: string | null;
   items?: FeeTemplateItem[];
+  /** Class (level) ids the template applies to; empty or missing means every level. */
+  applicable_level_ids?: string[] | null;
 }
 
 export interface ExpenseClaim {

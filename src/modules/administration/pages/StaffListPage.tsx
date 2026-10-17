@@ -1,5 +1,9 @@
+// ABOUTME: Staff list page — searchable grid plus add/edit/delete dialog for staff members.
+// ABOUTME: All staff CRUD goes through useAdministration(); the form captures identity and employment fields.
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -8,21 +12,30 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon, EyeIcon } from '@/components/ui/icons';
-// import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
-import { useAppData } from '@/hooks/useAppData'; // Import useAppData
+import { useAdministration } from '../hooks/useAdministration';
 import Spinner from '@/components/ui/Spinner';
 
 import EntityForm from '@/components/ui/forms/EntityForm';
 import type { Staff } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
+/** Identity and employment fields captured on the staff form (SO-31). */
+const STAFF_PROFILE_FIELDS = ['email', 'gender', 'national_id', 'employer_number', 'employment_type'] as const;
+
+type StaffWithProfile = Staff & Partial<Record<(typeof STAFF_PROFILE_FIELDS)[number], string | null>>;
+
+const optionalString = (value: unknown): string | undefined =>
+  value != null && value !== '' ? String(value) : undefined;
+
 export const StaffListContent: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    staff, loading, addStaffMember, updateStaffMember, deleteStaffMember: mockDeleteStaff,
-    departments, 
+  const { t } = useTranslation('administration');
+  const {
+    staff: rawStaff, loading, addStaff, updateStaff, deleteStaff,
+    departments,
     designations
-   } = useAppData(); 
+  } = useAdministration();
+  const staff = (rawStaff || []) as StaffWithProfile[];
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
@@ -38,6 +51,7 @@ export const StaffListContent: React.FC = () => {
         first_name: staffMember.first_name,
         last_name: staffMember.last_name,
         phone: staffMember.phone,
+        ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, (staffMember as StaffWithProfile)[field] ?? ''])),
         department_id: staffMember.department_id,
         designation_id: staffMember.designation_id,
         hod_of_department_id: staffMember.hod_of_department_id,
@@ -62,7 +76,7 @@ export const StaffListContent: React.FC = () => {
   const confirm = useConfirm();
   const handleDelete = async (staffId: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this staff member?' }))) {
-      await mockDeleteStaff(staffId);
+      await deleteStaff(staffId);
     }
   };
 
@@ -70,10 +84,18 @@ export const StaffListContent: React.FC = () => {
     navigate(`/administration/staff/${staffId}`);
   };
 
+  const departmentName = (id: unknown) => departments.find(d => String(d.id) === String(id))?.name;
+  const designationTitle = (id: unknown) => designations.find(d => String(d.id) === String(id))?.title;
+
   const filteredStaff = useMemo(() => {
-    return (staff || [])
+    return staff
+      .filter(s => !s.deleted_at)
       .map(s => ({
         ...s,
+        // Resolve labels from the live lookups; fall back to the stored denormalised copies
+        department_name: departmentName(s.department_id) ?? s.department_name,
+        designation_title: designationTitle(s.designation_id) ?? s.designation_title,
+        hod_of_department_name: departmentName(s.hod_of_department_id) ?? s.hod_of_department_name,
         // Materialize the computed 'name' the grid column references so
         // DataGrid sorting/filtering operate on a real field
         name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ') || s.staff_no || '—',
@@ -88,7 +110,8 @@ export const StaffListContent: React.FC = () => {
       .filter(s =>
         statusFilter ? (statusFilter === 'active' ? s.is_active : !s.is_active) : true
       );
-  }, [staff, searchTerm, statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lookup helpers derive from departments/designations
+  }, [staff, departments, designations, searchTerm, statusFilter]);
 
   const columns: DataGridColumn<(typeof filteredStaff)[number]>[] = [
     {
@@ -166,7 +189,7 @@ export const StaffListContent: React.FC = () => {
     },
   ];
   
-  const pageIsLoading = loading.staff || loading.all;
+  const pageIsLoading = loading === true;
 
   return (
     <div className="space-y-6">
@@ -201,7 +224,7 @@ export const StaffListContent: React.FC = () => {
             <DataGrid 
               columns={columns} 
               data={filteredStaff} 
-              loading={loading.staff && !isModalOpen}
+              loading={pageIsLoading && !isModalOpen}
               sortable
               filterable
               emptyState={{
@@ -224,6 +247,36 @@ export const StaffListContent: React.FC = () => {
           { name: 'first_name', label: 'First Name', required: true },
           { name: 'last_name', label: 'Last Name', required: true },
           { name: 'phone', label: 'Phone' },
+          { name: 'email', label: t('staff.form.email', 'Email'), type: 'email' },
+          {
+            name: 'gender',
+            label: t('staff.form.gender', 'Gender'),
+            type: 'select',
+            placeholder: t('staff.form.genderPlaceholder', 'Select gender'),
+            options: [
+              { value: 'female', label: t('staff.form.genderFemale', 'Female') },
+              { value: 'male', label: t('staff.form.genderMale', 'Male') },
+              { value: 'other', label: t('staff.form.genderOther', 'Other') },
+            ],
+          },
+          { name: 'national_id', label: t('staff.form.nationalId', 'National ID / Passport No.') },
+          {
+            name: 'employer_number',
+            label: t('staff.form.employerNumber', 'Employer No. (e.g. TSC number)'),
+          },
+          {
+            name: 'employment_type',
+            label: t('staff.form.employmentType', 'Employment Type'),
+            type: 'select',
+            placeholder: t('staff.form.employmentTypePlaceholder', 'Select employment type'),
+            options: [
+              { value: 'permanent', label: t('staff.form.employmentPermanent', 'Permanent') },
+              { value: 'contract', label: t('staff.form.employmentContract', 'Contract') },
+              { value: 'part_time', label: t('staff.form.employmentPartTime', 'Part-time') },
+              { value: 'board', label: t('staff.form.employmentBoard', 'Board of Management') },
+              { value: 'intern', label: t('staff.form.employmentIntern', 'Intern / Attachment') },
+            ],
+          },
           {
             name: 'department_id',
             label: 'Department',
@@ -256,14 +309,19 @@ export const StaffListContent: React.FC = () => {
             last_name: String(values.last_name ?? ''),
             is_active: Boolean(values.is_active),
             phone: values.phone ? String(values.phone) : undefined,
-            department_id: values.department_id != null && values.department_id !== '' ? String(values.department_id) : undefined,
-            designation_id: values.designation_id != null && values.designation_id !== '' ? Number(values.designation_id) : undefined,
-            hod_of_department_id: values.hod_of_department_id != null && values.hod_of_department_id !== '' ? String(values.hod_of_department_id) : undefined,
+            ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, optionalString(values[field])])),
+            department_id: optionalString(values.department_id),
+            designation_id: optionalString(values.designation_id),
+            hod_of_department_id: optionalString(values.hod_of_department_id),
+            // Keep the stored denormalised labels in step with the chosen ids
+            department_name: departmentName(values.department_id),
+            designation_title: designationTitle(values.designation_id),
+            hod_of_department_name: departmentName(values.hod_of_department_id),
           };
           if (editingStaff) {
-            await updateStaffMember(String(editingStaff.id), payload);
+            await updateStaff(String(editingStaff.id), payload);
           } else {
-            await addStaffMember(payload);
+            await addStaff(payload);
           }
         }}
       />

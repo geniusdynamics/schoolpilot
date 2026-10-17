@@ -1,13 +1,14 @@
-// ABOUTME: Modern DatePicker component with calendar interface and accessibility support
-// ABOUTME: Supports single date, date range selection, keyboard navigation, and mobile-responsive design
+// ABOUTME: DatePicker: typeable input in the locale's day/month/year order plus a calendar popover
+// ABOUTME: with month and year selectors, min/max limits, range selection and keyboard navigation.
 
-import React, { useState, useRef, useEffect, useCallback, useTransition } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, useTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { 
-  generateId, 
+import {
+  generateId,
   createAriaDescribedBy,
-  announceToScreenReader 
-} from '../../../utils/accessibility';
+  announceToScreenReader
+} from '@/utils/accessibility';
 
 export interface DatePickerProps {
   value?: Date | null;
@@ -34,6 +35,8 @@ export interface DatePickerProps {
   // Accessibility props
   'aria-label'?: string;
   'aria-describedby'?: string;
+  'aria-invalid'?: boolean | 'true' | 'false';
+  'aria-required'?: boolean | 'true' | 'false';
   id?: string;
 }
 
@@ -45,10 +48,71 @@ interface CalendarState {
   isOpen: boolean;
 }
 
+type DatePart = 'day' | 'month' | 'year';
+
+interface DatePattern {
+  order: DatePart[];
+  separator: string;
+}
+
+const PATTERN_TOKENS: Record<DatePart, string> = { day: 'dd', month: 'mm', year: 'yyyy' };
+
+/** Day/month/year order and separator used by `locale` for numeric dates. */
+const getDatePattern = (locale: string): DatePattern => {
+  let parts: Intl.DateTimeFormatPart[];
+  try {
+    parts = new Intl.DateTimeFormat(locale, { year: 'numeric', month: '2-digit', day: '2-digit' })
+      .formatToParts(new Date(2014, 2, 15));
+  } catch {
+    return { order: ['day', 'month', 'year'], separator: '/' };
+  }
+  const order = parts
+    .map((p) => p.type)
+    .filter((type): type is DatePart => type === 'day' || type === 'month' || type === 'year');
+  const separator = parts.find((p) => p.type === 'literal')?.value ?? '/';
+  return order.length === 3 ? { order, separator } : { order: ['day', 'month', 'year'], separator: '/' };
+};
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+const formatWithPattern = (date: Date, pattern: DatePattern): string =>
+  pattern.order
+    .map((part) =>
+      part === 'day' ? pad2(date.getDate()) : part === 'month' ? pad2(date.getMonth() + 1) : String(date.getFullYear()).padStart(4, '0')
+    )
+    .join(pattern.separator);
+
+/** Parses typed text in the locale order (or ISO yyyy-mm-dd). Returns null unless it is a real date. */
+const parseWithPattern = (text: string, pattern: DatePattern): Date | null => {
+  const trimmed = text.trim();
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(trimmed);
+  const numbers = iso ? null : trimmed.split(/[^\d]+/).filter(Boolean);
+  if (!iso && (!numbers || numbers.length !== 3)) return null;
+
+  const values: Record<DatePart, string> = iso
+    ? { year: iso[1], month: iso[2], day: iso[3] }
+    : (pattern.order.reduce(
+        (acc, part, i) => ({ ...acc, [part]: numbers![i] }),
+        {} as Record<DatePart, string>
+      ));
+  if (values.year.length !== 4 || values.month.length > 2 || values.day.length > 2) return null;
+
+  const year = Number(values.year);
+  const month = Number(values.month) - 1;
+  const day = Number(values.day);
+  const date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
+  return date;
+};
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+const dateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+
 const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
-  placeholder = 'Select date',
+  placeholder,
   disabled = false,
   error,
   errorState = false,
@@ -67,11 +131,18 @@ const DatePicker: React.FC<DatePickerProps> = ({
   onRangeChange,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+  'aria-required': ariaRequired,
   id: providedId,
 }) => {
-  const id = providedId || generateId('datepicker');
+  const { t } = useTranslation(['common']);
+  const [generatedId] = useState(() => generateId('datepicker'));
+  const id = providedId || generatedId;
+  const pattern = useMemo(() => getDatePattern(locale), [locale]);
+  const typeable = !isRange && !showTime;
+
   const [calendarState, setCalendarState] = useState<CalendarState>({
-    currentMonth: new Date(),
+    currentMonth: startOfMonth(value || new Date()),
     selectedDate: value || null,
     selectedRange: rangeValue || [null, null],
     focusedDate: value || new Date(),
@@ -80,50 +151,90 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
-  
+  /** True while the keyboard drives the day grid, so focus follows `focusedDate`. */
+  const gridFocusRef = useRef(false);
 
   const [, startTransition] = useTransition();
 
   // Format date for display
   const formatDate = useCallback((date: Date | null): string => {
     if (!date) return '';
-    return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      ...(showTime && { hour: '2-digit', minute: '2-digit' })
-    }).format(date);
-  }, [locale, showTime]);
+    if (showTime) {
+      return new Intl.DateTimeFormat(locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date);
+    }
+    return formatWithPattern(date, pattern);
+  }, [locale, showTime, pattern]);
 
-  // Check if date is disabled
+  const [inputText, setInputText] = useState(() => formatDate(value || null));
+  const [textInvalid, setTextInvalid] = useState(false);
+
+  // Keep internal state in step with a changed `value` prop
+  const valueKey = value ? value.getTime() : null;
+  useEffect(() => {
+    const next = valueKey === null ? null : new Date(valueKey);
+    setCalendarState(prev => {
+      const prevKey = prev.selectedDate ? prev.selectedDate.getTime() : null;
+      return prevKey === valueKey ? prev : { ...prev, selectedDate: next };
+    });
+    setInputText(current => {
+      const parsed = parseWithPattern(current, pattern);
+      const currentKey = parsed ? parsed.getTime() : null;
+      if (current !== '' && currentKey === valueKey) return current;
+      if (current === '' && valueKey === null) return current;
+      return formatDate(next);
+    });
+    setTextInvalid(false);
+  }, [valueKey, pattern, formatDate]);
+
+  // Check if date is disabled (day granularity)
   const isDateDisabled = useCallback((date: Date): boolean => {
-    if (minDate && date < minDate) return true;
-    if (maxDate && date > maxDate) return true;
-    return disabledDates.some(disabledDate => 
+    const day = startOfDay(date);
+    if (minDate && day < startOfDay(minDate)) return true;
+    if (maxDate && day > startOfDay(maxDate)) return true;
+    return disabledDates.some(disabledDate =>
       date.toDateString() === disabledDate.toDateString()
     );
   }, [minDate, maxDate, disabledDates]);
 
-  // Open calendar
-  const openCalendar = useCallback(() => {
+  /** Today, clamped into [minDate, maxDate]. */
+  const defaultAnchor = useCallback((): Date => {
+    const today = startOfDay(new Date());
+    if (minDate && today < startOfDay(minDate)) return startOfDay(minDate);
+    if (maxDate && today > startOfDay(maxDate)) return startOfDay(maxDate);
+    return today;
+  }, [minDate, maxDate]);
+
+  // Open calendar on the selected date's month (or today's)
+  const openCalendar = useCallback((focusGrid = false) => {
     if (disabled) return;
-    
+    gridFocusRef.current = focusGrid;
+
     startTransition(() => {
-      setCalendarState(prev => ({ ...prev, isOpen: true }));
+      setCalendarState(prev => {
+        const anchor = (isRange ? prev.selectedRange[0] : prev.selectedDate) || defaultAnchor();
+        return { ...prev, isOpen: true, currentMonth: startOfMonth(anchor), focusedDate: anchor };
+      });
     });
-    
+
     // Announce to screen readers
     announceToScreenReader('Calendar opened');
-  }, [disabled, startTransition]);
+  }, [disabled, startTransition, isRange, defaultAnchor]);
 
   // Close calendar
-  const closeCalendar = useCallback(() => {
+  const closeCalendar = useCallback((returnFocus = true) => {
+    gridFocusRef.current = false;
     startTransition(() => {
       setCalendarState(prev => ({ ...prev, isOpen: false }));
     });
-    
+
     // Return focus to input
-    inputRef.current?.focus();
+    if (returnFocus) inputRef.current?.focus();
     announceToScreenReader('Calendar closed');
   }, [startTransition]);
 
@@ -133,7 +244,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
     if (isRange && onRangeChange) {
       const [start, end] = calendarState.selectedRange;
-      
+
       if (!start || (start && end)) {
         // Start new range
         const newRange: [Date | null, Date | null] = [date, null];
@@ -149,6 +260,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
     } else {
       // Single date selection
       setCalendarState(prev => ({ ...prev, selectedDate: date }));
+      setInputText(formatDate(date));
+      setTextInvalid(false);
       onChange?.(date);
       closeCalendar();
     }
@@ -156,75 +269,178 @@ const DatePicker: React.FC<DatePickerProps> = ({
     announceToScreenReader(`Date selected: ${formatDate(date)}`);
   }, [isRange, onRangeChange, calendarState.selectedRange, onChange, isDateDisabled, formatDate, closeCalendar]);
 
+  // Typed entry: emit as soon as the text is a complete, allowed date
+  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const text = event.target.value;
+    setInputText(text);
+
+    if (text.trim() === '') {
+      setTextInvalid(false);
+      if (calendarState.selectedDate) {
+        setCalendarState(prev => ({ ...prev, selectedDate: null }));
+        onChange?.(null);
+      }
+      return;
+    }
+
+    const parsed = parseWithPattern(text, pattern);
+    const complete = text.replace(/\D/g, '').length >= 8 || parsed !== null;
+    if (!parsed || isDateDisabled(parsed)) {
+      setTextInvalid(complete);
+      return;
+    }
+
+    setTextInvalid(false);
+    setCalendarState(prev => ({
+      ...prev,
+      selectedDate: parsed,
+      currentMonth: startOfMonth(parsed),
+      focusedDate: parsed,
+    }));
+    if (!calendarState.selectedDate || calendarState.selectedDate.getTime() !== parsed.getTime()) {
+      onChange?.(parsed);
+    }
+  }, [pattern, isDateDisabled, onChange, calendarState.selectedDate]);
+
+  // Leaving the field with unusable text restores the last valid date
+  const handleInputBlur = useCallback(() => {
+    if (!typeable) return;
+    setInputText(formatDate(calendarState.selectedDate));
+    setTextInvalid(false);
+  }, [typeable, formatDate, calendarState.selectedDate]);
+
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      openCalendar(true);
+      return;
+    }
+    if (e.key === 'Escape' && calendarState.isOpen) {
+      e.preventDefault();
+      closeCalendar();
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const parsed = typeable ? parseWithPattern(inputText, pattern) : null;
+      if (parsed && !isDateDisabled(parsed)) {
+        setInputText(formatDate(parsed));
+        if (calendarState.isOpen) closeCalendar();
+        return;
+      }
+      openCalendar();
+      return;
+    }
+    if (e.key === ' ' && (!typeable || !pattern.separator.includes(' '))) {
+      e.preventDefault();
+      openCalendar();
+    }
+  }, [openCalendar, closeCalendar, calendarState.isOpen, typeable, inputText, pattern, isDateDisabled, formatDate]);
+
   // Handle keyboard navigation in calendar
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = event;
+    if (key === 'Escape') {
+      event.preventDefault();
+      closeCalendar();
+      return;
+    }
+
+    // Only the day grid (or the dialog itself) owns arrow/Enter keys; leave selectors and buttons alone
+    const target = event.target as HTMLElement;
+    const onDay = target.dataset?.date !== undefined;
+    if (!onDay && target !== event.currentTarget) return;
+
     const currentFocused = calendarState.focusedDate || new Date();
     const newFocused = new Date(currentFocused);
 
     switch (key) {
-      case 'Escape':
-        event.preventDefault();
-        closeCalendar();
-        break;
       case 'Enter':
       case ' ':
         event.preventDefault();
         handleDateSelect(calendarState.focusedDate);
-        break;
+        return;
       case 'ArrowLeft':
-        event.preventDefault();
         newFocused.setDate(newFocused.getDate() - 1);
-        setCalendarState(prev => ({ ...prev, focusedDate: newFocused }));
         break;
       case 'ArrowRight':
-        event.preventDefault();
         newFocused.setDate(newFocused.getDate() + 1);
-        setCalendarState(prev => ({ ...prev, focusedDate: newFocused }));
         break;
       case 'ArrowUp':
-        event.preventDefault();
         newFocused.setDate(newFocused.getDate() - 7);
-        setCalendarState(prev => ({ ...prev, focusedDate: newFocused }));
         break;
       case 'ArrowDown':
-        event.preventDefault();
         newFocused.setDate(newFocused.getDate() + 7);
-        setCalendarState(prev => ({ ...prev, focusedDate: newFocused }));
         break;
       case 'Home':
-        event.preventDefault();
         newFocused.setDate(1);
-        setCalendarState(prev => ({ ...prev, focusedDate: newFocused }));
         break;
       case 'End':
-        event.preventDefault();
-        const lastDay = new Date(newFocused.getFullYear(), newFocused.getMonth() + 1, 0);
-        setCalendarState(prev => ({ ...prev, focusedDate: lastDay }));
+        newFocused.setDate(new Date(newFocused.getFullYear(), newFocused.getMonth() + 1, 0).getDate());
         break;
+      case 'PageUp':
+        newFocused.setMonth(newFocused.getMonth() - 1);
+        break;
+      case 'PageDown':
+        newFocused.setMonth(newFocused.getMonth() + 1);
+        break;
+      default:
+        return;
     }
 
-    // Update current month if needed
-    if (newFocused.getMonth() !== calendarState.currentMonth.getMonth()) {
-      setCalendarState(prev => ({ ...prev, currentMonth: newFocused }));
-    }
-  }, [calendarState.focusedDate, calendarState.currentMonth, closeCalendar, handleDateSelect]);
+    event.preventDefault();
+    gridFocusRef.current = true;
+    setCalendarState(prev => ({ ...prev, focusedDate: newFocused, currentMonth: startOfMonth(newFocused) }));
+  }, [calendarState.focusedDate, closeCalendar, handleDateSelect]);
+
+  // Move DOM focus to the focused day while the keyboard drives the grid
+  useEffect(() => {
+    if (!calendarState.isOpen || !gridFocusRef.current || !calendarState.focusedDate) return;
+    const button = calendarRef.current?.querySelector<HTMLButtonElement>(
+      `[data-date="${dateKey(calendarState.focusedDate)}"]`
+    );
+    button?.focus();
+  }, [calendarState.isOpen, calendarState.focusedDate, calendarState.currentMonth]);
+
+  const showMonth = useCallback((month: Date) => {
+    setCalendarState(prev => {
+      const day = prev.focusedDate?.getDate() ?? 1;
+      const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+      return {
+        ...prev,
+        currentMonth: month,
+        focusedDate: new Date(month.getFullYear(), month.getMonth(), Math.min(day, lastDay)),
+      };
+    });
+    announceToScreenReader(`Navigated to ${month.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}`);
+  }, [locale]);
 
   // Navigate to previous month
   const navigateToPreviousMonth = useCallback(() => {
-    const newMonth = new Date(calendarState.currentMonth);
-    newMonth.setMonth(newMonth.getMonth() - 1);
-    setCalendarState(prev => ({ ...prev, currentMonth: newMonth }));
-    announceToScreenReader(`Navigated to ${newMonth.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}`);
-  }, [calendarState.currentMonth, locale]);
+    const { currentMonth } = calendarState;
+    showMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  }, [calendarState, showMonth]);
 
   // Navigate to next month
   const navigateToNextMonth = useCallback(() => {
-    const newMonth = new Date(calendarState.currentMonth);
-    newMonth.setMonth(newMonth.getMonth() + 1);
-    setCalendarState(prev => ({ ...prev, currentMonth: newMonth }));
-    announceToScreenReader(`Navigated to ${newMonth.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}`);
-  }, [calendarState.currentMonth, locale]);
+    const { currentMonth } = calendarState;
+    showMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  }, [calendarState, showMonth]);
+
+  const monthNames = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { month: 'long' });
+    return Array.from({ length: 12 }, (_, m) => formatter.format(new Date(2000, m, 1)));
+  }, [locale]);
+
+  const yearOptions = useMemo(() => {
+    const thisYear = new Date().getFullYear();
+    const shown = calendarState.currentMonth.getFullYear();
+    let first = minDate ? minDate.getFullYear() : thisYear - 100;
+    let last = maxDate ? maxDate.getFullYear() : thisYear + 20;
+    first = Math.min(first, shown);
+    last = Math.max(last, shown);
+    return Array.from({ length: last - first + 1 }, (_, i) => first + i);
+  }, [minDate, maxDate, calendarState.currentMonth]);
 
   // Generate calendar days
   const generateCalendarDays = useCallback(() => {
@@ -275,12 +491,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
     return calendarState.focusedDate?.toDateString() === date.toDateString();
   }, [calendarState.focusedDate]);
 
-  // Handle click outside to close calendar
+  // Handle click outside to close calendar (without stealing focus from where the user clicked)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target as Node) &&
           inputRef.current && !inputRef.current.contains(event.target as Node)) {
-        closeCalendar();
+        closeCalendar(false);
       }
     };
 
@@ -301,8 +517,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
       }
       return '';
     }
-    return formatDate(calendarState.selectedDate);
+    return typeable ? inputText : formatDate(calendarState.selectedDate);
   };
+
+  const invalid = Boolean(error || errorState || textInvalid || ariaInvalid === true || ariaInvalid === 'true');
+  const patternPlaceholder = pattern.order.map((part) => PATTERN_TOKENS[part]).join(pattern.separator);
 
   // Component styling classes
   const inputClasses = [
@@ -324,7 +543,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       'focus:bg-surface-card focus:border-primary-500 focus:ring-primary-500',
     ],
     // State styles
-    (error || errorState) && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+    invalid && 'border-red-500 focus:border-red-500 focus:ring-red-500',
     success && 'border-green-500 focus:border-green-500 focus:ring-green-500',
     disabled && 'bg-surface-accent text-surface-muted-fg cursor-not-allowed',
     className,
@@ -337,6 +556,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
     'transition-all duration-200 ease-in-out',
   ].filter(Boolean).join(' ');
 
+  const selectClasses =
+    'rounded-md border border-surface-border bg-surface-card px-2 py-1 text-sm text-surface-foreground focus:outline-none focus:ring-2 focus:ring-primary-500';
+
   return (
     <div className="relative">
       {/* Input Field */}
@@ -344,17 +566,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
         ref={inputRef}
         id={id}
         type="text"
+        inputMode={typeable ? 'numeric' : undefined}
+        autoComplete="off"
         value={getDisplayValue()}
-        placeholder={placeholder}
+        placeholder={placeholder ?? (typeable ? patternPlaceholder : undefined)}
         disabled={disabled}
-        readOnly
-        onClick={openCalendar}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            openCalendar();
-          }
-        }}
+        readOnly={!typeable}
+        onChange={typeable ? handleInputChange : undefined}
+        onBlur={handleInputBlur}
+        onClick={() => openCalendar()}
+        onKeyDown={handleInputKeyDown}
         className={inputClasses}
         aria-label={ariaLabel || 'Date picker'}
         aria-describedby={createAriaDescribedBy([
@@ -362,6 +583,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
           error ? `${id}-error` : undefined,
           success ? `${id}-success` : undefined,
         ])}
+        aria-invalid={invalid ? 'true' : undefined}
+        aria-required={ariaRequired === true || ariaRequired === 'true' ? 'true' : undefined}
         aria-expanded={calendarState.isOpen}
         aria-haspopup="dialog"
         role="combobox"
@@ -370,7 +593,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       {/* Calendar Icon */}
       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <svg
-          className={`w-5 h-5 ${disabled ? 'text-surface-muted-fg' : 'text-surface-muted-fg'}`}
+          className="w-5 h-5 text-surface-muted-fg"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -408,7 +631,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           onKeyDown={handleKeyDown}
         >
           {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between gap-2 mb-4">
             <button
               type="button"
               onClick={navigateToPreviousMonth}
@@ -420,12 +643,35 @@ const DatePicker: React.FC<DatePickerProps> = ({
               </svg>
             </button>
 
-            <h2 className="text-lg font-semibold text-surface-foreground">
-              {calendarState.currentMonth.toLocaleDateString(locale, { 
-                month: 'long', 
-                year: 'numeric' 
+            <h2 className="sr-only" aria-live="polite">
+              {calendarState.currentMonth.toLocaleDateString(locale, {
+                month: 'long',
+                year: 'numeric'
               })}
             </h2>
+
+            <div className="flex items-center gap-2">
+              <select
+                aria-label={t('common:datePicker.month', 'Month')}
+                className={selectClasses}
+                value={calendarState.currentMonth.getMonth()}
+                onChange={(e) => showMonth(new Date(calendarState.currentMonth.getFullYear(), Number(e.target.value), 1))}
+              >
+                {monthNames.map((name, m) => (
+                  <option key={name} value={m}>{name}</option>
+                ))}
+              </select>
+              <select
+                aria-label={t('common:datePicker.year', 'Year')}
+                className={selectClasses}
+                value={calendarState.currentMonth.getFullYear()}
+                onChange={(e) => showMonth(new Date(Number(e.target.value), calendarState.currentMonth.getMonth(), 1))}
+              >
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
 
             <button
               type="button"
@@ -478,15 +724,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 <button
                   key={index}
                   type="button"
+                  data-date={dateKey(date)}
                   onClick={() => handleDateSelect(date)}
                   onFocus={() => setCalendarState(prev => ({ ...prev, focusedDate: date }))}
                   disabled={isDisabled}
                   className={dayClasses}
-                  aria-label={`${date.toLocaleDateString(locale, { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  aria-label={`${date.toLocaleDateString(locale, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}${isSelected ? ', selected' : ''}${isDisabled ? ', disabled' : ''}`}
                   aria-selected={isSelected}
                   tabIndex={isFocused ? 0 : -1}
@@ -500,8 +747,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
           {/* Range Selection Helper Text */}
           {isRange && (
             <div className="mt-4 text-xs text-surface-muted-fg text-center">
-              {calendarState.selectedRange[0] && !calendarState.selectedRange[1] 
-                ? 'Select end date' 
+              {calendarState.selectedRange[0] && !calendarState.selectedRange[1]
+                ? 'Select end date'
                 : 'Select start date'
               }
             </div>

@@ -130,7 +130,7 @@ export interface Staff {
   last_name: string;
   phone?: string | null;
   department_id?: string | null;
-  designation_id?: number | null;
+  designation_id?: string | number | null;
   hod_of_department_id?: string | null;
   is_active: boolean;
   created_at: string;
@@ -143,6 +143,11 @@ export interface Staff {
   user_username?: string | null;
   email?: string | null;
   display_name?: string | null;
+  // Identity and employment (SO-31)
+  gender?: string | null;
+  national_id?: string | null;
+  employer_number?: string | null;
+  employment_type?: string | null;
 }
 
 export interface Class {
