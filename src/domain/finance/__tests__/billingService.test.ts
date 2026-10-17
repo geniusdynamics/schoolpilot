@@ -164,6 +164,56 @@ describe('generateTermInvoices', () => {
     expect(updated[0].patch.total_amount_billed).toBe(28500);
   });
 
+  it('a paid invoice that gains items is no longer marked Paid', async () => {
+    const paid: BillingInvoice = {
+      id: 'inv-paid',
+      student_id: 's1',
+      school_period_id: TERM_1,
+      invoice_number: `${INVOICE_PREFIX}/2027/000001`,
+      issue_date: '2027-01-02',
+      due_date: '2027-01-02',
+      total_amount_billed: 15000,
+      amount_paid: 15000,
+      status: 'Paid',
+      items: [{ id: 'old', invoice_id: 'inv-paid', description: 'Tuition', amount: 15000, fee_template_item_id: 'item-tuition' }],
+    };
+    const { repository, updated } = createRepository({ students, templates: [form1Boarders], invoices: [paid] });
+
+    await generateTermInvoices(repository, { periodId: TERM_1, dryRun: false, studentIds: ['s1'] });
+
+    expect(updated).toHaveLength(1);
+    expect(updated[0].patch.total_amount_billed).toBe(28500);
+    expect(updated[0].patch.status).toBe('Partially Paid');
+  });
+
+  it('an unpaid Paid-marked invoice that gains items becomes Due; other statuses are left alone', async () => {
+    const base = {
+      student_id: 's1',
+      school_period_id: TERM_1,
+      issue_date: '2027-01-02',
+      due_date: '2027-01-02',
+      total_amount_billed: 15000,
+      items: [{ id: 'old', invoice_id: 'x', description: 'Tuition', amount: 15000, fee_template_item_id: 'item-tuition' }],
+    };
+    const zeroPaid: BillingInvoice = { ...base, id: 'inv-a', invoice_number: `${INVOICE_PREFIX}/2027/000001`, amount_paid: 0, status: 'Paid' };
+    const overdue: BillingInvoice = { ...base, id: 'inv-b', student_id: 's2', invoice_number: `${INVOICE_PREFIX}/2027/000002`, amount_paid: 0, status: 'Overdue' };
+    const { repository, updated } = createRepository({ students, templates: [form1Boarders], invoices: [zeroPaid, overdue] });
+
+    await generateTermInvoices(repository, { periodId: TERM_1, dryRun: false, studentIds: ['s1', 's2'] });
+
+    const byId = Object.fromEntries(updated.map((u) => [u.id, u.patch]));
+    expect(byId['inv-a'].status).toBe('Due');
+    expect(byId['inv-b'].status).toBeUndefined();
+  });
+
+  it('rejects an amount that rounds to zero', async () => {
+    const tiny: BillingTemplate = { ...form1Boarders, id: 'tpl-tiny', items: [{ id: 'i-tiny', description: 'Tiny', amount: 0.001 }] };
+    const { repository, inserted } = createRepository({ students, templates: [tiny] });
+
+    await expect(generateTermInvoices(repository, { periodId: TERM_1, dryRun: false })).rejects.toThrow(/invalid amount/);
+    expect(inserted).toHaveLength(0);
+  });
+
   it('dry run returns the preview and writes nothing', async () => {
     const { repository, inserted, updated } = createRepository({ students, templates: [form1Boarders] });
 

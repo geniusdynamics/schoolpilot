@@ -6,6 +6,8 @@ import { nextSequenceNumber, sequenceYear } from '@/domain/sequences';
 export const INVOICE_PREFIX = 'INV';
 const INVOICE_STATUS_DUE = 'Due';
 const INVOICE_STATUS_VOIDED = 'Voided';
+const INVOICE_STATUS_PAID = 'Paid';
+const INVOICE_STATUS_PARTIALLY_PAID = 'Partially Paid';
 
 type AnyId = string | number;
 
@@ -135,7 +137,7 @@ function assertTemplateItemsValid(template: BillingTemplate): void {
     const label = item.description || '(unnamed item)';
     if (key(item.id) === null) problems.push(`${label}: no id`);
     const amount = typeof item.amount === 'string' && item.amount.trim() === '' ? NaN : Number(item.amount);
-    if (!Number.isFinite(amount) || amount <= 0) problems.push(`${label}: invalid amount ${JSON.stringify(item.amount ?? null)}`);
+    if (!Number.isFinite(amount) || roundMoney(amount) <= 0) problems.push(`${label}: invalid amount ${JSON.stringify(item.amount ?? null)}`);
   }
   if (problems.length) {
     throw new Error(`Fee template "${template.name}" has items without ids / invalid amounts (${problems.join('; ')}); `
@@ -250,11 +252,17 @@ export async function generateTermInvoices(
     let invoiceNumber: string;
     if (existing) {
       invoiceNumber = existing.invoice_number;
+      const totalBilled = roundMoney(Number(existing.total_amount_billed || 0) + amount);
       const patch: Partial<BillingInvoice> = {
         items: [...(existing.items ?? []), ...newItems],
-        total_amount_billed: roundMoney(Number(existing.total_amount_billed || 0) + amount),
+        total_amount_billed: totalBilled,
         updated_at: timestamp,
       };
+      // A settled invoice that gains items has a balance again; other statuses (e.g. Overdue) stay as they are.
+      const paid = roundMoney(Number(existing.amount_paid || 0));
+      if (existing.status === INVOICE_STATUS_PAID && paid < totalBilled) {
+        patch.status = paid > 0 ? INVOICE_STATUS_PARTIALLY_PAID : INVOICE_STATUS_DUE;
+      }
       writes.push(() => repository.updateStudentInvoice(existing.id, patch));
     } else {
       invoiceNumber = nextSequenceNumber(invoiceNumbers, { prefix: INVOICE_PREFIX, year: sequenceYear(issueDate) });
