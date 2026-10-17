@@ -10,30 +10,31 @@ import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useNutrition } from '../hooks/useNutrition';
 import { EditIcon, UsersIcon } from '@/components/ui/icons';
 
-type AssignmentFormData = Omit<Partial<StudentMealPlan>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name' | 'meal_plan_name' | 'status'> & {
+// Foreign keys are opaque strings (UUIDs); they are never coerced to numbers (SO-22).
+type AssignmentFormData = {
+    student_id?: string;
+    school_period_id?: string;
+    meal_plan_id?: string;
     status: StudentMealPlanStatus;
 };
 
+const toId = (value: unknown): string | undefined =>
+  value === null || value === undefined || value === '' ? undefined : String(value);
+
 export const StudentMealAssignmentsPageContent: React.FC = () => {
-  const { 
-    studentMealPlans, 
-    students,
-    mealPlans,
-    schoolPeriods,
-    loading, 
-    addStudentMealPlan, 
-    updateStudentMealPlan,
-    deleteStudentMealPlan // Assuming this will be added
-  } = useAppData();
+  // Students and school periods are cross-domain read data; meal plan data and CRUD come from the module hook.
+  const { students, schoolPeriods } = useAppData();
+  const { studentMealPlans, mealPlans, addStudentMealPlan, updateStudentMealPlan } = useNutrition();
+  const [saving, setSaving] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<StudentMealPlan | null>(null);
   
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    (schoolPeriods || []).find(sp => sp.is_active)?.id || ((schoolPeriods || []).length > 0 ? (schoolPeriods || [])[0].id : undefined)
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(
+    toId((schoolPeriods || []).find(sp => sp.is_active)?.id ?? (schoolPeriods || [])[0]?.id)
   );
 
   const initialFormData: AssignmentFormData = { 
@@ -52,19 +53,19 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
   
   const assignmentsForSelectedPeriod = useMemo(() => {
     if (!selectedSchoolPeriodId) return [];
-    return (studentMealPlans || []).filter(smp => smp.school_period_id === selectedSchoolPeriodId);
+    return (studentMealPlans || []).filter(smp => toId(smp.school_period_id) === selectedSchoolPeriodId);
   }, [studentMealPlans, selectedSchoolPeriodId]);
 
   const openModal = (assignment?: StudentMealPlan, student?: Student) => {
     setEditingAssignment(assignment || null);
     setFormData(assignment ? 
       { 
-        student_id: assignment.student_id, 
-        school_period_id: assignment.school_period_id,
-        meal_plan_id: assignment.meal_plan_id,
+        student_id: toId(assignment.student_id), 
+        school_period_id: toId(assignment.school_period_id),
+        meal_plan_id: toId(assignment.meal_plan_id),
         status: assignment.status,
       } : 
-      { ...initialFormData, student_id: student?.id, school_period_id: selectedSchoolPeriodId } // Pre-fill student and period if adding for a specific student
+      { ...initialFormData, student_id: toId(student?.id), school_period_id: selectedSchoolPeriodId } // Pre-fill student and period if adding for a specific student
     );
     setIsModalOpen(true);
   };
@@ -77,7 +78,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: (name.endsWith('_id') ? (value ? (name === 'student_id' ? value : parseInt(value)) : undefined) : value) }));
+    setFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? toId(value) : value }));
   };
   
   const handleSubmit = async () => {
@@ -86,27 +87,37 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       return;
     }
     
-    const payload: Omit<StudentMealPlan, 'id'|'created_at'|'updated_at'|'student_name'|'school_period_name'|'meal_plan_name'> = {
-      student_id: formData.student_id!,
-      school_period_id: Number(formData.school_period_id!),
-      meal_plan_id: Number(formData.meal_plan_id!),
+    const payload = {
+      student_id: formData.student_id,
+      school_period_id: formData.school_period_id,
+      meal_plan_id: formData.meal_plan_id,
       status: formData.status,
     };
 
     if (editingAssignment) {
-      await updateStudentMealPlan({ ...editingAssignment, ...payload });
+      setSaving(true);
+      try {
+        await updateStudentMealPlan(String(editingAssignment.id), payload);
+      } finally {
+        setSaving(false);
+      }
     } else {
       // Check if student already has an active assignment for this period
       const existingActive = (studentMealPlans || []).find(smp =>
-        smp.student_id === payload.student_id &&
-        smp.school_period_id === payload.school_period_id &&
+        toId(smp.student_id) === payload.student_id &&
+        toId(smp.school_period_id) === payload.school_period_id &&
         smp.status === StudentMealPlanStatus.ACTIVE
       );
       if (existingActive && payload.status === StudentMealPlanStatus.ACTIVE) {
         alert("This student already has an active meal plan for this period. Please edit the existing assignment or set it to inactive first.");
         return;
       }
-      await addStudentMealPlan(payload);
+      setSaving(true);
+      try {
+        await addStudentMealPlan(payload);
+      } finally {
+        setSaving(false);
+      }
     }
     closeModal();
   };
@@ -134,8 +145,8 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value, row) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
-        return assignment ? (mealPlans || []).find(mp => mp.id === assignment.meal_plan_id)?.name || 'N/A' : 'Not Assigned';
+        const assignment = (assignmentsForSelectedPeriod || []).find(smp => toId(smp.student_id) === toId(row.id));
+        return assignment ? (mealPlans || []).find(mp => toId(mp.id) === toId(assignment.meal_plan_id))?.name || 'N/A' : 'Not Assigned';
       }
     },
     {
@@ -145,7 +156,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       filterable: true,
       width: 120,
       render: (value, row) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
+        const assignment = (assignmentsForSelectedPeriod || []).find(smp => toId(smp.student_id) === toId(row.id));
         if (!assignment) return <span className="text-xs text-surface-muted-fg">Not Assigned</span>;
         return <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
             assignment.status === StudentMealPlanStatus.ACTIVE ? 'bg-green-100 text-green-800' :
@@ -162,7 +173,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       width: 150,
       sticky: 'right',
       render: (value, row) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
+        const assignment = (assignmentsForSelectedPeriod || []).find(smp => toId(smp.student_id) === toId(row.id));
         return (
           <Button size="sm" variant="ghost" onClick={() => openModal(assignment, row)} leftIcon={<EditIcon className="w-4 h-4" />}>
             {assignment ? 'Edit Assignment' : 'Assign Plan'}
@@ -172,16 +183,6 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
     },
   ];
   
-  const isLoadingPageData = loading.studentMealPlans || loading.students || loading.mealPlans || loading.schoolPeriods;
-
-  if (isLoadingPageData && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Meal Plan Assignments...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Student Meal Plan Assignments">
@@ -189,7 +190,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
             <Select 
                 label="Filter by School Period" 
                 value={selectedSchoolPeriodId || ''} 
-                onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)}
+                onChange={e => setSelectedSchoolPeriodId(toId(e.target.value))}
                 required
             >
                 <option value="">-- Select School Period --</option>
@@ -200,7 +201,6 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
              <DataGrid 
                columns={studentAssignmentColumns} 
                data={activeStudents || []} 
-               loading={loading.studentMealPlans && !isModalOpen}
                sortable
                filterable
                emptyState={{
@@ -257,8 +257,8 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
           </FormField>
         </FormSection>
         <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} loading={loading.studentMealPlans}>
+          <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit" loading={saving}>
             {editingAssignment ? 'Save Changes' : 'Assign Plan'}
           </Button>
         </FormActions>

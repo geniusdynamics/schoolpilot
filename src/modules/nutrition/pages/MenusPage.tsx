@@ -11,8 +11,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CakeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useNutrition } from '../hooks/useNutrition';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
@@ -21,18 +20,19 @@ type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'me
 };
 
 export const MenusPageContent: React.FC = () => {
-  const { menus, loading, addMenu, updateMenu, deleteMenu } = useAppData();
+  const { menus, addMenu, updateMenu, deleteMenu } = useNutrition();
   const { t } = useTranslation('nutrition');
   const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
-  const initialFormData: MenuFormData = { 
+  const initialFormData: MenuFormData = useMemo(() => ({ 
     menu_date: new Date().toISOString().split('T')[0], 
     meal_type: MealType.LUNCH, 
     description: '' 
-  };
+  }), []);
   const [formData, setFormData] = useState<MenuFormData>(initialFormData);
+  const [saving, setSaving] = useState(false);
 
   const openModal = useCallback((menu?: Menu) => {
     setEditingMenu(menu || null);
@@ -65,19 +65,24 @@ export const MenusPageContent: React.FC = () => {
       description: formData.description!,
     };
 
-    if (editingMenu) {
-      await updateMenu({ ...editingMenu, ...payload });
-    } else {
-      await addMenu(payload);
+    setSaving(true);
+    try {
+      if (editingMenu) {
+        await updateMenu(String(editingMenu.id), payload);
+      } else {
+        await addMenu(payload);
+      }
+      closeModal();
+    } finally {
+      setSaving(false);
     }
-    closeModal();
   }, [formData, editingMenu, updateMenu, addMenu, closeModal]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (await confirm({ title: 'Delete menu', message: 'Are you sure you want to delete this menu? This might affect consumption logs.', variant: 'danger' })) {
       await deleteMenu(id);
     }
-  }, [deleteMenu]);
+  }, [confirm, deleteMenu]);
 
   const columns: DataGridColumn<Menu>[] = useMemo(() => [
     { 
@@ -113,19 +118,11 @@ export const MenusPageContent: React.FC = () => {
       render: (value, row) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(String(row.id))} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
   ], [openModal, handleDelete]);
-
-  if (loading.menus && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Menus...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -140,7 +137,6 @@ export const MenusPageContent: React.FC = () => {
         <DataGrid 
           columns={columns} 
           data={menus || []} 
-          isLoading={loading.menus && isModalOpen}
           sortable
           filterable
           emptyState={{
@@ -199,8 +195,8 @@ export const MenusPageContent: React.FC = () => {
           </FormField>
         </FormSection>
         <FormActions>
-          <Button variant="secondary" onClick={closeModal}>{t('menus.cancel.button')}</Button>
-          <Button onClick={handleSubmit} loading={loading.menus}>
+          <Button type="button" variant="secondary" onClick={closeModal}>{t('menus.cancel.button')}</Button>
+          <Button type="submit" loading={saving}>
             {editingMenu ? t('menus.save.button') : t('menus.add.button')}
           </Button>
         </FormActions>
