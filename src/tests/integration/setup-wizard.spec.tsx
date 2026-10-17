@@ -1,7 +1,7 @@
 // ABOUTME: Integration test for the first-run setup wizard on the real SQLite-WASM provider (in-memory database):
 // ABOUTME: walking every step with Back/Next twice creates exactly one of each record in the defined collections.
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SQLiteWASMProvider } from '@/services/database/SQLiteWASMProvider';
 import { collectionsDefinition } from '@/services/database/collections';
@@ -46,6 +46,8 @@ const toast = vi.hoisted(() => ({ showSuccess: vi.fn(), showError: vi.fn(), show
 vi.mock('@/hooks/useToast', () => ({ useToast: () => toast }));
 
 import { SetupWizard, clearWizardDraft } from '@/components/setup/SetupWizard';
+import { readSetupCompletedAt } from '@/components/setup/steps/setupStatus';
+import SettingsSchoolProfilePage from '@/modules/settings/pages/SettingsSchoolProfilePage';
 
 const COLLECTIONS = [
   'school_details', 'users', 'education_system_configurations', 'academic_year_structures',
@@ -141,6 +143,10 @@ describe('SetupWizard on the real provider', () => {
     const school = await rows('school_details');
     expect(school).toHaveLength(1);
     expect(school[0].name).toBe('Greenfields Academy');
+    // Completion is recorded in the database, not only in this browser's storage.
+    expect(typeof school[0].setup_completed_at).toBe('string');
+    expect(Number.isNaN(Date.parse(school[0].setup_completed_at))).toBe(false);
+    expect(await readSetupCompletedAt()).toBe(school[0].setup_completed_at);
 
     expect(await rows('education_system_configurations')).toHaveLength(1);
 
@@ -247,6 +253,102 @@ describe('SetupWizard on the real provider', () => {
     expect(codes).toHaveLength(8);
     expect(codes).not.toContain('PSC-P');
   }, 30000);
+
+  it('leaves a financial year the school already had unchanged when the year step is passed again', async () => {
+    const before = {
+      id: 'fy-existing', name: 'FY 2027', start_date: '2026-12-01', end_date: '2027-12-31',
+      status: FinancialYearStatus.OPEN, created_at: '2026-11-01T00:00:00.000Z', updated_at: '2026-11-01T00:00:00.000Z',
+    };
+    await real.provider!.getCollection('financial_years').insert({ ...before });
+
+    render(<SetupWizard onComplete={() => {}} />);
+    fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Fiscal Academy' } });
+    click(/^Next$/);
+    await onStep(2);
+    fireEvent.click(screen.getAllByRole('radio')[0]);
+    click(/^Next$/);
+    await onStep(3);
+    type('Year name', '2027');
+    type('Academic year start', '2027-01-04');
+    type('Academic year end', '2027-11-26');
+    await nextWithBackAndForth(3);
+    expect(toast.showError).not.toHaveBeenCalled();
+
+    const financialYears = await rows('financial_years');
+    expect(financialYears).toHaveLength(1);
+    expect(financialYears[0]).toMatchObject(before);
+    const terms = await rows('school_periods');
+    expect(terms).toHaveLength(3);
+    expect(terms.every((t) => t.financial_year_id === 'fy-existing')).toBe(true);
+  }, 30000);
+
+  it('leaves an education system configuration the school already had unchanged', async () => {
+    await walkWizard();
+    const [config] = await rows('education_system_configurations');
+    await real.provider!.getCollection('education_system_configurations').update(config.id, { description: 'Our own notes' });
+    clearWizardDraft();
+    cleanup();
+
+    render(<SetupWizard onComplete={() => {}} />);
+    await onStep(1);
+    await waitFor(() => expect(screen.getByPlaceholderText('e.g. Greenfields Academy')).toHaveValue('Greenfields Academy'));
+    click(/^Next$/);
+    await onStep(2);
+    fireEvent.click(screen.getAllByRole('radio')[0]);
+    click(/^Next$/);
+    await onStep(3);
+
+    const configs = await rows('education_system_configurations');
+    expect(configs).toHaveLength(1);
+    expect(configs[0].description).toBe('Our own notes');
+  }, 60000);
+
+  it('opens the wizard from Settings › School and can cancel it before setup is complete', async () => {
+    render(<SettingsSchoolProfilePage />);
+    fireEvent.click(await screen.findByRole('button', { name: /^Run setup wizard$/ }));
+    await onStep(1);
+    click(/^Cancel$/);
+    await waitFor(() => expect(screen.queryByText(`Step 1 of ${TOTAL_STEPS}`)).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /^Run setup wizard$/ })).toBeInTheDocument();
+  }, 30000);
+
+  it('re-runs the wizard from Settings › School without duplicating any record', async () => {
+    await walkWizard();
+    const count = async () => Object.fromEntries(await Promise.all(COLLECTIONS.map(async (name) => [name, (await rows(name)).length])));
+    const before = await count();
+    const [{ setup_completed_at: firstCompletion }] = await rows('school_details');
+    cleanup();
+
+    render(<SettingsSchoolProfilePage />);
+    fireEvent.click(await screen.findByRole('button', { name: /^Re-run setup wizard$/ }));
+    await onStep(1);
+    await waitFor(() => expect(screen.getByPlaceholderText('e.g. Greenfields Academy')).toHaveValue('Greenfields Academy'));
+    click(/^Next$/);
+    await onStep(2);
+    fireEvent.click(screen.getAllByRole('radio')[0]);
+    await nextWithBackAndForth(2);
+    type('Year name', '2027');
+    type('Academic year start', '2027-01-04');
+    type('Academic year end', '2027-11-26');
+    type('Term 1 start', '2027-01-04');
+    type('Term 1 end', '2027-04-02');
+    type('Term 2 start', '2027-04-26');
+    type('Term 2 end', '2027-07-30');
+    type('Term 3 start', '2027-08-23');
+    type('Term 3 end', '2027-10-29');
+    await nextWithBackAndForth(3);
+    fireEvent.change(screen.getByPlaceholderText('Class 1'), { target: { value: 'Grade 7' } });
+    await nextWithBackAndForth(4);
+    await nextWithBackAndForth(5);
+    expect(await screen.findByText(/An administrator account already exists/)).toBeInTheDocument();
+    click(/Finish setup/);
+    await waitFor(() => expect(screen.queryByText(`Step 6 of ${TOTAL_STEPS}`)).not.toBeInTheDocument(), { timeout: 5000 });
+    expect(toast.showError).not.toHaveBeenCalled();
+
+    expect(await count()).toEqual(before);
+    const [school] = await rows('school_details');
+    expect(school.setup_completed_at >= firstCompletion).toBe(true);
+  }, 90000);
 
   it('keeps the user on the year step when a term falls outside the academic year', async () => {
     render(<SetupWizard onComplete={() => {}} />);

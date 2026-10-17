@@ -1,7 +1,8 @@
 // ABOUTME: First-run setup wizard: school profile (school_details), education system, academic year with per-term
 // ABOUTME: dates and its financial year, classes & streams, subjects, and the first administrator. Every step writes
 // ABOUTME: through idempotent writers (steps/writers.ts), so Back/Next or re-opening never duplicates records.
-// ABOUTME: Progress (values and created ids, never passwords) is kept in localStorage so the wizard is resumable.
+// ABOUTME: Progress (values and created ids, never passwords) is kept in localStorage so the wizard is resumable;
+// ABOUTME: finishing records school_details.setup_completed_at.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,7 @@ import {
 } from './steps/wizardDraft';
 import {
   hasAnyUser,
+  markSetupCompleted,
   openWizardStore,
   saveAcademicYear,
   saveClassesAndStreams,
@@ -172,12 +174,20 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     admin: saveAdministrator,
   }), [draft, presetSubjects, recordCreated, saveAdministrator]);
 
-  const handleWizardComplete = useCallback(() => {
+  const handleWizardComplete = useCallback(async () => {
+    try {
+      // The completion time lives on the school profile, so every device sees that setup is done.
+      await markSetupCompleted(await openWizardStore());
+    } catch (error) {
+      logger.error('[SetupWizard] could not record setup completion:', error);
+      toast.showError(error instanceof Error ? error.message : t('setupWizard.completeError', 'Could not finish setup.'));
+      return;
+    }
     completedRef.current = true;
     clearWizardDraft();
     toast.showSuccess('Setup complete. Welcome aboard!');
     onComplete();
-  }, [toast, onComplete]);
+  }, [toast, onComplete, t]);
 
   // ── Step definitions ────────────────────────────────────────────
 

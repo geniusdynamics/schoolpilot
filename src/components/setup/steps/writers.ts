@@ -114,9 +114,17 @@ export async function saveEducationSystem(store: WizardStore, draft: WizardDraft
   const template = EDUCATION_SYSTEM_TEMPLATES[preset.templateKey] ?? {};
   const name = template.name ?? preset.label;
   const existing = await store.find('education_system_configurations');
-  const saved = await upsert(store, 'education_system_configurations', existing, draft.created.educationSystemId,
-    (row) => sameName(row.name, name), { name, description: preset.label });
-  return { educationSystemId: saved.id };
+  const recorded = existing.find((row) => draft.created.educationSystemId && sameId(row.id, draft.created.educationSystemId));
+  const createdByWizard = Boolean(recorded && draft.created.educationSystemCreated);
+  // A configuration with this name that the wizard did not create is reused exactly as it is.
+  const reusable = existing.find((row) => sameName(row.name, name) && !(createdByWizard && sameId(row.id, recorded!.id)));
+  if (reusable) {
+    if (createdByWizard) await store.remove('education_system_configurations', recorded!.id);
+    return { educationSystemId: reusable.id, educationSystemCreated: false };
+  }
+  const saved = await upsert(store, 'education_system_configurations', createdByWizard ? existing : [],
+    createdByWizard ? recorded!.id : undefined, () => false, { name, description: preset.label });
+  return { educationSystemId: saved.id, educationSystemCreated: true };
 }
 
 async function ensureTermDefinitions(store: WizardStore): Promise<Row[]> {
@@ -137,24 +145,28 @@ async function ensureTermDefinitions(store: WizardStore): Promise<Row[]> {
   return result;
 }
 
-async function ensureFinancialYear(store: WizardStore, draft: WizardDraft): Promise<Row> {
+/**
+ * The financial year the terms link to. One the school already had (same name, or covering the academic
+ * year's start) is reused and never modified; only a year the wizard inserted itself is updated on later passes.
+ */
+async function ensureFinancialYear(store: WizardStore, draft: WizardDraft): Promise<{ row: Row; created: boolean }> {
   const wanted = financialYearFor(draft);
   const existing = (await store.find(FINANCIAL_YEARS_COLLECTION)) as unknown as FinancialYearRecord[];
   const recorded = existing.find((year) => draft.created.financialYearId && sameId(year.id, draft.created.financialYearId));
-  if (!recorded) {
-    // A year the school already has that matches by name, or covers the academic year's start, is reused.
+  const ownYear = draft.created.financialYearCreated ? recorded : undefined;
+  if (!ownYear) {
     const reusable = existing.find((year) => sameName(year.name, wanted.name))
       ?? existing.find((year) => isoDay(year.start_date) <= isoDay(draft.yearStart) && isoDay(draft.yearStart) <= isoDay(year.end_date));
-    if (reusable) return reusable as unknown as Row;
+    if (reusable) return { row: reusable as unknown as Row, created: false };
   }
-  const violations = validateFinancialYear(wanted, existing, recorded?.id);
+  const violations = validateFinancialYear(wanted, existing, ownYear?.id);
   if (violations.length > 0) throw new FinancialYearRuleError(violations);
-  const saved = await upsert(store, FINANCIAL_YEARS_COLLECTION, existing as unknown as Row[], recorded?.id, () => false, {
+  const saved = await upsert(store, FINANCIAL_YEARS_COLLECTION, existing as unknown as Row[], ownYear?.id, () => false, {
     ...wanted,
-    status: recorded?.status ?? FinancialYearStatus.OPEN,
+    status: ownYear?.status ?? FinancialYearStatus.OPEN,
   });
   notifyFinancialYearsChanged();
-  return saved;
+  return { row: saved, created: true };
 }
 
 /** Academic year, its financial year and its three terms with the dates the user entered. */
@@ -166,7 +178,7 @@ export async function saveAcademicYear(store: WizardStore, draft: WizardDraft): 
   }
 
   const definitions = await ensureTermDefinitions(store);
-  const financialYear = await ensureFinancialYear(store, draft);
+  const { row: financialYear, created: financialYearCreated } = await ensureFinancialYear(store, draft);
   const years = await store.find(ACADEMIC_YEARS_COLLECTION);
   const others = years.filter((year) => !sameId(year.id, draft.created.academicYearId));
   if (others.some((year) => sameName(year.name, name) && year.structure_id && year.structure_id !== definitions[0].structure_id)) {
@@ -210,7 +222,7 @@ export async function saveAcademicYear(store: WizardStore, draft: WizardDraft): 
     await upsert(store, SCHOOL_PERIODS_COLLECTION, stored as unknown as Row[], id, () => false, { ...input });
   }
   notifySchoolPeriodsChanged();
-  return { academicYearId: year.id, financialYearId: financialYear.id };
+  return { academicYearId: year.id, financialYearId: financialYear.id, financialYearCreated };
 }
 
 const streamNames = (row: ClassRowDraft) =>
@@ -297,6 +309,14 @@ export async function saveSubjects(
     delete subjectIds[code];
   }
   return { subjectIds };
+}
+
+/** Records on the school profile that setup was completed; re-running the wizard refreshes the time. */
+export async function markSetupCompleted(store: WizardStore, completedAt: string = stamp()): Promise<string> {
+  const [current] = await store.find('school_details');
+  if (!current) throw new Error('Save the school profile before finishing setup.');
+  await store.update('school_details', current.id, { setup_completed_at: completedAt, updated_at: stamp() });
+  return completedAt;
 }
 
 export async function hasAnyUser(store: WizardStore): Promise<boolean> {

@@ -1,4 +1,7 @@
-﻿import { logger } from '@/utils/logging';
+// ABOUTME: Application entry gate: shows first-run onboarding until setup is complete, preferring
+// ABOUTME: school_details.setup_completed_at from an existing production database over the legacy browser flag.
+
+import { logger } from '@/utils/logging';
 
 /**
  * OnboardingGate - Application entry point that shows onboarding for first-time users
@@ -9,6 +12,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { FirstRunOnboarding, shouldShowOnboarding } from '@/components/FirstRunOnboarding';
+import { isSetupComplete, readSetupCompletedAt } from '@/components/setup/steps/setupStatus';
+import { getStoredDataMode } from '@/config/dataModePolicies';
 
 interface OnboardingGateProps {
   children: React.ReactNode;
@@ -35,8 +40,13 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
           setShowOnboarding(false);
           return;
         }
-        const needsOnboarding = shouldShowOnboarding();
-        setShowOnboarding(needsOnboarding);
+        const legacyComplete = !shouldShowOnboarding();
+        // A production database already exists: its school_details.setup_completed_at is preferred. A fresh
+        // install (no stored data mode) never opens a database here, so onboarding can still choose the provider.
+        const completedAt = !legacyComplete && getStoredDataMode() === 'production'
+          ? await readSetupCompletedAt()
+          : null;
+        setShowOnboarding(!isSetupComplete(completedAt, legacyComplete));
       } catch {
         setShowOnboarding(false);
       } finally {

@@ -1,7 +1,7 @@
 {
   "task": "P0-A05",
   "locale": "en",
-  "note": "New keys used with inline English fallbacks in SetupWizard (year/term/financial-year and administrator steps); merge into each locale (en shown; translate for fr, rw, sw).",
+  "note": "New keys used with inline English fallbacks in SetupWizard (year/term/financial-year and administrator steps) and Settings › School Profile (setup wizard entry); merge into each locale (en shown; translate for fr, rw, sw).",
   "namespaces": {
     "common": {
       "setupWizard": {
@@ -25,6 +25,18 @@
           "detailsRequired": "Enter a username (at least 3 characters) and a display name.",
           "passwordTooShort": "The password must be at least 10 characters.",
           "passwordMismatch": "The passwords do not match."
+        },
+        "completeError": "Could not finish setup."
+      }
+    },
+    "settings": {
+      "schoolProfile": {
+        "setupWizard": {
+          "title": "Setup wizard",
+          "description": "Set up the school profile, academic year, classes, subjects and administrator step by step.",
+          "rerunDescription": "Setup is complete. Run the wizard again to review the school profile, year, classes and subjects; existing records are updated, never duplicated.",
+          "runButton": "Run setup wizard",
+          "rerunButton": "Re-run setup wizard"
         }
       }
     }

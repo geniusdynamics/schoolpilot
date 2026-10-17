@@ -32,8 +32,12 @@ export interface TermDraft {
 /** Ids of records the wizard itself created, so a later pass can update or remove exactly those. */
 export interface CreatedRecords {
   educationSystemId?: string;
+  /** True when the wizard inserted the education system configuration; a reused one is never modified. */
+  educationSystemCreated?: boolean;
   academicYearId?: string;
   financialYearId?: string;
+  /** True when the wizard inserted the financial year; a reused one is never modified. */
+  financialYearCreated?: boolean;
   classIds: string[];
   streamIds: string[];
   /** subject_code → subject id */
