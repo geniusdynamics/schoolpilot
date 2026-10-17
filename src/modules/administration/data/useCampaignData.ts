@@ -1,149 +1,116 @@
-// ABOUTME: Self-contained hook for campaign data management.
-// ABOUTME: Provides CRUD operations plus page-friendly aliases and populated display fields.
+// ABOUTME: Database-backed message campaigns (collection 'message_campaigns') with persistent CRUD and page aliases.
+// ABOUTME: Display fields (template, creator, approver, audience) are resolved at read time and never stored.
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { useAppDataInternal } from '@/hooks/useAppData';
-import { initialMockCampaigns, initialMockClassStreams, initialMockStaff, initialMockTemplateComms, initialMockUsers } from './mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useTemplateCommData } from './useTemplateCommData';
 import { AdminCampaignType, CampaignAudienceType } from './types';
 
+export const MESSAGE_CAMPAIGNS_COLLECTION = 'message_campaigns';
+
+/** A stored campaign; template and target ids are strings at runtime. */
+export type CampaignRecord = Omit<AdminCampaignType, 'template_id' | 'target_id'> & {
+  template_id?: string;
+  target_id?: string;
+};
+
 type CampaignInput = Omit<
-  AdminCampaignType,
+  CampaignRecord,
   'id' | 'created_at' | 'updated_at' | 'template_name' | 'created_by_name' | 'approved_by_name' | 'target_audience_display'
 >;
 
-const createTimestamp = () => new Date().toISOString();
+const DISPLAY_FIELDS = new Set(['id', 'template_name', 'created_by_name', 'approved_by_name', 'target_audience_display']);
+
+const stamp = () => new Date().toISOString();
+
+/** Keep only storable fields: no id, no read-time display fields, no undefined; ids as strings. */
+const toStored = (record: Partial<CampaignRecord>): Partial<CampaignRecord> => {
+  const stored = Object.fromEntries(
+    Object.entries(record).filter(([key, value]) => !DISPLAY_FIELDS.has(key) && value !== undefined)
+  ) as Partial<CampaignRecord>;
+  if (stored.template_id !== undefined) stored.template_id = String(stored.template_id);
+  if (stored.target_id !== undefined) stored.target_id = String(stored.target_id);
+  return stored;
+};
+
+type NamedPerson = { id?: string; user_id?: string; display_name?: string; username?: string; first_name?: string; last_name?: string };
+type StreamLike = { id: string | number; name?: string; class_name?: string };
 
 export const useCampaignData = () => {
-  const appData = useAppDataInternal();
+  const appData = useAppDataInternal() as { classStreams?: StreamLike[]; staff?: NamedPerson[]; users?: NamedPerson[] } | null | undefined;
   const { currentUser } = useUser();
-  const templates = appData?.templatesComm ?? initialMockTemplateComms;
-  const classStreams = appData?.classStreams ?? initialMockClassStreams;
-  const staff = appData?.staff ?? initialMockStaff;
-  const users = appData?.users ?? initialMockUsers;
-  const [data, setData] = useState<AdminCampaignType[]>(initialMockCampaigns);
+  const { templateComms } = useTemplateCommData();
+  const classStreams = appData?.classStreams;
+  const staff = appData?.staff;
+  const users = appData?.users;
 
-  const resolvePersonName = (personId?: string) => {
-    if (!personId) {
-      return undefined;
-    }
+  const collection = useDatabaseCollection<CampaignRecord>(MESSAGE_CAMPAIGNS_COLLECTION);
+  const { data, insert, update: updateDocument, remove: removeDocument, refresh } = collection;
 
-    if (currentUser?.id === personId) {
-      return currentUser.display_name || currentUser.username;
-    }
-
-    const matchedStaff = staff.find(
-      (member) => member.id === personId || member.user_id === personId
-    );
-    if (matchedStaff) {
-      return matchedStaff.display_name || `${matchedStaff.first_name} ${matchedStaff.last_name}`.trim();
-    }
-
-    const matchedUser = users.find((user) => user.id === personId);
-    if (matchedUser) {
-      return matchedUser.display_name || matchedUser.username;
-    }
-
-    return undefined;
-  };
-
-  const resolveTargetAudienceDisplay = (record: AdminCampaignType) => {
-    if (!record.target_audience_type) {
-      return record.target_audience_display;
-    }
-
-    if (
-      record.target_audience_type !== CampaignAudienceType.STUDENTS_OF_CLASS &&
-      record.target_audience_type !== CampaignAudienceType.PARENTS_OF_CLASS
-    ) {
-      return record.target_audience_type;
-    }
-
-    const targetClassStream = classStreams.find(
-      (classStream) => String(classStream.id) === String(record.target_id)
-    );
-
-    if (!targetClassStream) {
-      return record.target_audience_display || record.target_audience_type;
-    }
-
-    return `${record.target_audience_type} (${targetClassStream.class_name} - ${targetClassStream.name})`;
-  };
-
-  const populateCampaign = (record: AdminCampaignType): AdminCampaignType => {
-    const template = templates.find((item) => item.id === record.template_id);
-
-    return {
-      ...record,
-      template_name: template?.name || record.template_name,
-      created_by_name: resolvePersonName(record.created_by) || record.created_by_name,
-      approved_by_name: resolvePersonName(record.approved_by) || record.approved_by_name,
-      target_audience_display: resolveTargetAudienceDisplay(record)
+  const campaigns = useMemo(() => {
+    const personName = (personId?: string) => {
+      if (!personId) return undefined;
+      if (currentUser?.id === personId) return currentUser.display_name || currentUser.username;
+      const member = (staff ?? []).find((item) => item.id === personId || item.user_id === personId);
+      if (member) return member.display_name || `${member.first_name ?? ''} ${member.last_name ?? ''}`.trim();
+      const user = (users ?? []).find((item) => item.id === personId);
+      return user ? user.display_name || user.username : undefined;
     };
-  };
 
-  const campaigns = useMemo(
-    () => data.map(populateCampaign),
-    [classStreams, currentUser, data, staff, templates, users]
+    const audience = (record: CampaignRecord) => {
+      if (!record.target_audience_type) return record.target_audience_display;
+      if (
+        record.target_audience_type !== CampaignAudienceType.STUDENTS_OF_CLASS &&
+        record.target_audience_type !== CampaignAudienceType.PARENTS_OF_CLASS
+      ) {
+        return record.target_audience_type;
+      }
+      const stream = (classStreams ?? []).find((item) => String(item.id) === String(record.target_id));
+      return stream ? `${record.target_audience_type} (${stream.class_name} - ${stream.name})` : record.target_audience_type;
+    };
+
+    return data.map((record) => ({
+      ...record,
+      template_name: templateComms.find((item) => item.id === String(record.template_id))?.name || record.template_name,
+      created_by_name: personName(record.created_by) || record.created_by_name,
+      approved_by_name: personName(record.approved_by) || record.approved_by_name,
+      target_audience_display: audience(record),
+    }));
+  }, [classStreams, currentUser, data, staff, templateComms, users]);
+
+  const create = useCallback(
+    async (newItem: CampaignInput | Partial<CampaignRecord>) => {
+      const now = stamp();
+      return insert({ ...(toStored(newItem) as CampaignInput), created_at: now, updated_at: now } as Omit<CampaignRecord, 'id'>);
+    },
+    [insert]
   );
 
-  const create = async (newItem: CampaignInput | Partial<AdminCampaignType>) => {
-    const timestamp = createTimestamp();
-    const newDataItem = populateCampaign({
-      ...(newItem as AdminCampaignType),
-      id: Date.now().toString(),
-      created_at: timestamp,
-      updated_at: timestamp
-    });
+  const update = useCallback(
+    async (idOrRecord: string | CampaignRecord, patch?: Partial<CampaignRecord>) => {
+      const id = typeof idOrRecord === 'object' ? idOrRecord.id : idOrRecord;
+      const changes = typeof idOrRecord === 'object' ? idOrRecord : patch ?? {};
+      return updateDocument(String(id), { ...toStored(changes), updated_at: stamp() });
+    },
+    [updateDocument]
+  );
 
-    setData((previousCampaigns) => [...previousCampaigns, newDataItem]);
-    return newDataItem;
-  };
-
-  const update = async (
-    idOrRecord: string | number | AdminCampaignType,
-    updatedData?: Partial<AdminCampaignType>
-  ) => {
-    const recordToPersist =
-      typeof idOrRecord === 'object'
-        ? idOrRecord
-        : ({ id: String(idOrRecord), ...(updatedData || {}) } as AdminCampaignType);
-
-    let updatedCampaign: AdminCampaignType | undefined;
-
-    setData((previousCampaigns) =>
-      previousCampaigns.map((campaign) => {
-        if (campaign.id !== recordToPersist.id) {
-          return campaign;
-        }
-
-        updatedCampaign = populateCampaign({
-          ...campaign,
-          ...recordToPersist,
-          updated_at: createTimestamp()
-        });
-
-        return updatedCampaign;
-      })
-    );
-
-    return updatedCampaign;
-  };
-
-  const remove = async (id: string | number) => {
-    const normalizedId = String(id);
-    setData((previousCampaigns) => previousCampaigns.filter((campaign) => campaign.id !== normalizedId));
-  };
+  const remove = useCallback(async (id: string) => removeDocument(String(id)), [removeDocument]);
 
   return {
     campaigns,
     addCampaign: create,
     updateCampaign: update,
     deleteCampaign: remove,
+    loading: collection.loading,
+    error: collection.error,
+    refresh,
     data: campaigns,
     create,
     update,
-    remove
+    remove,
   };
 };
 

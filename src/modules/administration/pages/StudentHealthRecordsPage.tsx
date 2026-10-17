@@ -74,9 +74,9 @@ const StudentHealthRecordsPage: React.FC = () => {
     };
 
     if (currentHealthRecord) {
-      updateStudentHealthRecord({ ...currentHealthRecord, ...payload });
+      await updateStudentHealthRecord({ ...currentHealthRecord, ...payload });
     } else {
-      addStudentHealthRecord(payload);
+      await addStudentHealthRecord(payload);
     }
     closeModal();
   };
@@ -166,7 +166,10 @@ const StudentHealthRecordsPage: React.FC = () => {
         onClose={closeModal}
         title={`Manage Health Record for ${selectedStudent?.first_name} ${selectedStudent?.last_name}`}
         size="lg"
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit();
+        }}
       >
         <FormSection columns={2}>
           <FormField label="Blood Type">
@@ -208,7 +211,7 @@ const StudentHealthRecordsPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit}>
+          <Button type="submit">
             Save Health Record
           </Button>
         </FormActions>

@@ -110,7 +110,7 @@ notes: ${t.notes || '—'}`);
 if (opt('wave')) {
   const w = opt('wave');
   const rows = ledger.tasks.filter((t) => t.wave === w).map((t) => ({
-    id: t.id, lane: t.lane, title: t.title, status: t.status, runnable: runnable(t),
+    id: t.id, lane: t.lane, title: t.title, size: t.size, status: t.status, runnable: runnable(t),
     waiting_on: t.depends_on.filter((d) => byId.get(d)?.status !== 'done'), files: t.files, acceptance: t.acceptance,
     test: t.test, spec: t.spec, findings: t.findings, reqs: t.reqs, deps_install: t.deps_install, depends_on: t.depends_on,
   }));

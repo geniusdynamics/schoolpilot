@@ -1337,10 +1337,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "4c37e91",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-C07",
@@ -1375,10 +1375,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "4954d7f",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-E04",
