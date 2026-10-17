@@ -1,6 +1,6 @@
 import { logger } from '@/utils/logging';
 
-// ABOUTME: First-run setup wizard (Phase 2.1) — school profile, education system,
+// ABOUTME: First-run setup wizard (Phase 2.1) — school profile (saved to school_details), education system,
 // ABOUTME academic year + terms, classes & streams, subjects (Kenyan presets), and an
 // ABOUTME optional fee structure. Rendered by FirstRunOnboarding for the production
 // ABOUTME pathway. Progress is persisted to localStorage so it is skippable/resumable.
@@ -15,6 +15,8 @@ import Badge from '@/components/ui/Badge';
 import Checkbox from '@/components/ui/Checkbox';
 import { useToast } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
+import type { SchoolProfile } from '@/hooks/useSchoolProfile';
 import {
   KENYAN_CURRICULUM_PRESETS,
   type KenyanSubjectSeed,
@@ -107,7 +109,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
   const [draft, setDraft] = useState<WizardDraft>(loadDraft);
   const wizardRef = useRef<WizardFormRef | null>(null);
 
-  const schoolSettingsCol = useDatabaseCollection<any>('settings');
+  const schoolDetailsDoc = useDatabaseDocument<SchoolProfile>('school_details');
   const eduSystemCol = useDatabaseCollection<any>('education_system_configurations');
   const yearsCol = useDatabaseCollection<any>('academic_years');
   const periodDefsCol = useDatabaseCollection<any>('period_definitions');
@@ -135,14 +137,17 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
 
   const saveSchoolProfile = useCallback(async () => {
     if (!draft.school.name.trim()) throw new Error('School name is required.');
-    const existing = schoolSettingsCol.data.find(d => d.key === 'school_profile');
-    const value = JSON.stringify(draft.school);
-    if (existing) {
-      await schoolSettingsCol.update(existing.id, { value });
-    } else {
-      await schoolSettingsCol.insert({ key: 'school_profile', value });
-    }
-  }, [draft.school, schoolSettingsCol]);
+    // The single school_details record is what the header, receipts and reports read
+    const { name, motto, address, phone, email } = draft.school;
+    const existing = schoolDetailsDoc.data;
+    const now = new Date().toISOString();
+    const fields: Partial<SchoolProfile> = { name: name.trim(), updated_at: now };
+    if (motto.trim()) fields.motto = motto.trim();
+    if (address.trim()) fields.postal_address = address.trim();
+    if (phone.trim()) fields.telephone = phone.trim();
+    if (email.trim()) fields.email = email.trim();
+    await schoolDetailsDoc.save(existing?.id ? { id: existing.id, ...fields } : { ...fields, created_at: now });
+  }, [draft.school, schoolDetailsDoc]);
 
   const saveEducationSystem = useCallback(async () => {
     if (!draft.curriculum) return; // optional choice — keep going without one

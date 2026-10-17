@@ -6,6 +6,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
+import SchoolLetterhead from '@/components/SchoolLetterhead';
 
 import { useTranslation } from 'react-i18next';
 import { PersonGender, StudentStatus } from '@/core/types';
@@ -148,6 +149,7 @@ export const StudentMasterlistPageContent: React.FC = () => {
                 <Button variant="secondary" size="sm" onClick={handlePrint}>{t('studentMasterlistPage.print')}</Button>
                 <Button variant="secondary" size="sm" onClick={handleExportCSV}>{t('studentMasterlistPage.exportCSV')}</Button>
             </div>
+            <SchoolLetterhead title={t('studentMasterlistPage.title')} />
             <DataGrid columns={columns} data={(filteredStudents || [])} loading={isGenerating} emptyState={t('studentMasterlistPage.noStudentsFound')}/>
           </>
         )}

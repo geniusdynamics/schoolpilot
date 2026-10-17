@@ -1135,10 +1135,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "review",
+      "status": "done",
       "commit": null,
-      "notes": "Acceptance partly unmet: settings save fixed (probe C15) but header, receipts and reports do not read school_details; narrow acceptance + follow-up, or widen files. Branch prd/P0-D06-retry",
-      "completed_at": null
+      "notes": "Acceptance partly unmet: settings save fixed (probe C15) but header, receipts and reports do not read school_details; narrow acceptance + follow-up, or widen files. Branch prd/P0-D06-retry | Widened (standing rule): Header, SetupWizard, FeesReceiptTemplatePage, StudentMasterlistPage, StudentVoteheadStatementPage + useSchoolProfile, SchoolLetterhead; independently verified (APPROVE); probes C02, C15 PASS",
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-E03",

@@ -1,5 +1,5 @@
 // ABOUTME: This component renders the main application header.
-// ABOUTME: It includes the mobile sidebar toggle, page title/welcome message, and user profile area.
+// ABOUTME: It shows the saved school name (school_details), search, status indicators and the user profile area.
 
 import React, { useRef, useEffect, useState } from 'react';
 import { BellIcon, CogIcon } from './ui/icons';
@@ -9,10 +9,14 @@ import { NetworkStatusIndicator } from './OfflineCapability';
 import ModuleHealthIndicator from './ModuleHealthIndicator';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import { TemporaryDataBadge } from './StorageUnavailableScreen';
+import { useSchoolProfile } from '../hooks/useSchoolProfile';
+
+const PRODUCT_NAME = 'schoolpilot';
 const notifications = 3; // Example notification count
 
 const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModuleSelect?: (moduleKey: string) => void }> = ({ onSettings }) => {
   const { config } = useUnifiedConfig();
+  const { schoolName } = useSchoolProfile();
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = useRef(0);
@@ -46,7 +50,7 @@ const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModul
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">
             E
           </div>
-          <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block">schoolpilot</span>
+          <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block truncate max-w-[16rem]" title={schoolName ?? PRODUCT_NAME}>{schoolName ?? PRODUCT_NAME}</span>
           <TemporaryDataBadge />
         </div>
         

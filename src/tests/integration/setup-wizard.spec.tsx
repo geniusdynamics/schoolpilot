@@ -30,6 +30,14 @@ vi.mock('@/hooks/useDatabaseCollection', () => ({
   }),
 }));
 
+// The school profile is the single school_details record, saved through useDatabaseDocument
+vi.mock('@/hooks/useDatabaseDocument', () => ({
+  useDatabaseDocument: vi.fn((name: string) => ({
+    data: null, loading: false, error: null, refresh: vi.fn(), collection: null,
+    save: vi.fn(async (doc: any) => b_inserted_push(name, doc)),
+  })),
+}));
+
 function b_inserted_push(name: string, doc: any) {
   store[name] ??= { inserted: [] as any[] };
   const it = { id: `${name}-id-${store[name].inserted.length + 1}`, ...doc };
@@ -98,9 +106,10 @@ describe('SetupWizard (first-run smoke)', () => {
     await new Promise(r => setTimeout(r, SETTLE));
     await waitFor(() => expect(onDone).toHaveBeenCalled(), { timeout: 4000 });
 
-    // School profile landed in settings
-    expect(store['settings'].inserted).toHaveLength(1);
-    expect(JSON.parse(store['settings'].inserted[0].value).name).toBe('Greenfields Academy');
+    // School profile landed in school_details (no 'settings' collection is used)
+    expect(store['school_details'].inserted).toHaveLength(1);
+    expect(store['school_details'].inserted[0].name).toBe('Greenfields Academy');
+    expect(store['settings']).toBeUndefined();
 
     // Education system configuration created from the CBC preset
     expect(store['education_system_configurations'].inserted).toHaveLength(1);
