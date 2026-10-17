@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+// ABOUTME: Chart of accounts page: lists, creates, edits and deletes GL accounts through useFinance()
+// ABOUTME: Expense accounts link to an expense category by its string id; the category name is resolved at read time
+
+import React, { useMemo, useState } from 'react';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -8,28 +11,40 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 
 import { useFinance } from '@/modules/finance/hooks/useFinance';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
 import { AccountTemplateType, AccountType } from '@/core/types';
 import type { ChartOfAccount, ExpenseCategory } from '@/core/types';
 import { BanknotesIcon, DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
-type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
-    type: AccountType; // Make type required for the form
-    template_type: AccountTemplateType; // Make template_type required
-};
+// Record ids are strings (UUIDs) at runtime, so the form keeps the expense category id as the option value.
+interface ChartOfAccountFormData {
+  account_code: string;
+  name: string;
+  type: AccountType;
+  template_type: AccountTemplateType;
+  is_active: boolean;
+  expense_category_id: string;
+}
+
+// The finance types still declare numeric ids; the data layer stores whatever string id the option carries.
+type ChartOfAccountInput = Parameters<ReturnType<typeof useFinance>['addChartOfAccount']>[0];
 
 export const ChartOfAccountsContent: React.FC = () => {
   const {
     chartOfAccounts,
-    loading,
+    expenseCategories,
     addChartOfAccount,
     updateChartOfAccount,
     deleteChartOfAccount
   } = useFinance();
-  const { expenseCategories } = useAppData();
+
+  const accountRows = useMemo(() => (chartOfAccounts || []).map(account => ({
+    ...account,
+    expense_category_name: account.expense_category_id == null
+      ? account.expense_category_name ?? null
+      : (expenseCategories || []).find(cat => String(cat.id) === String(account.expense_category_id))?.name ?? account.expense_category_name ?? null,
+  })), [chartOfAccounts, expenseCategories]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccount | null>(null);
@@ -39,8 +54,8 @@ export const ChartOfAccountsContent: React.FC = () => {
     name: '', 
     type: AccountType.ASSET, 
     template_type: AccountTemplateType.CUSTOM,
-    is_active: true, 
-    expense_category_id: undefined 
+    is_active: true,
+    expense_category_id: '',
   };
   const [formData, setFormData] = useState<ChartOfAccountFormData>(initialFormData);
 
@@ -53,8 +68,8 @@ export const ChartOfAccountsContent: React.FC = () => {
         type: account.type, 
         template_type: account.template_type, 
         is_active: account.is_active, 
-        expense_category_id: account.expense_category_id 
-      } : 
+        expense_category_id: account.expense_category_id == null ? '' : String(account.expense_category_id),
+      } :
       initialFormData
     );
     setIsModalOpen(true);
@@ -68,8 +83,7 @@ export const ChartOfAccountsContent: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    // @ts-ignore
-    const val = type === 'checkbox' ? e.target.checked : (name === 'expense_category_id' ? (value ? parseInt(value) : undefined) : value);
+    const val = type === 'checkbox' && e.target instanceof HTMLInputElement ? e.target.checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
@@ -79,17 +93,17 @@ export const ChartOfAccountsContent: React.FC = () => {
       toast.showWarning("Account Code, Name, Type, and Template Type are required.");
       return;
     }
-    const payload = { 
-        account_code: formData.account_code!, 
-        name: formData.name!,
-        type: formData.type!,
-        template_type: formData.template_type!,
-        is_active: formData.is_active || false,
-        expense_category_id: formData.expense_category_id || undefined,
-    };
+    const payload = {
+      account_code: formData.account_code,
+      name: formData.name,
+      type: formData.type,
+      template_type: formData.template_type,
+      is_active: formData.is_active,
+      expense_category_id: formData.type === AccountType.EXPENSE && formData.expense_category_id ? formData.expense_category_id : null,
+    } as unknown as ChartOfAccountInput;
 
     if (editingAccount) {
-      await updateChartOfAccount({ ...editingAccount, ...payload });
+      await updateChartOfAccount(String(editingAccount.id), payload);
     } else {
       await addChartOfAccount(payload);
     }
@@ -97,9 +111,9 @@ export const ChartOfAccountsContent: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: ChartOfAccount['id']) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this account? This might affect linked bank accounts or fee templates.' }))) {
-      await deleteChartOfAccount(id);
+      await deleteChartOfAccount(String(id));
     }
   };
 
@@ -215,14 +229,6 @@ export const ChartOfAccountsContent: React.FC = () => {
     }
   ];
 
-  if ((loading.chartOfAccounts || loading.expenseCategories) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Chart of Accounts...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Chart of Accounts Management" actions={
@@ -235,8 +241,7 @@ export const ChartOfAccountsContent: React.FC = () => {
         </p>
         <DataGrid 
           columns={columns} 
-          data={chartOfAccounts || []} 
-          isLoading={loading.chartOfAccounts && isModalOpen}
+          data={accountRows}
           sortable
           filterable
           emptyState={{
@@ -259,7 +264,7 @@ export const ChartOfAccountsContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={loading.chartOfAccounts}>
+            <Button onClick={handleSubmit}>
               {editingAccount ? 'Save Changes' : 'Add Account'}
             </Button>
           </>
@@ -277,7 +282,7 @@ export const ChartOfAccountsContent: React.FC = () => {
             </Select>
 
             {formData.type === AccountType.EXPENSE && (
-                 <Select name="expense_category_id" label="Expense Category (for Expense Type)" value={formData.expense_category_id || ''} onChange={handleInputChange}>
+                 <Select name="expense_category_id" label="Expense Category (for Expense Type)" value={formData.expense_category_id} onChange={handleInputChange}>
                     <option value="">Select Expense Category</option>
                     {(expenseCategories || []).map((cat: ExpenseCategory) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
                 </Select>
@@ -285,7 +290,7 @@ export const ChartOfAccountsContent: React.FC = () => {
            
             <div className="flex items-center mt-2 md:col-span-2">
                 <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500" 
-                    checked={formData.is_active || false} onChange={handleInputChange} />
+                    checked={formData.is_active} onChange={handleInputChange} />
                 <label htmlFor="is_active" className="ml-2 block text-sm text-surface-foreground">Is Active Account</label>
             </div>
         </div>
