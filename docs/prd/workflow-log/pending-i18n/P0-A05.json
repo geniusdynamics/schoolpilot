@@ -1,0 +1,32 @@
+{
+  "task": "P0-A05",
+  "locale": "en",
+  "note": "New keys used with inline English fallbacks in SetupWizard (year/term/financial-year and administrator steps); merge into each locale (en shown; translate for fr, rw, sw).",
+  "namespaces": {
+    "common": {
+      "setupWizard": {
+        "year": {
+          "description": "The year, the dates of each term, and its financial year",
+          "termDates": "Term dates",
+          "financialYear": "Financial year",
+          "financialYearCalendar": "Calendar year",
+          "financialYearCustom": "Other dates",
+          "financialYearHint": "Terms are linked to {{name}}. An existing financial year covering these dates is reused."
+        },
+        "admin": {
+          "title": "Administrator",
+          "description": "The account that manages this school",
+          "exists": "An administrator account already exists. Sign in with it after setup.",
+          "intro": "Create the administrator who will sign in and manage this school. The password needs at least 10 characters.",
+          "username": "Username",
+          "displayName": "Display name",
+          "password": "Password",
+          "confirm": "Confirm password",
+          "detailsRequired": "Enter a username (at least 3 characters) and a display name.",
+          "passwordTooShort": "The password must be at least 10 characters.",
+          "passwordMismatch": "The passwords do not match."
+        }
+      }
+    }
+  }
+}
