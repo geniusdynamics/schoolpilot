@@ -1616,7 +1616,7 @@
       "spec": "",
       "deps_install": false,
       "status": "review",
-      "commit": null,
+      "commit": "ee51aec",
       "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
       "completed_at": null
     },
