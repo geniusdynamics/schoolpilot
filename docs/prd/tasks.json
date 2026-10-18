@@ -1813,10 +1813,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-G12",
