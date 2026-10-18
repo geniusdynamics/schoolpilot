@@ -12,6 +12,48 @@
 import { Tab } from '@/types/tabbedWorkspace';
 
 /**
+ * Root segments of every route the application router registers.
+ *
+ * Module roots mirror the definitions registered by src/core/moduleRegistration.ts;
+ * the remaining entries are the static routes from src/routing/routeConfig.ts and
+ * src/routing/moduleRoutes.tsx. Hub sub-tab ids such as "bulk-streams" are page
+ * state, not roots, so they never appear here.
+ */
+const APP_ROUTE_ROOTS: ReadonlySet<string> = new Set([
+  'dashboard',
+  'login',
+  'settings',
+  'test',
+  'academics',
+  'administration',
+  'admissions',
+  'finance',
+  'hr',
+  'inventory',
+  'library',
+  'nutrition',
+  'portal',
+  'reports'
+]);
+
+/** Static routes whose full pathname is declared outside a module. */
+const STATIC_ROUTE_PATHS: ReadonlySet<string> = new Set([
+  '/login',
+  '/dashboard',
+  '/settings',
+  '/settings/configuration',
+  '/settings/system',
+  '/settings/school',
+  '/settings/unified',
+  '/settings/features',
+  '/settings/data-layer',
+  '/settings/audit-log',
+  '/test/error-tracking',
+  '/portal',
+  '/portal/dashboard'
+]);
+
+/**
  * NavigationItem interface for tab navigation
  * Extended from NavItem with additional properties for tab-specific functionality
  */
@@ -190,6 +232,19 @@ export class RouteToTabMapper {
       return {};
     }
 
+    if (!this.isTabRoutePath(path)) {
+      logger.warn('[RouteToTabMapper] Cannot build a tab from a non-route path:', path);
+      return {};
+    }
+
+    if (!this.navigationItemOwnsPath(path, navigationItem)) {
+      logger.warn('[RouteToTabMapper] Navigation item does not own route; refusing to build a tab:', {
+        path,
+        navigationItemPath: navigationItem?.path
+      });
+      return {};
+    }
+
     const normalizedPath = this.normalizePath(path);
     // The module comes from the navigation item; fall back to 'unknown' when
     // the navigation config does not declare one for this item.
@@ -267,6 +322,78 @@ export class RouteToTabMapper {
     }
 
     return null;
+  }
+
+  /**
+   * Check whether a value is an absolute in-app route path that can back a tab
+   *
+   * Hub sub-tab ids (for example "bulk-streams" or "school-periods") are URL
+   * state, not routes. They must never be coaxed into tab paths by prefixing a
+   * slash — doing so creates a tab that opens the 404 page.
+   *
+   * @param path - Candidate tab path
+   * @returns true when the value is an absolute route path
+   */
+  isTabRoutePath(path: string): boolean {
+    if (typeof path !== 'string') {
+      return false;
+    }
+
+    const trimmed = path.trim();
+    // Absolute paths only. A bare value is a hub sub-tab id, never a route.
+    if (!/^[\\/]/.test(trimmed)) {
+      return false;
+    }
+
+    // Whitespace is only illegal in the pathname; query values may contain
+    // spaces (for example /students?search=John Doe).
+    const rawPathname = trimmed.split(/[?#]/)[0];
+    if (/\s/.test(rawPathname)) {
+      return false;
+    }
+
+    const normalized = this.normalizePath(rawPathname);
+    if (normalized === '/') {
+      return false;
+    }
+
+    return normalized
+      .split('/')
+      .filter(Boolean)
+      .every(segment => !/[\s\\]/.test(segment));
+  }
+
+  /**
+   * Check whether a value resolves to a route the application router renders
+   *
+   * Unlike {@link isTabRoutePath}, this validates the URL after resolution, so
+   * dot-segment input cannot slip a hub sub-tab id past the check:
+   * `/dashboard/../bulk-streams` normalises to `/bulk-streams` and is rejected.
+   *
+   * @param path - Candidate tab path
+   * @returns true when the normalised pathname belongs to the app route table
+   */
+  isKnownAppRoute(path: string): boolean {
+    if (!this.isTabRoutePath(path)) {
+      return false;
+    }
+
+    const resolved = this.resolveRouteURL(path);
+    if (!resolved) {
+      return false;
+    }
+
+    const pathname = this.normalizePath(resolved.pathname);
+    if (pathname === '/') {
+      return false;
+    }
+
+    if (STATIC_ROUTE_PATHS.has(pathname)) {
+      return true;
+    }
+
+    const [root] = pathname.split('/').filter(Boolean);
+    return !!root && APP_ROUTE_ROOTS.has(root);
   }
 
   /**
@@ -377,6 +504,50 @@ export class RouteToTabMapper {
   // =========================================================================
   // Private Helper Methods
   // =========================================================================
+
+  /**
+   * Resolve a candidate path against the app origin
+   *
+   * Returns null for malformed values and for URLs that leave the app origin,
+   * so external or protocol-relative values never look like in-app routes.
+   */
+  private resolveRouteURL(path: string): URL | null {
+    if (typeof window === 'undefined' || !window.location?.origin) {
+      return null;
+    }
+
+    const origin = window.location.origin;
+
+    try {
+      const resolved = new URL(path.trim(), origin);
+      return resolved.origin === origin ? resolved : null;
+    } catch (error) {
+      logger.warn('[RouteToTabMapper] Ignoring malformed route:', path, error);
+      return null;
+    }
+  }
+
+  /**
+   * Check whether a navigation item declares (or owns as a parent) a path
+   */
+  private navigationItemOwnsPath(path: string, navigationItem?: NavigationItem | null): boolean {
+    if (!navigationItem?.path) {
+      return false;
+    }
+
+    const normalizedPath = this.normalizePath(path);
+    const normalizedItemPath = this.normalizePath(navigationItem.path);
+
+    if (normalizedItemPath === '/') {
+      return normalizedPath !== '/';
+    }
+
+    if (normalizedItemPath.includes('/:')) {
+      return this.doesPathMatchPattern(normalizedPath, normalizedItemPath);
+    }
+
+    return normalizedPath === normalizedItemPath || normalizedPath.startsWith(`${normalizedItemPath}/`);
+  }
 
   /**
    * Find exact path match in navigation items

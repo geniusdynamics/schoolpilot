@@ -1,24 +1,36 @@
-import React, { useState } from 'react';
-import { StudentCategory } from '@/types'; // StudentCategory is a core type
+// ABOUTME: Student categories page — grid plus add/edit/delete dialog backed by 'student_categories'.
+// ABOUTME: CRUD goes through useAdministration() with update(id, patch) and string ids.
+
+import React, { useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useAdministration } from '../hooks/useAdministration';
 import { useTranslation } from 'react-i18next';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
+/** A student category as shown in the grid; ids are strings at runtime. */
+interface StudentCategoryRow {
+  id: string;
+  name: string;
+}
+
 export const StudentCategoriesContent: React.FC = () => {
-  const { studentCategories, loading, addStudentCategory, updateStudentCategory, deleteStudentCategory } = useAppData();
+  const { studentCategories, addStudentCategory, updateStudentCategory, deleteStudentCategory } = useAdministration();
   const { t } = useTranslation('administration');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<StudentCategory | null>(null);
+  const [editingCategory, setEditingCategory] = useState<StudentCategoryRow | null>(null);
 
-  const openModal = (category?: StudentCategory) => {
+  const rows = useMemo<StudentCategoryRow[]>(
+    () => studentCategories.map(category => ({ ...category, id: String(category.id) })),
+    [studentCategories]
+  );
+
+  const openModal = (category?: StudentCategoryRow) => {
     setEditingCategory(category || null);
     setIsModalOpen(true);
   };
@@ -29,20 +41,20 @@ export const StudentCategoriesContent: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this category?' }))) {
       await deleteStudentCategory(id);
     }
   };
 
-  const columns: DataGridColumn<StudentCategory>[] = [
+  const columns: DataGridColumn<StudentCategoryRow>[] = [
     { 
       key: 'id', 
       header: 'ID', 
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { 
       key: 'name', 
@@ -50,7 +62,7 @@ export const StudentCategoriesContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, item) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     {
       key: 'actions',
@@ -68,14 +80,6 @@ export const StudentCategoriesContent: React.FC = () => {
     },
   ];
 
-  if (loading.studentCategories && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Student Categories...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title={t('studentCategories.title')} actions={
@@ -85,8 +89,7 @@ export const StudentCategoriesContent: React.FC = () => {
       }>
         <DataGrid 
           columns={columns} 
-          data={studentCategories || []} 
-          loading={loading.studentCategories}
+          data={rows}
           sortable={true}
           filterable={true}
           emptyState={
@@ -111,7 +114,7 @@ export const StudentCategoriesContent: React.FC = () => {
         onSubmit={async (values) => {
           const payload = { name: String(values.name ?? '') };
           if (editingCategory) {
-            await updateStudentCategory({ ...editingCategory, ...payload });
+            await updateStudentCategory(editingCategory.id, payload);
           } else {
             await addStudentCategory(payload);
           }

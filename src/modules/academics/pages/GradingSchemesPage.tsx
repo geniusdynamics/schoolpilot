@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { GradingScheme, GradingSchemeLevel } from '@/modules/academics/data/types'; // Corrected import
+// ABOUTME: Grading schemes page — schemes with their grade levels (grade, minimum score, points, comment).
+// ABOUTME: CRUD goes through the academics module context with update(id, patch); levels live on the scheme record.
+
+import React, { useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -9,25 +11,42 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { databaseService } from '@/services/database/databaseService';
+import { logger } from '@/utils/logging';
+import { useAcademicDataContext } from '../data/AcademicDataContext';
 import { DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
-type GradingSchemeFormData = Omit<Partial<GradingScheme>, 'id' | 'created_at' | 'updated_at' | 'levels'>;
-type LevelFormData = Omit<Partial<GradingSchemeLevel>, 'id' | 'scheme_id'>;
+/** A grade level stored on its scheme; ids are strings (older seed rows may carry numbers). */
+interface GradingSchemeLevel {
+  id: string | number;
+  scheme_id: string | number;
+  grade: string;
+  min_score: number;
+  points?: number;
+  comment?: string;
+}
+
+interface GradingScheme {
+  id: string;
+  name: string;
+  is_default: boolean;
+  levels?: GradingSchemeLevel[];
+}
+
+type GradingSchemeFormData = Partial<Pick<GradingScheme, 'name' | 'is_default'>>;
+type LevelFormData = Partial<Omit<GradingSchemeLevel, 'id' | 'scheme_id'>>;
 
 export const GradingSchemesContent: React.FC = () => {
-  const { 
-    gradingSchemes, 
-    loading, 
-    addGradingScheme, 
-    updateGradingScheme, 
-    deleteGradingScheme 
-  } = useAppData(); // Updated
-  
+  const academic = useAcademicDataContext();
+  const { addGradingScheme, updateGradingScheme, deleteGradingScheme } = academic;
+  const gradingSchemes = useMemo<GradingScheme[]>(() =>
+    (academic.gradingSchemes as unknown as GradingScheme[]).map(scheme => ({ ...scheme, id: String(scheme.id) })),
+  [academic.gradingSchemes]);
+  const [isSaving, setIsSaving] = useState(false);
+
   const { t } = useTranslation('academics');
   
   const [isSchemeModalOpen, setIsSchemeModalOpen] = useState(false);
@@ -88,17 +107,25 @@ export const GradingSchemesContent: React.FC = () => {
       return;
     }
     const payload = {
-      name: schemeFormData.name!,
+      name: schemeFormData.name,
       is_default: schemeFormData.is_default || false,
       levels: editingScheme?.levels || [] // Preserve existing levels if editing
     };
 
-    if (editingScheme) {
-      await updateGradingScheme(String(editingScheme.id), payload);
-    } else {
-      await addGradingScheme(payload);
+    setIsSaving(true);
+    try {
+      if (editingScheme) {
+        await updateGradingScheme(editingScheme.id, payload as never);
+      } else {
+        await addGradingScheme(payload as never);
+      }
+      closeSchemeModal();
+    } catch (error) {
+      logger.error('Failed to save grading scheme:', error);
+      toast.showError('Failed to save grading scheme.');
+    } finally {
+      setIsSaving(false);
     }
-    closeSchemeModal();
   };
 
   const toast = useToast();
@@ -121,13 +148,13 @@ export const GradingSchemesContent: React.FC = () => {
         min_score: Number(levelFormData.min_score!),
         points: levelFormData.points,
         comment: levelFormData.comment,
-        id: Date.now(), // Mock ID
+        id: databaseService.generateId(),
         scheme_id: currentSchemeForLevels.id,
       };
       updatedLevels = [...(currentSchemeForLevels.levels || []), newLevel];
     }
     
-    await updateGradingScheme(String(currentSchemeForLevels.id), { levels: updatedLevels, updated_at: now });
+    await updateGradingScheme(currentSchemeForLevels.id, { levels: updatedLevels, updated_at: now } as never);
     // Optimistically update the current scheme for levels display if modal stays open for multiple adds
     setCurrentSchemeForLevels(prev => prev ? {...prev, levels: updatedLevels, updated_at: now} : null);
     setEditingLevel(null); // Reset for next add
@@ -136,17 +163,17 @@ export const GradingSchemesContent: React.FC = () => {
   };
   
   const confirm = useConfirm();
-  const handleDeleteScheme = async (id: number) => {
+  const handleDeleteScheme = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this grading scheme? All its levels will also be deleted.' }))) {
-      await deleteGradingScheme(String(id));
+      await deleteGradingScheme(id);
     }
   };
 
-  const handleDeleteLevel = async (levelId: number) => {
+  const handleDeleteLevel = async (levelId: string | number) => {
     if (!currentSchemeForLevels) return;
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this grading level?' }))) {
       const updatedLevels = (currentSchemeForLevels.levels || []).filter(l => l.id !== levelId);
-      await updateGradingScheme(String(currentSchemeForLevels.id), { levels: updatedLevels, updated_at: new Date().toISOString() });
+      await updateGradingScheme(currentSchemeForLevels.id, { levels: updatedLevels, updated_at: new Date().toISOString() } as never);
       setCurrentSchemeForLevels(prev => prev ? {...prev, levels: updatedLevels, updated_at: new Date().toISOString()} : null);
     }
   };
@@ -186,15 +213,7 @@ export const GradingSchemesContent: React.FC = () => {
     },
   ];
 
-  if (loading.gradingSchemes && !isSchemeModalOpen && !isLevelModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Grading Schemes...</span>
-      </div>
-    );
-  }
-
-  return (
+return (
     <div className="space-y-6">
       <Card title="Grading Schemes Management" actions={
         <Button onClick={() => openSchemeModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
@@ -216,7 +235,7 @@ export const GradingSchemesContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeSchemeModal}>Cancel</Button>
-            <Button type="submit" loading={loading.gradingSchemes}>
+            <Button onClick={handleSchemeSubmit} loading={isSaving}>
               {editingScheme ? 'Save Changes' : 'Add Scheme'}
             </Button>
           </FormActions>

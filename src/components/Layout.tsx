@@ -11,6 +11,7 @@ import { useFullWidth } from '../contexts/FullWidthContext';
 import { useSecondarySidebar, SECONDARY_SIDEBAR_WIDTHS } from '../contexts/SecondarySidebarContext';
 import { useTabs } from '../hooks/tabs';
 import type { Tab } from '../services/tabs/types';
+import { routeToTabMapper } from '../services/tabs/RouteToTabMapper';
 import { normalizeModuleId } from '../utils/moduleStyles';
 import Header from './Header';
 import PrimarySidebar from './PrimarySidebar';
@@ -171,9 +172,13 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     const currentPath = location.pathname + location.search;
     if (currentPath === '/') return;
 
+    // Never mirror a path the router cannot render (for example a stale
+    // #/bulk-streams hit): unknown routes must not become workspace tabs.
+    if (!routeToTabMapper.isKnownAppRoute(currentPath)) return;
+
     // Check if current URL already has a matching tab
     const hasMatchingTab = tabs.some(
-      t => t.url === currentPath || t.url === location.pathname
+      t => t.path === currentPath || t.path === location.pathname
     );
 
     if (!hasMatchingTab) {
@@ -191,7 +196,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (!navLoading) {
       const path = location.pathname;
-      const moduleMatch = path.match(/^\/([^\/]+)/);
+      const moduleMatch = path.match(/^\/([^/]+)/);
       if (moduleMatch && moduleMatch[1]) {
         const moduleId = normalizeModuleId(moduleMatch[1]);
         setSelectedModuleKey(moduleId);

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { MealPlan } from '@/types';
-import { Card, DataGrid, Button, Modal, Input, Textarea, Toast, Spinner } from '@/components/ui';
+import { Card, DataGrid, Button, Modal, Input, Textarea, Toast } from '@/components/ui';
 
-import { useAppData } from '@/hooks/useAppData';
+import { useNutrition } from '../hooks/useNutrition';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
@@ -10,7 +10,7 @@ import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_at'>;
 
 export const MealPlansPageContent: React.FC = () => {
-  const { mealPlans, loading, addMealPlan, updateMealPlan, deleteMealPlan } = useAppData();
+  const { mealPlans, addMealPlan, updateMealPlan, deleteMealPlan } = useNutrition();
   const { t } = useTranslation('nutrition');
   const confirm = useConfirm();
   
@@ -20,6 +20,7 @@ export const MealPlansPageContent: React.FC = () => {
   const [formData, setFormData] = useState<MealPlanFormData>(initialFormData);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const openModal = (plan?: MealPlan) => {
     setEditingPlan(plan || null);
@@ -52,26 +53,29 @@ export const MealPlansPageContent: React.FC = () => {
       cost_per_period: Number(formData.cost_per_period) || 0, // Default to 0 if undefined/NaN
     };
 
+    setSaving(true);
     try {
       if (editingPlan) {
-        await updateMealPlan({ ...editingPlan, ...payload });
+        await updateMealPlan(String(editingPlan.id), payload);
         setToast({ message: `Meal plan "${formData.name}" updated successfully!`, type: 'success' });
       } else {
         await addMealPlan(payload);
         setToast({ message: `Meal plan "${formData.name}" created successfully!`, type: 'success' });
       }
       closeModal();
-    } catch (error) {
+    } catch {
       setToast({ message: 'Failed to save meal plan. Please try again.', type: 'error' });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (await confirm({ title: 'Delete meal plan', message: 'Are you sure you want to delete this meal plan?', variant: 'danger' })) {
       try {
         await deleteMealPlan(id);
         setToast({ message: 'Meal plan deleted successfully!', type: 'success' });
-      } catch (error) {
+      } catch {
         setToast({ message: 'Failed to delete meal plan. Please try again.', type: 'error' });
       }
     }
@@ -87,11 +91,11 @@ export const MealPlansPageContent: React.FC = () => {
     if (await confirm({ title: 'Delete meal plans', message: `Are you sure you want to delete ${selectedRows.length} meal plan(s)?`, variant: 'danger' })) {
       try {
         for (const id of selectedRows) {
-          await deleteMealPlan(parseInt(id));
+          await deleteMealPlan(id);
         }
         setToast({ message: `${selectedRows.length} meal plan(s) deleted successfully!`, type: 'success' });
         setSelectedRows([]);
-      } catch (error) {
+      } catch {
         setToast({ message: 'Failed to delete some meal plans. Please try again.', type: 'error' });
       }
     }
@@ -127,20 +131,12 @@ export const MealPlansPageContent: React.FC = () => {
       render: (_v: any, item: MealPlan) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(String(item.id))} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
       width: 200
     },
   ];
-
-  if (loading.mealPlans && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Meal Plans...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -166,7 +162,6 @@ export const MealPlansPageContent: React.FC = () => {
         <DataGrid 
           columns={columns} 
           data={mealPlans} 
-          loading={loading.mealPlans && isModalOpen}
           selectable
           onSelectionChange={(rows) => setSelectedRows(rows.map(r => String(r.id)))}
           sortable
@@ -188,7 +183,7 @@ export const MealPlansPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('mealPlans.cancel')}</Button>
-            <Button onClick={handleSubmit} loading={loading.mealPlans}>
+            <Button onClick={handleSubmit} loading={saving}>
               {editingPlan ? t('mealPlans.saveChanges') : t('mealPlans.addPlan')}
             </Button>
           </>

@@ -17,6 +17,9 @@ import { InvSupplierContractType, InvContractStatusEnum } from '../data/types';
 import { useTranslation } from 'react-i18next';
 import { format, differenceInDays, parseISO } from 'date-fns';
 
+/** Contract form state; supplier ids are strings (UUIDs) at runtime and are never coerced. */
+type ContractFormData = Omit<Partial<InvSupplierContractType>, 'supplier_id'> & { supplier_id?: string | number };
+
 export const SupplierContractsPageContent: React.FC = () => {
   const { t } = useTranslation();
   const toast = useToast();
@@ -38,8 +41,8 @@ export const SupplierContractsPageContent: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingContract, setEditingContract] = useState<InvSupplierContractType | null>(null);
-  const [formData, setFormData] = useState<Partial<InvSupplierContractType>>({
-    supplier_id: 0,
+  const [formData, setFormData] = useState<ContractFormData>({
+    supplier_id: '',
     contract_number: '',
     title: '',
     description: '',
@@ -87,7 +90,7 @@ export const SupplierContractsPageContent: React.FC = () => {
     } else {
       setEditingContract(null);
       setFormData({
-        supplier_id: 0,
+        supplier_id: '',
         contract_number: '',
         title: '',
         description: '',
@@ -120,10 +123,9 @@ export const SupplierContractsPageContent: React.FC = () => {
         toast.showSuccess(t('inventory.contracts.updated'));
       } else {
         const now = new Date().toISOString();
-        const supplier = suppliers?.find(s => s.id === formData.supplier_id);
+        const supplier = suppliers?.find(s => String(s.id) === String(formData.supplier_id));
         await create({
           ...formData,
-          id: Date.now(), // Simple ID generation for demo
           supplier_name: supplier?.name || '',
           created_at: now,
           updated_at: now
@@ -350,8 +352,8 @@ export const SupplierContractsPageContent: React.FC = () => {
           />
           <Select
             label={t('inventory.contracts.supplier')}
-            value={formData.supplier_id || ''}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, supplier_id: Number(e.target.value) })}
+            value={formData.supplier_id ? String(formData.supplier_id) : ''}
+            onValueChange={(value) => setFormData({ ...formData, supplier_id: String(value) })}
             required
             options={(suppliers || []).map((supplier) => ({
               value: supplier.id,

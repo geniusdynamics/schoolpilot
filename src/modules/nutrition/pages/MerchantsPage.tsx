@@ -11,35 +11,39 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useNutrition } from '../hooks/useNutrition';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
-type MerchantFormData = Omit<Partial<Merchant>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
+// GL account ids are opaque strings (UUIDs); never coerce them to numbers (SO-22).
+type MerchantFormData = { name?: string; gl_account_id?: string };
 
 export const MerchantsPageContent: React.FC = () => {
-  const { 
-    merchants, 
-    chartOfAccounts,
-    loading, 
-    addMerchant, 
-    updateMerchant, 
-    deleteMerchant 
-  } = useAppData();
+  // Chart of accounts is cross-domain read data; merchant CRUD lives on the nutrition module hook.
+  const { chartOfAccounts } = useAppData();
+  const { merchants, addMerchant, updateMerchant, deleteMerchant } = useNutrition();
   const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMerchant, setEditingMerchant] = useState<Merchant | null>(null);
   const initialFormData: MerchantFormData = { name: '', gl_account_id: undefined };
   const [formData, setFormData] = useState<MerchantFormData>(initialFormData);
+  const [saving, setSaving] = useState(false);
 
   const revenueAccounts = useMemo(() => 
-    chartOfAccounts.filter(coa => coa.type === AccountType.REVENUE && coa.is_active), 
+    (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), 
   [chartOfAccounts]);
+
+  // Resolve the GL account name at read time so renamed accounts show their current name.
+  const glAccountName = (merchant: Merchant): string | null | undefined => {
+    if (merchant.gl_account_id == null) return merchant.gl_account_name;
+    const account = (chartOfAccounts || []).find(coa => String(coa.id) === String(merchant.gl_account_id));
+    return account ? `${account.account_code} - ${account.name}` : merchant.gl_account_name;
+  };
 
   const openModal = (merchant?: Merchant) => {
     setEditingMerchant(merchant || null);
     setFormData(merchant ? 
-      { name: merchant.name, gl_account_id: merchant.gl_account_id } : 
+      { name: merchant.name, gl_account_id: merchant.gl_account_id != null ? String(merchant.gl_account_id) : undefined } : 
       initialFormData
     );
     setIsModalOpen(true);
@@ -53,7 +57,7 @@ export const MerchantsPageContent: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'gl_account_id' ? (value ? parseInt(value) : undefined) : value }));
+    setFormData(prev => ({ ...prev, [name]: name === 'gl_account_id' ? (value || undefined) : value }));
   };
 
   const handleSubmit = async () => {
@@ -61,20 +65,25 @@ export const MerchantsPageContent: React.FC = () => {
       alert("Merchant name is required.");
       return;
     }
-    const payload: Omit<Merchant, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'> = {
-      name: formData.name!,
-      gl_account_id: formData.gl_account_id ? Number(formData.gl_account_id) : undefined,
+    const payload = {
+      name: formData.name,
+      gl_account_id: formData.gl_account_id || null,
     };
 
-    if (editingMerchant) {
-      await updateMerchant({ ...editingMerchant, ...payload });
-    } else {
-      await addMerchant(payload);
+    setSaving(true);
+    try {
+      if (editingMerchant) {
+        await updateMerchant(String(editingMerchant.id), payload);
+      } else {
+        await addMerchant(payload);
+      }
+      closeModal();
+    } finally {
+      setSaving(false);
     }
-    closeModal();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (await confirm({ title: 'Delete merchant', message: 'Are you sure you want to delete this merchant?', variant: 'danger' })) {
       await deleteMerchant(id);
     }
@@ -101,7 +110,7 @@ export const MerchantsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => row.gl_account_name || 'N/A'
+      render: (value, row) => glAccountName(row) || 'N/A'
     },
     {
       key: 'actions',
@@ -113,19 +122,11 @@ export const MerchantsPageContent: React.FC = () => {
       render: (value, row) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(String(row.id))} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
   ];
-
-  if ((loading.merchants || loading.chartOfAccounts) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Merchants...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -140,7 +141,6 @@ export const MerchantsPageContent: React.FC = () => {
         <DataGrid 
           columns={columns} 
           data={merchants || []} 
-          isLoading={loading.merchants && isModalOpen}
           sortable
           filterable
           emptyState={{
@@ -189,8 +189,8 @@ export const MerchantsPageContent: React.FC = () => {
           </FormField>
         </FormSection>
         <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} loading={loading.merchants}>
+          <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit" loading={saving}>
             {editingMerchant ? 'Save Changes' : 'Add Merchant'}
           </Button>
         </FormActions>

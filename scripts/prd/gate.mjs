@@ -95,7 +95,15 @@ async function measureProbe() {
 // ---------------------------------------------------------------------------
 function resolveBase() {
   const wanted = option('base');
-  if (wanted) return wanted;
+  // Resolve a caller-supplied ref to a full SHA before it reaches a shell: on Windows, cmd.exe
+  // strips the caret in refs such as `<sha>^`, which would silently diff against HEAD and skip
+  // the content checks while still reporting GATE PASSED.
+  if (wanted) {
+    const resolved = shOk(`git rev-parse --verify --quiet "${wanted}"`).out.trim();
+    if (resolved) return resolved;
+    console.error(`WARN unknown --base ref "${wanted}"; gating against HEAD checks no changed files`);
+    return 'HEAD';
+  }
   for (const ref of ['origin/consolidation', 'consolidation']) {
     if (shOk(`git rev-parse --verify --quiet ${ref}`).ok) return sh(`git merge-base ${ref} HEAD`).trim();
   }

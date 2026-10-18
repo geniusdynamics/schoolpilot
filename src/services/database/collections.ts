@@ -49,6 +49,8 @@ const schoolDetailsSchema: DatabaseSchema = createDatabaseSchema({
     school_type: { type: 'string', enum: ['Public', 'Private', 'International'] },
     head_teacher_name: { type: 'string', maxLength: 200 },
     school_code: { type: 'string', maxLength: 50 },
+    /** Set when the setup wizard is finished (ISO date-time); empty until then. */
+    setup_completed_at: { type: 'string', format: 'date-time' },
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' }
   },

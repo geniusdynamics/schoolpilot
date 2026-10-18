@@ -4,7 +4,7 @@
 import React from 'react';
 import { render as rtlRender, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import ts from 'typescript';
 import { AppDataContext } from '@/contexts/AppDataContext';
 import { TestProviders } from '@/tests/setup';
@@ -130,6 +130,23 @@ afterEach(() => {
 });
 
 describe('crawl crash pages (SO-27) render without throwing', () => {
+  // Pre-warm every heavy page graph once so each test's 20s budget covers its assertions, not a
+  // cold dynamic import: under parallel load the finance/academics graphs exceeded that budget.
+  beforeAll(async () => {
+    await Promise.all([
+      import('@/modules/academics/pages/ExamAnalysisContent'),
+      import('@/modules/admissions/pages/ApplicationReviewPage'),
+      import('@/modules/finance/pages/AccountLedgerPage'),
+      import('@/modules/finance/pages/FeesDueReportPage'),
+      import('@/modules/finance/pages/PaymentAllocationPage'),
+      import('@/modules/finance/pages/TransportRoutesPage'),
+      import('@/modules/library/pages/BooksPage'),
+      import('@/modules/library/pages/FinesPage'),
+      import('@/modules/nutrition/pages/KitchenManagementPage'),
+      import('@/modules/reports/pages/analytics/AnalyticsSubjectPage'),
+      import('@/modules/settings/pages/AuditLogPage'),
+    ]);
+  }, 120000);
   describe('Finance › Account Ledger', () => {
     it('renders empty', async () => {
       const { default: Page } = await import('@/modules/finance/pages/AccountLedgerPage');
@@ -197,14 +214,11 @@ describe('crawl crash pages (SO-27) render without throwing', () => {
 
     it('renders a seeded route that has no cost recorded', async () => {
       const { default: Page } = await import('@/modules/finance/pages/TransportRoutesPage');
-      renderPage(<Page />, {
-        appData: {
-          transportRoutes: [
-            { id: 1, name: 'Route A - Westlands', cost_per_period: 12000, gl_revenue_account_name: 'Transport Fees' },
-            { id: 2, name: 'Route B - Karen', gl_revenue_account_name: 'Transport Fees' },
-          ],
-        },
-      });
+      seed.collections.transport_routes = [
+        { id: 1, name: 'Route A - Westlands', cost_per_period: 12000, gl_revenue_account_name: 'Transport Fees' },
+        { id: 2, name: 'Route B - Karen', gl_revenue_account_name: 'Transport Fees' },
+      ];
+      renderPage(<Page />);
       expect(await screen.findByText('Route B - Karen')).toBeInTheDocument();
       expect(screen.getByText('12000.00')).toBeInTheDocument();
     });
@@ -236,14 +250,11 @@ describe('crawl crash pages (SO-27) render without throwing', () => {
 
     it('renders a seeded fine without an amount', async () => {
       const { default: Page } = await import('@/modules/library/pages/FinesPage');
-      renderPage(<Page />, {
-        appData: {
-          fines: [
-            { id: 'f1', book_title: 'Blossoms of the Savannah', user_name: 'Amina', amount: 50, status: 'Pending' },
-            { id: 'f2', book_title: 'Kifo Kisimani', user_name: 'Baraka', status: 'Pending' },
-          ],
-        },
-      });
+      seed.collections.fines = [
+        { id: 'f1', book_title: 'Blossoms of the Savannah', user_name: 'Amina', amount: 50, status: 'Pending' },
+        { id: 'f2', book_title: 'Kifo Kisimani', user_name: 'Baraka', status: 'Pending' },
+      ];
+      renderPage(<Page />);
       expect(await screen.findByText('Kifo Kisimani')).toBeInTheDocument();
       expect(screen.getByText('50.00')).toBeInTheDocument();
     });

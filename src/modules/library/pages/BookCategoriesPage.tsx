@@ -1,5 +1,8 @@
+// ABOUTME: Library book categories page - lists categories and lets staff add, rename or delete them.
+// ABOUTME: Reads and writes the book_categories collection through the library module hook.
+
 import React, { useState } from 'react';
-import { BookCategory } from '@/types';
+import { useLibraryData, type LibraryBookCategory as BookCategory } from '../data/useLibraryData';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -9,7 +12,6 @@ import FormActions from '@/components/ui/forms/FormActions';
 import FormSection from '@/components/ui/forms/FormSection';
 import Input from '@/components/ui/Input';
 
-import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +20,7 @@ import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 
 export const BookCategoriesPageContent: React.FC = () => {
-  const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useAppData(); // Updated
+  const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useLibraryData();
   const { t } = useTranslation('library');
   const confirm = useConfirm();
   
@@ -52,14 +54,14 @@ export const BookCategoriesPageContent: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingCategory) {
-      await updateBookCategory({ ...editingCategory, ...payload });
+      await updateBookCategory(editingCategory.id, payload);
     } else {
       await addBookCategory(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (await confirm({ title: 'Delete book category', message: 'Are you sure you want to delete this book category? This may affect existing books.', variant: 'danger' })) {
       await deleteBookCategory(id);
     }

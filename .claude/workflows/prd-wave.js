@@ -1,12 +1,12 @@
 export const meta = {
   name: 'prd-wave',
   description: 'Run one PRD wave: implement and verify tasks in parallel worktrees, integrate serially behind the gate, write the wave log',
-  whenToUse: 'Execute the next open wave of docs/prd (find it with: node scripts/prd/status.mjs). Args: { wave, date, push?, only?, maxParallel?, trailers? }',
+  whenToUse: 'Execute the next open wave of docs/prd (find it with: node scripts/prd/status.mjs). Args: { wave, date, push?, pushTo?, only?, maxParallel?, trailers?, models?, opusTasks? }',
   phases: [
     { title: 'Load', detail: 'read runnable tasks of the wave from docs/prd/tasks.json' },
     { title: 'Implement', detail: 'one implementer per task in its own git worktree, test first, task gate' },
     { title: 'Verify', detail: 'adversarial verifier per task; one fix round when blocking findings exist' },
-    { title: 'Integrate', detail: 'serial squash-merge onto consolidation, gate, one commit per task' },
+    { title: 'Integrate', detail: 'as each task is approved: serial squash-merge onto consolidation, gate, commit, push to pushTo' },
     { title: 'Log', detail: 'wave log, ledger commit shas, PROGRESS.md, optional push' },
   ],
 }
@@ -20,6 +20,25 @@ const WAVE = A.wave
 const DATE = A.date
 const MAX_PARALLEL = A.maxParallel || 4
 const TRAILERS = A.trailers || 'Co-Authored-By: Claude <noreply@anthropic.com>'
+
+// Model policy (docs/prd/workflow-log/decisions/2026-10-17-model-policy.md): cheap models for mechanical
+// stages, Sonnet implements at an effort matched to task size, Opus reviews large tasks and every re-review.
+// Override any role with args.models = { role: { model, effort } }; args.opusTasks forces Opus for a task.
+const SIZE_EFFORT = { S: 'low', M: 'medium', L: 'high' }
+function route(role, t) {
+  const size = (t && t.size) || 'M'
+  const forced = t && (A.opusTasks || []).includes(t.id)
+  const defaults = {
+    load: { model: 'haiku', effort: 'low' },
+    implement: forced ? { model: 'opus', effort: 'medium' } : { model: 'sonnet', effort: SIZE_EFFORT[size] || 'medium' },
+    verify: size === 'L' || forced ? { model: 'opus', effort: 'medium' } : { model: 'sonnet', effort: 'high' },
+    fix: size === 'L' || forced ? { model: 'opus', effort: 'medium' } : { model: 'sonnet', effort: 'high' },
+    reverify: { model: 'opus', effort: 'medium' },
+    integrate: { model: 'haiku', effort: 'medium' },
+    log: { model: 'haiku', effort: 'medium' },
+  }
+  return Object.assign({}, defaults[role], (A.models || {})[role])
+}
 
 const COMMON = `
 Repository: SchoolPilot (React + TypeScript + Vite). Integration branch: consolidation.
@@ -79,7 +98,7 @@ const INTEGRATION = {
   required: ['id', 'status'],
 }
 
-const card = (t) => JSON.stringify({ id: t.id, title: t.title, lane: t.lane, files: t.files, acceptance: t.acceptance, test: t.test, spec: t.spec, findings: t.findings, reqs: t.reqs, depends_on: t.depends_on, deps_install: t.deps_install }, null, 2)
+const card = (t) => JSON.stringify({ id: t.id, size: t.size, title: t.title, lane: t.lane, files: t.files, acceptance: t.acceptance, test: t.test, spec: t.spec, findings: t.findings, reqs: t.reqs, depends_on: t.depends_on, deps_install: t.deps_install }, null, 2)
 
 // Small concurrency pool so heavy gates (typecheck) do not exhaust the machine
 async function pool(items, limit, fn) {
@@ -105,14 +124,14 @@ Do not modify anything.`,
   {
     label: `load:${WAVE}`,
     phase: 'Load',
-    effort: 'low',
+    ...route('load'),
     schema: {
       type: 'object',
       properties: {
         wave: { type: 'string' },
         description: { type: 'string' },
         tasks: { type: 'array', items: { type: 'object', properties: {
-          id: { type: 'string' }, lane: { type: 'string' }, title: { type: 'string' }, status: { type: 'string' }, runnable: { type: 'boolean' },
+          id: { type: 'string' }, lane: { type: 'string' }, size: { type: 'string' }, title: { type: 'string' }, status: { type: 'string' }, runnable: { type: 'boolean' },
           waiting_on: { type: 'array', items: { type: 'string' } }, files: { type: 'array', items: { type: 'string' } },
           acceptance: { type: 'array', items: { type: 'string' } }, test: { type: 'string' }, spec: { type: 'string' },
           findings: { type: 'array', items: { type: 'string' } }, reqs: { type: 'array', items: { type: 'string' } },
@@ -131,6 +150,7 @@ if (!tasks.length) {
   log(`Nothing runnable in ${WAVE}.`)
   return { wave: WAVE, runnable: 0, skipped: skipped.map((t) => t.id) }
 }
+tasks.forEach((t) => log(`${t.id} [${t.size || '?'}]: implement ${route('implement', t).model}/${route('implement', t).effort}, verify ${route('verify', t).model}`))
 log(`${tasks.length} runnable task(s) in ${WAVE}; up to ${MAX_PARALLEL} at a time`)
 
 // ---------------------------------------------------------------------------
@@ -185,31 +205,21 @@ ${JSON.stringify((v.acceptance || []).filter((a) => !a.met), null, 2)}
 Same rules as the implementer: stay within the card's files, test first, gate until GATE PASSED, commit on the branch ("wip(${t.id}): address review"), do not push.
 Return the same structure as the implementer (branch = prd/${t.id}-fix1).`
 
-const reviewed = await pool(tasks, MAX_PARALLEL, async (t) => {
-  const impl = await agent(implementPrompt(t), { label: `implement:${t.id}`, phase: 'Implement', isolation: 'worktree', schema: TASK_RESULT })
-  if (!impl || impl.status !== 'ready' || !impl.gate_passed) return { task: t, impl, outcome: 'blocked', reason: impl ? (impl.blockers || []).join('; ') || 'gate did not pass' : 'implementer failed' }
-  let v = await agent(verifyPrompt(t, impl), { label: `verify:${t.id}`, phase: 'Verify', isolation: 'worktree', schema: VERDICT })
-  if (v && v.verdict === 'approve') return { task: t, impl, verdict: v, branch: impl.branch, outcome: 'approved' }
-  const fix = await agent(fixPrompt(t, impl, v || { blocking_findings: [{ issue: 'verifier failed to run', fix: 're-run gate and self-review' }] }), { label: `fix:${t.id}`, phase: 'Verify', isolation: 'worktree', schema: TASK_RESULT })
-  if (!fix || fix.status !== 'ready' || !fix.gate_passed) return { task: t, impl, verdict: v, fix, outcome: 'review', reason: 'fix round did not pass the gate' }
-  const v2 = await agent(verifyPrompt(t, fix), { label: `re-verify:${t.id}`, phase: 'Verify', isolation: 'worktree', schema: VERDICT })
-  if (v2 && v2.verdict === 'approve') return { task: t, impl: fix, verdict: v2, branch: fix.branch, outcome: 'approved' }
-  return { task: t, impl: fix, verdict: v2, outcome: 'review', reason: 'still has blocking findings after one fix round' }
-})
-
 // ---------------------------------------------------------------------------
-// Integrate (strictly serial, in the main checkout)
+// Integrate: as soon as a task is approved, strictly one at a time in the main checkout,
+// then commit and push it so each finished task is on GitHub without waiting for the wave.
 // ---------------------------------------------------------------------------
-phase('Integrate')
-const approved = reviewed.filter((r) => r && r.outcome === 'approved').sort((a, b) => a.task.id.localeCompare(b.task.id))
+const PUSH_TO = A.pushEach === false ? null : (A.pushTo || null)
 const integrations = []
-for (const r of approved) {
+let lock = Promise.resolve()
+function integrate(r) {
   const t = r.task
-  const res = await agent(`${COMMON}
+  const run = lock.then(async () => {
+    const res = await agent(`${COMMON}
 You are the INTEGRATOR for PRD task ${t.id}. You work in the main checkout (not a worktree). Work strictly on this one task.
 1. git switch consolidation; confirm "git status --porcelain" shows no tracked changes (stop with status "blocked" if it does).
 2. git merge --squash ${r.branch}
-   Conflicts: resolve only mechanical ones (imports, adjacent edits); otherwise run "git reset --hard HEAD" and return blocked with the conflicting files.
+   Any conflict at all: "git reset --hard HEAD" and return blocked with the conflicting files.
 3. If pnpm-lock.yaml changed: pnpm install --frozen-lockfile
 4. Gate on the integrated result: node scripts/prd/gate.mjs task --task ${t.id} --base HEAD
    On FAIL: git reset --hard HEAD; node scripts/prd/status.mjs --set ${t.id} blocked --note "integration gate failed: <check ids>"; return blocked (do not commit).
@@ -225,11 +235,32 @@ You are the INTEGRATOR for PRD task ${t.id}. You work in the main checkout (not 
      Gate: task PASS — <one-line summary of G1–G7>${r.impl.test_waiver ? '\n     Test waiver: ' + r.impl.test_waiver : ''}
 
      ${TRAILERS}
-   Use type fix/feat/refactor/test/chore/docs/ci as appropriate. Do not push.
-6. Return id, status "integrated", commit_sha (git rev-parse HEAD), gate_table (.prd-gate/report.md).`,
-    { label: `integrate:${t.id}`, phase: 'Integrate', schema: INTEGRATION })
-  integrations.push(res || { id: t.id, status: 'blocked', reason: 'integrator failed' })
+   Use type fix/feat/refactor/test/chore/docs/ci as appropriate.
+6. node scripts/prd/status.mjs --set ${t.id} done --commit $(git rev-parse --short HEAD) --date ${DATE}; git add docs/prd/tasks.json; git commit -m "chore(prd): record ${t.id} commit [${t.id}]" -m "${TRAILERS}"
+${PUSH_TO ? `7. git push origin consolidation:${PUSH_TO} (retry up to 4 times with 2s/4s/8s/16s backoff on network errors). Never force-push.` : '7. Do not push.'}
+Return id, status "integrated", commit_sha (the task commit, not the record commit), gate_table (.prd-gate/report.md).`,
+      { label: `integrate:${t.id}`, phase: 'Integrate', ...route('integrate', t), schema: INTEGRATION })
+    integrations.push(res || { id: t.id, status: 'blocked', reason: 'integrator failed' })
+    if (res && res.status === 'integrated') log(`${t.id} integrated ${res.commit_sha}${PUSH_TO ? ' and pushed to ' + PUSH_TO : ''}`)
+    return r
+  })
+  lock = run.catch(() => {})
+  return run
 }
+
+const reviewed = await pool(tasks, MAX_PARALLEL, async (t) => {
+  const impl = await agent(implementPrompt(t), { label: `implement:${t.id}`, phase: 'Implement', ...route('implement', t), isolation: 'worktree', schema: TASK_RESULT })
+  if (!impl || impl.status !== 'ready' || !impl.gate_passed) return { task: t, impl, outcome: 'blocked', reason: impl ? (impl.blockers || []).join('; ') || 'gate did not pass' : 'implementer failed' }
+  const v = await agent(verifyPrompt(t, impl), { label: `verify:${t.id}`, phase: 'Verify', ...route('verify', t), isolation: 'worktree', schema: VERDICT })
+  if (v && v.verdict === 'approve') return integrate({ task: t, impl, verdict: v, branch: impl.branch, outcome: 'approved' })
+  const fix = await agent(fixPrompt(t, impl, v || { blocking_findings: [{ issue: 'verifier failed to run', fix: 're-run gate and self-review' }] }), { label: `fix:${t.id}`, phase: 'Verify', ...route('fix', t), isolation: 'worktree', schema: TASK_RESULT })
+  if (!fix || fix.status !== 'ready' || !fix.gate_passed) return { task: t, impl, verdict: v, fix, outcome: 'review', reason: 'fix round did not pass the gate' }
+  const v2 = await agent(verifyPrompt(t, fix), { label: `re-verify:${t.id}`, phase: 'Verify', ...route('reverify', t), isolation: 'worktree', schema: VERDICT })
+  if (v2 && v2.verdict === 'approve') return integrate({ task: t, impl: fix, verdict: v2, branch: fix.branch, outcome: 'approved' })
+  return { task: t, impl: fix, verdict: v2, outcome: 'review', reason: 'still has blocking findings after one fix round' }
+})
+
+await lock
 
 // ---------------------------------------------------------------------------
 // Log
@@ -263,7 +294,7 @@ ${JSON.stringify(summary, null, 2)}
 3. node scripts/prd/status.mjs --write
 4. git worktree prune; delete local branches of integrated tasks (git branch -D prd/<id> prd/<id>-fix1 if present).
 5. git add docs/prd && git commit -m "chore(prd): log ${WAVE} [${WAVE}]" -m "${TRAILERS}"
-${A.push ? '6. git push -u origin consolidation (retry up to 4 times with 2s/4s/8s/16s backoff on network errors).' : '6. Do not push.'}
-Return a short plain-text summary: log path, commit sha, counts, next wave.`, { label: `log:${WAVE}`, phase: 'Log' })
+${PUSH_TO ? `6. git push origin consolidation:${PUSH_TO} (retry up to 4 times with 2s/4s/8s/16s backoff on network errors). Never force-push.` : A.push ? '6. git push -u origin consolidation (retry up to 4 times with 2s/4s/8s/16s backoff on network errors).' : '6. Do not push.'}
+Return a short plain-text summary: log path, commit sha, counts, next wave.`, { label: `log:${WAVE}`, phase: 'Log', ...route('log') })
 
 return { summary, log: logResult }

@@ -25,6 +25,7 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.verification', path: '/academics/marks-verification', icon: ClipboardDocumentCheckIcon, page: 'MarksVerificationPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:academics.analysis', path: '/academics/exam-analysis', icon: ChartBarIcon, page: 'ExamAnalysisPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:academics.distribution', path: '/academics/results-distribution', icon: MegaphoneIcon, page: 'ResultsDistributionPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:academics.reportCards', path: '/academics/report-cards', icon: DocumentTextIcon, page: 'ReportCardsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:academics.grading', path: '/academics/grading-systems', icon: ListBulletIcon, page: 'GradingSystemsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:academics.timetable', path: '/academics/timetable', icon: ClockIcon, page: 'TimetablePage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:academics.assignments', path: '/academics/assignments', icon: ClipboardDocumentListIcon, page: 'AssignmentsHubPage', showInModes: ['standard', 'fullwidth'] },
@@ -61,7 +62,7 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:lessonplans.notes', path: '/academics/lessonplans/notes', icon: DocumentTextIcon, page: 'lessonplans/LessonNotesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/lesson-plans?tab=notes' },
     { name: 'navigation:lessonplans.approval', path: '/academics/lessonplans/approval', icon: ClipboardDocumentCheckIcon, page: 'lessonplans/ApprovalPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/lesson-plans?tab=approval' },
   ],
-  features: ['subject-management', 'class-management', 'timetable', 'exam-management', 'grading', 'assignment-management', 'lesson-planning'],
+  features: ['subject-management', 'class-management', 'timetable', 'exam-management', 'grading', 'report-cards', 'assignment-management', 'lesson-planning'],
   dependencies: [
     {
       moduleId: 'administration',
@@ -105,6 +106,7 @@ export const academicsModule: ModuleDefinition = {
     { path: '/academics/marks-verification', page: 'MarksVerificationPage' },
     { path: '/academics/exam-analysis', page: 'ExamAnalysisPage' },
     { path: '/academics/results-distribution', page: 'ResultsDistributionPage' },
+    { path: '/academics/report-cards', page: 'ReportCardsPage' },
     { path: '/academics/grading-systems', page: 'GradingSystemsPage' },
     { path: '/academics/timetable', page: 'TimetablePage' },
     { path: '/academics/assignments', page: 'AssignmentsHubPage' },

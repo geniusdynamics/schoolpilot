@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-17 — **P0-W2 complete** (14/14 on `prd/P0-W2`, PR #17). Next: merge PR #17, then P0-W3._
+_Last update: 2026-10-18 — W3 complete: all 12 tasks plus Q01 are done on `prd/P0-W3`, every review task independently verified, wave log at [workflow-log/P0-W3-2026-10-18.md](./workflow-log/P0-W3-2026-10-18.md). Next: merge PR #18, then W4 (B05, G10, G11, G13)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -27,6 +27,53 @@ If a fix round is lost with the cloud session, redo it locally from the task bra
 verifier's findings (they are in this file's history and the W1 log), then integrate per §3b.
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
+
+### P0-W3 — START HERE (state at 2026-10-18)
+Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + all W3 work. Every built task is merged into it
+(one squashed, gated commit per task). Merge PRs with a **merge commit** only. Nothing is running.
+
+| Task | State | Commit on prd/P0-W3 | Next action |
+| --- | --- | --- | --- |
+| C06 | done | `4c37e91` | — |
+| C07 | done | `4954d7f` | follow-up: pages swallow save/delete errors |
+| A05 | done | `24c7ef4` | follow-up: `setup_completed_at` in `src/livestore/schema.ts` if LiveStore goes live |
+| E05 | done (verifier APPROVE) | `0c24de5` | — |
+| F04 | done (verifier APPROVE) | `02010ff` | — |
+| H01 | done (verifier APPROVE) | `09a28bf` | note: stock returns now go through StockLevelService |
+| H03 | done (reviewed locally) | `ee51aec` | verifier APPROVE; follow-ups: wallet balance race, plan-activity check |
+| H04 | done (reviewed locally) | `f94e641` | verifier APPROVE; follow-up: numeric role types, `SettingsUsersPage` |
+| H02 | done (reviewed locally); widened to `crawlCrashPages.smoke.test.tsx` | `caeb00b` | verifier APPROVE; follow-up: fines `amount`/`fine_amount` |
+| E04 | done (reviewed locally); widened to `crawlCrashPages.smoke.test.tsx` | `53cba39` | verifier APPROVE; follow-up: transport route schema drift |
+| F05 | done (reviewed locally) | `5ff7222` | verifier APPROVE; 40 learners assemble in 6 ms, print-to-PDF 970 ms |
+| G08 | done (reviewed locally) | `feea74f` | build `1ddbdc5` + fix `dfb4ad9`; verifier APPROVE after one fix round |
+| Q01 | done | `082b71b` | gate `--base` ref resolution, smoke-test import pre-warm, unused test imports |
+
+Reviewing a merged task: ask Claude to "adversarially verify commit <sha> against task <id> in docs/prd/tasks.json
+(diff <sha>^..<sha>)". Fixes go on a branch from prd/P0-W3 and are squash-merged back the same way.
+
+Gate base: until PR #18 is merged, always pass `--base consolidation` (the default base, `origin/consolidation`, is stale and lints other W3 files).
+
+Integrating an approved branch (one at a time, main checkout, clean tree):
+```bash
+git switch consolidation && git merge --squash origin/<branch>
+node scripts/prd/gate.mjs task --task <id> --base HEAD     # must print GATE PASSED
+node scripts/prd/status.mjs --set <id> done --date <date> && git add -A && git commit   # "<type>(<scope>): <summary> [<id>]"
+node scripts/prd/status.mjs --set <id> done --commit $(git rev-parse --short HEAD) && git commit -am "chore(prd): record <id> commit [<id>]"
+git push origin consolidation:prd/P0-W3
+```
+
+Local steps:
+```bash
+git fetch origin && git switch -C consolidation origin/prd/P0-W3   # local alias the workflow integrates into
+PUPPETEER_SKIP_DOWNLOAD=1 pnpm install --frozen-lockfile
+node scripts/prd/status.mjs --wave P0-W3
+```
+Wave run for G08 (and any task you want re-run from scratch): `Workflow({ name: "prd-wave", args: { wave: "P0-W3", date: "<YYYY-MM-DD>", pushTo: "prd/P0-W3", maxParallel: 2, only: ["P0-G08"] } })`.
+When W3 is all done: append "Wave closure" to the W3 log, push, mark PR #18 ready, merge when CI is green. Then W4 (B05, G09–G13, Z01), then `Workflow({ name: "prd-phase-exit", args: { phase: "P0", date: "<date>" } })`.
+
+Model policy: `prd-wave` now picks the model and effort per role and task size (Haiku for loading/logging, Sonnet implements, Opus reviews L tasks and every re-review). Force Opus for a task with `opusTasks: ["P0-…"]` — see [decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md).
+
+Rules that held throughout (keep them): one squashed commit per task, gate before every commit, independent verifier before integration, owner's widening rule (decisions/2026-10-10-scope-widening.md), never commit in the main checkout while a workflow is integrating, merge wave PRs with merge commits.
 
 ### P0-W2 status
 All 14 tasks done on `prd/P0-W2` — see the "Wave closure" section of [`workflow-log/P0-W2-2026-10-11.md`](./workflow-log/P0-W2-2026-10-11.md) for commits and follow-ups.

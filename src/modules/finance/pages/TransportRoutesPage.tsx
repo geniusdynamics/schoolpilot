@@ -1,52 +1,80 @@
 // ABOUTME: Transport Routes page - lists transport routes with their per-period cost and GL revenue account.
-// ABOUTME: Supports add/edit/delete of routes through AppDataContext mutations.
+// ABOUTME: CRUD goes through useFinance() with update(id, patch); ids stay strings and save errors show in the dialog.
 
 import React, { useState, useMemo } from 'react';
-import { TransportRoute, ChartOfAccount, AccountType } from '@/modules/finance';
+import { AccountType } from '@/modules/finance';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import { Alert } from '@/components/ui/Alert';
 import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useFinance } from '@/modules/finance/hooks/useFinance';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { useTranslation } from 'react-i18next';
 
-type TransportRouteFormData = Omit<Partial<TransportRoute>, 'id' | 'created_at' | 'updated_at' | 'gl_revenue_account_name'>;
+/** A route as shown in the grid; ids are strings and the account name is resolved at read time. */
+interface RouteRow {
+  id: string;
+  name: string;
+  cost_per_period: number;
+  gl_revenue_account_id: string | null;
+  gl_revenue_account_name: string | null;
+}
+
+interface TransportRouteFormData {
+  name: string;
+  cost_per_period?: number;
+  gl_revenue_account_id: string;
+}
+
+const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
 export const TransportRoutesPageContent: React.FC = () => {
-  const { 
-    transportRoutes, 
+  const { t } = useTranslation('finance');
+  const {
+    transportRoutes,
     chartOfAccounts,
-    loading, 
-    addTransportRoute, 
-    updateTransportRoute, 
-    deleteTransportRoute 
-  } = useAppData();
-  
+    addTransportRoute,
+    updateTransportRoute,
+    deleteTransportRoute
+  } = useFinance();
+  const { showSuccess, showError } = useToast();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRoute, setEditingRoute] = useState<TransportRoute | null>(null);
-  
-  const initialFormData: TransportRouteFormData = { 
-    name: '', 
-    cost_per_period: 0, 
-    gl_revenue_account_id: undefined 
-  };
+  const [editingRoute, setEditingRoute] = useState<RouteRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const initialFormData: TransportRouteFormData = { name: '', cost_per_period: 0, gl_revenue_account_id: '' };
   const [formData, setFormData] = useState<TransportRouteFormData>(initialFormData);
 
   const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
-  const openModal = (route?: TransportRoute) => {
+  const rows = useMemo<RouteRow[]>(() => transportRoutes.map(route => {
+    const accountId = route.gl_revenue_account_id == null ? null : String(route.gl_revenue_account_id);
+    const account = chartOfAccounts.find(coa => String(coa.id) === accountId);
+    return {
+      id: String(route.id),
+      name: route.name,
+      cost_per_period: route.cost_per_period,
+      gl_revenue_account_id: accountId,
+      gl_revenue_account_name: account ? `${account.account_code} - ${account.name}` : route.gl_revenue_account_name ?? null,
+    };
+  }), [transportRoutes, chartOfAccounts]);
+
+  const openModal = (route?: RouteRow) => {
     setEditingRoute(route || null);
-    setFormData(route ? 
-      { 
-        name: route.name, 
-        cost_per_period: route.cost_per_period, 
-        gl_revenue_account_id: route.gl_revenue_account_id 
-      } : 
+    setFormError(null);
+    setFormData(route ?
+      {
+        name: route.name,
+        cost_per_period: route.cost_per_period,
+        gl_revenue_account_id: route.gl_revenue_account_id ?? ''
+      } :
       initialFormData
     );
     setIsModalOpen(true);
@@ -55,63 +83,79 @@ export const TransportRoutesPageContent: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingRoute(null);
+    setFormError(null);
     setFormData(initialFormData);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: (name === 'cost_per_period' || name === 'gl_revenue_account_id') ? (value ? Number(value) : undefined) : value }));
+    setFormError(null);
+    setFormData(prev => ({ ...prev, [name]: name === 'cost_per_period' ? (value === '' ? undefined : parseFloat(value)) : value }));
   };
-  
-  const toast = useToast();
+
   const handleSubmit = async () => {
-    if (!formData.name || formData.cost_per_period === undefined || formData.cost_per_period <= 0 || !formData.gl_revenue_account_id) {
-      toast.showWarning("Route Name, valid Cost per Period, and GL Revenue Account are required.");
+    if (saving) return;
+    const cost = Number(formData.cost_per_period);
+    if (!formData.name.trim() || !Number.isFinite(cost) || cost <= 0 || !formData.gl_revenue_account_id) {
+      setFormError(t('transportRoutes.validation', 'Route Name, valid Cost per Period, and GL Revenue Account are required.'));
       return;
     }
-    const payload: Omit<TransportRoute, 'id'|'created_at'|'updated_at'|'gl_revenue_account_name'> = {
-      name: formData.name!,
-      cost_per_period: Number(formData.cost_per_period),
-      gl_revenue_account_id: Number(formData.gl_revenue_account_id!),
+    const payload = {
+      name: formData.name.trim(),
+      cost_per_period: cost,
+      gl_revenue_account_id: formData.gl_revenue_account_id,
     };
 
-    if (editingRoute) {
-      await updateTransportRoute({ ...editingRoute, ...payload });
-    } else {
-      await addTransportRoute(payload);
+    setSaving(true);
+    try {
+      // The finance record types still declare numeric foreign keys (SO-22); stored ids are strings.
+      if (editingRoute) {
+        await updateTransportRoute(editingRoute.id, payload as unknown as Parameters<typeof updateTransportRoute>[1]);
+      } else {
+        await addTransportRoute(payload as unknown as Parameters<typeof addTransportRoute>[0]);
+      }
+      showSuccess(t('transportRoutes.saved', 'Transport route saved.'));
+      closeModal();
+    } catch (error) {
+      setFormError(`${t('transportRoutes.saveFailed', 'Failed to save transport route:')} ${errorMessage(error)}`);
+    } finally {
+      setSaving(false);
     }
-    closeModal();
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this transport route?' }))) {
+  const handleDelete = async (id: string) => {
+    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this transport route?' }))) return;
+    try {
       await deleteTransportRoute(id);
+      showSuccess(t('transportRoutes.deleted', 'Transport route deleted.'));
+    } catch (error) {
+      showError(`${t('transportRoutes.deleteFailed', 'Failed to delete transport route:')} ${errorMessage(error)}`);
     }
   };
 
-  const columns: DataGridColumn<TransportRoute>[] = [
-    { 
-      key: 'name', 
-      header: 'Route Name', 
-      sortable: true, 
-      filterable: true, 
+  const columns: DataGridColumn<RouteRow>[] = [
+    {
+      key: 'name',
+      header: 'Route Name',
+      sortable: true,
+      filterable: true,
       width: 250,
       render: (value) => <span className="font-medium">{value}</span>
     },
-    { 
-      key: 'cost_per_period', 
-      header: 'Cost per Period (KES)', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'cost_per_period',
+      header: 'Cost per Period (KES)',
+      sortable: true,
+      filterable: true,
       width: 180,
       render: (value) => <span className="font-mono text-green-600">{Number(value ?? 0).toFixed(2)}</span>
     },
-    { 
-      key: 'gl_revenue_account_name', 
-      header: 'GL Revenue Account', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'gl_revenue_account_name',
+      header: 'GL Revenue Account',
+      sortable: true,
+      filterable: true,
       width: 250,
       render: (value) => <span className="text-primary-600">{value}</span>
     },
@@ -122,7 +166,7 @@ export const TransportRoutesPageContent: React.FC = () => {
       filterable: false,
       width: 150,
       sticky: 'right',
-      render: (value, row) => (
+      render: (_value, row) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -130,16 +174,6 @@ export const TransportRoutesPageContent: React.FC = () => {
       ),
     },
   ];
-  
-  const isLoadingData = loading.transportRoutes || loading.chartOfAccounts;
-
-  if (isLoadingData && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Transport Routes...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -148,10 +182,9 @@ export const TransportRoutesPageContent: React.FC = () => {
           Add Transport Route
         </Button>
       }>
-        <DataGrid 
-          columns={columns} 
-          data={transportRoutes} 
-          isLoading={loading.transportRoutes && isModalOpen}
+        <DataGrid
+          columns={columns}
+          data={rows}
           sortable
           filterable
           emptyState={{
@@ -170,17 +203,18 @@ export const TransportRoutesPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={loading.transportRoutes}>
+            <Button onClick={handleSubmit} loading={saving}>
               {editingRoute ? 'Save Changes' : 'Add Route'}
             </Button>
           </>
         }
       >
-        <Input name="name" label="Route Name" value={formData.name || ''} onChange={handleInputChange} required />
-        <Input name="cost_per_period" label="Cost per Period (KES)" type="number" step="0.01" value={formData.cost_per_period || ''} onChange={handleInputChange} required />
-        <Select name="gl_revenue_account_id" label="GL Revenue Account" value={formData.gl_revenue_account_id || ''} onChange={handleInputChange} required>
+        {formError && <Alert variant="destructive" className="mb-4">{formError}</Alert>}
+        <Input name="name" label="Route Name" value={formData.name} onChange={handleInputChange} required />
+        <Input name="cost_per_period" label="Cost per Period (KES)" type="number" step="0.01" value={formData.cost_per_period ?? ''} onChange={handleInputChange} required />
+        <Select name="gl_revenue_account_id" label="GL Revenue Account" value={formData.gl_revenue_account_id} onChange={handleInputChange} required>
             <option value="">Select Revenue Account</option>
-            {revenueAccounts.map((coa: ChartOfAccount) => (<option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>))}
+            {revenueAccounts.map(coa => (<option key={coa.id} value={String(coa.id)}>{coa.account_code} - {coa.name}</option>))}
         </Select>
       </DialogForm>
     </div>

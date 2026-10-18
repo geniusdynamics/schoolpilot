@@ -1,16 +1,21 @@
+// ABOUTME: Purchase orders (LPOs) list, add/edit dialog and per-order line items.
+// ABOUTME: Orders and items come from useInventory, suppliers from useSupplierData; line items are nested on the order.
+
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
+import Modal from '@/components/ui/Modal';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ShoppingCartIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
+import { useSupplierData } from '../data/useSupplierData';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { PurchaseOrderStatus } from '@/core/types';
 import type { PurchaseOrder, PurchaseOrderItem } from '@/core/types';
@@ -21,15 +26,9 @@ type PurchaseOrderFormData = Omit<Partial<PurchaseOrder>, 'id' | 'created_at' | 
 type PurchaseOrderItemFormData = Omit<Partial<PurchaseOrderItem>, 'id' | 'purchase_order_id' | 'item_name' | 'line_total'>;
 
 export const PurchaseOrdersPageContent: React.FC = () => {
-  const { 
-    purchaseOrders, 
-    suppliers,
-    itemsInv,
-    loading, 
-    addPurchaseOrder, 
-    updatePurchaseOrder, 
-    deletePurchaseOrder 
-  } = useAppData(); // Updated
+  const { purchaseOrders, items: itemsInv, addPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder } = useInventory();
+  const { suppliers } = useSupplierData();
+  const { t } = useTranslation('inventory');
   const confirm = useConfirm();
   
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
@@ -82,7 +81,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
 
   const handlePOInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setPoFormData(prev => ({ ...prev, [name]: name === 'supplier_id' ? (value ? parseInt(value) : undefined) : value }));
+    setPoFormData(prev => ({ ...prev, [name]: name === 'supplier_id' ? (value || undefined) : value }));
   };
 
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -117,9 +116,9 @@ export const PurchaseOrdersPageContent: React.FC = () => {
     };
 
     if (editingPO) {
-      await updatePurchaseOrder({ ...editingPO, ...payloadBase }, editingPO.items || []);
+      await updatePurchaseOrder(editingPO.id, { ...payloadBase, items: editingPO.items || [] });
     } else {
-      await addPurchaseOrder(payloadBase, []);
+      await addPurchaseOrder({ ...payloadBase, items: [] });
     }
     closePOModal();
   };
@@ -161,10 +160,8 @@ export const PurchaseOrdersPageContent: React.FC = () => {
       newItemsList = [...existingItems, newItem];
     }
     
-    await updatePurchaseOrder(currentPOForItems, newItemsList);
-    
-    const updatedPO = purchaseOrders.find(r => r.id === currentPOForItems.id);
-    if (updatedPO) setCurrentPOForItems(updatedPO);
+    await updatePurchaseOrder(currentPOForItems.id, { items: newItemsList });
+    setCurrentPOForItems({ ...currentPOForItems, items: newItemsList });
 
     setEditingPOItem(null);
     setItemFormData(initialItemFormData); 
@@ -180,9 +177,8 @@ export const PurchaseOrdersPageContent: React.FC = () => {
       if (!currentPOForItems) return;
       if (await confirm({ title: 'Remove item', message: 'Are you sure you want to delete this item from the purchase order?', variant: 'danger' })) {
           const updatedItems = (currentPOForItems.items || []).filter(i => i.id !== itemId);
-          await updatePurchaseOrder(currentPOForItems, updatedItems);
-          const updatedPO = purchaseOrders.find(r => r.id === currentPOForItems.id);
-          if (updatedPO) setCurrentPOForItems(updatedPO);
+          await updatePurchaseOrder(currentPOForItems.id, { items: updatedItems });
+          setCurrentPOForItems({ ...currentPOForItems, items: updatedItems });
       }
   };
 
@@ -301,15 +297,6 @@ export const PurchaseOrdersPageContent: React.FC = () => {
     },
   ];
   
-  const isLoadingPage = loading.purchaseOrders || loading.suppliers || loading.itemsInv;
-
-  if (isLoadingPage && !isPOModalOpen && !isItemModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Purchase Orders...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -335,7 +322,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closePOModal}>Cancel</Button>
-            <Button onClick={handlePOSubmit} loading={loading.purchaseOrders}>
+            <Button onClick={handlePOSubmit}>
               {editingPO ? 'Save Changes' : 'Add Purchase Order'}
             </Button>
           </>
@@ -373,7 +360,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
                 <Input name="unit_price" label="Unit Price (KES)" type="number" step="0.01" value={itemFormData.unit_price ?? ''} onChange={handleItemInputChange} required/>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" loading={loading.purchaseOrders}>
+                <Button onClick={handleItemSubmit} size="sm">
                   {editingPOItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>

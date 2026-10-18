@@ -1,12 +1,12 @@
-import { logger } from '@/utils/logging';
-
-// ABOUTME: First-run setup wizard (Phase 2.1) — school profile (saved to school_details), education system,
-// ABOUTME academic year + terms, classes & streams, subjects (Kenyan presets), and an
-// ABOUTME optional fee structure. Rendered by FirstRunOnboarding for the production
-// ABOUTME pathway. Progress is persisted to localStorage so it is skippable/resumable.
+// ABOUTME: First-run setup wizard: school profile (school_details), education system, academic year with per-term
+// ABOUTME: dates and its financial year, classes & streams, subjects, and the first administrator. Every step writes
+// ABOUTME: through idempotent writers (steps/writers.ts), so Back/Next or re-opening never duplicates records.
+// ABOUTME: Progress (values and created ids, never passwords) is kept in localStorage so the wizard is resumable;
+// ABOUTME: finishing records school_details.setup_completed_at.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import WizardForm, { type WizardFormRef, type WizardStep } from '@/components/ui/forms/WizardForm';
+import { useTranslation } from 'react-i18next';
+import WizardForm, { type WizardStep } from '@/components/ui/forms/WizardForm';
 import FormField from '@/components/ui/forms/FormField';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
@@ -14,84 +14,35 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Checkbox from '@/components/ui/Checkbox';
 import { useToast } from '@/hooks/useToast';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import type { SchoolProfile } from '@/hooks/useSchoolProfile';
+import { logger } from '@/utils/logging';
 import {
   KENYAN_CURRICULUM_PRESETS,
   type KenyanSubjectSeed,
 } from '@/modules/academics/data/templates/kenyan-subject-sets';
-import { EDUCATION_SYSTEM_TEMPLATES } from '@/modules/academics/data/templates/education-system-templates';
+import {
+  clearWizardDraft,
+  financialYearFor,
+  loadDraft,
+  saveDraft,
+  termsForYearStart,
+  type CreatedRecords,
+  type TermDraft,
+  type WizardDraft,
+} from './steps/wizardDraft';
+import {
+  hasAnyUser,
+  markSetupCompleted,
+  openWizardStore,
+  saveAcademicYear,
+  saveClassesAndStreams,
+  saveEducationSystem,
+  saveSchoolProfile,
+  saveSubjects,
+} from './steps/writers';
 
-const WIZARD_DRAFT_KEY = 'schoolpilot_setup_wizard_draft';
-
-interface SchoolProfileDraft {
-  name: string;
-  motto: string;
-  address: string;
-  phone: string;
-  email: string;
-}
-
-interface ClassRowDraft {
-  name: string;
-  streams: string; // comma-separated
-}
-
-interface FeeItemDraft {
-  name: string;
-  amount: string;
-}
-
-interface WizardDraft {
-  stepIndex: number;
-  school: SchoolProfileDraft;
-  curriculum: 'CBC_PRIMARY' | 'KCSE_SECONDARY' | null;
-  yearName: string;
-  yearStart: string;
-  yearEnd: string;
-  classes: ClassRowDraft[];
-  selectedSubjects: Record<string, boolean>;
-  feeTemplateName: string;
-  feeItems: FeeItemDraft[];
-}
-
-function defaultDraft(): WizardDraft {
-  const year = new Date().getFullYear();
-  return {
-    stepIndex: 0,
-    school: { name: '', motto: '', address: '', phone: '', email: '' },
-    curriculum: null,
-    yearName: `${year}`,
-    yearStart: `${year}-01-06`,
-    yearEnd: `${year}-10-31`,
-    classes: [{ name: '', streams: 'North, South' }],
-    selectedSubjects: {},
-    feeTemplateName: '',
-    feeItems: [
-      { name: 'Tuition', amount: '8000' },
-      { name: 'Lunch', amount: '2500' },
-    ],
-  };
-}
-
-function loadDraft(): WizardDraft {
-  try {
-    const raw = localStorage.getItem(WIZARD_DRAFT_KEY);
-    if (raw) return { ...defaultDraft(), ...JSON.parse(raw) };
-  } catch {
-    // ignore
-  }
-  return defaultDraft();
-}
-
-function saveDraft(draft: WizardDraft): void {
-  localStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft));
-}
-
-export function clearWizardDraft(): void {
-  localStorage.removeItem(WIZARD_DRAFT_KEY);
-}
+export { clearWizardDraft };
 
 const CURRICULUM_OPTIONS = Object.values(KENYAN_CURRICULUM_PRESETS).map(p => ({
   key: p.key,
@@ -99,184 +50,150 @@ const CURRICULUM_OPTIONS = Object.values(KENYAN_CURRICULUM_PRESETS).map(p => ({
   subjectCount: p.subjects.length,
 }));
 
+interface AdminForm {
+  username: string;
+  displayName: string;
+  password: string;
+  confirm: string;
+}
+
+const EMPTY_ADMIN: AdminForm = { username: '', displayName: '', password: '', confirm: '' };
+
+export interface SetupWizardProps {
+  onComplete: () => void;
+  /** Shown as a Cancel button, e.g. when the wizard is re-opened from Settings. */
+  onCancel?: () => void;
+}
+
 /**
- * Multi-step first-run setup. Every completed step writes straight to the
- * database so partial progress is never lost even if the user abandons the
- * wizard mid-way.
+ * Multi-step school setup. Each completed step is committed to the database immediately, so partial
+ * progress survives a reload; the wizard can be re-run at any time without creating duplicates.
  */
-export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }) => {
+  const { t } = useTranslation('common');
   const toast = useToast();
   const [draft, setDraft] = useState<WizardDraft>(loadDraft);
-  const wizardRef = useRef<WizardFormRef | null>(null);
+  // The step to resume at is fixed on mount; later progress must not reset the wizard's own navigation.
+  const [initialStep] = useState(() => draft.stepIndex);
+  // The administrator's credentials live only in memory, never in the persisted draft.
+  const [admin, setAdmin] = useState<AdminForm>(EMPTY_ADMIN);
+  const [adminExists, setAdminExists] = useState<boolean | null>(null);
 
+  // Loaded so a re-opened wizard starts from the stored profile.
   const schoolDetailsDoc = useDatabaseDocument<SchoolProfile>('school_details');
-  const eduSystemCol = useDatabaseCollection<any>('education_system_configurations');
-  const yearsCol = useDatabaseCollection<any>('academic_years');
-  const periodDefsCol = useDatabaseCollection<any>('period_definitions');
-  const periodsCol = useDatabaseCollection<any>('school_periods');
-  const classesCol = useDatabaseCollection<any>('classes');
-  const streamsCol = useDatabaseCollection<any>('class_streams');
-  const subjectsCol = useDatabaseCollection<any>('subjects');
-  const feeTemplatesCol = useDatabaseCollection<any>('fee_templates');
 
   const update = useCallback((patch: Partial<WizardDraft>) => {
     setDraft(prev => ({ ...prev, ...patch }));
   }, []);
+  const recordCreated = useCallback((patch: Partial<CreatedRecords>) => {
+    setDraft(prev => ({ ...prev, created: { ...prev.created, ...patch } }));
+  }, []);
 
-  // Persist whenever the committed draft changes (never inside the updater)
+  // Once setup is finished the draft is gone for good; late state updates must not write it back.
+  const completedRef = useRef(false);
   useEffect(() => {
-    saveDraft(draft);
+    if (!completedRef.current) saveDraft(draft);
   }, [draft]);
+
+  useEffect(() => {
+    const stored = schoolDetailsDoc.data;
+    if (!stored?.name) return;
+    setDraft(prev => (prev.school.name ? prev : {
+      ...prev,
+      school: {
+        name: stored.name ?? '',
+        motto: stored.motto ?? '',
+        address: stored.postal_address ?? '',
+        phone: stored.telephone ?? '',
+        email: stored.email ?? '',
+      },
+    }));
+  }, [schoolDetailsDoc.data]);
+
+  useEffect(() => {
+    let active = true;
+    openWizardStore()
+      .then(hasAnyUser)
+      .then(exists => { if (active) setAdminExists(exists); })
+      .catch(error => {
+        logger.warn('[SetupWizard] could not check for existing accounts:', error);
+        if (active) setAdminExists(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   const presetSubjects: KenyanSubjectSeed[] = useMemo(
     () => (draft.curriculum ? KENYAN_CURRICULUM_PRESETS[draft.curriculum].subjects : []),
     [draft.curriculum]
   );
 
+  const setTerm = (index: number, patch: Partial<TermDraft>) => {
+    update({ terms: draft.terms.map((term, i) => (i === index ? { ...term, ...patch } : term)) });
+  };
+
   // ── Step writers ────────────────────────────────────────────────
 
-  const saveSchoolProfile = useCallback(async () => {
-    if (!draft.school.name.trim()) throw new Error('School name is required.');
-    // The single school_details record is what the header, receipts and reports read
-    const { name, motto, address, phone, email } = draft.school;
-    const existing = schoolDetailsDoc.data;
-    const now = new Date().toISOString();
-    const fields: Partial<SchoolProfile> = { name: name.trim(), updated_at: now };
-    if (motto.trim()) fields.motto = motto.trim();
-    if (address.trim()) fields.postal_address = address.trim();
-    if (phone.trim()) fields.telephone = phone.trim();
-    if (email.trim()) fields.email = email.trim();
-    await schoolDetailsDoc.save(existing?.id ? { id: existing.id, ...fields } : { ...fields, created_at: now });
-  }, [draft.school, schoolDetailsDoc]);
-
-  const saveEducationSystem = useCallback(async () => {
-    if (!draft.curriculum) return; // optional choice — keep going without one
-    const preset = KENYAN_CURRICULUM_PRESETS[draft.curriculum];
-    const template = EDUCATION_SYSTEM_TEMPLATES[preset.templateKey] ?? {};
-    await eduSystemCol.insert({
-      ...template,
-      name: template.name ?? preset.label,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+  const saveAdministrator = useCallback(async () => {
+    const store = await openWizardStore();
+    if (await hasAnyUser(store)) {
+      setAdminExists(true);
+      return;
+    }
+    const { authService, MIN_ADMIN_PASSWORD_LENGTH } = await import('@/services/auth/authService');
+    if (admin.username.trim().length < 3 || !admin.displayName.trim()) {
+      throw new Error(t('setupWizard.admin.detailsRequired', 'Enter a username (at least 3 characters) and a display name.'));
+    }
+    if (admin.password.length < MIN_ADMIN_PASSWORD_LENGTH) {
+      throw new Error(t('setupWizard.admin.passwordTooShort', 'The password must be at least 10 characters.'));
+    }
+    if (admin.password !== admin.confirm) {
+      throw new Error(t('setupWizard.admin.passwordMismatch', 'The passwords do not match.'));
+    }
+    const result = await authService.createInitialAdministrator({
+      username: admin.username,
+      displayName: admin.displayName,
+      password: admin.password,
     });
-  }, [draft.curriculum, eduSystemCol]);
+    if (!result.success) throw new Error(result.message);
+    setAdmin(EMPTY_ADMIN);
+    setAdminExists(true);
+  }, [admin, t]);
 
-  const saveAcademicYear = useCallback(async () => {
-    if (!draft.yearName.trim()) return;
-    const now = new Date().toISOString();
-    const year = await yearsCol.insert({
-      name: draft.yearName.trim(),
-      structure_id: '',
-      start_date: draft.yearStart,
-      end_date: draft.yearEnd,
-      created_at: now,
-      updated_at: now,
-    });
-
-    // Ensure Term 1–3 period definitions exist, then create this year's periods.
-    const termNames = ['Term 1', 'Term 2', 'Term 3'];
-    const existingDefs = periodDefsCol.data;
-    const defIds: string[] = [];
-    for (const term of termNames) {
-      const found = existingDefs.find((d: any) => d.name === term);
-      if (found) {
-        defIds.push(String(found.id));
-      } else {
-        const created = await periodDefsCol.insert({ name: term, order: termNames.indexOf(term) + 1 });
-        defIds.push(String(created.id));
-      }
-    }
-
-    // Split the year into three roughly equal terms for period date ranges
-    const start = new Date(draft.yearStart).getTime();
-    const end = new Date(draft.yearEnd).getTime();
-    const span = Math.max(0, end - start);
-    for (let t = 0; t < 3; t++) {
-      await periodsCol.insert({
-        academic_year_id: Number(year.id),
-        period_definition_id: defIds[t],
-        financial_year_id: 0,
-        start_date: new Date(start + (span / 3) * t).toISOString().slice(0, 10),
-        end_date: new Date(start + (span / 3) * (t + 1)).toISOString().slice(0, 10),
-        is_active: t === 0,
-        created_at: now,
-        updated_at: now,
-        name: termNames[t],
-      });
-    }
-  }, [draft.yearName, draft.yearStart, draft.yearEnd, yearsCol, periodDefsCol, periodsCol]);
-
-  const saveClassesAndStreams = useCallback(async () => {
-    for (const row of draft.classes) {
-      const className = row.name.trim();
-      if (!className) continue;
-      const createdClass = await classesCol.insert({ name: className });
-      const streamNames = row.streams.split(',').map(s => s.trim()).filter(Boolean);
-      for (const streamName of streamNames) {
-        await streamsCol.insert({
-          class_id: Number(createdClass.id),
-          name: streamName,
-          class_name: className,
-        });
-      }
-    }
-  }, [draft.classes, classesCol, streamsCol]);
-
-  const saveSubjects = useCallback(async () => {
-    const chosen = presetSubjects.filter(s => draft.selectedSubjects[s.subject_code] !== false);
-    for (const s of chosen) {
-      await subjectsCol.insert({
-        subject_code: s.subject_code,
-        name: s.name,
-        abbreviation: s.abbreviation,
-        grouping: s.grouping,
-        is_compulsory: s.is_compulsory,
-      });
-    }
-  }, [presetSubjects, draft.selectedSubjects, subjectsCol]);
-
-  const saveFeeTemplate = useCallback(async () => {
-    if (!draft.feeTemplateName.trim()) return; // optional step
-    const items = draft.feeItems
-      .filter(i => i.name.trim())
-      .map(i => ({ description: i.name.trim(), amount: Number(i.amount) || 0 }));
-    const total = items.reduce((sum, i) => sum + i.amount, 0);
-    const now = new Date().toISOString();
-    await feeTemplatesCol.insert({
-      name: draft.feeTemplateName.trim(),
-      items,
-      total_amount: total,
-      currency: 'KES',
-      is_default: false,
-      created_at: now,
-      updated_at: now,
-    });
-  }, [draft.feeTemplateName, draft.feeItems, feeTemplatesCol]);
+  const STEP_WRITERS: Record<string, () => Promise<void>> = useMemo(() => ({
+    school: async () => saveSchoolProfile(await openWizardStore(), draft.school),
+    system: async () => recordCreated(await saveEducationSystem(await openWizardStore(), draft)),
+    year: async () => recordCreated(await saveAcademicYear(await openWizardStore(), draft)),
+    classes: async () => {
+      const { classes, created } = await saveClassesAndStreams(await openWizardStore(), draft);
+      setDraft(prev => ({ ...prev, classes, created: { ...prev.created, ...created } }));
+    },
+    subjects: async () => {
+      const chosen = presetSubjects.filter(s => draft.selectedSubjects[s.subject_code] !== false);
+      recordCreated(await saveSubjects(await openWizardStore(), chosen, draft.created.subjectIds));
+    },
+    admin: saveAdministrator,
+  }), [draft, presetSubjects, recordCreated, saveAdministrator]);
 
   const handleWizardComplete = useCallback(async () => {
     try {
-      clearWizardDraft();
-      toast.showSuccess('Setup complete. Welcome aboard!');
-      onComplete();
+      // The completion time lives on the school profile, so every device sees that setup is done.
+      await markSetupCompleted(await openWizardStore());
     } catch (error) {
-      logger.error('[SetupWizard] final step failed:', error);
-      toast.showError('Something went wrong on the last step. You can retry — earlier steps are already saved.');
+      logger.error('[SetupWizard] could not record setup completion:', error);
+      toast.showError(error instanceof Error ? error.message : t('setupWizard.completeError', 'Could not finish setup.'));
+      return;
     }
-  }, [toast, onComplete]);
-
-  // Which database writer runs when the user advances past each step
-  const STEP_WRITERS: Record<string, () => Promise<void>> = useMemo(() => ({
-    school: saveSchoolProfile,
-    system: saveEducationSystem,
-    year: saveAcademicYear,
-    classes: saveClassesAndStreams,
-    subjects: saveSubjects,
-    fees: saveFeeTemplate,
-  }), [saveSchoolProfile, saveEducationSystem, saveAcademicYear, saveClassesAndStreams, saveSubjects, saveFeeTemplate]);
+    completedRef.current = true;
+    clearWizardDraft();
+    toast.showSuccess('Setup complete. Welcome aboard!');
+    onComplete();
+  }, [toast, onComplete, t]);
 
   // ── Step definitions ────────────────────────────────────────────
 
-  const steps: WizardStep[] = useMemo(() => [
+  const financialYear = financialYearFor(draft);
+
+  const steps: WizardStep[] = [
     {
       id: 'school',
       title: 'School Profile',
@@ -338,24 +255,64 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
     {
       id: 'year',
       title: 'Academic Year',
-      description: 'The year and its three terms',
+      description: t('setupWizard.year.description', 'The year, the dates of each term, and its financial year'),
       content: (
         <div className="space-y-4">
           <FormField label="Year name" required>
-            <Input value={draft.yearName} onChange={e => update({ yearName: e.target.value })} placeholder="2026" />
+            <Input aria-label="Year name" value={draft.yearName} onChange={e => update({ yearName: e.target.value })} placeholder="2026" />
           </FormField>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Start date" required>
-              <Input type="date" value={draft.yearStart} onChange={e => update({ yearStart: e.target.value })} />
+              <Input
+                type="date"
+                aria-label="Academic year start"
+                value={draft.yearStart}
+                onChange={e => update({ yearStart: e.target.value, terms: termsForYearStart(draft.terms, draft.yearStart, e.target.value) })}
+              />
             </FormField>
             <FormField label="End date" required>
-              <Input type="date" value={draft.yearEnd} onChange={e => update({ yearEnd: e.target.value })} />
+              <Input type="date" aria-label="Academic year end" value={draft.yearEnd} onChange={e => update({ yearEnd: e.target.value })} />
             </FormField>
           </div>
-          <p className="text-xs text-surface-muted-fg">Three terms will be created and split evenly across these dates.</p>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-surface-foreground">{t('setupWizard.year.termDates', 'Term dates')}</p>
+            {draft.terms.map((term, index) => (
+              <div key={term.name} className="grid grid-cols-[6rem_1fr_1fr] gap-2 items-center">
+                <span className="text-sm text-surface-foreground">{term.name}</span>
+                <Input type="date" aria-label={`${term.name} start`} value={term.start} onChange={e => setTerm(index, { start: e.target.value })} />
+                <Input type="date" aria-label={`${term.name} end`} value={term.end} onChange={e => setTerm(index, { end: e.target.value })} />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2 border-t border-surface-border pt-3">
+            <p className="text-sm font-medium text-surface-foreground">{t('setupWizard.year.financialYear', 'Financial year')}</p>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="financial-year-mode" checked={draft.financialYearMode === 'calendar'} onChange={() => update({ financialYearMode: 'calendar' })} />
+              {t('setupWizard.year.financialYearCalendar', 'Calendar year')} ({financialYearFor({ ...draft, financialYearMode: 'calendar' }).name})
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="financial-year-mode" checked={draft.financialYearMode === 'custom'} onChange={() => update({
+                financialYearMode: 'custom',
+                financialYearName: financialYear.name,
+                financialYearStart: financialYear.start_date,
+                financialYearEnd: financialYear.end_date,
+              })} />
+              {t('setupWizard.year.financialYearCustom', 'Other dates')}
+            </label>
+            {draft.financialYearMode === 'custom' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <Input aria-label="Financial year name" value={draft.financialYearName} onChange={e => update({ financialYearName: e.target.value })} />
+                <Input type="date" aria-label="Financial year start" value={draft.financialYearStart} onChange={e => update({ financialYearStart: e.target.value })} />
+                <Input type="date" aria-label="Financial year end" value={draft.financialYearEnd} onChange={e => update({ financialYearEnd: e.target.value })} />
+              </div>
+            )}
+            <p className="text-xs text-surface-muted-fg">
+              {t('setupWizard.year.financialYearHint', 'Terms are linked to {{name}}. An existing financial year covering these dates is reused.', { name: financialYear.name })}
+            </p>
+          </div>
         </div>
       ),
-      validate: () => Boolean(draft.yearName.trim() && draft.yearStart && draft.yearEnd),
+      validate: () => Boolean(draft.yearName.trim() && draft.yearStart && draft.yearEnd && draft.terms.every(term => term.start && term.end)),
     },
     {
       id: 'classes',
@@ -425,76 +382,40 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
       ),
     },
     {
-      id: 'fees',
-      title: 'Fee Structure',
-      description: 'Optional — you can set this up later',
-      optional: true,
-      content: (
-        <div className="space-y-4">
-          <FormField label="Template name">
-            <Input value={draft.feeTemplateName} onChange={e => update({ feeTemplateName: e.target.value })} placeholder="e.g. 2026 Term Fees" />
-          </FormField>
-          {draft.feeItems.map((item, idx) => (
-            <div key={idx} className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  value={item.name}
-                  onChange={e => {
-                    const feeItems = [...draft.feeItems];
-                    feeItems[idx] = { ...feeItems[idx], name: e.target.value };
-                    update({ feeItems });
-                  }}
-                  placeholder="Item (e.g. Tuition)"
-                />
-              </div>
-              <div className="w-36">
-                <Input
-                  type="number"
-                  value={item.amount}
-                  onChange={e => {
-                    const feeItems = [...draft.feeItems];
-                    feeItems[idx] = { ...feeItems[idx], amount: e.target.value };
-                    update({ feeItems });
-                  }}
-                  placeholder="KES"
-                />
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => update({ feeItems: draft.feeItems.filter((_, i) => i !== idx) })}>
-                Remove
-              </Button>
-            </div>
-          ))}
-          <Button variant="secondary" size="sm" onClick={() => update({ feeItems: [...draft.feeItems, { name: '', amount: '' }] })}>
-            Add fee item
-          </Button>
-        </div>
-      ),
-    },
-    {
       id: 'admin',
-      title: 'Administrator',
-      description: 'How you sign in',
-      content: (
-        <div className="space-y-3 text-sm text-surface-foreground">
-          <p>Your app ships with a built-in administrator account:</p>
-          <div className="bg-surface-muted border border-surface-border rounded-md p-3 font-mono text-xs">
-            <p>username: <strong>admin</strong></p>
-            <p>password: <strong>admin123</strong></p>
-          </div>
-          <p>
-            Sign in with these after setup completes, then change the password from
-            <strong> Settings → Users</strong>. We recommend doing that before inviting other staff.
+      title: t('setupWizard.admin.title', 'Administrator'),
+      description: t('setupWizard.admin.description', 'The account that manages this school'),
+      content: adminExists ? (
+        <p className="text-sm text-surface-foreground">
+          {t('setupWizard.admin.exists', 'An administrator account already exists. Sign in with it after setup.')}
+        </p>
+      ) : (
+        <div className="space-y-4">
+          <p className="text-sm text-surface-muted-fg">
+            {t('setupWizard.admin.intro', 'Create the administrator who will sign in and manage this school. The password needs at least 10 characters.')}
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label={t('setupWizard.admin.username', 'Username')} required>
+              <Input id="setup-admin-username" aria-label="Administrator username" autoComplete="username" value={admin.username} onChange={e => setAdmin(prev => ({ ...prev, username: e.target.value }))} />
+            </FormField>
+            <FormField label={t('setupWizard.admin.displayName', 'Display name')} required>
+              <Input id="setup-admin-display-name" aria-label="Display name" value={admin.displayName} onChange={e => setAdmin(prev => ({ ...prev, displayName: e.target.value }))} />
+            </FormField>
+            <FormField label={t('setupWizard.admin.password', 'Password')} required>
+              <Input id="setup-admin-password" type="password" aria-label="Password" autoComplete="new-password" value={admin.password} onChange={e => setAdmin(prev => ({ ...prev, password: e.target.value }))} />
+            </FormField>
+            <FormField label={t('setupWizard.admin.confirm', 'Confirm password')} required>
+              <Input id="setup-admin-confirm" type="password" aria-label="Confirm password" autoComplete="new-password" value={admin.confirm} onChange={e => setAdmin(prev => ({ ...prev, confirm: e.target.value }))} />
+            </FormField>
+          </div>
         </div>
       ),
     },
-  ], [draft, update, presetSubjects]);
+  ];
 
-  // Persist resume point and RUN THE STEP'S WRITER when the user advances past
-  // it — each completed step is committed to the database immediately.
-  const wrappedSteps = useMemo(() => steps.map((s, idx) => ({
+  // Run the step's writer when the user advances past it: each completed step is committed immediately.
+  const wrappedSteps = steps.map((s, idx) => ({
     ...s,
-    content: s.content,
     validate: async () => {
       const valid = s.validate ? await s.validate() : true;
       if (!valid) return false;
@@ -508,26 +429,24 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
           return false;
         }
       }
-      update({ stepIndex: idx + 1 });
+      update({ stepIndex: Math.min(idx + 1, steps.length - 1) });
       return true;
     },
-  })), [steps, update, toast, STEP_WRITERS]);
-
-  const resumeFrom = Math.min(draft.stepIndex, steps.length - 1);
+  }));
 
   return (
     <Card
       title="Set up your school"
-      subtitle={`Step ${resumeFrom + 1} of ${steps.length}${draft.stepIndex > 0 ? ' — progress saved, feel free to continue later' : ''}`}
+      subtitle={draft.stepIndex > 0 ? 'Progress is saved, so you can continue later' : undefined}
       className="max-w-3xl mx-auto"
     >
       <WizardForm
-        ref={wizardRef}
         steps={wrappedSteps}
-        initialStep={resumeFrom}
+        initialStep={Math.min(initialStep, steps.length - 1)}
         showProgress
         completeButtonText="Finish setup"
         onComplete={handleWizardComplete}
+        onCancel={onCancel}
       />
     </Card>
   );

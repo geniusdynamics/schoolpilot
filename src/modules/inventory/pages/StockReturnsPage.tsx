@@ -1,10 +1,15 @@
+// ABOUTME: Stock returns: groups return transactions and records returns to store or to a supplier.
+// ABOUTME: Items, warehouses and transactions come from useInventory; stock levels move via useStockLevelService.
+
 import React, { useState, useEffect } from 'react';
 import {
   PlusIcon,
   TrashIcon,
   ArrowUturnLeftIcon,
 } from '@heroicons/react/24/outline';
-import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData, StockTransactionType } from '../data';
+import { StockTransactionType } from '../data/types';
+import { useInventory } from '../hooks/useInventory';
+import { useStockLevelService } from '../hooks/useStockLevelService';
 import { Card, Input, Select, Button, Alert, Badge } from '@/components/ui';
 import { DialogForm } from '@/components/ui/forms';
 
@@ -15,7 +20,7 @@ interface StockReturnItem {
   quantity: number;
   batch_number?: string;
   expiry_date?: string;
-  warehouse_id: number;
+  warehouse_id: string;
   warehouse_name: string;
   return_reason: string;
   condition: 'GOOD' | 'DAMAGED' | 'EXPIRED' | 'DEFECTIVE';
@@ -50,11 +55,9 @@ export const StockReturnsPageContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Data hooks — the hooks expose { data, create, update, remove }
-  const { data: items } = useItemData();
-  const { data: warehouses } = useWarehouseData();
-  const { data: stockTransactions, create: createStockTransaction } = useStockTransactionData();
-  const { data: stockLevels, create: createStockLevel, update: updateStockLevel } = useStockLevelData();
+  // Database-backed module hooks
+  const { items, warehouses, stockTransactions, addStockTransaction } = useInventory();
+  const { processTransaction } = useStockLevelService();
 
   // Derive returns from return transactions whenever the data changes
   useEffect(() => {
@@ -65,7 +68,7 @@ export const StockReturnsPageContent: React.FC = () => {
              String(t.transaction_type) === StockTransactionType.RETURN_TO_SUPPLIER
       );
       setReturns(groupTransactionsByReturn(returnTransactions));
-    } catch (err) {
+    } catch {
       setError('Failed to load stock returns');
     } finally {
       setLoading(false);
@@ -144,7 +147,7 @@ export const StockReturnsPageContent: React.FC = () => {
       quantity: 0,
       batch_number: '',
       expiry_date: '',
-      warehouse_id: 0,
+      warehouse_id: '',
       warehouse_name: '',
       return_reason: '',
       condition: 'GOOD',
@@ -217,9 +220,9 @@ export const StockReturnsPageContent: React.FC = () => {
 
       // Create stock transactions for each item and adjust stock levels
       for (const item of editingReturn.items) {
-        await createStockTransaction({
-          item_id: item.item_id,
-          warehouse_id: Number(item.warehouse_id),
+        const transaction = {
+          item_id: String(item.item_id),
+          warehouse_id: String(item.warehouse_id),
           transaction_type: editingReturn.return_type === 'RETURN_TO_STORE'
             ? StockTransactionType.RETURN_TO_STORE
             : StockTransactionType.RETURN_TO_SUPPLIER,
@@ -234,29 +237,15 @@ export const StockReturnsPageContent: React.FC = () => {
             item.notes,
             item.batch_number ? `Batch: ${item.batch_number}` : ''
           ].filter(Boolean).join(' | ')
-        });
-
-        // Reduce stock levels only for returns back to store
-        if (editingReturn.return_type === 'RETURN_TO_STORE') {
-          const warehouseId = Number(item.warehouse_id);
-          const existingLevel = stockLevels.find(
-            l => String(l.item_id) === String(item.item_id) && l.warehouse_id === warehouseId
-          );
-          if (existingLevel) {
-            await updateStockLevel(existingLevel.id, { quantity: existingLevel.quantity - item.quantity });
-          } else {
-            await createStockLevel({
-              item_id: Number(item.item_id),
-              warehouse_id: warehouseId,
-              quantity: -item.quantity
-            });
-          }
-        }
+        };
+        const saved = await addStockTransaction(transaction);
+        // StockLevelService adds stock for returns to store and removes it for returns to supplier
+        await processTransaction({ ...transaction, id: saved?.id ?? undefined });
       }
 
       setSuccess('Stock return recorded successfully');
       handleCloseDialog();
-    } catch (err) {
+    } catch {
       setError('Failed to save stock return');
     } finally {
       setLoading(false);

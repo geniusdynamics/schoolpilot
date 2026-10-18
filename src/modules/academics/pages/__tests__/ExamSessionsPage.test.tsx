@@ -1,11 +1,11 @@
 // ABOUTME: This test file covers ExamSessionsPage session and nested paper-setting CRUD interactions.
-// ABOUTME: It verifies the page uses AppDataContext mutations instead of the removed placeholder TODO handlers.
+// ABOUTME: It verifies the page uses the academics module context mutations and writes ids as strings (P0-F04).
 
 import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import ExamSessionsPage from '../ExamSessionsPage';
-import { AppDataContext } from '@/contexts/AppDataContext';
+import { AcademicDataContext } from '@/modules/academics/data/AcademicDataContext';
 import { ToastProvider } from '@/hooks/useToast';
 import { ExamSessionStatus } from '@/modules/academics/data/types';
 
@@ -74,9 +74,9 @@ const baseContextValue = {
 };
 
 const renderPage = (contextOverrides: Record<string, unknown> = {}) => render(
-  <AppDataContext.Provider value={{ ...baseContextValue, ...contextOverrides } as any}>
+  <AcademicDataContext.Provider value={{ ...baseContextValue, ...contextOverrides } as any}>
     <ExamSessionsPage />
-  </AppDataContext.Provider>
+  </AcademicDataContext.Provider>
 );
 
 describe('ExamSessionsPage', () => {
@@ -98,7 +98,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockAddExamSession).toHaveBeenCalledWith({
         name: 'End Term',
-        school_period_id: 2,
+        school_period_id: '2',
         status: ExamSessionStatus.MARKS_ENTRY_OPEN
       });
     });
@@ -114,7 +114,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockUpdateExamSession).toHaveBeenCalledWith('session-1', {
         name: 'Updated Mid Term',
-        school_period_id: 1,
+        school_period_id: '1',
         status: ExamSessionStatus.PLANNING
       });
     });
@@ -132,7 +132,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockAddExamPaperSetting).toHaveBeenCalledWith({
         exam_session_id: 'session-1',
-        subject_paper_id: 2,
+        subject_paper_id: '2',
         marks_out_of: 80,
         weight_percentage: 40
       });
@@ -145,7 +145,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockUpdateExamPaperSetting).toHaveBeenCalledWith('setting-1', {
         exam_session_id: 'session-1',
-        subject_paper_id: 1,
+        subject_paper_id: '1',
         marks_out_of: 90,
         weight_percentage: 50
       });

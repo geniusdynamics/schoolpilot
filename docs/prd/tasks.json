@@ -1302,10 +1302,10 @@
       ],
       "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws13-onboarding--wizard-ordering-and-correctness",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "24c7ef4",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-C06",
@@ -1337,10 +1337,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "4c37e91",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-C07",
@@ -1375,10 +1375,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "4954d7f",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-17"
     },
     {
       "id": "P0-E04",
@@ -1410,10 +1410,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "53cba39",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-E05",
@@ -1444,10 +1444,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "0c24de5",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-F04",
@@ -1484,10 +1484,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "02010ff",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-F05",
@@ -1519,10 +1519,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "5ff7222",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-H01",
@@ -1552,10 +1552,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "09a28bf",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-H02",
@@ -1584,10 +1584,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "caeb00b",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-H03",
@@ -1615,10 +1615,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "ee51aec",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-H04",
@@ -1646,10 +1646,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "f94e641",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-G08",
@@ -1676,10 +1676,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "feea74f",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-B05",
@@ -4672,6 +4672,35 @@
       "commit": null,
       "notes": "",
       "completed_at": null
+    },
+    {
+      "id": "P0-Q01",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "Q",
+      "title": "Stabilise PRD tooling and the smoke-test flake: resolve gate base refs, pre-warm page imports, drop unused test imports",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "scripts/prd/gate.mjs",
+        "src/tests/crawlCrashPages.smoke.test.tsx",
+        "src/modules/hr/pages/__tests__/StaffSalarySettingsPage.test.tsx",
+        "src/modules/settings/pages/__tests__/UnifiedSettingsRolePicker.test.tsx"
+      ],
+      "acceptance": [
+        "gate.mjs resolves a --base ref to a full SHA, so a caret ref cannot silently gate zero changed files on Windows",
+        "crawlCrashPages.smoke.test.tsx pre-warms its page imports, so it no longer times out under parallel fork load",
+        "typecheck reports no unused-React errors in the two P0-H04 tests"
+      ],
+      "test": "Gate with a caret base ref; smoke test under parallel forks",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "082b71b",
+      "notes": "Opened during W3 close-out per EXECUTION.md §9 (a flaky test gets a Q task) and the H03 reviewer's finding that --base <sha>^ silently gates zero files on Windows.",
+      "completed_at": "2026-10-18"
     }
   ]
 }

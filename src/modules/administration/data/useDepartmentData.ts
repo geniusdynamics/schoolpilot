@@ -1,63 +1,61 @@
-// ABOUTME: Self-contained hook for department data management
-// ABOUTME: Provides CRUD operations for department without depending on AppDataContext
+// ABOUTME: Database-backed departments (collection 'departments'): create(data), update(id, patch), remove(id).
+// ABOUTME: Writes announce 'appDataChanged' so pickers fed by the app-wide snapshot (e.g. staff forms) refresh.
 
-import { initialMockDepartments } from './mockData';
+import { useCallback } from 'react';
 import { Department } from '@/core/types';
-import { useState } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+export const DEPARTMENTS_COLLECTION = 'departments';
+
+/** A stored department; ids are strings at runtime. */
+export type DepartmentRecord = Omit<Department, 'id'> & { id: string };
+
+/** Editable fields of a department. */
+export interface DepartmentInput {
+  name: string;
+  is_academic: boolean;
+}
+
+const notifyAppDataChanged = () => {
+  window.dispatchEvent(new CustomEvent('appDataChanged', { detail: { collection: DEPARTMENTS_COLLECTION } }));
+};
 
 export const useDepartmentData = () => {
-  const [data, setData] = useState<Department[]>(initialMockDepartments || []);
-  const [loading, setLoading] = useState({ departments: false });
+  const collection = useDatabaseCollection<DepartmentRecord>(DEPARTMENTS_COLLECTION);
+  const { insert, update, remove } = collection;
 
-  const addDepartment = async (newItem: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
-    setLoading(prev => ({ ...prev, departments: true }));
-    try {
-      const newDataItem: Department = {
-        ...newItem,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setData((prev: Department[]) => [...prev, newDataItem]);
-      return newDataItem;
-    } finally {
-      setLoading(prev => ({ ...prev, departments: false }));
-    }
-  };
+  const addDepartment = useCallback(async (input: DepartmentInput) => {
+    const now = new Date().toISOString();
+    const created = await insert({ ...input, created_at: now, updated_at: now });
+    notifyAppDataChanged();
+    return created;
+  }, [insert]);
 
-  const updateDepartment = async (updatedItem: Department) => {
-    setLoading(prev => ({ ...prev, departments: true }));
-    try {
-      setData((prev: Department[]) => prev.map((item: Department) => 
-        item.id === updatedItem.id 
-          ? { ...updatedItem, updated_at: new Date().toISOString() }
-          : item
-      ));
-    } finally {
-      setLoading(prev => ({ ...prev, departments: false }));
-    }
-  };
+  const updateDepartment = useCallback(async (id: string, patch: Partial<DepartmentInput>) => {
+    const updated = await update(id, { ...patch, updated_at: new Date().toISOString() });
+    notifyAppDataChanged();
+    return updated;
+  }, [update]);
 
-  const deleteDepartment = async (id: string) => {
-    setLoading(prev => ({ ...prev, departments: true }));
-    try {
-      setData((prev: Department[]) => prev.filter((item: Department) => item.id !== id));
-    } finally {
-      setLoading(prev => ({ ...prev, departments: false }));
-    }
-  };
+  const deleteDepartment = useCallback(async (id: string) => {
+    const removed = await remove(id);
+    notifyAppDataChanged();
+    return removed;
+  }, [remove]);
 
   return {
-    departments: data,
-    loading,
+    departments: collection.data,
+    loading: { departments: collection.loading },
+    error: collection.error,
+    refresh: collection.refresh,
     addDepartment,
     updateDepartment,
     deleteDepartment,
-    // Legacy compatibility
-    data,
+    // Generic verbs with the same (data) / (id, patch) / (id) signatures
+    data: collection.data,
     create: addDepartment,
     update: updateDepartment,
-    remove: deleteDepartment
+    remove: deleteDepartment,
   };
 };
 

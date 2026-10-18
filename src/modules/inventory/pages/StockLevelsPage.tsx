@@ -1,30 +1,31 @@
+// ABOUTME: Read-only stock levels grid filterable by warehouse and item category.
+// ABOUTME: Data comes from the useInventory module hook; ids are compared as strings (UUID-safe).
+
 import React, { useState, useMemo } from 'react';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Select from '@/components/ui/Select';
 import { TableCellsIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
 import type { StockLevel } from '@/core/types';
 
 export const StockLevelsPageContent: React.FC = () => {
-  const { 
-    stockLevels, 
-    warehouses, 
-    itemsInv, // Need items to get category for filtering
-    itemCategoriesInv, // Need categories for filter dropdown
-    loading 
-  } = useAppData(); // Updated
-  
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | undefined>(undefined);
-  const [selectedItemCategoryId, setSelectedItemCategoryId] = useState<number | undefined>(undefined);
+  const {
+    stockLevels,
+    warehouses,
+    items: itemsInv, // Need items to get category for filtering
+    itemCategories: itemCategoriesInv, // Need categories for filter dropdown
+  } = useInventory();
+
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>('');
+  const [selectedItemCategoryId, setSelectedItemCategoryId] = useState<string>('');
 
   const filteredStockLevels = useMemo(() => {
     return stockLevels.filter(sl => {
-      const item = itemsInv.find(i => i.id === sl.item_id);
-      const warehouseMatch = selectedWarehouseId ? sl.warehouse_id === selectedWarehouseId : true;
-      const categoryMatch = selectedItemCategoryId && item ? item.category_id === selectedItemCategoryId : true;
+      const item = itemsInv.find(i => String(i.id) === String(sl.item_id));
+      const warehouseMatch = selectedWarehouseId ? String(sl.warehouse_id) === selectedWarehouseId : true;
+      const categoryMatch = selectedItemCategoryId && item ? String(item.category_id) === selectedItemCategoryId : true;
       return warehouseMatch && categoryMatch;
     });
   }, [stockLevels, selectedWarehouseId, selectedItemCategoryId, itemsInv]);
@@ -53,13 +54,6 @@ export const StockLevelsPageContent: React.FC = () => {
     },
   ];
 
-  if ((loading.stockLevels || loading.warehouses || loading.itemsInv || loading.itemCategoriesInv)) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Stock Levels...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -70,16 +64,16 @@ export const StockLevelsPageContent: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Select
                 label="Filter by Warehouse"
-                value={selectedWarehouseId || ''}
-                onChange={(e) => setSelectedWarehouseId(e.target.value ? parseInt(e.target.value) : undefined)}
+                value={selectedWarehouseId}
+                onChange={(e) => setSelectedWarehouseId(e.target.value)}
             >
                 <option value="">All Warehouses</option>
                 {warehouses.map(wh => <option key={wh.id} value={wh.id}>{wh.name}</option>)}
             </Select>
             <Select
                 label="Filter by Item Category"
-                value={selectedItemCategoryId || ''}
-                onChange={(e) => setSelectedItemCategoryId(e.target.value ? parseInt(e.target.value) : undefined)}
+                value={selectedItemCategoryId}
+                onChange={(e) => setSelectedItemCategoryId(e.target.value)}
             >
                 <option value="">All Categories</option>
                 {itemCategoriesInv.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
@@ -88,7 +82,6 @@ export const StockLevelsPageContent: React.FC = () => {
         <DataGrid 
           columns={columns} 
           data={filteredStockLevels || []} 
-          isLoading={loading.stockLevels}
           sortable
           filterable
           emptyState={{

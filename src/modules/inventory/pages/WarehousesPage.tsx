@@ -1,3 +1,6 @@
+// ABOUTME: Warehouses list and add/edit/delete dialog for the inventory module.
+// ABOUTME: Reads and writes the 'warehouses' collection through the useInventory module hook.
+
 import React, { useState } from 'react';
 import { Warehouse } from '@/types';
 import Card from '@/components/ui/Card';
@@ -9,24 +12,25 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, CubeTransparentIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 
 type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
+/** A stored warehouse; ids are strings at runtime. */
+type WarehouseRecord = Omit<Warehouse, 'id'> & { id: string };
 
 export const WarehousesPageContent: React.FC = () => {
-  const { warehouses, loading, addWarehouse, updateWarehouse, deleteWarehouse } = useAppData(); // Updated
+  const { warehouses, addWarehouse, updateWarehouse, deleteWarehouse } = useInventory();
   const { t } = useTranslation('inventory');
   const confirm = useConfirm();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
+  const [editingWarehouse, setEditingWarehouse] = useState<WarehouseRecord | null>(null);
   const initialFormData: WarehouseFormData = { name: '' };
   const [formData, setFormData] = useState<WarehouseFormData>(initialFormData);
 
-  const openModal = (warehouse?: Warehouse) => {
+  const openModal = (warehouse?: WarehouseRecord) => {
     setEditingWarehouse(warehouse || null);
     setFormData(warehouse ? { name: warehouse.name } : initialFormData);
     setIsModalOpen(true);
@@ -51,20 +55,20 @@ export const WarehousesPageContent: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingWarehouse) {
-      await updateWarehouse({ ...editingWarehouse, ...payload });
+      await updateWarehouse(editingWarehouse.id, payload);
     } else {
       await addWarehouse(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (await confirm({ title: 'Delete warehouse', message: 'Are you sure you want to delete this warehouse? This might affect stock levels.', variant: 'danger' })) {
       await deleteWarehouse(id);
     }
   };
 
-  const columns: DataGridColumn<Warehouse>[] = [
+  const columns: DataGridColumn<WarehouseRecord>[] = [
     { 
       key: 'id', 
       header: 'ID', 
@@ -95,13 +99,6 @@ export const WarehousesPageContent: React.FC = () => {
     },
   ];
 
-  if (loading.warehouses && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Warehouses...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -116,7 +113,6 @@ export const WarehousesPageContent: React.FC = () => {
         <DataGrid 
           columns={columns} 
           data={warehouses || []} 
-          isLoading={loading.warehouses && isModalOpen}
           sortable
           filterable
           emptyState={{
@@ -135,7 +131,7 @@ export const WarehousesPageContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('warehouses.cancel')}</Button>
-            <Button onClick={handleSubmit} loading={loading.warehouses}>
+            <Button onClick={handleSubmit}>
               {editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse')}
             </Button>
           </FormActions>
