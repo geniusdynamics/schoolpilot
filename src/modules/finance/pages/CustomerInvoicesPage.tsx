@@ -1,3 +1,6 @@
+// ABOUTME: Customer invoices page: creates, edits and deletes customer invoices and their line items through useFinance()
+// ABOUTME: Customers and revenue accounts are linked by string id; names are resolved at read time
+
 import React, { useState, useMemo } from 'react';
 
 import Card from '@/components/ui/Card';
@@ -8,29 +11,35 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea'; // Assuming Textarea exists
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { useFinance } from '@/modules/finance/hooks/useFinance';
 import { AccountType, CustomerInvoiceStatus } from '@/core/types';
-import type { CustomerInvoice, Customer } from '@/core/types';
+import type { CustomerInvoice, CustomerInvoiceItem, Customer } from '@/modules/finance/data/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { formatDate } from '@/utils/format';
 
-type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
-    status: CustomerInvoiceStatus;
+// Record ids are strings (UUIDs) at runtime, so the forms keep customer and revenue account ids as option values.
+type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status' | 'customer_id'> & {
+  customer_id: string;
+  status: CustomerInvoiceStatus;
 };
-type CustomerInvoiceItemFormData = Omit<Partial<CustomerInvoiceItem>, 'id' | 'invoice_id' | 'revenue_account_name'>;
+type CustomerInvoiceItemFormData = Omit<Partial<CustomerInvoiceItem>, 'id' | 'invoice_id' | 'revenue_account_name' | 'revenue_account_id'> & {
+  revenue_account_id: string;
+};
+
+// The finance types still declare numeric ids; the data layer stores whatever string id the option carries.
+type CustomerInvoiceInput = Parameters<ReturnType<typeof useFinance>['addCustomerInvoice']>[0];
+type CustomerInvoicePatch = Parameters<ReturnType<typeof useFinance>['updateCustomerInvoice']>[1];
 
 export const CustomerInvoicesPageContent: React.FC = () => {
   const { 
     customerInvoices, 
-    customers, // from adm.customers
+    customers,
     chartOfAccounts,
-    loading, 
-    addCustomerInvoice, 
-    updateCustomerInvoice, 
-    deleteCustomerInvoice 
-  } = useAppData();
+    addCustomerInvoice,
+    updateCustomerInvoice,
+    deleteCustomerInvoice
+  } = useFinance();
   
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -40,25 +49,30 @@ export const CustomerInvoicesPageContent: React.FC = () => {
   const [editingInvoiceItem, setEditingInvoiceItem] = useState<CustomerInvoiceItem | null>(null);
   
   const initialInvoiceFormData: CustomerInvoiceFormData = { 
-    customer_id: undefined, 
-    invoice_number: '', 
+    customer_id: '',
+    invoice_number: '',
     issue_date: new Date().toISOString().split('T')[0], 
     due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 30 days due
     status: CustomerInvoiceStatus.DUE,
   };
   const [invoiceFormData, setInvoiceFormData] = useState<CustomerInvoiceFormData>(initialInvoiceFormData);
 
-  const initialItemFormData: CustomerInvoiceItemFormData = { description: '', amount: 0, revenue_account_id: undefined };
+  const initialItemFormData: CustomerInvoiceItemFormData = { description: '', amount: 0, revenue_account_id: '' };
   const [itemFormData, setItemFormData] = useState<CustomerInvoiceItemFormData>(initialItemFormData);
 
   const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
+
+  const invoiceRows = useMemo(() => (customerInvoices || []).map(invoice => ({
+    ...invoice,
+    customer_name: ((customers || []) as Customer[]).find(customer => String(customer.id) === String(invoice.customer_id))?.name ?? invoice.customer_name ?? null,
+  })), [customerInvoices, customers]);
 
   // Invoice Modal
   const openInvoiceModal = (invoice?: CustomerInvoice) => {
     setEditingInvoice(invoice || null);
     setInvoiceFormData(invoice ? 
       { 
-        customer_id: invoice.customer_id, 
+        customer_id: invoice.customer_id == null ? '' : String(invoice.customer_id),
         invoice_number: invoice.invoice_number, 
         issue_date: invoice.issue_date, 
         due_date: invoice.due_date, 
@@ -79,7 +93,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
     setCurrentInvoiceForItems(invoice);
     setEditingInvoiceItem(item || null);
     setItemFormData(item ? 
-      { description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id } : 
+      { description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id == null ? '' : String(item.revenue_account_id) } :
       initialItemFormData
     );
     setIsItemModalOpen(true);
@@ -92,12 +106,13 @@ export const CustomerInvoicesPageContent: React.FC = () => {
 
   const handleInvoiceInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setInvoiceFormData(prev => ({ ...prev, [name]: name === 'customer_id' ? (value ? parseInt(value) : undefined) : value }));
+    setInvoiceFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setItemFormData(prev => ({ ...prev, [name]: name === 'revenue_account_id' ? (value ? parseInt(value) : undefined) : (name === 'amount' ? parseFloat(value) : value) }));
+    // Only the amount is numeric; the revenue account id stays a string.
+    setItemFormData(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value) : value }));
   };
   
   const handleInvoiceSubmit = async () => {
@@ -106,7 +121,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       return;
     }
     const payloadBase = {
-      customer_id: Number(invoiceFormData.customer_id!),
+      customer_id: invoiceFormData.customer_id,
       invoice_number: invoiceFormData.invoice_number!,
       issue_date: invoiceFormData.issue_date!,
       due_date: invoiceFormData.due_date || undefined,
@@ -114,22 +129,24 @@ export const CustomerInvoicesPageContent: React.FC = () => {
     };
 
     if (editingInvoice) {
-      await updateCustomerInvoice({ ...editingInvoice, ...payloadBase, items: editingInvoice.items || [] });
+      await updateCustomerInvoice(String(editingInvoice.id), payloadBase as unknown as CustomerInvoicePatch);
     } else {
-      await addCustomerInvoice({ ...payloadBase, items: [] }); // New invoices start with no items
+      // New invoices start with no items
+      await addCustomerInvoice({ ...payloadBase, items: [], total_amount: 0 } as unknown as CustomerInvoiceInput);
     }
     closeInvoiceModal();
   };
 
   const toast = useToast();
   const handleItemSubmit = async () => {
-    if (!currentInvoiceForItems || !itemFormData.description || itemFormData.amount === undefined || itemFormData.amount <= 0 || !itemFormData.revenue_account_id) {
+    if (!currentInvoiceForItems || !itemFormData.description || itemFormData.amount == null || itemFormData.amount <= 0 || !itemFormData.revenue_account_id) {
       toast.showWarning("Description, valid Amount, and Revenue Account are required for an item.");
       return;
     }
     
     let updatedItems: CustomerInvoiceItem[];
-    const now = new Date().toISOString(); 
+    const revenueAccountId = itemFormData.revenue_account_id;
+    const revenueAccountName = revenueAccounts.find(ra => String(ra.id) === revenueAccountId)?.name ?? null;
 
     if (editingInvoiceItem) {
       updatedItems = (currentInvoiceForItems.items || []).map(i =>
@@ -137,29 +154,29 @@ export const CustomerInvoicesPageContent: React.FC = () => {
         {
             ...editingInvoiceItem,
             description: itemFormData.description!,
-            amount: Number(itemFormData.amount!),
-            revenue_account_id: Number(itemFormData.revenue_account_id!),
-            revenue_account_name: (revenueAccounts || []).find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
-        } : i
+            amount: Number(itemFormData.amount),
+            revenue_account_id: revenueAccountId,
+            revenue_account_name: revenueAccountName,
+        } as unknown as CustomerInvoiceItem : i
       );
     } else {
-      const newItemData: Omit<CustomerInvoiceItem, 'id'|'invoice_id'|'revenue_account_name'> = {
-        description: itemFormData.description!,
-        amount: Number(itemFormData.amount!),
-        revenue_account_id: Number(itemFormData.revenue_account_id!),
-      };
-      // In mock, addCustomerInvoice's second arg expects this shape for new items when called through update.
-      // This is a bit of a workaround for mock. A real API might handle nested adds differently.
-      // For now, we'll call updateCustomerInvoice which handles item additions/updates.
-      const newItemForUpdate = { ...newItemData, id: `tempCIITM-${Date.now()}`, invoice_id: currentInvoiceForItems.id };
-      updatedItems = [...(currentInvoiceForItems.items || []), newItemForUpdate as CustomerInvoiceItem];
+      // Items are stored on the invoice document, so a new item only needs a local id.
+      const newItem = {
+        id: `${currentInvoiceForItems.id}-item-${Date.now()}`,
+        invoice_id: currentInvoiceForItems.id,
+        description: itemFormData.description,
+        amount: Number(itemFormData.amount),
+        revenue_account_id: revenueAccountId,
+        revenue_account_name: revenueAccountName,
+      } as unknown as CustomerInvoiceItem;
+      updatedItems = [...(currentInvoiceForItems.items || []), newItem];
     }
-    
-    const updatedInvoice = { ...currentInvoiceForItems, items: updatedItems, updated_at: now };
-    updatedInvoice.total_amount = updatedItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-    
-    await updateCustomerInvoice(updatedInvoice);
-    
+
+    const total_amount = updatedItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+    const updatedInvoice = { ...currentInvoiceForItems, items: updatedItems, total_amount };
+
+    await updateCustomerInvoice(String(currentInvoiceForItems.id), { items: updatedItems, total_amount });
+
     setCurrentInvoiceForItems(updatedInvoice); 
     
     setEditingInvoiceItem(null); 
@@ -177,9 +194,9 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       if (!currentInvoiceForItems) return;
       if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this invoice item?' }))) {
           const updatedItems = (currentInvoiceForItems.items || []).filter(i => i.id !== itemId);
-          const updatedInvoice = { ...currentInvoiceForItems, items: updatedItems, updated_at: new Date().toISOString() };
-          updatedInvoice.total_amount = updatedItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-          await updateCustomerInvoice(updatedInvoice);
+          const total_amount = updatedItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+          const updatedInvoice = { ...currentInvoiceForItems, items: updatedItems, total_amount };
+          await updateCustomerInvoice(String(currentInvoiceForItems.id), { items: updatedItems, total_amount });
           setCurrentInvoiceForItems(updatedInvoice); 
       }
   };
@@ -358,16 +375,6 @@ export const CustomerInvoicesPageContent: React.FC = () => {
     }
   ];
   
-  const isLoadingData = loading.customerInvoices || loading.customers || loading.chartOfAccounts;
-
-  if (isLoadingData && !isInvoiceModalOpen && !isItemModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Customer Invoices...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Customer Invoices Management" actions={
@@ -380,8 +387,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
         </p>
         <DataGrid 
           columns={invoiceColumns} 
-          data={customerInvoices || []} 
-          isLoading={loading.customerInvoices && (isInvoiceModalOpen || isItemModalOpen)}
+          data={invoiceRows}
           sortable
           filterable
           emptyState={{
@@ -404,16 +410,16 @@ export const CustomerInvoicesPageContent: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeInvoiceModal}>Cancel</Button>
-            <Button onClick={handleInvoiceSubmit} loading={loading.customerInvoices}>
+            <Button onClick={handleInvoiceSubmit}>
               {editingInvoice ? 'Save Changes' : 'Add Invoice'}
             </Button>
           </>
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select name="customer_id" label="Customer" value={invoiceFormData.customer_id || ''} onChange={handleInvoiceInputChange} required>
+            <Select name="customer_id" label="Customer" value={invoiceFormData.customer_id} onChange={handleInvoiceInputChange} required>
                 <option value="">Select Customer</option>
-                {(customers || []).map((customer: Customer) => (<option key={customer.id} value={customer.id}>{customer.name}</option>))}
+                {((customers || []) as Customer[]).map((customer) => (<option key={customer.id} value={customer.id}>{customer.name}</option>))}
             </Select>
             <Input name="invoice_number" label="Invoice Number" value={invoiceFormData.invoice_number || ''} onChange={handleInvoiceInputChange} required />
             <Input name="issue_date" label="Issue Date" type="date" value={invoiceFormData.issue_date || ''} onChange={handleInvoiceInputChange} required />
@@ -437,13 +443,13 @@ export const CustomerInvoicesPageContent: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Textarea name="description" label="Description" value={itemFormData.description || ''} onChange={handleItemInputChange} required rows={2} containerClassName="md:col-span-3"/>
                 <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={itemFormData.amount ?? ''} onChange={handleItemInputChange} required />
-                <Select name="revenue_account_id" label="Revenue GL Account" value={itemFormData.revenue_account_id || ''} onChange={handleItemInputChange} required className="md:col-span-2">
+                <Select name="revenue_account_id" label="Revenue GL Account" value={itemFormData.revenue_account_id} onChange={handleItemInputChange} required className="md:col-span-2">
                     <option value="">Select Revenue Account</option>
                     {(revenueAccounts || []).map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
                 </Select>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" loading={loading.customerInvoices}>
+                <Button onClick={handleItemSubmit} size="sm">
                   {editingInvoiceItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
@@ -453,7 +459,6 @@ export const CustomerInvoicesPageContent: React.FC = () => {
             <DataGrid 
               columns={itemColumns} 
               data={currentInvoiceForItems.items || []} 
-              isLoading={loading.customerInvoices && isItemModalOpen}
               sortable
               filterable
               emptyState={{
