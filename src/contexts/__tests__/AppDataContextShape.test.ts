@@ -20,6 +20,16 @@ describe('AppDataContext collection normalization', () => {
     expect(normalized.departments).toEqual([]);
   });
 
+  it('maps ID-card collections to their camelCase data keys', () => {
+    const normalized = normalizeAppDataCollections({
+      staff_id_cards: [{ id: 'sic-1' }],
+      student_id_cards: [{ id: 'stic-1' }]
+    });
+
+    expect(normalized.staffIDCards).toEqual([{ id: 'sic-1' }]);
+    expect(normalized.studentIDCards).toEqual([{ id: 'stic-1' }]);
+  });
+
   it('provides a stable loading map for collection-specific lookups', () => {
     const loading = createAppDataLoadingState(false);
 

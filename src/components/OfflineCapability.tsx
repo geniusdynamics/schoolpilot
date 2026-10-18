@@ -3,6 +3,7 @@ import React from 'react';
 import { ServerIcon, ClockIcon, CheckCircleIcon, XCircleIcon, SignalIcon, SignalSlashIcon } from '@heroicons/react/24/outline';
 import { AlertTriangleIcon } from './ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { useSync } from '@/contexts/SyncContext';
 import { ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
@@ -22,7 +23,8 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
   showOfflineIndicator = true,
   className = ''
 }) => {
-  const { isOnline, backendAvailable, offlineCapabilities } = useAppData() || {};
+  const { isOnline, backendAvailable } = useAppData() || {};
+  const { offlineCapabilities } = useSync();
   
   const capability = Array.isArray(offlineCapabilities)
     ? offlineCapabilities.find(cap => cap?.feature === feature)
@@ -161,19 +163,18 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
   showQueueDetails = false,
   showSettings = false
 }) => {
-  const { 
-    syncStatus,
-    pendingSyncCount, 
-    forceSync, 
-    getQueueStatus,
+  const {
     isOnline,
     backendAvailable,
-    clearSyncQueue,
+    syncStatus,
+    pendingSyncCount,
+    forceSync,
     pauseSync,
     resumeSync,
     getSyncSettings,
     updateSyncSettings
   } = useAppData() || {};
+  const { getQueueStatus, clearSyncQueue } = useSync();
 
   const confirm = useConfirm();
 
@@ -403,7 +404,7 @@ export const FeatureAvailabilityIndicator: React.FC<FeatureAvailabilityProps> = 
   features,
   className = ''
 }) => {
-  const { offlineCapabilities } = useAppData() || {};
+  const { offlineCapabilities } = useSync();
   
   const featureStatus = features.map(feature => {
     const capability = Array.isArray(offlineCapabilities) 
@@ -494,12 +495,6 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
   const [mergeData, setMergeData] = React.useState<any>({});
 
   const conflict = conflicts.find(c => c.id === selectedConflict);
-  const handleMergeChange = (field: string, value: any, source: 'local' | 'server') => {
-    setMergeData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const renderDataComparison = (conflict: any) => {
     const localKeys = Object.keys(conflict.localData || {});
@@ -671,7 +666,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
 
 // Hook for checking feature availability
 export const useFeatureAvailability = (feature: string) => {
-  const { offlineCapabilities } = useAppData() || {};
+  const { offlineCapabilities } = useSync();
   
   const capability = Array.isArray(offlineCapabilities)
     ? offlineCapabilities.find(cap => cap?.feature === feature)

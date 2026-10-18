@@ -21,7 +21,7 @@ export const AccountLedgerPageContent: React.FC = () => {
 
   const { t } = useTranslation('reports');
 
-  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
   const [startDate, setStartDate] = useState<string>(new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]); 
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]); 
   
@@ -37,7 +37,7 @@ export const AccountLedgerPageContent: React.FC = () => {
     setIsGenerating(true);
 
     const filteredEntries = (generalLedgerEntries || [])
-      .filter(entry => entry.account_id === selectedAccountId)
+      .filter(entry => String(entry.account_id) === selectedAccountId)
       .filter(entry => {
         const entryDate = new Date(entry.effective_date);
         return (!startDate || entryDate >= new Date(startDate)) && (!endDate || entryDate <= new Date(endDate));
@@ -52,7 +52,7 @@ export const AccountLedgerPageContent: React.FC = () => {
 
     setReportData(processedData);
     setIsGenerating(false);
-  }, [generalLedgerEntries, selectedAccountId, startDate, endDate]);
+  }, [generalLedgerEntries, selectedAccountId, startDate, endDate, t]);
 
   const columns = [
     { header: 'Date', key: 'effective_date' as keyof LedgerEntryRow, render: (_v: any, item: LedgerEntryRow) => new Date(item.effective_date).toLocaleDateString() },
@@ -81,7 +81,6 @@ export const AccountLedgerPageContent: React.FC = () => {
         if (col.render) { // Use render function if available
           value = col.render(row[col.key as keyof LedgerEntryRow], row);
         } else {
-          // @ts-ignore
           value = row[col.key as keyof LedgerEntryRow];
         }
         const stringValue = String(value !== undefined && value !== null ? value : '-');
@@ -112,7 +111,7 @@ export const AccountLedgerPageContent: React.FC = () => {
                 {t('accountLedgerPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                <Select label={t('accountLedgerPage.selectAccount')} value={selectedAccountId || ''} onChange={e => setSelectedAccountId(Number(e.target.value) || undefined)} required>
+                <Select label={t('accountLedgerPage.selectAccount')} value={selectedAccountId || ''} onChange={e => setSelectedAccountId(e.target.value || undefined)} required>
                     <option value="">-- {t('accountLedgerPage.selectAccountPlaceholder')} --</option>
                     {(chartOfAccounts || []).map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
                 </Select>

@@ -86,8 +86,32 @@ const APP_DATA_ARRAY_KEYS = [
   'studentClearances',
   'studentClearanceRequests',
   'disciplinaryCases',
-  'disciplinaryRecords'
+  'disciplinaryRecords',
+  'applications',
+  'balanceSheetItems',
+  'cashBookEntries',
+  'dayBookEntries',
+  'foodInventory',
+  'incomeStatementItems',
+  'journalEntries',
+  'kitchenMealPlans',
+  'mealConsumptionLogs',
+  'previousSessionFees',
+  'receiptTemplates',
+  'staffAttendanceRecords',
+  'staffIDCards',
+  'stationeryItems',
+  'studentBioData',
+  'studentClassHistory',
+  'studentIDCards',
+  'studentMealPlans',
+  'studentPaymentRecords',
+  'studentWallets',
+  'trialBalanceItems',
+  'walletTransactions'
 ] as const;
+
+export type AppDataCollectionKey = typeof APP_DATA_ARRAY_KEYS[number];
 
 type AppDataArrayKey = typeof APP_DATA_ARRAY_KEYS[number];
 
@@ -171,6 +195,9 @@ const COLLECTION_KEY_ALIASES: Record<string, AppDataArrayKey | 'schoolDetails'> 
   general_ledger_entries: 'generalLedgerEntries',
   rfqs: 'rfqs',
   education_system_configurations: 'educationSystemConfigurations',
+  admissions_applications: 'applications',
+  staff_id_cards: 'staffIDCards',
+  student_id_cards: 'studentIDCards',
   student_import_sessions: 'studentImportSessions',
   student_import_records: 'studentImportRecords',
   student_clearances: 'studentClearances',

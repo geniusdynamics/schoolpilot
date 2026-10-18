@@ -155,7 +155,7 @@ describe('crawl crash pages (SO-27) render without throwing', () => {
     });
 
     it('renders seeded ledger rows with formatted dates', async () => {
-      seed.collections.general_ledger = [
+      seed.collections.general_ledger_entries = [
         { id: 'gl-1', account_id: 1, effective_date: '2026-03-15', description: 'Fees received', debit: 1000, credit: 0 },
       ];
       const { default: Page } = await import('@/modules/finance/pages/AccountLedgerPage');

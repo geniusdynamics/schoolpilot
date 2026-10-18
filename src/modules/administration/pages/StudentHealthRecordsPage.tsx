@@ -74,7 +74,7 @@ const StudentHealthRecordsPage: React.FC = () => {
     };
 
     if (currentHealthRecord) {
-      await updateStudentHealthRecord({ ...currentHealthRecord, ...payload });
+      await updateStudentHealthRecord(String(currentHealthRecord.id), payload);
     } else {
       await addStudentHealthRecord(payload);
     }

@@ -28,7 +28,7 @@ interface StatementEntry extends Omit<StatementRow, 'balance'> {
 
 interface BuildStudentVoteheadStatementOptions {
   selectedStudentId: string;
-  selectedSchoolPeriodId: number;
+  selectedSchoolPeriodId: string | number;
   schoolPeriods: SchoolPeriod[];
   studentInvoices: StudentInvoice[];
   studentInvoiceItems: StudentInvoiceItem[];
@@ -42,8 +42,8 @@ interface StudentVoteheadStatementResult {
   rows: StatementRow[];
 }
 
-const getPeriodStartDate = (schoolPeriods: SchoolPeriod[], schoolPeriodId: number) => {
-  return schoolPeriods.find((period) => period.id === schoolPeriodId)?.start_date;
+const getPeriodStartDate = (schoolPeriods: SchoolPeriod[], schoolPeriodId: string | number) => {
+  return schoolPeriods.find((period) => String(period.id) === String(schoolPeriodId))?.start_date;
 };
 
 const getSignedOpeningBalance = (openingBalance?: FinStudentOpeningBalanceType) => {
@@ -88,7 +88,7 @@ const buildInvoiceItemMap = (studentInvoices: StudentInvoice[], studentInvoiceIt
 
 const getAllocatedPaymentForPeriod = (
   paymentId: string,
-  schoolPeriodId: number,
+  schoolPeriodId: string | number,
   invoicePaymentApplications: InvoicePaymentApplication[],
   invoiceItemMap: Map<string, { invoiceId: string }>,
   invoicePeriodMap: Map<string, number>
@@ -99,7 +99,7 @@ const getAllocatedPaymentForPeriod = (
       const invoiceItem = invoiceItemMap.get(application.invoice_item_id);
       const invoicePeriodId = invoiceItem ? invoicePeriodMap.get(invoiceItem.invoiceId) : undefined;
 
-      return invoicePeriodId === schoolPeriodId ? total + application.amount_applied : total;
+      return String(invoicePeriodId) === String(schoolPeriodId) ? total + application.amount_applied : total;
     }, 0);
 };
 
@@ -111,7 +111,8 @@ const toStatementRows = (entries: StatementEntry[]) => {
       const dateDifference = new Date(left.date).getTime() - new Date(right.date).getTime();
       return dateDifference !== 0 ? dateDifference : left.sortPriority - right.sortPriority;
     })
-    .map(({ sortPriority: _sortPriority, ...entry }) => {
+    .map(({ sortPriority, ...entry }) => {
+      void sortPriority;
       runningBalance += entry.debit - entry.credit;
       return { ...entry, balance: runningBalance };
     });
@@ -150,8 +151,8 @@ export const buildStudentVoteheadStatement = ({
 
   studentInvoices
     .filter((invoice) =>
-      invoice.student_id === selectedStudentId &&
-      invoice.school_period_id === selectedSchoolPeriodId &&
+      String(invoice.student_id) === selectedStudentId &&
+      String(invoice.school_period_id) === String(selectedSchoolPeriodId) &&
       invoice.status !== InvoiceStatus.VOIDED
     )
     .forEach((invoice) => {

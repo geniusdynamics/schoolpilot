@@ -83,7 +83,7 @@ export const PartnersContent: React.FC = () => {
     };
 
     if (editingPartner) {
-      await updatePartner({ ...editingPartner, ...payload });
+      await updatePartner(String(editingPartner.id), payload);
     } else {
       await addPartner(payload);
     }

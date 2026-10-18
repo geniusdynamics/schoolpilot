@@ -7,7 +7,7 @@ import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import type { StudentInvoice as FinStudentInvoiceType, StudentPayment as FinStudentPaymentType, FeeAdjustment as FinFeeAdjustmentType } from '@/core/types';
-import { Student, Class as SchoolClass, ClassStream, SchoolPeriod, InvoiceStatus } from '@/types';
+
 
 interface FinancialSummaryRow {
   studentId: string;
@@ -32,18 +32,19 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
     loading 
   } = useAppData();
 
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
-  const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    (schoolPeriods || []).find(sp => sp.is_active)?.id || (schoolPeriods || [])[0]?.id
-  );
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
+  const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(() => {
+    const period = (schoolPeriods || []).find(sp => sp.is_active) || (schoolPeriods || [])[0];
+    return period?.id != null ? String(period.id) : undefined;
+  });
   
   const [reportData, setReportData] = useState<FinancialSummaryRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const availableStreams = useMemo(() => {
     if (!selectedClassId) return (classStreams || []);
-    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => String(cs.class_id) === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
@@ -56,19 +57,21 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
     
     let filteredStudents = [...(students || [])];
     if (selectedClassId) {
-      const streamsInClass = (classStreams || []).filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
+      const streamsInClass = (classStreams || [])
+        .filter(cs => String(cs.class_id) === selectedClassId)
+        .map(cs => String(cs.id));
       if (selectedStreamId) {
-        filteredStudents = filteredStudents.filter(s => s.current_class_stream_id === selectedStreamId);
+        filteredStudents = filteredStudents.filter(s => String(s.current_class_stream_id) === selectedStreamId);
       } else {
-        filteredStudents = filteredStudents.filter(s => s.current_class_stream_id && streamsInClass.includes(s.current_class_stream_id));
+        filteredStudents = filteredStudents.filter(s => s.current_class_stream_id && streamsInClass.includes(String(s.current_class_stream_id)));
       }
     } else if (selectedStreamId) {
-        filteredStudents = filteredStudents.filter(s => s.current_class_stream_id === selectedStreamId);
+        filteredStudents = filteredStudents.filter(s => String(s.current_class_stream_id) === selectedStreamId);
     }
 
     const summaryData: FinancialSummaryRow[] = filteredStudents.map(student => {
       const invoicesForStudentAndPeriod = (studentInvoices as FinStudentInvoiceType[]).filter(
-        inv => inv.student_id === student.id && inv.school_period_id === selectedSchoolPeriodId && inv.status !== 'Voided'
+        inv => String(inv.student_id) === String(student.id) && String(inv.school_period_id) === selectedSchoolPeriodId && inv.status !== 'Voided'
       );
       const totalBilled = invoicesForStudentAndPeriod.reduce((sum, inv) => sum + inv.total_amount_billed, 0);
 
@@ -76,7 +79,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
       const totalPaid = paymentsForStudent.reduce((sum, p) => sum + p.total_amount_paid, 0);
 
       const adjustmentsForStudentAndPeriod = (feeAdjustments as FinFeeAdjustmentType[]).filter(
-        adj => adj.student_id === student.id && adj.school_period_id === selectedSchoolPeriodId
+        adj => String(adj.student_id) === String(student.id) && String(adj.school_period_id) === selectedSchoolPeriodId
       );
       const totalAdjustments = adjustmentsForStudentAndPeriod.reduce((sum, adj) => sum + adj.amount, 0);
 
@@ -123,15 +126,15 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
                 Summary of student fee balances for a selected period.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                 <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
+                 <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">All Periods</option>
                     {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
-                <Select label="Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
+                <Select label="Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(e.target.value || undefined); setSelectedStreamId(undefined);}}>
                     <option value="">All Classes</option>
                     {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>
-                <Select label="Stream" value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId}>
+                <Select label="Stream" value={selectedStreamId || ''} onChange={e => setSelectedStreamId(e.target.value || undefined)} disabled={!selectedClassId}>
                     <option value="">All Streams</option>
                     {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
                 </Select>

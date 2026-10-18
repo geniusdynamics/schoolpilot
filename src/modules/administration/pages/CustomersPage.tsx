@@ -55,7 +55,7 @@ const CustomersPage: React.FC = () => {
     };
 
     if (editingCustomer) {
-      await updateCustomer({ ...editingCustomer, ...payload });
+      await updateCustomer(String(editingCustomer.id), payload);
     } else {
       await addCustomer(payload);
     }

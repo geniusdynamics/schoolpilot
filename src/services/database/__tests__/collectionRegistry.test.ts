@@ -3,7 +3,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import {
   collectionNames,
   collectionsDefinition,
@@ -126,5 +126,10 @@ describe('collection registry', () => {
     expect(registered.has(hookArgument)).toBe(true);
     expect(registered.has(unknown)).toBe(false);
     expect(registered.has('point_transactions' satisfies CollectionName)).toBe(true);
+  });
+
+  it('requires CollectionName at the useDatabaseCollection boundary', () => {
+    type HookCollectionName = Parameters<typeof useDatabaseCollection>[0];
+    expectTypeOf<HookCollectionName>().toEqualTypeOf<CollectionName>();
   });
 });

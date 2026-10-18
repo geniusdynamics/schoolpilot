@@ -20,17 +20,35 @@ export interface SyncStatus {
   lastSyncTime: Date | null;
 }
 
+export interface SyncQueueItem {
+  id: string;
+  operation: {
+    entity: string;
+    type: 'create' | 'update' | 'delete';
+    data: any;
+  };
+  priority: 'critical' | 'high' | 'normal' | 'low';
+  status: 'pending' | 'processing' | 'completed' | 'error' | 'paused';
+  timestamp: Date;
+  retryCount: number;
+  maxRetries: number;
+  error?: string;
+  estimatedDuration?: number;
+}
+
 export interface QueueStatus {
   api: {
     pending: number;
     processing: boolean;
     byPriority: Record<string, number>;
+    completed: number;
   };
   sync: {
     pending: number;
     processing: boolean;
     byPriority: Record<string, number>;
     errors: number;
+    items: SyncQueueItem[];
   };
 }
 
@@ -139,8 +157,8 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const getQueueStatus = useCallback((): QueueStatus => ({
-    api: { pending: 0, processing: false, byPriority: {} },
-    sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
+    api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
+    sync: { pending: 0, processing: false, byPriority: {}, errors: 0, items: [] }
   }), []);
 
   const getSyncHistory = useCallback(() => syncHistory, [syncHistory]);

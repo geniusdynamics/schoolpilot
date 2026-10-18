@@ -1,6 +1,7 @@
 // ABOUTME: Static contract scanner for the school-operations audit (docs/audit/2026-10-school-operations).
 // ABOUTME: Reports broken data-layer contracts that TypeScript does not catch; run `node scripts/audit/contract-scan.cjs [--json]`.
 
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS tool executed directly by node */
 const fs = require('fs');
 const path = require('path');
 
@@ -25,7 +26,7 @@ const files = walk(SRC);
 const read = (f) => fs.readFileSync(f, 'utf8');
 const rel = (f) => path.relative(ROOT, f);
 const lineOf = (text, index) => text.slice(0, index).split('\n').length;
-const isUiFile = (f) => /\/(pages|components)\//.test(f);
+const isUiFile = (f) => /[\\/](pages|components)[\\/]/.test(f);
 
 // ---------------------------------------------------------------------------
 // 1. Collections referenced in code but never defined in a collections file
@@ -63,7 +64,8 @@ function definedCollections() {
 
 function referencedCollections() {
   const refs = new Map();
-  const re = /(?:useDatabaseCollection|getCollection|useEntityCrud|useCrudFactory)(?:<[^>()]*>)?\(\s*['"]([a-z][a-z0-9_]*)['"]/g;
+  // [^()]* lets nested generics such as Record<string, any> close before the call's '('.
+  const re = /(?:useDatabaseCollection|getCollection|useEntityCrud|useCrudFactory)(?:<[^()]*>)?\(\s*['"]([a-z][a-z0-9_]*)['"]/g;
   for (const f of files) {
     const t = read(f);
     for (const m of t.matchAll(re)) {
@@ -77,14 +79,65 @@ function referencedCollections() {
 // ---------------------------------------------------------------------------
 // 2. Functions destructured from useAppData() that the runtime value lacks
 // ---------------------------------------------------------------------------
+function objectLiteralAt(text, objStart) {
+  if (objStart < 0) return '';
+  let depth = 0;
+  let quote = null;
+  for (let i = objStart; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === quote && text[i - 1] !== '\\') quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { quote = c; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') {
+      depth--;
+      if (depth === 0) return text.slice(objStart, i + 1);
+    }
+  }
+  return '';
+}
+
 function appDataProvidedKeys() {
   const ctxFile = path.join(SRC, 'contexts', 'AppDataContext.tsx');
   const t = read(ctxFile);
-  const start = t.indexOf('const contextValue = useMemo(');
-  const end = t.indexOf('as any as EnhancedAppDataContextType', start);
-  const block = start >= 0 && end > start ? t.slice(start, end) : '';
+  const start = t.indexOf('const contextValue');
+  const memo = start >= 0 ? t.indexOf('useMemo(', start) : -1;
+  const returnStart = memo >= 0 ? t.indexOf('return {', memo) : -1;
+  const literal = returnStart >= 0 ? objectLiteralAt(t, t.indexOf('{', returnStart)) : '';
+  // Comments mention member names; strip them so only real keys count as provided.
+  const block = literal.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  return topLevelObjectKeys(block);
+}
+
+function topLevelObjectKeys(block) {
   const keys = new Set();
-  for (const m of block.matchAll(/(?:^|[\s,{])([a-zA-Z_]\w*)\s*(?=[:,}\n])/g)) keys.add(m[1]);
+  if (!block) return keys;
+  const body = block.slice(1, -1);
+  let depth = 0;
+  let quote = null;
+  let segmentStart = 0;
+  const flush = (end) => {
+    const segment = body.slice(segmentStart, end).trim();
+    if (segment && !segment.startsWith('...')) {
+      const key = segment.match(/^([A-Za-z_]\w*)\s*(?::|$)/);
+      if (key) keys.add(key[1]);
+    }
+    segmentStart = end + 1;
+  };
+  for (let i = 0; i < body.length; i++) {
+    const c = body[i];
+    if (quote) {
+      if (c === quote && body[i - 1] !== '\\') quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { quote = c; continue; }
+    if (c === '{' || c === '[' || c === '(') depth++;
+    else if (c === '}' || c === ']' || c === ')') depth--;
+    else if (c === ',' && depth === 0) flush(i);
+  }
+  flush(body.length);
   return keys;
 }
 
@@ -94,7 +147,7 @@ function missingAppDataFunctions(provided) {
   const out = [];
   for (const f of files) {
     const t = read(f);
-    for (const m of t.matchAll(/const\s*\{([^}]*)\}\s*=\s*useAppData\(\)/g)) {
+    for (const m of t.matchAll(/const\s*\{([^}]*)\}\s*=\s*useAppData\(\)\s*(?:\|\|\s*\{\s*\})?/g)) {
       const names = m[1].split(',').map((s) => s.trim().split(/[:=\s]/)[0]).filter(Boolean);
       const missing = names.filter((n) => MUTATOR.test(n) && !provided.has(n));
       if (missing.length) out.push({ file: rel(f), line: lineOf(t, m.index), missing });
@@ -173,7 +226,7 @@ function numericIdCoercions() {
 // 5. Data hooks backed by in-memory mock state that are imported by UI files
 // ---------------------------------------------------------------------------
 function mockBackedHooksInUi() {
-  const hookFiles = files.filter((f) => /\/data\/use[A-Z]\w*Data\.tsx?$/.test(f));
+  const hookFiles = files.filter((f) => /[\\/]data[\\/]use[A-Z]\w*Data\.tsx?$/.test(f));
   const out = [];
   for (const hf of hookFiles) {
     const t = read(hf);
@@ -193,7 +246,9 @@ function routesOutsideNavigation() {
   const out = [];
   const regFile = path.join(SRC, 'core', 'moduleRegistration.ts');
   const registrationCopiesRoutes = fs.existsSync(regFile) && /routes\s*:\s*def\.routes/.test(read(regFile));
-  for (const f of files.filter((x) => /modules\/[^/]+\/moduleDefinition\.tsx$/.test(x))) {
+  // When registration copies `routes`, every declared route is registered; none are dropped.
+  if (registrationCopiesRoutes) return { registrationCopiesRoutes, routes: [] };
+  for (const f of files.filter((x) => /modules[\\/][^\\/]+[\\/]moduleDefinition\.tsx$/.test(x))) {
     const t = read(f);
     const navStart = t.indexOf('navigation:');
     const routesStart = t.indexOf('routes:', navStart);
