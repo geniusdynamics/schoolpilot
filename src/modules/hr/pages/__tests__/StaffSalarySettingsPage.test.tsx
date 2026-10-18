@@ -1,7 +1,6 @@
 // ABOUTME: Page tests for Staff Salary Settings (P0-H04, SO-22/SO-24): components persist in the
 // ABOUTME: staff_salary_components collection with string ids and UUID staff_id, edited via update(id, patch).
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';

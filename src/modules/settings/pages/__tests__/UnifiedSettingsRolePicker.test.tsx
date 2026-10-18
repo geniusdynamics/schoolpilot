@@ -1,7 +1,6 @@
 // ABOUTME: Page tests for the Settings › Users role picker (P0-H04, SO-22): role ids are UUID strings,
 // ABOUTME: so selecting a role must keep the string id and the users grid must resolve the role name.
 
-import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';

@@ -4672,6 +4672,35 @@
       "commit": null,
       "notes": "",
       "completed_at": null
+    },
+    {
+      "id": "P0-Q01",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "Q",
+      "title": "Stabilise PRD tooling and the smoke-test flake: resolve gate base refs, pre-warm page imports, drop unused test imports",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "scripts/prd/gate.mjs",
+        "src/tests/crawlCrashPages.smoke.test.tsx",
+        "src/modules/hr/pages/__tests__/StaffSalarySettingsPage.test.tsx",
+        "src/modules/settings/pages/__tests__/UnifiedSettingsRolePicker.test.tsx"
+      ],
+      "acceptance": [
+        "gate.mjs resolves a --base ref to a full SHA, so a caret ref cannot silently gate zero changed files on Windows",
+        "crawlCrashPages.smoke.test.tsx pre-warms its page imports, so it no longer times out under parallel fork load",
+        "typecheck reports no unused-React errors in the two P0-H04 tests"
+      ],
+      "test": "Gate with a caret base ref; smoke test under parallel forks",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": null,
+      "notes": "Opened during W3 close-out per EXECUTION.md §9 (a flaky test gets a Q task) and the H03 reviewer's finding that --base <sha>^ silently gates zero files on Windows.",
+      "completed_at": "2026-10-18"
     }
   ]
 }

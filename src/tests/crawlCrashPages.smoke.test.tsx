@@ -4,7 +4,7 @@
 import React from 'react';
 import { render as rtlRender, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import ts from 'typescript';
 import { AppDataContext } from '@/contexts/AppDataContext';
 import { TestProviders } from '@/tests/setup';
@@ -130,6 +130,23 @@ afterEach(() => {
 });
 
 describe('crawl crash pages (SO-27) render without throwing', () => {
+  // Pre-warm every heavy page graph once so each test's 20s budget covers its assertions, not a
+  // cold dynamic import: under parallel load the finance/academics graphs exceeded that budget.
+  beforeAll(async () => {
+    await Promise.all([
+      import('@/modules/academics/pages/ExamAnalysisContent'),
+      import('@/modules/admissions/pages/ApplicationReviewPage'),
+      import('@/modules/finance/pages/AccountLedgerPage'),
+      import('@/modules/finance/pages/FeesDueReportPage'),
+      import('@/modules/finance/pages/PaymentAllocationPage'),
+      import('@/modules/finance/pages/TransportRoutesPage'),
+      import('@/modules/library/pages/BooksPage'),
+      import('@/modules/library/pages/FinesPage'),
+      import('@/modules/nutrition/pages/KitchenManagementPage'),
+      import('@/modules/reports/pages/analytics/AnalyticsSubjectPage'),
+      import('@/modules/settings/pages/AuditLogPage'),
+    ]);
+  }, 120000);
   describe('Finance › Account Ledger', () => {
     it('renders empty', async () => {
       const { default: Page } = await import('@/modules/finance/pages/AccountLedgerPage');
