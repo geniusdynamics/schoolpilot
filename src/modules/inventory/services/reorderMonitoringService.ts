@@ -1,5 +1,6 @@
 
 import { logger } from '@/utils/logging';
+import type { InvItemType, InvStockLevelType } from '../data/types';
 
 export interface ReorderAlert {
   item_id: string;

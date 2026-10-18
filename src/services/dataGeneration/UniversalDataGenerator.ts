@@ -21,6 +21,20 @@ import {
   HealthGenerator
 } from './generators/index';
 
+interface GeneratedTableColumn {
+  name: string;
+  type: string;
+  primaryKey?: boolean;
+  unique?: boolean;
+  required?: boolean;
+  defaultValue?: string;
+}
+
+interface GeneratedTableSchema {
+  columns: GeneratedTableColumn[];
+  indexes?: Array<{ columns: string[]; unique?: boolean }>;
+}
+
 export interface UniversalDataGenerationConfig {
   storageType: 'sqlite-opfs' | 'sqlite-livestore' | 'pouchdb' | 'mock';
   locale?: string;
@@ -242,7 +256,7 @@ export class UniversalDataGenerator {
     };
   }
 
-  private getTableSchemas(): Record<string, TableSchema> {
+  private getTableSchemas(): Record<string, GeneratedTableSchema> {
     // Return predefined schemas for all tables
     return {
       students: {

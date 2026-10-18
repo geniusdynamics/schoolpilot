@@ -7,6 +7,7 @@ import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { EyeIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { useAppData } from '@/hooks/useAppData';
 import { StudentStatus } from '@/core/types/enums';
 

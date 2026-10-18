@@ -14,7 +14,7 @@ import { useFavorites } from '../hooks/useFavorites';
 import { getModuleStyle, normalizeModuleId } from '../utils/moduleStyles';
 import { logger } from '@/utils/logging';
 import { useFullWidth } from '../contexts/FullWidthContext';
-import SecondarySidebarContext, { SECONDARY_SIDEBAR_WIDTHS } from '../contexts/SecondarySidebarContext';
+import SecondarySidebarContext from '../contexts/SecondarySidebarContext';
 import { BookOpenIcon, ChevronLeftIcon, ChevronRightIcon, DocumentReportIcon, FolderIcon, StarIcon, XIcon } from '@/components/ui/icons';
 
 function getFallbackIcon(moduleKey: string) {
@@ -83,7 +83,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 }) => {
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true); // Use dynamic navigation
-  const { accessibleModules, hasModuleAccess } = useRBAC();
+  const { hasModuleAccess } = useRBAC();
   const { user } = useAuth();
   const { navigateToTab } = useTabNavigation();
   const { showInfo, showError, showWarning } = useToastHelpers();
@@ -116,12 +116,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   // (e.g. on /portal/attendance, "Portal Attendance" wins over "Portal Dashboard").
   const location = useLocation();
   const currentPath = location.pathname;
-  const activeItemPath = useMemo(() => {
-    if (!currentPath) return null;
-    // Will be computed once subMenus is available; placeholder null is fine,
-    // the helper falls back to the per-item check below.
-    return null;
-  }, [currentPath]);
 
   /**
    * Determine if a nav item should be highlighted as the currently-active item.
@@ -179,12 +173,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     // Pre-translate item name to avoid hook violation in try-catch
     const itemTitle = t(item.name);
 
-    try {
-      // Extract module info from path
-      const pathSegments = item.path.split('/');
-      const pathModule = pathSegments[1] || '';
-      const submodule = pathSegments[2] || undefined;
+    // Extract module info from path (kept outside try so the catch block can log it)
+    const pathSegments = item.path.split('/');
+    const pathModule = pathSegments[1] || '';
+    const submodule = pathSegments[2] || undefined;
 
+    try {
       // Basic path validation
       if (!pathModule) {
         throw new Error('Invalid navigation path structure');
@@ -258,7 +252,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         }
       });
     }
-  }, [hasModuleAccess, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError, errorMessages]); // Stable dependencies
+  }, [hasModuleAccess, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError, errorMessages, onItemClick, selectedModuleKey]); // Stable dependencies
 
   // Memoize selected module and related data to prevent unnecessary recalculations
   const selectedModuleId = useMemo(() => normalizeModuleId(selectedModuleKey), [selectedModuleKey]);
@@ -362,13 +356,37 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       if (width < 640 || (width < 900 && height < 600)) {
         setIsMinimized(true);
       }
-  }, [setIsMinimized, sidebarCtx]);
+  }, [setIsMinimized]);
 
   useEffect(() => {
     handleResize(); // Check initial size
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []); // Empty dependency array - handleResize is stable
+  }, [handleResize]); // Re-bind when the resize handler identity changes
+
+  // Filtered navigation based on search - memoized to prevent hook dependency issues
+  const filterItems = useCallback((items: any[]) => {
+    return items.filter(item => {
+      const itemName = typeof item.name === 'string' ? item.name : '';
+      try {
+        const itemLabel = t(itemName);
+        const searchLower = search.toLowerCase();
+
+        return (typeof itemLabel === 'string' && itemLabel.toLowerCase().includes(searchLower)) ||
+          (item.children && item.children.some((child: any) => {
+            const childName = typeof child.name === 'string' ? child.name : '';
+            try {
+              const childLabel = t(childName);
+              return typeof childLabel === 'string' && childLabel.toLowerCase().includes(searchLower);
+            } catch {
+              return false;
+            }
+          }));
+      } catch {
+        return false;
+      }
+    });
+  }, [search, t]);
 
   // Enhanced keyboard navigation for accessibility
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -403,7 +421,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         }
         break;
     }
-  }, [isOpen, subMenus, isMobile, onClose, toggleGroup]); // Removed focusedIndex from dependencies
+  }, [isOpen, subMenus, isMobile, onClose, toggleGroup, filterItems, focusedIndex]);
 
   // Auto-close on mobile when clicking outside or on route change
   useEffect(() => {
@@ -429,30 +447,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     }
   }, [isOpen, selectedModule, selectedModuleKey]);
 
-  // Filtered navigation based on search - memoized to prevent hook dependency issues
-  const filterItems = useCallback((items: any[]) => {
-    return items.filter(item => {
-      const itemName = typeof item.name === 'string' ? item.name : '';
-      try {
-        const itemLabel = t(itemName);
-        const searchLower = search.toLowerCase();
-        
-        return (typeof itemLabel === 'string' && itemLabel.toLowerCase().includes(searchLower)) ||
-          (item.children && item.children.some((child: any) => {
-            const childName = typeof child.name === 'string' ? child.name : '';
-            try {
-              const childLabel = t(childName);
-              return typeof childLabel === 'string' && childLabel.toLowerCase().includes(searchLower);
-            } catch (e) {
-              return false;
-            }
-          }));
-      } catch (e) {
-        return false;
-      }
-    });
-  }, [search, t]);
-
+  // Handle drag end for reordering favorites
   const handleDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) return;
     reorderFavorites(result.source.index, result.destination.index);

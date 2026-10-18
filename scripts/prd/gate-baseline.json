@@ -2,8 +2,8 @@
   "updated": "2026-10-18",
   "note": "Thresholds for scripts/prd/gate.mjs. Only ever tightened via `node scripts/prd/gate.mjs baseline --update`. Numbers measured on consolidation@75d430e.",
   "typecheck": {
-    "total": 2628,
-    "missingNames": 84
+    "total": 2481,
+    "missingNames": 0
   },
   "contracts": {
     "undefinedCollections": 0,

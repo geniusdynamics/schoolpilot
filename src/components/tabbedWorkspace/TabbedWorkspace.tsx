@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { DragDropContext } from 'react-beautiful-dnd';
 import {
   ArrowPathIcon,
   Cog6ToothIcon,
@@ -12,14 +11,13 @@ import { BreadcrumbNavigation } from '../BreadcrumbNavigation';
 import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry } from '../../services/ui/actionRegistry';
 import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
-import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
+import type { BreadcrumbItem } from '../../types/hierarchical';
 import { resolveTabContent } from './resolveTabContent';
 import DynamicPageComponent from '../DynamicPageComponent';
 import { isEqual } from 'lodash';
 import { logger } from '@/utils/logging';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
-  className = '',
   showActionBar = true,
   showSettings = true,
   onTabContentRender,
@@ -63,10 +61,11 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     validateTabAccess,
     initializeStore,
     initialize,
-    clearCorruptedData
+    clearCorruptedData,
+    clearTabState
   } = useTabStore();
 
-  const { registerAction, getActionsByContext } = useActionRegistry();
+  const { registerAction } = useActionRegistry();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
@@ -76,6 +75,11 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const onTabChangeRef = useRef(onTabChange);
   const prevActiveTabIdRef = useRef<string | null>(null);
   const permissionsHashRef = useRef<string>('');
+  const tabsRef = useRef(tabs);
+
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
   
   // Memoize store configuration to prevent unnecessary reinitializations
   const storeConfig = useMemo(() => ({
@@ -196,13 +200,13 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       isInitializedRef.current = false;
       
       // Clear any stored tab states
-      tabs.forEach(tab => {
+      tabsRef.current.forEach(tab => {
         if (tab.state) {
           clearTabState(tab.id);
         }
       });
     };
-  }, [storeConfig, registerAction, initialize, initializeStore, onError]); // Include stable dependencies
+  }, [storeConfig, registerAction, initialize, initializeStore, onError, clearCorruptedData, clearTabState]);
 
   // Handle user role changes with primitive comparison
   useEffect(() => {
@@ -278,18 +282,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       }
     }
   }, [activeTabId, tabs, enableHierarchicalMode, handleTabChange, generateBreadcrumbs]);
-
-  // Handle drag and drop for tab reordering
-  const handleDragEnd = useCallback((result: any) => {
-    if (!result.destination) return;
-    
-    const sourceIndex = result.source.index;
-    const destinationIndex = result.destination.index;
-    
-    if (sourceIndex !== destinationIndex) {
-      reorderTabs(sourceIndex, destinationIndex);
-    }
-  }, [reorderTabs]);
 
   // Memoized tab creation handler
   const handleTabCreate = useCallback((tabData?: Partial<Tab>) => {
@@ -411,11 +403,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       );
   }, [activeTabId, tabs, validateTabAccess, onTabContentRender]);
   
-  // Memoize the active tab to prevent unnecessary lookups
-  const activeTab = useMemo(() => {
-    return tabs.find(tab => tab.id === activeTabId);
-  }, [activeTabId, tabs]);
-
   // Memoize filtered and sorted tabs for better performance
   const sortedTabs = useMemo(() => {
     // Sort pinned tabs first, then by last accessed time
@@ -516,7 +503,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   }
   
   return (
-    <TabWorkspaceErrorBoundary onError={(error, errorInfo) => onError?.(error.message)}>
+    <TabWorkspaceErrorBoundary onError={(error) => onError?.(error.message)}>
       <div className={moduleStyles} data-testid="tabbed-workspace">
         {/* Breadcrumb Navigation */}
         {enableHierarchicalMode && showBreadcrumbs && breadcrumbs.length > 0 && (

@@ -1,4 +1,5 @@
 ﻿import { logger } from '@/utils/logging';
+import { NetworkStateManager } from '../data/NetworkStateManager';
 
 // Enhanced Backend API service with intelligent request handling and offline queue
 export interface RequestOptions {
@@ -47,7 +48,7 @@ export class BackendAPIService {
   private authToken: string | null = null;
   private requestQueue: RequestQueueItem[] = [];
   private isProcessingQueue = false;
-  private networkManager: import('./NetworkStateManager').NetworkStateManager;
+  private networkManager: Promise<NetworkStateManager>;
   private requestCache = new Map<string, { data: any; timestamp: Date; ttl: number }>();
   private readonly DEFAULT_TIMEOUT = 10000;
   private readonly MAX_RETRY_COUNT = 3;
@@ -60,7 +61,7 @@ export class BackendAPIService {
   }
 
   private async initializeNetworkManager(): Promise<NetworkStateManager> {
-    const m = await import('./NetworkStateManager');
+    const m = await import('../data/NetworkStateManager');
     return m.NetworkStateManager.getInstance();
   }
 

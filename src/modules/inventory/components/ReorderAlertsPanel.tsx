@@ -16,6 +16,8 @@ import {
 
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
+import { usePeriodicReorderMonitoring } from '../hooks/useReorderMonitoring';
+import type { ReorderAlert } from '../services/reorderMonitoringService';
 
 interface ReorderAlertsPanelProps {
   className?: string;

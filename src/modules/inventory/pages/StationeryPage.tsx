@@ -8,13 +8,12 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import Select from '@/components/ui/Select';
 import { PencilIcon, PlusIcon, TrashIcon, CubeIcon } from '@/components/ui/icons';
+import { DataGrid } from '@/components/ui/data';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { StationeryItem } from '../data/types';
+import { StationeryItem, StationeryCategory, AllocationStatus } from '../data/types';
 import { logger } from '@/utils/logging';
 
 export const StationeryPageContent: React.FC = () => {
-  const { t } = useTranslation('inventory');
   const { stationeryItems, loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -139,14 +138,14 @@ export const StationeryPageContent: React.FC = () => {
 
   const totals = useMemo(() => {
     return {
-      total: mockStationery.length,
-      available: mockStationery.filter(i => i.status === 'Available').length,
-      lowStock: mockStationery.filter(i => i.status === 'Low Stock').length,
-      outOfStock: mockStationery.filter(i => i.status === 'Out of Stock').length
+      total: allStationeryItems.length,
+      available: allStationeryItems.filter(i => i.status === 'Available').length,
+      lowStock: allStationeryItems.filter(i => i.status === 'Low Stock').length,
+      outOfStock: allStationeryItems.filter(i => i.status === 'Out of Stock').length
     };
-  }, [mockStationery]);
+  }, [allStationeryItems]);
 
-  if (loading?.all && mockStationery.length === 0) {
+  if (loading?.all && allStationeryItems.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

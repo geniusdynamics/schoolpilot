@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 
 import Card from './ui/Card';
 import Button from './ui/Button';
+import { useMemoryManagement } from '@/hooks/useMemoryManagement';
 import {
   CpuChipIcon,
   ExclamationTriangleIcon,
@@ -23,7 +24,6 @@ interface MemoryDashboardProps {
 export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = '' }) => {
   const {
     metrics,
-    history,
     activeAlerts,
     connectionStats,
     summary,

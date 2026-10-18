@@ -2,7 +2,7 @@
 // ABOUTME: This demonstrates the recommended pattern for accessing shared entities
 
 import React from 'react';
-import { useSharedStudents, useSharedStaff, useSharedAcademicYears } from '@/hooks/useSharedData';
+import { useSharedStudents, useSharedStaff, useSharedAcademicYears, useSharedData } from '@/hooks/useSharedData';
 
 /**
  * Example component demonstrating cross-module data access

@@ -27,7 +27,7 @@ export * from './PouchDBProvider';
 export * from './HybridProvider';
 
 // Re-export for backward compatibility
-export { unifiedDatabaseManager as databaseManager };
+export { unifiedDatabaseManager as databaseManager } from './UnifiedDatabaseManager';
 
 // Detection module (Phase 2 - CapabilityDetector)
 export * from './detection';

@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  ChevronDownIcon as ChevronDown,
+  ChevronRightIcon as ChevronRight,
+  MagnifyingGlassIcon as Search,
+  EllipsisHorizontalIcon as MoreHorizontal,
+} from '@heroicons/react/24/outline';
 
 import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../../services/ui/actionRegistry';
 import { useTabStore } from '../../stores/tabStore';
@@ -15,6 +21,13 @@ interface ActionBarProps {
   orientation?: 'horizontal' | 'vertical';
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'compact' | 'expanded';
+}
+
+interface AdditionalProps {
+  moduleContext?: string;
+  userRole?: string;
+  userPermissions?: string[];
+  onSettingsClick?: () => void;
 }
 
 interface ActionButtonProps {
@@ -37,7 +50,6 @@ interface ActionGroupComponentProps {
 
 const ActionButton: React.FC<ActionButtonProps> = ({
   action,
-  context,
   size,
   variant,
   onClick

@@ -131,6 +131,8 @@ export const iconMap: Record<string, IconComponent> = {
   'DocumentIcon': DocumentTextIcon,
 } as const;
 
+export type IconName = keyof typeof iconMap;
+
 // Helper function to get icon component by name
 export const getIcon = (iconName: string) => {
   return iconMap[iconName as IconName] || null;
