@@ -34,8 +34,6 @@ interface Violation {
 }
 
 const SRC_PATH = 'src';
-const MODULES_PATH = 'src/modules';
-const CORE_PATH = 'src/core';
 
 async function detectViolations(): Promise<Violation[]> {
   const violations: Violation[] = [];
