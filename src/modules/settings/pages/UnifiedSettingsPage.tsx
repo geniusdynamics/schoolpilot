@@ -4,17 +4,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useAppData } from '../../../hooks/useAppData';
-import { useUnifiedConfig } from '../../../hooks/useUnifiedConfig';
-import Card from '../../../components/ui/Card';
-import Button from '../../../components/ui/Button';
-import { useConfirm } from '../../../components/ui/ConfirmDialog';
-import DataGrid from '../../../components/ui/data/DataGrid';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import { FormSection, FormField, FormActions } from '../../../components/ui/forms';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
+import { useAppData } from '@/hooks/useAppData';
+import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import DataGrid from '@/components/ui/data/DataGrid';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import { FormSection, FormField, FormActions } from '@/components/ui/forms';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import { 
   CogIcon, 
   DatabaseIcon, 
@@ -25,20 +24,19 @@ import {
   DeleteIcon,
   ListBulletIcon,
   ArrowLeftOnRectangleIcon
-} from '../../../components/ui/icons';
+} from '@/components/ui/icons';
 import FeatureSettingsPage from './FeatureSettingsPage';
-import { PageContainer } from '../../../components/layout/PageContainer';
-import { User, Role, Workflow, WorkflowState } from '../../../types';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { User, Role, Workflow, WorkflowState } from '@/types';
 import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 export const UnifiedSettingsContent: React.FC = () => {
   const navigate = useNavigate();
   const confirm = useConfirm();
-  const { config: unifiedConfig, isLoading: isConfigLoading } = useUnifiedConfig();
+  const { isLoading: isConfigLoading } = useUnifiedConfig();
   const [activeTab, setActiveTab] = useState('system');
 
-  const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation('settings');
-  const { user } = useAuth();
 
   // Modal state management
   const { 
@@ -49,10 +47,6 @@ export const UnifiedSettingsContent: React.FC = () => {
     loading, 
     isOnline, 
     appVersion,
-    isDatabaseModeActive, 
-    isUsingRxDBDummyData, 
-    triggerSeedRxDB: triggerSeedDatabase, 
-    triggerClearRxDB: triggerClearDatabase,
     initializationError
   } = useAppData();
   
@@ -88,7 +82,7 @@ export const UnifiedSettingsContent: React.FC = () => {
       email: user.email,
       userType: user.userType,
       isActive: user.isActive,
-      role_id: user.role_id
+      role_id: user.role_id == null ? null : String(user.role_id)
     } : initialUserFormData);
     setIsUserModalOpen(true);
   };
@@ -144,28 +138,6 @@ export const UnifiedSettingsContent: React.FC = () => {
     setStateFormData(initialStateFormData);
   };
   
-  // Form input handlers
-
-  const handleUserInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-                (name === 'role_id' ? (value ? parseInt(value) : undefined) : value);
-    setUserFormData(prev => ({ ...prev, [name]: val }));
-  };
-  
-  const handleRoleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setRoleFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleWorkflowInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWorkflowFormData({ ...workflowFormData, [e.target.name]: e.target.value });
-  };
-  
-  const handleStateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    setStateFormData({ ...stateFormData, [name]: type === 'number' ? parseInt(value) || 0 : value });
-  };
-  
   // Submit handlers (with TODO placeholders)
   const handleUserSubmit = async () => {
     if (!userFormData.username || !userFormData.email || !userFormData.userType) {
@@ -215,13 +187,15 @@ export const UnifiedSettingsContent: React.FC = () => {
   const handleDeleteUser = async (userId: string) => {
     if (await confirm({ title: 'Delete user', message: 'Are you sure you want to delete this user?', variant: 'danger' })) {
       // TODO: Implement delete user API call
+      logger.warn('Delete user not yet implemented', { userId });
       toast.showError("Delete user functionality not yet implemented");
     }
   };
   
-  const handleDeleteRole = async (roleId: number) => {
+  const handleDeleteRole = async (roleId: Role['id']) => {
     if (await confirm({ title: 'Delete role', message: 'Are you sure you want to delete this role? Users with this role will have it unassigned.', variant: 'danger' })) {
       // TODO: Implement delete role API call
+      logger.warn('Delete role not yet implemented', { roleId });
       toast.showError("Delete role functionality not yet implemented");
     }
   };
@@ -239,6 +213,7 @@ export const UnifiedSettingsContent: React.FC = () => {
     if (!currentWorkflowForStates) return;
     if (await confirm({ title: 'Delete workflow state', message: 'Delete this workflow state?', variant: 'danger' })) {
       // TODO: Implement delete workflow state API call
+      logger.warn('Delete workflow state not yet implemented', { stateId });
       toast.showError("Delete workflow state functionality not yet implemented");
     }
   };
@@ -250,7 +225,7 @@ export const UnifiedSettingsContent: React.FC = () => {
     { header: 'Type', key: 'userType' as keyof User },
     { header: 'Status', key: 'isActive' as keyof User, render: (_v: any, user: User) => user.isActive ? 'Active' : 'Inactive' },
     { header: 'Role', key: 'role_id' as keyof User, render: (_v: any, user: User) => {
-      const role = roles?.find(r => r.id === user.role_id);
+      const role = user.role_id == null ? undefined : roles?.find(r => String(r.id) === String(user.role_id));
       return role ? role.name : 'No Role';
     }},
     {
@@ -823,11 +798,11 @@ export const UnifiedSettingsContent: React.FC = () => {
             <Select
               name="role_id"
               value={userFormData.role_id || ''}
-              onChange={(e) => setUserFormData({ ...userFormData, role_id: parseInt(e.target.value) })}
+              onChange={(e) => setUserFormData({ ...userFormData, role_id: e.target.value || null })}
             >
               <option value="">Select Role</option>
               {roles?.map((role) => (
-                <option key={role.id} value={role.id}>
+                <option key={role.id} value={String(role.id)}>
                   {role.name}
                 </option>
               ))}
@@ -966,7 +941,7 @@ type UserFormData = {
   password?: string;
   userType: string;
   isActive: boolean;
-  role_id?: number | null;
+  role_id?: string | null;
 };
 
 type RoleFormData = {
