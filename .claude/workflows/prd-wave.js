@@ -251,7 +251,7 @@ Return id, status "integrated", commit_sha (the task commit, not the record comm
 const reviewed = await pool(tasks, MAX_PARALLEL, async (t) => {
   const impl = await agent(implementPrompt(t), { label: `implement:${t.id}`, phase: 'Implement', ...route('implement', t), isolation: 'worktree', schema: TASK_RESULT })
   if (!impl || impl.status !== 'ready' || !impl.gate_passed) return { task: t, impl, outcome: 'blocked', reason: impl ? (impl.blockers || []).join('; ') || 'gate did not pass' : 'implementer failed' }
-  let v = await agent(verifyPrompt(t, impl), { label: `verify:${t.id}`, phase: 'Verify', ...route('verify', t), isolation: 'worktree', schema: VERDICT })
+  const v = await agent(verifyPrompt(t, impl), { label: `verify:${t.id}`, phase: 'Verify', ...route('verify', t), isolation: 'worktree', schema: VERDICT })
   if (v && v.verdict === 'approve') return integrate({ task: t, impl, verdict: v, branch: impl.branch, outcome: 'approved' })
   const fix = await agent(fixPrompt(t, impl, v || { blocking_findings: [{ issue: 'verifier failed to run', fix: 're-run gate and self-review' }] }), { label: `fix:${t.id}`, phase: 'Verify', ...route('fix', t), isolation: 'worktree', schema: TASK_RESULT })
   if (!fix || fix.status !== 'ready' || !fix.gate_passed) return { task: t, impl, verdict: v, fix, outcome: 'review', reason: 'fix round did not pass the gate' }

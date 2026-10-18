@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-17 — Cloud session is finishing W3 itself (owner asked to finish W3 before going offline); model policy added ([decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md)). W1+W2 merged into `consolidation`. W3: C06, C07 done on `prd/P0-W3`; rest open (see §0 W3 table)._
+_Last update: 2026-10-18 — W3: C06, C07, A05 done; E05, F04, H01 approved awaiting integration; see the W3 table below; model policy added ([decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md)). W1+W2 merged into `consolidation`. W3: C06, C07 done on `prd/P0-W3`; rest open (see §0 W3 table)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -28,15 +28,35 @@ verifier's findings (they are in this file's history and the W1 log), then integ
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
 
-### P0-W3 — START HERE when continuing locally
-Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + W3 work so far. Merge PRs with a **merge commit** only.
+### P0-W3 — START HERE (state at 2026-10-18, cloud session paused by usage limit)
+Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + W3 work. Merge PRs with a **merge commit** only.
+All task branches below are pushed to origin. Nothing is running.
 
-| Task | State | Where / next action |
-| --- | --- | --- |
-| C06 | done (`4c37e91`) | on `prd/P0-W3` |
-| C07 | done (`4954d7f`) | on `prd/P0-W3`; follow-up: pages swallow save/delete errors (add try/catch + toast) |
-| A05 | built, **not reviewed** | `origin/prd/P0-A05` (`2940222`). Verify (prompt pattern in §3b), then integrate. Open: re-open-from-Settings and DB completion state not done; `subjects.id` declared integer in `src/modules/academics/data/schema.ts` (wizard works around with numeric ids) |
-| E04 E05 F04 F05 G08 H01 H02 H03 H04 | todo | run the wave (below) |
+| Task | State | Branch (origin) | Next action |
+| --- | --- | --- | --- |
+| C06 | done (`4c37e91`) | — | — |
+| C07 | done (`4954d7f`) | — | follow-up: pages swallow save/delete errors |
+| A05 | done (`24c7ef4`) | — | follow-up: add `setup_completed_at` to `src/livestore/schema.ts` if LiveStore goes live |
+| E05 | **approved**, not integrated | `prd/P0-E05-retry` (`7e41423`) | integrate (§ below) |
+| F04 | **approved**, not integrated | `prd/P0-F04` (`e7c08cd`) | integrate |
+| H01 | **approved**, not integrated | `prd/P0-H01` (`4f48918`) | integrate; verifier note: stock returns now go through StockLevelService |
+| H03 | built, gate PASS, **not reviewed** (limit hit) | `prd/P0-H03` (`6ecbfc8`) | verify, then integrate |
+| H04 | built, gate PASS, **not reviewed** (limit hit) | `prd/P0-H04` (`db6ebdd`) | verify, then integrate |
+| E04 | built, blocked by a test outside its files | `prd/P0-E04` (`714ff9d`) | widen (standing rule) to `src/tests/crawlCrashPages.smoke.test.tsx`: seed `seed.collections.transport_routes` instead of `appData.transportRoutes` (same rows, same assertions); gate; verify |
+| H02 | built, blocked by the same test file | `prd/P0-H02` (`06e338c`) | same widening: seed `seed.collections.fines` instead of `appData.fines`; gate; verify |
+| F05 | built, gate not confirmed | `prd/P0-F05` (`71504e9`) | `node scripts/prd/gate.mjs task --task P0-F05 --base consolidation`; if G3 fails in `AppDataContext.liveRefresh.test.tsx`, rerun it alone to check for flakiness (never skip it) |
+| G08 | not started | — | run the wave with `only: ["P0-G08"]` |
+
+Gate base: until PR #18 is merged, always pass `--base consolidation` (the default base, `origin/consolidation`, is stale and lints other W3 files).
+
+Integrating an approved branch (one at a time, main checkout, clean tree):
+```bash
+git switch consolidation && git merge --squash origin/<branch>
+node scripts/prd/gate.mjs task --task <id> --base HEAD     # must print GATE PASSED
+node scripts/prd/status.mjs --set <id> done --date <date> && git add -A && git commit   # "<type>(<scope>): <summary> [<id>]"
+node scripts/prd/status.mjs --set <id> done --commit $(git rev-parse --short HEAD) && git commit -am "chore(prd): record <id> commit [<id>]"
+git push origin consolidation:prd/P0-W3
+```
 
 Local steps:
 ```bash
@@ -44,8 +64,7 @@ git fetch origin && git switch -C consolidation origin/prd/P0-W3   # local alias
 PUPPETEER_SKIP_DOWNLOAD=1 pnpm install --frozen-lockfile
 node scripts/prd/status.mjs --wave P0-W3
 ```
-In Claude Code (repo root): `Workflow({ name: "prd-wave", args: { wave: "P0-W3", date: "<YYYY-MM-DD>", push: false, pushTo: "prd/P0-W3", maxParallel: 2, only: ["P0-E04","P0-E05","P0-F04","P0-F05","P0-G08","P0-H01","P0-H02","P0-H03","P0-H04"] } })`
-then `git push origin consolidation:prd/P0-W3`. For A05: verify, then `git merge --squash origin/prd/P0-A05` on consolidation, `node scripts/prd/gate.mjs task --task P0-A05 --base HEAD`, commit, `status.mjs --set P0-A05 done --commit <sha>`.
+Wave run for G08 (and any task you want re-run from scratch): `Workflow({ name: "prd-wave", args: { wave: "P0-W3", date: "<YYYY-MM-DD>", pushTo: "prd/P0-W3", maxParallel: 2, only: ["P0-G08"] } })`.
 When W3 is all done: append "Wave closure" to the W3 log, push, mark PR #18 ready, merge when CI is green. Then W4 (B05, G09–G13, Z01), then `Workflow({ name: "prd-phase-exit", args: { phase: "P0", date: "<date>" } })`.
 
 Model policy: `prd-wave` now picks the model and effort per role and task size (Haiku for loading/logging, Sonnet implements, Opus reviews L tasks and every re-review). Force Opus for a task with `opusTasks: ["P0-…"]` — see [decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md).
