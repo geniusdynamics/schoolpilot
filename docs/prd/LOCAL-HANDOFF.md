@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-18 — W3: C06, C07, A05 done; E05, F04, H01 approved awaiting integration; see the W3 table below; model policy added ([decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md)). W1+W2 merged into `consolidation`. W3: C06, C07 done on `prd/P0-W3`; rest open (see §0 W3 table)._
+_Last update: 2026-10-18 — W3: all built tasks merged into prd/P0-W3; 6 done, 5 awaiting review, G08 todo (W3 table below); model policy added ([decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md)). W1+W2 merged into `consolidation`. W3: C06, C07 done on `prd/P0-W3`; rest open (see §0 W3 table)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -28,24 +28,27 @@ verifier's findings (they are in this file's history and the W1 log), then integ
 
 Open in W1 now: nothing. Follow-ups are listed in the W1 log ("Wave closure").
 
-### P0-W3 — START HERE (state at 2026-10-18, cloud session paused by usage limit)
-Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + W3 work. Merge PRs with a **merge commit** only.
-All task branches below are pushed to origin. Nothing is running.
+### P0-W3 — START HERE (state at 2026-10-18)
+Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + all W3 work. Every built task is merged into it
+(one squashed, gated commit per task). Merge PRs with a **merge commit** only. Nothing is running.
 
-| Task | State | Branch (origin) | Next action |
+| Task | State | Commit on prd/P0-W3 | Next action |
 | --- | --- | --- | --- |
-| C06 | done (`4c37e91`) | — | — |
-| C07 | done (`4954d7f`) | — | follow-up: pages swallow save/delete errors |
-| A05 | done (`24c7ef4`) | — | follow-up: add `setup_completed_at` to `src/livestore/schema.ts` if LiveStore goes live |
-| E05 | **approved**, not integrated | `prd/P0-E05-retry` (`7e41423`) | integrate (§ below) |
-| F04 | **approved**, not integrated | `prd/P0-F04` (`e7c08cd`) | integrate |
-| H01 | **approved**, not integrated | `prd/P0-H01` (`4f48918`) | integrate; verifier note: stock returns now go through StockLevelService |
-| H03 | built, gate PASS, **not reviewed** (limit hit) | `prd/P0-H03` (`6ecbfc8`) | verify, then integrate |
-| H04 | built, gate PASS, **not reviewed** (limit hit) | `prd/P0-H04` (`db6ebdd`) | verify, then integrate |
-| E04 | built, blocked by a test outside its files | `prd/P0-E04` (`714ff9d`) | widen (standing rule) to `src/tests/crawlCrashPages.smoke.test.tsx`: seed `seed.collections.transport_routes` instead of `appData.transportRoutes` (same rows, same assertions); gate; verify |
-| H02 | built, blocked by the same test file | `prd/P0-H02` (`06e338c`) | same widening: seed `seed.collections.fines` instead of `appData.fines`; gate; verify |
-| F05 | built, gate not confirmed | `prd/P0-F05` (`71504e9`) | `node scripts/prd/gate.mjs task --task P0-F05 --base consolidation`; if G3 fails in `AppDataContext.liveRefresh.test.tsx`, rerun it alone to check for flakiness (never skip it) |
-| G08 | not started | — | run the wave with `only: ["P0-G08"]` |
+| C06 | done | `4c37e91` | — |
+| C07 | done | `4954d7f` | follow-up: pages swallow save/delete errors |
+| A05 | done | `24c7ef4` | follow-up: `setup_completed_at` in `src/livestore/schema.ts` if LiveStore goes live |
+| E05 | done (verifier APPROVE) | `0c24de5` | — |
+| F04 | done (verifier APPROVE) | `02010ff` | — |
+| H01 | done (verifier APPROVE) | `09a28bf` | note: stock returns now go through StockLevelService |
+| H03 | **review** — merged, gate PASS, not independently reviewed | `ee51aec` | verify; fix on a branch if needed; then `status.mjs --set P0-H03 done` |
+| H04 | **review** — same | `f94e641` | same |
+| H02 | **review** — same; widened to `crawlCrashPages.smoke.test.tsx` (seed moved to DB mock) | `caeb00b` | same |
+| E04 | **review** — same; widened to `crawlCrashPages.smoke.test.tsx` (seed moved to DB mock) | `53cba39` | same |
+| F05 | **review** — same (gate G3 PASS, 144 tests) | `5ff7222` | same |
+| G08 | todo | — | run the wave with `only: ["P0-G08"]` |
+
+Reviewing a merged task: ask Claude to "adversarially verify commit <sha> against task <id> in docs/prd/tasks.json
+(diff <sha>^..<sha>)". Fixes go on a branch from prd/P0-W3 and are squash-merged back the same way.
 
 Gate base: until PR #18 is merged, always pass `--base consolidation` (the default base, `origin/consolidation`, is stale and lints other W3 files).
 
