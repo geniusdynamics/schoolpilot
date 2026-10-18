@@ -15,7 +15,8 @@
         "F": "Academics, attendance, promotion & report card v0",
         "G": "Quality, crashes, UX components & CI",
         "H": "Other modules (inventory, library, nutrition, HR, settings)",
-        "Z": "Wave integration (i18n merge, shared files)"
+        "Z": "Wave integration (i18n merge, shared files)",
+        "Q": "Quality follow-ups (flakes, tooling)"
       },
       "waves": {
         "P0-W0": "Repository hygiene that touches many files — runs alone first",
