@@ -1,3 +1,6 @@
+// ABOUTME: Inventory item categories list and add/edit/delete dialog.
+// ABOUTME: Reads and writes the 'item_categories_inv' collection through the useInventory module hook.
+
 import React, { useState } from 'react';
 import { ItemCategoryInv } from '@/types';
 import Card from '@/components/ui/Card';
@@ -9,24 +12,30 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 
 type ItemCategoryFormData = Omit<Partial<ItemCategoryInv>, 'id'>;
+/** A stored item category; ids are strings at runtime. */
+type ItemCategoryRecord = Omit<ItemCategoryInv, 'id'> & { id: string };
 
 export const ItemCategoriesPageContent: React.FC = () => {
-  const { itemCategoriesInv, loading, addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv } = useAppData(); // Updated
+  const {
+    itemCategories: itemCategoriesInv,
+    addItemCategory: addItemCategoryInv,
+    updateItemCategory: updateItemCategoryInv,
+    deleteItemCategory: deleteItemCategoryInv,
+  } = useInventory();
   const { t } = useTranslation('inventory');
   const confirm = useConfirm();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<ItemCategoryInv | null>(null);
+  const [editingCategory, setEditingCategory] = useState<ItemCategoryRecord | null>(null);
   const initialFormData: ItemCategoryFormData = { name: '' };
   const [formData, setFormData] = useState<ItemCategoryFormData>(initialFormData);
 
-  const openModal = (category?: ItemCategoryInv) => {
+  const openModal = (category?: ItemCategoryRecord) => {
     setEditingCategory(category || null);
     setFormData(category ? { name: category.name } : initialFormData);
     setIsModalOpen(true);
@@ -51,20 +60,20 @@ export const ItemCategoriesPageContent: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingCategory) {
-      await updateItemCategoryInv({ ...editingCategory, ...payload });
+      await updateItemCategoryInv(editingCategory.id, payload);
     } else {
       await addItemCategoryInv(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (await confirm({ title: 'Delete item category', message: 'Are you sure you want to delete this item category? This may affect existing items.', variant: 'danger' })) {
       await deleteItemCategoryInv(id);
     }
   };
 
-  const columns: DataGridColumn<ItemCategoryInv>[] = [
+  const columns: DataGridColumn<ItemCategoryRecord>[] = [
     {
       key: 'id',
       header: 'ID',
@@ -111,13 +120,6 @@ export const ItemCategoriesPageContent: React.FC = () => {
     }
   ];
 
-  if (loading.itemCategoriesInv && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Item Categories...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -153,7 +155,7 @@ export const ItemCategoriesPageContent: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('inventory.itemCategoriesPage.cancel')}</Button>
-            <Button onClick={handleSubmit} loading={loading.itemCategoriesInv}>
+            <Button onClick={handleSubmit}>
               {editingCategory ? t('inventory.itemCategoriesPage.saveChanges') : t('inventory.itemCategoriesPage.addCategory')}
             </Button>
           </FormActions>
