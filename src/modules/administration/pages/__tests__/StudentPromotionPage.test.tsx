@@ -34,7 +34,8 @@ vi.mock('react-i18next', () => ({
 }));
 
 const appData = {
-  loading: false,
+  // The context exposes per-collection loading flags; `all` is the only whole-page signal.
+  loading: { all: false, students: false, classes: false, classStreams: false, academicYears: false },
   classes: [{ id: 'C-7', name: 'Grade 7' }, { id: 'C-8', name: 'Grade 8' }],
   classStreams: [{ id: 'S-7B', name: 'Blue', class_id: 'C-7' }, { id: 'S-8B', name: 'Blue', class_id: 'C-8' }],
   academicYears: [{ id: 'AY-2026', name: '2026' }],
@@ -59,6 +60,22 @@ describe('StudentPromotionPage (SO-16)', () => {
     confirm.mockResolvedValue(true);
     commit.mockResolvedValue(run);
     undo.mockResolvedValue({ restored: 1, failures: [] });
+  });
+
+  it('renders the promotion form when loading is the per-collection record at rest', () => {
+    render(<StudentPromotionPage />);
+
+    // Guard regression: `loading` is an object, so truthiness alone would keep the page on the spinner forever.
+    expect(screen.getByRole('heading', { name: 'Promote a class' })).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('keeps the spinner while the page-wide loading flag is set', () => {
+    mockUseAppData.mockReturnValue({ ...appData, loading: { ...appData.loading, all: true } });
+    render(<StudentPromotionPage />);
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Promote a class' })).not.toBeInTheDocument();
   });
 
   it('previews the class with string ids, commits eligible learners, then undoes the run', async () => {

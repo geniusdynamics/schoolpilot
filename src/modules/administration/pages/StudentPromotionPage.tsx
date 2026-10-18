@@ -151,7 +151,7 @@ export const StudentPromotionContent: React.FC = () => {
     }
   };
 
-  if (appData.loading) {
+  if (appData.loading.all) {
     return (
       <div className="p-6 flex justify-center items-center min-h-[200px]">
         <Spinner />

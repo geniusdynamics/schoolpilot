@@ -110,3 +110,43 @@ jobs:
       - name: Production build
         if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
         run: pnpm -s build
+
+  e2e:
+    name: GP-1-lite golden path (persistent SQLite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Integrity check (fresh school and demo seed)
+        run: pnpm integrity:check
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run GP-1-lite on a real SQLite-WASM database
+        run: pnpm exec playwright test tests/e2e/gp1-lite.spec.ts
+
+      - name: Upload Playwright traces and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gp1-lite-playwright
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
