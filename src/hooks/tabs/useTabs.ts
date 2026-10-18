@@ -20,8 +20,10 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { urlTabSyncEngine } from '@/services/tabs/URLTabSyncEngine';
+import { routeToTabMapper } from '@/services/tabs/RouteToTabMapper';
 import { TabStateDeriver } from '@/services/tabs/TabStateDeriver';
 import type { Tab, TabOptions, ParsedTabState } from '@/services/tabs/types';
+import { logger } from '@/utils/logging';
 import { useTranslation } from 'react-i18next';
 
 // Singleton engine instance
@@ -227,6 +229,12 @@ export function useTabs(): UseTabsReturn {
   }, [state, navigate]);
 
   const openTab = useCallback((url: string, options?: TabOptions): string => {
+    // Unknown routes render the 404 page; they must never become tabs.
+    if (!routeToTabMapper.isKnownAppRoute(url)) {
+      logger.warn('[useTabs] Refusing to open a tab for an unknown route:', url);
+      return state.activeTabId;
+    }
+
     // Check if tab already exists for this URL
     const existingTab = state.tabs.find(t => deriver.isSameEntity(t.url, url));
 

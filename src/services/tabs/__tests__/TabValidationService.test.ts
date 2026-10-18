@@ -4,7 +4,7 @@
  */
 
 import { TabValidationService, tabValidationService, RoleAccessConfig } from '../TabValidationService';
-import { Tab, TabState } from '../../../types/tabbedWorkspace';
+import { Tab, TabState } from '@/types/tabbedWorkspace';
 
 // Test data helpers
 const createMockTab = (overrides: Partial<Tab> = {}): Tab => ({
@@ -433,7 +433,7 @@ describe('TabValidationService', () => {
           ...createMockTab(),
           metadata: {} as any,
         };
-        // @ts-ignore - testing with undefined metadata
+        // @ts-expect-error - testing with undefined metadata
         delete tab.metadata;
         
         const result = service.validateTabState(tab);
@@ -908,6 +908,64 @@ describe('TabValidationService', () => {
         expect(config?.allowedModules).toEqual(['custom']);
         expect(config?.maxTabs).toBe(50);
       });
+    });
+  });
+
+  describe('validateTabRoute', () => {
+    it('should accept an absolute app route', () => {
+      const result = service.validateTabRoute('/administration/classes');
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should accept a hub route that carries its sub-tab in the query', () => {
+      const result = service.validateTabRoute('/administration/classes?tab=bulk-streams');
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should reject hub sub-tab ids because they are URL state, not tab paths', () => {
+      const result = service.validateTabRoute('bulk-streams');
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should reject missing, empty and root-only paths', () => {
+      expect(service.validateTabRoute('').valid).toBe(false);
+      expect(service.validateTabRoute('/').valid).toBe(false);
+      expect(service.validateTabRoute(undefined as any).valid).toBe(false);
+    });
+  });
+
+  describe('hub sub-tabs are not workspace tabs', () => {
+    it('should reject tab creation for a hub sub-tab id', () => {
+      const result = service.validateTabCreation([], {
+        title: 'Bulk Streams',
+        path: 'bulk-streams',
+        module: 'administration',
+      }, 20);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should reject tab state whose path is not an app route', () => {
+      const tab = createMockTab({ path: 'school-periods' });
+
+      const result = service.validateTabState(tab);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should accept a hub tab whose path keeps the sub-tab in the query', () => {
+      const tab = createMockTab({ path: '/administration/classes?tab=bulk-streams' });
+
+      const result = service.validateTabState(tab);
+
+      expect(result.valid).toBe(true);
     });
   });
 

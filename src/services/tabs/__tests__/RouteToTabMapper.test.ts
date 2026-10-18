@@ -13,13 +13,6 @@ import {
 
 // Test data helpers
 
-const createMockNavigationItem = (overrides: Partial<NavigationItem> = {}): NavigationItem => ({
-  name: 'Test Item',
-  path: '/test/path',
-  module: 'test',
-  ...overrides,
-});
-
 describe('RouteToTabMapper', () => {
   let mapper: RouteToTabMapper;
 
@@ -651,6 +644,110 @@ describe('RouteToTabMapper', () => {
       it('should handle multiple trailing slashes', () => {
         expect(mapper.normalizePath('/test/path///')).toBe('/test/path');
       });
+    });
+  });
+
+  describe('isTabRoutePath', () => {
+    it('should accept absolute app routes', () => {
+      expect(mapper.isTabRoutePath('/administration/classes')).toBe(true);
+      expect(mapper.isTabRoutePath('/dashboard')).toBe(true);
+    });
+
+    it('should accept a hub route carrying its sub-tab in the query', () => {
+      expect(mapper.isTabRoutePath('/administration/classes?tab=bulk-streams')).toBe(true);
+      expect(mapper.isTabRoutePath('/administration/academic-calendar?tab=school-periods')).toBe(true);
+    });
+
+    it('should reject bare hub sub-tab ids', () => {
+      expect(mapper.isTabRoutePath('bulk-streams')).toBe(false);
+      expect(mapper.isTabRoutePath('school-periods')).toBe(false);
+      expect(mapper.isTabRoutePath('classes')).toBe(false);
+    });
+
+    it('should reject empty, root and non-string values', () => {
+      expect(mapper.isTabRoutePath('')).toBe(false);
+      expect(mapper.isTabRoutePath('/')).toBe(false);
+      expect(mapper.isTabRoutePath('   ')).toBe(false);
+      expect(mapper.isTabRoutePath(null as any)).toBe(false);
+      expect(mapper.isTabRoutePath(undefined as any)).toBe(false);
+    });
+
+    it('should reject whitespace in the pathname', () => {
+      expect(mapper.isTabRoutePath('/administration/classes list')).toBe(false);
+    });
+
+    it('should allow whitespace inside query values', () => {
+      expect(mapper.isTabRoutePath('/students?search=John Doe')).toBe(true);
+      expect(mapper.isTabRoutePath('/academics/students?search=John Doe&page=2')).toBe(true);
+    });
+  });
+
+  describe('isKnownAppRoute', () => {
+    it('should accept routes the router renders', () => {
+      expect(mapper.isKnownAppRoute('/dashboard')).toBe(true);
+      expect(mapper.isKnownAppRoute('/administration/classes')).toBe(true);
+      expect(mapper.isKnownAppRoute('/academics/students')).toBe(true);
+      expect(mapper.isKnownAppRoute('/settings/configuration')).toBe(true);
+      expect(mapper.isKnownAppRoute('/administration/classes?tab=bulk-streams')).toBe(true);
+    });
+
+    it('should reject root-level hub sub-tab ids', () => {
+      expect(mapper.isKnownAppRoute('/bulk-streams')).toBe(false);
+      expect(mapper.isKnownAppRoute('/school-periods')).toBe(false);
+    });
+
+    it('should reject dot-segment paths that normalise to a hub id', () => {
+      expect(mapper.isKnownAppRoute('/dashboard/../bulk-streams')).toBe(false);
+      expect(mapper.isKnownAppRoute('/administration/../bulk-streams')).toBe(false);
+    });
+
+    it('should validate after normalisation, not before it', () => {
+      expect(mapper.isKnownAppRoute('/dashboard/../academics/students')).toBe(true);
+      expect(mapper.isKnownAppRoute('/academics//students/')).toBe(true);
+    });
+
+    it('should accept whitespace inside query values', () => {
+      expect(mapper.isKnownAppRoute('/academics/students?search=John Doe')).toBe(true);
+    });
+
+    it('should reject whitespace in the pathname', () => {
+      expect(mapper.isKnownAppRoute('/administration/classes list')).toBe(false);
+    });
+
+    it('should reject empty, root, external and non-string values', () => {
+      expect(mapper.isKnownAppRoute('')).toBe(false);
+      expect(mapper.isKnownAppRoute('/')).toBe(false);
+      expect(mapper.isKnownAppRoute('   ')).toBe(false);
+      expect(mapper.isKnownAppRoute('https://example.com/dashboard')).toBe(false);
+      expect(mapper.isKnownAppRoute('//example.com/dashboard')).toBe(false);
+      expect(mapper.isKnownAppRoute(null as any)).toBe(false);
+      expect(mapper.isKnownAppRoute(undefined as any)).toBe(false);
+    });
+  });
+
+  describe('buildTabFromRoute route ownership', () => {
+    it('should refuse to build a tab from a bare hub sub-tab id', () => {
+      const navigationItem: NavigationItem = {
+        name: 'Classes',
+        path: '/administration/classes',
+        module: 'administration',
+      };
+
+      const tab = mapper.buildTabFromRoute('bulk-streams', navigationItem);
+
+      expect(tab).toEqual({});
+    });
+
+    it('should refuse to build a tab for a route the navigation item does not own', () => {
+      const navigationItem: NavigationItem = {
+        name: 'Classes',
+        path: '/administration/classes',
+        module: 'administration',
+      };
+
+      const tab = mapper.buildTabFromRoute('/finance/invoices', navigationItem);
+
+      expect(tab).toEqual({});
     });
   });
 
