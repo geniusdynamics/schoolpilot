@@ -4698,7 +4698,7 @@
       "spec": "",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "082b71b",
       "notes": "Opened during W3 close-out per EXECUTION.md §9 (a flaky test gets a Q task) and the H03 reviewer's finding that --base <sha>^ silently gates zero files on Windows.",
       "completed_at": "2026-10-18"
     }
