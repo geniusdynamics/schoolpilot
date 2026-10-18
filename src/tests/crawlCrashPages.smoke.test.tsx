@@ -236,14 +236,11 @@ describe('crawl crash pages (SO-27) render without throwing', () => {
 
     it('renders a seeded fine without an amount', async () => {
       const { default: Page } = await import('@/modules/library/pages/FinesPage');
-      renderPage(<Page />, {
-        appData: {
-          fines: [
-            { id: 'f1', book_title: 'Blossoms of the Savannah', user_name: 'Amina', amount: 50, status: 'Pending' },
-            { id: 'f2', book_title: 'Kifo Kisimani', user_name: 'Baraka', status: 'Pending' },
-          ],
-        },
-      });
+      seed.collections.fines = [
+        { id: 'f1', book_title: 'Blossoms of the Savannah', user_name: 'Amina', amount: 50, status: 'Pending' },
+        { id: 'f2', book_title: 'Kifo Kisimani', user_name: 'Baraka', status: 'Pending' },
+      ];
+      renderPage(<Page />);
       expect(await screen.findByText('Kifo Kisimani')).toBeInTheDocument();
       expect(screen.getByText('50.00')).toBeInTheDocument();
     });
