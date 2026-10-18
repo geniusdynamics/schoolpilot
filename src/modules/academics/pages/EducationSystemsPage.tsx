@@ -1,4 +1,5 @@
-// src/modules/academics/pages/EducationSystemsPage.tsx
+// ABOUTME: Education systems page — lists curriculum configurations and opens the editor to add, edit or clone one.
+// ABOUTME: CRUD goes through the academics module context with update(id, patch).
 
 import React, { useState } from 'react';
 import { EducationSystemConfiguration } from '../data/types';
@@ -6,15 +7,18 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PlusIcon, EditIcon, CopyIcon, EyeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
+import { useAcademicDataContext } from '../data/AcademicDataContext';
 import { EducationSystemConfigPageContent } from './EducationSystemConfigPage';
 
 export const EducationSystemsPageContent: React.FC = () => {
-  const { 
-    educationSystemConfigurations = [], 
+  const {
+    educationSystemConfigurations = [],
     addEducationSystemConfiguration,
     updateEducationSystemConfiguration,
-  } = useAppData();
+  } = useAcademicDataContext();
+  const toast = useToast();
 
   const [showConfigPage, setShowConfigPage] = useState(false);
   const [editingSystem, setEditingSystem] = useState<EducationSystemConfiguration | null>(null);
@@ -46,7 +50,7 @@ export const EducationSystemsPageContent: React.FC = () => {
           <Button 
             size="sm" 
             variant="ghost" 
-            onClick={() => handlePreview(item)}
+            onClick={handlePreview}
             leftIcon={<EyeIcon className="w-4 h-4" />}
           >
             Preview
@@ -89,8 +93,8 @@ export const EducationSystemsPageContent: React.FC = () => {
     await addEducationSystemConfiguration(clonedSystem);
   };
 
-  const handlePreview = (_system: EducationSystemConfiguration) => {
-    // Navigate to preview page
+  const handlePreview = () => {
+    // Navigate to preview page (not built yet)
   };
 
   if (showConfigPage) {
@@ -98,13 +102,20 @@ export const EducationSystemsPageContent: React.FC = () => {
       <EducationSystemConfigPageContent
         editingSystem={editingSystem}
         onSave={async (system: EducationSystemConfiguration) => {
-          if (editingSystem) {
-            await updateEducationSystemConfiguration({ ...editingSystem, ...system });
-          } else {
-            await addEducationSystemConfiguration(system);
+          try {
+            if (editingSystem?.id) {
+              const patch: Partial<EducationSystemConfiguration> = { ...system };
+              delete patch.id;
+              await updateEducationSystemConfiguration(editingSystem.id, patch);
+            } else {
+              await addEducationSystemConfiguration(system);
+            }
+            setShowConfigPage(false);
+            setEditingSystem(null);
+          } catch (error) {
+            logger.error('Failed to save education system:', error);
+            toast.showError('Failed to save education system.');
           }
-          setShowConfigPage(false);
-          setEditingSystem(null);
         }}
         onCancel={() => {
           setShowConfigPage(false);
