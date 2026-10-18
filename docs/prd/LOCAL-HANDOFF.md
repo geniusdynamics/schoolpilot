@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-18 — W3: all built tasks merged into prd/P0-W3; 6 done, 5 awaiting review, G08 todo (W3 table below); model policy added ([decisions/2026-10-17-model-policy.md](./workflow-log/decisions/2026-10-17-model-policy.md)). W1+W2 merged into `consolidation`. W3: C06, C07 done on `prd/P0-W3`; rest open (see §0 W3 table)._
+_Last update: 2026-10-18 — W3 complete: all 12 tasks plus Q01 are done on `prd/P0-W3`, every review task independently verified, wave log at [workflow-log/P0-W3-2026-10-18.md](./workflow-log/P0-W3-2026-10-18.md). Next: merge PR #18, then W4 (B05, G10, G11, G13)._
 
 | Task | State | Where |
 | --- | --- | --- |
@@ -40,12 +40,13 @@ Branch **`prd/P0-W3`** (PR #18, draft) = `consolidation` + all W3 work. Every bu
 | E05 | done (verifier APPROVE) | `0c24de5` | — |
 | F04 | done (verifier APPROVE) | `02010ff` | — |
 | H01 | done (verifier APPROVE) | `09a28bf` | note: stock returns now go through StockLevelService |
-| H03 | **review** — merged, gate PASS, not independently reviewed | `ee51aec` | verify; fix on a branch if needed; then `status.mjs --set P0-H03 done` |
-| H04 | **review** — same | `f94e641` | same |
-| H02 | **review** — same; widened to `crawlCrashPages.smoke.test.tsx` (seed moved to DB mock) | `caeb00b` | same |
-| E04 | **review** — same; widened to `crawlCrashPages.smoke.test.tsx` (seed moved to DB mock) | `53cba39` | same |
-| F05 | **review** — same (gate G3 PASS, 144 tests) | `5ff7222` | same |
-| G08 | todo | — | run the wave with `only: ["P0-G08"]` |
+| H03 | done (reviewed locally) | `ee51aec` | verifier APPROVE; follow-ups: wallet balance race, plan-activity check |
+| H04 | done (reviewed locally) | `f94e641` | verifier APPROVE; follow-up: numeric role types, `SettingsUsersPage` |
+| H02 | done (reviewed locally); widened to `crawlCrashPages.smoke.test.tsx` | `caeb00b` | verifier APPROVE; follow-up: fines `amount`/`fine_amount` |
+| E04 | done (reviewed locally); widened to `crawlCrashPages.smoke.test.tsx` | `53cba39` | verifier APPROVE; follow-up: transport route schema drift |
+| F05 | done (reviewed locally) | `5ff7222` | verifier APPROVE; 40 learners assemble in 6 ms, print-to-PDF 970 ms |
+| G08 | done (reviewed locally) | `feea74f` | build `1ddbdc5` + fix `dfb4ad9`; verifier APPROVE after one fix round |
+| Q01 | done | `082b71b` | gate `--base` ref resolution, smoke-test import pre-warm, unused test imports |
 
 Reviewing a merged task: ask Claude to "adversarially verify commit <sha> against task <id> in docs/prd/tasks.json
 (diff <sha>^..<sha>)". Fixes go on a branch from prd/P0-W3 and are squash-merged back the same way.
