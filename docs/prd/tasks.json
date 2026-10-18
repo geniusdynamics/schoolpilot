@@ -1410,9 +1410,9 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "review",
       "commit": null,
-      "notes": "",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
       "completed_at": null
     },
     {

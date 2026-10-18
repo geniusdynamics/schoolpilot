@@ -197,14 +197,11 @@ describe('crawl crash pages (SO-27) render without throwing', () => {
 
     it('renders a seeded route that has no cost recorded', async () => {
       const { default: Page } = await import('@/modules/finance/pages/TransportRoutesPage');
-      renderPage(<Page />, {
-        appData: {
-          transportRoutes: [
-            { id: 1, name: 'Route A - Westlands', cost_per_period: 12000, gl_revenue_account_name: 'Transport Fees' },
-            { id: 2, name: 'Route B - Karen', gl_revenue_account_name: 'Transport Fees' },
-          ],
-        },
-      });
+      seed.collections.transport_routes = [
+        { id: 1, name: 'Route A - Westlands', cost_per_period: 12000, gl_revenue_account_name: 'Transport Fees' },
+        { id: 2, name: 'Route B - Karen', gl_revenue_account_name: 'Transport Fees' },
+      ];
+      renderPage(<Page />);
       expect(await screen.findByText('Route B - Karen')).toBeInTheDocument();
       expect(screen.getByText('12000.00')).toBeInTheDocument();
     });
