@@ -139,6 +139,80 @@
   },
   "tabs": {
     "editEntity": "Edit {{entity}}",
-    "viewEntity": "{{entity}}"
+    "viewEntity": "{{entity}}",
+    "validation": {
+      "routePath": "Tab path must be an absolute app route such as /administration/classes; hub sub-tab ids such as \"bulk-streams\" are URL state, not tabs."
+    }
+  },
+  "storage": {
+    "unavailable": {
+      "title": "This browser cannot store data offline",
+      "action": "Use Chrome or Edge 109 or newer, or connect to the school server.",
+      "otherTab": "If SchoolPilot is already open in another tab, close that tab and try again.",
+      "noWrites": "Nothing can be saved until persistent storage is available.",
+      "details": "Technical details",
+      "retry": "Try again"
+    },
+    "temporaryData": {
+      "label": "TEMPORARY DATA",
+      "hint": "Data is kept in memory only and is erased when the page reloads."
+    }
+  },
+  "auth": {
+    "login": {
+      "storageUnavailable": "The school database is not available on this device. Sign-in is disabled until storage is working."
+    },
+    "createAdministrator": {
+      "title": "Create administrator",
+      "intro": "No accounts exist yet. Create the administrator who will manage this school.",
+      "username": "Username",
+      "displayName": "Display name",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "submit": "Create administrator",
+      "passwordTooShort": "The password must be at least 10 characters.",
+      "passwordMismatch": "The passwords do not match.",
+      "failed": "Could not create the administrator.",
+      "created": "Administrator created. Sign in with your new account."
+    }
+  },
+  "onboarding": {
+    "initialising": {
+      "title": "Preparing your database",
+      "detail": "Opening secure storage on this device. This can take a few seconds."
+    }
+  },
+  "setupWizard": {
+    "year": {
+      "description": "The year, the dates of each term, and its financial year",
+      "termDates": "Term dates",
+      "financialYear": "Financial year",
+      "financialYearCalendar": "Calendar year",
+      "financialYearCustom": "Other dates",
+      "financialYearHint": "Terms are linked to {{name}}. An existing financial year covering these dates is reused."
+    },
+    "admin": {
+      "title": "Administrator",
+      "description": "The account that manages this school",
+      "exists": "An administrator account already exists. Sign in with it after setup.",
+      "intro": "Create the administrator who will sign in and manage this school. The password needs at least 10 characters.",
+      "username": "Username",
+      "displayName": "Display name",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "detailsRequired": "Enter a username (at least 3 characters) and a display name.",
+      "passwordTooShort": "The password must be at least 10 characters.",
+      "passwordMismatch": "The passwords do not match."
+    },
+    "completeError": "Could not finish setup."
+  },
+  "remove": "Remove",
+  "academicYears": {
+    "endBeforeStart": "End date must be after the start date.",
+    "overlapsYear": "These dates overlap {{name}}."
+  },
+  "datePicker": {
+    "month": "Month",
+    "year": "Year"
   }
 }

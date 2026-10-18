@@ -1,1 +1,0 @@
-{"task":"P0-G08","note":"New tab-route validation message returned by TabValidationService.validateTabRoute. Merge into each locale (en shown; translate for fr, rw, sw).","en":{"tabs":{"validation":{"routePath":"Tab path must be an absolute app route such as /administration/classes; hub sub-tab ids such as \"bulk-streams\" are URL state, not tabs."}}}}

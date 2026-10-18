@@ -112,6 +112,122 @@
     "frequencyLabel": "Fréquence",
     "categoryLabel": "Catégorie",
     "applicableToLabel": "Applicable À",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce modèle de frais ? Cela pourrait affecter les frais existants."
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce modèle de frais ? Cela pourrait affecter les frais existants.",
+    "errors": {
+      "saveItemFailed": "Échec de l'enregistrement de l'élément de frais : {{error}}",
+      "deleteItemFailed": "Échec de la suppression de l'élément de frais : {{error}}"
+    }
+  },
+  "financialYears": {
+    "title": "Exercices financiers",
+    "description": "Les exercices financiers regroupent les trimestres, les frais et les comptes. Les plages de dates ne peuvent pas se chevaucher, et un exercice ouvert est toujours l'exercice en cours.",
+    "add": "Ajouter un exercice financier",
+    "edit": "Modifier l'exercice financier",
+    "name": "Nom",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "statusHeader": "Statut",
+    "current": "En cours",
+    "status": {
+      "open": "Ouvert",
+      "closed": "Clôturé",
+      "archived": "Archivé"
+    },
+    "close": "Fermer",
+    "reopen": "Rouvrir",
+    "closeTitle": "Clôturer l'exercice financier",
+    "closeMessage": "Clôturer {{name}} ? Les exercices clôturés restent disponibles dans les rapports mais ne sont plus en cours.",
+    "closed": "{{name}} clôturé",
+    "reopened": "{{name}} rouvert",
+    "lastOpenHint": "Créez ou rouvrez un autre exercice financier avant de clôturer celui-ci.",
+    "emptyTitle": "Aucun exercice financier pour l'instant",
+    "emptyDescription": "Ajoutez l'exercice financier auquel appartiennent vos trimestres et vos frais."
+  },
+  "feeStructures": {
+    "loading": "Chargement des données des structures de frais...",
+    "title": "Appliquer les structures de frais (générer les factures des élèves)",
+    "description": "Facturez les modèles de frais d'une période scolaire à ses apprenants. Les modèles s'appliquent par catégorie d'élève et par niveau ; chaque apprenant reçoit une facture par période et une nouvelle exécution n'ajoute que ce qui manque. Prévisualisez d'abord, puis générez.",
+    "period": "Période scolaire",
+    "choosePeriod": "-- Choisir la période scolaire --",
+    "template": "Modèle de frais",
+    "allTemplates": "Tous les modèles de la période",
+    "level": "Niveau (facultatif)",
+    "allLevels": "Tous les niveaux",
+    "category": "Catégorie d'élève (facultatif)",
+    "allCategories": "Toutes les catégories",
+    "preview": "Aperçu",
+    "generating": "Génération des factures...",
+    "generate": "Générer les factures des élèves",
+    "previewTitle": "Aperçu de la facturation",
+    "doneTitle": "Exécution de la facturation terminée",
+    "summary": "{{created}} nouvelle(s) facture(s), {{updated}} mise(s) à jour, {{skipped}} déjà facturée(s), {{unmatched}} sans modèle correspondant. Total KES {{amount}}",
+    "learner": "Apprenant",
+    "invoice": "Facture",
+    "items": "Articles",
+    "amount": "Montant (KES)",
+    "updated": "mis à jour",
+    "failed": "Échec de la génération des factures : {{error}}"
+  },
+  "common": {
+    "loading": "Chargement..."
+  },
+  "invoiceGeneration": {
+    "title": "Génération de factures",
+    "description": "Facturez chaque modèle de frais de la période sélectionnée aux apprenants actifs concernés (par niveau et catégorie d'élève). Chaque apprenant reçoit une facture par période ; une nouvelle exécution n'ajoute que ce qui manque.",
+    "schoolPeriod": "Période scolaire",
+    "selectPeriod": "Sélectionner la période",
+    "activeSuffix": "(Actif)",
+    "level": "Niveau",
+    "allLevels": "Tous les niveaux",
+    "preview": "Aperçu",
+    "generating": "Génération...",
+    "generate": "Générer les factures",
+    "templatesForPeriod": "{{count}} modèle(s) de frais dans cette période",
+    "previewTitle": "Aperçu — rien n'a encore été enregistré",
+    "success": "Factures générées avec succès",
+    "invoicesCreated": "Nouvelles factures",
+    "invoicesUpdated": "Factures avec éléments ajoutés",
+    "skipped": "Déjà facturé",
+    "total": "Total",
+    "unmatched": "{{count}} apprenant(s) actif(s) n'ont pas de modèle de frais correspondant pour cette période.",
+    "generateMore": "Générer davantage",
+    "configureMessage": "Choisissez une période, prévisualisez la facturation, puis générez les factures"
+  },
+  "fines": {
+    "deleteFailed": "Échec de la suppression de l'amende :",
+    "deleted": "Amende supprimée.",
+    "saveFailed": "Échec de l'enregistrement de l'amende :",
+    "saved": "Amende enregistrée.",
+    "validation": "L'élève, la période scolaire et un montant supérieur à zéro sont requis."
+  },
+  "generalReceipts": {
+    "deleteFailed": "Échec de la suppression du reçu :",
+    "deleted": "Reçu supprimé.",
+    "itemsRequired": "Chaque élément doit avoir une description, un montant valide et un compte de revenus.",
+    "payerNameRequired": "Le nom du payeur est requis pour le type de payeur « Autre ».",
+    "payerRequired": "Veuillez sélectionner un payeur.",
+    "saveFailed": "Échec de l'enregistrement du reçu :",
+    "saved": "Reçu enregistré."
+  },
+  "openingBalances": {
+    "deleteFailed": "Échec de la suppression du solde d'ouverture :",
+    "deleted": "Solde d'ouverture supprimé.",
+    "saveFailed": "Échec de l'enregistrement du solde d'ouverture :",
+    "saved": "Solde d'ouverture enregistré.",
+    "validation": "L'élève, le montant et la date de référence sont requis."
+  },
+  "transportAssignments": {
+    "deleteFailed": "Échec de la suppression de l'affectation de transport :",
+    "deleted": "Affectation de transport supprimée.",
+    "saveFailed": "Échec de l'enregistrement de l'affectation de transport :",
+    "saved": "Affectation de transport enregistrée.",
+    "validation": "L'élève, l'itinéraire et la période scolaire sont requis."
+  },
+  "transportRoutes": {
+    "deleteFailed": "Échec de la suppression de l'itinéraire de transport :",
+    "deleted": "Itinéraire de transport supprimé.",
+    "saveFailed": "Échec de l'enregistrement de l'itinéraire de transport :",
+    "saved": "Itinéraire de transport enregistré.",
+    "validation": "Le nom de l'itinéraire, un coût valide par période et un compte de revenus GL sont requis."
   }
 }

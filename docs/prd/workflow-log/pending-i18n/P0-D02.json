@@ -1,8 +1,0 @@
-{
-  "admissions": {
-    "en": {
-      "applicationForm.validation.requiredFields": "Please fill in all required fields (marked *) before continuing.",
-      "applicationForm.validation.incompleteApplication": "Some required fields are missing. Go back and complete all required fields before submitting."
-    }
-  }
-}

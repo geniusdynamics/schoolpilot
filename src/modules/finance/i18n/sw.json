@@ -103,5 +103,123 @@
     "template": "Kiolezo",
     "expenseCategory": "Jamii ya Gharama",
     "active": "Inafanya Kazi"
+  },
+  "financialYears": {
+    "title": "Miaka ya fedha",
+    "description": "Miaka ya fedha huunganisha muhula, ada na akaunti. Vipindi vya tarehe haviwezi kuingiliana, na mwaka mmoja wazi daima ndio mwaka wa sasa.",
+    "add": "Ongeza mwaka wa fedha",
+    "edit": "Hariri mwaka wa fedha",
+    "name": "Jina",
+    "startDate": "Tarehe ya kuanza",
+    "endDate": "Tarehe ya mwisho",
+    "statusHeader": "Hali",
+    "current": "Ya sasa",
+    "status": {
+      "open": "Wazi",
+      "closed": "Imefungwa",
+      "archived": "Imehifadhiwa kwenye kumbukumbu"
+    },
+    "close": "Funga",
+    "reopen": "Fungua tena",
+    "closeTitle": "Funga mwaka wa fedha",
+    "closeMessage": "Funga {{name}}? Miaka iliyofungwa inaendelea kupatikana kwenye ripoti lakini si ya sasa tena.",
+    "closed": "{{name}} imefungwa",
+    "reopened": "{{name}} imefunguliwa tena",
+    "lastOpenHint": "Unda au fungua tena mwaka mwingine wa fedha kabla ya kufunga huu.",
+    "emptyTitle": "Hakuna miaka ya fedha bado",
+    "emptyDescription": "Ongeza mwaka wa fedha ambao muhula na ada zako zinahusiana nao."
+  },
+  "feeTemplates": {
+    "errors": {
+      "saveItemFailed": "Imeshindwa kuhifadhi kipengele cha ada: {{error}}",
+      "deleteItemFailed": "Imeshindwa kufuta kipengele cha ada: {{error}}"
+    }
+  },
+  "feeStructures": {
+    "loading": "Inapakia data ya miundo ya ada...",
+    "title": "Tekeleza miundo ya ada (zalisha ankara za wanafunzi)",
+    "description": "Toza ada za kipindi cha shule kwa wanafunzi wake. Mifumo hutumika kwa kundi la wanafunzi na ngazi; kila mwanafunzi hupata ankara moja kwa kipindi na kuendesha tena huongeza tu kinachokosekana. Hakiki kwanza, kisha zalisha.",
+    "period": "Kipindi cha shule",
+    "choosePeriod": "-- Chagua kipindi cha shule --",
+    "template": "Kiolezo cha ada",
+    "allTemplates": "Violezo vyote vya kipindi",
+    "level": "Ngazi (si lazima)",
+    "allLevels": "Ngazi zote",
+    "category": "Kundi la mwanafunzi (si lazima)",
+    "allCategories": "Makundi yote",
+    "preview": "Hakiki",
+    "generating": "Inazalisha ankara...",
+    "generate": "Zalisha ankara za wanafunzi",
+    "previewTitle": "Hakiki ya bili",
+    "doneTitle": "Uendeshaji wa bili umekamilika",
+    "summary": "Ankara mpya {{created}}, zilizosasishwa {{updated}}, tayari zimetozwa {{skipped}}, bila kiolezo kinacholingana {{unmatched}}. Jumla KES {{amount}}",
+    "learner": "Mwanafunzi",
+    "invoice": "Ankara",
+    "items": "Vitu",
+    "amount": "Kiasi (KES)",
+    "updated": "imesasishwa",
+    "failed": "Imeshindwa kuzalisha ankara: {{error}}"
+  },
+  "common": {
+    "loading": "Inapakia..."
+  },
+  "invoiceGeneration": {
+    "title": "Uzalishaji wa Ankara",
+    "description": "Toza kila kiolezo cha ada cha kipindi kilichochaguliwa kwa wanafunzi hai kinachowahusu (kwa ngazi na kundi la mwanafunzi). Kila mwanafunzi hupata ankara moja kwa kipindi; kuendesha tena huongeza tu kinachokosekana.",
+    "schoolPeriod": "Kipindi cha shule",
+    "selectPeriod": "Chagua kipindi",
+    "activeSuffix": "(Hai)",
+    "level": "Ngazi",
+    "allLevels": "Ngazi zote",
+    "preview": "Hakiki",
+    "generating": "Inazalisha...",
+    "generate": "Zalisha ankara",
+    "templatesForPeriod": "Violezo {{count}} vya ada katika kipindi hiki",
+    "previewTitle": "Hakiki — hakuna kilichohifadhiwa bado",
+    "success": "Ankara zimezalishwa kwa mafanikio",
+    "invoicesCreated": "Ankara mpya",
+    "invoicesUpdated": "Ankara zilizoongezwa vipengele",
+    "skipped": "Tayari imetozwa",
+    "total": "Jumla",
+    "unmatched": "Wanafunzi hai {{count}} hawana kiolezo cha ada kinacholingana kwa kipindi hiki.",
+    "generateMore": "Zalisha zaidi",
+    "configureMessage": "Chagua kipindi, hakiki uendeshaji wa bili, kisha zalisha ankara"
+  },
+  "fines": {
+    "deleteFailed": "Imeshindwa kufuta faini:",
+    "deleted": "Faini imefutwa.",
+    "saveFailed": "Imeshindwa kuhifadhi faini:",
+    "saved": "Faini imehifadhiwa.",
+    "validation": "Mwanafunzi, kipindi cha shule na kiasi kikubwa kuliko sifuri vinahitajika."
+  },
+  "generalReceipts": {
+    "deleteFailed": "Imeshindwa kufuta risiti:",
+    "deleted": "Risiti imefutwa.",
+    "itemsRequired": "Kila kipengele kiwe na maelezo, kiasi halali na akaunti ya mapato.",
+    "payerNameRequired": "Jina la mlipaji linahitajika kwa aina ya mlipaji 'Nyingine'.",
+    "payerRequired": "Tafadhali chagua mlipaji.",
+    "saveFailed": "Imeshindwa kuhifadhi risiti:",
+    "saved": "Risiti imehifadhiwa."
+  },
+  "openingBalances": {
+    "deleteFailed": "Imeshindwa kufuta salio la kuanza:",
+    "deleted": "Salio la kuanza limefutwa.",
+    "saveFailed": "Imeshindwa kuhifadhi salio la kuanza:",
+    "saved": "Salio la kuanza limehifadhiwa.",
+    "validation": "Mwanafunzi, kiasi na tarehe ya kumbukumbu vinahitajika."
+  },
+  "transportAssignments": {
+    "deleteFailed": "Imeshindwa kufuta ugawaji wa usafiri:",
+    "deleted": "Ugawaji wa usafiri umefutwa.",
+    "saveFailed": "Imeshindwa kuhifadhi ugawaji wa usafiri:",
+    "saved": "Ugawaji wa usafiri umehifadhiwa.",
+    "validation": "Mwanafunzi, njia na kipindi cha shule vinahitajika."
+  },
+  "transportRoutes": {
+    "deleteFailed": "Imeshindwa kufuta njia ya usafiri:",
+    "deleted": "Njia ya usafiri imefutwa.",
+    "saveFailed": "Imeshindwa kuhifadhi njia ya usafiri:",
+    "saved": "Njia ya usafiri imehifadhiwa.",
+    "validation": "Jina la njia, gharama halali kwa kipindi na akaunti ya mapato ya GL vinahitajika."
   }
 }

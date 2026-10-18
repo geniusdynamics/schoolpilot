@@ -130,5 +130,15 @@
   "studentStatusOverview": "Muhtasari wa Hali ya Wanafunzi",
   "feeCollectionOverview": "Muhtasari wa Ukusanyaji wa Ada (Data ya Kubuni)",
   "paidAmount": "Kiasi Kilicholipwa",
-  "billedAmount": "Kiasi Kilicholipishwa"
+  "billedAmount": "Kiasi Kilicholipishwa",
+  "classPerformance": "Muhtasari wa ufaulu wa madarasa",
+  "noExamResults": "Hakuna matokeo ya mtihani yaliyorekodiwa bado.",
+  "examResultsCount": "matokeo {{count}}",
+  "meanMarks": "Alama za wastani",
+  "noApplications": "Hakuna maombi yaliyopokelewa bado.",
+  "studentsByClass": "Wanafunzi kwa darasa",
+  "noClassAssignments": "Hakuna wanafunzi waliogawiwa madarasa bado.",
+  "count": "Idadi",
+  "noDisciplinaryCases": "Hakuna kesi za nidhamu zilizorekodiwa.",
+  "routesInUse": "Njia zinazotumika"
 }

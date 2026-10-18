@@ -78,7 +78,8 @@
     "verifyMarksByStructure": "Verify Marks By Structure",
     "examGazette": "Exam Gazette",
     "distributeResults": "Distribute Results",
-    "boardExamResults": "Board Exam Results"
+    "boardExamResults": "Board Exam Results",
+    "reportCards": "Report Cards"
   },
   "assignments": {
     "title": "Assignments",
@@ -135,7 +136,8 @@
     "journalRegister": "Journal Register",
     "trialBalance": "Trial Balance",
     "incomeStatement": "Income Statement",
-    "balanceSheet": "Balance Sheet"
+    "balanceSheet": "Balance Sheet",
+    "financialYears": "Financial Years"
   },
   "hr": {
     "title": "Human Resources",

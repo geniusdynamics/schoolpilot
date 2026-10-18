@@ -75,7 +75,20 @@
     "deleteConfirm": "Are you sure you want to delete this student?",
     "detailsFieldset": "Student Details",
     "guardianFieldset": "Primary Parent/Guardian",
-    "examSummaryFieldset": "Exam Result Summary (e.g., KCPE)"
+    "examSummaryFieldset": "Exam Result Summary (e.g., KCPE)",
+    "detail": {
+      "editBioData": "Edit Bio Data",
+      "firstName": "First Name",
+      "middleName": "Middle Name",
+      "lastName": "Last Name",
+      "gender": "Gender",
+      "dateOfBirth": "Date of Birth",
+      "religion": "Religion",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "remarks": "Remarks/About"
+    }
   },
   "staff": {
     "title": "Staff Management",
@@ -92,7 +105,24 @@
     "hodLabel": "Head of Department (If applicable)",
     "hodOptionNone": "None",
     "activeLabel": "Is Active Staff Member",
-    "deleteConfirm": "Are you sure you want to delete this staff member?"
+    "deleteConfirm": "Are you sure you want to delete this staff member?",
+    "form": {
+      "email": "Email",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender",
+      "genderFemale": "Female",
+      "genderMale": "Male",
+      "genderOther": "Other",
+      "nationalId": "National ID / Passport No.",
+      "employerNumber": "Employer No. (e.g. TSC number)",
+      "employmentType": "Employment Type",
+      "employmentTypePlaceholder": "Select employment type",
+      "employmentPermanent": "Permanent",
+      "employmentContract": "Contract",
+      "employmentPartTime": "Part-time",
+      "employmentBoard": "Board of Management",
+      "employmentIntern": "Intern / Attachment"
+    }
   },
   "partners": {
     "title": "Partners Management",
@@ -578,5 +608,66 @@
       "futureDate": "Date of birth cannot be in the future",
       "unusualAge": "Unusual age detected"
     }
+  },
+  "bulkStreams": {
+    "title": "Bulk Stream Creation",
+    "subtitle": "Add multiple streams to a class at once",
+    "addField": "Add Stream Field",
+    "selectClass": "Select Class",
+    "selectClassPlaceholder": "-- Select a class --",
+    "streamNames": "Stream Names",
+    "streamPlaceholder": "Stream {{index}} name (e.g., East, West, North)",
+    "summary": "Will create {{count}} stream(s) for \"{{className}}\"",
+    "summaryEmpty": "Select a class and enter stream names above",
+    "duplicatesHint": "Already exists or repeated, will be skipped: {{names}}",
+    "duplicatesSkipped": "Skipped existing or repeated stream names: {{names}}",
+    "badge": "{{count}} streams",
+    "create": "Create {{count}} Stream(s)",
+    "createdToast": "Created {{count}} stream(s) for {{className}}",
+    "createFailed": "One or more streams could not be created.",
+    "createdTitle": "Streams created",
+    "repair": {
+      "title": "Corrupt streams",
+      "subtitle": "These streams have no name or no class. Move their students to a valid stream, then remove them.",
+      "unnamed": "Unnamed stream",
+      "studentCount": "({{count}} student(s))",
+      "moveTo": "Move students to",
+      "chooseStream": "-- Choose a stream --",
+      "action": "Repair streams",
+      "done": "Removed {{deleted}} corrupt stream(s); moved {{reassigned}} student(s)",
+      "failed": "Repair failed. No further streams were removed."
+    }
+  },
+  "bulkOperations": {
+    "promotion": "Promotion"
+  },
+  "promotion": {
+    "title": "Promote a class",
+    "unassigned": "Not assigned",
+    "source": "Current class",
+    "target": "Promote to",
+    "academicYear": "Academic year",
+    "date": "Promotion date",
+    "selectClass": "-- Select a class --",
+    "chooseClasses": "Choose the current class and the class to promote to.",
+    "preview": "Preview",
+    "empty": "No learners are in this class.",
+    "include": "Include",
+    "learner": "Learner",
+    "from": "From",
+    "to": "To",
+    "note": "Note",
+    "commit": "Promote",
+    "commitCount": "Promote {{count}} learners",
+    "confirmTitle": "Confirm promotion",
+    "confirmMessage": "Move {{count}} learners from {{from}} to {{to}}? You can undo this afterwards.",
+    "partial": "{{done}} learners promoted, {{failed}} could not be promoted.",
+    "done": "{{count}} learners promoted.",
+    "failed": "Promotion failed.",
+    "committed": "{{count}} learners moved to {{to}}.",
+    "undo": "Undo",
+    "undoPartial": "{{done}} learners restored, {{failed}} were moved since and were left as they are.",
+    "undone": "{{count}} learners returned to their previous class.",
+    "undoFailed": "Undo failed."
   }
 }
