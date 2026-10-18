@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import type { ICollection } from '@/services/database/interfaces';
+import type { CollectionName } from '@/services/database/collections';
 
 export interface UseDatabaseCollectionOptions {
   loadOnMount?: boolean;
@@ -24,7 +25,7 @@ export interface UseDatabaseCollectionResult<T> {
 }
 
 export function useDatabaseCollection<T>(
-  collectionName: string,
+  collectionName: CollectionName,
   options: UseDatabaseCollectionOptions = {}
 ): UseDatabaseCollectionResult<T> {
   const { loadOnMount = true, subscribeToChanges = true } = options;

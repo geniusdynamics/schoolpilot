@@ -33,9 +33,10 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
   } = useAppData();
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | undefined>();
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    schoolPeriods.find(sp => sp.is_active)?.id || schoolPeriods[0]?.id
-  );
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(() => {
+    const period = schoolPeriods.find(sp => sp.is_active) || schoolPeriods[0];
+    return period?.id != null ? String(period.id) : undefined;
+  });
   
   const [reportData, setReportData] = useState<StatementGridRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -113,7 +114,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
                     <option value="">-- Student --</option>
                     {(students || []).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.admission_no})</option>)}
                 </Select>
-                <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
+                <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">-- Period --</option>
                     {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
@@ -132,7 +133,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
             <SchoolLetterhead title="Student Votehead Statement" />
             <div className="mb-4 p-3 bg-indigo-50 rounded-md">
                 <h3 className="text-md font-semibold">Student: {students.find(s => s.id === selectedStudentId)?.display_name}</h3>
-                <p className="text-sm">Period: {schoolPeriods.find(p => p.id === selectedSchoolPeriodId)?.name}</p>
+                <p className="text-sm">Period: {schoolPeriods.find(p => String(p.id) === selectedSchoolPeriodId)?.name}</p>
                 <p className="text-sm">Opening Balance (for period): KES {openingBalance.toFixed(2)}</p>
             </div>
             <div className="flex justify-end space-x-2 mb-4 print-hide">

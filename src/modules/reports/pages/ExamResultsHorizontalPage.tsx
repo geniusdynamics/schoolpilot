@@ -12,8 +12,6 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Student, Class as SchoolClass, ClassStream } from '@/types'; 
-import { AcademicsExamSessionType as ExamSession, AcademicsStudentExamResultWithDetailsType as StudentExamResultWithDetails, AcademicsExamPaperSettingType as ExamPaperSetting } from '@/types'; 
 
 
 interface ReportRow {
@@ -31,8 +29,8 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
   const { students, examSessions, classes, classStreams, studentExamResults, loading } = useAppData();
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>();
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
-  const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
+  const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<ReportRow[]>([]);
   const [dynamicColumns, setDynamicColumns] = useState<any[]>([]);
@@ -40,7 +38,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
 
   const availableStreams = useMemo(() => {
     if (!selectedClassId) return (classStreams || []);
-    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => String(cs.class_id) === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
@@ -77,7 +75,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
       ];
       setDynamicColumns(newDynamicColumns);
 
-      const studentsInStream = (students || []).filter(s => s.current_class_stream_id === selectedStreamId);
+      const studentsInStream = (students || []).filter(s => String(s.current_class_stream_id) === selectedStreamId);
       const resultsForSessionAndStream = (studentExamResults || []).filter(
         res => res.exam_session_id === selectedExamSessionId && (studentsInStream || []).some(s => s.id === res.student_id)
       );
@@ -134,7 +132,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
             <Select
                 label={t('examResultsHorizontal.class')}
                 value={selectedClassId || ''}
-                onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}
+                onChange={e => {setSelectedClassId(e.target.value || undefined); setSelectedStreamId(undefined);}}
             >
                 <option value="">{t('examResultsHorizontal.optionAllClasses')}</option>
                 {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -142,7 +140,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
             <Select
                 label={t('examResultsHorizontal.stream')}
                 value={selectedStreamId || ''}
-                onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)}
+                onChange={e => setSelectedStreamId(e.target.value || undefined)}
                 disabled={!selectedClassId}
             >
                 <option value="">{t('examResultsHorizontal.optionAllStreams')}</option>

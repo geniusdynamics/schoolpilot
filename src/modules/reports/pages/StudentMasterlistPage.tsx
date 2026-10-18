@@ -16,8 +16,8 @@ export const StudentMasterlistPageContent: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
   const { t } = useTranslation('reports');
 
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
-  const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
+  const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
   const [selectedStatus, setSelectedStatus] = useState<StudentStatus | ''>('');
   const [selectedGender, setSelectedGender] = useState<PersonGender | ''>('');
   
@@ -26,7 +26,7 @@ export const StudentMasterlistPageContent: React.FC = () => {
 
   const availableStreams = useMemo(() => {
     if (!selectedClassId) return (classStreams || []);
-    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => String(cs.class_id) === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
@@ -34,14 +34,16 @@ export const StudentMasterlistPageContent: React.FC = () => {
     let tempStudents = [...(students || [])];
 
     if (selectedClassId) {
-      const streamsInClass = (classStreams || []).filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
+      const streamsInClass = (classStreams || [])
+        .filter(cs => String(cs.class_id) === selectedClassId)
+        .map(cs => String(cs.id));
       if (selectedStreamId) {
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
+        tempStudents = tempStudents.filter(s => String(s.current_class_stream_id) === selectedStreamId);
       } else {
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id && (streamsInClass || []).includes(s.current_class_stream_id));
+        tempStudents = tempStudents.filter(s => s.current_class_stream_id && (streamsInClass || []).includes(String(s.current_class_stream_id)));
       }
     } else if (selectedStreamId) { 
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
+        tempStudents = tempStudents.filter(s => String(s.current_class_stream_id) === selectedStreamId);
     }
 
     if (selectedStatus) {
@@ -117,11 +119,11 @@ export const StudentMasterlistPageContent: React.FC = () => {
             {t('studentMasterlistPage.filterDescription')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-            <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
+            <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(e.target.value || undefined); setSelectedStreamId(undefined);}}>
                 <option value="">{t('studentMasterlistPage.allClasses')}</option>
                 {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
-            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === (classStreams || []).length}>
+            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(e.target.value || undefined)} disabled={!selectedClassId && availableStreams.length === (classStreams || []).length}>
                 <option value="">{t('studentMasterlistPage.allStreams')}</option>
                 {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
             </Select>

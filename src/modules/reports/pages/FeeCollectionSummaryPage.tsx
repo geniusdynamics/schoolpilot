@@ -23,17 +23,17 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     schoolPeriods, 
     classes, 
     studentInvoices,
-    studentInvoiceItems, 
     invoicePaymentApplications,
     students, 
     classStreams, 
     loading 
   } = useAppData();
 
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    schoolPeriods.find(sp => sp.is_active)?.id || schoolPeriods[0]?.id
-  );
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(() => {
+    const period = schoolPeriods.find(sp => sp.is_active) || schoolPeriods[0];
+    return period?.id != null ? String(period.id) : undefined;
+  });
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<FeeCollectionSummaryRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -47,9 +47,9 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     setIsGenerating(true);
     
     const invoicesForPeriod = (studentInvoices || []).filter(inv => 
-      inv.school_period_id === selectedSchoolPeriodId &&
+      String(inv.school_period_id) === selectedSchoolPeriodId &&
       inv.status !== InvoiceStatus.VOIDED &&
-      (!selectedClassId || (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id && (classStreams || []).find(cs => cs.id === (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id)?.class_id === selectedClassId)
+      (!selectedClassId || (students || []).find(s => String(s.id) === String(inv.student_id))?.current_class_stream_id && String((classStreams || []).find(cs => String(cs.id) === String((students || []).find(s => String(s.id) === String(inv.student_id))?.current_class_stream_id))?.class_id) === selectedClassId)
     );
 
     const summaryMap = new Map<string, { expected: number; paid: number }>();
@@ -106,7 +106,6 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     const headers = columns.map(col => col.header).join(',');
     const rows = reportData.map(row => {
       return columns.map(col => {
-        // @ts-ignore
         let value = row[col.key as keyof FeeCollectionSummaryRow];
         if (col.render) {
           value = col.render(value, row); // Use rendered value if available
@@ -140,11 +139,11 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
                 Aggregated summary of fee collection by votehead for the selected criteria.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
+                <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">All Periods</option>
                     {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
-                <Select label="Class (Optional)" value={selectedClassId || ''} onChange={e => setSelectedClassId(Number(e.target.value) || undefined)}>
+                <Select label="Class (Optional)" value={selectedClassId || ''} onChange={e => setSelectedClassId(e.target.value || undefined)}>
                     <option value="">All Classes</option>
                     {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>

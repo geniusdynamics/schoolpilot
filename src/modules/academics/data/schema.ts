@@ -180,6 +180,18 @@ export const studentPaperMarkProperties: Record<string, DatabaseProperty> = {
     subject_name: { type: ['string', 'null'], maxLength: 100 },
     marks_out_of: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
 };
+
+export const studentPaperMarksSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_paper_mark',
+    primaryKey: 'id',
+    properties: {
+        ...studentPaperMarkProperties,
+        created_at: SchemaHelpers.timestamp({ description: 'Creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Last update timestamp' }),
+    },
+    required: ['id', 'student_exam_result_id', 'paper_setting_id'],
+    indexes: ['student_exam_result_id', 'paper_setting_id']
+});
 export const studentExamResultSchema: DatabaseSchema = createDatabaseSchema({
     title: 'student_exam_result',
     primaryKey: 'id',

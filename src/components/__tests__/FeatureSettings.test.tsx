@@ -59,8 +59,13 @@ vi.mock('@/contexts/AppDataContext', () => ({
     conflicts: [],
     resolveConflict: vi.fn(),
     resolveAllConflicts: vi.fn(),
-    getQueueStatus: () => ({ api: { pending: 0, completed: 0 }, sync: { pending: 0, errors: 0 } }),
     forceSync: vi.fn(),
+  })
+}));
+
+vi.mock('@/contexts/SyncContext', () => ({
+  useSync: () => ({
+    getQueueStatus: () => ({ api: { pending: 0, completed: 0 }, sync: { pending: 0, errors: 0 } }),
     clearSyncQueue: vi.fn(),
   })
 }));

@@ -82,7 +82,7 @@ const CommunicationTemplatesPage: React.FC = () => {
     };
 
     if (editingTemplate) {
-      await updateTemplateComm({ ...editingTemplate, ...payload });
+      await updateTemplateComm(String(editingTemplate.id), payload);
     } else {
       await addTemplateComm(payload);
     }

@@ -37,6 +37,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   private totalQueryTime = 0;
   /** Column names in table order — used to decode positional rows from sqlite-wasm. */
   private columnNamesCache: string[] | null = null;
+  /** Schema property names keyed by lower-case name, so stored columns round-trip with their declared casing. */
+  private schemaKeysCache: Map<string, string> | null = null;
 
   constructor(
     private db: Database,
@@ -171,23 +173,37 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   }
 
   /**
-   * Intersect a document's keys with the table's real columns. Documents may
-   * carry extra/denormalized properties (e.g. nested `streams` arrays or
-   * display-only labels) that are not table columns; including them in an
-   * INSERT/UPDATE produced "no such column" failures that were swallowed by
-   * bulk-write error collection (demo seeding wrote 0 rows for `classes` and
-   * `class_streams` this way). Unknown keys are dropped and reported at debug.
+   * Intersect a document's keys with the table's real columns, matching
+   * case-insensitively because schema properties keep camelCase (`compositeId`)
+   * while SQLite column names are lower-cased on creation. Without the match a
+   * camelCase primary key was dropped from the INSERT and stored as NULL, so
+   * every re-seed looked like a new row.
+   *
+   * Documents may also carry extra/denormalized properties (e.g. nested
+   * `streams` arrays or display-only labels) that are not table columns;
+   * including them in an INSERT/UPDATE produced "no such column" failures that
+   * were swallowed by bulk-write error collection. Unknown keys are dropped and
+   * reported at debug.
    */
-  private writableColumns(doc: Record<string, any>): string[] {
+  private writableColumns(doc: Record<string, any>): Array<{ column: string; key: string }> {
     const keys = Object.keys(doc);
-    const known = new Set(this.getColumnNames());
-    if (known.size === 0) return keys; // schema unknown → preserve legacy behavior
-    const usable = keys.filter((key) => known.has(key));
-    const dropped = keys.filter((key) => !known.has(key));
+    const known = this.getColumnNames();
+    if (known.length === 0) return keys.map((key) => ({ column: key, key })); // schema unknown → preserve legacy behavior
+    const columnByKey = new Map(known.map((column) => [column.toLowerCase(), column]));
+    const resolved: Array<{ column: string; key: string }> = [];
+    const dropped: string[] = [];
+    for (const key of keys) {
+      const column = columnByKey.get(key.toLowerCase());
+      if (column) {
+        resolved.push({ column, key });
+      } else {
+        dropped.push(key);
+      }
+    }
     if (dropped.length > 0) {
       logger.debug(`[SQLiteWASMCollection] ${this.name}: ignoring non-column keys on write: ${dropped.join(', ')}`);
     }
-    return usable;
+    return resolved;
   }
 
   async insert(doc: Omit<T, 'id'>): Promise<InsertResult<T>> {
@@ -203,9 +219,9 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         // Convert document to SQL values (only real table columns)
         const columns = this.writableColumns(docWithId as any);
         const placeholders = columns.map(() => '?').join(', ');
-        const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
+        const values = columns.map(({ key }) => this.serializeValue((docWithId as any)[key]));
         
-        const sql = `INSERT INTO ${this.tableName} (${columns.map(col => this.quoteIdentifier(col)).join(', ')}) VALUES (${placeholders})`;
+        const sql = `INSERT INTO ${this.tableName} (${columns.map(({ column }) => this.quoteIdentifier(column)).join(', ')}) VALUES (${placeholders})`;
         
         this.db.exec({
           sql: sql,
@@ -258,9 +274,9 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           // Inline synchronous insert logic for use within transaction
           const columns = this.writableColumns(docWithId as any);
           const placeholders = columns.map(() => '?').join(', ');
-          const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
+          const values = columns.map(({ key }) => this.serializeValue((docWithId as any)[key]));
 
-          const sql = `INSERT INTO ${this.tableName} (${columns.map(col => this.quoteIdentifier(col)).join(', ')}) VALUES (${placeholders})`;
+          const sql = `INSERT INTO ${this.tableName} (${columns.map(({ column }) => this.quoteIdentifier(column)).join(', ')}) VALUES (${placeholders})`;
 
           this.db.exec({
             sql: sql,
@@ -419,12 +435,12 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       }
       
       // Build UPDATE SQL (only real table columns — see writableColumns)
-      const updateFields = this.writableColumns(update as Record<string, any>).filter(key => key !== 'id');
+      const updateFields = this.writableColumns(update as Record<string, any>).filter(({ column }) => column !== 'id');
       if (updateFields.length === 0) {
         return { success: true, modifiedCount: 0, document: existing as T };
       }
-      const setClause = updateFields.map(field => `${this.quoteIdentifier(field)} = ?`).join(', ');
-      const values = updateFields.map(field => this.serializeValue((update as any)[field]));
+      const setClause = updateFields.map(({ column }) => `${this.quoteIdentifier(column)} = ?`).join(', ');
+      const values = updateFields.map(({ key }) => this.serializeValue((update as any)[key]));
       
       const sql = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
       values.push(id);
@@ -754,7 +770,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   private deserializeDocument(row: any): T {
     const doc: any = {};
 
-    for (const [key, value] of Object.entries(row)) {
+    for (const [column, value] of Object.entries(row)) {
+      const key = this.documentKey(column);
       if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
         try {
           doc[key] = JSON.parse(value);
@@ -767,6 +784,26 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     }
 
     return doc as T;
+  }
+
+  /**
+   * Schema property names keyed by their lower-case form. SQLite reports the
+   * sanitised column (`compositeid`) while the schema declares `compositeId`;
+   * reading through this map keeps documents in the shape every consumer and
+   * the seeder's primary-key check expect.
+   */
+  private schemaKeys(): Map<string, string> {
+    if (this.schemaKeysCache) return this.schemaKeysCache;
+    const keys = new Map<string, string>();
+    for (const key of Object.keys(this.schema?.properties ?? {})) {
+      keys.set(key.toLowerCase(), key);
+    }
+    this.schemaKeysCache = keys;
+    return keys;
+  }
+
+  private documentKey(column: string): string {
+    return this.schemaKeys().get(column.toLowerCase()) ?? column;
   }
 
   /**

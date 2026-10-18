@@ -6,6 +6,7 @@ import { logger } from '@/utils/logging';
 import React, { useState } from 'react';
 import { ClockIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, PauseIcon, PlayIcon, TrashIcon, Cog6ToothIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { useAppData } from '@/hooks/useAppData';
+import { useSync } from '@/contexts/SyncContext';
 import Card from './ui/Card';
 import Button from './ui/Button';
 
@@ -40,7 +41,6 @@ interface SyncSettings {
 
 const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [activeTab, setActiveTab] = useState<'queue' | 'settings' | 'history' | 'conflicts'>('queue');
-  const [showSettings, setShowSettings] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -48,18 +48,13 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
   const {
     syncStatus,
     pendingSyncCount,
-    getQueueStatus,
-    forceSync,
-    clearSyncQueue,
-    pauseSync,
-    resumeSync,
     getSyncSettings,
     updateSyncSettings,
-    getSyncHistory,
     conflicts = [],
     isOnline,
     backendAvailable
   } = useAppData() || {};
+  const { getQueueStatus, getSyncHistory } = useSync();
 
   // Safely get queue status with comprehensive fallback
   const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
@@ -197,7 +192,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
               </Button>
             </>
           )}
-          <Button size="sm" onClick={() => setShowSettings(true)}>
+          <Button size="sm" onClick={() => setActiveTab('settings')}>
             <Cog6ToothIcon className="w-4 h-4 mr-1" />
             Settings
           </Button>
@@ -385,11 +380,33 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
 
   const renderHistoryTab = () => (
     <div className="space-y-4">
-      <div className="text-center py-8 text-surface-muted-fg">
-        <ChartBarIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-        <p>Sync history will be displayed here</p>
-        <p className="text-sm">Track completed sync operations and performance metrics</p>
-      </div>
+      {syncHistory.length === 0 ? (
+        <div className="text-center py-8 text-surface-muted-fg">
+          <ChartBarIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+          <p>Sync history will be displayed here</p>
+          <p className="text-sm">Track completed sync operations and performance metrics</p>
+        </div>
+      ) : (
+        syncHistory.map(entry => (
+          <div key={entry.id} className="flex items-center justify-between border rounded-lg p-3">
+            <div>
+              <div className="font-medium text-surface-foreground">
+                {entry.startedAt.toLocaleString()}
+              </div>
+              <div className="text-sm text-surface-muted-fg">
+                {entry.completedAt.toLocaleTimeString()}
+              </div>
+            </div>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              entry.status === 'success'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {entry.status}
+            </span>
+          </div>
+        ))
+      )}
     </div>
   );
 

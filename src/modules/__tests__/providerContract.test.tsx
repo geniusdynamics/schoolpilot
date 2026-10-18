@@ -463,6 +463,18 @@ describe('sync hook', () => {
 });
 
 describe('contract-scan missing functions', () => {
+  it('reports zero violations in every scanned section', () => {
+    const report = JSON.parse(execFileSync('node', ['scripts/audit/contract-scan.cjs', '--json'], { cwd: process.cwd(), encoding: 'utf8' }));
+
+    expect(report.undefinedCollections).toEqual([]);
+    expect(report.missingAppDataFunctions).toEqual([]);
+    expect(report.singleArgUpdateCalls).toEqual([]);
+    expect(report.numericIdCoercions.writes).toEqual([]);
+    expect(report.numericIdCoercions.selectors).toEqual([]);
+    expect(report.mockBackedHooksInUi).toEqual([]);
+    expect(report.routesOutsideNavigation.routes).toEqual([]);
+  });
+
   it('exist on a module or sync hook', async () => {
     const report = JSON.parse(execFileSync('node', ['scripts/audit/contract-scan.cjs', '--json'], { cwd: process.cwd(), encoding: 'utf8' }));
     const wanted = new Set<string>(report.missingAppDataFunctions.flatMap((entry: { missing: string[] }) => entry.missing));

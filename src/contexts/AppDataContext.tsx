@@ -14,7 +14,7 @@ import {
   subscribeSQLiteStorageStatus
 } from '../services/database/SQLiteWASMProvider';
 import { StorageUnavailableScreen } from '../components/StorageUnavailableScreen';
-import type { AppDataContextType } from '../core/types';
+import type { AppDataContextType, AppDataLoadingStates, SchoolDetails } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
 import { NetworkStateManager, NetworkState } from '../services/data/NetworkStateManager';
 import { getDataModeManager } from '../services/data/dataModeManager';
@@ -23,10 +23,13 @@ import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
 import { moduleRegistry } from '../core/moduleRegistry';
 import {
   createAppDataLoadingState,
-  normalizeAppDataCollections
+  normalizeAppDataCollections,
+  type AppDataCollectionKey
 } from './appData/appDataCollections';
 import { usePaginationContext } from './appData/PaginationContext';
 import { useValidationContext } from './appData/ValidationContext';
+import { useBackupRestoreContext } from './appData/BackupRestoreContext';
+import { useDataGenerationContext } from './appData/DataGenerationContext';
 import {
   SystemDataProvider,
   AdministrationDataProvider,
@@ -105,74 +108,91 @@ export interface DataSourceConfig {
 
 export { createAppDataLoadingState, normalizeAppDataCollections } from './appData/appDataCollections';
 
-// Enhanced context type with database management and sync capabilities
-export interface EnhancedAppDataContextType extends AppDataContextType {
+// Data collections the provider normalizes from the database, typed by their augmented domain types.
+type AppDataCollectionValues = Pick<
+  AppDataContextType,
+  Extract<AppDataCollectionKey, keyof AppDataContextType>
+>;
+
+// Exact signature of a member shared with AppDataContextType, without copying it.
+type AppDataMember<K extends keyof AppDataContextType> = AppDataContextType[K];
+
+// Enhanced context type with database management and sync capabilities.
+// Every required member is provided by AppDataProvider; optional members are not
+// implemented there yet and consumers must handle their absence.
+export interface EnhancedAppDataContextType extends AppDataCollectionValues {
+  // Core data not modelled as a collection key
+  schoolDetails: SchoolDetails | null;
+
   // Database status
   isDatabaseModeActive: boolean;
   isOnline: boolean;
   appVersion: string;
   deploymentMode: string;
   providerType: string | null;
-  
+
   // Network state (from NetworkStateManager)
   backendAvailable: boolean;
   connectionQuality: 'excellent' | 'good' | 'poor' | 'offline';
   networkState: NetworkState | null;
-  
+
+  // Loading / error
+  loading: AppDataLoadingStates;
+  isLoading: boolean;
+  error: Error | null;
+  initializationError: Error | null;
+  rawInitialData: Record<string, any[]> | null;
+
   // Sync status
   syncStatus: SyncStatus;
-  
+
   // Database operations
   refreshData: () => Promise<void>;
-  backupData: () => Promise<any>;
-  restoreData: (backup: any) => Promise<void>;
-  clearAllData: () => Promise<void>;
-  
-  // Sync operations
-  forceSync: () => Promise<void>;
-  pauseSync: () => void;
-  resumeSync: () => void;
-  cancelSync: () => void;
-  
-  // Sync settings
-  getSyncSettings: () => SyncSettings;
-  updateSyncSettings: (settings: Partial<SyncSettings>) => void;
-  
-  // Collection statistics
   getCollectionStats: () => Promise<Array<{
     name: string;
     count: number;
     status: string;
     health: 'healthy' | 'warning' | 'error';
   }>>;
-  
+  backupData: () => Promise<any>;
+  restoreData: (backup: any) => Promise<void>;
+  clearAllData: () => Promise<void>;
+  getCollectionPage: <T = any>(collectionName: string, options: PaginationOptions) => Promise<PaginationResult<T>>;
+
+  // Sync operations
+  forceSync: () => Promise<void>;
+  pauseSync: () => void;
+  resumeSync: () => void;
+  cancelSync: () => void;
+
+  // Sync settings
+  getSyncSettings: () => SyncSettings;
+  updateSyncSettings: (settings: Partial<SyncSettings>) => void;
+
   // Enhanced data refresh (Task 4.4.1)
   refreshCollection: (collectionName: string) => Promise<void>;
   refreshDataWithProgress: (onProgress?: (progress: number) => void) => Promise<void>;
-  
-  // Pagination (Task 4.4.2)
-  getCollectionPage: <T = any>(collectionName: string, options: PaginationOptions) => Promise<PaginationResult<T>>;
-  
+
   // Memory management (Task 4.4.3)
   cleanupOldData: (daysOld?: number) => Promise<void>;
-  
+
   // Provider capabilities (Task 4.4.4)
   getProviderCapabilities: () => ProviderCapabilities;
-  
+
   // Data mode tracking (Task 4.4.5)
   currentDataMode: DataMode;
   dataSourceDescription: string;
-  
+
   // Data validation (Task 4.4.6)
   validateData: () => Promise<{
     isValid: boolean;
     issues: Array<{ severity: 'error' | 'warning' | 'info'; message: string; collection?: string }>;
   }>;
-  
+
   // Data strategy (Task 4.4.8)
   getDataSourceConfig: () => DataSourceConfig;
   updateDataStrategy: (strategy: DataStrategy) => void;
-  
+
   // Data generation (Task 5)
   generateData: (options?: {
     modules?: string[];
@@ -181,7 +201,7 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
     includeTestData?: boolean;
     clearExisting?: boolean;
   }) => Promise<{ success: boolean; stats?: any; error?: string }>;
-  
+
   seedDatabase: (seedConfig?: {
     dataMode?: 'demo' | 'development' | 'production';
     modules?: string[];
@@ -190,20 +210,10 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
 
   // Sync/conflict surface consumed by settings & feature UIs
   pendingSyncCount: number;
-  conflicts: any[];
-  resolveConflict: (conflictId: any, resolution: any) => Promise<void>;
-  resolveAllConflicts: () => Promise<void>;
-  clearSyncQueue: () => Promise<void>;
-  getQueueStatus: () => any;
-  getSyncHistory: () => Promise<any[]>;
-  offlineCapabilities: any;
+  conflicts?: any[];
+  resolveConflict?: (conflictId: any, resolution: any) => Promise<void>;
+  resolveAllConflicts?: (strategy?: string) => Promise<void>;
   dataSource: string;
-  dataStrategy: any;
-  dataStrategyManager: any;
-
-  // Loading / error passthrough
-  isLoading: boolean;
-  error: string | null;
 
   // Domain arrays not covered by module augmentations
   academic_years?: any[];
@@ -219,52 +229,71 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
   student_clearances?: any[];
   student_clearance_requests?: any[];
 
-  // Domain CRUD operations (entity payloads vary per module; typed loosely
-  // here because the provider wires them from many differently-typed hooks)
-  addDormitory: (item: any) => Promise<any>;
-  updateDormitory: (item: any) => Promise<any>;
-  deleteDormitory: (id: any) => Promise<void>;
-  addStudentCategory: (item: any) => Promise<any>;
-  updateStudentCategory: (item: any) => Promise<any>;
-  deleteStudentCategory: (id: any) => Promise<void>;
-  addTransportRoute: (item: any) => Promise<any>;
-  updateTransportRoute: (item: any) => Promise<any>;
-  deleteTransportRoute: (id: any) => Promise<void>;
-  addStudentTransportAssignment: (item: any) => Promise<any>;
-  updateStudentTransportAssignment: (item: any) => Promise<any>;
-  deleteStudentTransportAssignment: (id: any) => Promise<void>;
-  addStudentPayment: (item: any) => Promise<any>;
-  updateStudentPayment: (item: any) => Promise<any>;
-  deleteStudentPayment: (id: any) => Promise<void>;
-  addStudentOpeningBalance: (item: any) => Promise<any>;
-  updateStudentOpeningBalance: (item: any) => Promise<any>;
-  deleteStudentOpeningBalance: (id: any) => Promise<void>;
-  addStudentMealPlan: (item: any) => Promise<any>;
-  updateStudentMealPlan: (item: any) => Promise<any>;
-  deleteStudentMealPlan: (id: any) => Promise<void>;
-  addMealConsumptionLog: (item: any) => Promise<any>;
-  addWalletTransaction: (item: any) => Promise<any>;
-  addStockTransaction: (item: any) => Promise<any>;
-  addItemCategoryInv: (item: any) => Promise<any>;
-  updateItemCategoryInv: (item: any) => Promise<any>;
-  deleteItemCategoryInv: (id: any) => Promise<void>;
-  addGeneralPayment: (item: any) => Promise<any>;
-  updateGeneralPayment: (item: any) => Promise<any>;
-  deleteGeneralPayment: (id: any) => Promise<void>;
-  addCustomerInvoice: (item: any) => Promise<any>;
-  updateCustomerInvoice: (item: any) => Promise<any>;
-  deleteCustomerInvoice: (id: any) => Promise<void>;
-  addSupplierInvoice: (item: any) => Promise<any>;
-  updateSupplierInvoice: (item: any) => Promise<any>;
-  deleteSupplierInvoice: (id: any) => Promise<void>;
+  // Domain CRUD provided by AppDataProvider, typed exactly as the module augmentation
+  addStudent: AppDataMember<'addStudent'>;
+  updateStudent: AppDataMember<'updateStudent'>;
+  deleteStudent: AppDataMember<'deleteStudent'>;
+  addStaff: AppDataMember<'addStaff'>;
+  updateStaff: AppDataMember<'updateStaff'>;
+  deleteStaff: AppDataMember<'deleteStaff'>;
+  addClass: AppDataMember<'addClass'>;
+  updateClass: AppDataMember<'updateClass'>;
+  deleteClass: AppDataMember<'deleteClass'>;
+  addClassStream: AppDataMember<'addClassStream'>;
+  updateClassStream: AppDataMember<'updateClassStream'>;
+  deleteClassStream: AppDataMember<'deleteClassStream'>;
+  addDepartment: AppDataMember<'addDepartment'>;
+  updateDepartment: AppDataMember<'updateDepartment'>;
+  deleteDepartment: AppDataMember<'deleteDepartment'>;
+  addAcademicYear: AppDataMember<'addAcademicYear'>;
+  updateAcademicYear: AppDataMember<'updateAcademicYear'>;
+  deleteAcademicYear: AppDataMember<'deleteAcademicYear'>;
+  addAcademicYearStructure: AppDataMember<'addAcademicYearStructure'>;
+  updateAcademicYearStructure: AppDataMember<'updateAcademicYearStructure'>;
+  deleteAcademicYearStructure: AppDataMember<'deleteAcademicYearStructure'>;
+  addAcademicPeriodDefinition: AppDataMember<'addAcademicPeriodDefinition'>;
+  updateAcademicPeriodDefinition: AppDataMember<'updateAcademicPeriodDefinition'>;
+  deleteAcademicPeriodDefinition: AppDataMember<'deleteAcademicPeriodDefinition'>;
+  saveStudentAttendance: AppDataMember<'saveStudentAttendance'>;
+  getStudentAttendanceByFilters: AppDataMember<'getStudentAttendanceByFilters'>;
+  addExamSession: AppDataMember<'addExamSession'>;
+  updateExamSession: AppDataMember<'updateExamSession'>;
+  deleteExamSession: AppDataMember<'deleteExamSession'>;
+  addExamPaperSetting: AppDataMember<'addExamPaperSetting'>;
+  updateExamPaperSetting: AppDataMember<'updateExamPaperSetting'>;
+  deleteExamPaperSetting: AppDataMember<'deleteExamPaperSetting'>;
+  saveStudentExamResult: AppDataMember<'saveStudentExamResult'>;
+  getTimetablePeriodDefs: AppDataMember<'getTimetablePeriodDefs'>;
+  getTimetableEntries: AppDataMember<'getTimetableEntries'>;
+  addTimetableEntry: AppDataMember<'addTimetableEntry'>;
+  updateTimetableEntry: AppDataMember<'updateTimetableEntry'>;
+  deleteTimetableEntry: AppDataMember<'deleteTimetableEntry'>;
+  addBank: AppDataMember<'addBank'>;
+  updateBank: AppDataMember<'updateBank'>;
+  deleteBank: AppDataMember<'deleteBank'>;
+  addChartOfAccount: AppDataMember<'addChartOfAccount'>;
+  updateChartOfAccount: AppDataMember<'updateChartOfAccount'>;
+  deleteChartOfAccount: AppDataMember<'deleteChartOfAccount'>;
+  addFeeTemplate: AppDataMember<'addFeeTemplate'>;
+  updateFeeTemplate: AppDataMember<'updateFeeTemplate'>;
+  deleteFeeTemplate: AppDataMember<'deleteFeeTemplate'>;
+  recordStudentPayment: AppDataMember<'recordStudentPayment'>;
   addFeeAdjustment: (item: any) => Promise<any>;
-  updateFeeAdjustment: (item: any) => Promise<any>;
-  deleteFeeAdjustment: (id: any) => Promise<void>;
-  addBookCategory: (item: any) => Promise<any>;
-  updateBookCategory: (item: any) => Promise<any>;
-  deleteBookCategory: (id: any) => Promise<void>;
-  updateFineStatus: (id: any, status: any) => Promise<any>;
-  updateSchoolDetails: (details: any) => Promise<any>;
+  updateFeeAdjustment: (id: string, data: any) => Promise<any>;
+  deleteFeeAdjustment: (id: string) => Promise<void>;
+
+  // System roles provided by AppDataProvider
+  addRole: (role: any) => Promise<any>;
+  updateRole: (id: string, data: Partial<any>) => Promise<any>;
+  deleteRole: (id: string) => Promise<void>;
+
+  // Data strategy hooks consumed by legacy CRUD factories (not wired by the provider yet)
+  dataStrategy?: any;
+  dataStrategyManager?: any;
+
+  // Legacy compatibility
+  refresh: () => Promise<void>;
+  isRxDBModeActive: boolean;
 }
 
 // Create the context with a default undefined value
@@ -279,26 +308,6 @@ export const hasAppDataContextContract = (
     context.loading &&
     typeof context.loading === 'object'
   );
-};
-
-// Simplified provider component that uses UnifiedDatabaseManager
-const AppDataValueProvider: React.FC<{
-  children: ReactNode;
-  coreValue: Partial<AppDataContextType>;
-}> = ({ children, coreValue }) => {
-
-  usePaginationContext();
-  const { validateData } = useValidationContext();
-
-  const value = useMemo(() => ({
-    ...coreValue,
-    validateData
-  }), [
-    coreValue,
-    validateData
-  ]) as AppDataContextType;
-
-  return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
 };
 
 /** Database init budget: longer than the storage worker's open timeout so a slow OPFS open can finish. */
@@ -344,6 +353,11 @@ const deriveStreamLabels = (loadedData: Record<string, any[]>): void => {
 export const LIVE_REFRESH_DEBOUNCE_MS = 30;
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { getCollectionPage } = usePaginationContext();
+  const { validateData } = useValidationContext();
+  const { backupData, restoreData, clearAllData } = useBackupRestoreContext();
+  const { generateData, seedDatabase } = useDataGenerationContext();
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -1474,6 +1488,29 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     throw new Error('timetable_entries collection not available');
   }, [dbManager, loadAllCollections]);
 
+  /**
+   * Applies a partial update and returns the stored document, so provider mutators
+   * keep the `(id, patch) => entity` contract callers rely on.
+   */
+  const updateCollectionDocument = useCallback(async (
+    collectionName: string,
+    id: string,
+    patch: Record<string, any>
+  ): Promise<any> => {
+    const collection = dbManager.getCollection<any>(collectionName);
+    if (!collection?.update) {
+      throw new Error(`${collectionName} collection not available`);
+    }
+
+    const result = await collection.update(id, patch);
+    await loadAllCollections();
+    const updated = result.doc ?? await collection.findById(id);
+    if (!updated) {
+      throw new Error(`Updated ${collectionName} document ${id} not found`);
+    }
+    return updated;
+  }, [dbManager, loadAllCollections]);
+
   // ===== FINANCE CRUD OPERATIONS =====
   
   // Banks
@@ -1489,14 +1526,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateBank = useCallback(async (bankId: string, bankData: any) => {
-    const collection = dbManager.getCollection('banks');
-    if (collection?.update) {
-      const result = await collection.update(bankId, { ...bankData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Banks collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('banks', bankId, { ...bankData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteBank = useCallback(async (bankId: string) => {
     const collection = dbManager.getCollection('banks');
@@ -1578,6 +1609,31 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     throw new Error('Student payments collection not available');
   }, [dbManager, loadAllCollections]);
 
+  // Fee Adjustments
+  const addFeeAdjustment = useCallback(async (adjustmentData: any) => {
+    const collection = dbManager.getCollection<any>('fee_adjustments');
+    if (!collection) {
+      throw new Error('Fee adjustments collection not available');
+    }
+    const newAdjustment = { ...adjustmentData, id: adjustmentData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newAdjustment);
+    await loadAllCollections();
+    return newAdjustment;
+  }, [dbManager, loadAllCollections]);
+
+  const updateFeeAdjustment = useCallback(async (adjustmentId: string, adjustmentData: any) => {
+    return updateCollectionDocument('fee_adjustments', adjustmentId, { ...adjustmentData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteFeeAdjustment = useCallback(async (adjustmentId: string) => {
+    const collection = dbManager.getCollection('fee_adjustments');
+    if (!collection?.remove) {
+      throw new Error('Fee adjustments collection not available');
+    }
+    await collection.remove(adjustmentId);
+    await loadAllCollections();
+  }, [dbManager, loadAllCollections]);
+
   // ===== ADMINISTRATION CRUD OPERATIONS =====
 
   // Students
@@ -1593,14 +1649,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateStudent = useCallback(async (studentId: string, studentData: any) => {
-    const collection = dbManager.getCollection('students');
-    if (collection?.update) {
-      const result = await collection.update(studentId, { ...studentData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Students collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('students', studentId, { ...studentData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteStudent = useCallback(async (studentId: string) => {
     const collection = dbManager.getCollection('students');
@@ -1623,14 +1673,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateStaff = useCallback(async (staffId: string, staffData: any) => {
-    const collection = dbManager.getCollection('staff');
-    if (collection?.update) {
-      const result = await collection.update(staffId, { ...staffData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Staff collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('staff', staffId, { ...staffData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteStaff = useCallback(async (staffId: string) => {
     const collection = dbManager.getCollection('staff');
@@ -1653,14 +1697,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateClass = useCallback(async (classId: string, classData: any) => {
-    const collection = dbManager.getCollection('classes');
-    if (collection?.update) {
-      const result = await collection.update(classId, { ...classData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Classes collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('classes', classId, { ...classData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteClass = useCallback(async (classId: string) => {
     const collection = dbManager.getCollection('classes');
@@ -1683,14 +1721,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateClassStream = useCallback(async (streamId: string, streamData: any) => {
-    const collection = dbManager.getCollection('class_streams');
-    if (collection?.update) {
-      const result = await collection.update(streamId, { ...streamData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Class streams collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('class_streams', streamId, { ...streamData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteClassStream = useCallback(async (streamId: string) => {
     const collection = dbManager.getCollection('class_streams');
@@ -1713,14 +1745,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateDepartment = useCallback(async (deptId: string, deptData: any) => {
-    const collection = dbManager.getCollection('departments');
-    if (collection?.update) {
-      const result = await collection.update(deptId, { ...deptData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Departments collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('departments', deptId, { ...deptData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteDepartment = useCallback(async (deptId: string) => {
     const collection = dbManager.getCollection('departments');
@@ -1728,6 +1754,32 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       await collection.remove(deptId);
       await loadAllCollections();
     }
+  }, [dbManager, loadAllCollections]);
+
+  // Roles
+  const addRole = useCallback(async (roleData: any) => {
+    const collection = dbManager.getCollection<any>('roles');
+    if (!collection) {
+      throw new Error('Roles collection not available');
+    }
+    const newRole = { ...roleData, id: roleData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newRole);
+    await loadAllCollections();
+    return newRole;
+  }, [dbManager, loadAllCollections]);
+
+  const updateRole = useCallback(async (roleId: string, roleData: any) => {
+    return updateCollectionDocument('roles', roleId, { ...roleData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteRole = useCallback(async (roleId: string) => {
+    const collection = dbManager.getCollection<any>('roles');
+    if (collection?.remove) {
+      await collection.remove(roleId);
+      await loadAllCollections();
+      return;
+    }
+    throw new Error('Roles collection not available');
   }, [dbManager, loadAllCollections]);
 
   // Academic Years
@@ -1760,6 +1812,56 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dbManager, loadAllCollections]);
 
+  // Academic Year Structures
+  const addAcademicYearStructure = useCallback(async (structureData: any) => {
+    const collection = dbManager.getCollection<any>('academic_year_structures');
+    if (!collection) {
+      throw new Error('Academic year structures collection not available');
+    }
+    const newStructure = { ...structureData, id: structureData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newStructure);
+    await loadAllCollections();
+    return newStructure;
+  }, [dbManager, loadAllCollections]);
+
+  const updateAcademicYearStructure = useCallback(async (structureId: string, structureData: any) => {
+    return updateCollectionDocument('academic_year_structures', structureId, { ...structureData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteAcademicYearStructure = useCallback(async (structureId: string) => {
+    const collection = dbManager.getCollection('academic_year_structures');
+    if (!collection?.remove) {
+      throw new Error('Academic year structures collection not available');
+    }
+    await collection.remove(structureId);
+    await loadAllCollections();
+  }, [dbManager, loadAllCollections]);
+
+  // Academic Period Definitions
+  const addAcademicPeriodDefinition = useCallback(async (definitionData: any) => {
+    const collection = dbManager.getCollection<any>('academic_period_definitions');
+    if (!collection) {
+      throw new Error('Academic period definitions collection not available');
+    }
+    const newDefinition = { ...definitionData, id: definitionData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newDefinition);
+    await loadAllCollections();
+    return newDefinition;
+  }, [dbManager, loadAllCollections]);
+
+  const updateAcademicPeriodDefinition = useCallback(async (definitionId: string, definitionData: any) => {
+    return updateCollectionDocument('academic_period_definitions', definitionId, { ...definitionData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteAcademicPeriodDefinition = useCallback(async (definitionId: string) => {
+    const collection = dbManager.getCollection('academic_period_definitions');
+    if (!collection?.remove) {
+      throw new Error('Academic period definitions collection not available');
+    }
+    await collection.remove(definitionId);
+    await loadAllCollections();
+  }, [dbManager, loadAllCollections]);
+
   // Listen for data changed events from decoupled providers
   useEffect(() => {
     const handleDataChanged = () => {
@@ -1773,7 +1875,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [loadAllCollections]);
 
   // Create context value
-  const contextValue = useMemo(() => {
+  const contextValue = useMemo((): EnhancedAppDataContextType => {
     const normalizedData = normalizeAppDataCollections(data);
     const loadingState = createAppDataLoadingState(isLoading);
 
@@ -1782,9 +1884,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       ...normalizedData,
       
       // Status flags
-      isInitialized,
       loading: loadingState,
       error,
+      initializationError: error,
+      isLoading,
+      rawInitialData: data,
       isDatabaseModeActive: isInitialized && !isLoading && !error,
       isOnline,
       appVersion: '1.0.0',
@@ -1798,10 +1902,15 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       // Sync status
       syncStatus,
+      pendingSyncCount: syncStatus.pendingOperations,
       
       // Database operations
       refreshData,
       getCollectionStats,
+      backupData,
+      restoreData,
+      clearAllData,
+      getCollectionPage,
       
       // Sync operations
       forceSync,
@@ -1828,14 +1937,18 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Data mode tracking (Task 4.4.5)
       currentDataMode,
       dataSourceDescription,
+      dataSource: dbManager.getProviderType() || 'unknown',
       
       // Data validation (Task 4.4.6)
+      validateData,
       
       // Data strategy (Task 4.4.8)
       getDataSourceConfig,
       updateDataStrategy,
       
       // Data generation (Task 5)
+      generateData,
+      seedDatabase,
 
       saveStudentAttendance,
       getStudentAttendanceByFilters,
@@ -1873,15 +1986,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       addClassStream, updateClassStream, deleteClassStream,
       // Departments
       addDepartment, updateDepartment, deleteDepartment,
+      // Roles
+      addRole, updateRole, deleteRole,
       // Academic Years
       addAcademicYear, updateAcademicYear, deleteAcademicYear,
+      // Academic structures and period definitions
+      addAcademicYearStructure, updateAcademicYearStructure, deleteAcademicYearStructure,
+      addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition,
+      // Fee adjustments
+      addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment,
       
       // Legacy compatibility
       refresh: refreshData,
       isRxDBModeActive: isInitialized,
       schoolDetails: normalizedData.schoolDetails?.[0] || null,
       users: normalizedData.users || [],
-    } as any as EnhancedAppDataContextType;
+    };
   }, [
     data,
     isInitialized,
@@ -1893,6 +2013,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     syncStatus,
     refreshData,
     getCollectionStats,
+    backupData,
+    restoreData,
+    clearAllData,
+    getCollectionPage,
+    validateData,
+    generateData,
+    seedDatabase,
     forceSync,
     pauseSync,
     resumeSync,
@@ -1932,7 +2059,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     addClass, updateClass, deleteClass,
     addClassStream, updateClassStream, deleteClassStream,
     addDepartment, updateDepartment, deleteDepartment,
-    addAcademicYear, updateAcademicYear, deleteAcademicYear
+    addRole, updateRole, deleteRole,
+    addAcademicYear, updateAcademicYear, deleteAcademicYear,
+    addAcademicYearStructure, updateAcademicYearStructure, deleteAcademicYearStructure,
+    addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition,
+    addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment
   ]); // Removed toast from dependencies to prevent re-render loop
 
   // Sync shared entities to SharedDataStore for non-React access
@@ -2004,7 +2135,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }
 
   return (
-    <AppDataValueProvider coreValue={contextValue}>
+    <AppDataContext.Provider value={contextValue}>
       <SystemDataProvider>
         {moduleRegistry.isEnabled('administration') && (
           <AdministrationDataProvider>
@@ -2049,7 +2180,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           📡 Offline Mode - Changes will sync when connection is restored
         </div>
       )}
-    </AppDataValueProvider>
+    </AppDataContext.Provider>
   );
 };
 

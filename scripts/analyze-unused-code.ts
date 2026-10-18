@@ -17,7 +17,7 @@
 import { glob } from 'glob';
 import { readFile, access } from 'fs/promises';
 import { constants } from 'fs';
-import { resolve, dirname, join } from 'path';
+import { dirname, join } from 'path';
 
 interface AnalysisResult {
   file: string;
@@ -48,12 +48,6 @@ const EXCLUDED_PATTERNS = [
   '**/node_modules/**',
   '**/dist/**',
   '**/build/**',
-];
-
-// Common React hooks and functions that might not be directly referenced
-const COMMON_PATTERNS_TO_IGNORE = [
-  /import\s+['"]\.\/.*['"];/, // Relative imports within same directory
-  /import\s+['"]@\/.*['"];/, // Alias imports
 ];
 
 async function analyzeCodebase(): Promise<AnalysisResult[]> {
@@ -240,7 +234,7 @@ async function checkUnusedImports(
 }
 
 async function checkIncorrectImports(
-  lines: string[],
+  _lines: string[],
   imports: ImportInfo[],
   filePath: string
 ): Promise<AnalysisResult[]> {

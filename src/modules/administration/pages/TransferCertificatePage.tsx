@@ -4,18 +4,58 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
+import { StudentStatus } from '@/core/types';
+import type { Student } from '@/core/types';
 import { TransferCertificateStudent } from '../data/types';
+
+/** Learner documents may carry legacy denormalised names; read them when present. */
+interface StudentWithLegacyNames extends Student {
+  student_id?: string | null;
+  class_name?: string | null;
+  section?: string | null;
+  roll_number?: string | null;
+  father_name?: string | null;
+  mother_name?: string | null;
+}
+
+const toCertificateStudent = (student: Student): TransferCertificateStudent => {
+  const legacy = student as StudentWithLegacyNames;
+  const guardian = student.primary_guardian;
+  const relationship = guardian?.relationship_type?.toLowerCase();
+  const name = student.display_name || [student.first_name, student.middle_name, student.last_name].filter(Boolean).join(' ');
+
+  return {
+    id: String(student.id),
+    student_id: legacy.student_id || student.admission_no || String(student.id),
+    name,
+    class_name: student.current_class_name || legacy.class_name || '',
+    section: student.current_class_stream_name || legacy.section || '',
+    roll_number: legacy.roll_number || '',
+    admission_date: student.admission_date || '',
+    father_name: legacy.father_name || (relationship === 'father' ? guardian?.name ?? '' : ''),
+    mother_name: legacy.mother_name || (relationship === 'mother' ? guardian?.name ?? '' : ''),
+    date_of_birth: student.date_of_birth || '',
+    address: student.address || guardian?.address || '',
+  };
+};
 
 export const TransferCertificateContent: React.FC = () => {
 
-  const { transferCertificateStudents, loading } = useAppData();
+  const { students, loading } = useAppData();
 
   const [selectedClass, setSelectedClass] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<TransferCertificateStudent | null>(null);
 
-  const mockStudents: TransferCertificateStudent[] = useMemo(() => {
-    let filtered = transferCertificateStudents || [];
+  const certificateStudents = useMemo<TransferCertificateStudent[]>(
+    () => (students || [])
+      .filter(student => student.status === StudentStatus.TRANSFERRED)
+      .map(toCertificateStudent),
+    [students]
+  );
+
+  const filteredStudents: TransferCertificateStudent[] = useMemo(() => {
+    let filtered = certificateStudents;
 
     if (selectedClass) {
       filtered = filtered.filter(s => s.class_name === selectedClass);
@@ -29,9 +69,12 @@ export const TransferCertificateContent: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedClass, searchTerm]);
+  }, [certificateStudents, selectedClass, searchTerm]);
 
-  const classes = ['Grade 10', 'Grade 9', 'Grade 8', 'Grade 7'];
+  const classes = useMemo(
+    () => [...new Set(certificateStudents.map(s => s.class_name).filter(Boolean))],
+    [certificateStudents]
+  );
 
   const generateCertificate = (student: TransferCertificateStudent) => {
     setSelectedStudent(student);
@@ -41,7 +84,7 @@ export const TransferCertificateContent: React.FC = () => {
     window.print();
   };
 
-  if (loading?.all && mockStudents.length === 0) {
+  if (loading.all && filteredStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -100,7 +143,7 @@ export const TransferCertificateContent: React.FC = () => {
 
           {/* Student List */}
           <div className="space-y-3">
-            {mockStudents.map(student => (
+            {filteredStudents.map(student => (
               <div
                 key={student.id}
                 className="p-4 border border-surface-border rounded-lg hover:bg-surface-muted cursor-pointer"

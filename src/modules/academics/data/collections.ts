@@ -29,7 +29,9 @@ export const academicsCollections = {
   student_exam_results: {
     schema: schemas.studentExamResultSchema,
   },
-  // Note: student_paper_marks are nested within student_exam_results.
+  student_paper_marks: {
+    schema: schemas.studentPaperMarksSchema,
+  },
   class_subject_allocations: {
     schema: schemas.classSubjectAllocationSchema,
   },

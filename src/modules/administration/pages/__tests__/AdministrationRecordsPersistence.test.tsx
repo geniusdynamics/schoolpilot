@@ -116,6 +116,36 @@ describe('administration records persist in the database', () => {
     expect(await screen.findByText('Water Board')).toBeInTheDocument();
   });
 
+  it('Partners: editing a partner persists the change with update(id, patch)', async () => {
+    const user = userEvent.setup();
+    renderPage(<PartnersPage />);
+    expect(await screen.findByText('Rotary Club')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /edit/i }));
+    const dialog = await screen.findByRole('dialog');
+    const nameInput = within(dialog).getAllByRole('textbox')[0];
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Rotary District');
+    await user.click(within(dialog).getAllByRole('button').at(-1)!);
+
+    await waitFor(() => expect(store.partners[0]).toMatchObject({ id: 'p-1', name: 'Rotary District' }));
+  });
+
+  it('Customers: editing a customer persists the change with update(id, patch)', async () => {
+    const user = userEvent.setup();
+    renderPage(<CustomersPage />);
+    expect(await screen.findByText('Canteen Vendor')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /edit/i }));
+    const dialog = await screen.findByRole('dialog');
+    const nameInput = within(dialog).getAllByRole('textbox')[0];
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Canteen Services');
+    await user.click(within(dialog).getAllByRole('button').at(-1)!);
+
+    await waitFor(() => expect(store.customers[0]).toMatchObject({ id: 'cu-1', name: 'Canteen Services' }));
+  });
+
   it('Customers: deleting a customer removes it from the database', async () => {
     const user = userEvent.setup();
     const { unmount } = renderPage(<CustomersPage />);
@@ -179,5 +209,23 @@ describe('administration records persist in the database', () => {
     unmount();
     renderPage(<StudentHealthRecordsPage />);
     expect(await screen.findByText('Record Exists')).toBeInTheDocument();
+  });
+
+  it('Student health records: editing a record persists the change with update(id, patch)', async () => {
+    store.student_health_records = [
+      { id: 'shr-1', student_id: 'S001', blood_type: 'O+', created_at: stamp, updated_at: stamp },
+    ];
+    const user = userEvent.setup();
+    renderPage(<StudentHealthRecordsPage />);
+    expect(await screen.findByText('Record Exists')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /manage health record/i }));
+    const dialog = await screen.findByRole('dialog');
+    const bloodTypeInput = within(dialog).getAllByRole('textbox')[0];
+    await user.clear(bloodTypeInput);
+    await user.type(bloodTypeInput, 'A-');
+    await user.click(within(dialog).getAllByRole('button').at(-1)!);
+
+    await waitFor(() => expect(store.student_health_records[0]).toMatchObject({ id: 'shr-1', blood_type: 'A-' }));
   });
 });

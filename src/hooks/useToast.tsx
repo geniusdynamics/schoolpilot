@@ -74,9 +74,19 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     return `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
   const showToast = useCallback((options: ToastOptions): string => {
     const id = generateId();
     const { type, ...rest } = options;
+    // An empty, whitespace-only or non-string message (a legacy string call) would
+    // render a blank toast; trim it and skip the toast instead (SO-28).
+    const message = typeof rest.message === 'string' ? rest.message.trim() : '';
+    if (!message) {
+      return id;
+    }
     const newToast: ToastProps = {
       id,
       pauseOnHover: defaultPauseOnHover,
@@ -85,6 +95,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
       theme,
       position,
       ...rest,
+      message,
       variant: rest.variant ?? type,
       onDismiss: (toastId: string) => dismissToast(toastId),
     };
@@ -96,11 +107,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     });
 
     return id;
-  }, [generateId, maxToasts, theme, position, defaultPauseOnHover, defaultSwipeToDismiss, defaultSoundEnabled]);
-
-  const dismissToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [dismissToast, generateId, maxToasts, theme, position, defaultPauseOnHover, defaultSwipeToDismiss, defaultSoundEnabled]);
 
   const clearAllToasts = useCallback(() => {
     setToasts([]);

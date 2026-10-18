@@ -23,6 +23,7 @@ import AdaptiveTabs, { TabConfig, ActionConfig } from '@/components/ui/AdaptiveT
 import { usePageActions } from '@/hooks/useSimpleActions';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { useAppData } from '@/contexts/AppDataContext';
+import { useSync } from '@/contexts/SyncContext';
 
 // Import existing sub-components (reusable)
 import SyncManagementPanel from '@/components/SyncManagementPanel';
@@ -51,10 +52,9 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     conflicts = [],
     resolveConflict: resolveConflictFn,
     resolveAllConflicts: resolveAllConflictsFn,
-    getQueueStatus,
-    forceSync,
-    clearSyncQueue
+    forceSync
   } = useAppData() || {};
+  const { getQueueStatus, clearSyncQueue } = useSync();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -247,7 +247,6 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                   variant="danger"
                   onClick={() => {
                     // This would switch to conflicts tab in the new system
-                    const tabsComponent = document.querySelector('[role="tablist"]');
                     const conflictsTab = document.querySelector('[data-tab-id="conflicts"]') as HTMLElement;
                     conflictsTab?.click();
                   }}

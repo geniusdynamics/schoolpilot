@@ -145,7 +145,7 @@ export const MessageCampaignsContent: React.FC = () => {
     };
 
     if (editingCampaign) {
-      await updateCampaign({ ...editingCampaign, ...payload, created_by: editingCampaign.created_by }); // Keep original created_by on update
+      await updateCampaign(String(editingCampaign.id), { ...payload, created_by: editingCampaign.created_by }); // Keep original created_by on update
     } else {
       await addCampaign(payload);
     }

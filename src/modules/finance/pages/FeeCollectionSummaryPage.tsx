@@ -10,7 +10,6 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { SchoolPeriod, Class as SchoolClass } from '@/core/types'; 
 import { InvoiceStatus } from '@/core/types';
 import { useToast } from '@/hooks/useToast';
 
@@ -33,13 +32,16 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     loading 
   } = useAppData();
 
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    (schoolPeriods || []).find(sp => sp.is_active)?.id || (schoolPeriods || [])[0]?.id
-  );
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(() => {
+    const period = (schoolPeriods || []).find(sp => sp.is_active) || (schoolPeriods || [])[0];
+    return period?.id != null ? String(period.id) : undefined;
+  });
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<FeeCollectionSummaryRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const toast = useToast();
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedSchoolPeriodId) {
@@ -50,9 +52,9 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     setIsGenerating(true);
     
     const invoicesForPeriod = (studentInvoices || []).filter(inv =>
-      inv.school_period_id === selectedSchoolPeriodId &&
+      String(inv.school_period_id) === selectedSchoolPeriodId &&
       inv.status !== InvoiceStatus.VOIDED &&
-      (!selectedClassId || (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id && (classStreams || []).find(cs => cs.id === (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id)?.class_id === selectedClassId)
+      (!selectedClassId || (students || []).find(s => String(s.id) === String(inv.student_id))?.current_class_stream_id && String((classStreams || []).find(cs => String(cs.id) === String((students || []).find(s => String(s.id) === String(inv.student_id))?.current_class_stream_id))?.class_id) === selectedClassId)
     );
 
     const summaryMap = new Map<string, { expected: number; paid: number }>();
@@ -82,7 +84,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     setReportData(summaryData);
     setIsGenerating(false);
    
-  }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams, t]);
+  }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams, t, toast]);
   
 
   useEffect(() => {
@@ -97,7 +99,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'expectedAmount', 
@@ -133,7 +135,6 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     window.print();
   };
 
-  const toast = useToast();
   const handleExportCSV = () => {
     if (reportData.length === 0) {
       toast.showError(t('common:noDataToExport'));
@@ -179,11 +180,11 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
                 {t('feeCollection.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label={t('feeCollection.schoolPeriod')} value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
+                <Select label={t('feeCollection.schoolPeriod')} value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">{t('feeCollection.optionAllPeriods')}</option>
                     {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
-                <Select label={t('feeCollection.classOptional')} value={selectedClassId || ''} onChange={e => setSelectedClassId(Number(e.target.value) || undefined)}>
+                <Select label={t('feeCollection.classOptional')} value={selectedClassId || ''} onChange={e => setSelectedClassId(e.target.value || undefined)}>
                     <option value="">{t('feeCollection.optionAllClasses')}</option>
                     {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>

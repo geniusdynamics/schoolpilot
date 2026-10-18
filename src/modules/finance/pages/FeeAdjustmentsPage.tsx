@@ -42,7 +42,10 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
   };
   const [formData, setFormData] = useState<FeeAdjustmentFormData>(initialFormData);
 
-  const activeStudents = useMemo(() => students.filter(s => s.status === StudentStatus.ACTIVE), [students]);
+  const activeStudents = useMemo(
+    () => (appData.students || []).filter(s => s.status === StudentStatus.ACTIVE),
+    [appData.students]
+  );
 
   const openModal = (adjustment?: FeeAdjustment) => {
     setEditingAdjustment(adjustment || null);
@@ -79,21 +82,21 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
   
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || formData.amount === undefined || !formData.adjustment_type) {
-      showToast("Student, School Period, Adjustment Type, and Amount are required.", "error");
+      showToast({ message: "Student, School Period, Adjustment Type, and Amount are required.", variant: "error" });
       return;
     }
     
     try {
       if (editingAdjustment) {
         await updateFeeAdjustment(editingAdjustment.id, formData);
-        showToast("Fee adjustment updated successfully", "success");
+        showToast({ message: "Fee adjustment updated successfully", variant: "success" });
       } else {
         await addFeeAdjustment(formData);
-        showToast("Fee adjustment added successfully", "success");
+        showToast({ message: "Fee adjustment added successfully", variant: "success" });
       }
       closeModal();
-    } catch (error) {
-      showToast("Failed to save fee adjustment", "error");
+    } catch {
+      showToast({ message: "Failed to save fee adjustment", variant: "error" });
     }
   };
 
@@ -102,9 +105,9 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee adjustment?' }))) {
       try {
         await deleteFeeAdjustment(id);
-        showToast("Fee adjustment deleted successfully", "success");
-      } catch (error) {
-        showToast("Failed to delete fee adjustment", "error");
+        showToast({ message: "Fee adjustment deleted successfully", variant: "success" });
+      } catch {
+        showToast({ message: "Failed to delete fee adjustment", variant: "error" });
       }
     }
   };
@@ -116,7 +119,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'school_period_name', 
@@ -124,7 +127,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-primary-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'adjustment_type', 
@@ -132,7 +135,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-purple-600 font-medium">{value}</span>
+      render: (value) => <span className="text-purple-600 font-medium">{value}</span>
     },
     { 
       key: 'amount', 
@@ -148,7 +151,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="text-surface-foreground">{value}</span>
+      render: (value) => <span className="text-surface-foreground">{value}</span>
     },
     { 
       key: 'applied_invoice_id', 
@@ -156,7 +159,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="font-mono text-sm">{value || 'N/A'}</span>
+      render: (value) => <span className="font-mono text-sm">{value || 'N/A'}</span>
     },
     {
       key: 'id',

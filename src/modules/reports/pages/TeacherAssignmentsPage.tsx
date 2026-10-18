@@ -14,7 +14,10 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
   const { t } = useTranslation('reports');
 
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>((academicYears || [])[0]?.id);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<string | undefined>(() => {
+    const year = (academicYears || [])[0];
+    return year?.id != null ? String(year.id) : undefined;
+  });
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<TeacherSubjectAssignment[]>([]);
@@ -30,7 +33,7 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
       // This relies on teacherSubjectAssignments already having academic_year_name denormalized,
       // or academic_year_id if we had it on TeacherSubjectAssignment type directly or via allocation.
       // For now, we assume academic_year_name is present.
-      const ayName = (academicYears || []).find(ay => ay.id === selectedAcademicYearId)?.name;
+      const ayName = (academicYears || []).find(ay => String(ay.id) === selectedAcademicYearId)?.name;
       if (ayName) {
         filteredAssignments = filteredAssignments.filter(a => a.academic_year_name === ayName);
       }
@@ -64,7 +67,7 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
                 {t('teacherAssignmentsPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}>
+                <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(e.target.value || undefined)}>
                     <option value="">{t('teacherAssignmentsPage.allYears')}</option>
                     {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
                 </Select>
