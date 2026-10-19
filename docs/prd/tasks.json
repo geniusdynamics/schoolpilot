@@ -1954,10 +1954,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "done",
       "commit": null,
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-19"
     },
     {
       "id": "P1-A03",
