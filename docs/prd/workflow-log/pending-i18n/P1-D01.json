@@ -1,0 +1,16 @@
+{
+  "task": "P1-D01",
+  "note": "New EntityPicker strings used with inline English defaults. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw.",
+  "en": {
+    "common": {
+      "entityPicker": {
+        "placeholder": "Select an option...",
+        "loading": "Loading options...",
+        "error": "Could not load options.",
+        "noOptions": "No options available",
+        "clear": "Clear selection",
+        "archived": "(archived) {{label}}"
+      }
+    }
+  }
+}
