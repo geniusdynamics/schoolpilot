@@ -2026,6 +2026,32 @@
       "completed_at": "2026-10-19"
     },
     {
+      "id": "P1-A03a",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "A",
+      "title": "Attendance and pastoral entity schemas (spec 02 §9) to unblock the AttendanceService",
+      "size": "M",
+      "depends_on": [
+        "P1-A03"
+      ],
+      "files": [
+        "src/domain/schema/attendance.ts",
+        "src/domain/schema/index.ts",
+        "src/data/adapters/sqlite/__tests__/contract.test.ts"
+      ],
+      "acceptance": [
+        "Attendance and pastoral entities modelled from spec 02 §9; canonical DDL applies them"
+      ],
+      "test": "Schema round-trip tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "notes": "Opened at P1-W3 because P1-B04 must deliver an AttendanceService and spec 02 §9 (attendance_session, attendance_mark, leave_out, conduct_incident, health_visit) was deferred from P1-A03. Owns the entity-count assertion in A04 adapter contract test (currently 63) and the A03 registry."
+    },
+    {
       "id": "P1-A04",
       "phase": "P1",
       "wave": "P1-W3",
@@ -2127,10 +2153,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "c50a9ca",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-19"
     },
     {
       "id": "P1-B03",
