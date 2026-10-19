@@ -2048,10 +2048,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "4f34048",
       "notes": "Amended at P1-W1 from DR-01: the converter/schema-builder files are in scope (root required bug, composite unique/FK constraints).",
-      "completed_at": null
+      "completed_at": "2026-10-19"
     },
     {
       "id": "P1-A05",
