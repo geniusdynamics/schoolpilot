@@ -263,7 +263,7 @@ test.describe('GP-1-lite golden path', () => {
       await expect(page.getByRole('heading', { name: 'Invoice Generation' })).toBeVisible();
       const periodSelect = page.locator('main select').first();
       await selectByText(periodSelect, TERM_LABEL);
-      await page.getByRole('button', { name: 'Generate', exact: true }).click();
+      await page.getByRole('button', { name: /^Generate( Invoices)?$/ }).click();
       await expect(page.getByText(/Invoices Created|New invoices/)).toBeVisible({ timeout: 60_000 });
 
       await expect
