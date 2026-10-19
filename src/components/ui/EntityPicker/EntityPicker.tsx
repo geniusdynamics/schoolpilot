@@ -148,7 +148,7 @@ export function EntityPicker<Row, Id extends string = string>({
     activeIndex >= 0 && activeIndex < visibleOptions.length ? visibleOptions[activeIndex] : undefined;
 
   const describedBy =
-    [ariaDescribedBy, helperText ? helperId : undefined, error ? fieldErrorId : undefined]
+    [ariaDescribedBy, helperText && !error ? helperId : undefined, error ? fieldErrorId : undefined]
       .filter(Boolean)
       .join(' ') || undefined;
 

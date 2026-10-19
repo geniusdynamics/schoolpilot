@@ -7,7 +7,8 @@ This is the canonical guide for form work in SchoolPilot. For tables see
 
 | Need | Use |
 | --- | --- |
-| Create/edit dialog for an entity | `EntityForm` (`@/components/ui/forms`) |
+| Create/edit form for a canonical entity | `SchemaEntityForm` (`@/components/ui/forms`), validated with the entity's zod schema |
+| Legacy module dialogs not yet migrated (P1-E) | `EntityForm` (`@/components/ui/forms`) |
 | Schema validation of a whole entity (one-shot) | `useValidation` (`@/hooks/useValidation`) |
 | Realtime per-field validation with debounce | `useFormValidation` (`@/hooks/useValidation`, re-exported at old path) |
 | Destructive-action confirmation | `useConfirm()` from `@/components/ui/ConfirmDialog` |
@@ -63,7 +64,8 @@ select) or the typed `options` prop (custom listbox with search/multi-select).
 
 ## EntityForm
 
-Declarative modal form — the default for create/edit flows:
+Declarative modal form — retained for module dialogs that have not yet migrated in P1-E.
+Canonical entities use `SchemaEntityForm` instead; see `src/components/ui/forms/README.md`.
 
 ```tsx
 <EntityForm
@@ -128,7 +130,7 @@ fallback for non-field errors (network, permissions).
 
 ## Rules
 
-1. New forms go through `EntityForm` unless there is a documented reason not to.
+1. New forms for canonical entities go through `SchemaEntityForm` with the exact zod schema the repository uses; the legacy `EntityForm` is only for module dialogs not yet migrated in P1-E.
 2. No new `window.confirm`/`alert`/`prompt` anywhere.
 3. Validation messages belong next to fields, not in toasts, when tied to a
    specific input.
