@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-18 — W3 merged (#18, 7f69acc), W4 merged (#19, 3d2e16a). W5 complete on prd/P0-W5 (PR #21, draft): Z01 96c7f0f, G12 836e6d9, G09 5d1ab4 — missingNames 0, ratchet 2481, GP-1-lite green, all pending i18n merged. Wave log: [workflow-log/P0-W5-2026-10-18.md](./workflow-log/P0-W5-2026-10-18.md). Next: wave gate, merge #21, then the P0 phase exit (probe + full suite + build + baseline)._
+_Last update: 2026-10-19 — P0 waves merged (#18 W3, #19 W4, #21 W5); P0 phase exit deferred (nine unrouted pages, C11/C13). **P1-W1 complete on `prd/P1-W1` (PR #23)**: DR-01 zod v4 `106ea8c`, branded ids + `no-numeric-id` rule `312c34e`, DR-04 live-query cache `fe3ae74`; wave gate PASSED. Next: P1-W2 (P1-A03 entity schemas with zod@3.25.76, P1-D01 EntityPicker)._
 
 | Task | State | Where |
 | --- | --- | --- |

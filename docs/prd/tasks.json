@@ -1926,10 +1926,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "106ea8c",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-19"
     },
     {
       "id": "P1-A02",
@@ -1954,9 +1954,47 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
+      "status": "done",
+      "commit": "312c34e",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-A02a",
+      "phase": "P1",
+      "wave": "P1-W2",
+      "lane": "A",
+      "title": "Burn down the 44 sites `schoolpilot/no-numeric-id` flags so the rule can gate the whole tree",
+      "size": "S",
+      "depends_on": [
+        "P1-A02"
+      ],
+      "files": [
+        "src/contexts/AppDataContext.tsx",
+        "src/modules/administration/data/useAdministrationData.ts",
+        "src/modules/finance/hooks/useFeeCollectionSummary.ts",
+        "src/modules/administration/pages/AddStudentPage.tsx",
+        "src/hooks/useModularMockData.ts",
+        "src/modules/academics/data/useAcademicData.ts",
+        "src/modules/admissions/data/useAdmissionsData.ts",
+        "src/modules/settings/pages/SettingsUsersPage.tsx",
+        "src/services/database/__tests__/demoDataSeedIntegrity.test.ts",
+        "remaining files reported by `npx eslint src --rule 'schoolpilot/no-numeric-id: error'`"
+      ],
+      "acceptance": [
+        "`npx eslint src` reports 0 `schoolpilot/no-numeric-id` errors",
+        "No behaviour change; ids stay strings end to end"
+      ],
+      "test": "Rule run on src",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
       "status": "todo",
       "commit": null,
-      "notes": "",
+      "notes": "Opened during P1-W1 from the P1-A02 review: the rule is clean on changed files, but 44 pre-existing coercions (21 in AppDataContext) keep `pnpm lint` red and prevent a CI-wide gate.",
       "completed_at": null
     },
     {
@@ -1970,7 +2008,9 @@
         "P1-A01"
       ],
       "files": [
-        "src/domain/schema/*.ts"
+        "src/domain/schema/*.ts",
+        "package.json",
+        "pnpm-lock.yaml"
       ],
       "acceptance": [
         "Schemas match spec 02; generated TS types"
@@ -1979,10 +2019,10 @@
       "reqs": [],
       "findings": [],
       "spec": "",
-      "deps_install": false,
+      "deps_install": true,
       "status": "todo",
       "commit": null,
-      "notes": "",
+      "notes": "Amended at P1-W1 from DR-01: adds zod@3.25.76 as a direct dependency (deps_install true, lockfile in scope).",
       "completed_at": null
     },
     {
@@ -1996,7 +2036,9 @@
         "P1-A03"
       ],
       "files": [
-        "src/data/adapters/sqlite/*"
+        "src/data/adapters/sqlite/*",
+        "src/services/database/SchemaConverter.ts",
+        "src/utils/databaseAgnosticSchema.ts"
       ],
       "acceptance": [
         "Same adapter code runs in browser and node"
@@ -2008,7 +2050,7 @@
       "deps_install": false,
       "status": "todo",
       "commit": null,
-      "notes": "",
+      "notes": "Amended at P1-W1 from DR-01: the converter/schema-builder files are in scope (root required bug, composite unique/FK constraints).",
       "completed_at": null
     },
     {
@@ -2058,10 +2100,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "fe3ae74",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-19"
     },
     {
       "id": "P1-B02",
@@ -2539,7 +2581,8 @@
         "src/contexts/AppDataContext.tsx",
         "src/hooks/useModularMockData.ts",
         "src/modules/*/data/mockData.ts",
-        "fixtures/**"
+        "fixtures/**",
+        "src/services/database/collections.ts"
       ],
       "acceptance": [
         "Demo uses real code paths"
@@ -2551,7 +2594,7 @@
       "deps_install": false,
       "status": "todo",
       "commit": null,
-      "notes": "",
+      "notes": "Amended at P1-W1 from DR-01: retiring the legacy registry includes src/services/database/collections.ts. createDatabaseSchema/SchemaConverter stay as the DDL backend.",
       "completed_at": null
     },
     {

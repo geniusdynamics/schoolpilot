@@ -3,6 +3,7 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
+import schoolpilotNoNumericId from './eslint-rules/no-numeric-id.js';
 
 const serviceDirectories = [
   'src/services/backend',
@@ -78,6 +79,19 @@ export default tseslint.config(
           ],
         },
       ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: {
+      schoolpilot: {
+        rules: {
+          'no-numeric-id': schoolpilotNoNumericId,
+        },
+      },
+    },
+    rules: {
+      'schoolpilot/no-numeric-id': 'error',
     },
   }
 );
