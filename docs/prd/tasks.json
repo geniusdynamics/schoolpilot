@@ -1960,6 +1960,44 @@
       "completed_at": "2026-10-19"
     },
     {
+      "id": "P1-A02a",
+      "phase": "P1",
+      "wave": "P1-W2",
+      "lane": "A",
+      "title": "Burn down the 44 sites `schoolpilot/no-numeric-id` flags so the rule can gate the whole tree",
+      "size": "S",
+      "depends_on": [
+        "P1-A02"
+      ],
+      "files": [
+        "src/contexts/AppDataContext.tsx",
+        "src/modules/administration/data/useAdministrationData.ts",
+        "src/modules/finance/hooks/useFeeCollectionSummary.ts",
+        "src/modules/administration/pages/AddStudentPage.tsx",
+        "src/hooks/useModularMockData.ts",
+        "src/modules/academics/data/useAcademicData.ts",
+        "src/modules/admissions/data/useAdmissionsData.ts",
+        "src/modules/settings/pages/SettingsUsersPage.tsx",
+        "src/services/database/__tests__/demoDataSeedIntegrity.test.ts",
+        "remaining files reported by `npx eslint src --rule 'schoolpilot/no-numeric-id: error'`"
+      ],
+      "acceptance": [
+        "`npx eslint src` reports 0 `schoolpilot/no-numeric-id` errors",
+        "No behaviour change; ids stay strings end to end"
+      ],
+      "test": "Rule run on src",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "Opened during P1-W1 from the P1-A02 review: the rule is clean on changed files, but 44 pre-existing coercions (21 in AppDataContext) keep `pnpm lint` red and prevent a CI-wide gate.",
+      "completed_at": null
+    },
+    {
       "id": "P1-A03",
       "phase": "P1",
       "wave": "P1-W2",
