@@ -2020,10 +2020,10 @@
       "findings": [],
       "spec": "",
       "deps_install": true,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "4f61bce",
       "notes": "Amended at P1-W1 from DR-01: adds zod@3.25.76 as a direct dependency (deps_install true, lockfile in scope).",
-      "completed_at": null
+      "completed_at": "2026-10-19"
     },
     {
       "id": "P1-A04",
