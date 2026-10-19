@@ -31,7 +31,15 @@ export interface ConversionResult {
   schema: CollectionSchema;
   sqlSchema: SQLiteTableSchema;
   indexes: IndexDefinition[];
+  uniqueIndexes: UniqueIndexDefinition[];
   relationships: RelationshipInfo[];
+}
+
+/** A unique index derived from the entity storage sidecar, optionally partial. */
+export interface UniqueIndexDefinition {
+  name: string;
+  fields: string[];
+  where?: string;
 }
 
 export interface SQLiteTableSchema {
@@ -39,6 +47,8 @@ export interface SQLiteTableSchema {
   columns: SQLiteColumn[];
   primaryKey: string;
   constraints: string[];
+  /** Canonical DDL mode: required columns and the primary key emit NOT NULL. */
+  strict?: boolean;
 }
 
 export interface SQLiteColumn {
@@ -75,36 +85,66 @@ export class SchemaConverter {
       throw new Error(`Schema for collection ${collectionName} missing properties`);
     }
 
-    // Convert to our internal schema format
+    // Convert to our internal schema format. `primaryKey` is kept as declared so the
+    // non-strict path reproduces the historical DDL byte for byte; strict mode resolves the
+    // descriptor form to its column name.
+    const resolvedPrimaryKey = this.resolvePrimaryKey(schema.primaryKey);
     const collectionSchema: CollectionSchema = {
       version: schema.version || 1,
       type: 'object',
-      properties: this.convertProperties(schema.properties),
+      properties: this.convertProperties(schema.properties, schema.required),
       required: schema.required || ['id'],
       primaryKey: schema.primaryKey || 'id',
       indexes: this.extractIndexes(collectionName, schema)
     };
 
     // Generate SQLite table schema
-    const sqlSchema = this.generateSQLiteSchema(collectionName, collectionSchema);
-    
+    const sqlSchema = this.generateSQLiteSchema(
+      collectionName,
+      collectionSchema,
+      schema.strict === true
+    );
+
+    // Unique keys are index-level constraints: SQLite rejects NULL duplicates through a
+    // partial index, which the table-level UNIQUE constraint cannot express.
+    const uniqueIndexes = this.extractUniqueIndexes(collectionName, schema, resolvedPrimaryKey);
+
     // Extract relationships
     const relationships = this.extractRelationships(schema.properties || {});
-    
+
     return {
       schema: collectionSchema,
       sqlSchema,
       indexes: collectionSchema.indexes || [],
+      uniqueIndexes,
       relationships
     };
   }
 
+  /** Primary keys are plain column names today; accept the legacy descriptor shape too. */
+  private static resolvePrimaryKey(primaryKey: unknown): string {
+    if (typeof primaryKey === 'string' && primaryKey.length > 0) return primaryKey;
+    if (
+      primaryKey &&
+      typeof primaryKey === 'object' &&
+      typeof (primaryKey as { key?: unknown }).key === 'string'
+    ) {
+      return (primaryKey as { key: string }).key;
+    }
+    return 'id';
+  }
+
   /**
-   * Convert RxDB properties to our schema format
+   * Convert declared properties to the local schema shape, carrying the root required
+   * list onto each field so the column builder can emit NOT NULL.
    */
-  private static convertProperties(rxdbProperties: Record<string, any>): Record<string, any> {
+  private static convertProperties(
+    rxdbProperties: Record<string, any>,
+    requiredFields: unknown = []
+  ): Record<string, any> {
     const converted: Record<string, any> = {};
-    
+    const required = new Set(Array.isArray(requiredFields) ? requiredFields.filter((f): f is string => typeof f === 'string') : []);
+
     for (const [key, prop] of Object.entries(rxdbProperties)) {
       if (typeof prop === 'object' && prop !== null) {
         converted[key] = {
@@ -118,7 +158,11 @@ export class SchemaConverter {
           maximum: prop.maximum,
           multipleOf: prop.multipleOf,
           ref: prop.ref,
-          default: prop.default
+          default: prop.default,
+          // A property may allow null even though the key is required; it must stay nullable.
+          nullable:
+            prop.nullable === true ||
+            (Array.isArray(prop.type) && prop.type.includes('null'))
         };
       } else {
         // Handle primitive type definitions
@@ -126,8 +170,10 @@ export class SchemaConverter {
           type: typeof prop === 'string' ? prop : 'string'
         };
       }
+
+      converted[key].required = required.has(key);
     }
-    
+
     return converted;
   }
 
@@ -209,16 +255,66 @@ export class SchemaConverter {
   }
 
   /**
+   * Extract unique keys from the storage sidecar. Both shapes the canonical entity
+   * registry declares are accepted: an array of columns, or `{ columns, where }` for a
+   * partial index.
+   */
+  private static extractUniqueIndexes(
+    collectionName: string,
+    schema: any,
+    primaryKey: string
+  ): UniqueIndexDefinition[] {
+    const entries = Array.isArray(schema.unique) ? schema.unique : [];
+    const uniqueIndexes: UniqueIndexDefinition[] = [];
+
+    entries.forEach((entry: any) => {
+      let fields: string[] = [];
+      let where: string | undefined;
+
+      if (Array.isArray(entry)) {
+        fields = entry.filter((field: any) => typeof field === 'string');
+      } else if (entry && typeof entry === 'object') {
+        const rawFields = entry.columns ?? entry.fields ?? [];
+        const fieldList = Array.isArray(rawFields) ? rawFields : [rawFields];
+        fields = fieldList.filter((field: any) => typeof field === 'string');
+        if (typeof entry.where === 'string' && entry.where.trim()) {
+          where = entry.where.trim();
+        }
+      }
+
+      if (fields.length === 0) return;
+      if (fields.length === 1 && fields[0] === primaryKey) return;
+
+      const name = `uq_${collectionName}_${fields.join('_')}${where ? '_partial' : ''}`;
+      if (!uniqueIndexes.some((index) => index.name === name)) {
+        uniqueIndexes.push({ name, fields, ...(where ? { where } : {}) });
+      }
+    });
+
+    return uniqueIndexes;
+  }
+
+  /**
    * Generate SQLite CREATE TABLE schema
    */
-  private static generateSQLiteSchema(collectionName: string, schema: CollectionSchema): SQLiteTableSchema {
+  private static generateSQLiteSchema(
+    collectionName: string,
+    schema: CollectionSchema,
+    strict: boolean
+  ): SQLiteTableSchema {
     const tableName = this.sanitizeTableName(collectionName);
     const columns: SQLiteColumn[] = [];
     const constraints: string[] = [];
+    // Preserve the declared value on the legacy path (including the object descriptor) so
+    // generateCreateTableSQL reproduces the historical comparison exactly. Strict mode uses
+    // the resolved column name.
+    const primaryKey = strict
+      ? this.resolvePrimaryKey(schema.primaryKey)
+      : schema.primaryKey || 'id';
 
     // Process each property
     Object.entries(schema.properties).forEach(([fieldName, fieldDef]) => {
-      const column = this.convertFieldToSQLiteColumn(fieldName, fieldDef);
+      const column = this.convertFieldToSQLiteColumn(fieldName, fieldDef, primaryKey, strict);
       columns.push(column);
     });
 
@@ -238,28 +334,49 @@ export class SchemaConverter {
     return {
       tableName,
       columns,
-      primaryKey: schema.primaryKey || 'id',
-      constraints
+      primaryKey,
+      constraints,
+      strict
     };
   }
 
   /**
    * Convert a single field definition to SQLite column
    */
-  private static convertFieldToSQLiteColumn(fieldName: string, fieldDef: any): SQLiteColumn {
+  private static convertFieldToSQLiteColumn(
+    fieldName: string,
+    fieldDef: any,
+    primaryKey: string,
+    strict: boolean
+  ): SQLiteColumn {
     const sqliteType = this.mapTypeToSQLite(fieldDef);
     const constraints: string[] = [];
-    
+    // The historical path only recognised a column literally named `id`; strict canonical
+    // schemas use the declared primary key so non-id keys are enforced too.
+    const isPrimaryKey = strict ? fieldName === primaryKey : fieldName === 'id';
+
     // Handle primary key
-    if (fieldName === 'id') {
+    if (isPrimaryKey) {
       constraints.push('PRIMARY KEY');
     }
-    
-    // Handle unique constraints
     if (fieldDef.unique) {
+      // Handle unique constraints
       constraints.push('UNIQUE');
     }
-    
+
+    // Canonical schemas declare foreign keys; legacy collections keep their historical DDL
+    // because they contain dangling refs that SQLite would reject once enforcement is on.
+    if (
+      strict &&
+      !isPrimaryKey &&
+      typeof fieldDef.ref === 'string' &&
+      fieldDef.ref.length > 0
+    ) {
+      constraints.push(
+        `REFERENCES ${this.quoteIdentifier(fieldDef.ref)}(${this.quoteIdentifier('id')})`
+      );
+    }
+
     // Handle default values
     let defaultValue = fieldDef.default;
     if (defaultValue !== undefined) {
@@ -276,7 +393,14 @@ export class SchemaConverter {
     return {
       name: this.sanitizeColumnName(fieldName),
       type: sqliteType,
-      nullable: !fieldDef.required && fieldName !== 'id',
+      // Strict canonical schemas turn the root required list into NOT NULL (and never leave
+      // the primary key nullable). Legacy schemas keep their historical all-nullable columns
+      // because existing writers omit fields their own schema declares required.
+      nullable: isPrimaryKey
+        ? false
+        : strict
+          ? fieldDef.required !== true || fieldDef.nullable === true
+          : true,
       defaultValue,
       constraints
     };
@@ -346,12 +470,15 @@ export class SchemaConverter {
    * Generate SQL CREATE TABLE statement
    */
   static generateCreateTableSQL(sqlSchema: SQLiteTableSchema): string {
-    const { tableName, columns, primaryKey } = sqlSchema;
+    const { tableName, columns, primaryKey, strict } = sqlSchema;
     
     const columnDefinitions = columns.map(col => {
       let def = `${this.quoteIdentifier(col.name)} ${col.type}`;
       
-      if (!col.nullable && col.name !== primaryKey) {
+      // Legacy mode compares against the declared primary key exactly as the original
+      // converter did (an object descriptor therefore never matches). Strict mode always
+      // emits NOT NULL for non-nullable columns, including the primary key.
+      if (!col.nullable && (strict === true || col.name !== primaryKey)) {
         def += ' NOT NULL';
       }
       
@@ -381,6 +508,23 @@ export class SchemaConverter {
       
       return `CREATE ${uniqueKeyword}INDEX IF NOT EXISTS ${this.quoteIdentifier(index.name)}
               ON ${this.quoteIdentifier(tableName)} (${fieldsStr})`;
+    });
+  }
+
+  /**
+   * Generate SQL CREATE UNIQUE INDEX statements for sidecar unique keys, including the
+   * partial-index predicate SQLite requires when NULLs must collide.
+   */
+  static generateCreateUniqueIndexSQL(
+    tableName: string,
+    uniqueIndexes: UniqueIndexDefinition[]
+  ): string[] {
+    return uniqueIndexes.map(index => {
+      const fieldsStr = index.fields.map(field => this.quoteIdentifier(field)).join(', ');
+      const whereClause = index.where ? `\n              WHERE ${index.where}` : '';
+
+      return `CREATE UNIQUE INDEX IF NOT EXISTS ${this.quoteIdentifier(index.name)}
+              ON ${this.quoteIdentifier(tableName)} (${fieldsStr})${whereClause}`;
     });
   }
 
