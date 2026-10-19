@@ -1,0 +1,342 @@
+{
+  "generatedAt": "2026-10-19T05:05:54.834Z",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz",
+    "memoryGiB": 23.9,
+    "zod": "3.25.76",
+    "ajv": "8.20.0",
+    "typescript": "5.7.3"
+  },
+  "workload": {
+    "objects": 10000,
+    "warmup": 2000,
+    "runs": 9
+  },
+  "notes": {
+    "timingSpread": "IQR spread per row; across-run medians varied more on this throttling laptop",
+    "invalidBatch": "every item carries exactly one defect",
+    "mixedBatch": "every second item is valid, the rest carry one defect"
+  },
+  "construction": {
+    "zodSchemaBuildMs": 6.711,
+    "ajvCompileMs": 55.115
+  },
+  "throughput": [
+    {
+      "label": "learner valid (0 defects) zod",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 102.36,
+      "q1Ms": 91.47,
+      "q3Ms": 121.17,
+      "spreadPct": 29,
+      "usPerObject": 10.236,
+      "objectsPerSecond": 97699
+    },
+    {
+      "label": "learner valid (0 defects) ajv",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 171.9,
+      "q1Ms": 168.77,
+      "q3Ms": 198.7,
+      "spreadPct": 17.4,
+      "usPerObject": 17.19,
+      "objectsPerSecond": 58174
+    },
+    {
+      "label": "learner invalid (1 defect: status) zod",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 1660.33,
+      "q1Ms": 1362.53,
+      "q3Ms": 1800.74,
+      "spreadPct": 26.4,
+      "usPerObject": 166.033,
+      "objectsPerSecond": 6023
+    },
+    {
+      "label": "learner invalid (1 defect: status) ajv",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 151.79,
+      "q1Ms": 130.74,
+      "q3Ms": 211.87,
+      "spreadPct": 53.4,
+      "usPerObject": 15.179,
+      "objectsPerSecond": 65879
+    },
+    {
+      "label": "learner mixed (50% invalid) zod",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 677.34,
+      "q1Ms": 611.78,
+      "q3Ms": 776.36,
+      "spreadPct": 24.3,
+      "usPerObject": 67.734,
+      "objectsPerSecond": 14764
+    },
+    {
+      "label": "learner mixed (50% invalid) ajv",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 118.31,
+      "q1Ms": 108.47,
+      "q3Ms": 161.75,
+      "spreadPct": 45,
+      "usPerObject": 11.831,
+      "objectsPerSecond": 84525
+    },
+    {
+      "label": "enrolment valid (0 defects) zod",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 85.62,
+      "q1Ms": 81.14,
+      "q3Ms": 99.03,
+      "spreadPct": 20.9,
+      "usPerObject": 8.562,
+      "objectsPerSecond": 116798
+    },
+    {
+      "label": "enrolment valid (0 defects) ajv",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 117.72,
+      "q1Ms": 107.31,
+      "q3Ms": 124.55,
+      "spreadPct": 14.6,
+      "usPerObject": 11.772,
+      "objectsPerSecond": 84948
+    },
+    {
+      "label": "enrolment invalid (1 defect: entry_reason) zod",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 1284.16,
+      "q1Ms": 1137.36,
+      "q3Ms": 1617.42,
+      "spreadPct": 37.4,
+      "usPerObject": 128.416,
+      "objectsPerSecond": 7787
+    },
+    {
+      "label": "enrolment invalid (1 defect: entry_reason) ajv",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 146,
+      "q1Ms": 126.49,
+      "q3Ms": 188.85,
+      "spreadPct": 42.7,
+      "usPerObject": 14.6,
+      "objectsPerSecond": 68493
+    },
+    {
+      "label": "enrolment mixed (50% invalid) zod",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 785.32,
+      "q1Ms": 738.24,
+      "q3Ms": 924.36,
+      "spreadPct": 23.7,
+      "usPerObject": 78.532,
+      "objectsPerSecond": 12734
+    },
+    {
+      "label": "enrolment mixed (50% invalid) ajv",
+      "objects": 10000,
+      "runs": 9,
+      "medianMs": 157.93,
+      "q1Ms": 132.19,
+      "q3Ms": 186,
+      "spreadPct": 34.1,
+      "usPerObject": 15.793,
+      "objectsPerSecond": 63320
+    }
+  ],
+  "errors": {
+    "learner": {
+      "zodIssues": [
+        {
+          "origin": "string",
+          "code": "too_small",
+          "minimum": 1,
+          "inclusive": true,
+          "path": [
+            "admission_number"
+          ],
+          "message": "Too small: expected string to have >=1 characters"
+        },
+        {
+          "expected": "string",
+          "code": "invalid_type",
+          "path": [
+            "family_name"
+          ],
+          "message": "Invalid input: expected string, received undefined"
+        },
+        {
+          "origin": "string",
+          "code": "invalid_format",
+          "format": "date",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/",
+          "path": [
+            "date_of_birth"
+          ],
+          "message": "Invalid ISO date"
+        },
+        {
+          "code": "invalid_value",
+          "values": [
+            "applicant",
+            "enrolled",
+            "suspended",
+            "withdrawn",
+            "transferred_out",
+            "graduated",
+            "deceased"
+          ],
+          "path": [
+            "status"
+          ],
+          "message": "Invalid option: expected one of \"applicant\"|\"enrolled\"|\"suspended\"|\"withdrawn\"|\"transferred_out\"|\"graduated\"|\"deceased\""
+        }
+      ],
+      "ajvValid": false,
+      "ajvErrors": []
+    },
+    "dateOrder": {
+      "zodValid": false,
+      "zodIssues": [
+        {
+          "code": "custom",
+          "path": [
+            "end_date"
+          ],
+          "message": "end_date must be on or after start_date"
+        }
+      ],
+      "ajvValid": true,
+      "ajvErrors": []
+    },
+    "exitReason": {
+      "missing": {
+        "zodValid": false,
+        "ajvValid": false
+      },
+      "present": {
+        "zodValid": true,
+        "ajvValid": true
+      }
+    },
+    "unknownKeys": {
+      "zodValid": false,
+      "ajvValid": false
+    },
+    "attributes": {
+      "zodValid": true,
+      "ajvValid": true
+    }
+  },
+  "ddl": {
+    "learner": {
+      "identical": true,
+      "zod": {
+        "createTable": "CREATE TABLE IF NOT EXISTS \"learner\" (\n      \"id\" TEXT PRIMARY KEY,\n      \"institution_id\" TEXT,\n      \"admission_number\" TEXT,\n      \"given_name\" TEXT,\n      \"middle_names\" TEXT,\n      \"family_name\" TEXT,\n      \"gender\" TEXT,\n      \"date_of_birth\" TEXT,\n      \"status\" TEXT,\n      \"residence_status\" TEXT,\n      \"house_id\" TEXT,\n      \"special_needs\" TEXT,\n      \"attributes\" TEXT,\n      \"created_at\" TEXT,\n      \"updated_at\" TEXT,\n      \"deleted_at\" TEXT\n    )",
+        "indexes": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS \"idx_learner_id\"\n              ON \"learner\" (\"id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_learner_institution_id\"\n              ON \"learner\" (\"institution_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_learner_status\"\n              ON \"learner\" (\"status\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_learner_house_id\"\n              ON \"learner\" (\"house_id\")"
+        ],
+        "unique": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS \"uq_learner_institution_id_admission_number\" ON \"learner\" (\"institution_id\", \"admission_number\")"
+        ]
+      },
+      "json": {
+        "createTable": "CREATE TABLE IF NOT EXISTS \"learner\" (\n      \"id\" TEXT PRIMARY KEY,\n      \"institution_id\" TEXT,\n      \"admission_number\" TEXT,\n      \"given_name\" TEXT,\n      \"middle_names\" TEXT,\n      \"family_name\" TEXT,\n      \"gender\" TEXT,\n      \"date_of_birth\" TEXT,\n      \"status\" TEXT,\n      \"residence_status\" TEXT,\n      \"house_id\" TEXT,\n      \"special_needs\" TEXT,\n      \"attributes\" TEXT,\n      \"created_at\" TEXT,\n      \"updated_at\" TEXT,\n      \"deleted_at\" TEXT\n    )",
+        "indexes": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS \"idx_learner_id\"\n              ON \"learner\" (\"id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_learner_institution_id\"\n              ON \"learner\" (\"institution_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_learner_status\"\n              ON \"learner\" (\"status\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_learner_house_id\"\n              ON \"learner\" (\"house_id\")"
+        ],
+        "unique": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS \"uq_learner_institution_id_admission_number\" ON \"learner\" (\"institution_id\", \"admission_number\")"
+        ]
+      }
+    },
+    "enrolment": {
+      "identical": true,
+      "zod": {
+        "createTable": "CREATE TABLE IF NOT EXISTS \"enrolment\" (\n      \"id\" TEXT PRIMARY KEY,\n      \"learner_id\" TEXT,\n      \"academic_year_id\" TEXT,\n      \"programme_id\" TEXT,\n      \"level_id\" TEXT,\n      \"class_group_id\" TEXT,\n      \"pathway_id\" TEXT,\n      \"status\" TEXT,\n      \"start_date\" TEXT,\n      \"end_date\" TEXT,\n      \"entry_reason\" TEXT,\n      \"exit_reason\" TEXT,\n      \"fee_category_ids\" TEXT,\n      \"sponsorship_id\" TEXT,\n      \"created_at\" TEXT,\n      \"updated_at\" TEXT\n    )",
+        "indexes": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS \"idx_enrolment_id\"\n              ON \"enrolment\" (\"id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_learner_id\"\n              ON \"enrolment\" (\"learner_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_academic_year_id\"\n              ON \"enrolment\" (\"academic_year_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_class_group_id\"\n              ON \"enrolment\" (\"class_group_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_level_id\"\n              ON \"enrolment\" (\"level_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_status\"\n              ON \"enrolment\" (\"status\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_programme_id\"\n              ON \"enrolment\" (\"programme_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_pathway_id\"\n              ON \"enrolment\" (\"pathway_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_sponsorship_id\"\n              ON \"enrolment\" (\"sponsorship_id\")"
+        ],
+        "unique": []
+      },
+      "json": {
+        "createTable": "CREATE TABLE IF NOT EXISTS \"enrolment\" (\n      \"id\" TEXT PRIMARY KEY,\n      \"learner_id\" TEXT,\n      \"academic_year_id\" TEXT,\n      \"programme_id\" TEXT,\n      \"level_id\" TEXT,\n      \"class_group_id\" TEXT,\n      \"pathway_id\" TEXT,\n      \"status\" TEXT,\n      \"start_date\" TEXT,\n      \"end_date\" TEXT,\n      \"entry_reason\" TEXT,\n      \"exit_reason\" TEXT,\n      \"fee_category_ids\" TEXT,\n      \"sponsorship_id\" TEXT,\n      \"created_at\" TEXT,\n      \"updated_at\" TEXT\n    )",
+        "indexes": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS \"idx_enrolment_id\"\n              ON \"enrolment\" (\"id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_learner_id\"\n              ON \"enrolment\" (\"learner_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_academic_year_id\"\n              ON \"enrolment\" (\"academic_year_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_class_group_id\"\n              ON \"enrolment\" (\"class_group_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_level_id\"\n              ON \"enrolment\" (\"level_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_status\"\n              ON \"enrolment\" (\"status\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_programme_id\"\n              ON \"enrolment\" (\"programme_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_pathway_id\"\n              ON \"enrolment\" (\"pathway_id\")",
+          "CREATE INDEX IF NOT EXISTS \"idx_enrolment_sponsorship_id\"\n              ON \"enrolment\" (\"sponsorship_id\")"
+        ],
+        "unique": []
+      }
+    }
+  },
+  "schemaBytes": {
+    "zodLearner": 3144,
+    "jsonLearner": 1481,
+    "zodEnrolment": 3541,
+    "jsonEnrolment": 1665
+  },
+  "codeLines": {
+    "zod/entity.ts": 112,
+    "json-schema/entity.schema.json": 135,
+    "json-schema/codegen.mjs": 54,
+    "json-schema/entity.generated.ts": 40,
+    "shared/to-storage.ts": 84
+  },
+  "sourceTotals": {
+    "zod/entity.ts": {
+      "total": 129,
+      "nonComment": 112
+    },
+    "json-schema/entity.schema.json": {
+      "total": 136,
+      "nonComment": 135
+    },
+    "json-schema/codegen.mjs": {
+      "total": 64,
+      "nonComment": 54
+    },
+    "json-schema/entity.generated.ts": {
+      "total": 46,
+      "nonComment": 40
+    },
+    "shared/to-storage.ts": {
+      "total": 94,
+      "nonComment": 84
+    }
+  }
+}
