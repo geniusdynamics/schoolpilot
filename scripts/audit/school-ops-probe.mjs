@@ -54,7 +54,8 @@ async function check(id, title, fn) {
 // ---------------------------------------------------------------------------
 // First run: onboarding (production path) and setup wizard
 // ---------------------------------------------------------------------------
-await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+await page.waitForFunction(() => /Get Started|Sign in|Username|Password/i.test(document.body.innerText), { timeout: 90000 });
 await wait(3500);
 
 await check('C01', 'Database storage is persistent (no in-memory fallback)', async () => {
@@ -76,7 +77,7 @@ await check('C02', 'Production setup wizard saves the school profile step', asyn
   return /Step 2 of/.test(body) ? {} : { fail: 'wizard did not advance to step 2' };
 });
 
-await page.reload({ waitUntil: 'networkidle' });
+await page.reload({ waitUntil: 'domcontentloaded' });
 await wait(6000);
 
 await check('C03', 'Production database is not auto-seeded with demo data', async () => {
