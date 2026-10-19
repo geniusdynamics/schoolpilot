@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
@@ -22,6 +23,7 @@ type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updat
 };
 
 const CommunicationTemplatesPage: React.FC = () => {
+  const { t } = useTranslation('common');
   const {
     data: templateComms,
     create: addTemplateComm,

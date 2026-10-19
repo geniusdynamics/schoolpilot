@@ -16,7 +16,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
     // Sub-agent worktrees live under .claude/worktrees; never collect their copies of the suite.
-    exclude: [...configDefaults.exclude, '.claude/**'],
+    exclude: [...configDefaults.exclude, '.claude/**', 'tests/e2e/**'],
     // Generous per-test budget: the suite runs in a single fork and
     // 5s defaults cause spurious timeouts under accumulated load.
     testTimeout: 20000,

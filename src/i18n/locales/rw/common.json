@@ -139,6 +139,80 @@
   },
   "tabs": {
     "editEntity": "Edit {{entity}}",
-    "viewEntity": "{{entity}}"
+    "viewEntity": "{{entity}}",
+    "validation": {
+      "routePath": "Inzira y'idushyinguro igomba kuba inzira yuzuye ya porogaramu nka /administration/classes; indangamuntu z'udushyinguro duto nka \"bulk-streams\" ni imiterere ya URL, ntabwo ari udushyinguro."
+    }
+  },
+  "storage": {
+    "unavailable": {
+      "title": "Uyu mushakisha ntushobora kubika amakuru utari kuri interineti",
+      "action": "Koresha Chrome cyangwa Edge 109 cyangwa nshya kurushaho, cyangwa uhuze na seriveri y'ishuri.",
+      "otherTab": "Niba SchoolPilot isanzwe ifunguwe mu rundi dushyinguro, fungura iryo dushyinguro hanyuma ugerageze.",
+      "noWrites": "Nta kintu gishobora kubikwa kugeza ububiko buhoraho bubonetse.",
+      "details": "Amakuru ya tekiniki",
+      "retry": "Gerageza ukundi"
+    },
+    "temporaryData": {
+      "label": "AMAKURU Y'AGATEBE",
+      "hint": "Amakuru abikwa mu bwibutse gusa kandi asibwa iyo paji yongeye gufunguka."
+    }
+  },
+  "auth": {
+    "login": {
+      "storageUnavailable": "Ububiko bw'amakuru bw'ishuri ntibuboneka kuri iyi porogaramu. Kwinjira birahagarikwa kugeza ububiko bukora."
+    },
+    "createAdministrator": {
+      "title": "Kora umuyobozi",
+      "intro": "Nta konti irahari. Kora umuyobozi uzacunga iyi shuri.",
+      "username": "Izina ry'ukoresha",
+      "displayName": "Izina rigaragara",
+      "password": "Ijambo ry'ibanga",
+      "confirmPassword": "Emeza ijambo ry'ibanga",
+      "submit": "Kora umuyobozi",
+      "passwordTooShort": "Ijambo ry'ibanga rigomba kuba nibura inyuguti 10.",
+      "passwordMismatch": "Amagambo y'ibanga ntabwo ahura.",
+      "failed": "Ntibyakunze gukora umuyobozi.",
+      "created": "Umuyobozi yarakozwe. Injira ukoresheje konti yawe nshya."
+    }
+  },
+  "onboarding": {
+    "initialising": {
+      "title": "Gutegura ububiko bw'amakuru bwawe",
+      "detail": "Gufungura ububiko butekanye kuri iyi porogaramu. Bishobora gufata amasegonda make."
+    }
+  },
+  "setupWizard": {
+    "year": {
+      "description": "Umwaka, amatariki ya buri gihembwe, n'umwaka w'imari yawo",
+      "termDates": "Amatariki y'ibihembwe",
+      "financialYear": "Umwaka w'imari",
+      "financialYearCalendar": "Umwaka w'ikalendari",
+      "financialYearCustom": "Andi matariki",
+      "financialYearHint": "Ibihembwe bihujwe na {{name}}. Umwaka w'imari usanzwe uhari uherekeza aya matariki uzongera gukoreshwa."
+    },
+    "admin": {
+      "title": "Umuyobozi",
+      "description": "Konti icunga iyi shuri",
+      "exists": "Konti y'umuyobozi isanzwe ihari. Nyuma yo gutegura, injira uyikoresheje.",
+      "intro": "Kora umuyobozi uzinjira kandi acunge iyi shuri. Ijambo ry'ibanga rigomba kuba nibura inyuguti 10.",
+      "username": "Izina ry'ukoresha",
+      "displayName": "Izina rigaragara",
+      "password": "Ijambo ry'ibanga",
+      "confirm": "Emeza ijambo ry'ibanga",
+      "detailsRequired": "Shyiramo izina ry'ukoresha (nibura inyuguti 3) n'izina rigaragara.",
+      "passwordTooShort": "Ijambo ry'ibanga rigomba kuba nibura inyuguti 10.",
+      "passwordMismatch": "Amagambo y'ibanga ntabwo ahura."
+    },
+    "completeError": "Ntibyakunze kurangiza gutegura."
+  },
+  "remove": "Kuraho",
+  "academicYears": {
+    "endBeforeStart": "Itariki y'isozwa igomba kuba nyuma y'itariki yo gutangira.",
+    "overlapsYear": "Aya matariki ahura na {{name}}."
+  },
+  "datePicker": {
+    "month": "Ukwezi",
+    "year": "Umwaka"
   }
 }

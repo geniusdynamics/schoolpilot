@@ -2,7 +2,7 @@
 // ABOUTME: Provides LiveStore context and hooks for React components
 
 import React, { ReactNode } from 'react';
-import { LiveStoreProvider as BaseLiveStoreProvider } from '@livestore/react';
+import { LiveStoreProvider as BaseLiveStoreProvider, useStore, useQuery, useClientDocument } from '@livestore/react';
 import { LiveStore } from '@livestore/livestore';
 import { WebAdapter } from '@livestore/adapter-web';
 import { schema } from '../../livestore/schema';
@@ -44,7 +44,7 @@ export const LiveStoreProvider: React.FC<LiveStoreProviderProps> = ({
 };
 
 // Re-export LiveStore React hooks
-export { useStore, useQuery, useClientDocument } from '@livestore/react';
+export { useStore, useQuery, useClientDocument };
 
 // Custom hook for LiveStore instance
 export const useLiveStore = () => {

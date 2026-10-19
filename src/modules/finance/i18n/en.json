@@ -110,5 +110,123 @@
     "template": "Template",
     "expenseCategory": "Expense Category",
     "active": "Active"
+  },
+  "financialYears": {
+    "title": "Financial Years",
+    "description": "Financial years group terms, fees and accounts. Date ranges may not overlap, and one open year is always the current year.",
+    "add": "Add Financial Year",
+    "edit": "Edit Financial Year",
+    "name": "Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "statusHeader": "Status",
+    "current": "Current",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "archived": "Archived"
+    },
+    "close": "Close",
+    "reopen": "Reopen",
+    "closeTitle": "Close financial year",
+    "closeMessage": "Close {{name}}? Closed years stay available in reports but are no longer current.",
+    "closed": "{{name}} closed",
+    "reopened": "{{name}} reopened",
+    "lastOpenHint": "Create or reopen another financial year before closing this one.",
+    "emptyTitle": "No financial years yet",
+    "emptyDescription": "Add the financial year your terms and fees belong to."
+  },
+  "feeTemplates": {
+    "errors": {
+      "saveItemFailed": "Failed to save fee item: {{error}}",
+      "deleteItemFailed": "Failed to delete fee item: {{error}}"
+    }
+  },
+  "feeStructures": {
+    "loading": "Loading Fee Structures Data...",
+    "title": "Effect Fee Structures (Generate Student Invoices)",
+    "description": "Bill the fee templates of a school period to its learners. Templates apply by student category and level; each learner gets one invoice per period and re-running only adds what is missing. Preview first, then generate.",
+    "period": "School Period",
+    "choosePeriod": "-- Choose School Period --",
+    "template": "Fee Template",
+    "allTemplates": "All templates of the period",
+    "level": "Level (Optional)",
+    "allLevels": "All levels",
+    "category": "Student Category (Optional)",
+    "allCategories": "All categories",
+    "preview": "Preview",
+    "generating": "Generating Invoices...",
+    "generate": "Generate Student Invoices",
+    "previewTitle": "Billing preview",
+    "doneTitle": "Billing run completed",
+    "summary": "{{created}} new invoice(s), {{updated}} updated, {{skipped}} already billed, {{unmatched}} without a matching template. Total KES {{amount}}",
+    "learner": "Learner",
+    "invoice": "Invoice",
+    "items": "Items",
+    "amount": "Amount (KES)",
+    "updated": "updated",
+    "failed": "Failed to generate invoices: {{error}}"
+  },
+  "common": {
+    "loading": "Loading..."
+  },
+  "invoiceGeneration": {
+    "title": "Invoice Generation",
+    "description": "Bill every fee template of the selected period to the active learners it applies to (by level and student category). Each learner gets one invoice per period; re-running only adds what is missing.",
+    "schoolPeriod": "School Period",
+    "selectPeriod": "Select Period",
+    "activeSuffix": "(Active)",
+    "level": "Level",
+    "allLevels": "All levels",
+    "preview": "Preview",
+    "generating": "Generating...",
+    "generate": "Generate Invoices",
+    "templatesForPeriod": "{{count}} fee template(s) in this period",
+    "previewTitle": "Preview — nothing has been saved yet",
+    "success": "Invoices Generated Successfully",
+    "invoicesCreated": "New invoices",
+    "invoicesUpdated": "Invoices with added items",
+    "skipped": "Already billed",
+    "total": "Total",
+    "unmatched": "{{count}} active learner(s) have no matching fee template for this period.",
+    "generateMore": "Generate More",
+    "configureMessage": "Choose a period, preview the billing run, then generate the invoices"
+  },
+  "fines": {
+    "deleteFailed": "Failed to delete fine:",
+    "deleted": "Fine deleted.",
+    "saveFailed": "Failed to save fine:",
+    "saved": "Fine saved.",
+    "validation": "Student, school period, and an amount greater than zero are required."
+  },
+  "generalReceipts": {
+    "deleteFailed": "Failed to delete receipt:",
+    "deleted": "Receipt deleted.",
+    "itemsRequired": "Each item must have a description, valid amount, and revenue account.",
+    "payerNameRequired": "Payer name is required for 'Other' payer type.",
+    "payerRequired": "Please select a payer.",
+    "saveFailed": "Failed to save receipt:",
+    "saved": "Receipt saved."
+  },
+  "openingBalances": {
+    "deleteFailed": "Failed to delete opening balance:",
+    "deleted": "Opening balance deleted.",
+    "saveFailed": "Failed to save opening balance:",
+    "saved": "Opening balance saved.",
+    "validation": "Student, Amount, and As Of Date are required."
+  },
+  "transportAssignments": {
+    "deleteFailed": "Failed to delete transport assignment:",
+    "deleted": "Transport assignment deleted.",
+    "saveFailed": "Failed to save transport assignment:",
+    "saved": "Transport assignment saved.",
+    "validation": "Student, Route, and School Period are required."
+  },
+  "transportRoutes": {
+    "deleteFailed": "Failed to delete transport route:",
+    "deleted": "Transport route deleted.",
+    "saveFailed": "Failed to save transport route:",
+    "saved": "Transport route saved.",
+    "validation": "Route Name, valid Cost per Period, and GL Revenue Account are required."
   }
 }

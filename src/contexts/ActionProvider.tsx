@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { useActionRegistry } from '@/services/ui/actionRegistry';
 
 // Action definition interface
 export interface ActionDefinition {
@@ -109,7 +110,7 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
       },
       data: {}
     };
-  }, [user?.id, user?.role, user?.fullName, user?.email, defaultModule, defaultSubmodule, defaultFeature]);
+  }, [user, defaultModule, defaultSubmodule, defaultFeature]);
 
   // Update context with throttling to prevent infinite loops
   useEffect(() => {

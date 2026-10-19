@@ -360,5 +360,11 @@
       "step2": "Enter that reference number above to see the current status of your application.",
       "step3": "The timeline will show you exactly where your application is in the review process."
     }
+  },
+  "applicationForm": {
+    "validation": {
+      "requiredFields": "Please fill in all required fields (marked *) before continuing.",
+      "incompleteApplication": "Some required fields are missing. Go back and complete all required fields before submitting."
+    }
   }
 }

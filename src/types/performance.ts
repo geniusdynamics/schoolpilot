@@ -2,6 +2,7 @@
 // ABOUTME: Provides comprehensive type safety for performance-related operations
 
 // Re-export types from services for convenience
+import type { PerformanceBenchmark } from '../services/performance/performanceBenchmark';
 export type {
   PerformanceBenchmark,
   ComparisonResult,

@@ -3,6 +3,7 @@
 
 import { PouchDBProvider } from './PouchDBProvider';
 import { DatabaseProviderFactory } from './DatabaseProviderFactory';
+import { getDatabaseManager } from './ProviderSelector';
 
 import { DatabaseConfig, CollectionSchema, IDatabaseProvider } from './interfaces';
 

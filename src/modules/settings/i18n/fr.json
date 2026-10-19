@@ -36,7 +36,14 @@
     "saveError": "Échec de l'enregistrement des détails.",
     "notConfigured": "Non Configuré",
     "noCode": "Aucun code d'école défini",
-    "manageProfile": "Gérer le Profil"
+    "manageProfile": "Gérer le Profil",
+    "setupWizard": {
+      "title": "Assistant de configuration",
+      "description": "Configurez le profil de l'école, l'année académique, les classes, les matières et l'administrateur étape par étape.",
+      "rerunDescription": "La configuration est terminée. Relancez l'assistant pour revoir le profil de l'école, l'année, les classes et les matières ; les enregistrements existants sont mis à jour, jamais dupliqués.",
+      "runButton": "Lancer l'assistant de configuration",
+      "rerunButton": "Relancer l'assistant de configuration"
+    }
   },
   "userManagement": {
     "title": "Gestion des Comptes Utilisateurs",
@@ -302,5 +309,23 @@
     "dependencies": "Dépendances",
     "noDependencies": "Aucune dépendance",
     "rawData": "Données Brutes du Rapport"
+  },
+  "systemManagement": {
+    "storage": {
+      "title": "Stockage du navigateur",
+      "modeLabel": "Mode de stockage",
+      "persistedLabel": "Stockage persistant accordé",
+      "mode": {
+        "opfs": "Persistant (OPFS)",
+        "memory": "Temporaire (mémoire uniquement)",
+        "unavailable": "Indisponible",
+        "uninitialised": "Pas encore ouvert"
+      },
+      "persisted": {
+        "yes": "Oui",
+        "no": "Non",
+        "unknown": "Inconnu"
+      }
+    }
   }
 }

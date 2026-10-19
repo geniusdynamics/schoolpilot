@@ -139,6 +139,80 @@
   },
   "tabs": {
     "editEntity": "Edit {{entity}}",
-    "viewEntity": "{{entity}}"
+    "viewEntity": "{{entity}}",
+    "validation": {
+      "routePath": "Njia ya kichupo lazima iwe njia kamili ya programu kama /administration/classes; vitambulisho vya vichupo vidogo vya hub kama \"bulk-streams\" ni hali ya URL, si vichupo."
+    }
+  },
+  "storage": {
+    "unavailable": {
+      "title": "Kivinjari hiki hakiwe kuhifadhi data bila mtandao",
+      "action": "Tumia Chrome au Edge 109 au zaidi, au unganishe na seva ya shule.",
+      "otherTab": "Ikiwa SchoolPilot tayari imefunguliwa kwenye kichupo kingine, funga kichupo hicho na ujaribu tena.",
+      "noWrites": "Hakuna kinachoweza kuhifadhiwa hadi hifadhi ya kudumu ipatikane.",
+      "details": "Maelezo ya kiufundi",
+      "retry": "Jaribu tena"
+    },
+    "temporaryData": {
+      "label": "DATA YA MUDA",
+      "hint": "Data huhifadhiwa kwenye kumbukumbu pekee na hufutwa ukurasa unapopakiwa upya."
+    }
+  },
+  "auth": {
+    "login": {
+      "storageUnavailable": "Hifadhidata ya shule haipatikani kwenye kifaa hiki. Kuingia kumezimwa hadi hifadhi ifanye kazi."
+    },
+    "createAdministrator": {
+      "title": "Unda msimamizi",
+      "intro": "Hakuna akaunti bado. Unda msimamizi atakayesimamia shule hii.",
+      "username": "Jina la Mtumiaji",
+      "displayName": "Jina la kuonyesha",
+      "password": "Neno la siri",
+      "confirmPassword": "Thibitisha neno la siri",
+      "submit": "Unda msimamizi",
+      "passwordTooShort": "Neno la siri lazima liwe na angalau herufi 10.",
+      "passwordMismatch": "Maneno ya siri hayalingani.",
+      "failed": "Imeshindwa kuunda msimamizi.",
+      "created": "Msimamizi ameundwa. Ingia na akaunti yako mpya."
+    }
+  },
+  "onboarding": {
+    "initialising": {
+      "title": "Kuandaa hifadhidata yako",
+      "detail": "Inafungua hifadhi salama kwenye kifaa hiki. Hii inaweza kuchukua sekunde chache."
+    }
+  },
+  "setupWizard": {
+    "year": {
+      "description": "Mwaka, tarehe za kila muhula, na mwaka wake wa fedha",
+      "termDates": "Tarehe za muhula",
+      "financialYear": "Mwaka wa fedha",
+      "financialYearCalendar": "Mwaka wa kalenda",
+      "financialYearCustom": "Tarehe nyingine",
+      "financialYearHint": "Muhula unaunganishwa na {{name}}. Mwaka wa fedha uliopo unaojumuisha tarehe hizi utatumika tena."
+    },
+    "admin": {
+      "title": "Msimamizi",
+      "description": "Akaunti inayosimamia shule hii",
+      "exists": "Akaunti ya msimamizi tayari ipo. Ingia nayo baada ya usanidi.",
+      "intro": "Unda msimamizi atakayeingia na kusimamia shule hii. Neno la siri linahitaji angalau herufi 10.",
+      "username": "Jina la Mtumiaji",
+      "displayName": "Jina la kuonyesha",
+      "password": "Neno la siri",
+      "confirm": "Thibitisha neno la siri",
+      "detailsRequired": "Weka jina la mtumiaji (angalau herufi 3) na jina la kuonyesha.",
+      "passwordTooShort": "Neno la siri lazima liwe na angalau herufi 10.",
+      "passwordMismatch": "Maneno ya siri hayalingani."
+    },
+    "completeError": "Imeshindwa kukamilisha usanidi."
+  },
+  "remove": "Ondoa",
+  "academicYears": {
+    "endBeforeStart": "Tarehe ya mwisho lazima iwe baada ya tarehe ya kuanza.",
+    "overlapsYear": "Tarehe hizi zinaingiliana na {{name}}."
+  },
+  "datePicker": {
+    "month": "Mwezi",
+    "year": "Mwaka"
   }
 }

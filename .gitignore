@@ -79,3 +79,7 @@ full_file_list.txt
 
 # Sub-agent git worktrees (PRD waves)
 .claude/worktrees/
+
+# Playwright artifacts
+test-results/
+playwright-report/

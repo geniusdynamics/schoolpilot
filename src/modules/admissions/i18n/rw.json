@@ -32,5 +32,11 @@
       "reviewQueue": "Urutonde rwo Gusuzuma",
       "exportReport": "Kohereza Raporo"
     }
+  },
+  "applicationForm": {
+    "validation": {
+      "requiredFields": "Uzuza imyanya yose iteganijwe (yanditseho *) mbere yo gukomeza.",
+      "incompleteApplication": "Hari imyanya iteganijwe ibura. Subira inyuma wuzuze imyanya yose iteganijwe mbere yo kohereza."
+    }
   }
 }

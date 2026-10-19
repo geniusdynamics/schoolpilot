@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
@@ -19,6 +20,7 @@ interface FeeCollectionSummaryRow {
 }
 
 export const FeeCollectionSummaryPageContent: React.FC = () => {
+  const { t } = useTranslation(['reports', 'common']);
   const { 
     schoolPeriods, 
     classes, 
@@ -77,7 +79,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
 
     setReportData(summaryData);
     setIsGenerating(false);
-  }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams]);
+  }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams, t]);
   
 
   // Generate report on initial mount if period is selected

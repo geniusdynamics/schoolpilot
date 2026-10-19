@@ -139,6 +139,80 @@
   },
   "tabs": {
     "editEntity": "Edit {{entity}}",
-    "viewEntity": "{{entity}}"
+    "viewEntity": "{{entity}}",
+    "validation": {
+      "routePath": "Le chemin de l'onglet doit être une route absolue de l'application, par exemple /administration/classes ; les identifiants de sous-onglets du hub comme « bulk-streams » sont un état d'URL, pas des onglets."
+    }
+  },
+  "storage": {
+    "unavailable": {
+      "title": "Ce navigateur ne peut pas stocker de données hors ligne",
+      "action": "Utilisez Chrome ou Edge 109 ou une version plus récente, ou connectez-vous au serveur de l'école.",
+      "otherTab": "Si SchoolPilot est déjà ouvert dans un autre onglet, fermez cet onglet et réessayez.",
+      "noWrites": "Rien ne peut être enregistré tant que le stockage persistant n'est pas disponible.",
+      "details": "Détails techniques",
+      "retry": "Réessayer"
+    },
+    "temporaryData": {
+      "label": "DONNÉES TEMPORAIRES",
+      "hint": "Les données sont conservées uniquement en mémoire et sont effacées lorsque la page est rechargée."
+    }
+  },
+  "auth": {
+    "login": {
+      "storageUnavailable": "La base de données de l'école n'est pas disponible sur cet appareil. La connexion est désactivée jusqu'à ce que le stockage fonctionne."
+    },
+    "createAdministrator": {
+      "title": "Créer un administrateur",
+      "intro": "Aucun compte n'existe encore. Créez l'administrateur qui gérera cette école.",
+      "username": "Nom d'utilisateur",
+      "displayName": "Nom d'affichage",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Créer un administrateur",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 10 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "failed": "Impossible de créer l'administrateur.",
+      "created": "Administrateur créé. Connectez-vous avec votre nouveau compte."
+    }
+  },
+  "onboarding": {
+    "initialising": {
+      "title": "Préparation de votre base de données",
+      "detail": "Ouverture du stockage sécurisé sur cet appareil. Cela peut prendre quelques secondes."
+    }
+  },
+  "setupWizard": {
+    "year": {
+      "description": "L'année, les dates de chaque trimestre et son exercice financier",
+      "termDates": "Dates des trimestres",
+      "financialYear": "Exercice financier",
+      "financialYearCalendar": "Année civile",
+      "financialYearCustom": "Autres dates",
+      "financialYearHint": "Les trimestres sont liés à {{name}}. Un exercice financier existant couvrant ces dates est réutilisé."
+    },
+    "admin": {
+      "title": "Administrateur",
+      "description": "Le compte qui gère cette école",
+      "exists": "Un compte administrateur existe déjà. Connectez-vous avec celui-ci après la configuration.",
+      "intro": "Créez l'administrateur qui se connectera et gérera cette école. Le mot de passe doit contenir au moins 10 caractères.",
+      "username": "Nom d'utilisateur",
+      "displayName": "Nom d'affichage",
+      "password": "Mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "detailsRequired": "Saisissez un nom d'utilisateur (au moins 3 caractères) et un nom d'affichage.",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 10 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas."
+    },
+    "completeError": "Impossible de terminer la configuration."
+  },
+  "remove": "Supprimer",
+  "academicYears": {
+    "endBeforeStart": "La date de fin doit être postérieure à la date de début.",
+    "overlapsYear": "Ces dates chevauchent {{name}}."
+  },
+  "datePicker": {
+    "month": "Mois",
+    "year": "Année"
   }
 }

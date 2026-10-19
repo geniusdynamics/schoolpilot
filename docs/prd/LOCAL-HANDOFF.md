@@ -6,7 +6,7 @@ Everything needed is in the repository. Wave **P0-W1** is being finished on bran
 
 ## 0. Current state (updated at every checkpoint)
 
-_Last update: 2026-10-18 — W3 merged (PR #18, 7f69acc). W4 complete on prd/P0-W4 (PR #19): G13 600f667, G10 2a45216, G11 eee05a3, B05 eb7101; wave gate PASSED (120 files / 901 tests, contracts all 0, typecheck 2618/2628). Wave log: [workflow-log/P0-W4-2026-10-18.md](./workflow-log/P0-W4-2026-10-18.md). Next: merge PR #19, then W5 (G09, G12, Z01) and the P0 phase exit._
+_Last update: 2026-10-18 — W3 merged (#18, 7f69acc), W4 merged (#19, 3d2e16a). W5 complete on prd/P0-W5 (PR #21, draft): Z01 96c7f0f, G12 836e6d9, G09 5d1ab4 — missingNames 0, ratchet 2481, GP-1-lite green, all pending i18n merged. Wave log: [workflow-log/P0-W5-2026-10-18.md](./workflow-log/P0-W5-2026-10-18.md). Next: wave gate, merge #21, then the P0 phase exit (probe + full suite + build + baseline)._
 
 | Task | State | Where |
 | --- | --- | --- |

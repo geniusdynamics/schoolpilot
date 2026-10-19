@@ -11,13 +11,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { PuzzlePieceIcon, CloudArrowDownIcon, CogIcon, ShieldCheckIcon, StopIcon, TrashIcon, InformationCircleIcon, CheckCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { usePlugins } from '../../../plugins/usePlugins';
-import { PageContainer } from '../../../components/layout/PageContainer';
+import { usePlugins } from '@/plugins/usePlugins';
+import { PageContainer } from '@/components/layout/PageContainer';
 import type {
   LoadedPlugin,
   AdminPluginConfig,
-  MarketplacePlugin,
-} from '../../../plugins/types';
+} from '@/plugins/types';
 
 // ============================================================================
 // Types
@@ -298,7 +297,6 @@ const InstalledPluginsTab: React.FC<{
   onDeactivate,
   onUninstall,
   onSelect,
-  selectedPlugin,
   isLoading,
 }) => {
   const { t } = useTranslation('settings');
@@ -533,7 +531,7 @@ const MarketplaceTab: React.FC<{
   onConnect: () => void;
   installedPlugins: LoadedPlugin[];
   onSelectPlugin: (plugin: LoadedPlugin | null) => void;
-}> = ({ searchQuery, setSearchQuery, connected, onConnect, installedPlugins }) => {
+}> = ({ searchQuery, setSearchQuery, connected, onConnect, installedPlugins, onSelectPlugin }) => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [sortBy, setSortBy] = useState('stars');
 
@@ -865,7 +863,6 @@ const PluginDetailsPanel: React.FC<{
   onUninstall: () => void;
   isLoading: boolean;
 }> = ({ plugin, onClose, onActivate, onDeactivate, onUninstall, isLoading }) => {
-  const { t } = useTranslation('settings');
   const [activeSection, setActiveSection] = useState<'overview' | 'readme' | 'settings'>('overview');
 
   return (

@@ -5,6 +5,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoanData } from '@/modules/library/data/useLoanData';
 import { useLibrarySettingsData } from '@/modules/library/data/useLibrarySettingsData';
+import type { LibLoanType } from '@/modules/library/data/types';
 import { useToastHelpers } from '@/hooks/useToast';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -53,7 +54,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
       
       await extendLoan(loanId, newDueDate.toISOString().split('T')[0]);
       showSuccess(t('library:userPortal.renewSuccess'));
-    } catch (error) {
+    } catch {
       showError(t('library:userPortal.renewError'));
     }
   };
@@ -62,7 +63,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
     try {
       await returnBook(loanId);
       showSuccess(t('library:userPortal.returnSuccess'));
-    } catch (error) {
+    } catch {
       showError(t('library:userPortal.returnError'));
     }
   };

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '../../../components/ui/icons';
+import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';
-import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
@@ -65,13 +65,7 @@ export const ModuleManagementContent: React.FC = () => {
     hasModulesView: hasPermission('modules.view')
   });
 
-  useEffect(() => {
-    if (canViewModules) {
-      loadModules();
-    }
-  }, [canViewModules]);
-
-  const loadModules = async () => {
+  const loadModules = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -113,7 +107,7 @@ export const ModuleManagementContent: React.FC = () => {
         return {
           id: module.id,
           name: translatedName,
-          description: 'translatedDescription',
+          description: translatedDescription,
           version: module.version || '1.0.0',
           isEnabled: Array.isArray(enabledModuleIds) ? enabledModuleIds.includes(module.id) : false,
           isActive: moduleRegistry?.isModuleEnabled?.(module.id) || false,
@@ -132,7 +126,13 @@ export const ModuleManagementContent: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (canViewModules) {
+      loadModules();
+    }
+  }, [canViewModules, loadModules]);
 
   const handleToggleModule = async (moduleId: string, enable: boolean) => {
     if (!canManageModules) {

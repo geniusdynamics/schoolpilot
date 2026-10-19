@@ -1757,10 +1757,10 @@
       ],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b5d1ab4",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-G10",
@@ -1847,10 +1847,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "836e6d9",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P0-G13",
@@ -1902,10 +1902,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "96c7f0f",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-18"
     },
     {
       "id": "P1-A01",

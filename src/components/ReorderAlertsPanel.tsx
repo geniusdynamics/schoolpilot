@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Select, { SelectOption } from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import {
-  AlertTriangleIcon,
-  ExclamationCircleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  MinusCircleIcon,
-} from '@/components/ui/icons';
 
 interface ReorderAlert {
   id: string;
@@ -75,7 +67,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       key: 'currentStock',
       header: 'Current Stock',
       sortable: true,
-      render: (value) => (
+      render: (value, item) => (
         <span className={`font-medium ${value <= item.reorderLevel ? 'text-red-600' : 'text-surface-foreground'}`}>
           {value}
         </span>
