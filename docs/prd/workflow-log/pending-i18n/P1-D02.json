@@ -1,0 +1,37 @@
+{
+  "task": "P1-D02",
+  "note": "New schema-bound form strings used with inline English defaults. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values.",
+  "en": {
+    "common": {
+      "entityForm": {
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "ariaLabel": "Entity form",
+        "fixErrors": "Please fix the highlighted fields before saving.",
+        "saveFailed": "Could not save. Please try again.",
+        "required": "required",
+        "optional": "(optional)",
+        "lookupMissing": "No options are configured for this field.",
+        "selectPlaceholder": "Select an option…",
+        "fields": {
+          "money": {
+            "invalid": "Enter a valid amount.",
+            "tooPrecise": "Use no more than {{digits}} decimal places.",
+            "tooLarge": "Amount is too large.",
+            "negativeNotAllowed": "Amount cannot be negative.",
+            "placeholder": "0.00"
+          },
+          "phone": {
+            "invalid": "Enter a valid phone number.",
+            "placeholder": "+{{dialCode}} 700 000000"
+          },
+          "identifier": {
+            "type": "Identifier type",
+            "value": "Identifier value"
+          }
+        }
+      }
+    }
+  }
+}

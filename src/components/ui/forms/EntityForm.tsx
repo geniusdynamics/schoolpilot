@@ -1,6 +1,5 @@
-// ABOUTME: Schema-driven entity form — the canonical create/edit dialog for list pages.
-// ABOUTME: Renders a DialogForm from a declarative field config with inline validation,
-// ABOUTME: submit-in-progress handling and success/error toasts. See docs/contributing/forms.md.
+// ABOUTME: Declarative field-config dialog form retained for existing module pages.
+// ABOUTME: SchemaEntityForm is the schema-bound canonical entity form; see README.md.
 
 import React, { useCallback, useEffect, useState } from 'react';
 import DialogForm from './DialogForm';
@@ -75,7 +74,8 @@ export interface EntityFormProps {
 const EMPTY_DATA: Record<string, any> = {};
 
 /**
- * EntityForm — schema-driven modal form for creating/updating entities.
+ * EntityForm — declarative modal form for creating/updating entities from field config.
+ * For canonical entities use SchemaEntityForm, which validates with the entity schema.
  *
  * @example
  * <EntityForm
