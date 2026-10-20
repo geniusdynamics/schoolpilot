@@ -1,0 +1,19 @@
+{
+  "task": "P1-B03",
+  "note": "New permission denial strings of the role and scope model. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values. The error the repository raises (ScopePermissionError) carries the machine-readable `reason` (`no_context`, `permission`, `scope`) and the `detail`; the UI maps the reason to one of the keys below and shows the detail as the parameter, so the module itself does not translate the message. The `denied` key is the message the error carries when the UI has no catalogue of its own.",
+  "en": {
+    "common": {
+      "repository": {
+        "permissions": {
+          "denied": "Not allowed to {{action}} {{entity}}: {{detail}}",
+          "noContext": "the actor has no permission context",
+          "noPermissionCoversEntity": "no permission covers {{entity}}",
+          "roleLacksPermission": "the roles [{{roles}}] do not hold {{permission}}",
+          "rowOutsideScope": "the row is outside the scope of the roles [{{roles}}]",
+          "entityOutsideScope": "the {{entity}} row is outside the scope of the roles [{{roles}}]",
+          "auditTrailOfDatabase": "the audit trail of the whole database is only reachable by the roles whose scope covers the institution"
+        }
+      }
+    }
+  }
+}
