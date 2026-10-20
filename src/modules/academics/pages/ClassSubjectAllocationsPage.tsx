@@ -1,266 +1,404 @@
-// ABOUTME: Class-subject allocations page — which subjects each class stream takes in an academic year.
-// ABOUTME: CRUD goes through the academics module context with string ids; names are resolved at read time.
+// ABOUTME: Teaching groups page — the canonical replacement for class-subject allocations: one
+// ABOUTME: group per class group, learning area and academic year. Rows read and write through
+// ABOUTME: the repository, and every reference is chosen with an EntityPicker. The group's id
+// ABOUTME: arrays (levels, class groups) are built from the selected class group, because the
+// ABOUTME: schema form edits scalar fields only.
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import Select from '@/components/ui/Select';
-
-import { useTranslation } from 'react-i18next';
-import { logger } from '@/utils/logging';
-import { useAcademicDataContext } from '../data/AcademicDataContext';
-import { useAdministrationDataContext } from '@/modules/administration/data/AdministrationDataContext';
+import Input from '@/components/ui/Input';
+import Spinner from '@/components/ui/Spinner';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useLookup } from '@/data/query';
+import { type CreateInput, type UpdateInput } from '@/data/repository';
+import { asId, type Id } from '@/domain/ids';
+import { TEACHING_GROUP_KINDS } from '@/domain/schema';
 import { useToast } from '@/hooks/useToast';
 
-type Id = string | number;
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
+import { useCanonicalAcademics, type TeachingGroupRow } from '../data/useCanonicalAcademics';
 
-/** An allocation row as shown in the grid; ids are strings and names are resolved from the referenced records. */
-interface AllocationRow {
-  id: string;
-  class_stream_id: string;
-  subject_id: string;
-  academic_year_id: string;
-  class_stream_name: string;
-  subject_name: string;
-  academic_year_name: string;
+interface GroupDraft {
+  readonly name: string;
+  readonly classGroupId: Id<'class_group'> | null;
+  readonly learningAreaId: Id<'learning_area'> | null;
+  readonly academicYearId: Id<'academic_year'> | null;
+  readonly campusId: Id<'campus'> | null;
+  readonly kind: (typeof TEACHING_GROUP_KINDS)[number];
 }
 
-interface AllocationFormData {
-  class_stream_id?: string;
-  subject_id?: string;
-  academic_year_id?: string;
-}
+const EMPTY_DRAFT: GroupDraft = {
+  name: '',
+  classGroupId: null,
+  learningAreaId: null,
+  academicYearId: null,
+  campusId: null,
+  kind: 'whole_class',
+};
 
-interface Named { id: Id; name?: string | null }
-interface StreamRecord extends Named { class_id?: Id | null; class_name?: string | null }
-interface SubjectRecord extends Named { subject_code?: string | null }
-interface StoredAllocation {
-  id: Id;
-  class_stream_id?: Id | null;
-  subject_id?: Id | null;
-  academic_year_id?: Id | null;
-  class_stream_name?: string | null;
-  subject_name?: string | null;
-  academic_year_name?: string | null;
-}
+const TeachingGroupsContent: React.FC = () => {
+  const { t } = useTranslation('academics');
+  const toast = useToast();
+  const confirm = useConfirm();
+  const {
+    repository,
+    institutionId,
+    isLoading,
+    teachingGroups,
+    teachingGroupMembers,
+    teachingAssignments,
+    classGroups,
+    levels,
+    campuses,
+    classGroupById,
+    learningAreaById,
+    academicYearById,
+  } = useCanonicalAcademics();
 
-const idOf = (value: Id | null | undefined): string => (value == null ? '' : String(value));
+  const classGroupLookup = useLookup(repository, 'class_group', {
+    label: (row) => `${levels.find((level) => level.id === row.level_id)?.name ?? ''} ${row.name}`.trim(),
+  });
+  const learningAreaLookup = useLookup(repository, 'learning_area', { label: (row) => row.name });
+  const academicYearLookup = useLookup(repository, 'academic_year', { label: (row) => row.name });
+  const campusLookup = useLookup(repository, 'campus', { label: (row) => row.name });
 
-export const ClassSubjectAllocationsContent: React.FC = () => {
-  const { t } = useTranslation(['academics', 'common']);
-  const academic = useAcademicDataContext();
-  const admin = useAdministrationDataContext();
-  const { addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation } = academic;
-  const [isSaving, setIsSaving] = useState(false);
+  const [editing, setEditing] = useState<TeachingGroupRow | null>(null);
+  const [draft, setDraft] = useState<GroupDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const classStreams = admin.classStreams as unknown as StreamRecord[];
-  const classes = admin.classes as unknown as Named[];
-  const subjects = academic.subjects as SubjectRecord[];
-  const academicYears = academic.academicYears as unknown as Named[];
-
-  const streamLabel = useCallback((stream: StreamRecord) => {
-    const className = classes.find(c => idOf(c.id) === idOf(stream.class_id))?.name ?? stream.class_name;
-    return className ? `${className} - ${stream.name ?? ''}` : (stream.name ?? '');
-  }, [classes]);
-
-  const classSubjectAllocations = useMemo<AllocationRow[]>(() =>
-    (academic.classSubjectAllocations as unknown as StoredAllocation[]).map(alloc => {
-      const stream = classStreams.find(cs => idOf(cs.id) === idOf(alloc.class_stream_id));
-      return {
-        id: idOf(alloc.id),
-        class_stream_id: idOf(alloc.class_stream_id),
-        subject_id: idOf(alloc.subject_id),
-        academic_year_id: idOf(alloc.academic_year_id),
-        class_stream_name: (stream ? streamLabel(stream) : alloc.class_stream_name) ?? '',
-        subject_name: subjects.find(s => idOf(s.id) === idOf(alloc.subject_id))?.name ?? alloc.subject_name ?? '',
-        academic_year_name: academicYears.find(ay => idOf(ay.id) === idOf(alloc.academic_year_id))?.name ?? alloc.academic_year_name ?? '',
-      };
-    }), [academic.classSubjectAllocations, classStreams, streamLabel, subjects, academicYears]);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAllocation, setEditingAllocation] = useState<AllocationRow | null>(null);
-  
-  const initialFormData: AllocationFormData = { 
-    class_stream_id: undefined, 
-    subject_id: undefined,
-    academic_year_id: undefined,
+  const startNew = () => {
+    setEditing(null);
+    setFormError(null);
+    setDraft({
+      ...EMPTY_DRAFT,
+      campusId: campuses.find((campus) => campus.is_main)?.id ?? campuses[0]?.id ?? null,
+    });
   };
-  const [formData, setFormData] = useState<AllocationFormData>(initialFormData);
 
-  const openModal = (allocation?: AllocationRow) => {
-    setEditingAllocation(allocation || null);
-    setFormData(allocation ? 
-      { 
-        class_stream_id: allocation.class_stream_id, 
-        subject_id: allocation.subject_id,
-        academic_year_id: allocation.academic_year_id,
-      } : 
-      initialFormData
+  const startEdit = (row: TeachingGroupRow) => {
+    setEditing(row);
+    setFormError(null);
+    setDraft({
+      name: row.name,
+      classGroupId: row.class_group_ids[0] ? asId<'class_group'>(row.class_group_ids[0]) : null,
+      learningAreaId: asId<'learning_area'>(row.learning_area_id),
+      academicYearId: asId<'academic_year'>(row.academic_year_id),
+      campusId: asId<'campus'>(row.campus_id),
+      kind: row.kind,
+    });
+  };
+
+  const closeForm = () => {
+    setDraft(null);
+    setEditing(null);
+    setFormError(null);
+  };
+
+  const changeClassGroup = (classGroupId: Id<'class_group'> | null) => {
+    const classGroup = classGroups.find((row) => row.id === classGroupId);
+    setDraft((current) =>
+      current
+        ? {
+            ...current,
+            classGroupId,
+            academicYearId: classGroup
+              ? asId<'academic_year'>(classGroup.academic_year_id)
+              : current.academicYearId,
+            campusId: classGroup ? asId<'campus'>(classGroup.campus_id) : current.campusId,
+          }
+        : current
     );
-    setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingAllocation(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value || undefined }));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.class_stream_id || !formData.subject_id || !formData.academic_year_id) {
-      toast.showWarning(t('validation.classStreamSubjectAcademicYearRequired'));
+  const submit = async () => {
+    if (!draft) return;
+    const classGroup = classGroups.find((row) => row.id === draft.classGroupId);
+    if (!draft.name.trim() || !classGroup || !draft.learningAreaId || !draft.academicYearId || !draft.campusId) {
+      setFormError('Name, class group, learning area, academic year and campus are required.');
+      return;
+    }
+    if (institutionId === null) {
+      setFormError('The canonical database holds no institution row, so a teaching group cannot be saved yet.');
+      return;
+    }
+    if (
+      teachingGroups.some(
+        (row) =>
+          row.id !== editing?.id &&
+          row.campus_id === draft.campusId &&
+          row.academic_year_id === draft.academicYearId &&
+          row.learning_area_id === draft.learningAreaId &&
+          row.name === draft.name.trim()
+      )
+    ) {
+      setFormError('A teaching group with this name already exists for that learning area and year.');
       return;
     }
 
-    const isDuplicate = classSubjectAllocations.some(
-        alloc => alloc.id !== editingAllocation?.id &&
-                 alloc.class_stream_id === formData.class_stream_id &&
-                 alloc.subject_id === formData.subject_id &&
-                 alloc.academic_year_id === formData.academic_year_id
-    );
-
-    if (isDuplicate) {
-        toast.showError(t('validation.subjectAlreadyAllocated'));
-        return;
-    }
-
-    const payload = {
-        class_stream_id: formData.class_stream_id,
-        subject_id: formData.subject_id,
-        academic_year_id: formData.academic_year_id,
+    const payload: CreateInput<'teaching_group'> = {
+      institution_id: institutionId,
+      campus_id: draft.campusId,
+      academic_year_id: draft.academicYearId,
+      learning_area_id: draft.learningAreaId,
+      name: draft.name.trim(),
+      level_ids: [classGroup.level_id],
+      class_group_ids: [classGroup.id],
+      teacher_ids: editing?.teacher_ids ?? [],
+      kind: draft.kind,
     };
 
-    setIsSaving(true);
+    setSaving(true);
+    setFormError(null);
     try {
-      if (editingAllocation) {
-        await updateClassSubjectAllocation(editingAllocation.id, payload as never);
+      if (editing) {
+        const patch: UpdateInput<'teaching_group'> = {
+          campus_id: payload.campus_id,
+          academic_year_id: payload.academic_year_id,
+          learning_area_id: payload.learning_area_id,
+          name: payload.name,
+          level_ids: payload.level_ids,
+          class_group_ids: payload.class_group_ids,
+          kind: payload.kind,
+        };
+        await repository.update('teaching_group', asId<'teaching_group'>(editing.id), patch, {
+          expectedVersion: editing.rowVersion,
+        });
+        toast.showSuccess('Teaching group saved.');
       } else {
-        await addClassSubjectAllocation(payload as never);
+        await repository.create('teaching_group', payload);
+        toast.showSuccess('Teaching group created.');
       }
-      closeModal();
+      closeForm();
     } catch (error) {
-      logger.error('Error saving allocation:', error);
-      toast.showError('Error saving allocation');
+      setFormError(messageOf(error));
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  const confirm = useConfirm();
-  const toast = useToast();
-  const handleDelete = async (id: string) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this subject allocation?' }))) {
-      try {
-        await deleteClassSubjectAllocation(id);
-      } catch (error) {
-        logger.error('Error deleting allocation:', error);
-        toast.showError('Error deleting allocation');
-      }
+  const remove = async (row: TeachingGroupRow) => {
+    const confirmed = await confirm({
+      variant: 'danger',
+      message: `Delete the teaching group ${row.name}? Its memberships and assignments are not deleted with it.`,
+    });
+    if (!confirmed) return;
+    try {
+      await repository.remove('teaching_group', asId<'teaching_group'>(row.id), {
+        expectedVersion: row.rowVersion,
+      });
+      toast.showSuccess('Teaching group deleted.');
+    } catch (error) {
+      toast.showError(messageOf(error));
     }
   };
 
-  const columns: DataGridColumn<AllocationRow>[] = [
-    { header: 'ID', key: 'id', sortable: true },
-    { header: 'Class Stream', key: 'class_stream_name', sortable: true, filterable: true, render: (_v: any, item: AllocationRow) => <span className="truncate block max-w-[220px]" title={item.class_stream_name || ''}>{item.class_stream_name || '—'}</span> },
-    { header: 'Subject', key: 'subject_name', sortable: true, filterable: true, render: (_v: any, item: AllocationRow) => <span className="truncate block max-w-[240px]" title={item.subject_name || ''}>{item.subject_name || '—'}</span> },
-    { header: 'Academic Year', key: 'academic_year_name', sortable: true },
+  const classGroupName = (id: string) => classGroupById.get(id)?.name ?? id;
+  const columns: DataGridColumn<TeachingGroupRow>[] = [
     {
-      header: 'Actions',
+      key: 'name',
+      header: t('classSubjectAllocations.title', 'Teaching group'),
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'class_group_ids',
+      header: 'Class group',
+      render: (_value: unknown, row: TeachingGroupRow) =>
+        row.class_group_ids.length > 0 ? row.class_group_ids.map(classGroupName).join(', ') : '—',
+    },
+    {
+      key: 'learning_area_id',
+      header: t('classSubjectAllocations.subjectLabel', 'Learning area'),
+      render: (_value: unknown, row: TeachingGroupRow) =>
+        learningAreaById.get(row.learning_area_id)?.name ?? row.learning_area_id,
+    },
+    {
+      key: 'academic_year_id',
+      header: t('classSubjectAllocations.academicYearLabel', 'Academic year'),
+      render: (_value: unknown, row: TeachingGroupRow) =>
+        academicYearById.get(row.academic_year_id)?.name ?? row.academic_year_id,
+    },
+    { key: 'kind', header: 'Kind' },
+    {
+      key: 'members',
+      header: 'Members',
+      align: 'right',
+      render: (_value: unknown, row: TeachingGroupRow) =>
+        teachingGroupMembers.filter((member) => member.teaching_group_id === row.id).length,
+    },
+    {
+      key: 'teachers',
+      header: 'Teachers',
+      align: 'right',
+      render: (_value: unknown, row: TeachingGroupRow) =>
+        teachingAssignments.filter((assignment) => assignment.teaching_group_id === row.id).length,
+    },
+    {
       key: 'actions',
-      sticky: 'right',
-      sortable: false,
-      filterable: false,
-      render: (_value: any, item: AllocationRow) => (
+      header: 'Actions',
+      render: (_value: unknown, row: TeachingGroupRow) => (
         <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => startEdit(row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void remove(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
         </div>
       ),
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <Card title={t('classSubjectAllocations.title')} bodyClassName="p-0" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classSubjectAllocations.addButton')}</Button>
-      }>
-        <div className="p-4 sm:p-6 pb-3 text-sm text-surface-muted-fg border-b border-surface-border">
-          Assign subjects to specific class streams for a given academic year.
-        </div>
-        <DataGrid columns={columns} data={classSubjectAllocations} sortable filterable />
-      </Card>
-
-      <DialogForm open={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"
+      <Card
+        title={t('classSubjectAllocations.title', 'Teaching groups')}
+        bodyClassName="p-0"
         actions={
-          <FormActions>
-            <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
-            <Button onClick={handleSubmit} loading={isSaving}>
-              {t('common:save')}
-            </Button>
-          </FormActions>
+          <Button onClick={startNew} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            Add teaching group
+          </Button>
         }
       >
-        <FormSection>
-          <FormField label={t('classSubjectAllocations.classStreamLabel')}>
-            <Select 
-              name="class_stream_id" 
-              value={formData.class_stream_id ?? ''}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">{t('classSubjectAllocations.selectClassStreamOption')}</option>
-              {classStreams.map(cs => (
-                <option key={cs.id} value={idOf(cs.id)}>{streamLabel(cs)}</option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label={t('classSubjectAllocations.subjectLabel')}>
-            <Select 
-              name="subject_id" 
-              value={formData.subject_id ?? ''}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">{t('classSubjectAllocations.selectSubjectOption')}</option>
-              {subjects.map(subject => (
-                <option key={subject.id} value={idOf(subject.id)}>{subject.name} ({subject.subject_code})</option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label={t('classSubjectAllocations.academicYearLabel')}>
-            <Select 
-              name="academic_year_id" 
-              value={formData.academic_year_id ?? ''}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">{t('classSubjectAllocations.selectAcademicYearOption')}</option>
-              {academicYears.map(ay => (
-                <option key={ay.id} value={idOf(ay.id)}>{ay.name}</option>
-              ))}
-            </Select>
-          </FormField>
-        </FormSection>
-      </DialogForm>
+        <p className="border-t border-surface-border p-4 text-sm text-surface-muted-fg">
+          A teaching group joins one class group and one learning area for an academic year. Its
+          members are the learners taught it; its assignments are the teachers.
+        </p>
+        <DataGrid
+          columns={columns}
+          data={[...teachingGroups]}
+          sortable
+          filterable
+          pagination
+          emptyState="No teaching groups yet. Add the first one."
+        />
+      </Card>
+
+      {draft && (
+        <Card title={editing ? `Edit ${editing.name}` : 'New teaching group'}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Input
+                label="Name"
+                value={draft.name}
+                onChange={(event) =>
+                  setDraft((current) => (current ? { ...current, name: event.target.value } : current))
+                }
+                placeholder="e.g. Grade 7 East Mathematics"
+              />
+              <EntityPicker
+                label="Class group"
+                value={draft.classGroupId}
+                onChange={changeClassGroup}
+                lookup={classGroupLookup}
+                placeholder="Select a class group"
+                allowClear
+              />
+              <EntityPicker
+                label={t('classSubjectAllocations.subjectLabel', 'Learning area')}
+                value={draft.learningAreaId}
+                onChange={(next) =>
+                  setDraft((current) => (current ? { ...current, learningAreaId: next } : current))
+                }
+                lookup={learningAreaLookup}
+                placeholder="Select a learning area"
+                allowClear
+              />
+              <EntityPicker
+                label={t('classSubjectAllocations.academicYearLabel', 'Academic year')}
+                value={draft.academicYearId}
+                onChange={(next) =>
+                  setDraft((current) => (current ? { ...current, academicYearId: next } : current))
+                }
+                lookup={academicYearLookup}
+                placeholder="Select an academic year"
+                allowClear
+              />
+              <EntityPicker
+                label="Campus"
+                value={draft.campusId}
+                onChange={(next) =>
+                  setDraft((current) => (current ? { ...current, campusId: next } : current))
+                }
+                lookup={campusLookup}
+                placeholder="Select a campus"
+                allowClear
+              />
+              <label className="block text-sm font-medium text-surface-foreground">
+                Kind
+                <select
+                  className="mt-1.5 w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm"
+                  value={draft.kind}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, kind: event.target.value as GroupDraft['kind'] }
+                        : current
+                    )
+                  }
+                >
+                  {TEACHING_GROUP_KINDS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {kind.replace(/_/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {formError && (
+              <p role="alert" className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+                {formError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button onClick={() => void submit()} loading={saving}>
+                {editing ? 'Save teaching group' : 'Create teaching group'}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
 
-const ClassSubjectAllocationsPage: React.FC = () => {
-  return <ClassSubjectAllocationsContent />;
-};
+export const ClassSubjectAllocationsContent: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <TeachingGroupsContent />
+  </CanonicalRepositoryProvider>
+);
+
+const ClassSubjectAllocationsPage: React.FC = () => <ClassSubjectAllocationsContent />;
 
 export default ClassSubjectAllocationsPage;

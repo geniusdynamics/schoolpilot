@@ -1,3 +1,4 @@
+// GAP(P1-E02): the registry models no exam-gazette entity, so the gazettes stay on the legacy collection.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';

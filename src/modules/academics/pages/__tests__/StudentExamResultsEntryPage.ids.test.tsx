@@ -1,90 +1,203 @@
-// ABOUTME: Tests that marks entry lists a stream's active students for string stream ids.
-// ABOUTME: Covers seeded numeric-string ids ("1") and UI-created UUID ids, which parseInt broke.
+// ABOUTME: The register follows the teaching group the picker hands it: two groups of the same
+// ABOUTME: learning area list their own members, and the id is kept as the opaque string it is.
 
-import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
 import StudentExamResultsEntryPage from '../StudentExamResultsEntryPage';
-import { AppDataContext } from '@/contexts/AppDataContext';
-import { ToastProvider } from '@/hooks/useToast';
-import { ExamSessionStatus } from '@/modules/academics/data/types';
+import { createFakeRepository, type FakeRepository } from './canonicalRepositoryDouble';
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string, fallback?: string | Record<string, unknown>) =>
+      typeof fallback === 'string' ? fallback : key,
+  }),
 }));
 
-const UUID_STREAM = '874b9758-1c2d-4e5f-8a9b-0c1d2e3f4a5b';
+const INSTITUTION = '0192a1b2-0000-7000-8000-000000000001';
+const PERIOD = '0192a1b2-0000-7000-8000-000000000002';
+const YEAR = '0192a1b2-0000-7000-8000-000000000003';
+const LEVEL = '0192a1b2-0000-7000-8000-000000000004';
+const CLASS_GROUP = '0192a1b2-0000-7000-8000-000000000005';
+const AREA = '0192a1b2-0000-7000-8000-000000000006';
+const ASSESSMENT = '0192a1b2-0000-7000-8000-000000000007';
+const GROUP_EAST = '0192a1b2-0000-7000-8000-000000000008';
+const GROUP_WEST = '0192a1b2-0000-7000-8000-000000000009';
 
-const student = (id: string, first: string, streamId: string, status = 'Active') => ({
-  id,
-  admission_no: id.toUpperCase(),
-  first_name: first,
-  last_name: 'Pupil',
-  status,
-  current_class_stream_id: streamId,
-});
+const people = [
+  { id: '0192a1b2-0000-7000-8000-00000000000a', given: 'Amani', family: 'Otieno', admission: 'ADM-001' },
+  { id: '0192a1b2-0000-7000-8000-00000000000b', given: 'Bello', family: 'Mwangi', admission: 'ADM-002' },
+];
 
-const contextValue = {
-  studentExamResults: [],
-  students: [
-    student('s1', 'Seeded', '1'),
-    student('s2', 'Twelve', '12'),
-    student('s3', 'Uuidkid', UUID_STREAM),
-    student('s4', 'Leaver', UUID_STREAM, 'Graduated'),
-    student('s5', 'Wrongrecord', '874'),
-  ],
-  examSessions: [
+const rows = () => ({
+  institution: [{ id: INSTITUTION, name: 'Greenfields Academy' }],
+  academic_period: [
     {
-      id: 'session-1',
-      name: 'Term 1 Exams',
-      school_period_name: 'Term 1',
-      status: ExamSessionStatus.MARKS_ENTRY_OPEN,
-      paper_settings: [
-        { id: 'ps-1', exam_session_id: 'session-1', subject_name: 'Maths', subject_paper_name: 'Paper 1', marks_out_of: 100 },
-      ],
+      id: PERIOD,
+      name: 'Term 1',
+      academic_year_id: YEAR,
+      start_date: '2026-01-05',
+      end_date: '2026-04-03',
+      kind: 'term',
+      is_current: true,
+      institution_id: INSTITUTION,
     },
   ],
-  classStreams: [
-    { id: '1', class_name: 'Form 1', name: 'A' },
-    { id: '12', class_name: 'Form 1', name: 'B' },
-    { id: UUID_STREAM, class_name: 'Grade 7', name: 'North' },
+  level: [
+    {
+      id: LEVEL,
+      name: 'Grade 7',
+      ordinal: 7,
+      is_terminal: false,
+      stage_id: '0192a1b2-0000-7000-8000-00000000000c',
+      institution_id: INSTITUTION,
+    },
   ],
-  loading: { students: false, examSessions: false, classStreams: false },
-  saveStudentExamResult: vi.fn(),
-};
+  class_group: [
+    {
+      id: CLASS_GROUP,
+      name: 'East',
+      level_id: LEVEL,
+      academic_year_id: YEAR,
+      campus_id: '0192a1b2-0000-7000-8000-00000000000d',
+      programme_id: '0192a1b2-0000-7000-8000-00000000000e',
+      institution_id: INSTITUTION,
+      homeroom_teacher_ids: [],
+    },
+  ],
+  learning_area: [
+    {
+      id: AREA,
+      code: 'MAT',
+      name: 'Mathematics',
+      kind: 'core',
+      programme_id: '0192a1b2-0000-7000-8000-00000000000e',
+      level_ids: [LEVEL],
+      pathway_ids: [],
+      institution_id: INSTITUTION,
+    },
+  ],
+  assessment: [
+    {
+      id: ASSESSMENT,
+      name: 'End of Term 1',
+      kind: 'end_term',
+      academic_period_id: PERIOD,
+      learning_area_ids: [AREA],
+      class_group_ids: [CLASS_GROUP],
+      level_ids: [LEVEL],
+      component_ids: [],
+      max_score: 100,
+      status: 'open',
+      institution_id: INSTITUTION,
+    },
+  ],
+  teaching_group: [
+    {
+      id: GROUP_EAST,
+      name: 'Grade 7 East Mathematics',
+      campus_id: '0192a1b2-0000-7000-8000-00000000000d',
+      academic_year_id: YEAR,
+      learning_area_id: AREA,
+      level_ids: [LEVEL],
+      class_group_ids: [CLASS_GROUP],
+      teacher_ids: [],
+      kind: 'set',
+      institution_id: INSTITUTION,
+    },
+    {
+      id: GROUP_WEST,
+      name: 'Grade 7 West Mathematics',
+      campus_id: '0192a1b2-0000-7000-8000-00000000000d',
+      academic_year_id: YEAR,
+      learning_area_id: AREA,
+      level_ids: [LEVEL],
+      class_group_ids: [CLASS_GROUP],
+      teacher_ids: [],
+      kind: 'set',
+      institution_id: INSTITUTION,
+    },
+  ],
+  teaching_group_member: [
+    {
+      id: '0192a1b2-0000-7000-8000-00000000000f',
+      teaching_group_id: GROUP_EAST,
+      enrolment_id: '0192a1b2-0000-7000-8000-000000000010',
+      valid_from: '2026-01-05',
+      institution_id: INSTITUTION,
+    },
+    {
+      id: '0192a1b2-0000-7000-8000-000000000011',
+      teaching_group_id: GROUP_WEST,
+      enrolment_id: '0192a1b2-0000-7000-8000-000000000012',
+      valid_from: '2026-01-05',
+      institution_id: INSTITUTION,
+    },
+  ],
+  learner: people.map((person) => ({
+    id: person.id,
+    given_name: person.given,
+    family_name: person.family,
+    admission_number: person.admission,
+    institution_id: INSTITUTION,
+    status: 'enrolled',
+    name_order: 'given_first',
+    gender: 'male',
+    residence_status: 'day',
+  })),
+  enrolment: [
+    {
+      id: '0192a1b2-0000-7000-8000-000000000010',
+      learner_id: people[0].id,
+      academic_year_id: YEAR,
+      programme_id: '0192a1b2-0000-7000-8000-00000000000e',
+      level_id: LEVEL,
+      class_group_id: CLASS_GROUP,
+      status: 'active',
+      start_date: '2026-01-05',
+      institution_id: INSTITUTION,
+    },
+    {
+      id: '0192a1b2-0000-7000-8000-000000000012',
+      learner_id: people[1].id,
+      academic_year_id: YEAR,
+      programme_id: '0192a1b2-0000-7000-8000-00000000000e',
+      level_id: LEVEL,
+      class_group_id: CLASS_GROUP,
+      status: 'active',
+      start_date: '2026-01-05',
+      institution_id: INSTITUTION,
+    },
+  ],
+  mark: [],
+});
 
-const renderPage = () =>
-  rtlRender(
-    <ToastProvider>
-      <AppDataContext.Provider value={contextValue as any}>
+let repository: FakeRepository;
+
+async function choose(label: string, option: string) {
+  fireEvent.click(screen.getByRole('combobox', { name: new RegExp(label) }));
+  fireEvent.click(await screen.findByRole('option', { name: option }));
+}
+
+beforeEach(() => {
+  repository = createFakeRepository(rows());
+});
+
+describe('marks entry follows the selected teaching group', () => {
+  it('lists the members of the group the picker handed over, and only those', async () => {
+    render(
+      <CanonicalRepositoryProvider repository={repository}>
         <StudentExamResultsEntryPage />
-      </AppDataContext.Provider>
-    </ToastProvider>
-  );
+      </CanonicalRepositoryProvider>
+    );
+    await choose('Assessment', 'End of Term 1 (end term)');
+    await choose('Teaching group', 'Grade 7 East Mathematics');
+    expect(await screen.findByText('Amani Otieno')).toBeTruthy();
+    expect(screen.queryByText('Bello Mwangi')).toBeNull();
 
-const chooseStream = async (streamId: string) => {
-  const view = renderPage();
-  const [sessionSelect, streamSelect] = Array.from(view.container.querySelectorAll('select')) as HTMLSelectElement[];
-  fireEvent.change(sessionSelect, { target: { value: 'session-1' } });
-  await waitFor(() => expect(streamSelect).not.toBeDisabled());
-  fireEvent.change(streamSelect, { target: { value: streamId } });
-  return { ...view, streamSelect };
-};
-
-describe('StudentExamResultsEntryPage stream ids', () => {
-  it('lists the active students of a numeric-string stream', async () => {
-    const { streamSelect } = await chooseStream('1');
-    await waitFor(() => expect(screen.getByText('Seeded Pupil')).toBeInTheDocument());
-    expect(streamSelect.value).toBe('1');
-    expect(screen.queryByText('Twelve Pupil')).not.toBeInTheDocument();
-    expect(screen.queryByText('No students in selected class stream.')).not.toBeInTheDocument();
-  });
-
-  it('lists the active students of a UUID stream without coercing the id', async () => {
-    const { streamSelect } = await chooseStream(UUID_STREAM);
-    await waitFor(() => expect(screen.getByText('Uuidkid Pupil')).toBeInTheDocument());
-    expect(streamSelect.value).toBe(UUID_STREAM);
-    expect(screen.queryByText('Leaver Pupil')).not.toBeInTheDocument();
-    expect(screen.queryByText('Wrongrecord Pupil')).not.toBeInTheDocument();
+    await choose('Teaching group', 'Grade 7 West Mathematics');
+    await waitFor(() => expect(screen.getByText('Bello Mwangi')).toBeTruthy());
+    expect(screen.queryByText('Amani Otieno')).toBeNull();
   });
 });

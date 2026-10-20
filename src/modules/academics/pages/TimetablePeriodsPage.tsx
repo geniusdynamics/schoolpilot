@@ -1,3 +1,4 @@
+// GAP(P1-E02): the registry models a timetable slot per day, not a period definition, so the legacy collection stays.
 import React, { useState } from 'react';
 import { TimetablePeriodDef } from '@/core/types'; // Use core type (shared across modules)
 import Card from '@/components/ui/Card';
@@ -76,7 +77,7 @@ export const TimetablePeriodsContent: React.FC = () => {
         await insert(payload);
         toast.showSuccess('Timetable period added.');
       }
-    } catch (err) {
+    } catch {
       toast.showError('Failed to save timetable period.');
     }
     closeModal();
@@ -88,7 +89,7 @@ export const TimetablePeriodsContent: React.FC = () => {
       try {
         await remove(String(id));
         toast.showSuccess('Timetable period deleted.');
-      } catch (err) {
+      } catch {
         toast.showError('Failed to delete timetable period.');
       }
     }

@@ -1,3 +1,4 @@
+// GAP(P1-E02): the registry models no marks-entry session or token entity, so they stay on the legacy collection.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';

@@ -1,3 +1,4 @@
+// GAP(P1-E02): the registry models no cross-check record entity, so it stays on the legacy collection.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
