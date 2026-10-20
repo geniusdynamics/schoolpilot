@@ -101,6 +101,8 @@ interface Watcher {
 interface AmbientTransaction {
   readonly tx: SqliteTransaction;
   readonly events: ChangeEvent[];
+  /** Resolves when the transaction is over: committed or rolled back. */
+  readonly done: Promise<void>;
 }
 
 /**
@@ -126,6 +128,13 @@ export class Repository {
   private commitSequence = 0;
   /** The transaction a write joins while one is open; null when there is none. */
   private ambient: AmbientTransaction | null = null;
+  /**
+   * The transaction in flight, if any.
+   *
+   * It spans the commit, not only the callback, so a read of the committed state can
+   * wait for the transaction to be over instead of joining it.
+   */
+  private inFlight: { readonly done: Promise<void> } | null = null;
 
   constructor(options: RepositoryOptions) {
     this.adapter = options.adapter;
@@ -171,6 +180,10 @@ export class Repository {
    * transactions, so the join is the only way a service can write several rows
    * atomically.
    *
+   * A read made while the callback runs joins it too, so it sees the rows the
+   * transaction wrote but has not committed yet. A read that has to show the committed
+   * state - a watch delivery - waits for the transaction to be over instead.
+   *
    * The change events of the writes that joined are delivered when the transaction
    * commits, never inside it: a watcher must never see a change that a later failure
    * rolls back. Their order is the order the writes happened in, and their commit
@@ -187,12 +200,14 @@ export class Repository {
    */
   async transaction<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T> {
     const events: ChangeEvent[] = [];
+    const done = deferred();
+    this.inFlight = { done: done.promise };
 
     let result: T;
     try {
       result = await this.adapter.transaction(async (tx) => {
         const previous = this.ambient;
-        this.ambient = { tx, events };
+        this.ambient = { tx, events, done: done.promise };
         try {
           return await work(tx);
         } finally {
@@ -207,6 +222,9 @@ export class Repository {
       }
       if (error instanceof RepositoryError) throw error;
       throw mapStorageError(undefined, error);
+    } finally {
+      this.inFlight = null;
+      done.resolve();
     }
 
     // The transaction committed, so the events of the writes that joined it are
@@ -219,6 +237,31 @@ export class Repository {
     return result;
   }
 
+  /**
+   * The handle a read runs on.
+   *
+   * A read made while a transaction callback runs joins that transaction, so it sees the
+   * rows the transaction wrote but has not committed yet. Outside a transaction the read
+   * runs on the adapter, exactly as before.
+   */
+  private reader(): SqliteTransaction {
+    return this.ambient?.tx ?? this.adapter;
+  }
+
+  /**
+   * The handle a read of the committed state runs on.
+   *
+   * A watch delivery must not show the rows an open transaction has not committed, so it
+   * waits for the transaction in flight to be over and then reads through the adapter.
+   */
+  private async committedReader(): Promise<SqliteTransaction> {
+    for (;;) {
+      const inFlight = this.inFlight;
+      if (!inFlight) return this.adapter;
+      await inFlight.done;
+    }
+  }
+
   /** Reads one row. Soft-deleted rows are hidden unless `includeDeleted` is set. */
   async get<E extends EntityName>(
     entity: E,
@@ -229,7 +272,7 @@ export class Repository {
     this.checkPermission({ action: 'read', entity, id });
 
     const columns = columnsFor(entity);
-    const raw = await this.adapter.get<SqliteRow>(
+    const raw = await this.reader().get<SqliteRow>(
       `SELECT * FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`,
       [id]
     );
@@ -594,7 +637,7 @@ export class Repository {
   /** The audit trail of one row, newest first. */
   async auditTrail(entity: EntityName, entityId: string): Promise<readonly AuditEvent[]> {
     this.checkPermission({ action: 'audit', entity, id: entityId });
-    return readAuditEvents(this.adapter, { entity, entityId });
+    return readAuditEvents(this.reader(), { entity, entityId });
   }
 
   /**
@@ -605,15 +648,17 @@ export class Repository {
    * so it must not be handed out without a check.
    */
   async auditLog(query: AuditQuery = {}): Promise<readonly AuditEvent[]> {
+    const reader = this.reader();
+
     if (query.entity !== undefined) {
       this.checkPermission({ action: 'audit', entity: query.entity });
-      return readAuditEvents(this.adapter, query);
+      return readAuditEvents(reader, query);
     }
 
-    for (const entity of await readAuditEntities(this.adapter)) {
+    for (const entity of await readAuditEntities(reader)) {
       this.checkPermission({ action: 'audit', entity });
     }
-    return readAuditEvents(this.adapter, query);
+    return readAuditEvents(reader, query);
   }
 
   /** Resolves when no watch delivery is pending. */
@@ -630,20 +675,22 @@ export class Repository {
 
   private async readPage<E extends EntityName>(
     entity: E,
-    query: ListQuery
+    query: ListQuery,
+    reader?: SqliteTransaction
   ): Promise<Page<RepositoryRow<E>>> {
     const columns = columnsFor(entity);
     const where = buildWhere(entity, query);
     const order = buildOrder(entity, query);
     const limit = clampLimit(query.limit);
     const offset = pageOffset(entity, query);
+    const handle = reader ?? this.reader();
 
-    const rows = await this.adapter.all<SqliteRow>(
+    const rows = await handle.all<SqliteRow>(
       `SELECT * FROM "${columns.table}" ${where.clause} ${order} LIMIT ? OFFSET ?`,
       [...where.params, limit + 1, offset]
     );
 
-    const counted = await this.adapter.get<{ total: number }>(
+    const counted = await handle.get<{ total: number }>(
       `SELECT COUNT(*) AS total FROM "${columns.table}" ${where.clause}`,
       where.params
     );
@@ -726,8 +773,10 @@ export class Repository {
       await this.adapter.transaction(work);
     } catch (error) {
       // A typed repository error is the answer already; only a raw storage failure is
-      // mapped here.
+      // mapped here. A nested transaction is a mistake in the calling code, so it keeps
+      // the adapter's own error.
       if (error instanceof RepositoryError) throw error;
+      if (isNestedTransaction(error)) throw error;
       throw mapStorageError(entity, error);
     }
 
@@ -824,10 +873,32 @@ export class Repository {
   private async deliverToWatcher(watcher: Watcher): Promise<void> {
     const commitSequence = this.commitSequence;
     try {
-      const page = await this.readPage(watcher.entity, watcher.query);
+      const page = await this.readCommittedPage(watcher.entity, watcher.query);
       watcher.listener(page.items as unknown as readonly never[], commitSequence);
     } catch (error) {
       this.reportListenerError(error);
+    }
+  }
+
+  /**
+   * Reads a page of the committed state.
+   *
+   * A delivery shows what is committed, so it waits for a transaction in flight instead
+   * of joining it: a watcher must never see the rows of a transaction that a later
+   * failure rolls back.
+   */
+  private async readCommittedPage<E extends EntityName>(
+    entity: E,
+    query: ListQuery
+  ): Promise<Page<RepositoryRow<E>>> {
+    for (;;) {
+      const reader = await this.committedReader();
+      try {
+        return await this.readPage(entity, query, reader);
+      } catch (error) {
+        // A transaction opened between the wait and the read: wait for it and try again.
+        if (!isNestedTransaction(error)) throw error;
+      }
     }
   }
 
@@ -838,6 +909,20 @@ export class Repository {
     }
     // A listener that throws must not break the delivery of the other watchers.
   }
+}
+
+/** A promise the repository resolves when a transaction is over. */
+function deferred(): { promise: Promise<void>; resolve: () => void } {
+  const state: { resolve?: () => void } = {};
+  const promise = new Promise<void>((resolve) => {
+    state.resolve = () => resolve();
+  });
+  return { promise, resolve: () => state.resolve?.() };
+}
+
+/** True when the failure is the adapter refusing a statement inside a transaction. */
+function isNestedTransaction(error: unknown): boolean {
+  return error instanceof SqliteAdapterError && error.code === 'nested_transaction';
 }
 
 function toRepositoryRow<E extends EntityName>(

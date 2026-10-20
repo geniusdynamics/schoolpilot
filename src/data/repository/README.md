@@ -55,11 +55,16 @@ await repository.transaction(async (tx) => {
 - A write made while the callback runs **joins** the transaction instead of opening its
   own. The adapter refuses nested transactions, so the join is the only way several rows
   can land together.
+- A **read** made while the callback runs joins the transaction too, so it sees the rows
+  the transaction wrote but has not committed yet. `get`, `list` and the count behind it,
+  and the audit trail, all run on the transaction's handle. A service can therefore read
+  back the row it just wrote, re-check a value it holds, and implement a read-then-write
+  rule atomically.
 - The audit rows of the writes that joined roll back with the transaction, so a failed
   transaction leaves no trail.
 - A callback that throws rolls the whole transaction back and rethrows. The repository is
   usable again straight after: the ambient transaction is released whatever the callback
-  did.
+  did, in a `finally`.
 - The **change events** of the writes that joined are delivered when the transaction
   commits, never inside it. A watcher therefore never sees a change that a later failure
   rolls back. Their order is the order the writes happened in, and their commit sequences
@@ -72,6 +77,11 @@ await repository.transaction(async (tx) => {
 
 The callback is handed the adapter's transaction handle, so a service that needs a
 statement the repository does not offer can still run it inside the same transaction.
+
+A **watch delivery** is the one read that does not join: it shows the committed state,
+so it waits for the transaction in flight to be over and then reads through the adapter. A
+watcher therefore never sees the rows of a transaction that a later failure rolls back,
+not even through the page it is delivered.
 
 ## Schemas
 
@@ -219,7 +229,10 @@ is the same for every entity. A business `version` field keeps its own value.
    never sees a change that a later failure rolls back.
 3. A watch payload is delivered **after** the write promise resolved. The repository
    queues the delivery on a macrotask, so a caller never sees a change before its own
-   write resolves and the cache may assume read-your-writes.
+   write resolves and the cache may assume read-your-writes. The payload shows the
+   **committed** state: a delivery waits for a transaction in flight instead of joining
+   it, so a watcher never sees the rows of a transaction that a later failure rolls
+   back.
 4. Every payload carries the commit sequence it reflects. The sequence is read from the
    repository's monotonic counter *before* the page is read, so a payload never claims a
    freshness it does not have. A payload tagged with a sequence below the cache's
@@ -314,6 +327,10 @@ the seam. See "Permissions".
   is the unit of the write, so there is one ambient transaction at a time; a service that
   wants a write to stay outside the transaction has to make it after the callback
   returned. See "Transactions".
+- **The adapter refuses a second transaction while one runs.** A write from another
+  repository over the same adapter is therefore refused with the adapter's own
+  `nested_transaction` error while a transaction is open, not queued behind it. The
+  refusal is a usage error, so it keeps that code instead of becoming a storage error.
 
 ## Permissions
 
