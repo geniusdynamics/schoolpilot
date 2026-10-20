@@ -1,5 +1,6 @@
 // ABOUTME: Bank accounts page: lists, creates, edits and deletes banks through useFinance()
 // ABOUTME: Each bank links to an asset GL account by its string id; the GL name is resolved at read time
+// GAP(P1-E03): the registry models no bank or bank account; both land with the P3 ledger.
 
 import React, { useMemo, useState } from 'react';
 import { Bank, ChartOfAccount, AccountType } from '@/modules/finance';

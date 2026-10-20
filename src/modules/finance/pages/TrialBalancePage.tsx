@@ -1,3 +1,4 @@
+// GAP(P1-E03): the trial-balance view reads the ledger (account, journal_line) which is not modelled before P3.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';

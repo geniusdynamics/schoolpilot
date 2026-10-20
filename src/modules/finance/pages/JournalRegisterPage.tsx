@@ -1,3 +1,4 @@
+// GAP(P1-E03): journal_entry and journal_line are spec 02 §10 entities and land with the P3 ledger.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';

@@ -1,306 +1,230 @@
-// ABOUTME: Fees Due report listing students with an outstanding balance, bucketed by aging.
-// ABOUTME: Derives rows from useStudentFinancialSummary; filters by class, aging bucket and search.
+// ABOUTME: Fees due report: learners with an outstanding balance, aged from their earliest due
+// ABOUTME: invoice. It reads the canonical student financial summary, in exact minor units.
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import Button from '@/components/ui/Button';
-import { useStudentFinancialSummary } from '../hooks/useStudentFinancialSummary';
-import { formatDate, formatKES } from '@/utils/format';
-import { ExclamationTriangleIcon, UserGroupIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
-import type { FeeDueRecord, AgingCategory } from '../data/types';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { ExclamationTriangleIcon } from '@/components/ui/icons';
+import { formatDate } from '@/utils/format';
 
-/** Buckets a days-overdue count into the report's aging categories. */
+import { formatMoneyMinor } from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useStudentFinancialSummary } from '../hooks/useStudentFinancialSummary';
+
+type AgingCategory = 'Current' | '1-30 days' | '31-60 days' | '61-90 days' | '90+ days';
+
+const AGING_CATEGORIES: readonly AgingCategory[] = [
+  'Current',
+  '1-30 days',
+  '31-60 days',
+  '61-90 days',
+  '90+ days',
+];
+
 function agingBucket(daysOverdue: number): AgingCategory {
   if (daysOverdue <= 0) return 'Current';
-  if (daysOverdue <= 30) return '1-30 Days';
-  if (daysOverdue <= 60) return '31-60 Days';
-  if (daysOverdue <= 90) return '61-90 Days';
-  return '90+ Days';
+  if (daysOverdue <= 30) return '1-30 days';
+  if (daysOverdue <= 60) return '31-60 days';
+  if (daysOverdue <= 90) return '61-90 days';
+  return '90+ days';
+}
+
+interface DueRow {
+  readonly id: string;
+  readonly learnerName: string;
+  readonly admissionNumber: string;
+  readonly className: string;
+  readonly totalMinor: number;
+  readonly paidMinor: number;
+  readonly balanceMinor: number;
+  readonly dueDate: string;
+  readonly daysOverdue: number;
+  readonly aging: AgingCategory;
 }
 
 export const FeesDueReportPageContent: React.FC = () => {
   const { data: summaries, loading } = useStudentFinancialSummary();
-
+  const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('');
   const [agingFilter, setAgingFilter] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
 
-  // Derive fee-due records from the live financial summary (students with an outstanding balance)
-  const dueRecords: FeeDueRecord[] = useMemo(() => {
+  const rows = useMemo<readonly DueRow[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     return summaries
-      .filter(s => s.balance > 0)
-      .map(s => {
-        const dueDate = s.earliestDueDate ?? '';
+      .filter((summary) => summary.balance > 0)
+      .map((summary) => {
+        const dueDate = summary.earliestDueDate ?? '';
         const daysOverdue = dueDate
           ? Math.max(0, Math.floor((today.getTime() - new Date(dueDate).getTime()) / 86_400_000))
           : 0;
         return {
-          id: s.studentId,
-          student_id: s.studentId,
-          student_name: s.name,
-          admission_no: s.admissionNo,
-          class_name: s.className ?? '—',
-          guardian_name: '—',
-          guardian_phone: '—',
-          total_amount_due: s.feeAmount + s.feePenalty,
-          amount_paid: s.amountPaid,
-          balance_due: s.balance,
-          due_date: dueDate,
-          days_overdue: daysOverdue,
-          aging_category: agingBucket(daysOverdue),
-          school_period: '',
-        } satisfies FeeDueRecord;
-      });
+          id: summary.studentId,
+          learnerName: summary.name,
+          admissionNumber: summary.admissionNo,
+          className: summary.className ?? '',
+          totalMinor: summary.feeAmount + summary.feePenalty,
+          paidMinor: summary.amountPaid,
+          balanceMinor: summary.balance,
+          dueDate,
+          daysOverdue,
+          aging: agingBucket(daysOverdue),
+        };
+      })
+      .sort((left, right) => left.learnerName.localeCompare(right.learnerName));
   }, [summaries]);
 
-  const filteredRecords = useMemo(() => {
-    let filtered = dueRecords;
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      filtered = filtered.filter(record =>
-        record.student_name.toLowerCase().includes(q) ||
-        record.admission_no.toLowerCase().includes(q)
-      );
-    }
-    if (classFilter) {
-      filtered = filtered.filter(record => record.class_name === classFilter);
-    }
-    if (agingFilter) {
-      filtered = filtered.filter(record => record.aging_category === agingFilter);
-    }
-    return filtered;
-  }, [dueRecords, searchTerm, classFilter, agingFilter]);
+  const classNames = useMemo(
+    () => [...new Set(rows.map((row) => row.className).filter(Boolean))].sort(),
+    [rows]
+  );
 
-  // Calculate totals
-  const totals = useMemo(() => {
-    return filteredRecords.reduce((acc, record) => ({
-      totalDue: acc.totalDue + (record.total_amount_due ?? 0),
-      totalPaid: acc.totalPaid + (record.amount_paid ?? 0),
-      totalBalance: acc.totalBalance + (record.balance_due ?? 0),
-      overdueCount: acc.overdueCount + ((record.days_overdue ?? 0) > 0 ? 1 : 0)
-    }), { totalDue: 0, totalPaid: 0, totalBalance: 0, overdueCount: 0 });
-  }, [filteredRecords]);
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return rows.filter((row) => {
+      if (
+        term &&
+        !row.learnerName.toLowerCase().includes(term) &&
+        !row.admissionNumber.toLowerCase().includes(term)
+      ) {
+        return false;
+      }
+      if (classFilter && row.className !== classFilter) return false;
+      if (agingFilter && row.aging !== agingFilter) return false;
+      return true;
+    });
+  }, [rows, search, classFilter, agingFilter]);
 
-  const handleExportCSV = () => {
-    const header = ['Student', 'Admission No', 'Class', 'Total Due', 'Paid', 'Balance', 'Due Date', 'Days Overdue', 'Aging'];
-    const rows = filteredRecords.map(r => [
-      r.student_name, r.admission_no, r.class_name,
-      r.total_amount_due, r.amount_paid, r.balance_due,
-      r.due_date, r.days_overdue, r.aging_category,
-    ]);
-    const csv = [header, ...rows]
-      .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `fees-due-report-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  const totals = useMemo(
+    () =>
+      filtered.reduce(
+        (sum, row) => ({
+          due: sum.due + row.totalMinor,
+          paid: sum.paid + row.paidMinor,
+          balance: sum.balance + row.balanceMinor,
+        }),
+        { due: 0, paid: 0, balance: 0 }
+      ),
+    [filtered]
+  );
 
-  const getAgingBadge = (category: string) => {
-    const styles = {
-      'Current': 'bg-green-100 text-green-800',
-      '1-30 Days': 'bg-yellow-100 text-yellow-800',
-      '31-60 Days': 'bg-orange-100 text-orange-800',
-      '61-90 Days': 'bg-red-100 text-red-800',
-      '90+ Days': 'bg-red-200 text-red-900'
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[category as keyof typeof styles]}`}>
-        {category}
-      </span>
-    );
-  };
-
-  const columns: DataGridColumn<FeeDueRecord>[] = [
-    { key: 'student_name', header: 'Student Name', sortable: true, filterable: true },
-    { key: 'admission_no', header: 'Admission No', sortable: true, filterable: true },
-    { key: 'class_name', header: 'Class', sortable: true, filterable: true },
+  const columns: DataGridColumn<DueRow>[] = [
+    { key: 'learnerName', header: 'Learner', sortable: true, filterable: true },
+    { key: 'admissionNumber', header: 'Adm no', sortable: true, filterable: true },
+    { key: 'className', header: 'Class', sortable: true, filterable: true },
     {
-      key: 'total_amount_due',
-      header: 'Total Due',
-      sortable: true,
+      key: 'totalMinor',
+      header: 'Billed',
       align: 'right',
-      render: (value) => formatKES(value)
+      sortable: true,
+      render: (value) => formatMoneyMinor(Number(value)),
     },
     {
-      key: 'amount_paid',
+      key: 'paidMinor',
       header: 'Paid',
-      sortable: true,
       align: 'right',
-      render: (value) => value != null && value > 0 ? formatKES(value) : '-'
+      sortable: true,
+      render: (value) => formatMoneyMinor(Number(value)),
     },
     {
-      key: 'balance_due',
+      key: 'balanceMinor',
       header: 'Balance',
-      sortable: true,
       align: 'right',
-      render: (value) => (
-        <span className={`font-semibold ${value > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          {formatKES(value)}
-        </span>
-      )
-    },
-    {
-      key: 'due_date',
-      header: 'Due Date',
-      sortable: true,
-      render: (value) => value ? formatDate(value) : '-'
-    },
-    {
-      key: 'days_overdue',
-      header: 'Days Overdue',
       sortable: true,
       render: (value) => (
-        <span className={value > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>
-          {value > 0 ? `${value} days` : 'Current'}
-        </span>
-      )
+        <span className="font-mono text-red-600">{formatMoneyMinor(Number(value))}</span>
+      ),
     },
     {
-      key: 'aging_category',
-      header: 'Aging',
+      key: 'dueDate',
+      header: 'Due date',
       sortable: true,
-      filterable: true,
-      render: (value) => getAgingBadge(value)
-    }
+      render: (value) => (value ? formatDate(String(value)) : '-'),
+    },
+    { key: 'daysOverdue', header: 'Days overdue', align: 'right', sortable: true },
+    { key: 'aging', header: 'Aging', sortable: true, filterable: true },
   ];
 
-  const uniqueClasses = useMemo(() => {
-    return [...new Set(dueRecords.map(r => r.class_name))].sort();
-  }, [dueRecords]);
-
-  const agingCategories = ['Current', '1-30 Days', '31-60 Days', '61-90 Days', '90+ Days'];
-
   return (
-    <div className="p-6">
-      <Card
-        title={
-          <div className="flex items-center gap-2">
-            <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
-            <span>Fees Due Report</span>
-          </div>
-        }
-        actions={
-          <Button onClick={handleExportCSV} leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />} disabled={filteredRecords.length === 0}>
-            Export CSV
-          </Button>
-        }
-      >
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-red-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-red-800">Outstanding Fees with Aging</h3>
-              <p className="text-sm text-red-700 mt-1">
-                This report shows all outstanding fees by class and student with aging analysis.
-                Track overdue payments, follow up with guardians, and manage fee collection effectively.
-              </p>
-            </div>
-          </div>
+    <Card
+      title={
+        <span className="flex items-center gap-2">
+          <ExclamationTriangleIcon className="h-5 w-5 text-amber-600" />
+          Fees due
+        </span>
+      }
+    >
+      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Search</span>
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Name or admission number"
+          />
         </div>
-
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Class Filter</label>
-            <Select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              options={[
-                { value: '', label: 'All Classes' },
-                ...uniqueClasses.map(c => ({ value: c, label: c }))
-              ]}
-              className="w-full"
-            />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Aging Filter</label>
-            <Select
-              value={agingFilter}
-              onChange={(e) => setAgingFilter(e.target.value)}
-              options={[
-                { value: '', label: 'All Categories' },
-                ...agingCategories.map(c => ({ value: c, label: c }))
-              ]}
-              className="w-full"
-            />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
-            <Input
-              type="text"
-              placeholder="Student or admission no..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
-          </div>
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Class</span>
+          <Select
+            value={classFilter}
+            onChange={(event) => setClassFilter(event.target.value)}
+            options={[
+              { value: '', label: 'All classes' },
+              ...classNames.map((name) => ({ value: name, label: name })),
+            ]}
+          />
         </div>
-
-        {/* Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <ExclamationTriangleIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Total Due</span>
-            </div>
-            <p className="text-2xl font-bold text-surface-foreground mt-2">{formatKES(totals.totalDue)}</p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <span className="text-green-600 font-bold">✓</span>
-              <span className="text-sm font-medium">Total Paid</span>
-            </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">{formatKES(totals.totalPaid)}</p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
-              <span className="text-sm font-medium">Outstanding Balance</span>
-            </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">{formatKES(totals.totalBalance)}</p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <UserGroupIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Overdue Accounts</span>
-            </div>
-            <p className="text-2xl font-bold text-orange-600 mt-2">
-              {totals.overdueCount}
-            </p>
-          </div>
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Aging</span>
+          <Select
+            value={agingFilter}
+            onChange={(event) => setAgingFilter(event.target.value)}
+            options={[
+              { value: '', label: 'Every bucket' },
+              ...AGING_CATEGORIES.map((category) => ({ value: category, label: category })),
+            ]}
+          />
         </div>
+      </div>
 
-        <DataGrid
-          data={filteredRecords}
-          columns={columns}
-          loading={loading}
-          sortable
-          filterable
-          pagination={{ pageSize: 50, showSizeChanger: true }}
-          emptyState={{
-            title: 'No outstanding fees',
-            description: 'All student balances are settled — nothing is due.',
-          }}
-        />
-      </Card>
-    </div>
+      <div className="mb-4 flex flex-wrap gap-6 text-sm">
+        <span>
+          Billed: <span className="font-mono">{formatMoneyMinor(totals.due)}</span>
+        </span>
+        <span>
+          Paid: <span className="font-mono text-green-600">{formatMoneyMinor(totals.paid)}</span>
+        </span>
+        <span>
+          Outstanding:{' '}
+          <span className="font-mono text-red-600">{formatMoneyMinor(totals.balance)}</span>
+        </span>
+      </div>
+
+      <DataGrid
+        columns={columns}
+        data={[...filtered]}
+        isLoading={loading}
+        sortable
+        filterable
+        emptyState={{
+          icon: <ExclamationTriangleIcon className="w-12 h-12 text-surface-muted-fg" />,
+          title: 'Nothing due',
+          description: 'Every posted invoice in scope is settled.',
+        }}
+      />
+    </Card>
   );
 };
+
 const FeesDueReportPage: React.FC = () => (
-  <div className="space-y-6">
-    <FeesDueReportPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <FeesDueReportPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default FeesDueReportPage;

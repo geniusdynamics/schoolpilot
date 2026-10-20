@@ -1,306 +1,311 @@
-// ABOUTME: Fees Fines & Penalties page - fines and penalties stored as fee adjustments against a learner and period.
-// ABOUTME: CRUD goes through useFinance() with update(id, patch); ids stay strings and errors show in the dialog.
+// ABOUTME: Fines page: a fine is a posted one-line charge invoice, never a free-floating adjustment.
+// ABOUTME: A posted fine cannot be edited; the page attempts the write so the repository's refusal is
+// ABOUTME: visible, and offers a credit note as the correction.
 
-import React, { useState, useMemo } from 'react';
-import { FeeAdjustment, FeeAdjustmentType } from '@/modules/finance/data/types';
-import { useFinance } from '@/modules/finance/hooks/useFinance';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import React, { useMemo, useState } from 'react';
+
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import { Alert } from '@/components/ui/Alert';
-import { useTranslation } from 'react-i18next';
-import { ExclamationTriangleIcon, PlusIcon } from '@/components/ui/icons';
-import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { ExclamationTriangleIcon, PlusIcon, ReceiptRefundIcon } from '@/components/ui/icons';
+import { SchemaEntityForm } from '@/components/ui/forms';
+import {
+  createSchemaFor,
+  toWritableValues,
+  updateSchemaFor,
+  type RepositoryRow,
+  type UpdateInput,
+} from '@/data/repository';
 import { useToast } from '@/hooks/useToast';
-import { formatDate } from '@/utils/format';
+import { asId } from '@/domain/ids';
+import type { Money } from '@/domain/schema/common';
 
-interface StudentOption { id: string | number; first_name?: string; last_name?: string; admission_no?: string }
-interface PeriodOption { id: string | number; name?: string }
+import {
+  formatMoney,
+  money,
+  toFormLookup,
+  useCanonicalFinance,
+  useFinanceRepository,
+  type FinanceInvoiceLineRow,
+} from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { CreditNoteDialog } from '../components/CreditNoteDialog';
+import { createChargeInvoice } from '../services/canonicalFinanceService';
 
-/** A fine as shown in the grid; ids are strings and names are resolved at read time. */
-type FineRow = Omit<FeeAdjustment, 'school_period_id'> & { school_period_id: string };
+const CURRENCY = 'KES';
 
-interface FineFormData {
-  student_id: string;
-  school_period_id: string;
-  adjustment_type: FeeAdjustmentType;
-  amount?: number;
-  reason: string;
-  applied_invoice_id: string;
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+interface FineRow {
+  readonly line: FinanceInvoiceLineRow;
+  readonly invoice: RepositoryRow<'invoice'> | null;
 }
 
-const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-const idOf = (value: unknown): string => (value == null ? '' : String(value));
-const studentLabel = (s: StudentOption) =>
-  [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '');
+interface FineDraft {
+  readonly invoice: RepositoryRow<'invoice'> | null;
+}
 
 export const FeesFinesPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { feeAdjustments, addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment } = useFinance();
-  const { data: students } = useDatabaseCollection<StudentOption>('students');
-  const { data: schoolPeriods } = useDatabaseCollection<PeriodOption>('school_periods');
-  const { showSuccess, showError } = useToast();
+  const finance = useCanonicalFinance();
+  const repository = useFinanceRepository();
+  const { showSuccess } = useToast();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingFine, setEditingFine] = useState<FineRow | null>(null);
+  const [draft, setDraft] = useState<FineDraft | null>(null);
+  const [description, setDescription] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [creditNote, setCreditNote] = useState<FineRow | null>(null);
 
-  const initialFormData: FineFormData = {
-    student_id: '',
-    school_period_id: '',
-    adjustment_type: FeeAdjustmentType.FINE,
-    amount: 0,
-    reason: '',
-    applied_invoice_id: ''
-  };
-  const [formData, setFormData] = useState<FineFormData>(initialFormData);
+  const invoiceById = useMemo(() => {
+    const map = new Map<string, RepositoryRow<'invoice'>>();
+    for (const invoice of finance.invoices) map.set(invoice.id, invoice);
+    return map;
+  }, [finance.invoices]);
 
-  // Fines and penalties only, with learner and period names resolved from their ids
-  const finesList = useMemo<FineRow[]>(() =>
-    feeAdjustments
-      .filter(adj => adj.adjustment_type === FeeAdjustmentType.FINE || adj.adjustment_type === FeeAdjustmentType.PENALTY)
-      .map(adj => {
-        const student = students.find(s => idOf(s.id) === idOf(adj.student_id));
-        const period = schoolPeriods.find(p => idOf(p.id) === idOf(adj.school_period_id));
-        return {
-          ...adj,
-          id: idOf(adj.id),
-          school_period_id: idOf(adj.school_period_id),
-          student_name: student ? [student.first_name, student.last_name].filter(Boolean).join(' ') : adj.student_name ?? null,
-          school_period_name: period?.name ?? adj.school_period_name ?? null,
-        };
-      }),
-    [feeAdjustments, students, schoolPeriods]
+  const fines = useMemo<readonly FineRow[]>(
+    () =>
+      finance.invoiceLineRows
+        .filter((line) => line.kind === 'fine')
+        .map((line) => ({ line, invoice: invoiceById.get(line.invoiceId) ?? null })),
+    [finance.invoiceLineRows, invoiceById]
   );
 
-  const openModal = (fine?: FineRow) => {
-    setEditingFine(fine || null);
+  const fields = useMemo(
+    () => [
+      {
+        path: 'learner_id',
+        label: 'Learner',
+        order: 1,
+        widget: 'entity' as const,
+        lookupKey: 'learner',
+        required: true,
+      },
+      {
+        path: 'total',
+        label: 'Amount',
+        order: 2,
+        widget: 'money' as const,
+        required: true,
+        currency: CURRENCY,
+      },
+      { path: 'issue_date', label: 'Issue date', order: 3, widget: 'date' as const, required: true },
+      { path: 'due_date', label: 'Due date', order: 4, widget: 'date' as const },
+    ],
+    []
+  );
+
+  const open = (invoice: RepositoryRow<'invoice'> | null) => {
     setFormError(null);
-    setFormData(fine ? {
-      student_id: idOf(fine.student_id),
-      school_period_id: fine.school_period_id,
-      adjustment_type: fine.adjustment_type,
-      amount: fine.amount,
-      reason: fine.reason || '',
-      applied_invoice_id: fine.applied_invoice_id || ''
-    } : initialFormData);
-    setIsModalOpen(true);
+    setDescription(invoice ? '' : 'Fine');
+    setDraft({ invoice });
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingFine(null);
+  const save = async (values: Record<string, unknown>) => {
+    if (!draft) return;
     setFormError(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormError(null);
-    setFormData(prev => ({ ...prev, [name]: name === 'amount' ? (value === '' ? undefined : parseFloat(value)) : value }));
-  };
-
-  const handleSubmit = async () => {
-    if (saving) return;
-    const amount = Number(formData.amount);
-    if (!formData.student_id || !formData.school_period_id || !Number.isFinite(amount) || amount <= 0) {
-      setFormError(t('fines.validation', 'Student, school period, and an amount greater than zero are required.'));
-      return;
-    }
-
-    const payload = {
-      student_id: formData.student_id,
-      school_period_id: formData.school_period_id,
-      adjustment_type: formData.adjustment_type,
-      amount,
-      reason: formData.reason || null,
-      applied_invoice_id: formData.applied_invoice_id || null
-    };
-
-    setSaving(true);
     try {
-      // The finance record types still declare numeric foreign keys (SO-22); stored ids are strings.
-      if (editingFine) {
-        await updateFeeAdjustment(editingFine.id, payload as unknown as Parameters<typeof updateFeeAdjustment>[1]);
+      if (draft.invoice) {
+        await repository.update(
+          'invoice',
+          asId<'invoice'>(draft.invoice.id),
+          values as unknown as UpdateInput<'invoice'>,
+          { expectedVersion: draft.invoice.rowVersion }
+        );
+        showSuccess('Fine updated.');
       } else {
-        await addFeeAdjustment(payload as unknown as Parameters<typeof addFeeAdjustment>[0]);
+        const learnerId = values.learner_id;
+        const total = values.total;
+        if (typeof learnerId !== 'string' || !learnerId) {
+          throw new Error('Select the learner the fine belongs to.');
+        }
+        if (
+          total === null ||
+          typeof total !== 'object' ||
+          typeof (total as Money).amount_minor !== 'number'
+        ) {
+          throw new Error('Enter the fine amount.');
+        }
+        if (!description.trim()) throw new Error('Describe the fine.');
+        const result = await createChargeInvoice(repository, {
+          learnerId,
+          description: description.trim(),
+          amount: total as Money,
+          kind: 'fine',
+          issueDate: String(values.issue_date ?? new Date().toISOString().slice(0, 10)),
+          ...(typeof values.due_date === 'string' && values.due_date
+            ? { dueDate: values.due_date }
+            : {}),
+        });
+        showSuccess(`Fine posted as invoice ${result.invoice.number}.`);
       }
-      showSuccess(t('fines.saved', 'Fine saved.'));
-      closeModal();
+      setDraft(null);
     } catch (error) {
-      setFormError(`${t('fines.saveFailed', 'Failed to save fine:')} ${errorMessage(error)}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const confirm = useConfirm();
-  const handleDelete = async (id: string) => {
-    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fine?' }))) return;
-    try {
-      await deleteFeeAdjustment(id);
-      showSuccess(t('fines.deleted', 'Fine deleted.'));
-    } catch (error) {
-      showError(`${t('fines.deleteFailed', 'Failed to delete fine:')} ${errorMessage(error)}`);
+      setFormError(errorMessage(error));
+      throw error;
     }
   };
 
   const columns: DataGridColumn<FineRow>[] = [
     {
-      key: 'student_name',
-      header: 'Student',
+      key: 'invoiceNumber',
+      header: 'Invoice',
       sortable: true,
       filterable: true,
-      render: (value) => value || '-'
+      render: (_value, row) => <span className="font-mono">{row.line.invoiceNumber}</span>,
     },
     {
-      key: 'school_period_name',
-      header: 'School Period',
+      key: 'learnerName',
+      header: 'Learner',
       sortable: true,
       filterable: true,
-      render: (value) => value || '-'
+      render: (_value, row) => row.line.learnerName || '-',
     },
     {
-      key: 'adjustment_type',
-      header: 'Type',
-      sortable: true,
+      key: 'description',
+      header: 'Reason',
       filterable: true,
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === FeeAdjustmentType.FINE ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
-        }`}>
-          {value}
-        </span>
-      )
+      render: (_value, row) => row.line.description,
     },
     {
       key: 'amount',
       header: 'Amount',
+      align: 'right',
       sortable: true,
-      render: (value) => (
-        <span className="font-semibold text-red-600">
-          {value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'}
-        </span>
-      )
+      render: (_value, row) => <span className="font-mono">{formatMoney(row.line.amount)}</span>,
     },
     {
-      key: 'reason',
-      header: 'Reason',
-      sortable: false,
-      render: (value) => value || '-'
+      key: 'issueDate',
+      header: 'Issued',
+      sortable: true,
+      render: (_value, row) => row.invoice?.issue_date ?? '-',
     },
     {
-      key: 'created_at',
-      header: 'Date Applied',
+      key: 'status',
+      header: 'Status',
       sortable: true,
-      render: (value) => value ? formatDate(value) : '-'
+      filterable: true,
+      render: (_value, row) => row.invoice?.status ?? '-',
     },
     {
       key: 'actions',
       header: 'Actions',
-      sortable: false,
-      render: (_, item) => (
-        <div className="flex gap-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>Delete</Button>
+      render: (_value, row) => (
+        <div className="flex flex-wrap gap-1">
+          <Button size="sm" variant="ghost" onClick={() => open(row.invoice)}>
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setCreditNote(row)}
+            leftIcon={<ReceiptRefundIcon className="w-4 h-4" />}
+          >
+            Credit note
+          </Button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
-    <div className="p-6">
+    <div className="space-y-4">
       <Card
-        title="Fees Fines & Penalties"
+        title="Fines and penalties"
         actions={
-          <Button onClick={() => openModal()} variant="primary" leftIcon={<PlusIcon className="w-4 h-4" />}>
-            Add Fine
+          <Button
+            onClick={() => open(null)}
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+            disabled={finance.learners.length === 0}
+          >
+            Add fine
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-yellow-800">About Fines & Penalties</h3>
-              <p className="text-sm text-yellow-700 mt-1">
-                Fines and penalties are applied to student accounts for late payments, damaged materials, or other infractions.
-                These adjustments can be applied to specific invoices or added as standalone charges.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <DataGrid data={finesList} columns={columns} sortable filterable />
+        <p className="mb-4 text-sm text-surface-muted-fg">
+          A fine is a one-line posted charge against a learner. Once posted it is frozen: the page
+          still offers Edit so the repository can refuse the write, and a credit note is the way to
+          correct it.
+        </p>
+        <DataGrid
+          columns={columns}
+          data={[...fines]}
+          sortable
+          filterable
+          emptyState={{
+            icon: <ExclamationTriangleIcon className="w-12 h-12 text-surface-muted-fg" />,
+            title: 'No fines recorded',
+            description: 'Post a fine against a learner to start.',
+          }}
+        />
       </Card>
 
-      <DialogForm
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingFine ? 'Edit Fine/Penalty' : 'Add Fine/Penalty'}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={saving}>
-              {editingFine ? 'Update' : 'Add Fine'}
-            </Button>
-          </>
-        }
+      <Modal
+        isOpen={draft !== null}
+        onClose={() => setDraft(null)}
+        title={draft?.invoice ? 'Edit fine' : 'New fine'}
+        size="lg"
       >
-        {formError && <Alert variant="destructive" className="mb-4">{formError}</Alert>}
-        <Select name="student_id" label="Student" value={formData.student_id} onChange={handleInputChange} required>
-          <option value="">Select student</option>
-          {students.map(s => (<option key={s.id} value={idOf(s.id)}>{studentLabel(s)}</option>))}
-        </Select>
-        <Select name="school_period_id" label="School Period" value={formData.school_period_id} onChange={handleInputChange} required>
-          <option value="">Select school period</option>
-          {schoolPeriods.map(sp => (<option key={sp.id} value={idOf(sp.id)}>{sp.name}</option>))}
-        </Select>
-        <Select name="adjustment_type" label="Type" value={formData.adjustment_type} onChange={handleInputChange} required>
-          <option value={FeeAdjustmentType.FINE}>Fine</option>
-          <option value={FeeAdjustmentType.PENALTY}>Penalty</option>
-        </Select>
-        <Input
-          type="number"
-          name="amount"
-          label="Amount"
-          value={formData.amount ?? ''}
-          onChange={handleInputChange}
-          placeholder="Enter amount"
-          min="0"
-          step="0.01"
-          required
-        />
-        <Textarea
-          name="reason"
-          label="Reason"
-          value={formData.reason}
-          onChange={handleInputChange}
-          placeholder="Reason for fine/penalty (e.g., late payment, damaged book)"
-          rows={3}
-        />
-        <Input
-          name="applied_invoice_id"
-          label="Applied Invoice (Optional)"
-          value={formData.applied_invoice_id}
-          onChange={handleInputChange}
-          placeholder="Invoice reference if applicable"
-        />
-      </DialogForm>
+        {draft ? (
+          <SchemaEntityForm
+            schema={draft.invoice ? updateSchemaFor('invoice') : createSchemaFor('invoice')}
+            recordKey={draft.invoice?.id ?? 'new'}
+            initialValues={
+              draft.invoice
+                ? toWritableValues(draft.invoice)
+                : {
+                    institution_id: finance.learners[0]?.institution_id ?? '',
+                    number: `INV-${Date.now()}`,
+                    learner_id: '',
+                    issue_date: new Date().toISOString().slice(0, 10),
+                    total: money(0, CURRENCY),
+                    status: 'posted' as const,
+                  }
+            }
+            fields={fields}
+            lookups={{ learner: toFormLookup(finance.lookups.learner) }}
+            serverError={formError}
+            submitLabel={draft.invoice ? 'Save fine' : 'Post fine'}
+            onCancel={() => setDraft(null)}
+            onSubmit={save}
+          >
+            {!draft.invoice ? (
+              <div className="mt-4">
+                <Input
+                  label="Reason"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  required
+                />
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-amber-700">
+                This fine is posted. The repository refuses a change to its amount, learner or
+                dates; raise a credit note to correct it.
+              </p>
+            )}
+          </SchemaEntityForm>
+        ) : null}
+      </Modal>
+
+      <CreditNoteDialog
+        isOpen={creditNote !== null}
+        onClose={() => setCreditNote(null)}
+        learnerId={creditNote?.line.learnerId ?? undefined}
+        invoiceId={creditNote?.line.invoiceId}
+        amount={creditNote?.line.amount}
+      />
     </div>
   );
 };
 
 const FeesFinesPage: React.FC = () => (
-  <div className="space-y-6">
-    <FeesFinesPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <FeesFinesPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default FeesFinesPage;

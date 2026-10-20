@@ -1,23 +1,25 @@
 // ABOUTME: Student Transport Assignments page - assigns learners to transport routes for a school period.
-// ABOUTME: CRUD goes through useFinance() with update(id, patch); ids stay strings and names are resolved at read time.
+// ABOUTME: The learner and period are canonical and picked through EntityPicker; the assignment itself
+// ABOUTME: stays on its legacy collection because the registry models no transport route
+// ABOUTME: (GAP(P1-E03): transport_route and student_transport_assignment are not canonical entities).
 
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import DialogForm from "@/components/ui/forms/DialogForm";
 import Select from '@/components/ui/Select';
 import { Alert } from '@/components/ui/Alert';
 import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons';
 import { useFinance } from '@/modules/finance/hooks/useFinance';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { TransportAssignmentStatus } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
-
-interface StudentOption { id: string | number; first_name?: string; last_name?: string; admission_no?: string; status?: string | null }
-interface PeriodOption { id: string | number; name?: string }
+import { asId } from '@/domain/ids';
+import { useCanonicalFinance } from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 
 /** An assignment as shown in the grid; ids are strings and names are resolved at read time. */
 interface AssignmentRow {
@@ -40,8 +42,6 @@ interface AssignmentFormData {
 
 const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 const idOf = (value: unknown): string => (value == null ? '' : String(value));
-const studentName = (s: StudentOption) => [s.first_name, s.last_name].filter(Boolean).join(' ');
-const isActive = (s: StudentOption) => !s.status || String(s.status).toLowerCase() === 'active';
 
 export const StudentTransportAssignmentsPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
@@ -52,8 +52,7 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
     updateStudentTransportAssignment,
     deleteStudentTransportAssignment,
   } = useFinance();
-  const { data: students } = useDatabaseCollection<StudentOption>('students');
-  const { data: schoolPeriods } = useDatabaseCollection<PeriodOption>('school_periods');
+  const finance = useCanonicalFinance();
   const { showSuccess, showError } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,23 +68,25 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
   };
   const [formData, setFormData] = useState<AssignmentFormData>(initialFormData);
 
-  const activeStudents = useMemo(() => students.filter(isActive), [students]);
-
   const rows = useMemo<AssignmentRow[]>(() => studentTransportAssignments.map(assignment => {
-    const student = students.find(s => idOf(s.id) === idOf(assignment.student_id));
     const route = transportRoutes.find(r => idOf(r.id) === idOf(assignment.route_id));
-    const period = schoolPeriods.find(p => idOf(p.id) === idOf(assignment.school_period_id));
     return {
       id: idOf(assignment.id),
       student_id: idOf(assignment.student_id),
       route_id: idOf(assignment.route_id),
       school_period_id: idOf(assignment.school_period_id),
       status: assignment.status || TransportAssignmentStatus.ACTIVE,
-      student_name: student ? studentName(student) : assignment.student_name ?? null,
+      student_name:
+        finance.lookups.learner.label(asId<'learner'>(idOf(assignment.student_id)), '') ||
+        assignment.student_name ||
+        null,
       route_name: route?.name ?? assignment.route_name ?? null,
-      school_period_name: period?.name ?? assignment.school_period_name ?? null,
+      school_period_name:
+        finance.lookups.period.label(asId<'academic_period'>(idOf(assignment.school_period_id)), '') ||
+        assignment.school_period_name ||
+        null,
     };
-  }), [studentTransportAssignments, students, transportRoutes, schoolPeriods]);
+  }), [studentTransportAssignments, transportRoutes, finance.lookups.learner, finance.lookups.period]);
 
   const openModal = (assignment?: AssignmentRow) => {
     setEditingAssignment(assignment || null);
@@ -235,20 +236,33 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
         }
       >
         {formError && <Alert variant="destructive" className="mb-4">{formError}</Alert>}
-        <Select name="student_id" label="Student" value={formData.student_id} onChange={handleInputChange} required disabled={!!editingAssignment}>
-            <option value="">Select Student</option>
-            {(editingAssignment ? students : activeStudents).map(student => (
-              <option key={student.id} value={idOf(student.id)}>{studentName(student)}{student.admission_no ? ` (${student.admission_no})` : ''}</option>
-            ))}
-        </Select>
+        <EntityPicker
+            value={formData.student_id ? asId<'learner'>(formData.student_id) : null}
+            onChange={(id) => {
+              setFormError(null);
+              setFormData(prev => ({ ...prev, student_id: id ?? '' }));
+            }}
+            lookup={finance.lookups.learner}
+            label="Student"
+            placeholder="Select Student"
+            disabled={!!editingAssignment}
+            data-testid="transport-student-picker"
+        />
         <Select name="route_id" label="Transport Route" value={formData.route_id} onChange={handleInputChange} required>
             <option value="">Select Route</option>
             {transportRoutes.map(route => (<option key={route.id} value={idOf(route.id)}>{route.name}</option>))}
         </Select>
-        <Select name="school_period_id" label="School Period" value={formData.school_period_id} onChange={handleInputChange} required>
-            <option value="">Select School Period</option>
-            {schoolPeriods.map(period => (<option key={period.id} value={idOf(period.id)}>{period.name}</option>))}
-        </Select>
+        <EntityPicker
+            value={formData.school_period_id ? asId<'academic_period'>(formData.school_period_id) : null}
+            onChange={(id) => {
+              setFormError(null);
+              setFormData(prev => ({ ...prev, school_period_id: id ?? '' }));
+            }}
+            lookup={finance.lookups.period}
+            label="School Period"
+            placeholder="Select School Period"
+            data-testid="transport-period-picker"
+        />
         <Select name="status" label="Status" value={formData.status} onChange={handleInputChange} required>
             {Object.values(TransportAssignmentStatus).map(status => (<option key={status} value={status}>{status}</option>))}
         </Select>
@@ -257,9 +271,11 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
   );
 };
 const StudentTransportAssignmentsPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentTransportAssignmentsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentTransportAssignmentsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentTransportAssignmentsPage;

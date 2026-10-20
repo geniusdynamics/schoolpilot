@@ -1,5 +1,6 @@
 // ABOUTME: Transport Routes page - lists transport routes with their per-period cost and GL revenue account.
 // ABOUTME: CRUD goes through useFinance() with update(id, patch); ids stay strings and save errors show in the dialog.
+// GAP(P1-E03): the registry models no transport route.
 
 import React, { useState, useMemo } from 'react';
 import { AccountType } from '@/modules/finance';

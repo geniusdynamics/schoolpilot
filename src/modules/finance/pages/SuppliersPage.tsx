@@ -1,5 +1,6 @@
 // ABOUTME: Suppliers page: lists, creates, edits and deletes suppliers through useFinance()
 // ABOUTME: Edits call updateSupplier(id, patch) with the supplier's string id
+// GAP(P1-E03): the registry models no supplier entity.
 
 import React, { useState } from 'react';
 import { Supplier } from '@/types';

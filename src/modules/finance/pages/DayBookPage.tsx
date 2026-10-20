@@ -1,3 +1,4 @@
+// GAP(P1-E03): the day-book view reads the ledger (journal_entry, journal_line) which is not modelled before P3.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
@@ -10,7 +11,7 @@ import { formatDate } from '@/utils/format';
 
 export const DayBookPageContent: React.FC = () => {
 
-  const { dayBookEntries, chartOfAccounts, loading } = useAppData() as any;
+  const { dayBookEntries, loading } = useAppData() as any;
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');

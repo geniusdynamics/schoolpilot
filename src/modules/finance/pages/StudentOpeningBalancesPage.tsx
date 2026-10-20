@@ -1,271 +1,304 @@
-// ABOUTME: Student Opening Balances page - records each learner's brought-forward fee balance.
-// ABOUTME: CRUD goes through useFinance() with update(id, patch); learner names resolved at read time, errors shown in the dialog.
+// ABOUTME: Opening balances page: a brought-forward balance is a posted invoice line of kind
+// ABOUTME: opening_balance. Posted documents stay frozen; a credit note is the correction.
 
-import React, { useState, useMemo } from 'react';
-import { StudentOpeningBalance, OpeningBalanceType } from '@/modules/finance';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import React, { useMemo, useState } from 'react';
+
 import Button from '@/components/ui/Button';
-import DialogForm from "@/components/ui/forms/DialogForm";
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { Alert } from '@/components/ui/Alert';
-import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
-import { useFinance } from '@/modules/finance/hooks/useFinance';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
-import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { BookOpenIcon, EditIcon, PlusIcon, ReceiptRefundIcon } from '@/components/ui/icons';
+import { SchemaEntityForm } from '@/components/ui/forms';
+import {
+  createSchemaFor,
+  toWritableValues,
+  updateSchemaFor,
+  type RepositoryRow,
+  type UpdateInput,
+} from '@/data/repository';
 import { useToast } from '@/hooks/useToast';
-import { useTranslation } from 'react-i18next';
-import { formatDate } from '@/utils/format';
+import { asId } from '@/domain/ids';
+import type { Money } from '@/domain/schema/common';
 
-interface StudentOption { id: string | number; first_name?: string; last_name?: string; admission_no?: string; status?: string | null }
+import {
+  formatMoney,
+  money,
+  toFormLookup,
+  useCanonicalFinance,
+  useFinanceRepository,
+  type FinanceInvoiceLineRow,
+} from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { CreditNoteDialog } from '../components/CreditNoteDialog';
+import { createChargeInvoice } from '../services/canonicalFinanceService';
 
-type BalanceRow = StudentOpeningBalance & { student_name: string | null };
+const CURRENCY = 'KES';
 
-interface StudentOpeningBalanceFormData {
-  student_id: string;
-  balance_type: OpeningBalanceType;
-  amount?: number;
-  as_of_date: string;
-  is_billed: boolean;
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+interface BalanceRow {
+  readonly line: FinanceInvoiceLineRow;
+  readonly invoice: RepositoryRow<'invoice'> | null;
 }
 
-const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-const idOf = (value: unknown): string => (value == null ? '' : String(value));
-const studentName = (s: StudentOption) => [s.first_name, s.last_name].filter(Boolean).join(' ');
-const isActive = (s: StudentOption) => !s.status || String(s.status).toLowerCase() === 'active';
-
 export const StudentOpeningBalancesPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const {
-    studentOpeningBalances,
-    addStudentOpeningBalance,
-    updateStudentOpeningBalance,
-    deleteStudentOpeningBalance
-  } = useFinance();
-  const { data: students } = useDatabaseCollection<StudentOption>('students');
-  const { showSuccess, showError } = useToast();
+  const finance = useCanonicalFinance();
+  const repository = useFinanceRepository();
+  const { showSuccess } = useToast();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBalance, setEditingBalance] = useState<BalanceRow | null>(null);
+  const [draft, setDraft] = useState<{ invoice: RepositoryRow<'invoice'> | null } | null>(null);
+  const [description, setDescription] = useState('Opening balance');
   const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [creditNote, setCreditNote] = useState<BalanceRow | null>(null);
 
-  const initialFormData: StudentOpeningBalanceFormData = {
-    student_id: '',
-    balance_type: OpeningBalanceType.DEBIT,
-    amount: 0,
-    as_of_date: new Date().toISOString().split('T')[0],
-    is_billed: false
-  };
-  const [formData, setFormData] = useState<StudentOpeningBalanceFormData>(initialFormData);
+  const invoiceById = useMemo(() => {
+    const map = new Map<string, RepositoryRow<'invoice'>>();
+    for (const invoice of finance.invoices) map.set(invoice.id, invoice);
+    return map;
+  }, [finance.invoices]);
 
-  const rows = useMemo<BalanceRow[]>(() => studentOpeningBalances.map(balance => {
-    const student = students.find(s => idOf(s.id) === idOf(balance.student_id));
-    return { ...balance, id: idOf(balance.id), student_name: student ? studentName(student) : balance.student_name ?? null };
-  }), [studentOpeningBalances, students]);
+  const rows = useMemo<readonly BalanceRow[]>(
+    () =>
+      finance.invoiceLineRows
+        .filter((line) => line.kind === 'opening_balance')
+        .map((line) => ({ line, invoice: invoiceById.get(line.invoiceId) ?? null })),
+    [finance.invoiceLineRows, invoiceById]
+  );
 
-  const studentsWithoutOB = useMemo(() => {
-    const studentIdsWithOB = new Set(studentOpeningBalances.map(ob => idOf(ob.student_id)));
-    return students.filter(s => !studentIdsWithOB.has(idOf(s.id)) && isActive(s));
-  }, [students, studentOpeningBalances]);
-
-  const openModal = (balance?: BalanceRow) => {
-    setEditingBalance(balance || null);
+  const save = async (values: Record<string, unknown>) => {
+    if (!draft) return;
     setFormError(null);
-    setFormData(balance ?
-      {
-        student_id: idOf(balance.student_id),
-        balance_type: balance.balance_type,
-        amount: balance.amount,
-        as_of_date: balance.as_of_date,
-        is_billed: balance.is_billed
-      } :
-      initialFormData
-    );
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingBalance(null);
-    setFormError(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormError(null);
-    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
-      const checked = e.target.checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
-      return;
-    }
-    setFormData(prev => ({ ...prev, [name]: name === 'amount' ? (value === '' ? undefined : parseFloat(value)) : value }));
-  };
-
-  const handleSubmit = async () => {
-    if (saving) return;
-    const amount = Number(formData.amount);
-    if (!formData.student_id || formData.amount === undefined || !Number.isFinite(amount) || !formData.as_of_date) {
-      setFormError(t('openingBalances.validation', 'Student, Amount, and As Of Date are required.'));
-      return;
-    }
-    const payload = {
-      student_id: formData.student_id,
-      balance_type: formData.balance_type,
-      amount,
-      as_of_date: formData.as_of_date,
-      is_billed: formData.is_billed,
-    };
-
-    setSaving(true);
     try {
-      if (editingBalance) {
-        await updateStudentOpeningBalance(editingBalance.id, payload);
+      if (draft.invoice) {
+        await repository.update(
+          'invoice',
+          asId<'invoice'>(draft.invoice.id),
+          values as unknown as UpdateInput<'invoice'>,
+          { expectedVersion: draft.invoice.rowVersion }
+        );
+        showSuccess('Opening balance updated.');
       } else {
-        await addStudentOpeningBalance(payload as Parameters<typeof addStudentOpeningBalance>[0]);
+        const learnerId = values.learner_id;
+        const total = values.total;
+        if (typeof learnerId !== 'string' || !learnerId) {
+          throw new Error('Select the learner the balance belongs to.');
+        }
+        if (
+          total === null ||
+          typeof total !== 'object' ||
+          typeof (total as Money).amount_minor !== 'number'
+        ) {
+          throw new Error('Enter the opening balance amount.');
+        }
+        const result = await createChargeInvoice(repository, {
+          learnerId,
+          description: description.trim() || 'Opening balance',
+          amount: total as Money,
+          kind: 'opening_balance',
+          issueDate: String(values.issue_date ?? new Date().toISOString().slice(0, 10)),
+          ...(typeof values.due_date === 'string' && values.due_date
+            ? { dueDate: values.due_date }
+            : {}),
+        });
+        showSuccess(`Opening balance posted as invoice ${result.invoice.number}.`);
       }
-      showSuccess(t('openingBalances.saved', 'Opening balance saved.'));
-      closeModal();
+      setDraft(null);
     } catch (error) {
-      setFormError(`${t('openingBalances.saveFailed', 'Failed to save opening balance:')} ${errorMessage(error)}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const confirm = useConfirm();
-  const handleDelete = async (id: string) => {
-    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this opening balance record?' }))) return;
-    try {
-      await deleteStudentOpeningBalance(id);
-      showSuccess(t('openingBalances.deleted', 'Opening balance deleted.'));
-    } catch (error) {
-      showError(`${t('openingBalances.deleteFailed', 'Failed to delete opening balance:')} ${errorMessage(error)}`);
+      setFormError(errorMessage(error));
+      throw error;
     }
   };
 
   const columns: DataGridColumn<BalanceRow>[] = [
     {
-      key: 'student_name',
-      header: 'Student Name',
+      key: 'learnerName',
+      header: 'Learner',
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value) => <span className="font-medium">{value}</span>
+      render: (_value, row) => row.line.learnerName || '-',
     },
     {
-      key: 'balance_type',
-      header: 'Balance Type',
+      key: 'invoiceNumber',
+      header: 'Invoice',
       sortable: true,
       filterable: true,
-      width: 120,
-      render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        row.balance_type === OpeningBalanceType.DEBIT ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-      }`}>{value}</span>
+      render: (_value, row) => <span className="font-mono">{row.line.invoiceNumber}</span>,
     },
     {
       key: 'amount',
-      header: 'Amount (KES)',
+      header: 'Amount',
+      align: 'right',
       sortable: true,
-      filterable: true,
-      width: 120,
-      render: (_value, row) => <span className="font-mono text-green-600">{row.amount?.toFixed?.(2) ?? '0.00'}</span>
+      render: (_value, row) => <span className="font-mono">{formatMoney(row.line.amount)}</span>,
     },
     {
-      key: 'as_of_date',
-      header: 'As Of Date',
+      key: 'issueDate',
+      header: 'As of',
       sortable: true,
-      filterable: true,
-      width: 120,
-      render: (_value, row) => <span className="text-primary-600">{row.as_of_date ? formatDate(row.as_of_date) : '-'}</span>
+      render: (_value, row) => row.invoice?.issue_date ?? '-',
     },
     {
-      key: 'is_billed',
-      header: 'Billed',
+      key: 'status',
+      header: 'Status',
       sortable: true,
       filterable: true,
-      width: 80,
-      render: (_value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        row.is_billed ? 'bg-primary-100 text-primary-800' : 'bg-surface-accent text-surface-foreground'
-      }`}>{row.is_billed ? 'Yes' : 'No'}</span>
+      render: (_value, row) => row.invoice?.status ?? '-',
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
-      sortable: false,
-      filterable: false,
-      width: 150,
-      sticky: 'right',
       render: (_value, row) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+        <div className="flex flex-wrap gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setFormError(null);
+              setDraft({ invoice: row.invoice });
+            }}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setCreditNote(row)}
+            leftIcon={<ReceiptRefundIcon className="w-4 h-4" />}
+          >
+            Credit note
+          </Button>
         </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="Student Opening Fee Balances" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />} disabled={studentsWithoutOB.length === 0}>
-          Add Opening Balance
-        </Button>
-      }>
-        {students.length > 0 && studentsWithoutOB.length === 0 && !editingBalance && (
-            <p className="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-md">All active students seem to have opening balances recorded.</p>
-        )}
+    <div className="space-y-4">
+      <Card
+        title="Opening balances"
+        actions={
+          <Button
+            onClick={() => {
+              setFormError(null);
+              setDescription('Opening balance');
+              setDraft({ invoice: null });
+            }}
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+            disabled={finance.learners.length === 0}
+          >
+            Add opening balance
+          </Button>
+        }
+      >
+        <p className="mb-4 text-sm text-surface-muted-fg">
+          A brought-forward balance is posted as an invoice whose single line has kind
+          “opening_balance”. Once posted it is frozen; a credit note corrects it.
+        </p>
         <DataGrid
           columns={columns}
-          data={rows}
+          data={[...rows]}
           sortable
           filterable
           emptyState={{
             icon: <BookOpenIcon className="w-12 h-12 text-surface-muted-fg" />,
-            title: "No opening balances found",
-            description: "Set up opening fee balances for students to track their financial history from the beginning of the academic period.",
+            title: 'No opening balances',
+            description: 'Post the balance a learner brings into this period.',
           }}
         />
       </Card>
 
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingBalance ? 'Edit Opening Balance' : 'Add Student Opening Balance'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={saving}>
-              {editingBalance ? 'Save Changes' : 'Add Balance'}
-            </Button>
-          </>
-        }
+      <Modal
+        isOpen={draft !== null}
+        onClose={() => setDraft(null)}
+        title={draft?.invoice ? 'Edit opening balance' : 'New opening balance'}
+        size="lg"
       >
-        {formError && <Alert variant="destructive" className="mb-4">{formError}</Alert>}
-        <Select name="student_id" label="Student" value={formData.student_id} onChange={handleInputChange} required disabled={!!editingBalance}>
-            <option value="">Select Student</option>
-            {(editingBalance ? students : studentsWithoutOB).map(student => (
-              <option key={student.id} value={idOf(student.id)}>{studentName(student)}{student.admission_no ? ` (${student.admission_no})` : ''}</option>
-            ))}
-        </Select>
-        <Select name="balance_type" label="Balance Type" value={formData.balance_type} onChange={handleInputChange} required>
-            {Object.values(OpeningBalanceType).map(type => (<option key={type} value={type}>{type}</option>))}
-        </Select>
-        <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={formData.amount ?? ''} onChange={handleInputChange} required />
-        <Input name="as_of_date" label="As Of Date" type="date" value={formData.as_of_date} onChange={handleInputChange} required />
-        <div className="mt-4 flex items-center">
-            <input id="is_billed" name="is_billed" type="checkbox" className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
-                checked={formData.is_billed} onChange={handleInputChange} />
-            <label htmlFor="is_billed" className="ml-2 block text-sm text-surface-foreground">Consider this amount as already billed (affects statement)</label>
-        </div>
-      </DialogForm>
+        {draft ? (
+          <SchemaEntityForm
+            schema={draft.invoice ? updateSchemaFor('invoice') : createSchemaFor('invoice')}
+            recordKey={draft.invoice?.id ?? 'new'}
+            initialValues={
+              draft.invoice
+                ? toWritableValues(draft.invoice)
+                : {
+                    institution_id: finance.learners[0]?.institution_id ?? '',
+                    number: `INV-${Date.now()}`,
+                    learner_id: '',
+                    issue_date: new Date().toISOString().slice(0, 10),
+                    total: money(0, CURRENCY),
+                    status: 'posted' as const,
+                  }
+            }
+            fields={[
+              {
+                path: 'learner_id',
+                label: 'Learner',
+                order: 1,
+                widget: 'entity',
+                lookupKey: 'learner',
+                required: true,
+              },
+              {
+                path: 'total',
+                label: 'Amount',
+                order: 2,
+                widget: 'money',
+                required: true,
+                currency: CURRENCY,
+              },
+              {
+                path: 'issue_date',
+                label: 'As of date',
+                order: 3,
+                widget: 'date',
+                required: true,
+              },
+              { path: 'due_date', label: 'Due date', order: 4, widget: 'date' },
+            ]}
+            lookups={{ learner: toFormLookup(finance.lookups.learner) }}
+            serverError={formError}
+            submitLabel={draft.invoice ? 'Save balance' : 'Post balance'}
+            onCancel={() => setDraft(null)}
+            onSubmit={save}
+          >
+            {!draft.invoice ? (
+              <div className="mt-4">
+                <Input
+                  label="Description"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-amber-700">
+                This balance is posted. The repository refuses a change to its amount, learner or
+                dates; raise a credit note to correct it.
+              </p>
+            )}
+          </SchemaEntityForm>
+        ) : null}
+      </Modal>
+
+      <CreditNoteDialog
+        isOpen={creditNote !== null}
+        onClose={() => setCreditNote(null)}
+        learnerId={creditNote?.line.learnerId ?? undefined}
+        invoiceId={creditNote?.line.invoiceId}
+        amount={creditNote?.line.amount}
+      />
     </div>
   );
 };
 
 const StudentOpeningBalancesPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentOpeningBalancesPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentOpeningBalancesPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentOpeningBalancesPage;

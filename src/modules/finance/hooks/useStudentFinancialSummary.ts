@@ -1,223 +1,186 @@
-// ABOUTME: Computed view hook replacing vw_fin_student_financial_summary
-// ABOUTME: Aggregates student billing, payment, and adjustment data into a financial summary
-// ABOUTME: Mirrors the SQL view: joins students with class/stream info, invoice totals, payment totals, and fee adjustments
+// ABOUTME: The student financial position the fee reports read, derived from canonical invoices,
+// ABOUTME: allocations and credit notes. Every amount is whole minor units, never a float.
 
-import { useMemo, useCallback } from 'react';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useCallback, useMemo } from 'react';
+
+import { useEntityQuery } from '@/data/query';
+
+import { useCanonicalRepository } from '../data/canonicalRepository';
 
 /**
- * Represents a single row from the student financial summary view.
- * Each row is one student with their aggregated financial position.
+ * One learner's financial position.
+ *
+ * The amount fields carry exact minor units (the canonical money representation). A
+ * caller formats them with `formatMoneyMinor`; nothing divides by 100 here.
  */
 export interface StudentFinancialSummary {
-  /** Student ID (from adm.students.id) */
-  studentId: string;
-  /** Admission number */
-  admissionNo: string;
-  /** Full name (first + last) */
-  name: string;
-  /** Class name (from adm.classes.name via class_stream) */
-  className: string | null;
-  /** Stream name (from adm.class_streams.name) */
-  streamName: string | null;
-  /** Total amount billed (sum of non-voided invoices) */
-  feeAmount: number;
-  /** Total fee exemptions + scholarships */
-  feeExemption: number;
-  /** Total penalties and fines */
-  feePenalty: number;
-  /** Total amount paid */
-  amountPaid: number;
-  /** Balance = (feeAmount + feePenalty) - (amountPaid + feeExemption) */
-  balance: number;
-  /** Overpayment amount (positive when balance < 0, otherwise 0) */
-  overpay: number;
-  /** Refund amount (always 0 in current schema, reserved for future) */
-  refund: number;
-  /** Earliest due_date across the student's non-voided invoices (null when none) */
-  earliestDueDate: string | null;
+  readonly studentId: string;
+  readonly admissionNo: string;
+  readonly name: string;
+  readonly className: string | null;
+  readonly streamName: string | null;
+  /** Total billed on posted (non-void) invoices. */
+  readonly feeAmount: number;
+  /** Posted credit notes: exemptions and scholarships. */
+  readonly feeExemption: number;
+  /** Fine lines billed on the learner's invoices. */
+  readonly feePenalty: number;
+  /** Allocations applied to the learner's invoices. */
+  readonly amountPaid: number;
+  /** feeAmount + feePenalty - amountPaid - feeExemption. */
+  readonly balance: number;
+  /** The positive part of an overpayment. */
+  readonly overpay: number;
+  readonly refund: number;
+  /** Earliest due date across the learner's posted invoices. */
+  readonly earliestDueDate: string | null;
 }
 
-/**
- * Computed view hook that replicates `vw_fin_student_financial_summary`.
- *
- * Aggregates data from:
- * - students (with class/stream joins)
- * - student_invoices (non-voided, active)
- * - student_payments (all payments)
- * - fee_adjustments (exemptions, scholarships, penalties)
- *
- * Usage:
- * ```tsx
- * const { data: summaries, loading, error, refresh } = useStudentFinancialSummary();
- * ```
- */
+/** Reads the canonical documents behind the student financial summary. */
 export function useStudentFinancialSummary() {
-  const studentsCol = useDatabaseCollection<Record<string, any>>('students');
-  const classStreamsCol = useDatabaseCollection<Record<string, any>>('class_streams');
-  const classesCol = useDatabaseCollection<Record<string, any>>('classes');
-  const studentInvoicesCol = useDatabaseCollection<Record<string, any>>('student_invoices');
-  const studentPaymentsCol = useDatabaseCollection<Record<string, any>>('student_payments');
-  const feeAdjustmentsCol = useDatabaseCollection<Record<string, any>>('fee_adjustments');
+  const repository = useCanonicalRepository();
+  const learnersQuery = useEntityQuery(repository, 'learner');
+  const enrolmentsQuery = useEntityQuery(repository, 'enrolment');
+  const classGroupsQuery = useEntityQuery(repository, 'class_group');
+  const invoicesQuery = useEntityQuery(repository, 'invoice');
+  const invoiceLinesQuery = useEntityQuery(repository, 'invoice_line');
+  const allocationsQuery = useEntityQuery(repository, 'payment_allocation');
+  const creditNotesQuery = useEntityQuery(repository, 'credit_note');
 
-  const data = useMemo<StudentFinancialSummary[]>(() => {
-    if (
-      studentsCol.loading ||
-      classStreamsCol.loading ||
-      classesCol.loading ||
-      studentInvoicesCol.loading ||
-      studentPaymentsCol.loading ||
-      feeAdjustmentsCol.loading
-    ) {
-      return [];
-    }
+  const data = useMemo<readonly StudentFinancialSummary[]>(() => {
+    const learners = learnersQuery.data?.items ?? [];
+    const enrolments = enrolmentsQuery.data?.items ?? [];
+    const classGroups = classGroupsQuery.data?.items ?? [];
+    const invoices = invoicesQuery.data?.items ?? [];
+    const invoiceLines = invoiceLinesQuery.data?.items ?? [];
+    const allocations = allocationsQuery.data?.items ?? [];
+    const creditNotes = creditNotesQuery.data?.items ?? [];
 
-    const students = studentsCol.data;
-    const classStreams = classStreamsCol.data;
-    const classes = classesCol.data;
-    const invoices = studentInvoicesCol.data;
-    const payments = studentPaymentsCol.data;
-    const adjustments = feeAdjustmentsCol.data;
-
-    // Pre-compute lookup maps for O(1) access
-    const streamMap = new Map(classStreams.map(cs => [String(cs.id), cs]));
-    const classMap = new Map(classes.map(c => [String(c.id), c]));
-
-    // Aggregate invoices per student (non-voided, non-deleted)
-    const invoiceTotals = new Map<string, number>();
-    const earliestDueDates = new Map<string, string>();
-    for (const inv of invoices) {
-      if (inv.status === 'Voided' || inv.deleted_at) continue;
-      const sid = String(inv.student_id);
-      invoiceTotals.set(sid, (invoiceTotals.get(sid) ?? 0) + (Number(inv.total_amount_billed) || 0));
-      // Track the earliest due date for aging calculations
-      if (inv.due_date) {
-        const existing = earliestDueDates.get(sid);
-        if (!existing || String(inv.due_date) < existing) {
-          earliestDueDates.set(sid, String(inv.due_date));
-        }
+    const groupById = new Map(classGroups.map((group) => [group.id, group]));
+    const enrolmentByLearner = new Map<string, (typeof enrolments)[number]>();
+    for (const enrolment of enrolments) {
+      if (enrolment.status !== 'active' && enrolment.status !== 'repeating') continue;
+      const current = enrolmentByLearner.get(enrolment.learner_id);
+      if (!current || enrolment.start_date > current.start_date) {
+        enrolmentByLearner.set(enrolment.learner_id, enrolment);
       }
     }
 
-    // Aggregate payments per student
-    const paymentTotals = new Map<string, number>();
-    for (const pay of payments) {
-      const sid = String(pay.student_id);
-      paymentTotals.set(sid, (paymentTotals.get(sid) ?? 0) + (Number(pay.total_amount_paid) || 0));
-    }
+    const invoiceById = new Map(invoices.map((invoice) => [invoice.id, invoice]));
+    const billedByLearner = new Map<string, number>();
+    const paidByLearner = new Map<string, number>();
+    const penaltyByLearner = new Map<string, number>();
+    const dueByLearner = new Map<string, string>();
 
-    // Aggregate adjustments per student (exemptions/scholarships vs penalties)
-    const exemptionTotals = new Map<string, number>();
-    const penaltyTotals = new Map<string, number>();
-    for (const adj of adjustments) {
-      const sid = String(adj.student_id);
-      const amount = Number(adj.amount) || 0;
-      const adjType = String(adj.adjustment_type ?? '');
-      if (adjType === 'Exemption' || adjType === 'Scholarship') {
-        exemptionTotals.set(sid, (exemptionTotals.get(sid) ?? 0) + amount);
-      } else if (adjType === 'Penalty' || adjType === 'Fine') {
-        penaltyTotals.set(sid, (penaltyTotals.get(sid) ?? 0) + amount);
+    for (const invoice of invoices) {
+      if (invoice.status === 'void' || invoice.status === 'draft') continue;
+      if (!invoice.learner_id) continue;
+      billedByLearner.set(
+        invoice.learner_id,
+        (billedByLearner.get(invoice.learner_id) ?? 0) + invoice.total.amount_minor
+      );
+      if (invoice.due_date) {
+        const current = dueByLearner.get(invoice.learner_id);
+        if (!current || invoice.due_date < current) dueByLearner.set(invoice.learner_id, invoice.due_date);
       }
     }
 
-    // Build the summary for each active student
-    const result: StudentFinancialSummary[] = [];
-
-    for (const student of students) {
-      // Filter out soft-deleted students
-      if (student.deleted_at) continue;
-
-      const studentId = String(student.id);
-      const admissionNo = String(student.admission_no ?? '');
-      const firstName = String(student.first_name ?? '');
-      const lastName = String(student.last_name ?? '');
-      const name = `${firstName} ${lastName}`.trim();
-
-      // Resolve class and stream names via joins
-      let className: string | null = null;
-      let streamName: string | null = null;
-      const streamId = student.current_class_stream_id;
-      if (streamId != null) {
-        const stream = streamMap.get(String(streamId));
-        if (stream) {
-          streamName = String(stream.name ?? '');
-          const classId = stream.class_id;
-          if (classId != null) {
-            const cls = classMap.get(String(classId));
-            if (cls) {
-              className = String(cls.name ?? '');
-            }
-          }
-        }
-      }
-
-      // Also try student's denormalized fields if join didn't resolve
-      if (!className && student.current_class_name) {
-        className = String(student.current_class_name);
-      }
-      if (!streamName && student.current_class_stream_name) {
-        streamName = String(student.current_class_stream_name);
-      }
-
-      const feeAmount = invoiceTotals.get(studentId) ?? 0;
-      const feeExemption = exemptionTotals.get(studentId) ?? 0;
-      const feePenalty = penaltyTotals.get(studentId) ?? 0;
-      const amountPaid = paymentTotals.get(studentId) ?? 0;
-      const balance = (feeAmount + feePenalty) - (amountPaid + feeExemption);
-      const overpay = balance < 0 ? Math.abs(balance) : 0;
-
-      result.push({
-        studentId,
-        admissionNo,
-        name,
-        className,
-        streamName,
-        feeAmount: Math.round(feeAmount * 100) / 100,
-        feeExemption: Math.round(feeExemption * 100) / 100,
-        feePenalty: Math.round(feePenalty * 100) / 100,
-        amountPaid: Math.round(amountPaid * 100) / 100,
-        balance: Math.round(balance * 100) / 100,
-        overpay: Math.round(overpay * 100) / 100,
-        refund: 0, // Reserved for future use - always 0 in current schema
-        earliestDueDate: earliestDueDates.get(studentId) ?? null,
-      });
+    for (const allocation of allocations) {
+      const invoice = invoiceById.get(allocation.invoice_id);
+      if (!invoice?.learner_id) continue;
+      if (invoice.status === 'void' || invoice.status === 'draft') continue;
+      paidByLearner.set(
+        invoice.learner_id,
+        (paidByLearner.get(invoice.learner_id) ?? 0) + allocation.amount.amount_minor
+      );
     }
 
-    return result;
+    for (const line of invoiceLines) {
+      if (line.kind !== 'fine') continue;
+      const invoice = invoiceById.get(line.invoice_id);
+      if (!invoice?.learner_id) continue;
+      if (invoice.status === 'void' || invoice.status === 'draft') continue;
+      penaltyByLearner.set(
+        invoice.learner_id,
+        (penaltyByLearner.get(invoice.learner_id) ?? 0) + line.amount.amount_minor
+      );
+    }
+
+    const creditByLearner = new Map<string, number>();
+    for (const note of creditNotes) {
+      if (note.status !== 'posted' || !note.learner_id) continue;
+      creditByLearner.set(
+        note.learner_id,
+        (creditByLearner.get(note.learner_id) ?? 0) + note.amount.amount_minor
+      );
+    }
+
+    return learners.map((learner) => {
+      const enrolment = enrolmentByLearner.get(learner.id);
+      const group = enrolment ? groupById.get(enrolment.class_group_id) : undefined;
+      const feeAmount = billedByLearner.get(learner.id) ?? 0;
+      const feePenalty = penaltyByLearner.get(learner.id) ?? 0;
+      const amountPaid = paidByLearner.get(learner.id) ?? 0;
+      const feeExemption = creditByLearner.get(learner.id) ?? 0;
+      const balance = feeAmount + feePenalty - amountPaid - feeExemption;
+      return {
+        studentId: learner.id,
+        admissionNo: learner.admission_number,
+        name: `${learner.preferred_name ?? learner.given_name} ${learner.family_name}`.trim(),
+        className: group?.name ?? null,
+        streamName: group?.name ?? null,
+        feeAmount,
+        feeExemption,
+        feePenalty,
+        amountPaid,
+        balance,
+        overpay: balance < 0 ? Math.abs(balance) : 0,
+        refund: 0,
+        earliestDueDate: dueByLearner.get(learner.id) ?? null,
+      };
+    });
   }, [
-    studentsCol.data, classStreamsCol.data, classesCol.data,
-    studentInvoicesCol.data, studentPaymentsCol.data, feeAdjustmentsCol.data,
-    studentsCol.loading, classStreamsCol.loading, classesCol.loading,
-    studentInvoicesCol.loading, studentPaymentsCol.loading, feeAdjustmentsCol.loading,
+    learnersQuery.data,
+    enrolmentsQuery.data,
+    classGroupsQuery.data,
+    invoicesQuery.data,
+    invoiceLinesQuery.data,
+    allocationsQuery.data,
+    creditNotesQuery.data,
   ]);
+
+  const refetchLearners = learnersQuery.refetch;
+  const refetchEnrolments = enrolmentsQuery.refetch;
+  const refetchClassGroups = classGroupsQuery.refetch;
+  const refetchInvoices = invoicesQuery.refetch;
+  const refetchInvoiceLines = invoiceLinesQuery.refetch;
+  const refetchAllocations = allocationsQuery.refetch;
+  const refetchCreditNotes = creditNotesQuery.refetch;
 
   const refresh = useCallback(async () => {
     await Promise.all([
-      studentsCol.refresh(),
-      classStreamsCol.refresh(),
-      classesCol.refresh(),
-      studentInvoicesCol.refresh(),
-      studentPaymentsCol.refresh(),
-      feeAdjustmentsCol.refresh(),
+      refetchLearners(),
+      refetchEnrolments(),
+      refetchClassGroups(),
+      refetchInvoices(),
+      refetchInvoiceLines(),
+      refetchAllocations(),
+      refetchCreditNotes(),
     ]);
-  }, [studentsCol.refresh, classStreamsCol.refresh, classesCol.refresh, studentInvoicesCol.refresh, studentPaymentsCol.refresh, feeAdjustmentsCol.refresh]);
+  }, [
+    refetchLearners,
+    refetchEnrolments,
+    refetchClassGroups,
+    refetchInvoices,
+    refetchInvoiceLines,
+    refetchAllocations,
+    refetchCreditNotes,
+  ]);
 
   return {
     data,
-    loading:
-      studentsCol.loading ||
-      classStreamsCol.loading ||
-      classesCol.loading ||
-      studentInvoicesCol.loading ||
-      studentPaymentsCol.loading ||
-      feeAdjustmentsCol.loading,
-    error:
-      studentsCol.error ||
-      classStreamsCol.error ||
-      classesCol.error ||
-      studentInvoicesCol.error ||
-      studentPaymentsCol.error ||
-      feeAdjustmentsCol.error,
+    loading: [learnersQuery.status, invoicesQuery.status].some((status) => status === 'loading'),
+    error: learnersQuery.error ?? invoicesQuery.error ?? null,
     refresh,
   };
 }
