@@ -275,6 +275,28 @@ it denies an action. The role and permission model itself is spec 02 §11 and is
 modelled yet, so the hook is the seam **P1-B03** fills in; without a hook every action
 is allowed.
 
+Every path that reads or writes a row asks the hook first, and no path is exempt:
+
+| Path | Action | The hook is asked with |
+| --- | --- | --- |
+| `get` | `read` | the entity and the id |
+| `list` | `list` | the entity |
+| `create` | `create` | the entity and the row it would store |
+| `update` | `update` | the entity, the id and the row it would store |
+| `remove` | `remove` | the entity, the id and the row it would store |
+| `watch` | `watch` | the entity |
+| `auditTrail`, `auditLog` | `audit` | the entity, or every entity the trail covers |
+
+A write is judged with the row it would store, because a scope can only be judged
+against a row. `auditLog()` without an entity filter spans entities, so every entity
+the trail covers is judged before the trail is read: the trail holds the row before and
+after every mutation.
+
+The change bus (`subscribe`) is the one exception, and it is a disclosure rather than an
+oversight: the bus is not entity-scoped, so the hook has no entity to judge, and its
+payload carries the entity name and the ids of the rows that changed, never row
+content. An id is only useful through `get` or `list`, which are judged.
+
 ## Errors
 
 | Class | `code` | Carries |

@@ -14,6 +14,7 @@ import {
 
 import {
   applyAuditSchema,
+  readAuditEntities,
   readAuditEvents,
   writeAuditEvent,
   type AuditRunner,
@@ -396,6 +397,10 @@ export class Repository {
         if (actor !== undefined) row.updated_by = actor;
       }
 
+      // A removal is a write, so the authorizer judges it. The row is passed the same way
+      // an update passes it, because a scope can only be judged against the row.
+      this.checkPermission({ action: 'remove', entity, id, row });
+
       const params: SqliteBindValue[] = [id];
       let statement: string;
       let encoded: Record<string, SqliteBindValue> = {};
@@ -515,10 +520,21 @@ export class Repository {
     return readAuditEvents(this.adapter, { entity, entityId });
   }
 
-  /** The audit trail, filtered. */
+  /**
+   * The audit trail, filtered.
+   *
+   * A trail without an entity filter spans entities, so every entity it covers is judged
+   * before the trail is read: the trail holds the row before and after every mutation,
+   * so it must not be handed out without a check.
+   */
   async auditLog(query: AuditQuery = {}): Promise<readonly AuditEvent[]> {
     if (query.entity !== undefined) {
       this.checkPermission({ action: 'audit', entity: query.entity });
+      return readAuditEvents(this.adapter, query);
+    }
+
+    for (const entity of await readAuditEntities(this.adapter)) {
+      this.checkPermission({ action: 'audit', entity });
     }
     return readAuditEvents(this.adapter, query);
   }

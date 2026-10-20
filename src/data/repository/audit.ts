@@ -2,6 +2,7 @@
 // ABOUTME: every mutation makes inside its own transaction, and the reader for the trail.
 
 import { generateUuidv7, asId } from '@/domain/ids';
+import type { EntityName } from '@/domain/schema';
 import type { SqliteAdapter, SqliteBindValue, SqliteRunResult } from '@/data/adapters/sqlite';
 
 import type { AuditEvent, AuditQuery, ChangeType } from './types';
@@ -102,6 +103,14 @@ interface AuditRow {
   readonly reason: string | null;
   readonly created_at: string;
   readonly commit_sequence: number;
+}
+
+/** Reads the entities the audit trail covers. */
+export async function readAuditEntities(runner: AuditRunner): Promise<readonly EntityName[]> {
+  const rows = await runner.all<{ entity: string }>(
+    `SELECT DISTINCT "entity" FROM "${AUDIT_TABLE}" ORDER BY "entity"`
+  );
+  return rows.map((row) => row.entity as EntityName);
 }
 
 /** Reads the audit trail, newest first. */
