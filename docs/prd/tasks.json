@@ -2620,10 +2620,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "06ec6cb",
       "notes": "Amended at P1-W1 from DR-01: retiring the legacy registry includes src/services/database/collections.ts. createDatabaseSchema/SchemaConverter stay as the DDL backend.",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-Q01",
