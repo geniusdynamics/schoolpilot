@@ -1,0 +1,18 @@
+{
+  "task": "P1-E06",
+  "note": "New strings of the setup wizard's sample-data step and the canonical demo seed, used with inline English defaults. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw.",
+  "en": {
+    "common": {
+      "setupWizard": {
+        "sample": {
+          "title": "Sample data",
+          "description": "Start with a school that already has something in it",
+          "intro": "The classes you entered are saved as the school structure. You can also load sample learners, staff, fees and a register to explore the app.",
+          "demoLabel": "Create sample data",
+          "demoHint": "Adds demo learners, guardians, staff, teaching groups, marks, fee invoices and a morning register. It is written the same way the app writes real records, and you can add your own next to it."
+        },
+        "canonicalError": "The school structure could not be saved."
+      }
+    }
+  }
+}

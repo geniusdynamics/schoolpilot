@@ -40,11 +40,13 @@ function supportsOpfs(): boolean {
 /**
  * Opens the canonical database and hands back the repository over it.
  *
- * The browser keeps the canonical tables in their own OPFS SQLite file, beside the
- * legacy document collections; Node (tests and scripts) uses an in-memory database.
- * The schema is the canonical one, applied by the repository itself.
+ * Shared by the provider and by the demo seed: the first caller opens the database and every
+ * later one gets the same repository from the global slot, so there is never a second connection
+ * over the canonical tables. The browser keeps the canonical tables in their own OPFS SQLite
+ * file, beside the legacy document collections; Node (tests and scripts) uses an in-memory
+ * database. The schema is the canonical one, applied by the repository itself.
  */
-async function openCanonicalRepository(): Promise<QueryRepository> {
+export async function openCanonicalRepository(): Promise<QueryRepository> {
   const shared = slot();
   if (shared.repository) return shared.repository;
   shared.opening ??= (async () => {

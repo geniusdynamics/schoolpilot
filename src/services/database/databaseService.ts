@@ -3,12 +3,10 @@ import { logger } from '@/utils/logging';
 // ABOUTME: New database service that uses the correct database provider based on environment configuration
 // ABOUTME: Unified database service using provider-agnostic DataServiceFactory
 
-import { Observable, BehaviorSubject } from 'rxjs';
 import {
   getDatabaseManager
 } from './ProviderSelector';
 import { ICollection } from './interfaces';
-import * as allTypes from '../../types';
 import { SETTINGS_COLLECTION_NAME, DUMMY_DATA_FLAG_ID } from '../../config/unifiedConfig';
 
 // Import collections definition from provider-agnostic collections
@@ -42,7 +40,7 @@ class MockDatabase {
   [key: string]: any;
   private databaseManager = getDatabaseManager();
 
-  constructor(_collections?: Map<string, ICollection<any>>) {
+  constructor() {
     // Use Proxy to handle dynamic property access for collections.
     // Every property access delegates to the live databaseManager.
     return new Proxy(this, {
@@ -135,83 +133,6 @@ export const getDatabaseError = (): Error | null => {
   return initializationError;
 };
 
-export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTypes.RawInitialData): Promise<void> => {
-  logger.info('DatabaseService: Demo mode - Seeding database with mock data...');
-  
-  for (const collectionName in collectionsDefinition) {
-    if (Object.prototype.hasOwnProperty.call(collectionsDefinition, collectionName)) {
-      const rawDataKey = `initialMock${collectionName.charAt(0).toUpperCase() + collectionName.slice(1).replace(/Inv$/, 'Inv')}`;
-      const mockDataArray = mockData[rawDataKey as keyof allTypes.RawInitialData];
-      const collection = db.collections[collectionName] as ICollection<any>;
-
-      if (collection) {
-        try {
-          logger.info(`DatabaseService: Clearing collection ${collectionName}...`);
-          // Clear existing data
-          const existingDocs = await collection.find();
-          for (const doc of existingDocs) {
-            if (doc.id) {
-              await collection.remove(doc.id);
-            }
-          }
-
-          if (mockDataArray && Array.isArray(mockDataArray) && mockDataArray.length > 0) {
-            logger.info(`DatabaseService: Seeding ${collectionName} with ${mockDataArray.length} items...`);
-            for (const item of mockDataArray) {
-              await collection.insert(item);
-            }
-          } else if (mockDataArray && !Array.isArray(mockDataArray) && mockDataArray !== null && collectionName !== SETTINGS_COLLECTION_NAME) {
-            logger.info(`DatabaseService: Seeding ${collectionName} with 1 item...`);
-            await collection.insert(mockDataArray);
-          } else if (collectionName === SETTINGS_COLLECTION_NAME && mockDataArray) {
-            logger.info(`DatabaseService: Upserting ${collectionName} data...`);
-            // Use upsert for settings collection
-            const settingsCol = collection as any;
-            if (settingsCol.upsert) {
-              await settingsCol.upsert(mockDataArray.id, mockDataArray);
-            } else {
-              // Fallback: check if exists and update or insert
-              const existing = await collection.findById(mockDataArray.id);
-              if (existing) {
-                await collection.update(mockDataArray.id, mockDataArray);
-              } else {
-                await collection.insert(mockDataArray);
-              }
-            }
-          }
-        } catch (error) {
-          logger.error(`DatabaseService: Error seeding collection ${collectionName}:`, error);
-        }
-      } else {
-        logger.warn(`DatabaseService: Collection ${collectionName} not found in DB instance during seeding.`);
-      }
-    }
-  }
-
-  // Set dummy data flag
-  const settingsCollection = db.collections[SETTINGS_COLLECTION_NAME] as ICollection<any>;
-  if (settingsCollection) {
-    // Use upsert for settings collection
-    if ((settingsCollection as any).upsert) {
-      await (settingsCollection as any).upsert(DUMMY_DATA_FLAG_ID, {
-        id: DUMMY_DATA_FLAG_ID,
-        using_dummy_data: true
-      });
-    } else {
-      // Fallback: check if exists and update or insert
-      const existing = await settingsCollection.findById(DUMMY_DATA_FLAG_ID);
-      if (existing) {
-        await settingsCollection.update(DUMMY_DATA_FLAG_ID, { using_dummy_data: true });
-      } else {
-        await settingsCollection.insert({ using_dummy_data: true });
-      }
-    }
-    logger.info('DatabaseService: Dummy data flag set to true.');
-  }
-  
-  logger.info('DatabaseService: Database seeding complete.');
-};
-
 export const clearDatabase = async (db: MockDatabase): Promise<void> => {
   logger.info('DatabaseService: Clearing all collections...');
   
@@ -279,6 +200,7 @@ export const rxdbService = {
   generateNumericId,
   // Alias for initializeDatabase for authService compatibility
   initialize: async (config?: any): Promise<MockDatabase> => {
+    void config;
     if (!database) {
       database = await initializeDatabase();
       dbPromise = Promise.resolve(database);
@@ -324,26 +246,6 @@ export const rxdbService = {
       database = await rxdbService.initializeDatabase();
     }
     return getUsingDummyDataFlag(database);
-  },
-  seedDatabaseWithMockData: async (): Promise<void> => {
-    try {
-      // Import mock data dynamically
-      const mockDataModule = await import('../../hooks/useModularMockData');
-      const mockData = mockDataModule.rawInitialData;
-      
-      if (!database) {
-        database = await rxdbService.initializeDatabase();
-      }
-      
-      if (mockData) {
-        return seedDatabaseWithMockData(database, mockData);
-      } else {
-        logger.warn('No mock data available for seeding');
-      }
-    } catch (error) {
-      logger.error('Failed to seed database with mock data:', error);
-      throw error;
-    }
   },
 };
 
