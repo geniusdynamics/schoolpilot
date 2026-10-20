@@ -155,6 +155,29 @@ function compareCounts(id, name, current, baseline, lowerIsBetter = true) {
   return current;
 }
 
+/**
+ * Splits paths into argument lists that fit a Windows command line (~8k characters). A wave that
+ * touches hundreds of files would otherwise overflow the shell, and the gate would report a
+ * failure for a command that never ran. A single long path still gets its own batch.
+ */
+function chunkByCommandLength(items, budget = 6000) {
+  const batches = [];
+  let current = [];
+  let length = 0;
+  for (const item of items) {
+    const cost = item.length + 3;
+    if (current.length && length + cost > budget) {
+      batches.push(current);
+      current = [];
+      length = 0;
+    }
+    current.push(item);
+    length += cost;
+  }
+  if (current.length) batches.push(current);
+  return batches;
+}
+
 async function runTaskChecks(base, baseline, files) {
   const src = files.filter(isSourceFile);
   const tests = files.filter(isTestFile);
@@ -169,9 +192,18 @@ async function runTaskChecks(base, baseline, files) {
   if (testTargets.length === 0) {
     record('G3', 'Related tests pass', 'SKIP', 'no src/ files changed');
   } else {
-    const r = shOk(`pnpm -s vitest related --run --passWithNoTests ${testTargets.map((f) => `"${f}"`).join(' ')}`);
-    const tail = summariseVitestRun(r.out, r);
-    record('G3', 'Related tests pass', r.ok ? 'PASS' : 'FAIL', tail);
+    // Windows caps a command line at ~8k characters. A wave that touches hundreds of files would
+    // overflow it, the spawn would fail, and the gate would report a test failure that never ran.
+    // Run the targets in batches whose quoted list fits comfortably.
+    const batches = chunkByCommandLength(testTargets);
+    let failed = null;
+    let tail = '';
+    for (const batch of batches) {
+      const r = shOk(`pnpm -s vitest related --run --passWithNoTests ${batch.map((f) => `"${f}"`).join(' ')}`);
+      tail = summariseVitestRun(r.out, r);
+      if (!r.ok && !failed) failed = r;
+    }
+    record('G3', 'Related tests pass', failed ? 'FAIL' : 'PASS', failed ? tail : tail);
   }
 
   const reason = option('no-test-reason');
@@ -196,10 +228,17 @@ async function runTaskChecks(base, baseline, files) {
   const lintable = files.filter((f) => /\.(ts|tsx|js|mjs|cjs)$/.test(f));
   if (!lintable.length) record('G7', 'ESLint on changed files', 'SKIP', 'no lintable files changed');
   else {
-    const r = shOk(`npx eslint --no-warn-ignored ${lintable.map((f) => `"${f}"`).join(' ')}`);
-    const broken = /ERR_MODULE_NOT_FOUND|Cannot find package/.test(r.out);
+    // Same command-line cap as G3: lint in batches so a large wave does not overflow the shell.
+    let out = '';
+    let ok = true;
+    for (const batch of chunkByCommandLength(lintable)) {
+      const r = shOk(`npx eslint --no-warn-ignored ${batch.map((f) => `"${f}"`).join(' ')}`);
+      out += r.out;
+      if (!r.ok) ok = false;
+    }
+    const broken = /ERR_MODULE_NOT_FOUND|Cannot find package/.test(out);
     if (broken && !baseline.lintRequired) record('G7', 'ESLint on changed files', 'WARN', 'ESLint cannot load its config (task P0-G01 fixes this); not enforced yet');
-    else record('G7', 'ESLint on changed files', r.ok ? 'PASS' : 'FAIL', r.ok ? '' : r.out.split('\n').filter((l) => /error/.test(l)).slice(0, 3).join(' | '));
+    else record('G7', 'ESLint on changed files', ok ? 'PASS' : 'FAIL', ok ? '' : out.split('\n').filter((l) => /error/.test(l)).slice(0, 3).join(' | '));
   }
   return { typecheck: tc, contracts };
 }
