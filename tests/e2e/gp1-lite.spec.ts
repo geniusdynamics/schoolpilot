@@ -14,14 +14,12 @@
 // ABOUTME: - the promotion run (GAP P1-E01: it reads the legacy students/class_streams collections).
 // ABOUTME:
 // ABOUTME: KNOWN PRODUCT BUGS, NOT ROUTED AROUND SILENTLY:
-// ABOUTME: 1. the student directory's Add Student refuses a learner with a guardian ("Nested transactions are not
-// ABOUTME:    supported") because admitLearner opens a transaction and GuardianService.linkGuardian opens another. The
-// ABOUTME:    canonical admission form does not nest, so this suite admits the learner there and asserts the directory
-// ABOUTME:    reads the result. The directory write is reported as a blocker, not covered here.
-// ABOUTME: 2. the finance hubs (/finance/invoicing, /finance/payments) mount canonical content without a
-// ABOUTME:    CanonicalRepositoryProvider, so a fresh document load on them fails with "useCanonicalRepository must be
-// ABOUTME:    used within a CanonicalRepositoryProvider". The suite reaches them by an in-app route change, as a signed-in
-// ABOUTME:    user does, and reloads on a self-wrapped page when it needs to prove persistence.
+// ABOUTME: 1. the student directory's Add Student used to refuse a learner with a guardian ("Nested transactions are
+// ABOUTME:    not supported"); it is fixed (Repository.transaction joins an ambient transaction) and covered by the
+// ABOUTME:    administration suite. This golden path still admits through the canonical admission form and asserts the
+// ABOUTME:    directory reads the result, because that is the flow the spec was built around.
+// ABOUTME: 2. the finance hubs used to mount canonical content without a CanonicalRepositoryProvider, so a fresh
+// ABOUTME:    document load failed. They are fixed, and this suite now loads the hubs directly to keep it that way.
 
 import playwright from '@playwright/test';
 
@@ -161,8 +159,10 @@ test.describe('GP-1 golden path', () => {
     let invoiceNumber = '';
 
     await test.step('bill the term for the learner', async () => {
-      await navigate(page, '/finance/invoicing');
-      await expect(page.getByRole('heading', { name: 'Invoice Generation', exact: true })).toBeVisible();
+      // A fresh document load through the hash router (`go`), not an in-app route change: the hubs
+      // mount the canonical provider themselves now, and a reload of a finance hub must work.
+      await go(page, '/finance/invoicing');
+      await expect(page.getByRole('heading', { name: 'Invoice Generation', exact: true })).toBeVisible({ timeout: LOAD_TIMEOUT });
       await chooseFromPicker(page, page.getByTestId('billing-period-picker'), TERM_LABEL);
       await page.getByRole('button', { name: 'Generate invoices' }).click();
       await expect(page.getByText('Billing run posted')).toBeVisible();
@@ -179,8 +179,8 @@ test.describe('GP-1 golden path', () => {
     await test.step('reload: the invoice is still billed to the learner (student financial summary)', async () => {
       await go(page, '/administration/students');
       await expect(page.getByText('Student Management')).toBeVisible();
-      await navigate(page, '/finance/payments?tab=financial-summary');
-      await expect(page.getByRole('heading', { name: 'Student financial summary', exact: true })).toBeVisible();
+      await go(page, '/finance/payments?tab=financial-summary');
+      await expect(page.getByRole('heading', { name: 'Student financial summary', exact: true })).toBeVisible({ timeout: LOAD_TIMEOUT });
       await page.getByPlaceholder('Name or admission number').fill(admissionNumber);
       const row = gridRow(page, admissionNumber);
       await expect(row).toBeVisible();
@@ -220,7 +220,7 @@ test.describe('GP-1 golden path', () => {
     await test.step('reload: the payment is still listed and the invoice shows it collected', async () => {
       await go(page, '/administration/students');
       await expect(page.getByText('Student Management')).toBeVisible();
-      await navigate(page, '/finance/payments');
+      await go(page, '/finance/payments');
       const row = gridRow(page, receiptNumber);
       await expect(row).toBeVisible();
       await expect(row).toContainText(STUDENT_NAME);
