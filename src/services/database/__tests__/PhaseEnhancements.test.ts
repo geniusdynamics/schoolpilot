@@ -8,6 +8,10 @@
  * - Phase 8: StructuredLogger, CircuitBreaker, FieldLevelEncryption
  */
 
+import { StructuredLogger, createLogger } from '../monitoring/StructuredLogger';
+import { FieldLevelEncryption } from '../monitoring/FieldLevelEncryption';
+import * as loggingModule from '@/utils/logging';
+
 // ==================== Mock Setup ====================
 
 jest.mock('../../config/unifiedConfig', () => ({
@@ -100,23 +104,9 @@ jest.mock('../DatabaseProviderFactory', () => {
   };
 });
 
-// Mock rxdbService
-jest.mock('../rxdbService', () => ({
-  collectionsDefinition: {
-    settings: {
-      schema: {
-        version: 0,
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          key: { type: 'string' },
-          value: { type: 'string' },
-        },
-        primaryKey: 'id',
-      },
-    },
-  },
-}));
+// NOTE: The former `jest.mock('../rxdbService')` block was removed — the
+// RxDB service module no longer exists in the codebase (RxDB was removed in
+// Phase 2), so the mock specifier could not be resolved.
 
 // Mock SchemaConverter
 jest.mock('../SchemaConverter', () => ({
@@ -157,10 +147,18 @@ jest.mock('../StartupOptimizer', () => ({
 
 // ==================== Phase 8: StructuredLogger Tests ====================
 
-import { StructuredLogger, createLogger, LogLevel, LogEntry } from '../monitoring/StructuredLogger';
 
 describe('Phase 8: StructuredLogger', () => {
   let logger: StructuredLogger;
+
+  // StructuredLogger routes output through the application logger
+  // (@/utils/logging) rather than writing to console directly in the
+  // non-development (test) environment, so spy on that sink instead of
+  // console.*. Entries arrive as JSON strings in the first argument.
+  const loggedEntries = (): any[] =>
+    vi
+      .mocked(loggingModule.logger.info)
+      .mock.calls.map(([json]) => JSON.parse(json as string));
 
   beforeEach(() => {
     logger = new StructuredLogger({
@@ -169,11 +167,7 @@ describe('Phase 8: StructuredLogger', () => {
       includeStack: false,
       includeMetadata: true,
     });
-    jest.spyOn(console, 'debug').mockImplementation(() => {});
-    jest.spyOn(console, 'info').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(loggingModule.logger, 'info');
   });
 
   afterEach(() => {
@@ -191,10 +185,11 @@ describe('Phase 8: StructuredLogger', () => {
     logger.warn('warn message');
     logger.error('error message');
 
-    expect(console.debug).toHaveBeenCalled();
-    expect(console.info).toHaveBeenCalled();
-    expect(console.warn).toHaveBeenCalled();
-    expect(console.error).toHaveBeenCalled();
+    const levels = loggedEntries().map((entry) => entry.level);
+    expect(levels).toContain('debug');
+    expect(levels).toContain('info');
+    expect(levels).toContain('warn');
+    expect(levels).toContain('error');
   });
 
   test('should respect log level filtering', () => {
@@ -207,9 +202,10 @@ describe('Phase 8: StructuredLogger', () => {
     warnLogger.info('should not appear');
     warnLogger.warn('should appear');
 
-    expect(console.debug).not.toHaveBeenCalled();
-    expect(console.info).not.toHaveBeenCalled();
-    expect(console.warn).toHaveBeenCalled();
+    const levels = loggedEntries().map((entry) => entry.level);
+    expect(levels).not.toContain('debug');
+    expect(levels).not.toContain('info');
+    expect(levels).toContain('warn');
   });
 
   test('should time async operations', async () => {
@@ -218,7 +214,12 @@ describe('Phase 8: StructuredLogger', () => {
 
     expect(result).toBe('result');
     expect(operation).toHaveBeenCalled();
-    expect(console.debug).toHaveBeenCalled();
+
+    const timingEntry = loggedEntries().find(
+      (entry) => entry.metadata?.operation === 'test-operation',
+    );
+    expect(timingEntry).toBeDefined();
+    expect(typeof timingEntry.metadata.duration).toBe('number');
   });
 
   test('should time sync operations', () => {
@@ -233,7 +234,12 @@ describe('Phase 8: StructuredLogger', () => {
     const operation = jest.fn().mockRejectedValue(new Error('test error'));
 
     await expect(logger.time('failing-operation', operation)).rejects.toThrow('test error');
-    expect(console.error).toHaveBeenCalled();
+
+    const failureEntry = loggedEntries().find(
+      (entry) => entry.message === 'failing-operation failed',
+    );
+    expect(failureEntry).toBeDefined();
+    expect(failureEntry.level).toBe('error');
   });
 
   test('should create child logger with context', () => {
@@ -252,7 +258,9 @@ describe('Phase 8: StructuredLogger', () => {
     const largeData = { largeField: 'x'.repeat(1000) };
     smallLogger.info('test', largeData);
 
-    expect(console.debug).toHaveBeenCalled();
+    const entry = loggedEntries().find((e) => e.message === 'test');
+    expect(entry).toBeDefined();
+    expect(entry.metadata.largeField).toContain('(truncated)');
   });
 
   test('should log error with stack trace when enabled', () => {
@@ -265,7 +273,10 @@ describe('Phase 8: StructuredLogger', () => {
     const error = new Error('test error');
     errorLogger.error('operation failed', error);
 
-    expect(console.error).toHaveBeenCalled();
+    const entry = loggedEntries().find((e) => e.message === 'operation failed');
+    expect(entry).toBeDefined();
+    // The implementation serialises the Error into the entry's metadata block
+    expect(entry.metadata.error.stack).toBeDefined();
   });
 });
 
@@ -455,16 +466,15 @@ describe('Phase 8: CircuitBreakerRegistry', () => {
 
 // ==================== Phase 8: FieldLevelEncryption Tests ====================
 
-import { FieldLevelEncryption, createFieldLevelEncryption } from '../monitoring/FieldLevelEncryption';
 
 describe('Phase 8: FieldLevelEncryption', () => {
   let fle: FieldLevelEncryption;
 
   beforeAll(async () => {
-    // Generate a test key
+    // Generate a test key (extractable: true — required to export it below)
     const key = await crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },
-      false,
+      true,
       ['encrypt', 'decrypt'],
     );
 

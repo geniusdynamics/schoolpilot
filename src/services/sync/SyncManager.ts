@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Sync Manager
  * 
@@ -134,13 +136,13 @@ export class SyncManager {
 
   async syncNow(force = false): Promise<SyncStats> {
     if (this.currentState === 'syncing' && !force) {
-      console.log('Sync already in progress');
+      logger.info('Sync already in progress');
       return this.stats;
     }
 
     // Check if we should sync
     if (!force && !this.shouldSync()) {
-      console.log('Sync conditions not met');
+      logger.info('Sync conditions not met');
       return this.stats;
     }
 
@@ -159,7 +161,7 @@ export class SyncManager {
             await provider.sync();
             this.onProgress?.({ current: 1, total: 1, entity: name });
           } catch (error) {
-            console.error(`Sync failed for provider ${name}:`, error);
+            logger.error(`Sync failed for provider ${name}:`, error);
             hasErrors = true;
           }
         }
@@ -240,7 +242,7 @@ export class SyncManager {
 
     // This would apply pending resolutions to the data
     // Implementation depends on specific provider
-    console.log(`Processing ${this.pendingResolutions.size} pending conflict resolutions`);
+    logger.info(`Processing ${this.pendingResolutions.size} pending conflict resolutions`);
   }
 
   // ============================================================================
@@ -322,7 +324,7 @@ export class SyncManager {
 
   async registerBackgroundSync(tag = 'background-sync'): Promise<boolean> {
     if (!('serviceWorker' in navigator)) {
-      console.warn('Service Worker not supported');
+      logger.warn('Service Worker not supported');
       return false;
     }
 
@@ -331,11 +333,11 @@ export class SyncManager {
       
       if ('sync' in registration) {
         await (registration as any).sync.register(tag);
-        console.log('Background sync registered:', tag);
+        logger.info('Background sync registered:', tag);
         return true;
       }
     } catch (error) {
-      console.error('Failed to register background sync:', error);
+      logger.error('Failed to register background sync:', error);
     }
 
     return false;
@@ -362,7 +364,7 @@ export class SyncManager {
         }
       }
     } catch (error) {
-      console.error('Failed to register periodic sync:', error);
+      logger.error('Failed to register periodic sync:', error);
     }
 
     return false;
@@ -473,7 +475,7 @@ export class SyncManager {
   }
 
   private handleOnline(): void {
-    console.log('Connection restored, triggering sync');
+    logger.info('Connection restored, triggering sync');
     this.setState('idle');
     
     if (this.config.autoSync) {
@@ -482,7 +484,7 @@ export class SyncManager {
   }
 
   private handleOffline(): void {
-    console.log('Connection lost, pausing sync');
+    logger.info('Connection lost, pausing sync');
     this.setState('offline');
   }
 

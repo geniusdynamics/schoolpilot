@@ -1,38 +1,37 @@
-// ABOUTME: Self-contained hook for requisition data management
-// ABOUTME: Provides CRUD operations for requisition without depending on AppDataContext
+// ABOUTME: Database-backed hook for requisition data management
+// ABOUTME: Provides CRUD operations for requisitions against the 'requisitions' collection
+// ABOUTME: Requisition line items are nested on the requisition document via the 'items' array
 
-import { useState, useEffect } from 'react';
-import { initialMockRequisitions } from './mockData';
+import { useCallback } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { Requisition } from '@/core/types';
 
 export const useRequisitionData = () => {
-  const [data, setData] = useState<Requisition[]>(initialMockRequisitions);
+  const requisitionsCollection = useDatabaseCollection<Requisition>('requisitions');
 
-  const create = async (newItem: Partial<Requisition>) => {
-    const newDataItem: Requisition = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
+  const create = useCallback(async (newItem: Partial<Requisition>) => {
+    const now = new Date().toISOString();
+    const payload = {
+      created_at: now,
+      updated_at: now,
+      ...newItem
+    } as Omit<Requisition, 'id'> & { id?: string };
+    return requisitionsCollection.insert(payload);
+  }, [requisitionsCollection]);
+
+  const update = useCallback(async (id: number | string, updatedData: Partial<Requisition>) => {
+    return requisitionsCollection.update(String(id), {
+      ...updatedData,
       updated_at: new Date().toISOString()
-    } as Requisition;
-    setData((prev: Requisition[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
+    });
+  }, [requisitionsCollection]);
 
-  const update = async (id: number, updatedData: Partial<Requisition>) => {
-    setData((prev: Requisition[]) => prev.map((item: Requisition) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: number) => {
-    setData((prev: Requisition[]) => prev.filter((item: Requisition) => item.id !== id));
-  };
+  const remove = useCallback(async (id: number | string) => {
+    return requisitionsCollection.remove(String(id));
+  }, [requisitionsCollection]);
 
   return {
-    data,
+    data: requisitionsCollection.data,
     create,
     update,
     remove

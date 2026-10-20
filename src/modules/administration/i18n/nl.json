@@ -5,7 +5,7 @@
       "description": "Beheer van studenten, personeel, academische structuur en schooloperaties",
       "dashboard": "Dashboard",
       "applications": "Aanvragen",
-      "preNAsMarks": "Pre-NAs Cijfers",
+      "entryMarks": "Entry Marks Cijfers",
       "students": "Studenten",
       "studentMasterlist": "Studenten Hoofdlijst",
       "studentPromotion": "Studenten Promotie",

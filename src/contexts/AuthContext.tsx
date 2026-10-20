@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Authentication context for managing user state and authentication
 // ABOUTME: Provides login, logout, and user state management across the app
 
@@ -28,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Initialize authentication state
   useEffect(() => {
@@ -47,7 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // If still not initialized after timeout, log warning but continue
         if (!authService.isInitialized()) {
-          console.warn('AuthService initialization timed out, proceeding with unauthenticated state');
+          logger.warn('AuthService initialization timed out, proceeding with unauthenticated state');
         }
         
         // Check if user is already authenticated
@@ -58,13 +60,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(currentUser);
         }
         
-        // Determine if we're in demo mode
-        // CRITICAL FIX: Changed from `|| true` to `?? false` to prevent forced demo mode (CRIT-002)
-        const session = authService.getCurrentSession();
-        const demoMode = session?.isDemo ?? false;
-        setIsDemoMode(demoMode);
+        // Demo mode is decided by authService from the persisted data mode only
+        setIsDemoMode(authService.isDemoDatabase());
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        logger.error('Error initializing auth:', error);
       } finally {
         setIsLoading(false);
       }
@@ -74,9 +73,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Login method
-  const login = async (credentials: LoginCredentials): Promise<AuthResult> => {
+  // Login does not touch isLoading: that flag is the start-up state, and AppContent replaces the
+  // login page with a spinner while it is true, which would discard the page's error message.
+  // The login page shows its own progress indicator.
+  const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResult> => {
     try {
-      setIsLoading(true);
       const result = await authService.login(credentials);
       
       if (result.success && result.user) {
@@ -86,48 +87,46 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return result;
     } catch (error) {
-      console.error('AuthContext login error:', error);
+      logger.error('AuthContext login error:', error);
       return {
         success: false,
         message: 'Login failed',
         errors: [error instanceof Error ? error.message : 'Unknown error']
       };
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, []);
 
   // Logout method
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       await authService.logout();
       setUser(null);
-      setIsDemoMode(true);
+      setIsDemoMode(authService.isDemoDatabase());
       
       // Clear any stored route information on logout
       try {
         sessionStorage.removeItem('currentRoute');
         sessionStorage.removeItem('lastVisitTimestamp');
       } catch (error) {
-        console.warn('Failed to clear route storage on logout:', error);
+        logger.warn('Failed to clear route storage on logout:', error);
       }
     } catch (error) {
-      console.error('Error during logout:', error);
+      logger.error('Error during logout:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Refresh user data
-  const refreshUser = async (): Promise<void> => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
-      console.error('Error refreshing user:', error);
+      logger.error('Error refreshing user:', error);
     }
-  };
+  }, []);
 
   // Permission check
   const hasPermission = useCallback(async (permissionId: string): Promise<boolean> => {

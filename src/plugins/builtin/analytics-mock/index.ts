@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Analytics Engine Mock Plugin
  * 
@@ -118,7 +120,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
     teacherId: string,
     period: AnalyticsPeriod
   ): Promise<TeacherAnalytics> {
-    console.log('[Analytics Mock] calculateTeacherMetrics called:', { teacherId, period });
+    logger.info('[Analytics Mock] calculateTeacherMetrics called:', { teacherId, period });
     await simulateDelay();
 
     const assignedSubjects = pickRandomMany(MOCK_SUBJECTS, randomInt(1, 4));
@@ -187,7 +189,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
       topicsPending,
     };
 
-    console.log(`[Analytics Mock] Teacher ${teacherId}: ${passRates.length} subjects, ${classPerformance.length} classes, ${syllabusCoverage}% syllabus coverage`);
+    logger.info(`[Analytics Mock] Teacher ${teacherId}: ${passRates.length} subjects, ${classPerformance.length} classes, ${syllabusCoverage}% syllabus coverage`);
 
     return result;
   },
@@ -201,7 +203,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
     classId: string,
     period: AnalyticsPeriod
   ): Promise<ClassPerformance> {
-    console.log('[Analytics Mock] calculateClassMetrics called:', { classId, period });
+    logger.info('[Analytics Mock] calculateClassMetrics called:', { classId, period });
     await simulateDelay();
 
     const cls = MOCK_CLASSES.find((c) => c.id === classId) || {
@@ -225,7 +227,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
       bottomPerformers: pickRandomMany(MOCK_STUDENT_NAMES, randomInt(2, 4)),
     };
 
-    console.log(`[Analytics Mock] Class ${classId}: ${studentCount} students, ${passRate}% pass rate, ${averageScore}% average`);
+    logger.info(`[Analytics Mock] Class ${classId}: ${studentCount} students, ${passRate}% pass rate, ${averageScore}% average`);
 
     return result;
   },
@@ -239,7 +241,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
     subjectId: string,
     period: AnalyticsPeriod
   ): Promise<SubjectPassRate> {
-    console.log('[Analytics Mock] calculateSubjectMetrics called:', { subjectId, period });
+    logger.info('[Analytics Mock] calculateSubjectMetrics called:', { subjectId, period });
     await simulateDelay();
 
     const subject = MOCK_SUBJECTS.find((s) => s.id === subjectId) || {
@@ -257,7 +259,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
       trend: randomTrend(),
     };
 
-    console.log(`[Analytics Mock] Subject ${subjectId}: ${result.examCount} exams, ${result.studentCount} students, ${result.passRate}% pass rate, trend: ${result.trend}`);
+    logger.info(`[Analytics Mock] Subject ${subjectId}: ${result.examCount} exams, ${result.studentCount} students, ${result.passRate}% pass rate, trend: ${result.trend}`);
 
     return result;
   },
@@ -270,7 +272,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
     teacherId: string,
     periods: AnalyticsPeriod[]
   ): Promise<any[]> {
-    console.log(`[Analytics Mock] generateTrends called: ${teacherId}, ${periods.length} periods`);
+    logger.info(`[Analytics Mock] generateTrends called: ${teacherId}, ${periods.length} periods`);
     await simulateDelay(200, 500);
 
     const trends = [];
@@ -301,7 +303,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
       });
     }
 
-    console.log(`[Analytics Mock] Generated ${trends.length} trend snapshots for teacher ${teacherId}`);
+    logger.info(`[Analytics Mock] Generated ${trends.length} trend snapshots for teacher ${teacherId}`);
 
     return trends;
   },
@@ -314,7 +316,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
     format: ExportFormat,
     data: any
   ): Promise<Blob> {
-    console.log(`[Analytics Mock] exportReport called: format=${format}`);
+    logger.info(`[Analytics Mock] exportReport called: format=${format}`);
     await simulateDelay(100, 400);
 
     let content: string;
@@ -387,7 +389,7 @@ export const analyticsMockPlugin: AnalyticsEnginePlugin = {
       }
     }
 
-    console.log(`[Analytics Mock] Report exported as ${format} (${content.length} bytes)`);
+    logger.info(`[Analytics Mock] Report exported as ${format} (${content.length} bytes)`);
 
     return new Blob([content], { type: mimeType });
   },
@@ -453,13 +455,13 @@ export const analyticsMockManifest: PluginManifest = {
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[Analytics Mock Plugin] Activating...');
-    console.log('[Analytics Mock Plugin] This is a MOCK engine — all analytics data is simulated.');
-    console.log('[Analytics Mock Plugin] Subjects:', MOCK_SUBJECTS.map((s) => s.name).join(', '));
+    logger.info('[Analytics Mock Plugin] Activating...');
+    logger.info('[Analytics Mock Plugin] This is a MOCK engine — all analytics data is simulated.');
+    logger.info('[Analytics Mock Plugin] Subjects:', MOCK_SUBJECTS.map((s) => s.name).join(', '));
   },
 
   async deactivate() {
-    console.log('[Analytics Mock Plugin] Deactivated.');
+    logger.info('[Analytics Mock Plugin] Deactivated.');
   },
 };
 

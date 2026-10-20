@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Global error boundary for catching and displaying errors in the UI.
 // ABOUTME: Prevents blank/white screens by showing a fallback error message.
 
@@ -29,7 +31,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     // Check if this is a database-related error
     const isDatabaseError = this.isDatabaseRelatedError(error);
     
-    console.error('🚨🚨🚨 [ErrorBoundary] Caught error:', {
+    logger.error('🚨🚨🚨 [ErrorBoundary] Caught error:', {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -38,7 +40,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     
     // Enhanced error reporting for database errors
     if (isDatabaseError) {
-      console.error('🗄️ [ErrorBoundary] Database-related error detected');
+      logger.error('🗄️ [ErrorBoundary] Database-related error detected');
       // Additional database context could be collected here
     }
     
@@ -78,11 +80,11 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center h-full w-full">
-          <div className="bg-white rounded-lg shadow p-8 max-w-xl w-full border border-red-200">
+          <div className="bg-surface-card rounded-lg shadow p-8 max-w-xl w-full border border-red-200">
             <h1 className="text-2xl font-bold text-red-700 mb-4">Something went wrong</h1>
             <pre className="text-red-600 bg-red-50 rounded p-4 overflow-x-auto mb-4">{this.state.error?.toString()}</pre>
             {this.state.errorInfo?.componentStack && (
-              <details className="text-xs text-gray-500 whitespace-pre-wrap">
+              <details className="text-xs text-surface-muted-fg whitespace-pre-wrap">
                 {this.state.errorInfo.componentStack}
               </details>
             )}

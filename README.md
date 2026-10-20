@@ -2,6 +2,37 @@
 
 A comprehensive education management system built with React, TypeScript, and Vite featuring modular architecture and dual-mode data layer for both development and production environments.
 
+## Quickstart
+
+```bash
+# pnpm is the package manager (a package-lock.json will never exist here)
+pnpm install
+pnpm dev
+```
+
+Then sign in on the login page:
+
+| Username | Password | Role |
+| --- | --- | --- |
+| `admin` | `admin123` | Super Administrator |
+| `teacher` | `teacher123` | Teacher |
+| `finance` | `finance123` | Finance Officer |
+
+First run offers two paths: **demo** (pre-seeded sample school) or
+**production** (empty database + a setup wizard for your school profile,
+education system, academic year, classes and subjects).
+
+Common commands:
+
+```bash
+pnpm typecheck        # TypeScript check — see also: pnpm check:ratchet
+pnpm test:run         # full test suite once
+pnpm vitest run src/tests/DataGrid.test.tsx   # targeted tests
+pnpm build            # production build (vite + PWA)
+```
+
+New here? Read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and
+[ARCHITECTURE.md](ARCHITECTURE.md) for how the pieces fit together.
 ## 🎯 Overview
 
 SchoolPilot3 is an enterprise-grade SchoolPilot that handles all aspects of educational administration, from student management to financial operations. Built with modern web technologies, it features a sophisticated dual-mode architecture that supports both development (persistent SQLite database) and production (PouchDB/local database) environments.

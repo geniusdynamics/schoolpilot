@@ -6,7 +6,6 @@
 
 import { useState, useCallback } from 'react';
 import { uds } from '../UnifiedDataService';
-import type { WriteOptions } from '../types';
 
 type MutationType = 'create' | 'update' | 'delete';
 

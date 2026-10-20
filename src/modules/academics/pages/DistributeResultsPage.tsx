@@ -3,19 +3,23 @@ import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { MegaphoneIcon, CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { initialMockResultDistributions } from '../data/mockData';
-import type { ResultDistribution } from '../data/types';
 
-const DistributeResultsPage: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, classes, students, loading } = useAppData();
+import Spinner from '@/components/ui/Spinner';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import type { ResultDistribution } from '../data/types';
+import { logger } from '@/utils/logging';
+import { CalendarIcon, CheckCircleIcon, MegaphoneIcon, XCircleIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
+
+export const DistributeResultsPageContent: React.FC = () => {
+  const { examSessions, classes, loading } = useAppData();
+
+  const distributionsCollection = useDatabaseCollection<ResultDistribution>('result_distributions');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDistribution, setSelectedDistribution] = useState<ResultDistribution | null>(null);
@@ -26,20 +30,20 @@ const DistributeResultsPage: React.FC = () => {
   const initialFormData = {
     exam_session_id: '',
     class_id: '',
-    distribution_method: 'Portal' as const,
+    distribution_method: 'Portal' as ResultDistribution['distribution_method'],
     scheduled_date: new Date().toISOString().split('T')[0],
     notes: ''
   };
   const [formData, setFormData] = useState(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from result_distributions
   const mockDistributions: ResultDistribution[] = useMemo(() => {
-    let filtered = initialMockResultDistributions;
+    let filtered = distributionsCollection.data;
 
     if (searchTerm) {
       filtered = filtered.filter(dist => 
-        dist.exam_session_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dist.class_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (dist.exam_session_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (dist.class_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -52,7 +56,7 @@ const DistributeResultsPage: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, statusFilter, methodFilter]);
+  }, [distributionsCollection.data, searchTerm, statusFilter, methodFilter]);
 
   const openModal = (distribution?: ResultDistribution) => {
     setSelectedDistribution(distribution || null);
@@ -72,23 +76,72 @@ const DistributeResultsPage: React.FC = () => {
     setFormData(initialFormData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
+  const toast = useToast();
+  const handleSubmit = async () => {
     if (!formData.exam_session_id || !formData.class_id) {
-      alert('Exam session and class are required.');
+      toast.showWarning('Exam session and class are required.');
       return;
     }
-    console.log('Scheduling distribution:', formData);
+
+    const session = examSessions?.find(s => String(s.id) === String(formData.exam_session_id));
+    const cls = classes?.find(c => String(c.id) === String(formData.class_id));
+
+    try {
+      if (selectedDistribution) {
+        await distributionsCollection.update(selectedDistribution.id, {
+          exam_session_id: formData.exam_session_id,
+          exam_session_name: session?.name ?? selectedDistribution.exam_session_name,
+          class_id: formData.class_id,
+          class_name: cls?.name ?? selectedDistribution.class_name,
+          distribution_method: formData.distribution_method,
+          scheduled_date: formData.scheduled_date,
+          notes: formData.notes
+        });
+        toast.showSuccess('Distribution updated.');
+      } else {
+        await distributionsCollection.insert({
+          exam_session_id: formData.exam_session_id,
+          exam_session_name: session?.name ?? '',
+          class_id: formData.class_id,
+          class_name: cls?.name ?? '',
+          distribution_method: formData.distribution_method,
+          status: 'Pending',
+          scheduled_date: formData.scheduled_date,
+          distributed_at: null,
+          recipients_count: 0,
+          success_count: 0,
+          failure_count: 0,
+          notes: formData.notes || undefined
+        });
+        toast.showSuccess('Distribution scheduled.');
+      }
+      logger.info('Saved result distribution:', formData);
+    } catch (err) {
+      logger.error('Failed to save result distribution:', err);
+      toast.showError('Failed to save result distribution.');
+    }
     closeModal();
   };
 
-  const handleDistributeNow = (distribution: ResultDistribution) => {
-    console.log('Distributing now:', distribution.id);
-    // In production, this would trigger immediate distribution
+  const handleDistributeNow = async (distribution: ResultDistribution) => {
+    try {
+      await distributionsCollection.update(distribution.id, {
+        status: 'Distributed',
+        distributed_at: new Date().toISOString(),
+        success_count: distribution.recipients_count,
+        failure_count: 0
+      });
+      toast.showSuccess('Distribution completed.');
+      logger.info('Distributing now:', distribution.id);
+    } catch (err) {
+      logger.error('Failed to distribute results:', err);
+      toast.showError('Failed to distribute results.');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -106,10 +159,10 @@ const DistributeResultsPage: React.FC = () => {
 
   const getMethodBadge = (method: string) => {
     const styles = {
-      'Portal': 'bg-blue-100 text-blue-800',
+      'Portal': 'bg-primary-100 text-primary-800',
       'SMS': 'bg-purple-100 text-purple-800',
       'Email': 'bg-green-100 text-green-800',
-      'Print': 'bg-gray-100 text-gray-800'
+      'Print': 'bg-surface-accent text-surface-foreground'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[method as keyof typeof styles]}`}>
@@ -166,7 +219,7 @@ const DistributeResultsPage: React.FC = () => {
       key: 'failure_count',
       header: 'Failed',
       sortable: true,
-      render: (value) => value > 0 ? <span className="text-red-600 font-semibold">{value}</span> : <span className="text-gray-400">0</span>
+      render: (value) => value > 0 ? <span className="text-red-600 font-semibold">{value}</span> : <span className="text-surface-muted-fg">0</span>
     },
     {
       key: 'status',
@@ -174,6 +227,13 @@ const DistributeResultsPage: React.FC = () => {
       sortable: true,
       filterable: true,
       render: (value) => getStatusBadge(value)
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (_value, record) => record.status === 'Pending' ? (
+        <Button variant="ghost" onClick={() => handleDistributeNow(record)}>Distribute Now</Button>
+      ) : null
     }
   ];
 
@@ -189,7 +249,7 @@ const DistributeResultsPage: React.FC = () => {
     };
   }, [mockDistributions]);
 
-  if (loading && mockDistributions.length === 0) {
+  if ((loading?.all || distributionsCollection.loading) && mockDistributions.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -207,7 +267,7 @@ const DistributeResultsPage: React.FC = () => {
             <span>Distribute Results</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             Schedule Distribution
           </Button>
@@ -228,17 +288,17 @@ const DistributeResultsPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <MegaphoneIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Distributions</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Distributed</span>
             </div>
@@ -246,8 +306,8 @@ const DistributeResultsPage: React.FC = () => {
               {totals.distributed}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Pending</span>
             </div>
@@ -255,8 +315,8 @@ const DistributeResultsPage: React.FC = () => {
               {totals.pending}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <XCircleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Failed</span>
             </div>
@@ -269,39 +329,39 @@ const DistributeResultsPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
+            <Select
               value={statusFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Statuses</option>
               {statusOptions.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Method</label>
+            <Select
               value={methodFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setMethodFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Methods</option>
               {methodOptions.map(m => (
                 <option key={m} value={m}>{m}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Exam session, class..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -309,8 +369,6 @@ const DistributeResultsPage: React.FC = () => {
         <DataGrid
           data={mockDistributions}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
 
@@ -322,44 +380,44 @@ const DistributeResultsPage: React.FC = () => {
       >
         <FormSection>
           <FormField label="Exam Session" required>
-            <select
+            <Select
               name="exam_session_id"
               value={formData.exam_session_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select exam session</option>
               {examSessions?.map(session => (
                 <option key={session.id} value={session.id}>{session.name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Class" required>
-            <select
+            <Select
               name="class_id"
               value={formData.class_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select class</option>
               {classes?.map(cls => (
                 <option key={cls.id} value={cls.id}>{cls.name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Distribution Method">
-            <select
+            <Select
               name="distribution_method"
               value={formData.distribution_method}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {methodOptions.map(m => (
                 <option key={m} value={m}>{m}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Scheduled Date">
@@ -368,7 +426,7 @@ const DistributeResultsPage: React.FC = () => {
               name="scheduled_date"
               value={formData.scheduled_date}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -379,19 +437,23 @@ const DistributeResultsPage: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Add distribution notes..."
               rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>
 
-        <FormActions
-          onCancel={closeModal}
-          onSubmit={handleSubmit}
-          submitLabel={selectedDistribution ? 'Update' : 'Schedule'}
-        />
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit}>{selectedDistribution ? 'Update' : 'Schedule'}</Button>
+        </FormActions>
       </DialogForm>
     </div>
   );
 };
+const DistributeResultsPage: React.FC = () => (
+  <div className="space-y-6">
+    <DistributeResultsPageContent />
+  </div>
+);
 
 export default DistributeResultsPage;

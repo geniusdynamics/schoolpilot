@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Generic SMS Gateway Plugin
  * 
@@ -165,7 +167,7 @@ class SMSGatewayClient {
     const body = this.buildRequestBody(phone, message);
 
     if (this.config.enableLogging) {
-      console.log('[SMS Gateway] Sending SMS:', {
+      logger.info('[SMS Gateway] Sending SMS:', {
         provider: this.config.provider,
         url,
         phone,
@@ -184,7 +186,7 @@ class SMSGatewayClient {
         
         if (attempt < this.config.retryAttempts) {
           const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-          console.warn(`[SMS Gateway] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+          logger.warn(`[SMS Gateway] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -313,7 +315,7 @@ class SMSGatewayClient {
 
     try {
       let fetchUrl = url;
-      let fetchOptions: RequestInit = {
+      const fetchOptions: RequestInit = {
         method: this.config.httpMethod,
         headers,
         signal: controller.signal,
@@ -372,7 +374,7 @@ class SMSGatewayClient {
         message: isSuccess ? 'SMS sent successfully' : 'SMS sending failed',
       };
     } catch (error) {
-      console.error('[SMS Gateway] Failed to parse response:', error);
+      logger.error('[SMS Gateway] Failed to parse response:', error);
       return {
         success: false,
         messageId: this.generateFallbackId(),
@@ -433,7 +435,7 @@ class SMSGatewayClient {
       const status = this.extractField(data, 'status') || 'unknown';
       return String(status).toLowerCase();
     } catch (error) {
-      console.error('[SMS Gateway] Failed to check status:', error);
+      logger.error('[SMS Gateway] Failed to check status:', error);
       return 'unknown';
     }
   }
@@ -507,14 +509,14 @@ export const smsGatewayPlugin: SMSPlugin = {
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[SMS Gateway Plugin] Activating...');
+    logger.info('[SMS Gateway Plugin] Activating...');
 
     // Load configuration
     const settings = context.settings || {};
     
     // Check if configured
     if (!settings.apiUrl) {
-      console.log('[SMS Gateway Plugin] No configuration found - plugin enabled but not configured');
+      logger.info('[SMS Gateway Plugin] No configuration found - plugin enabled but not configured');
       
       context.api.showNotification(
         'SMS Gateway plugin enabled. Please configure your SMS provider settings.',
@@ -537,9 +539,9 @@ const module: PluginModule = {
     // Initialize client
     client = new SMSGatewayClient(config);
 
-    console.log(`[SMS Gateway Plugin] Configured for provider: ${provider}`);
-    console.log(`[SMS Gateway Plugin] API URL: ${config.apiUrl}`);
-    console.log(`[SMS Gateway Plugin] Auth Type: ${config.authType}`);
+    logger.info(`[SMS Gateway Plugin] Configured for provider: ${provider}`);
+    logger.info(`[SMS Gateway Plugin] API URL: ${config.apiUrl}`);
+    logger.info(`[SMS Gateway Plugin] Auth Type: ${config.authType}`);
     
     context.api.showNotification(
       `SMS Gateway activated with ${provider} provider`,
@@ -548,7 +550,7 @@ const module: PluginModule = {
   },
 
   async deactivate() {
-    console.log('[SMS Gateway Plugin] Deactivating...');
+    logger.info('[SMS Gateway Plugin] Deactivating...');
     client = null;
     config = null;
   },

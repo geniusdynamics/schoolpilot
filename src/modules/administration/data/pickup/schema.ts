@@ -61,7 +61,7 @@ export const studentAuthorizationSchema: DatabaseSchema = createDatabaseSchema({
   properties: {
     id: SchemaHelpers.string({ description: 'Unique identifier', maxLength: 100 }),
     student_id: SchemaHelpers.ref('students', { description: 'Reference to student', maxLength: 100 }),
-    authorized_person_ids: SchemaHelpers.array(SchemaHelpers.string({ maxLength: 100 }), { description: 'References to authorized persons', default: [] }),
+    authorized_person_ids: SchemaHelpers.array(SchemaHelpers.string({ maxLength: 100 }), { description: 'References to authorized persons' }),
     special_instructions: SchemaHelpers.string({ description: 'Special pickup instructions', maxLength: 1000 }),
     restrictions: SchemaHelpers.string({ description: 'Pickup restrictions', maxLength: 500 }),
     created_by: SchemaHelpers.ref('users', { description: 'Creator ID', maxLength: 100 }),

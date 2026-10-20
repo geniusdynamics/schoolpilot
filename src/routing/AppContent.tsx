@@ -18,14 +18,12 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from '../hooks/useMemoryManagement';
 import { AppProviders } from '../contexts/AppProviders';
-import { useFeatureFlagStore } from '../stores/featureFlagStore';
 import { performanceEventManager } from '../services/performance/performanceEventManager';
 import { PerformanceMonitor } from './routeConfig';
 import GlobalNotifications from '../components/GlobalNotifications';
 
-// Layout components — chosen based on feature flag at runtime
+// Layout components - chosen based on feature flag at runtime
 import Layout from '../components/Layout';
-import LayoutNew from '../components/LayoutNew';
 
 import { DynamicRoutes } from './moduleRoutes';
 import { LoginPage } from './routeConfig';
@@ -51,9 +49,9 @@ export const AppContent: React.FC<AppContentProps> = ({ modulesInitialized, conf
   const { isAuthenticated, isLoading, user } = authContext;
   const { restoreRouteIfNeeded } = useRoutePersistence(isAuthenticated);
 
-  // Choose layout based on feature flag
-  const featureFlags = useFeatureFlagStore(state => state.flags);
-  const LayoutComponent = featureFlags.useNewTabSystem ? LayoutNew : Layout;
+  // Layout selection (legacy vs modern tab system) happens inside Layout itself,
+  // keyed off the useNewTabSystem feature flag.
+  const LayoutComponent = Layout;
 
   // Diagnostic: track auth state transitions
   useEffect(() => {
@@ -90,7 +88,7 @@ export const AppContent: React.FC<AppContentProps> = ({ modulesInitialized, conf
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Initializing...</p>
+          <p className="mt-4 text-surface-muted-fg">Initializing...</p>
         </div>
       </div>
     );
@@ -105,7 +103,7 @@ export const AppContent: React.FC<AppContentProps> = ({ modulesInitialized, conf
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
               <Spinner size="lg" />
-              <p className="mt-4 text-gray-600">Loading login page...</p>
+              <p className="mt-4 text-surface-muted-fg">Loading login page...</p>
             </div>
           </div>
         }

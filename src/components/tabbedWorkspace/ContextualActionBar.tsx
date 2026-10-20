@@ -1,8 +1,15 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: ContextualActionBar component for tab-specific actions and contextual operations
 // ABOUTME: Provides dynamic actions based on active tab context with RBAC integration
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { MoreHorizontal, Search, Settings, RefreshCw } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  Cog6ToothIcon,
+  EllipsisHorizontalIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry, ActionDefinition, ActionContext } from '../../services/ui/actionRegistry';
 import { cn } from '../../utils/cn';
@@ -44,7 +51,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   disabled = false
 }) => {
   const getButtonClasses = () => {
-    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1';
+    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1';
     
     const sizeClasses = {
       sm: 'px-2 py-1 text-xs',
@@ -53,9 +60,9 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     };
     
     const variantClasses = {
-      minimal: 'text-gray-600 hover:text-gray-800 hover:bg-gray-100',
-      standard: 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 shadow-sm',
-      expanded: 'text-white bg-blue-600 hover:bg-blue-700 shadow-md'
+      minimal: 'text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent',
+      standard: 'text-surface-foreground bg-surface-card border border-surface-border hover:bg-surface-muted shadow-sm',
+      expanded: 'text-white bg-primary-600 hover:bg-primary-700 shadow-md'
     };
     
     return cn(
@@ -88,7 +95,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       aria-label={action.label}
     >
       {action.loading ? (
-        <RefreshCw className={cn(getIconSize(), 'animate-spin')} />
+        <ArrowPathIcon className={cn(getIconSize(), 'animate-spin')} />
       ) : (
         action.icon && (
           <span className={getIconSize()}>
@@ -189,7 +196,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
       actions.push({
         id: 'refresh',
         label: 'Refresh',
-        icon: 'RefreshCw',
+        icon: 'ArrowPathIcon',
         tooltip: 'Refresh current tab content',
         variant: 'secondary',
         loading: isRefreshing,
@@ -211,7 +218,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'primary',
         handler: async () => {
           // Handle save logic
-          console.log('Saving tab:', currentTab.id);
+          logger.info('Saving tab:', currentTab.id);
         }
       });
     }
@@ -225,7 +232,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle share logic
-          console.log('Sharing tab:', currentTab?.id);
+          logger.info('Sharing tab:', currentTab?.id);
         }
       });
     }
@@ -239,7 +246,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle download logic
-          console.log('Downloading from tab:', currentTab?.id);
+          logger.info('Downloading from tab:', currentTab?.id);
         }
       });
     }
@@ -253,7 +260,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle upload logic
-          console.log('Uploading to tab:', currentTab?.id);
+          logger.info('Uploading to tab:', currentTab?.id);
         }
       });
     }
@@ -267,7 +274,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle edit logic
-          console.log('Editing tab:', currentTab?.id);
+          logger.info('Editing tab:', currentTab?.id);
         }
       });
     }
@@ -282,7 +289,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         handler: async () => {
           // Handle delete logic
           if (confirm('Are you sure you want to delete this content?')) {
-            console.log('Deleting from tab:', currentTab?.id);
+            logger.info('Deleting from tab:', currentTab?.id);
           }
         }
       });
@@ -300,7 +307,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
   const filteredActions = useMemo(() => {
     if (!searchQuery) return allActions;
     return allActions.filter(action => 
-      action.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (action.label?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
       action.tooltip?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [allActions, searchQuery]);
@@ -320,7 +327,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         await executeAction(action.id, actionContext);
       }
     } catch (error) {
-      console.error('Failed to execute action:', error);
+      logger.error('Failed to execute action:', error);
     }
   }, [actionContext, executeAction]);
   
@@ -334,10 +341,10 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
   }
   
   const containerClasses = cn(
-    'flex items-center justify-between bg-white border-b border-gray-200 px-4 py-2',
+    'flex items-center justify-between bg-surface-card border-b border-surface-border px-4 py-2',
     {
       'border-t border-b-0': position === 'bottom',
-      'border-0 bg-gray-50': position === 'inline'
+      'border-0 bg-surface-muted': position === 'inline'
     },
     className
   );
@@ -349,11 +356,11 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         {/* Tab info */}
         <div className="flex items-center space-x-2">
           {currentTab.icon && (
-            <span className="text-gray-600">
+            <span className="text-surface-muted-fg">
               {currentTab.icon}
             </span>
           )}
-          <span className="text-sm font-medium text-gray-900">
+          <span className="text-sm font-medium text-surface-foreground">
             {currentTab.title}
           </span>
           {currentTab.isDirty && (
@@ -361,16 +368,16 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
           )}
         </div>
         
-        {/* Search */}
+        {/* MagnifyingGlassIcon */}
         {showSearch && allActions.length > 3 && (
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-surface-muted-fg" />
             <input
               type="text"
-              placeholder="Search actions..."
+              placeholder="MagnifyingGlassIcon actions..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="pl-8 pr-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-8 pr-3 py-1 text-sm border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
         )}
@@ -396,15 +403,15 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
               onClick={() => setShowOverflow(!showOverflow)}
               className={cn(
                 'inline-flex items-center justify-center rounded-md p-2',
-                'text-gray-600 hover:text-gray-800 hover:bg-gray-100',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500'
+                'text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent',
+                'focus:outline-none focus:ring-2 focus:ring-primary-500'
               )}
             >
-              <MoreHorizontal className="w-4 h-4" />
+              <EllipsisHorizontalIcon className="w-4 h-4" />
             </button>
             
             {showOverflow && (
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
+              <div className="absolute right-0 top-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-lg z-50 min-w-[200px]">
                 <div className="p-2 space-y-1">
                   {overflowActions.map((action) => (
                     <ActionButton
@@ -424,18 +431,18 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
           </div>
         )}
         
-        {/* Settings button */}
+        {/* Cog6ToothIcon button */}
         {onSettingsClick && (
           <button
             onClick={onSettingsClick}
             className={cn(
               'inline-flex items-center justify-center rounded-md p-2',
-              'text-gray-600 hover:text-gray-800 hover:bg-gray-100',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500'
+              'text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500'
             )}
-            title="Settings"
+            title="Cog6ToothIcon"
           >
-            <Settings className="w-4 h-4" />
+            <Cog6ToothIcon className="w-4 h-4" />
           </button>
         )}
       </div>

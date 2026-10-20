@@ -22,7 +22,7 @@ import {
     RFQStatus
 } from '@/core/types';
 import { suppliers } from '@/globalMockData';
-import { InvSupplierType, InvSupplierStatusEnum, StationeryItem } from './types';
+import { InvSupplierType, InvSupplierStatusEnum, StationeryItem, InvContractStatusEnum, InvSupplierContractType } from './types';
 
 // Map global suppliers to InvSupplierType for inventory module use
 export const initialMockSuppliers: InvSupplierType[] = suppliers.map(supplier => ({
@@ -158,14 +158,14 @@ export const initialMockStockLevels: StockLevel[] = [
 
 export const initialMockStockTransactions: StockTransaction[] = [
     // Stock Receipts
-    { id: 'STK-T001', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 100, transaction_date: '2024-01-10', notes: 'Initial stock from Text Book Centre', item_name: 'A4 Ream Paper', warehouse_name: 'Main Store' },
-    { id: 'STK-T002', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 50, transaction_date: '2024-01-10', notes: 'Initial stock from Office Depot', item_name: 'Blue Bic Pen', warehouse_name: 'Main Store' },
-    { id: 'STK-T003', item_id: 'INV011', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 50, transaction_date: '2024-01-15', notes: 'Form 1 textbooks from KLB', item_name: 'English Form 1 Student Book', warehouse_name: 'Main Store' },
-    { id: 'STK-T004', item_id: 'INV012', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 45, transaction_date: '2024-01-15', notes: 'Mathematics books from Longhorn', item_name: 'Mathematics Form 1 Student Book', warehouse_name: 'Main Store' },
-    { id: 'STK-T005', item_id: 'INV031', warehouse_id: 3, transaction_type: StockTransactionType.RECEIVE, quantity: 20, transaction_date: '2024-01-20', notes: 'Maize flour for kitchen', item_name: 'Maize Flour', warehouse_name: 'Kitchen Store' },
-    { id: 'STK-T006', item_id: 'INV032', warehouse_id: 3, transaction_type: StockTransactionType.RECEIVE, quantity: 15, transaction_date: '2024-01-20', notes: 'Rice for kitchen', item_name: 'Rice', warehouse_name: 'Kitchen Store' },
-    { id: 'STK-T007', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.RECEIVE, quantity: 20, transaction_date: '2024-01-25', notes: 'Lab equipment from Scientific Equipment Ltd', item_name: 'Test Tubes', warehouse_name: 'Science Lab Store' },
-    { id: 'STK-T008', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.RECEIVE, quantity: 15, transaction_date: '2024-01-25', notes: 'Beakers for chemistry lab', item_name: 'Beakers 250ml', warehouse_name: 'Science Lab Store' },
+    { id: 'STK-T001', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.RECEIPT, quantity: 100, transaction_date: '2024-01-10', notes: 'Initial stock from Text Book Centre', item_name: 'A4 Ream Paper', warehouse_name: 'Main Store' },
+    { id: 'STK-T002', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.RECEIPT, quantity: 50, transaction_date: '2024-01-10', notes: 'Initial stock from Office Depot', item_name: 'Blue Bic Pen', warehouse_name: 'Main Store' },
+    { id: 'STK-T003', item_id: 'INV011', warehouse_id: 1, transaction_type: StockTransactionType.RECEIPT, quantity: 50, transaction_date: '2024-01-15', notes: 'Form 1 textbooks from KLB', item_name: 'English Form 1 Student Book', warehouse_name: 'Main Store' },
+    { id: 'STK-T004', item_id: 'INV012', warehouse_id: 1, transaction_type: StockTransactionType.RECEIPT, quantity: 45, transaction_date: '2024-01-15', notes: 'Mathematics books from Longhorn', item_name: 'Mathematics Form 1 Student Book', warehouse_name: 'Main Store' },
+    { id: 'STK-T005', item_id: 'INV031', warehouse_id: 3, transaction_type: StockTransactionType.RECEIPT, quantity: 20, transaction_date: '2024-01-20', notes: 'Maize flour for kitchen', item_name: 'Maize Flour', warehouse_name: 'Kitchen Store' },
+    { id: 'STK-T006', item_id: 'INV032', warehouse_id: 3, transaction_type: StockTransactionType.RECEIPT, quantity: 15, transaction_date: '2024-01-20', notes: 'Rice for kitchen', item_name: 'Rice', warehouse_name: 'Kitchen Store' },
+    { id: 'STK-T007', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.RECEIPT, quantity: 20, transaction_date: '2024-01-25', notes: 'Lab equipment from Scientific Equipment Ltd', item_name: 'Test Tubes', warehouse_name: 'Science Lab Store' },
+    { id: 'STK-T008', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.RECEIPT, quantity: 15, transaction_date: '2024-01-25', notes: 'Beakers for chemistry lab', item_name: 'Beakers 250ml', warehouse_name: 'Science Lab Store' },
     // Stock Issues
     { id: 'STK-T009', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -50, transaction_date: '2024-02-05', notes: 'Issued to Admin Department', item_name: 'A4 Ream Paper', warehouse_name: 'Main Store' },
     { id: 'STK-T010', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -25, transaction_date: '2024-02-08', notes: 'Issued to Teaching Staff', item_name: 'Blue Bic Pen', warehouse_name: 'Main Store' },
@@ -176,8 +176,8 @@ export const initialMockStockTransactions: StockTransaction[] = [
     { id: 'STK-T015', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.ISSUE, quantity: -5, transaction_date: '2024-02-20', notes: 'Chemistry practical classes', item_name: 'Test Tubes', warehouse_name: 'Science Lab Store' },
     { id: 'STK-T016', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.ISSUE, quantity: -3, transaction_date: '2024-02-20', notes: 'Biology practical classes', item_name: 'Beakers 250ml', warehouse_name: 'Science Lab Store' },
     // Stock Adjustments
-    { id: 'STK-T017', item_id: 'INV006', warehouse_id: 1, transaction_type: StockTransactionType.ADJUSTMENT, quantity: -2, transaction_date: '2024-03-01', notes: 'Damaged exercise books - write off', item_name: 'Exercise Books 40 Pages', warehouse_name: 'Main Store' },
-    { id: 'STK-T018', item_id: 'INV027', warehouse_id: 1, transaction_type: StockTransactionType.ADJUSTMENT, quantity: 5, transaction_date: '2024-03-05', notes: 'Stock count adjustment - found extra', item_name: 'Toilet Paper Roll', warehouse_name: 'Main Store' }
+    { id: 'STK-T017', item_id: 'INV006', warehouse_id: 1, transaction_type: StockTransactionType.STOCK_ADJUSTMENT, quantity: -2, transaction_date: '2024-03-01', notes: 'Damaged exercise books - write off', item_name: 'Exercise Books 40 Pages', warehouse_name: 'Main Store' },
+    { id: 'STK-T018', item_id: 'INV027', warehouse_id: 1, transaction_type: StockTransactionType.STOCK_ADJUSTMENT, quantity: 5, transaction_date: '2024-03-05', notes: 'Stock count adjustment - found extra', item_name: 'Toilet Paper Roll', warehouse_name: 'Main Store' }
 ];
 
 export const initialMockRequisitions: Requisition[] = [
@@ -208,10 +208,10 @@ export const initialMockRequisitionItems: RequisitionItem[] = [
 ];
 
 export const initialMockPurchaseOrders: PurchaseOrder[] = [
-    { id: 'PO001', supplier_id: 1, order_date: '2024-06-20', status: PurchaseOrderStatus.FULLY_RECEIVED, notes: 'Q3 Stationery Restock', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Text Book Centre' },
-    { id: 'PO002', supplier_id: 7, order_date: '2024-06-25', status: PurchaseOrderStatus.PARTIALLY_RECEIVED, notes: 'Laboratory equipment upgrade', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Scientific Equipment Ltd' },
-    { id: 'PO003', supplier_id: 10, order_date: '2024-07-01', status: PurchaseOrderStatus.PENDING, notes: 'Kitchen supplies for Term 3', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Fresh Foods Catering' },
-    { id: 'PO004', supplier_id: 5, order_date: '2024-07-05', status: PurchaseOrderStatus.APPROVED, notes: 'Office furniture and supplies', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Office Depot Kenya' }
+    { id: 'PO001', supplier_id: 1, order_date: '2024-06-20', status: PurchaseOrderStatus.FULLY_RECEIVED, notes: 'Q3 Stationery Restock', requested_by: 'STF003', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Text Book Centre' },
+    { id: 'PO002', supplier_id: 7, order_date: '2024-06-25', status: PurchaseOrderStatus.PARTIALLY_RECEIVED, notes: 'Laboratory equipment upgrade', requested_by: 'STF002', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Scientific Equipment Ltd' },
+    { id: 'PO003', supplier_id: 10, order_date: '2024-07-01', status: PurchaseOrderStatus.PENDING, notes: 'Kitchen supplies for Term 3', requested_by: 'STF008', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Fresh Foods Catering' },
+    { id: 'PO004', supplier_id: 5, order_date: '2024-07-05', status: PurchaseOrderStatus.APPROVED, notes: 'Office furniture and supplies', requested_by: 'STF001', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Office Depot Kenya' }
 ];
 
 export const initialMockPurchaseOrderItems: PurchaseOrderItem[] = [
@@ -244,6 +244,39 @@ export const initialMockRFQs: RFQ[] = [
   { id: 'RFQ005', title: 'ICT Infrastructure Enhancement', description: 'Supply and installation of computers, projectors, and networking equipment', issue_date: '2024-05-15', closing_date: '2024-05-30', status: RFQStatus.CANCELLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
 ];
 
+export const initialMockSupplierContracts: InvSupplierContractType[] = [
+  {
+    id: 'SC001',
+    supplier_id: 1,
+    supplier_name: 'Text Book Centre',
+    contract_number: 'TBC-2024-001',
+    title: 'Core textbooks supply agreement',
+    description: 'Annual supply contract for curriculum textbooks and classroom stationery.',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    status: InvContractStatusEnum.ACTIVE,
+    contract_value: 125000,
+    renewal_notice_days: 45,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'SC002',
+    supplier_id: 7,
+    supplier_name: 'Scientific Equipment Ltd',
+    contract_number: 'SEL-2024-002',
+    title: 'Laboratory consumables and equipment contract',
+    description: 'Provides science lab consumables, calibrated instruments, and warranty support.',
+    start_date: '2024-02-01',
+    end_date: '2025-01-31',
+    status: InvContractStatusEnum.PENDING_RENEWAL,
+    contract_value: 210000,
+    renewal_notice_days: 30,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
 // Ensure all AppDataType keys for inventory are exported
 export const warehouses = initialMockWarehouses;
 export const itemCategoriesInv = initialMockItemCategoriesInv;
@@ -257,6 +290,7 @@ export const stockLevels = initialMockStockLevels;
 export const stockTransactions = initialMockStockTransactions;
 export const assetDepreciationLogs = initialMockAssetDepreciationLogs;
 export const rfqs = initialMockRFQs;
+export const supplierContracts = initialMockSupplierContracts;
 
 // Source: StationeryPage.tsx
 export const stationeryItems: StationeryItem[] = [

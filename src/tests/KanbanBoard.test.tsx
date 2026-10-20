@@ -1,17 +1,21 @@
 // ABOUTME: Test suite for the Enhanced Kanban Board component
 // ABOUTME: Tests drag-and-drop functionality, filtering, bulk operations, and accessibility
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import KanbanBoard, { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
+import { screen } from '@testing-library/react';
 
 // Mock the accessibility hook
 vi.mock('../utils/accessibility', () => ({
   useReducedMotion: () => false,
 }));
+
+// jsdom does not implement DragEvent; MouseEvent accepts the same init options
+// and the tests attach their own dataTransfer stub below.
+const MockDragEvent = MouseEvent as unknown as typeof DragEvent;
 
 // Sample test data
 const sampleCards: KanbanCard[] = [
@@ -100,19 +104,18 @@ describe('KanbanBoard', () => {
 
     it('displays card counts in column headers', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
+
       // Each column should show its card count
-      expect(screen.getByText('1')).toBeInTheDocument(); // To Do column
-      expect(screen.getByText('1')).toBeInTheDocument(); // In Progress column
-      expect(screen.getByText('1')).toBeInTheDocument(); // Done column
+      expect(screen.getByText('1/5')).toBeInTheDocument(); // To Do column: 1 of max 5
+      expect(screen.getAllByText(/^1$/)).toHaveLength(2); // In Progress and Done columns
     });
 
     it('shows loading state when loading prop is true', () => {
-      render(<KanbanBoard {...defaultProps} loading={true} />);
-      
+      const { container } = render(<KanbanBoard {...defaultProps} loading={true} />);
+
       // Should show skeleton loaders instead of actual content
       expect(screen.queryByText('Test Card 1')).not.toBeInTheDocument();
-      expect(screen.getAllByRole('generic')).toHaveLength(9); // 3 columns × 3 skeleton cards
+      expect(container.querySelectorAll('.animate-pulse')).toHaveLength(3); // 3 skeleton columns
     });
 
     it('displays column colors when provided', () => {
@@ -152,8 +155,9 @@ describe('KanbanBoard', () => {
 
     it('displays tags', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
-      expect(screen.getByText('test')).toBeInTheDocument();
+
+      // 'test' appears on all three cards
+      expect(screen.getAllByText('test')).toHaveLength(3);
       expect(screen.getByText('frontend')).toBeInTheDocument();
       expect(screen.getByText('backend')).toBeInTheDocument();
       expect(screen.getByText('design')).toBeInTheDocument();
@@ -161,10 +165,10 @@ describe('KanbanBoard', () => {
 
     it('displays due dates', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
-      // Due dates should be formatted and displayed
-      expect(screen.getByText('1/30/2025')).toBeInTheDocument();
-      expect(screen.getByText('2/5/2025')).toBeInTheDocument();
+
+      // Due dates should be displayed (formatted via toLocaleDateString, locale-dependent)
+      expect(screen.getByText(sampleCards[0].dueDate!.toLocaleDateString())).toBeInTheDocument();
+      expect(screen.getByText(sampleCards[1].dueDate!.toLocaleDateString())).toBeInTheDocument();
     });
 
     it('shows progress bars when showProgress is true', () => {
@@ -172,7 +176,7 @@ describe('KanbanBoard', () => {
       
       // Progress bars should be rendered
       const progressBars = screen.getAllByRole('generic').filter(
-        el => el.className.includes('bg-blue-500')
+        el => el.className.includes('bg-primary-500')
       );
       expect(progressBars.length).toBeGreaterThan(0);
     });
@@ -206,14 +210,17 @@ describe('KanbanBoard', () => {
     it('handles multi-selection with Ctrl+Click', async () => {
       const user = userEvent.setup();
       render(<KanbanBoard {...defaultProps} allowMultiSelect={true} />);
-      
+
       const card1 = screen.getByText('Test Card 1');
       const card2 = screen.getByText('Test Card 2');
-      
-      // Ctrl+Click to select multiple cards
+
+      // Ctrl+Click to select multiple cards. userEvent does not apply the
+      // ctrlKey option to the resulting click event, so use fireEvent.
       await user.click(card1, { ctrlKey: true });
       await user.click(card2, { ctrlKey: true });
-      
+      fireEvent.click(card1, { ctrlKey: true });
+      fireEvent.click(card2, { ctrlKey: true });
+
       expect(defaultProps.onCardSelect).toHaveBeenCalledTimes(2);
     });
   });
@@ -231,15 +238,15 @@ describe('KanbanBoard', () => {
 
     it('handles drag start event', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
+
       const card = screen.getByText('Test Card 1').closest('[draggable]');
-      
+
       // Create a mock drag event
-      const dragEvent = new DragEvent('dragstart', {
+      const dragEvent = new MockDragEvent('dragstart', {
         bubbles: true,
         cancelable: true,
       });
-      
+
       // Mock dataTransfer
       Object.defineProperty(dragEvent, 'dataTransfer', {
         value: {
@@ -248,57 +255,56 @@ describe('KanbanBoard', () => {
         },
         writable: false,
       });
-      
+
       fireEvent(card!, dragEvent);
-      
+
       expect(dragEvent.dataTransfer.setData).toHaveBeenCalledWith('text/plain', '1');
     });
 
     it('handles drop event and calls onCardMove', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
+
       const card = screen.getByText('Test Card 1').closest('[draggable]');
-      const targetColumn = screen.getByText('In Progress').closest('div');
-      
+      const targetColumn = screen.getByText('In Progress').closest('.w-80');
+
       // Start drag
-      const dragStartEvent = new DragEvent('dragstart', { bubbles: true });
+      const dragStartEvent = new MockDragEvent('dragstart', { bubbles: true });
       Object.defineProperty(dragStartEvent, 'dataTransfer', {
         value: { effectAllowed: '', setData: vi.fn() },
       });
       fireEvent(card!, dragStartEvent);
-      
+
       // Drop on target column
-      const dropEvent = new DragEvent('drop', { bubbles: true });
+      const dropEvent = new MockDragEvent('drop', { bubbles: true });
       Object.defineProperty(dropEvent, 'dataTransfer', {
         value: { dropEffect: '', getData: () => '1' },
       });
       fireEvent(targetColumn!, dropEvent);
-      
-      // Note: Full drag-and-drop testing is complex in jsdom
-      // In a real scenario, you'd use more sophisticated testing tools
+
+      expect(defaultProps.onCardMove).toHaveBeenCalledWith('1', 'todo', 'in-progress', undefined);
     });
 
     it('shows drop zones during drag', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
+
       const card = screen.getByText('Test Card 1').closest('[draggable]');
-      
+
       // Start drag
-      const dragStartEvent = new DragEvent('dragstart', { bubbles: true });
+      const dragStartEvent = new MockDragEvent('dragstart', { bubbles: true });
       Object.defineProperty(dragStartEvent, 'dataTransfer', {
         value: { effectAllowed: '', setData: vi.fn() },
       });
       fireEvent(card!, dragStartEvent);
-      
-      // During drag, drop zones should appear
-      // This would need to be tested with more complex state management
+
+      // During drag, drop zones should appear in the two droppable columns
+      expect(screen.getAllByText('Drop here')).toHaveLength(2);
     });
 
     it('respects allowDrop property on columns', () => {
       render(<KanbanBoard {...defaultProps} />);
-      
+
       // The "Done" column has allowDrop: false
-      const doneColumn = screen.getByText('Done').closest('div');
+      const doneColumn = screen.getByText('Done').closest('.w-80');
       expect(doneColumn).toHaveClass('opacity-60'); // Should be visually disabled
     });
   });

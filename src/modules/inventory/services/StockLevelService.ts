@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: StockLevelService - Business logic for stock level tracking
 // ABOUTME: Replaces trg_inv_updateStockLevel trigger from the Akademico database
 // ABOUTME: Maintains stock_levels table in sync with stock_transactions
@@ -156,7 +158,7 @@ export class StockLevelService {
         const result = await this.onStockTransaction(transaction);
         results.push(result);
       } catch (error) {
-        console.error(`[StockLevelService] Error processing transaction ${transaction.id}:`, error);
+        logger.error(`[StockLevelService] Error processing transaction ${transaction.id}:`, error);
         // Continue processing remaining transactions
       }
     }
@@ -193,7 +195,7 @@ export class StockLevelService {
 
       default:
         // Unknown transaction type: treat as no-op
-        console.warn(`[StockLevelService] Unknown transaction type: ${transactionType}`);
+        logger.warn(`[StockLevelService] Unknown transaction type: ${transactionType}`);
         return 0;
     }
   }

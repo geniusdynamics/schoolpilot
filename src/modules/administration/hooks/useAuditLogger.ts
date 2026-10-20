@@ -4,7 +4,6 @@
 import { useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { AuditLoggerService } from '../services/AuditLoggerService';
-import type { AuditAction } from '../services/types';
 
 /**
  * Return type for the useAuditLogger hook

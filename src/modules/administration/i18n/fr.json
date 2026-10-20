@@ -6,7 +6,7 @@
       "description": "Gérer les élèves, le personnel, la structure académique et les opérations scolaires",
       "dashboard": "Tableau de Bord",
       "applications": "Candidatures",
-      "preNAsMarks": "Notes Pré-NAs",
+      "entryMarks": "Notes Pré-NAs",
       "students": "Élèves",
       "studentMasterlist": "Liste Principale des Élèves",
       "studentPromotion": "Promotion des Élèves",
@@ -95,7 +95,20 @@
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cet élève ?",
     "detailsFieldset": "Détails de l'Élève",
     "guardianFieldset": "Parent/Tuteur Principal",
-    "examSummaryFieldset": "Résumé des Résultats d'Examen (ex: KCPE)"
+    "examSummaryFieldset": "Résumé des Résultats d'Examen (ex: KCPE)",
+    "detail": {
+      "editBioData": "Modifier les données biographiques",
+      "firstName": "Prénom",
+      "middleName": "Deuxième prénom",
+      "lastName": "Nom de famille",
+      "gender": "Genre",
+      "dateOfBirth": "Date de naissance",
+      "religion": "Religion",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "remarks": "Remarques/À propos"
+    }
   },
   "staff": {
     "title": "Gestion du Personnel",
@@ -112,7 +125,24 @@
     "hodLabel": "Chef de Département (Si applicable)",
     "hodOptionNone": "Aucun",
     "activeLabel": "Est un membre du personnel actif",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce membre du personnel ?"
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce membre du personnel ?",
+    "form": {
+      "email": "E-mail",
+      "gender": "Genre",
+      "genderPlaceholder": "Sélectionner le genre",
+      "genderFemale": "Féminin",
+      "genderMale": "Masculin",
+      "genderOther": "Autre",
+      "nationalId": "N° d'identité nationale / Passeport",
+      "employerNumber": "N° d'employeur (par ex. numéro TSC)",
+      "employmentType": "Type d'emploi",
+      "employmentTypePlaceholder": "Sélectionner le type d'emploi",
+      "employmentPermanent": "Permanent",
+      "employmentContract": "Contrat",
+      "employmentPartTime": "Temps partiel",
+      "employmentBoard": "Conseil de gestion",
+      "employmentIntern": "Stagiaire / Stage"
+    }
   },
   "partners": {
     "title": "Gestion des Partenaires",
@@ -348,5 +378,66 @@
     "save": "common:save",
     "true": "T",
     "active": "a"
+  },
+  "bulkStreams": {
+    "title": "Création groupée de flux",
+    "subtitle": "Ajouter plusieurs flux à une classe en une seule fois",
+    "addField": "Ajouter un champ de flux",
+    "selectClass": "Sélectionner la classe",
+    "selectClassPlaceholder": "-- Sélectionner une classe --",
+    "streamNames": "Noms des flux",
+    "streamPlaceholder": "Nom du flux {{index}} (par ex., Est, Ouest, Nord)",
+    "summary": "Créera {{count}} flux pour « {{className}} »",
+    "summaryEmpty": "Sélectionnez une classe et saisissez les noms des flux ci-dessus",
+    "duplicatesHint": "Existe déjà ou est répété, sera ignoré : {{names}}",
+    "duplicatesSkipped": "Noms de flux existants ou répétés ignorés : {{names}}",
+    "badge": "{{count}} flux",
+    "create": "Créer {{count}} flux",
+    "createdToast": "{{count}} flux créés pour {{className}}",
+    "createFailed": "Un ou plusieurs flux n'ont pas pu être créés.",
+    "createdTitle": "Flux créés",
+    "repair": {
+      "title": "Flux corrompus",
+      "subtitle": "Ces flux n'ont pas de nom ou pas de classe. Déplacez leurs élèves vers un flux valide, puis supprimez-les.",
+      "unnamed": "Flux sans nom",
+      "studentCount": "({{count}} élève(s))",
+      "moveTo": "Déplacer les élèves vers",
+      "chooseStream": "-- Choisir un flux --",
+      "action": "Réparer les flux",
+      "done": "{{deleted}} flux corrompus supprimés ; {{reassigned}} élèves déplacés",
+      "failed": "La réparation a échoué. Aucun autre flux n'a été supprimé."
+    }
+  },
+  "bulkOperations": {
+    "promotion": "Promotion"
+  },
+  "promotion": {
+    "title": "Promouvoir une classe",
+    "unassigned": "Non attribué",
+    "source": "Classe actuelle",
+    "target": "Promouvoir vers",
+    "academicYear": "Année académique",
+    "date": "Date de promotion",
+    "selectClass": "-- Sélectionner une classe --",
+    "chooseClasses": "Choisissez la classe actuelle et la classe vers laquelle promouvoir.",
+    "preview": "Aperçu",
+    "empty": "Aucun apprenant dans cette classe.",
+    "include": "Inclure",
+    "learner": "Apprenant",
+    "from": "De",
+    "to": "Vers",
+    "note": "Remarque",
+    "commit": "Promouvoir",
+    "commitCount": "Promouvoir {{count}} apprenants",
+    "confirmTitle": "Confirmer la promotion",
+    "confirmMessage": "Déplacer {{count}} apprenants de {{from}} vers {{to}} ? Vous pouvez annuler cette action par la suite.",
+    "partial": "{{done}} apprenants promus, {{failed}} n'ont pas pu l'être.",
+    "done": "{{count}} apprenants promus.",
+    "failed": "La promotion a échoué.",
+    "committed": "{{count}} apprenants déplacés vers {{to}}.",
+    "undo": "Annuler",
+    "undoPartial": "{{done}} apprenants restaurés, {{failed}} ont été déplacés depuis et ont été laissés tels quels.",
+    "undone": "{{count}} apprenants sont retournés dans leur classe précédente.",
+    "undoFailed": "L'annulation a échoué."
   }
 }

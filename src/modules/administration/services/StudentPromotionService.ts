@@ -1,9 +1,10 @@
-// ABOUTME: StudentPromotionService - Business logic for student class promotion
+﻿// ABOUTME: StudentPromotionService - Business logic for student class promotion
 // ABOUTME: Replaces sp_adm_promoteStudent stored procedure from Akademico DB
 // ABOUTME: Maintains immutable history in student_class_history while updating current class
 
 import type { StudentClassHistoryEntry } from '../data/types';
 import { AuditLoggerService } from './AuditLoggerService';
+import { logger } from '@/utils/logging';
 
 /**
  * Parameters for promoting a student
@@ -175,7 +176,7 @@ export class StudentPromotionService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`[StudentPromotionService] Error promoting student ${studentId}:`, error);
+      logger.error(`[StudentPromotionService] Error promoting student ${studentId}:`, error);
       return {
         success: false,
         studentId,
@@ -226,7 +227,7 @@ export class StudentPromotionService {
 
       return true;
     } catch (error) {
-      console.error(`[StudentPromotionService] Error soft-deleting student ${studentId}:`, error);
+      logger.error(`[StudentPromotionService] Error soft-deleting student ${studentId}:`, error);
       return false;
     }
   }
@@ -252,7 +253,7 @@ export class StudentPromotionService {
         new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
       );
     } catch (error) {
-      console.error(`[StudentPromotionService] Error fetching class history for student ${studentId}:`, error);
+      logger.error(`[StudentPromotionService] Error fetching class history for student ${studentId}:`, error);
       return [];
     }
   }
@@ -354,7 +355,7 @@ export class StudentPromotionService {
 
   private async findStudent(studentId: string): Promise<Record<string, unknown> | null> {
     if (!this.studentsCollection || typeof this.studentsCollection.findOne !== 'function') {
-      console.warn('[StudentPromotionService] Students collection not available');
+      logger.warn('[StudentPromotionService] Students collection not available');
       return null;
     }
 
@@ -367,7 +368,7 @@ export class StudentPromotionService {
 
   private async classStreamExists(classStreamId: string): Promise<boolean> {
     if (!this.classStreamsCollection || typeof this.classStreamsCollection.findOne !== 'function') {
-      console.warn('[StudentPromotionService] Class streams collection not available, skipping validation');
+      logger.warn('[StudentPromotionService] Class streams collection not available, skipping validation');
       return true; // Skip validation if collection not available
     }
 
@@ -381,7 +382,7 @@ export class StudentPromotionService {
 
   private async closeCurrentHistory(studentId: string, promotionDate: string): Promise<void> {
     if (!this.historyCollection || typeof this.historyCollection.find !== 'function') {
-      console.warn('[StudentPromotionService] History collection not available');
+      logger.warn('[StudentPromotionService] History collection not available');
       return;
     }
 
@@ -409,7 +410,7 @@ export class StudentPromotionService {
         }
       }
     } catch (error) {
-      console.warn('[StudentPromotionService] Could not close history records:', error);
+      logger.warn('[StudentPromotionService] Could not close history records:', error);
     }
   }
 
@@ -417,7 +418,7 @@ export class StudentPromotionService {
     const id = `sch_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     if (!this.historyCollection || typeof this.historyCollection.insert !== 'function') {
-      console.warn('[StudentPromotionService] History collection not available, skipping insert');
+      logger.warn('[StudentPromotionService] History collection not available, skipping insert');
       return id;
     }
 
@@ -428,7 +429,7 @@ export class StudentPromotionService {
         created_at: new Date().toISOString()
       });
     } catch (error) {
-      console.error('[StudentPromotionService] Failed to create history entry:', error);
+      logger.error('[StudentPromotionService] Failed to create history entry:', error);
     }
 
     return id;
@@ -436,7 +437,7 @@ export class StudentPromotionService {
 
   private async updateStudentClass(studentId: string, newClassStreamId: string): Promise<void> {
     if (!this.studentsCollection || typeof this.studentsCollection.update !== 'function') {
-      console.warn('[StudentPromotionService] Students collection not available');
+      logger.warn('[StudentPromotionService] Students collection not available');
       return;
     }
 

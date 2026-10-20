@@ -5,7 +5,7 @@
       "description": "Verwaltung von Schülern, Personal, akademischer Struktur und Schulbetrieb",
       "dashboard": "Dashboard",
       "applications": "Bewerbungen",
-      "preNAsMarks": "Vor-NAs-Noten",
+      "entryMarks": "Vor-NAs-Noten",
       "students": "Studenten",
       "studentMasterlist": "Studenten-Hauptliste",
       "studentPromotion": "Studenten-Beförderung",

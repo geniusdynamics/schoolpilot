@@ -1,7 +1,8 @@
 import type { ModuleMetadata, LoadedModule } from '@/core/types/module';
 import { moduleRegistry } from './moduleRegistry';
-import { moduleLifecycle } from './ModuleLifecycle';
+
 import { EventEmitter } from 'events';
+import { logger } from '@/utils/logging';
 
 export interface LoadModuleOptions {
   timeout?: number;
@@ -490,7 +491,10 @@ export function getDynamicNavigationItems(): Array<{ id: string; name: string; p
               ...item,
               id: item.id || `${moduleId}-${item.path || 'unknown'}`,
               modulePath: metadata.path || `/${moduleId}`,
-              name: item.name || 'Unknown'
+              name: item.name || 'Unknown',
+              deprecated: item.deprecated || false,
+              redirectTo: item.redirectTo,
+              showInModes: item.showInModes,
             }));
         }
 
@@ -509,7 +513,7 @@ export function getDynamicNavigationItems(): Array<{ id: string; name: string; p
 
     return navigationItems;
   } catch (error) {
-    console.error('[getDynamicNavigationItems] Error:', error);
+    logger.error('[getDynamicNavigationItems] Error:', error);
     return []; // Return empty array on error
   }
 }

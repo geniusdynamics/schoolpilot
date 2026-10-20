@@ -125,7 +125,7 @@ interface DialogDescriptionProps {
 
 export const DialogDescription: React.FC<DialogDescriptionProps> = ({ children, className }) => {
   return (
-    <p className={`text-sm text-gray-600 ${className || ''}`}>
+    <p className={`text-sm text-surface-muted-fg ${className || ''}`}>
       {children}
     </p>
   );

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This page component captures per-student marks for a selected exam session and class stream.
 // ABOUTME: It reads configured session papers from AppDataContext and persists nested student result records.
 import React, { useState, useEffect, useMemo } from 'react';
@@ -11,8 +13,8 @@ import Input from '@/components/ui/Input';
 import { ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { getStudentsForExamEntry } from '@/utils/api';
+import { useToast } from '@/hooks/useToast';
 
 interface MarkInput {
   [studentId: string]: {
@@ -20,7 +22,7 @@ interface MarkInput {
   };
 }
 
-const StudentExamResultsEntryPage: React.FC = () => {
+export const StudentExamResultsEntryPageContent: React.FC = () => {
   const {
     studentExamResults,
     students,
@@ -31,7 +33,8 @@ const StudentExamResultsEntryPage: React.FC = () => {
   } = useAppData(); // Updated
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>(undefined);
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>(undefined);
+  // Stream ids are opaque strings (numeric seeds or UUIDs); never coerce them to numbers.
+  const [selectedClassStreamId, setSelectedClassStreamId] = useState<string | undefined>(undefined);
   
   const [studentsForEntry, setStudentsForEntry] = useState<Student[]>([]);
   const [paperSettingsForSession, setPaperSettingsForSession] = useState<ExamPaperSetting[]>([]);
@@ -72,7 +75,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
         setMarks(initialMarks);
         setPageLoading(false);
       } catch (error: any) {
-        console.error('Error loading students:', error);
+        logger.error('Error loading students:', error);
         setStudentsForEntry([]);
         setPaperSettingsForSession([]);
         setMarks({});
@@ -95,9 +98,10 @@ const StudentExamResultsEntryPage: React.FC = () => {
     }));
   };
 
+  const toast = useToast();
   const handleSaveAllMarks = async () => {
     if (!selectedExamSessionId || !selectedClassStreamId || studentsForEntry.length === 0) {
-      alert('Please select an exam session, class stream and ensure students are loaded.');
+      toast.showWarning('Please select an exam session, class stream and ensure students are loaded.');
       return;
     }
     setSaving(true);
@@ -105,8 +109,8 @@ const StudentExamResultsEntryPage: React.FC = () => {
     try {
       for (const student of studentsForEntry) {
         const studentMarksForPapers: Array<Omit<StudentPaperMark, 'id' | 'student_exam_result_id'>> = [];
-        let studentTotalMarks = 0;
         let hasMarks = false;
+        let totalMarks = 0;
 
         for (const paperSetting of paperSettingsForSession) {
           const scoreStr = marks[student.id]?.[paperSetting.id];
@@ -120,7 +124,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
           }
 
           if (score < 0 || score > paperSetting.marks_out_of) {
-            alert(`Score for ${student.first_name} ${student.last_name} in ${paperSetting.subject_paper_name || 'paper'} must be between 0 and ${paperSetting.marks_out_of}.`);
+            toast.showWarning(`Score for ${student.first_name} ${student.last_name} in ${paperSetting.subject_paper_name || 'paper'} must be between 0 and ${paperSetting.marks_out_of}.`);
             return;
           }
 
@@ -128,7 +132,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
             paper_setting_id: paperSetting.id,
             score,
           });
-          studentTotalMarks += score;
+          totalMarks += score;
           hasMarks = true;
         }
 
@@ -139,29 +143,28 @@ const StudentExamResultsEntryPage: React.FC = () => {
         await saveStudentExamResult({
           student_id: student.id,
           exam_session_id: selectedExamSessionId,
-          total_marks: studentTotalMarks,
+          total_marks: totalMarks,
           marks: studentMarksForPapers,
         });
       }
-      alert("Marks saved successfully! Weighted totals and grades are saved, and ranks still require further processing via 'Exam Analysis'.");
+      toast.showSuccess("Marks saved successfully! Weighted totals and grades are saved, and ranks still require further processing via 'Exam Analysis'.");
     } catch (error) {
-      console.error('Failed to save student exam results:', error);
-      alert('Unable to save the marks. Please try again.');
+      logger.error('Failed to save student exam results:', error);
+      toast.showError('Unable to save the marks. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-
   const tableColumns: DataGridColumn<Student>[] = useMemo(() => {
     const staticColumns: DataGridColumn<Student>[] = [
       { key: 'admission_no', header: 'Adm No' },
-      { key: 'first_name', header: 'Student Name', render: (value: any, item: Student) => `${item.first_name} ${item.last_name}` },
+      { key: 'first_name', header: 'Student Name', render: (_value: any, item: Student) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—' },
     ];
     const dynamicPaperColumns: DataGridColumn<Student>[] = (paperSettingsForSession || []).map(paperSetting => ({
       key: `paper_${paperSetting.id}`,
       header: `${paperSetting.subject_name || 'Subject'} - ${paperSetting.subject_paper_name || 'Paper'} (/${paperSetting.marks_out_of})`,
-      render: (value: any, student: Student) => (
+      render: (_value: any, student: Student) => (
         <Input
           type="number"
           className="w-20 text-sm p-1"
@@ -175,15 +178,14 @@ const StudentExamResultsEntryPage: React.FC = () => {
     return [...staticColumns, ...dynamicPaperColumns];
   }, [paperSettingsForSession, marks]);
 
-
   if (loading.students || loading.examSessions || loading.classStreams) {
       return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
 
   return (
     <div className="space-y-6">
-      <Card title="Student Exam Results Entry" icon={<ListBulletIcon className="w-6 h-6 text-blue-500" />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
+      <Card title="Student Exam Results Entry" icon={<ListBulletIcon className="w-6 h-6 text-primary-500" />}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
           <Select
             label="Select Exam Session"
             value={selectedExamSessionId || ''}
@@ -196,13 +198,13 @@ const StudentExamResultsEntryPage: React.FC = () => {
           </Select>
           <Select
             label="Select Class Stream"
-            value={selectedClassStreamId || ''}
-            onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
+            value={selectedClassStreamId ?? ''}
+            onChange={(e) => setSelectedClassStreamId(e.target.value || undefined)}
             disabled={!selectedExamSessionId}
           >
             <option value="">-- Select Class Stream --</option>
             {(classStreams || []).map(cs => (
-              <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
+              <option key={cs.id} value={String(cs.id)}>{cs.class_name} - {cs.name}</option>
             ))}
           </Select>
         </div>
@@ -216,23 +218,29 @@ const StudentExamResultsEntryPage: React.FC = () => {
             <>
               <DataGrid columns={tableColumns} data={studentsForEntry} />
               <div className="mt-6 text-right">
-                <Button onClick={handleSaveAllMarks} disabled={saving} leftIcon={saving ? <Spinner size="sm"/> : undefined}>
+                <Button onClick={handleSaveAllMarks} loading={saving}>
                   {saving ? 'Saving Marks...' : 'Save All Marks'}
                 </Button>
               </div>
             </>
           ) : (
-            <p className="text-center text-gray-500 py-4">
+            <p className="text-center text-surface-muted-fg py-4">
               {studentsForEntry.length === 0 ? "No students in selected class stream." : ""}
               {paperSettingsForSession.length === 0 ? " No papers configured for this exam session." : ""}
             </p>
           )
         ) : (
-          <p className="text-center text-gray-500 py-4">Please select an exam session and class stream to enter marks.</p>
+          <p className="text-center text-surface-muted-fg py-4">Please select an exam session and class stream to enter marks.</p>
         )}
       </Card>
     </div>
   );
 };
+
+const StudentExamResultsEntryPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentExamResultsEntryPageContent />
+  </div>
+);
 
 export default StudentExamResultsEntryPage;

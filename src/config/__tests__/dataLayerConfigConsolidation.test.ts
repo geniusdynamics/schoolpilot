@@ -22,7 +22,11 @@ describe('dataLayerConfig consolidation helpers', () => {
 
     expect(demoOptions.every((option) => option.applicationMode === 'demo')).toBe(true);
     expect(productionOptions.every((option) => option.applicationMode === 'production')).toBe(true);
-    expect(demoOptions.some((option) => option.normalizedProvider === 'sqlite-file')).toBe(true);
+    // Demo mode surfaces the development (local) option alongside the browser demo
+    // option; both are SQLite WASM/OPFS-based now (development no longer uses a
+    // native sqlite-file provider).
+    expect(demoOptions.some((option) => option.sourceMode === 'development')).toBe(true);
+    expect(demoOptions.every((option) => option.normalizedProvider === 'sqlite-wasm')).toBe(true);
     expect(productionOptions.some((option) => option.normalizedProvider === 'livestore')).toBe(true);
   });
 
@@ -30,9 +34,12 @@ describe('dataLayerConfig consolidation helpers', () => {
     const demoDatabases = getDatabaseOptionsForMode('demo').map((option) => option.value);
     const productionDatabases = getDatabaseOptionsForMode('production').map((option) => option.value);
 
-    expect(demoDatabases).toContain('sqlite-file');
+    // Demo mode is browser-only: SQLite WASM (no native sqlite-file, no LiveStore)
     expect(demoDatabases).toContain('sqlite-wasm');
+    expect(demoDatabases).not.toContain('sqlite-file');
+    expect(demoDatabases).not.toContain('livestore');
     expect(productionDatabases).toContain('livestore');
+    expect(productionDatabases).toContain('sqlite-wasm');
     expect(productionDatabases).not.toContain('sqlite-file');
   });
 

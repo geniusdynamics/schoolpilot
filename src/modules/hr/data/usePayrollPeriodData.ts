@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for payrollperiod data management
 // ABOUTME: Provides CRUD operations for payrollperiod without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockPayrollPeriods } from './mockData';
 import { PayrollPeriod } from './types';
+import { useState } from 'react';
 
 export const usePayrollPeriodData = () => {
   const [data, setData] = useState<PayrollPeriod[]>(initialMockPayrollPeriods);

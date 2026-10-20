@@ -10,6 +10,13 @@ describe('tabStore + TabValidationService Integration', () => {
   beforeEach(() => {
     // Reset store state before each test
     useTabStore.getState().resetStore();
+    // Simulate an existing (empty) persisted session so store.initialize()
+    // does not inject its default Dashboard tab. These tests build their own
+    // tab fixtures and expect a clean slate (and an accurate maxTabs count).
+    localStorage.setItem(
+      'tabbed-workspace-storage',
+      JSON.stringify({ state: { tabs: [] }, version: 0 })
+    );
     vi.clearAllMocks();
   });
 
@@ -32,8 +39,11 @@ describe('tabStore + TabValidationService Integration', () => {
       });
 
       expect(tabId).toBeDefined();
-      expect(store.tabs).toHaveLength(1);
-      expect(store.tabs[0].permissions).toContain('admin.read');
+      // createTab replaces the zustand state object, so re-read fresh state
+      // instead of asserting on the pre-creation snapshot.
+      const freshState = useTabStore.getState();
+      expect(freshState.tabs).toHaveLength(1);
+      expect(freshState.tabs[0].permissions).toContain('admin.read');
     });
 
     it('should validate tab access using service', () => {
@@ -84,9 +94,9 @@ describe('tabStore + TabValidationService Integration', () => {
       
       // Initialize store
       await store.initialize();
-      
-      // Verify store is initialized
-      expect(store.isStoreInitialized).toBe(true);
+
+      // Verify store is initialized (initialize replaces the state object)
+      expect(useTabStore.getState().isStoreInitialized).toBe(true);
     });
 
     it('should filter corrupted tabs during initialization', async () => {
@@ -100,8 +110,8 @@ describe('tabStore + TabValidationService Integration', () => {
         content: { type: 'component', component: 'TestComponent' }
       });
 
-      expect(store.tabs).toHaveLength(1);
-      expect(store.tabs[0].id).toBe(validTabId);
+      expect(useTabStore.getState().tabs).toHaveLength(1);
+      expect(useTabStore.getState().tabs[0].id).toBe(validTabId);
     });
 
     it('should detect and handle corrupted module names', async () => {
@@ -159,7 +169,7 @@ describe('tabStore + TabValidationService Integration', () => {
         })
       ).rejects.toThrow(/Maximum tab limit/);
 
-      expect(store.tabs).toHaveLength(2);
+      expect(useTabStore.getState().tabs).toHaveLength(2);
     });
 
     it('should allow creating tabs up to max limit', async () => {
@@ -179,7 +189,7 @@ describe('tabStore + TabValidationService Integration', () => {
         expect(tabId).toBeDefined();
       }
 
-      expect(store.tabs).toHaveLength(3);
+      expect(useTabStore.getState().tabs).toHaveLength(3);
     });
   });
 
@@ -197,9 +207,9 @@ describe('tabStore + TabValidationService Integration', () => {
 
       // Activate tab
       await store.activateTab(tabId);
-      
-      // Verify tab is active
-      expect(store.activeTabId).toBe(tabId);
+
+      // Verify tab is active (activateTab replaces the state object)
+      expect(useTabStore.getState().activeTabId).toBe(tabId);
     });
 
     it('should handle permission denied gracefully', async () => {
@@ -220,8 +230,8 @@ describe('tabStore + TabValidationService Integration', () => {
       await store.activateTab(tabId);
       
       // Should still be activated in fallback mode
-      expect(store.activeTabId).toBe(tabId);
-      
+      expect(useTabStore.getState().activeTabId).toBe(tabId);
+
       warnSpy.mockRestore();
     });
   });
@@ -312,9 +322,10 @@ describe('tabStore + TabValidationService Integration', () => {
       
       // Update permissions
       store.updateUserPermissions(['test.read', 'test.write']);
-      
-      expect(store.userPermissions).toContain('test.read');
-      expect(store.userPermissions).toContain('test.write');
+
+      // updateUserPermissions replaces the state object; read fresh state
+      expect(useTabStore.getState().userPermissions).toContain('test.read');
+      expect(useTabStore.getState().userPermissions).toContain('test.write');
     });
 
     it('should set user role and use it for validation', () => {
@@ -322,8 +333,8 @@ describe('tabStore + TabValidationService Integration', () => {
       
       // Set user role
       store.setUserRole('admin');
-      
-      expect(store.currentUserRole).toBe('admin');
+
+      expect(useTabStore.getState().currentUserRole).toBe('admin');
     });
 
     it('should get accessible tabs based on permissions', async () => {

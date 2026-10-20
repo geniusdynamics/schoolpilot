@@ -1,21 +1,19 @@
-// ABOUTME: Unified settings page that consolidates all application settings into a single tabbed interface
+﻿// ABOUTME: Unified settings page that consolidates all application settings into a single tabbed interface
 // ABOUTME: Provides system overview, user management, feature toggles, sync controls, and workflow configuration
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRBAC } from '@/hooks/useRBAC';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Table from '@/components/ui/Table';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import DataGrid from '@/components/ui/data/DataGrid';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import Spinner from '@/components/ui/Spinner';
 import { 
   CogIcon, 
   DatabaseIcon, 
@@ -28,16 +26,17 @@ import {
   ArrowLeftOnRectangleIcon
 } from '@/components/ui/icons';
 import FeatureSettingsPage from './FeatureSettingsPage';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { User, Role, Workflow, WorkflowState } from '@/types';
-const UnifiedSettingsPage: React.FC = () => {
+import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
+export const UnifiedSettingsContent: React.FC = () => {
   const navigate = useNavigate();
-  const { config: unifiedConfig, isLoading: isConfigLoading } = useUnifiedConfig();
+  const confirm = useConfirm();
+  const { isLoading: isConfigLoading } = useUnifiedConfig();
   const [activeTab, setActiveTab] = useState('system');
 
-  const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation('settings');
-  const { user } = useAuth();
-  const { hasPermission } = useRBAC(user?.id, user?.role);
 
   // Modal state management
   const { 
@@ -48,10 +47,6 @@ const UnifiedSettingsPage: React.FC = () => {
     loading, 
     isOnline, 
     appVersion,
-    isDatabaseModeActive, 
-    isUsingRxDBDummyData, 
-    triggerSeedRxDB: triggerSeedDatabase, 
-    triggerClearRxDB: triggerClearDatabase,
     initializationError
   } = useAppData();
   
@@ -87,7 +82,7 @@ const UnifiedSettingsPage: React.FC = () => {
       email: user.email,
       userType: user.userType,
       isActive: user.isActive,
-      role_id: user.role_id
+      role_id: user.role_id == null ? null : String(user.role_id)
     } : initialUserFormData);
     setIsUserModalOpen(true);
   };
@@ -143,118 +138,100 @@ const UnifiedSettingsPage: React.FC = () => {
     setStateFormData(initialStateFormData);
   };
   
-  // Form input handlers
-  const handleUserInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-                (name === 'role_id' ? (value ? parseInt(value) : undefined) : value);
-    setUserFormData(prev => ({ ...prev, [name]: val }));
-  };
-  
-  const handleRoleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setRoleFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleWorkflowInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWorkflowFormData({ ...workflowFormData, [e.target.name]: e.target.value });
-  };
-  
-  const handleStateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    setStateFormData({ ...stateFormData, [name]: type === 'number' ? parseInt(value) || 0 : value });
-  };
-  
   // Submit handlers (with TODO placeholders)
   const handleUserSubmit = async () => {
     if (!userFormData.username || !userFormData.email || !userFormData.userType) {
-      alert("Username, Email, and User Type are required.");
+      toast.showWarning("Username, Email, and User Type are required.");
       return;
     }
     if (!editingUser && !userFormData.password) {
-      alert("Password is required for new users.");
+      toast.showWarning("Password is required for new users.");
       return;
     }
     // TODO: Implement user management API calls
-    alert(editingUser ? "Update user functionality not yet implemented" : "Add user functionality not yet implemented");
+    toast.showError(editingUser ? "Update user functionality not yet implemented" : "Add user functionality not yet implemented");
     closeUserModal();
   };
   
   const handleRoleSubmit = async () => {
     if (!roleFormData.name) {
-      alert("Role name is required.");
+      toast.showWarning("Role name is required.");
       return;
     }
     // TODO: Implement role management API calls
-    alert(editingRole ? "Update role functionality not yet implemented" : "Add role functionality not yet implemented");
+    toast.showError(editingRole ? "Update role functionality not yet implemented" : "Add role functionality not yet implemented");
     closeRoleModal();
   };
   
   const handleWorkflowSubmit = async () => {
     if (!workflowFormData.name) {
-      alert("Workflow name is required.");
+      toast.showWarning("Workflow name is required.");
       return;
     }
     // TODO: Implement workflow management API calls
-    alert(editingWorkflow ? "Update workflow functionality not yet implemented" : "Add workflow functionality not yet implemented");
+    toast.showError(editingWorkflow ? "Update workflow functionality not yet implemented" : "Add workflow functionality not yet implemented");
     closeWorkflowModal();
   };
   
   const handleStateSubmit = async () => {
     if (!currentWorkflowForStates || !stateFormData.name || stateFormData.sequence_order === undefined) {
-      alert("State name and sequence order are required.");
+      toast.showWarning("State name and sequence order are required.");
       return;
     }
     // TODO: Implement workflow state management API calls
-    alert("Workflow state management not yet implemented");
+    toast.showError("Workflow state management not yet implemented");
     closeStateModal();
   };
   
   // Delete handlers
   const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (await confirm({ title: 'Delete user', message: 'Are you sure you want to delete this user?', variant: 'danger' })) {
       // TODO: Implement delete user API call
-      alert("Delete user functionality not yet implemented");
+      logger.warn('Delete user not yet implemented', { userId });
+      toast.showError("Delete user functionality not yet implemented");
     }
   };
   
-  const handleDeleteRole = async (roleId: number) => {
-    if (window.confirm('Are you sure you want to delete this role? Users with this role will have it unassigned.')) {
+  const handleDeleteRole = async (roleId: Role['id']) => {
+    if (await confirm({ title: 'Delete role', message: 'Are you sure you want to delete this role? Users with this role will have it unassigned.', variant: 'danger' })) {
       // TODO: Implement delete role API call
-      alert("Delete role functionality not yet implemented");
+      logger.warn('Delete role not yet implemented', { roleId });
+      toast.showError("Delete role functionality not yet implemented");
     }
   };
   
   const handleDeleteWorkflow = async (id: number) => {
-    if (window.confirm("Delete this workflow and all its states?")) {
+    if (await confirm({ title: 'Delete workflow', message: "Delete this workflow and all its states?", variant: 'danger' })) {
       // TODO: Implement delete workflow API call
-      alert("Delete workflow functionality not yet implemented");
+      toast.showError("Delete workflow functionality not yet implemented");
       if(currentWorkflowForStates?.id === id) setCurrentWorkflowForStates(null);
     }
   };
   
+  const toast = useToast();
   const handleDeleteState = async (stateId: number) => {
     if (!currentWorkflowForStates) return;
-    if (window.confirm('Delete this workflow state?')) {
+    if (await confirm({ title: 'Delete workflow state', message: 'Delete this workflow state?', variant: 'danger' })) {
       // TODO: Implement delete workflow state API call
-      alert("Delete workflow state functionality not yet implemented");
+      logger.warn('Delete workflow state not yet implemented', { stateId });
+      toast.showError("Delete workflow state functionality not yet implemented");
     }
   };
 
   // Table column definitions
   const userColumns = [
-    { header: 'Username', accessor: 'username' as keyof User },
-    { header: 'Email', accessor: 'email' as keyof User },
-    { header: 'Type', accessor: 'userType' as keyof User },
-    { header: 'Status', accessor: 'isActive' as keyof User, render: (user: User) => user.isActive ? 'Active' : 'Inactive' },
-    { header: 'Role', accessor: 'role_id' as keyof User, render: (user: User) => {
-      const role = roles?.find(r => r.id === user.role_id);
+    { header: 'Username', key: 'username' as keyof User },
+    { header: 'Email', key: 'email' as keyof User },
+    { header: 'Type', key: 'userType' as keyof User },
+    { header: 'Status', key: 'isActive' as keyof User, render: (_v: any, user: User) => user.isActive ? 'Active' : 'Inactive' },
+    { header: 'Role', key: 'role_id' as keyof User, render: (_v: any, user: User) => {
+      const role = user.role_id == null ? undefined : roles?.find(r => String(r.id) === String(user.role_id));
       return role ? role.name : 'No Role';
     }},
     {
       header: 'Actions',
-      accessor: ((user: User) => user.id) as any,
-      render: (user: User) => (
+      key: 'id',
+      render: (_v: any, user: User) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -278,12 +255,12 @@ const UnifiedSettingsPage: React.FC = () => {
   ];
 
   const roleColumns = [
-    { header: 'Role Name', accessor: 'name' as keyof Role },
-    { header: 'Description', accessor: 'description' as keyof Role },
+    { header: 'Role Name', key: 'name' as keyof Role },
+    { header: 'Description', key: 'description' as keyof Role },
     {
       header: 'Actions',
-      accessor: ((role: Role) => role.id) as any,
-      render: (role: Role) => (
+      key: 'id',
+      render: (_v: any, role: Role) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -307,11 +284,11 @@ const UnifiedSettingsPage: React.FC = () => {
   ];
 
   const workflowColumns = [
-    { header: 'Workflow Name', accessor: 'name' as keyof Workflow },
+    { header: 'Workflow Name', key: 'name' as keyof Workflow },
     {
       header: 'States',
-      accessor: ((workflow: Workflow) => workflow.states?.length || 0) as any,
-      render: (workflow: Workflow) => (
+      key: 'states_count',
+      render: (_v: any, workflow: Workflow) => (
         <div className="flex items-center gap-2">
           <span>{workflow.states?.length || 0} states</span>
           <Button
@@ -327,8 +304,8 @@ const UnifiedSettingsPage: React.FC = () => {
     },
     {
       header: 'Actions',
-      accessor: ((workflow: Workflow) => workflow.id) as any,
-      render: (workflow: Workflow) => (
+      key: 'id',
+      render: (_v: any, workflow: Workflow) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -352,12 +329,12 @@ const UnifiedSettingsPage: React.FC = () => {
   ];
 
   const stateColumns = [
-    { header: 'State Name', accessor: 'name' as keyof WorkflowState },
-    { header: 'Order', accessor: 'sequence_order' as keyof WorkflowState },
+    { header: 'State Name', key: 'name' as keyof WorkflowState },
+    { header: 'Order', key: 'sequence_order' as keyof WorkflowState },
     {
       header: 'Actions',
-      accessor: ((state: WorkflowState) => state.id) as any,
-      render: (state: WorkflowState) => (
+      key: 'id',
+      render: (_v: any, state: WorkflowState) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -382,14 +359,14 @@ const UnifiedSettingsPage: React.FC = () => {
 
   // Enhanced loading state with specific loading indicators
   const isInitialLoading = loading?.all || false;
-  const isDataLoading = loading?.schoolDetails || loading?.users || loading?.roles || false;
+
   
   if (isInitialLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Initializing application data...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-surface-muted-fg">Initializing application data...</p>
           {initializationError && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-red-700 text-sm">Error: {initializationError.message}</p>
@@ -409,14 +386,14 @@ const UnifiedSettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <PageContainer>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
-        <p className="text-gray-600 mt-2">{t('description')}</p>
+        <h1 className="text-3xl font-bold text-surface-foreground">{t('title')}</h1>
+        <p className="text-surface-muted-fg mt-2">{t('description')}</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-surface-border mb-6">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -426,8 +403,8 @@ const UnifiedSettingsPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
                 }`}
               >
                 <Icon className="mr-2 h-5 w-5" />
@@ -443,11 +420,11 @@ const UnifiedSettingsPage: React.FC = () => {
         <div className="space-y-6">
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">General App Settings</h3>
-              <p className="text-gray-600 mb-4">Configure general application settings</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">General App Settings</h3>
+              <p className="text-surface-muted-fg mb-4">Configure general application settings</p>
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Unified Configuration Status:</p>
+                <div className="p-4 bg-surface-muted rounded-lg">
+                  <p className="text-sm text-surface-muted-fg">Unified Configuration Status:</p>
                   <p className="font-medium">{isConfigLoading ? 'Loading...' : 'Ready'}</p>
                 </div>
               </div>
@@ -457,45 +434,45 @@ const UnifiedSettingsPage: React.FC = () => {
           {schoolDetails && (
             <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center gap-2">
+              <h3 className="text-lg font-medium text-surface-foreground mb-2 flex items-center gap-2">
                 School Profile Overview
                 {loading?.schoolDetails && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                 )}
               </h3>
-              <p className="text-gray-600 mb-4">Basic information about your school</p>
+              <p className="text-surface-muted-fg mb-4">Basic information about your school</p>
               {loading?.schoolDetails ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading school details...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-surface-muted-fg">Loading school details...</p>
                   </div>
                 </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">School Name</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">School Name</p>
                       <p className="font-medium">{schoolDetails.name || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Address</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Address</p>
                       <p className="font-medium">{schoolDetails.address || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Phone</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Phone</p>
                       <p className="font-medium">{schoolDetails.phone || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Email</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Email</p>
                       <p className="font-medium">{schoolDetails.email || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Website</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Website</p>
                       <p className="font-medium">{schoolDetails.website || 'Not set'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Principal</p>
+                    <div className="p-3 bg-surface-muted rounded-lg">
+                      <p className="text-sm text-surface-muted-fg">Principal</p>
                       <p className="font-medium">{schoolDetails.principal || 'Not set'}</p>
                     </div>
                   </div>
@@ -511,12 +488,12 @@ const UnifiedSettingsPage: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">User Management Overview</h3>
-              <p className="text-gray-600 mb-4">Quick overview of user accounts</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">User Management Overview</h3>
+              <p className="text-surface-muted-fg mb-4">Quick overview of user accounts</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-600">Total Users</p>
-                  <p className="text-2xl font-bold text-blue-700">{users?.length || 0}</p>
+                <div className="p-3 bg-primary-50 rounded-lg">
+                  <p className="text-sm text-primary-600">Total Users</p>
+                  <p className="text-2xl font-bold text-primary-700">{users?.length || 0}</p>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-600">Active Users</p>
@@ -544,8 +521,8 @@ const UnifiedSettingsPage: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Academic Calendar Setup</h3>
-              <p className="text-gray-600 mb-4">Configure academic structures and periods</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Academic Calendar Setup</h3>
+              <p className="text-surface-muted-fg mb-4">Configure academic structures and periods</p>
               <div className="space-y-3">
                 <Button variant="outline" className="w-full justify-start">
                   <ArrowLeftOnRectangleIcon className="mr-2 h-4 w-4" />
@@ -569,8 +546,8 @@ const UnifiedSettingsPage: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Roles &amp; Permissions Overview</h3>
-              <p className="text-gray-600 mb-4">Quick access to user roles and workflow management</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">Roles &amp; Permissions Overview</h3>
+              <p className="text-surface-muted-fg mb-4">Quick access to user roles and workflow management</p>
               <div className="space-y-3">
                 <Button 
                   variant="outline" 
@@ -594,15 +571,15 @@ const UnifiedSettingsPage: React.FC = () => {
 
           <Card>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">System Information</h3>
-              <p className="text-gray-600 mb-4">Current system status and version information</p>
+              <h3 className="text-lg font-medium text-surface-foreground mb-2">System Information</h3>
+              <p className="text-surface-muted-fg mb-4">Current system status and version information</p>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Application Version:</span>
+                  <span className="text-sm text-surface-muted-fg">Application Version:</span>
                   <span className="font-medium">{appVersion}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Connection Status:</span>
+                  <span className="text-sm text-surface-muted-fg">Connection Status:</span>
                   <span className={`font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
                     {isOnline ? 'Online' : 'Offline'}
                   </span>
@@ -621,13 +598,13 @@ const UnifiedSettingsPage: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-surface-foreground flex items-center gap-2">
                     User Management
                     {loading?.users && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                     )}
                   </h3>
-                  <p className="text-gray-600">Manage user accounts and permissions</p>
+                  <p className="text-surface-muted-fg">Manage user accounts and permissions</p>
                 </div>
                 <Button onClick={() => openUserModal()}>
                   <PlusIcon className="mr-2 h-4 w-4" />
@@ -637,15 +614,15 @@ const UnifiedSettingsPage: React.FC = () => {
               {loading?.users ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading users...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-surface-muted-fg">Loading users...</p>
                   </div>
                 </div>
               ) : (
-                <Table
+                <DataGrid
                   data={users || []}
                   columns={userColumns}
-                  emptyMessage="No users found"
+                  emptyState="No users found"
                 />
               )}
             </div>
@@ -656,13 +633,13 @@ const UnifiedSettingsPage: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-surface-foreground flex items-center gap-2">
                     Role Management
                     {loading?.roles && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                     )}
                   </h3>
-                  <p className="text-gray-600">Define and manage user roles</p>
+                  <p className="text-surface-muted-fg">Define and manage user roles</p>
                 </div>
                 <Button onClick={() => openRoleModal()}>
                   <PlusIcon className="mr-2 h-4 w-4" />
@@ -672,15 +649,15 @@ const UnifiedSettingsPage: React.FC = () => {
               {loading?.roles ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading roles...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-surface-muted-fg">Loading roles...</p>
                   </div>
                 </div>
               ) : (
-                <Table
+                <DataGrid
                   data={roles || []}
                   columns={roleColumns}
-                  emptyMessage="No roles found"
+                  emptyState="No roles found"
                 />
               )}
             </div>
@@ -697,8 +674,8 @@ const UnifiedSettingsPage: React.FC = () => {
       {activeTab === 'sync' && (
         <Card>
           <div className="p-6 space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Sync Controls</h3>
-            <p className="text-gray-600">
+            <h3 className="text-lg font-medium text-surface-foreground">Sync Controls</h3>
+            <p className="text-surface-muted-fg">
               Sync management is centralized in Data Layer Settings together with mode,
               database, and backend configuration.
             </p>
@@ -716,18 +693,18 @@ const UnifiedSettingsPage: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Workflow Management</h3>
-                  <p className="text-gray-600">Configure approval workflows and states</p>
+                  <h3 className="text-lg font-medium text-surface-foreground">Workflow Management</h3>
+                  <p className="text-surface-muted-fg">Configure approval workflows and states</p>
                 </div>
                 <Button onClick={() => openWorkflowModal()}>
                   <PlusIcon className="mr-2 h-4 w-4" />
                   Add Workflow
                 </Button>
               </div>
-              <Table
+              <DataGrid
                 data={workflows || []}
                 columns={workflowColumns}
-                emptyMessage="No workflows found"
+                emptyState="No workflows found"
               />
             </div>
           </Card>
@@ -738,10 +715,10 @@ const UnifiedSettingsPage: React.FC = () => {
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-surface-foreground">
                       States for "{currentWorkflowForStates.name}"
                     </h3>
-                    <p className="text-gray-600">Manage workflow states and their order</p>
+                    <p className="text-surface-muted-fg">Manage workflow states and their order</p>
                   </div>
                   <div className="flex gap-2">
                     <Button 
@@ -756,10 +733,10 @@ const UnifiedSettingsPage: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                <Table
+                <DataGrid
                   data={currentWorkflowForStates.states || []}
                   columns={stateColumns}
-                  emptyMessage="No states found for this workflow"
+                  emptyState="No states found for this workflow"
                 />
               </div>
             </Card>
@@ -821,11 +798,11 @@ const UnifiedSettingsPage: React.FC = () => {
             <Select
               name="role_id"
               value={userFormData.role_id || ''}
-              onChange={(e) => setUserFormData({ ...userFormData, role_id: parseInt(e.target.value) })}
+              onChange={(e) => setUserFormData({ ...userFormData, role_id: e.target.value || null })}
             >
               <option value="">Select Role</option>
               {roles?.map((role) => (
-                <option key={role.id} value={role.id}>
+                <option key={role.id} value={String(role.id)}>
                   {role.name}
                 </option>
               ))}
@@ -839,9 +816,9 @@ const UnifiedSettingsPage: React.FC = () => {
                 type="checkbox"
                 checked={userFormData.isActive}
                 onChange={(e) => setUserFormData({ ...userFormData, isActive: e.target.checked })}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-surface-border rounded"
               />
-              <span className="text-sm text-gray-900">Active</span>
+              <span className="text-sm text-surface-foreground">Active</span>
             </label>
           </FormField>
         </FormSection>
@@ -953,7 +930,7 @@ const UnifiedSettingsPage: React.FC = () => {
           </Button>
         </FormActions>
       </DialogForm>
-    </div>
+    </PageContainer>
   );
 };
 
@@ -964,7 +941,7 @@ type UserFormData = {
   password?: string;
   userType: string;
   isActive: boolean;
-  role_id?: number | null;
+  role_id?: string | null;
 };
 
 type RoleFormData = {
@@ -979,6 +956,10 @@ type WorkflowFormData = {
 type WorkflowStateFormData = {
   name?: string;
   sequence_order?: number;
+};
+
+const UnifiedSettingsPage: React.FC = () => {
+  return <UnifiedSettingsContent />;
 };
 
 export default UnifiedSettingsPage;

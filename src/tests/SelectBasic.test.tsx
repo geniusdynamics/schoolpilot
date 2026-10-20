@@ -1,7 +1,6 @@
 // ABOUTME: Basic tests for the enhanced Select component
 // ABOUTME: Tests core functionality and accessibility features
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
@@ -236,17 +235,17 @@ describe('Select Component - Basic Tests', () => {
 
     rerender(<Select options={mockOptions} size="lg" />);
     trigger = screen.getByRole('combobox');
-    expect(trigger).toHaveClass('text-lg');
+    expect(trigger).toHaveClass('text-base');
   });
 
   it('applies style variants correctly', () => {
     const { rerender } = render(<Select options={mockOptions} variant="outlined" />);
     
     let trigger = screen.getByRole('combobox');
-    expect(trigger).toHaveClass('border', 'bg-white');
+    expect(trigger).toHaveClass('border', 'bg-surface-card');
 
     rerender(<Select options={mockOptions} variant="filled" />);
     trigger = screen.getByRole('combobox');
-    expect(trigger).toHaveClass('bg-gray-100');
+    expect(trigger).toHaveClass('bg-surface-muted');
   });
 });

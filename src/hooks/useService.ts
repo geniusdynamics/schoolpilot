@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { serviceRegistry } from '@/core/ServiceRegistry';
+import { serviceRegistry, ServiceRegistry } from '@/core/ServiceRegistry';
 import type { ServiceState } from '@/core/ServiceRegistry';
 
 export interface UseServiceOptions<T> {
@@ -123,7 +123,7 @@ export interface UseServicesResult {
  */
 export function useServices(): UseServicesResult {
   const [services, setServices] = useState<Array<{ moduleId: string; name: string; status: ServiceState['status'] }>>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   useEffect(() => {
     const updateStates = () => {

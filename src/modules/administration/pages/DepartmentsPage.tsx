@@ -1,78 +1,49 @@
+// ABOUTME: Departments page — grid plus add/edit/delete dialog backed by the 'departments' collection.
+// ABOUTME: Departments saved here are the ones the staff form offers; edits use updateDepartment(id, patch).
+
 import React, { useState } from 'react';
-import { Department } from '@/types'; // Department is a core type
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
-import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useDepartmentData } from '../data/useDepartmentData';
+import { useDepartmentData, type DepartmentRecord } from '../data/useDepartmentData';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-
-type DepartmentFormData = Omit<Partial<Department>, 'id' | 'created_at' | 'updated_at'>;
+import EntityForm from '@/components/ui/forms/EntityForm';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 const DepartmentsPage: React.FC = () => {
-  const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
+  const { departments, loading, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
   const { t } = useTranslation('administration');
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
-  const initialFormData: DepartmentFormData = { name: '', is_academic: false };
-  const [formData, setFormData] = useState<DepartmentFormData>(initialFormData);
 
-  const openModal = (dept?: Department) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<DepartmentRecord | null>(null);
+
+  const openModal = (dept?: DepartmentRecord) => {
     setEditingDepartment(dept || null);
-    setFormData(dept ? { ...dept } : initialFormData);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setEditingDepartment(null);
-    setFormData(initialFormData);
     setIsModalOpen(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.name) {
-      alert(t('validation.departmentNameIsRequired'));
-      return;
-    }
-    const payload = {
-      name: formData.name!,
-      is_academic: formData.is_academic || false,
-    };
-
-    if (editingDepartment) {
-      await updateDepartment({ ...editingDepartment, ...payload });
-    } else {
-      await addDepartment(payload);
-    }
-    closeModal();
-  };
-
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this department?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this department?' }))) {
       await deleteDepartment(id);
     }
   };
 
-  const columns: DataGridColumn<Department>[] = [
+  const columns: DataGridColumn<DepartmentRecord>[] = [
     { 
       key: 'id', 
       header: 'ID', 
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { 
       key: 'name', 
@@ -80,7 +51,7 @@ const DepartmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'is_academic', 
@@ -88,16 +59,16 @@ const DepartmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, item) => (
+      render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+          value ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'
         }`}>
           {value ? 'Yes' : 'No'}
         </span>
       )
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -121,61 +92,48 @@ const DepartmentsPage: React.FC = () => {
       }>
         <DataGrid 
           columns={columns} 
-          data={departments || []} 
-          loading={false}
+          data={departments}
+          loading={loading.departments && departments.length === 0}
           sortable={true}
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No departments found. Create your first department to get started.</p>
+              <PlusIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No departments found. Create your first department to get started.</p>
             </div>
           }
         />
       </Card>
 
-      <DialogForm
+      <EntityForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingDepartment ? t('departments.editDepartment') : t('departments.addNewDepartment')}
-        size="lg"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
+        initialData={editingDepartment
+          ? { name: editingDepartment.name, is_academic: editingDepartment.is_academic }
+          : undefined}
+        fields={[
+          { name: 'name', label: t('departments.departmentName'), required: true },
+          { name: 'is_academic', label: t('departments.isAcademicDepartment'), type: 'checkbox' },
+        ]}
+        submitLabel={editingDepartment ? t('departments.saveChanges') : t('departments.addDepartment')}
+        cancelLabel={t('departments.cancel')}
+        onSubmit={async (values) => {
+          const payload = {
+            name: String(values.name ?? ''),
+            is_academic: Boolean(values.is_academic),
+          };
+          if (editingDepartment) {
+            await updateDepartment(String(editingDepartment.id), payload);
+          } else {
+            await addDepartment(payload);
+          }
         }}
-      >
-        <FormSection>
-          <FormField label={t('departments.departmentName')} required>
-            <Input
-              name="name"
-              value={formData.name || ''}
-              onChange={handleInputChange}
-              required
-            />
-          </FormField>
-          <div className="flex items-center">
-            <input
-              id="is_academic"
-              name="is_academic"
-              type="checkbox"
-              checked={formData.is_academic || false}
-              onChange={handleInputChange}
-              className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-            />
-            <label htmlFor="is_academic" className="ml-2 block text-sm text-gray-900">
-              {t('departments.isAcademicDepartment')}
-            </label>
-          </div>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>{t('departments.cancel')}</Button>
-          <Button type="submit" disabled={isModalOpen}>
-            {editingDepartment ? t('departments.saveChanges') : t('departments.addDepartment')}
-          </Button>
-        </FormActions>
-      </DialogForm>
+      />
     </div>
   );
 };
 
 export default DepartmentsPage;
+
+export const DepartmentsContent = DepartmentsPage;

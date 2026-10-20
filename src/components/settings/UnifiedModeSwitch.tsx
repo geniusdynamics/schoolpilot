@@ -1,10 +1,16 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Unified mode switching component that consolidates duplicate functionality
 // ABOUTME: Provides consistent mode switching UI and logic across all settings pages
 
 import React, { useState, useEffect } from 'react';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { getDataModeManager, DataMode, DataModeStatus } from '@/services/data/dataModeManager';
-import { CheckCircle, AlertTriangle, RefreshCw, Settings } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 
 interface UnifiedModeSwitchProps {
   className?: string;
@@ -68,7 +74,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
       const currentStatus = await dataModeManager.getStatus();
       setStatus(currentStatus);
     } catch (error) {
-      console.error('Failed to load status:', error);
+      logger.error('Failed to load status:', error);
       setError('Failed to load current status');
     }
   };
@@ -100,7 +106,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
         onModeChange(newMode);
       }
     } catch (error) {
-      console.error('Failed to switch mode:', error);
+      logger.error('Failed to switch mode:', error);
       setError(error instanceof Error ? error.message : 'Failed to switch mode');
     } finally {
       setIsLoading(false);
@@ -123,13 +129,13 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
   const getModeColor = (mode: DataMode): string => {
     switch (mode) {
       case 'development':
-        return 'border-blue-500 bg-blue-50';
+        return 'border-primary-500 bg-primary-50';
       case 'demo':
         return 'border-green-500 bg-green-50';
       case 'production':
         return 'border-red-500 bg-red-50';
       default:
-        return 'border-gray-500 bg-gray-50';
+        return 'border-gray-500 bg-surface-muted';
     }
   };
 
@@ -165,19 +171,19 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
           </label>
         </div>
         {showDescription && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-surface-muted-fg">
             Demo mode uses mock data, while production mode uses RxDB with real data persistence.
           </p>
         )}
         {isLoading && (
-          <div className="flex items-center space-x-2 text-blue-600">
-            <RefreshCw className="w-4 h-4 animate-spin" />
+          <div className="flex items-center space-x-2 text-primary-600">
+            <ArrowPathIcon className="w-4 h-4 animate-spin" />
             <span className="text-sm">Switching modes...</span>
           </div>
         )}
         {error && (
           <div className="flex items-center space-x-2 text-red-600">
-            <AlertTriangle className="w-4 h-4" />
+            <ExclamationTriangleIcon className="w-4 h-4" />
             <span className="text-sm">{error}</span>
           </div>
         )}
@@ -198,7 +204,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
               className={`px-3 py-1 text-xs font-medium rounded border transition-colors ${
                 currentMode === mode
                   ? getModeColor(mode)
-                  : 'border-gray-200 bg-white hover:bg-gray-50'
+                  : 'border-surface-border bg-surface-card hover:bg-surface-muted'
               }`}
             >
               {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -206,7 +212,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
           ))}
         </div>
         {isLoading && (
-          <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+          <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
         )}
       </div>
     );
@@ -217,10 +223,10 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
     <div className={`space-y-4 ${className}`}>
       {/* Loading/Error States */}
       {isLoading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-            <span className="text-blue-800">Switching data mode...</span>
+            <ArrowPathIcon className="w-4 h-4 animate-spin text-primary-600" />
+            <span className="text-primary-800">Switching data mode...</span>
           </div>
         </div>
       )}
@@ -228,7 +234,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <ExclamationTriangleIcon className="w-4 h-4 text-red-600" />
             <span className="text-red-800">{error}</span>
           </div>
         </div>
@@ -241,17 +247,17 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
             key={mode}
             className={`p-4 border rounded-lg cursor-pointer transition-colors ${
               currentMode === mode
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-surface-border hover:border-surface-border'
             } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => !isLoading && handleModeSwitch(mode)}
           >
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium capitalize">{mode}</h4>
-              {currentMode === mode && <CheckCircle className="w-5 h-5 text-blue-500" />}
+              {currentMode === mode && <CheckCircleIcon className="w-5 h-5 text-primary-500" />}
             </div>
             {showDescription && (
-              <p className="text-sm text-gray-600">{getModeDescription(mode)}</p>
+              <p className="text-sm text-surface-muted-fg">{getModeDescription(mode)}</p>
             )}
           </div>
         ))}

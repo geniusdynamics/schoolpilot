@@ -69,8 +69,10 @@ describe('DatabaseConfigValidator', () => {
           performance: { cacheSize: 5 }
         };
         const { fixed } = validator.autoFix(config);
-        
-        expect(fixed.performance.cacheSize).toBe(10);
+
+        // The error rule clamps 5 to the hard minimum (10); the follow-up warning rule
+        // ("below 50MB may impact performance") then bumps it to the recommended 50.
+        expect(fixed.performance.cacheSize).toBe(50);
       });
 
       it('should validate query timeout within range', () => {
@@ -244,12 +246,17 @@ describe('DatabaseConfigValidator', () => {
       const { fixed, changes } = validator.autoFix(config);
 
       expect(fixed.provider).toBe('sqlite-wasm');
-      expect(fixed.performance.cacheSize).toBe(10);
+      // cacheSize: error rule clamps 5 → 10, warning rule then raises it to the
+      // recommended 50. batchSize -1 clamps to the minimum 1; retentionDays 0
+      // falls back to the 30-day default; sync.interval passes the error rule at
+      // 5000 then the <30s warning rule raises it to 30000; retryAttempts 0 falls
+      // back to the default 3.
+      expect(fixed.performance.cacheSize).toBe(50);
       expect(fixed.performance.queryTimeout).toBe(300000);
-      expect(fixed.performance.batchSize).toBe(100);
-      expect(fixed.storage.retentionDays).toBe(1);
-      expect(fixed.sync.interval).toBe(5000);
-      expect(fixed.sync.retryAttempts).toBe(1);
+      expect(fixed.performance.batchSize).toBe(1);
+      expect(fixed.storage.retentionDays).toBe(30);
+      expect(fixed.sync.interval).toBe(30000);
+      expect(fixed.sync.retryAttempts).toBe(3);
       expect(fixed.monitoring.logLevel).toBe('info');
       expect(changes.length).toBeGreaterThan(0);
     });
@@ -394,7 +401,8 @@ describe('DatabaseConfigValidator', () => {
       expect(migrations.length).toBeGreaterThan(0);
       expect(changes.length).toBeGreaterThan(0);
       expect(repaired.provider).toBe('sqlite-wasm');
-      expect(repaired.performance.cacheSize).toBe(10);
+      // cacheSize 5: error rule clamps to 10, warning rule then raises to 50
+      expect(repaired.performance.cacheSize).toBe(50);
       expect(repaired.storage.maxSize).toBe(0);
       expect(repaired.monitoring.logLevel).toBe('info');
       expect(isValid).toBe(true);

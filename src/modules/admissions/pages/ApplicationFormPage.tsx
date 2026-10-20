@@ -1,19 +1,13 @@
+// ABOUTME: Staff-facing admissions application form: a four-step wizard capturing student, guardian and academic details.
+// ABOUTME: Each step passes {id, title, content, validate} to WizardForm; required fields block progression and submission.
+
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { useNavigate } from 'react-router-dom';
-import {
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  CheckCircleIcon,
-  UserIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  DocumentTextIcon,
-  EyeIcon,
-} from '@/components/ui/icons';
+import { CheckCircleIcon, UserIcon, AcademicCapIcon, UsersIcon, EyeIcon } from '@/components/ui/icons';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   ApplicationFormData,
@@ -22,16 +16,26 @@ import {
   ApplicationType,
 } from '../data/types';
 import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 import FormContainer from '@/components/ui/forms/FormContainer';
 import FormHeader from '@/components/ui/forms/FormHeader';
-import WizardForm from '@/components/ui/forms/WizardForm';
+import WizardForm, { WizardStep } from '@/components/ui/forms/WizardForm';
 
-const steps = [
-  { id: 1, name: 'Student Information', icon: UserIcon },
-  { id: 2, name: 'Guardian Information', icon: UsersIcon },
-  { id: 3, name: 'Academic Background', icon: AcademicCapIcon },
-  { id: 4, name: 'Review & Submit', icon: EyeIcon },
-];
+type StepId = 'student' | 'guardian' | 'academic' | 'review';
+
+/** Fields that must be non-empty before the wizard may leave the given step. */
+const REQUIRED_FIELDS: Record<StepId, (keyof ApplicationFormData)[]> = {
+  student: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'intendedClassId'],
+  guardian: ['guardianFirstName', 'guardianLastName', 'guardianPhone'],
+  academic: [],
+  review: [],
+};
+
+const isBlank = (value: unknown) =>
+  value === undefined || value === null || String(value).trim() === '';
+
+const missingFields = (data: ApplicationFormData, stepIds: StepId[]) =>
+  stepIds.flatMap(stepId => REQUIRED_FIELDS[stepId].filter(field => isBlank(data[field])));
 
 const initialFormData: ApplicationFormData = {
   firstName: '',
@@ -65,35 +69,49 @@ const initialFormData: ApplicationFormData = {
   subLocation: '',
 };
 
-const ApplicationFormPage: React.FC = () => {
+export const ApplicationFormPageContent: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('admissions');
   const { createApplication } = useAdmissionsData();
   const { showToast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ApplicationFormData>(initialFormData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [invalidStep, setInvalidStep] = useState<StepId | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'kcpeMarks' ? (value === '' ? undefined : Number(value)) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(prev => prev + 1);
-    }
+  /** Returns true when every required field of the given steps is filled; otherwise flags the step. */
+  const validateSteps = (flagStep: StepId, stepIds: StepId[]) => {
+    const valid = missingFields(formData, stepIds).length === 0;
+    setInvalidStep(valid ? null : flagStep);
+    return valid;
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
+  const showFieldError = (stepId: StepId, field: keyof ApplicationFormData) =>
+    invalidStep === stepId && isBlank(formData[field]);
+
+  const renderStepError = (stepId: StepId) =>
+    invalidStep === stepId ? (
+      <div
+        role="alert"
+        className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+      >
+        {stepId === 'review'
+          ? t('applicationForm.validation.incompleteApplication', 'Some required fields are missing. Go back and complete all required fields before submitting.')
+          : t('applicationForm.validation.requiredFields', 'Please fill in all required fields (marked *) before continuing.')}
+      </div>
+    ) : null;
+
+  const handleCancel = () => {
+    navigate('/admissions/applications');
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
     try {
       await createApplication(formData);
       showToast({
@@ -102,48 +120,19 @@ const ApplicationFormPage: React.FC = () => {
       });
       navigate('/admissions/applications');
     } catch (error) {
+      logger.error('Failed to submit admission application:', error);
       showToast({
         type: 'error',
         message: 'Failed to submit application. Please try again.',
       });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCancel = () => {
-    navigate('/admissions/applications');
-  };
-
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          formData.firstName &&
-          formData.lastName &&
-          formData.dateOfBirth &&
-          formData.gender &&
-          formData.intendedClassId
-        );
-      case 2:
-        return (
-          formData.guardianFirstName &&
-          formData.guardianLastName &&
-          formData.guardianPhone
-        );
-      case 3:
-        return true; // Academic background is optional
-      case 4:
-        return true;
-      default:
-        return false;
     }
   };
 
   // Step 1: Student Information
   const renderStudentInfo = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Student Information</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Student Information</h3>
+      {renderStepError('student')}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Input
           name="firstName"
@@ -151,6 +140,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.firstName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'firstName')}
         />
         <Input
           name="middleName"
@@ -164,6 +154,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.lastName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'lastName')}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -174,6 +165,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.dateOfBirth}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'dateOfBirth')}
         />
         <Select
           name="gender"
@@ -181,6 +173,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.gender}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('student', 'gender')}
         >
           {Object.values(Gender).map(gender => (
             <option key={gender} value={gender}>
@@ -210,7 +203,7 @@ const ApplicationFormPage: React.FC = () => {
         />
       </div>
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">Application Details</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">Application Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select
             name="applicationType"
@@ -231,6 +224,7 @@ const ApplicationFormPage: React.FC = () => {
             value={formData.intendedClassId}
             onChange={handleInputChange}
             required
+            errorState={showFieldError('student', 'intendedClassId')}
             placeholder="Enter class ID"
           />
           <Input
@@ -248,7 +242,8 @@ const ApplicationFormPage: React.FC = () => {
   // Step 2: Guardian Information
   const renderGuardianInfo = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Guardian Information</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Guardian Information</h3>
+      {renderStepError('guardian')}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Select
           name="guardianType"
@@ -269,6 +264,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.guardianFirstName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('guardian', 'guardianFirstName')}
         />
         <Input
           name="guardianLastName"
@@ -276,6 +272,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.guardianLastName}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('guardian', 'guardianLastName')}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -285,6 +282,7 @@ const ApplicationFormPage: React.FC = () => {
           value={formData.guardianPhone}
           onChange={handleInputChange}
           required
+          errorState={showFieldError('guardian', 'guardianPhone')}
         />
         <Input
           name="guardianEmail"
@@ -309,7 +307,7 @@ const ApplicationFormPage: React.FC = () => {
         />
       </div>
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">Address Information</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">Address Information</h4>
         <div className="space-y-4">
           <Input
             name="residentialAddress"
@@ -345,7 +343,7 @@ const ApplicationFormPage: React.FC = () => {
   // Step 3: Academic Background
   const renderAcademicBackground = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Academic Background</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Academic Background</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           name="previousSchool"
@@ -361,7 +359,7 @@ const ApplicationFormPage: React.FC = () => {
         />
       </div>
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-md font-medium text-gray-900 mb-3">KCPE Results (if applicable)</h4>
+        <h4 className="text-md font-medium text-surface-foreground mb-3">KCPE Results (if applicable)</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             name="kcpeIndexNumber"
@@ -390,41 +388,42 @@ const ApplicationFormPage: React.FC = () => {
   // Step 4: Review & Submit
   const renderReview = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">Review Application</h3>
+      <h3 className="text-lg font-semibold text-surface-foreground">Review Application</h3>
+      {renderStepError('review')}
       
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Student Information</h4>
+      <div className="bg-surface-muted p-4 rounded-lg">
+        <h4 className="font-medium text-surface-foreground mb-2">Student Information</h4>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <span className="text-gray-600">Name:</span>
+          <span className="text-surface-muted-fg">Name:</span>
           <span>{`${formData.firstName} ${formData.middleName} ${formData.lastName}`}</span>
-          <span className="text-gray-600">Date of Birth:</span>
+          <span className="text-surface-muted-fg">Date of Birth:</span>
           <span>{formData.dateOfBirth}</span>
-          <span className="text-gray-600">Gender:</span>
+          <span className="text-surface-muted-fg">Gender:</span>
           <span>{formData.gender}</span>
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Guardian Information</h4>
+      <div className="bg-surface-muted p-4 rounded-lg">
+        <h4 className="font-medium text-surface-foreground mb-2">Guardian Information</h4>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <span className="text-gray-600">Guardian:</span>
+          <span className="text-surface-muted-fg">Guardian:</span>
           <span>{`${formData.guardianFirstName} ${formData.guardianLastName}`}</span>
-          <span className="text-gray-600">Phone:</span>
+          <span className="text-surface-muted-fg">Phone:</span>
           <span>{formData.guardianPhone}</span>
-          <span className="text-gray-600">Email:</span>
+          <span className="text-surface-muted-fg">Email:</span>
           <span>{formData.guardianEmail || 'N/A'}</span>
         </div>
       </div>
 
       {formData.previousSchool && (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">Academic Background</h4>
+        <div className="bg-surface-muted p-4 rounded-lg">
+          <h4 className="font-medium text-surface-foreground mb-2">Academic Background</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="text-gray-600">Previous School:</span>
+            <span className="text-surface-muted-fg">Previous School:</span>
             <span>{formData.previousSchool}</span>
             {formData.kcpeMarks && (
               <>
-                <span className="text-gray-600">KCPE Marks:</span>
+                <span className="text-surface-muted-fg">KCPE Marks:</span>
                 <span>{formData.kcpeMarks}</span>
               </>
             )}
@@ -432,27 +431,43 @@ const ApplicationFormPage: React.FC = () => {
         </div>
       )}
 
-      <div className="flex items-center space-x-2 text-sm text-gray-600">
+      <div className="flex items-center space-x-2 text-sm text-surface-muted-fg">
         <CheckCircleIcon className="w-5 h-5 text-green-500" />
         <span>Please review all information before submitting. You will not be able to edit after submission.</span>
       </div>
     </div>
   );
 
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return renderStudentInfo();
-      case 2:
-        return renderGuardianInfo();
-      case 3:
-        return renderAcademicBackground();
-      case 4:
-        return renderReview();
-      default:
-        return null;
-    }
-  };
+  const steps: WizardStep[] = [
+    {
+      id: 'student',
+      title: 'Student Information',
+      icon: <UserIcon className="w-5 h-5" />,
+      content: renderStudentInfo(),
+      validate: () => validateSteps('student', ['student']),
+    },
+    {
+      id: 'guardian',
+      title: 'Guardian Information',
+      icon: <UsersIcon className="w-5 h-5" />,
+      content: renderGuardianInfo(),
+      validate: () => validateSteps('guardian', ['guardian']),
+    },
+    {
+      id: 'academic',
+      title: 'Academic Background',
+      icon: <AcademicCapIcon className="w-5 h-5" />,
+      content: renderAcademicBackground(),
+      optional: true,
+    },
+    {
+      id: 'review',
+      title: 'Review & Submit',
+      icon: <EyeIcon className="w-5 h-5" />,
+      content: renderReview(),
+      validate: () => validateSteps('review', ['student', 'guardian']),
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -478,5 +493,10 @@ const ApplicationFormPage: React.FC = () => {
     </div>
   );
 };
+const ApplicationFormPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationFormPageContent />
+  </div>
+);
 
 export default ApplicationFormPage;

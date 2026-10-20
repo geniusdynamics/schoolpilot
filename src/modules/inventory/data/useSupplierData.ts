@@ -1,36 +1,40 @@
-// ABOUTME: Data hook for managing supplier entities in the inventory module.
-// ABOUTME: Provides CRUD operations and reactive queries for supplier management.
+// ABOUTME: Database-backed hook for managing supplier entities in the inventory module.
+// ABOUTME: Backed by the 'suppliers' collection (shared with the finance module).
 
-import { useMemo } from 'react';
-import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
-import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
-import { InvSupplierType } from './types';
-import { initialMockSuppliers } from './mockData';
+import { useCallback } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { InvSupplierStatusEnum, InvSupplierType } from './types';
 
 export const useSupplierData = () => {
-  const config = useMemo((): DataHookConfig<InvSupplierType> => ({
-    entityName: 'suppliers',
-    initialData: initialMockSuppliers,
-    entityModule: 'inventory',
-    contextCrudName: 'Supplier',
-    requiresBackend: false,
-    allowOffline: true,
-    syncPriority: 'normal'
-  }), []);
+  const suppliersCollection = useDatabaseCollection<InvSupplierType>('suppliers');
 
-  useDataHookRegistration(config);
-
-  const {
-    data: suppliers,
-    loading,
-    error,
-    create,
-    update,
-    remove,
-    refresh
-  } = createDataHook<InvSupplierType>(config)();
+  const suppliers = suppliersCollection.data;
 
   const count = suppliers.length;
+
+  const create = useCallback(async (input: Partial<InvSupplierType>): Promise<InvSupplierType> => {
+    const now = new Date().toISOString();
+    const payload = {
+      status: InvSupplierStatusEnum.ACTIVE,
+      created_at: now,
+      updated_at: now,
+      ...input
+    } as Omit<InvSupplierType, 'id'> & { id?: string };
+    const result = await suppliersCollection.insert(payload);
+    return result as InvSupplierType;
+  }, [suppliersCollection]);
+
+  const update = useCallback(async (id: number | string, updates: Partial<InvSupplierType>): Promise<InvSupplierType> => {
+    const result = await suppliersCollection.update(String(id), {
+      ...updates,
+      updated_at: new Date().toISOString()
+    });
+    return result as InvSupplierType;
+  }, [suppliersCollection]);
+
+  const remove = useCallback(async (id: number | string): Promise<boolean> => {
+    return suppliersCollection.remove(String(id));
+  }, [suppliersCollection]);
 
   const findActiveSuppliers = () => {
     return suppliers
@@ -55,27 +59,27 @@ export const useSupplierData = () => {
 
     return suppliers
       .filter((supplier) =>
-        supplier.name.toLowerCase().includes(normalizedTerm) ||
+        (supplier.name?.toLowerCase() ?? '').includes(normalizedTerm) ||
         (supplier.contact_person || '').toLowerCase().includes(normalizedTerm) ||
         (supplier.email || '').toLowerCase().includes(normalizedTerm)
       )
       .sort((left, right) => left.name.localeCompare(right.name));
   };
 
-  const findById = (id: number) => {
-    return suppliers.find((supplier) => supplier.id === id);
+  const findById = (id: number | string) => {
+    return suppliers.find((supplier) => String(supplier.id) === String(id));
   };
 
   return {
     suppliers,
-    loading,
-    error,
+    loading: suppliersCollection.loading,
+    error: suppliersCollection.error,
     create,
     update,
     remove,
     findById,
     count,
-    refresh,
+    refresh: suppliersCollection.refresh,
     findActiveSuppliers,
     findSuppliersByStatus,
     findSuppliersByRating,

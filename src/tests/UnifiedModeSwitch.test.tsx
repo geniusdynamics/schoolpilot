@@ -4,84 +4,98 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import UnifiedModeSwitch from '@/components/UnifiedModeSwitch';
-import { AppDataProvider } from '@/contexts/AppDataContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { RBACProvider } from '@/contexts/RBACContext';
+import { UnifiedConfigProvider } from '@/contexts/UnifiedConfigContext';
 
-// Mock the contexts
-vi.mock('../contexts/AppDataContext', () => ({
-  AppDataProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useAppData: () => ({
-    isDatabaseModeActive: false,
-    migrationStatus: 'pending',
-    switchToDatabase: vi.fn(),
-    switchToMockData: vi.fn(),
-    isLoading: false
-  })
-}));
+// The component talks to the DataModeManager singleton directly. Mock the
+// module (it is also consumed by UnifiedConfigProvider) so the tests are
+// deterministic and do not touch the real manager.
+vi.mock('@/services/data/dataModeManager', () => {
+  const mockManager = {
+    getStatus: vi.fn().mockResolvedValue({
+      currentMode: 'demo',
+      activeProvider: 'SQLiteOPFS',
+      isTransitioning: false,
+      dataCount: 0,
+      lastSwitched: new Date('2024-01-01'),
+    }),
+    switchMode: vi.fn().mockResolvedValue(undefined),
+    getCurrentMode: vi.fn(() => 'demo'),
+    clearAllData: vi.fn().mockResolvedValue(undefined),
+    seedDemoData: vi.fn().mockResolvedValue(undefined),
+    on: vi.fn(),
+    off: vi.fn(),
+  };
+  return {
+    getDataModeManager: vi.fn(() => mockManager),
+    markDemoDataCleared: vi.fn(),
+    isDemoDataCleared: vi.fn(() => false),
+    resetDemoDataCleared: vi.fn(),
+    resetDataModeManager: vi.fn(),
+  };
+});
 
-vi.mock('../contexts/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useAuth: () => ({
-    user: { id: '1', name: 'Test User', role: 'admin' },
-    isAuthenticated: true
-  })
-}));
-
-vi.mock('../contexts/RBACContext', () => ({
-  RBACProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useRBAC: () => ({
-    hasPermission: () => true,
-    canAccess: () => true
-  })
-}));
+const { getDataModeManager } = await import('@/services/data/dataModeManager');
+const mockManager = getDataModeManager() as unknown as {
+  getStatus: ReturnType<typeof vi.fn>;
+  switchMode: ReturnType<typeof vi.fn>;
+};
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <AuthProvider>
-    <RBACProvider>
-      <AppDataProvider>
-        {children}
-      </AppDataProvider>
-    </RBACProvider>
-  </AuthProvider>
+  // UnifiedConfigProvider outermost, mirroring the production provider order in App.tsx —
+  // UnifiedModeSwitch calls useUnifiedConfig which throws without it.
+  <UnifiedConfigProvider>{children}</UnifiedConfigProvider>
 );
 
 describe('UnifiedModeSwitch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockManager.getStatus.mockResolvedValue({
+      currentMode: 'demo',
+      activeProvider: 'SQLiteOPFS',
+      isTransitioning: false,
+      dataCount: 0,
+      lastSwitched: new Date('2024-01-01'),
+    });
   });
 
-  it('should render without crashing', () => {
+  it('should render without crashing', async () => {
     render(
       <TestWrapper>
         <UnifiedModeSwitch />
       </TestWrapper>
     );
-    
-    expect(screen.getByText(/data source/i)).toBeInTheDocument();
+
+    // The component renders one card per available data mode
+    await waitFor(() => expect(screen.getByText('demo')).toBeInTheDocument());
+    expect(screen.getByText('development')).toBeInTheDocument();
+    expect(screen.getByText('production')).toBeInTheDocument();
   });
 
-  it('should display mode switch options', () => {
+  it('should display mode switch options', async () => {
     render(
       <TestWrapper>
         <UnifiedModeSwitch />
       </TestWrapper>
     );
-    
-    expect(screen.getByText(/mock data/i)).toBeInTheDocument();
-    expect(screen.getByText(/database/i)).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.getByText('demo')).toBeInTheDocument());
+    expect(screen.getByText(/Local SQLite file storage/i)).toBeInTheDocument();
+    expect(screen.getByText(/Browser-based SQLite with sample data/i)).toBeInTheDocument();
+    expect(screen.getByText(/Production-ready database/i)).toBeInTheDocument();
   });
 
-  it('should show current mode status', () => {
+  it('should show current mode status', async () => {
     render(
       <TestWrapper>
         <UnifiedModeSwitch />
       </TestWrapper>
     );
-    
-    // Should show mock data as active since isDatabaseModeActive is false
-    const mockDataOption = screen.getByText(/mock data/i).closest('button');
-    expect(mockDataOption).toHaveClass('bg-blue-500');
+
+    // The card for the active mode (demo, per the mocked status) is highlighted
+    await waitFor(() => {
+      const demoCard = screen.getByText('demo').closest('.p-4');
+      expect(demoCard).toHaveClass('border-primary-500');
+    });
   });
 
   it('should handle mode switching', async () => {
@@ -90,26 +104,30 @@ describe('UnifiedModeSwitch', () => {
         <UnifiedModeSwitch />
       </TestWrapper>
     );
-    
-    const databaseOption = screen.getByText(/database/i).closest('button');
-    if (databaseOption) {
-      fireEvent.click(databaseOption);
-      
-      // Should trigger the switch function
-      await waitFor(() => {
-        expect(databaseOption).toBeInTheDocument();
+
+    // Wait until status has loaded, otherwise the click handler no-ops
+    await waitFor(() => expect(screen.getByText('production')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('production'));
+
+    await waitFor(() => {
+      expect(mockManager.switchMode).toHaveBeenCalledWith('production', {
+        preserveData: false,
+        seedData: false,
+        clearData: false,
+        backupData: true,
       });
-    }
+    });
   });
 
-  it('should display migration status when switching to database', () => {
+  it('should display mode descriptions', () => {
     render(
       <TestWrapper>
         <UnifiedModeSwitch />
       </TestWrapper>
     );
-    
-    // Should show migration status information
-    expect(screen.getByText(/migration status/i) || screen.getByText(/pending/i)).toBeInTheDocument();
+
+    // showDescription defaults to true
+    expect(screen.getByText(/sample data for demonstrations/i)).toBeInTheDocument();
   });
 });

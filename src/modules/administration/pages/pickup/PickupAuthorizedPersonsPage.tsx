@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -204,7 +204,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
         <div>
           <span className="font-medium">{item.firstName} {item.lastName}</span>
           {item.isPrimary && (
-            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+            <span className="ml-2 px-1.5 py-0.5 bg-primary-100 text-primary-700 text-xs rounded">
               Primary
             </span>
           )}
@@ -252,7 +252,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
       width: 80,
       render: (value) => (
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-          value ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'
+          value ? 'bg-emerald-100 text-emerald-800' : 'bg-surface-accent text-surface-foreground'
         }`}>
           {value ? 'Yes' : 'No'}
         </span>
@@ -307,7 +307,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 label="Search"
                 placeholder="Search by name, phone, or ID..."
@@ -363,11 +363,11 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
             loading={false}
             emptyState={
               <div className="text-center py-12">
-                <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                <UserGroupIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                   No authorized persons found
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   Add authorized persons who can pick up students.
                 </p>
                 <div className="mt-6">
@@ -444,7 +444,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
                 value={formData.phone}
                 onChange={(e) => handleFormChange('phone', e.target.value)}
                 placeholder="+2547XXXXXXXX"
-                leftIcon={<PhoneIcon className="w-4 h-4 text-gray-400" />}
+                leftIcon={<PhoneIcon className="w-4 h-4 text-surface-muted-fg" />}
               />
             </FormField>
             <FormField label={String(t('authorizedPerson.fields.email'))}>
@@ -462,9 +462,9 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
                   type="checkbox"
                   checked={formData.isPrimary}
                   onChange={(e) => handleFormChange('isPrimary', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700">Primary contact</span>
+                <span className="text-sm text-surface-foreground">Primary contact</span>
               </label>
             </FormField>
           </FormSection>
@@ -502,7 +502,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
                 value={formData.idDocumentNumber}
                 onChange={(e) => handleFormChange('idDocumentNumber', e.target.value)}
                 placeholder="ID number"
-                leftIcon={<IdentificationIcon className="w-4 h-4 text-gray-400" />}
+                leftIcon={<IdentificationIcon className="w-4 h-4 text-surface-muted-fg" />}
               />
             </FormField>
           </FormSection>

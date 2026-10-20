@@ -130,5 +130,15 @@
   "studentStatusOverview": "Aperçu du Statut des Étudiants",
   "feeCollectionOverview": "Aperçu de la Collecte des Frais (Données de Test)",
   "paidAmount": "Montant Payé",
-  "billedAmount": "Montant Facturé"
+  "billedAmount": "Montant Facturé",
+  "classPerformance": "Résumés des performances des classes",
+  "noExamResults": "Aucun résultat d'examen enregistré pour l'instant.",
+  "examResultsCount": "{{count}} résultats",
+  "meanMarks": "Notes moyennes",
+  "noApplications": "Aucune candidature reçue pour l'instant.",
+  "studentsByClass": "Élèves par classe",
+  "noClassAssignments": "Aucun élève affecté à une classe pour l'instant.",
+  "count": "Nombre",
+  "noDisciplinaryCases": "Aucun cas disciplinaire enregistré.",
+  "routesInUse": "Itinéraires en service"
 }

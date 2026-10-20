@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Backend Provider
  * 
@@ -103,7 +105,7 @@ export class BackendProvider implements DataProvider {
     } catch (error) {
       // Fallback to cache on error
       if (this.config.localCache) {
-        console.warn(`Backend fetch failed, using cache: ${error}`);
+        logger.warn(`Backend fetch failed, using cache: ${error}`);
         return this.queryCache<T>(collection, query);
       }
       throw error;
@@ -129,7 +131,7 @@ export class BackendProvider implements DataProvider {
       return record as T;
     } catch (error) {
       if (this.config.localCache) {
-        console.warn(`Backend fetch failed, using cache: ${error}`);
+        logger.warn(`Backend fetch failed, using cache: ${error}`);
         return this.getFromCache<T>(collection, id);
       }
       throw error;
@@ -242,7 +244,7 @@ export class BackendProvider implements DataProvider {
     
     this.syncInterval = window.setInterval(() => {
       this.sync().catch(error => {
-        console.error('Auto-sync failed:', error);
+        logger.error('Auto-sync failed:', error);
       });
     }, intervalSeconds * 1000);
   }
@@ -389,7 +391,7 @@ export class BackendProvider implements DataProvider {
         }
       }
     } catch (error) {
-      console.warn('Failed to load cache:', error);
+      logger.warn('Failed to load cache:', error);
     }
   }
 
@@ -401,7 +403,7 @@ export class BackendProvider implements DataProvider {
       }
       localStorage.setItem(`backend_cache_${this.config.backend.id}`, JSON.stringify(data));
     } catch (error) {
-      console.warn('Failed to save cache:', error);
+      logger.warn('Failed to save cache:', error);
     }
   }
 

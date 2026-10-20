@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,10 +12,8 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { CertificateType, CertificateStatus } from '../data/types';
 import type { CertificateRequest } from '../data/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const CertificatesManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -53,9 +52,10 @@ const CertificatesManagementPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.certificate_type) {
-      alert('Please fill in all required fields');
+      toast.showWarning('Please fill in all required fields');
       return;
     }
 
@@ -75,8 +75,8 @@ const CertificatesManagementPage: React.FC = () => {
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error creating certificate request:', error);
-      alert('Failed to create certificate request');
+      logger.error('Error creating certificate request:', error);
+      toast.showError('Failed to create certificate request');
     }
   };
 
@@ -92,7 +92,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error approving certificate:', error);
+      logger.error('Error approving certificate:', error);
     }
   };
 
@@ -108,7 +108,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error issuing certificate:', error);
+      logger.error('Error issuing certificate:', error);
     }
   };
 
@@ -123,7 +123,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error rejecting certificate:', error);
+      logger.error('Error rejecting certificate:', error);
     }
   };
 
@@ -136,7 +136,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       setCertificates((result?.docs || []) as CertificateRequest[]);
     } catch (error) {
-      console.error('Error loading certificates:', error);
+      logger.error('Error loading certificates:', error);
     } finally {
       setLoading(false);
     }
@@ -226,15 +226,15 @@ const CertificatesManagementPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No certificate requests found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No certificate requests found.</p>
             </div>
           }
         />
       </Card>
 
       {selectedCertificate && (
-        <DialogForm
+        <Modal
           isOpen={!!selectedCertificate}
           onClose={() => setSelectedCertificate(null)}
           title={`Certificate Details: ${selectedCertificate.certificate_number}`}
@@ -243,34 +243,34 @@ const CertificatesManagementPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Student</label>
+                <label className="text-sm font-medium text-surface-foreground">Student</label>
                 <p className="mt-1">{selectedCertificate.student_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Admission No</label>
+                <label className="text-sm font-medium text-surface-foreground">Admission No</label>
                 <p className="mt-1">{selectedCertificate.admission_number}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Type</label>
+                <label className="text-sm font-medium text-surface-foreground">Type</label>
                 <div className="mt-1"><Badge variant="neutral">{selectedCertificate.certificate_type}</Badge></div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">{getStatusBadge(selectedCertificate.status)}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Requested At</label>
+                <label className="text-sm font-medium text-surface-foreground">Requested At</label>
                 <p className="mt-1">{new Date(selectedCertificate.requested_at).toLocaleDateString()}</p>
               </div>
               {selectedCertificate.approved_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Approved At</label>
+                  <label className="text-sm font-medium text-surface-foreground">Approved At</label>
                   <p className="mt-1">{new Date(selectedCertificate.approved_at).toLocaleDateString()}</p>
                 </div>
               )}
               {selectedCertificate.issued_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Issued At</label>
+                  <label className="text-sm font-medium text-surface-foreground">Issued At</label>
                   <p className="mt-1">{new Date(selectedCertificate.issued_at).toLocaleDateString()}</p>
                 </div>
               )}
@@ -278,7 +278,7 @@ const CertificatesManagementPage: React.FC = () => {
 
             {selectedCertificate.purpose && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Purpose</label>
+                <label className="text-sm font-medium text-surface-foreground">Purpose</label>
                 <p className="mt-1">{selectedCertificate.purpose}</p>
               </div>
             )}
@@ -290,72 +290,62 @@ const CertificatesManagementPage: React.FC = () => {
               </div>
             )}
           </div>
-        </DialogForm>
+        </Modal>
       )}
 
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={t('certificates.newRequest')}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button onClick={handleSubmit}>Submit Request</Button>
+          </>
+        }
       >
-        <FormSection title="Student Information">
-          <FormField label="Student Name" required>
-            <Input
-              value={formData.student_name}
-              onChange={(value) => handleInputChange('student_name', value)}
-              required
-            />
-          </FormField>
-          <FormField label="Admission Number">
-            <Input
-              value={formData.admission_number}
-              onChange={(value) => handleInputChange('admission_number', value)}
-            />
-          </FormField>
-          <FormField label="Class">
-            <Input
-              value={formData.class_name}
-              onChange={(value) => handleInputChange('class_name', value)}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Certificate Details">
-          <FormField label="Certificate Type" required>
-            <Select
-              value={formData.certificate_type}
-              onChange={(value) => handleInputChange('certificate_type', value)}
-              options={Object.values(CertificateType).map(t => ({ label: t, value: t }))}
-              required
-            />
-          </FormField>
-          <FormField label="Purpose">
-            <Textarea
-              value={formData.purpose}
-              onChange={(value) => handleInputChange('purpose', value)}
-              rows={3}
-            />
-          </FormField>
-          <FormField label="Remarks">
-            <Textarea
-              value={formData.remarks}
-              onChange={(value) => handleInputChange('remarks', value)}
-              rows={2}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit">Submit Request</Button>
-        </FormActions>
-      </DialogForm>
+        <div className="space-y-4">
+          <Input
+            label="Student Name"
+            value={formData.student_name}
+            onChange={(value) => handleInputChange('student_name', value)}
+            required
+          />
+          <Input
+            label="Admission Number"
+            value={formData.admission_number}
+            onChange={(value) => handleInputChange('admission_number', value)}
+          />
+          <Input
+            label="Class"
+            value={formData.class_name}
+            onChange={(value) => handleInputChange('class_name', value)}
+          />
+          <Select
+            label="Certificate Type"
+            value={formData.certificate_type}
+            onChange={(value) => handleInputChange('certificate_type', value)}
+            options={Object.values(CertificateType).map(t => ({ label: t, value: t }))}
+            required
+          />
+          <Textarea
+            label="Purpose"
+            value={formData.purpose}
+            onChange={(value) => handleInputChange('purpose', value)}
+            rows={3}
+          />
+          <Textarea
+            label="Remarks"
+            value={formData.remarks}
+            onChange={(value) => handleInputChange('remarks', value)}
+            rows={2}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
 
 export default CertificatesManagementPage;
+
+export const CertificatesManagementContent = CertificatesManagementPage;

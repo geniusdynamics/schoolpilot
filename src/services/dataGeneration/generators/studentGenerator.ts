@@ -3,21 +3,7 @@
 
 import type { Student, ParentsGuardian, StudentGuardianRelationship } from '@/core/types';
 import { PersonGender, StudentStatus } from '@/core/types';
-import {
-  FIRST_NAMES,
-  LAST_NAMES,
-  RELATIONSHIP_TYPES,
-  getRandomItem,
-  getRandomInt,
-  generateId,
-  generateAdmissionNo,
-  generateDateOfBirth,
-  generateKenyanPhone,
-  generateEmail,
-  generateAddress,
-  generateGuardianForStudent,
-  weightedRandom
-} from './dataUtils';
+import { FIRST_NAMES, LAST_NAMES, getRandomItem, getRandomInt, generateId, generateAdmissionNo, generateDateOfBirth, generateKenyanPhone, generateEmail, generateAddress, generateGuardianForStudent, weightedRandom } from './dataUtils';
 
 // Family distribution as per specification
 const FAMILY_DISTRIBUTION = [

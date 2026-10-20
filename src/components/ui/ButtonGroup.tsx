@@ -55,18 +55,18 @@ const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(({
   const variantStyles = {
     default: '',
     segmented: [
-      'bg-gray-100',
-      'border border-gray-200',
+      'bg-surface-accent',
+      'border border-surface-border',
       'rounded-lg',
       'p-1',
       'shadow-sm',
     ].join(' '),
     toolbar: [
-      'bg-white',
-      'border border-gray-200',
+      'bg-surface-card',
+      'border border-surface-border',
       'rounded-md',
       'shadow-sm',
-      'divide-x divide-gray-200',
+      'divide-x divide-surface-border',
     ].join(' '),
   };
 

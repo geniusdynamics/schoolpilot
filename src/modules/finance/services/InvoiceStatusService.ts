@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: InvoiceStatusService - Business logic for invoice status calculation
 // ABOUTME: Replaces trg_fin_updateInvoiceStatus trigger from the Akademico database
 // ABOUTME: Automatically recalculates invoice status based on payment applications
@@ -171,7 +173,7 @@ export class InvoiceStatusService {
         results.push(result);
       } catch (error) {
         // Log error but continue processing other invoices
-        console.error(`[InvoiceStatusService] Error updating invoice ${invoiceId}:`, error);
+        logger.error(`[InvoiceStatusService] Error updating invoice ${invoiceId}:`, error);
       }
     }
     return results;

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: React hook for performance benchmarking operations and state management
 // ABOUTME: Provides interface for creating baselines, running benchmarks, and comparing results
 
@@ -289,10 +291,10 @@ export const useRegressionDetection = (
 
         // Log significant regressions
         if (regression.detected && (regression.severity === 'high' || regression.severity === 'critical')) {
-          console.warn('Performance regression detected:', regression);
+          logger.warn('Performance regression detected:', regression);
         }
       } catch (error) {
-        console.error('Failed to check for regression:', error);
+        logger.error('Failed to check for regression:', error);
       }
     };
 

@@ -1,3 +1,6 @@
+// ABOUTME: Warehouses list and add/edit/delete dialog for the inventory module.
+// ABOUTME: Reads and writes the 'warehouses' collection through the useInventory module hook.
+
 import React, { useState } from 'react';
 import { Warehouse } from '@/types';
 import Card from '@/components/ui/Card';
@@ -9,22 +12,25 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, CubeTransparentIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 
 type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
+/** A stored warehouse; ids are strings at runtime. */
+type WarehouseRecord = Omit<Warehouse, 'id'> & { id: string };
 
-const WarehousesPage: React.FC = () => {
-  const { warehouses, loading, addWarehouse, updateWarehouse, deleteWarehouse } = useAppData(); // Updated
+export const WarehousesPageContent: React.FC = () => {
+  const { warehouses, addWarehouse, updateWarehouse, deleteWarehouse } = useInventory();
   const { t } = useTranslation('inventory');
-  
+  const confirm = useConfirm();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
+  const [editingWarehouse, setEditingWarehouse] = useState<WarehouseRecord | null>(null);
   const initialFormData: WarehouseFormData = { name: '' };
   const [formData, setFormData] = useState<WarehouseFormData>(initialFormData);
 
-  const openModal = (warehouse?: Warehouse) => {
+  const openModal = (warehouse?: WarehouseRecord) => {
     setEditingWarehouse(warehouse || null);
     setFormData(warehouse ? { name: warehouse.name } : initialFormData);
     setIsModalOpen(true);
@@ -49,20 +55,20 @@ const WarehousesPage: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingWarehouse) {
-      await updateWarehouse({ ...editingWarehouse, ...payload });
+      await updateWarehouse(editingWarehouse.id, payload);
     } else {
       await addWarehouse(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this warehouse? This might affect stock levels.')) {
+  const handleDelete = async (id: string) => {
+    if (await confirm({ title: 'Delete warehouse', message: 'Are you sure you want to delete this warehouse? This might affect stock levels.', variant: 'danger' })) {
       await deleteWarehouse(id);
     }
   };
 
-  const columns: DataGridColumn<Warehouse>[] = [
+  const columns: DataGridColumn<WarehouseRecord>[] = [
     { 
       key: 'id', 
       header: 'ID', 
@@ -78,7 +84,7 @@ const WarehousesPage: React.FC = () => {
       width: 200
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -93,13 +99,6 @@ const WarehousesPage: React.FC = () => {
     },
   ];
 
-  if (loading.warehouses && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Warehouses...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -108,17 +107,16 @@ const WarehousesPage: React.FC = () => {
           {t('warehouses.addWarehouse')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('warehouses.description')}
         </p>
         <DataGrid 
           columns={columns} 
           data={warehouses || []} 
-          isLoading={loading.warehouses && isModalOpen}
           sortable
           filterable
           emptyState={{
-            icon: <CubeTransparentIcon className="w-12 h-12 text-gray-400" />,
+            icon: <CubeTransparentIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No warehouses found",
             description: "Create warehouses to organize and track your inventory across different locations.",
             action: {
@@ -133,8 +131,8 @@ const WarehousesPage: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('warehouses.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.warehouses}>
-              {loading.warehouses ? <Spinner size="sm"/> : (editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse'))}
+            <Button onClick={handleSubmit}>
+              {editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse')}
             </Button>
           </FormActions>
         }
@@ -153,5 +151,10 @@ const WarehousesPage: React.FC = () => {
     </div>
   );
 };
+const WarehousesPage: React.FC = () => (
+  <div className="space-y-6">
+    <WarehousesPageContent />
+  </div>
+);
 
 export default WarehousesPage;

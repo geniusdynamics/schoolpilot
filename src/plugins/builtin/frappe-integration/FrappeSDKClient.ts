@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Frappe SDK Client Wrapper
  * 
@@ -313,14 +315,14 @@ export class FrappeSDKClient {
        */
       subscribeToDoc: (doctype: string, docname: string, callback: (data: any) => void) => {
         // Socket.IO implementation would go here
-        console.log(`[FrappeSDK] Subscribed to ${doctype} ${docname}`);
+        logger.info(`[FrappeSDK] Subscribed to ${doctype} ${docname}`);
       },
       
       /**
        * Unsubscribe from document updates
        */
       unsubscribeFromDoc: (doctype: string, docname: string) => {
-        console.log(`[FrappeSDK] Unsubscribed from ${doctype} ${docname}`);
+        logger.info(`[FrappeSDK] Unsubscribed from ${doctype} ${docname}`);
       },
     };
   }
@@ -329,6 +331,6 @@ export class FrappeSDKClient {
    * Disconnect and cleanup
    */
   async disconnect(): Promise<void> {
-    console.log('[FrappeSDK] Disconnecting...');
+    logger.info('[FrappeSDK] Disconnecting...');
   }
 }

@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for itemcategory data management
 // ABOUTME: Provides CRUD operations for itemcategory without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockItemCategoriesInv } from './mockData';
 import { ItemCategoryInv } from '@/core/types';
+import { useState } from 'react';
 
 export const useItemCategoryData = () => {
   const [data, setData] = useState<ItemCategoryInv[]>(initialMockItemCategoriesInv);

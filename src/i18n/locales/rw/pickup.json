@@ -1,0 +1,58 @@
+{
+  "authorizedPerson": {
+    "plural": "Authorized Persons",
+    "actions": {
+      "add": "Add",
+      "remove": "Remove"
+    },
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "relationship": "Relationship",
+      "phone": "Phone",
+      "email": "Email",
+      "isPrimary": "Is Primary",
+      "student": "Student",
+      "idType": "Id Type",
+      "idNumber": "Id Number"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "pickupCode": {
+    "plural": "Pickup Codes",
+    "actions": {
+      "generate": "Generate"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "EXPIRED": "Expired",
+      "USED": "Used",
+      "REVOKED": "Revoked"
+    }
+  },
+  "dashboard": {
+    "activeCodes": "Active Codes",
+    "todayPickups": "Today Pickups",
+    "pendingPickups": "Pending Pickups",
+    "recentActivity": "Recent Activity",
+    "title": "Dashboard"
+  },
+  "pickupLog": {
+    "actions": {
+      "view": "View",
+      "export": "Export"
+    },
+    "plural": "Pickup Logs",
+    "fields": {
+      "student": "Student",
+      "authorizedPerson": "Authorized Person",
+      "pickupDate": "Pickup Date",
+      "pickupTime": "Pickup Time",
+      "notes": "Notes"
+    }
+  },
+  "description": "Description"
+}

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Add Student Page with TabbedForm implementation
 // ABOUTME: Standalone page for adding new students using the modernized tabbed form interface
 
@@ -11,6 +13,7 @@ import Button from '@/components/ui/Button';
 import { UserCircleIcon, UsersIcon, AcademicCapIcon, ArrowLeftIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
+import { useToast } from '@/hooks/useToast';
 // Removed useFormValidation import to fix infinite loop issue
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
@@ -52,7 +55,12 @@ const AddStudentPage: React.FC = () => {
   } = appData;
   
   // Access addStudent from enhanced operations
-  const addStudent = (appData as any).addStudent;
+  const { addStudent } = useAppData() as unknown as {
+    addStudent: (
+      data: Record<string, any>,
+      guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+    ) => Promise<any>;
+  };
 
   const [activeTab, setActiveTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,13 +113,14 @@ const AddStudentPage: React.FC = () => {
   };
 
   // Handle form submission
+  const toast = useToast();
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
 
     try {
       // Simple validation
       if (!formData.admission_no || !formData.first_name || !formData.last_name) {
-        alert('Please fill in all required fields (Admission No, First Name, Last Name)');
+        toast.showWarning('Please fill in all required fields (Admission No, First Name, Last Name)');
         setIsSubmitting(false);
         return;
       }
@@ -164,12 +173,12 @@ const AddStudentPage: React.FC = () => {
         exam_result_summary: examSummaryPayload,
       };
 
-      await addStudent(newStudentPayload, guardianPayload as any);
+      await addStudent(newStudentPayload, guardianPayload);
 
       // Navigate back to students list on success
       navigate('/administration/students');
     } catch (error) {
-      console.error('Error adding student:', error);
+      logger.error('Error adding student:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -355,7 +364,7 @@ const AddStudentPage: React.FC = () => {
         content: (
           <div className="space-y-6">
             <div className="space-y-4">
-              <h4 className="text-md font-semibold text-gray-700">Current Academic Status</h4>
+              <h4 className="text-md font-semibold text-surface-foreground">Current Academic Status</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Select
                   name="current_class_stream_id"
@@ -403,7 +412,7 @@ const AddStudentPage: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-md font-semibold text-gray-700">Exam Result Summary (e.g., KCPE)</h4>
+              <h4 className="text-md font-semibold text-surface-foreground">Exam Result Summary (e.g., KCPE)</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <Input
                   name="exam_result_summary_exam_name"
@@ -478,8 +487,8 @@ const AddStudentPage: React.FC = () => {
             Back to Students
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Student</h1>
-            <p className="text-sm text-gray-600">Fill in the student information using the tabbed form below</p>
+            <h1 className="text-2xl font-bold text-surface-foreground">Add New Student</h1>
+            <p className="text-sm text-surface-muted-fg">Fill in the student information using the tabbed form below</p>
           </div>
         </div>
       </div>

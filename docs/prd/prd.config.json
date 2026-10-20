@@ -1,0 +1,12 @@
+{
+  "project": "SchoolPilot",
+  "integrationBranch": "consolidation",
+  "prdDir": "docs/prd",
+  "ledger": "docs/prd/tasks.json",
+  "requirementsSource": "docs/prd/README.md",
+  "findingsSource": "docs/audit/2026-10-school-operations/README.md",
+  "gateCommand": "node scripts/prd/gate.mjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "trailers": [],
+  "_comment": "Used by scripts/prd/prd.mjs (prd-builder skill). The project's own scripts/prd/gate.mjs and status.mjs keep working unchanged; gate checks for this project are defined in gate.mjs itself, not here."
+}

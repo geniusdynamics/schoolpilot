@@ -9,14 +9,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormActions from '@/components/ui/forms/FormActions';
 import FormField from '@/components/ui/forms/FormField';
 import Spinner from '@/components/ui/Spinner';
-import {
-  PlusIcon,
-  EyeIcon,
-  CopyIcon,
-  XCircleIcon,
-  MagnifyingGlassIcon,
-  TicketIcon,
-} from '@/components/ui/icons';
+import { PlusIcon, CopyIcon, XCircleIcon, MagnifyingGlassIcon, TicketIcon } from '@/components/ui/icons';
 import { usePickupData } from '../../data/pickup/usePickupData';
 import { PickupCode, PickupCodeStatus } from '../../data/pickup/types';
 import { useToast } from '@/hooks/useToast';
@@ -24,8 +17,8 @@ import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<PickupCodeStatus, string> = {
   [PickupCodeStatus.ACTIVE]: 'bg-emerald-100 text-emerald-800',
-  [PickupCodeStatus.EXPIRED]: 'bg-gray-100 text-gray-800',
-  [PickupCodeStatus.USED]: 'bg-blue-100 text-blue-800',
+  [PickupCodeStatus.EXPIRED]: 'bg-surface-accent text-surface-foreground',
+  [PickupCodeStatus.USED]: 'bg-primary-100 text-primary-800',
   [PickupCodeStatus.REVOKED]: 'bg-red-100 text-red-800',
 };
 
@@ -71,7 +64,7 @@ const PickupCodesPage: React.FC = () => {
       if (filters.searchQuery) {
         const search = filters.searchQuery.toLowerCase();
         return (
-          code.code.toLowerCase().includes(search) ||
+          (code.code?.toLowerCase() ?? '').includes(search) ||
           (code.studentName || '').toLowerCase().includes(search)
         );
       }
@@ -259,7 +252,7 @@ const PickupCodesPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 label="Search"
                 placeholder="Search by code or student name..."
@@ -317,11 +310,11 @@ const PickupCodesPage: React.FC = () => {
             loading={false}
             emptyState={
               <div className="text-center py-12">
-                <TicketIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                <TicketIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                   No pickup codes found
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   Generate a new pickup code to get started.
                 </p>
                 <div className="mt-6">
@@ -382,7 +375,7 @@ const PickupCodesPage: React.FC = () => {
                 min="5"
                 max="480"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-surface-muted-fg">
                 Default: 30 minutes. Maximum: 8 hours (480 min).
               </p>
             </FormField>
@@ -413,7 +406,7 @@ const PickupCodesPage: React.FC = () => {
       >
         <p>
           Are you sure you want to revoke code{' '}
-          <code className="font-mono bg-gray-100 px-1 py-0.5 rounded">
+          <code className="font-mono bg-surface-accent px-1 py-0.5 rounded">
             {codeToRevoke?.code}
           </code>{' '}
           for <strong>{codeToRevoke?.studentName}</strong>?

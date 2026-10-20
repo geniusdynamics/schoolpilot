@@ -1,22 +1,23 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import type { PayrollPeriod } from '@/modules/hr/data/types';
+import { logger } from '@/utils/logging';
 
+import { formatKES, formatDate } from '@/utils/format';
 type PayrollPeriodFormData = Omit<Partial<PayrollPeriod>, 'id' | 'created_at' | 'updated_at'>;
 
-const PayrollPeriodsPage: React.FC = () => {
+export const PayrollPeriodsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { payrollPeriods, loading: appDataLoading, refreshCollection } = useAppData();
   
@@ -142,7 +143,7 @@ const PayrollPeriodsPage: React.FC = () => {
       await refreshCollection('payrollPeriods');
       closeModal();
     } catch (error) {
-      console.error('Error saving payroll period:', error);
+      logger.error('Error saving payroll period:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -165,18 +166,18 @@ const PayrollPeriodsPage: React.FC = () => {
       await collection?.remove(period.id.toString());
       await refreshCollection('payrollPeriods');
     } catch (error) {
-      console.error('Error deleting payroll period:', error);
+      logger.error('Error deleting payroll period:', error);
     }
   }, [refreshCollection, t]);
 
   const getStatusBadge = (status: string) => {
     const statusClasses: Record<string, string> = {
-      draft: 'bg-gray-100 text-gray-800',
+      draft: 'bg-surface-accent text-surface-foreground',
       open: 'bg-green-100 text-green-800',
-      closed: 'bg-blue-100 text-blue-800',
+      closed: 'bg-primary-100 text-primary-800',
     };
     return (
-      <span className={`px-2 py-1 text-xs rounded-full ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-xs rounded-full ${statusClasses[status] || 'bg-surface-accent text-surface-foreground'}`}>
         {t(`payrollPeriods.status.${status}`) || status}
       </span>
     );
@@ -189,12 +190,12 @@ const PayrollPeriodsPage: React.FC = () => {
     { 
       header: t('tableHeaders.startDate'), 
       key: 'start_date' as keyof PayrollPeriod,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { 
       header: t('tableHeaders.endDate'), 
       key: 'end_date' as keyof PayrollPeriod,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { header: t('tableHeaders.status'), key: 'status' as keyof PayrollPeriod, render: (value: string) => getStatusBadge(value) },
     {
@@ -225,16 +226,16 @@ const PayrollPeriodsPage: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">{t('payrollPeriods.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('payrollPeriods.description')}</p>
         {appDataLoading.payrollPeriods ? (
           <div className="flex justify-center py-8">
             <Spinner />
           </div>
         ) : (
-          <Table
+          <DataGrid
             columns={columns}
             data={payrollPeriods || []}
-            emptyStateMessage={t('payrollPeriods.noPeriods') || 'No payroll periods found'}
+            emptyState={t('payrollPeriods.noPeriods') || 'No payroll periods found'}
           />
         )}
       </Card>
@@ -262,7 +263,7 @@ const PayrollPeriodsPage: React.FC = () => {
               value={formData.period_type || ''}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="weekly">{t('payrollPeriods.periodType.weekly')}</option>
               <option value="monthly">{t('payrollPeriods.periodType.monthly')}</option>
@@ -294,7 +295,7 @@ const PayrollPeriodsPage: React.FC = () => {
               value={formData.status || ''}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="draft">{t('payrollPeriods.status.draft')}</option>
               <option value="open">{t('payrollPeriods.status.open')}</option>
@@ -306,13 +307,19 @@ const PayrollPeriodsPage: React.FC = () => {
           <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
             {t('common:cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <Spinner size="sm" /> : (editingPeriod ? t('common:save') : t('common:create'))}
+          <Button type="submit" loading={isSubmitting}>
+            {editingPeriod ? t('common:save') : t('common:create')}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+
+const PayrollPeriodsPage: React.FC = () => (
+  <div className="space-y-6">
+    <PayrollPeriodsPageContent />
+  </div>
+);
 
 export default PayrollPeriodsPage;

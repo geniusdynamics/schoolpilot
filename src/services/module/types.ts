@@ -5,7 +5,7 @@
  * Enables dependency injection and testability.
  */
 
-import type { ModuleDefinition } from '@/core/types';
+import type { ModuleDefinition } from '../../core/types';
 
 // ============================================================================
 // Module Config Types

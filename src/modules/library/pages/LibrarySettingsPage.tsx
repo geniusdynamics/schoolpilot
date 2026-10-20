@@ -7,19 +7,18 @@ import { useLibrarySettingsData } from '../data/useLibrarySettingsData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormField from '@/components/ui/forms/FormField';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
-const LibrarySettingsPage: React.FC = () => {
-  const { t } = useTranslation('library');
+import Spinner from '@/components/ui/Spinner';
+import { EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+
+export const LibrarySettingsPageContent: React.FC = () => {
+
   const {
     data: settings,
     create: addSetting,
@@ -27,6 +26,8 @@ const LibrarySettingsPage: React.FC = () => {
     remove: deleteSetting,
     isLoading: settingsLoading,
   } = useLibrarySettingsData();
+
+  const confirm = useConfirm();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSetting, setEditingSetting] = useState<LibrarySettingsType | null>(null);
@@ -86,7 +87,7 @@ const LibrarySettingsPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this setting?')) {
+    if (await confirm({ title: 'Delete setting', message: 'Are you sure you want to delete this setting?', variant: 'danger' })) {
       await deleteSetting(id);
     }
   };
@@ -158,9 +159,9 @@ const LibrarySettingsPage: React.FC = () => {
             filterable={true}
             emptyState={
               <div className="text-center py-12">
-                <EditIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No settings available</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <EditIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">No settings available</h3>
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   Get started by adding new borrowing rules.
                 </p>
               </div>
@@ -236,6 +237,10 @@ const LibrarySettingsPage: React.FC = () => {
     </div>
   );
 };
+const LibrarySettingsPage: React.FC = () => (
+  <div className="space-y-6">
+    <LibrarySettingsPageContent />
+  </div>
+);
 
 export default LibrarySettingsPage;
-

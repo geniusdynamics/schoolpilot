@@ -1,53 +1,23 @@
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Alert, AlertDescription, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Badge,
-  Button,
-  Alert,
-  AlertDescription,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui';
-import {
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  RefreshCw,
-  Settings,
-  ShoppingCart,
-  X,
-  Bell,
-  TrendingDown,
-  Package
-} from 'lucide-react';
-import { useReorderMonitoring, usePeriodicReorderMonitoring } from '@/hooks/useReorderMonitoring';
-import { reorderMonitoringService, ReorderAlert } from '../services/reorderMonitoringService';
+  ArchiveBoxIcon,
+  ArrowPathIcon,
+  ArrowTrendingDownIcon,
+  BellIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  ExclamationTriangleIcon,
+  ShoppingCartIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+import { usePeriodicReorderMonitoring } from '../hooks/useReorderMonitoring';
+import type { ReorderAlert } from '../services/reorderMonitoringService';
 
 interface ReorderAlertsPanelProps {
   className?: string;
@@ -98,13 +68,13 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'HIGH':
-        return <AlertTriangle className="h-4 w-4" />;
+        return <ExclamationTriangleIcon className="h-4 w-4" />;
       case 'MEDIUM':
-        return <Clock className="h-4 w-4" />;
+        return <ClockIcon className="h-4 w-4" />;
       case 'LOW':
-        return <TrendingDown className="h-4 w-4" />;
+        return <ArrowTrendingDownIcon className="h-4 w-4" />;
       default:
-        return <Package className="h-4 w-4" />;
+        return <ArchiveBoxIcon className="h-4 w-4" />;
     }
   };
 
@@ -113,43 +83,73 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       await dismissAlert(itemId);
       setSelectedAlert(null);
     } catch (error) {
-      console.error('Failed to dismiss alert:', error);
+      logger.error('Failed to dismiss alert:', error);
     }
   };
 
-  const AlertRow: React.FC<{ alert: ReorderAlert }> = ({ alert }) => (
-    <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAlert(alert)}>
-      <TableCell>
+  const alertColumns: DataGridColumn<ReorderAlert>[] = [
+    {
+      key: 'priority',
+      header: t('reorderAlerts.table.priority'),
+      width: 120,
+      render: (_v, alert) => (
         <div className="flex items-center gap-2">
           {getPriorityIcon(alert.priority)}
           <Badge variant={getPriorityColor(alert.priority) as any}>
             {alert.priority}
           </Badge>
         </div>
-      </TableCell>
-      <TableCell className="font-medium">{alert.item_name}</TableCell>
-      <TableCell>
+      )
+    },
+    {
+      key: 'item_name',
+      header: t('reorderAlerts.table.item'),
+      render: (_v, alert) => <span className="font-medium">{alert.item_name}</span>
+    },
+    {
+      key: 'current_stock',
+      header: t('reorderAlerts.table.currentStock'),
+      align: 'right',
+      render: (_v, alert) => (
         <div className="text-right">
           <div className="font-medium">{alert.current_stock}</div>
           <div className="text-sm text-muted-foreground">
             {t('reorderAlerts.reorderPoint')}: {alert.reorder_point}
           </div>
         </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="font-medium text-blue-600">
-          {alert.suggested_order_quantity}
+      )
+    },
+    {
+      key: 'suggested_order_quantity',
+      header: t('reorderAlerts.table.suggestedOrder'),
+      align: 'right',
+      render: (_v, alert) => (
+        <div className="text-right">
+          <div className="font-medium text-primary-600">
+            {alert.suggested_order_quantity}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {alert.reorder_quantity > 0 && `(${t('reorderAlerts.standard')}: ${alert.reorder_quantity})`}
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {alert.reorder_quantity > 0 && `(${t('reorderAlerts.standard')}: ${alert.reorder_quantity})`}
-        </div>
-      </TableCell>
-      <TableCell>
+      )
+    },
+    {
+      key: 'alert_type',
+      header: t('reorderAlerts.table.alertType'),
+      render: (_v, alert) => (
         <Badge variant={alert.alert_type === 'REORDER_REQUIRED' ? 'destructive' : 'warning'}>
           {alert.alert_type === 'REORDER_REQUIRED' ? t('reorderAlerts.reorderRequired') : t('reorderAlerts.lowStock')}
         </Badge>
-      </TableCell>
-      <TableCell>
+      )
+    },
+    {
+      key: 'actions',
+      header: t('reorderAlerts.table.actions'),
+      width: 80,
+      sortable: false,
+      filterable: false,
+      render: (_v, alert) => (
         <Button
           variant="ghost"
           size="sm"
@@ -158,18 +158,18 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
             handleDismissAlert(alert.item_id);
           }}
         >
-          <X className="h-4 w-4" />
+          <XMarkIcon className="h-4 w-4" />
         </Button>
-      </TableCell>
-    </TableRow>
-  );
+      )
+    }
+  ];
 
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
+          <BellIcon className="h-5 w-5" />
           <h2 className="text-lg font-semibold">{t('reorderAlerts.title')}</h2>
           {totalAlertsCount > 0 && (
             <Badge variant="destructive">{totalAlertsCount}</Badge>
@@ -182,7 +182,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
             onClick={refreshAlerts}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
           <Button
@@ -191,14 +191,14 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
             onClick={checkReorderRequirements}
             disabled={isLoading}
           >
-            <Package className="h-4 w-4" />
+            <ArchiveBoxIcon className="h-4 w-4" />
             {t('reorderAlerts.checkAll')}
           </Button>
           {showSettings && (
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4" />
+                  <Cog6ToothIcon className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -239,7 +239,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
+          <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -250,7 +250,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
                 <div>
                   <div className="text-2xl font-bold">{monitoringResult.items_below_reorder_point}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.itemsBelowReorder')}</div>
@@ -261,7 +261,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-blue-500" />
+                <ArchiveBoxIcon className="h-4 w-4 text-primary-500" />
                 <div>
                   <div className="text-2xl font-bold">{monitoringResult.total_items_monitored}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.totalMonitored')}</div>
@@ -272,7 +272,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-orange-500" />
+                <BellIcon className="h-4 w-4 text-orange-500" />
                 <div>
                   <div className="text-2xl font-bold">{totalAlertsCount}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.activeAlerts')}</div>
@@ -283,7 +283,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-green-500" />
+                <ClockIcon className="h-4 w-4 text-green-500" />
                 <div>
                   <div className="text-sm font-medium">{t('reorderAlerts.summary.lastCheck')}</div>
                   <div className="text-sm text-muted-foreground">
@@ -304,7 +304,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
         <CardContent>
           {totalAlertsCount === 0 ? (
             <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium">{t('reorderAlerts.noAlerts.title')}</h3>
               <p className="text-muted-foreground">{t('reorderAlerts.noAlerts.description')}</p>
             </div>
@@ -326,83 +326,39 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
               </TabsList>
               
               <TabsContent value="all">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {alerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={alerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
-              
+
               <TabsContent value="high">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {highPriorityAlerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={highPriorityAlerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
-              
+
               <TabsContent value="medium">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mediumPriorityAlerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={mediumPriorityAlerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
-              
+
               <TabsContent value="low">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lowPriorityAlerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={lowPriorityAlerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
             </Tabs>
           )}
@@ -436,7 +392,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>{t('reorderAlerts.detail.suggestedOrder')}</Label>
-                  <div className="text-2xl font-bold text-blue-600">{selectedAlert.suggested_order_quantity}</div>
+                  <div className="text-2xl font-bold text-primary-600">{selectedAlert.suggested_order_quantity}</div>
                 </div>
                 <div>
                   <Label>{t('reorderAlerts.detail.priority')}</Label>
@@ -454,11 +410,11 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
                 variant="destructive"
                 onClick={() => handleDismissAlert(selectedAlert.item_id)}
               >
-                <X className="h-4 w-4 mr-2" />
+                <XMarkIcon className="h-4 w-4 mr-2" />
                 {t('reorderAlerts.dismissAlert')}
               </Button>
               <Button>
-                <ShoppingCart className="h-4 w-4 mr-2" />
+                <ShoppingCartIcon className="h-4 w-4 mr-2" />
                 {t('reorderAlerts.createOrder')}
               </Button>
             </DialogFooter>

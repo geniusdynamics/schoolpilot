@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Configuration for quick edit fields in student management
 // ABOUTME: Allows customization of which fields appear in the quick edit slideout
 
@@ -94,7 +96,7 @@ export const DEFAULT_QUICK_EDIT_CONFIG: QuickEditConfig = {
   },
   styling: {
     theme: 'dark',
-    accentColor: '#3b82f6',
+    accentColor: '#6366f1',
     borderRadius: '0.5rem',
   }
 };
@@ -110,7 +112,7 @@ export const getQuickEditConfig = (): QuickEditConfig => {
       const parsed = JSON.parse(userConfig);
       return { ...DEFAULT_QUICK_EDIT_CONFIG, ...parsed };
     } catch (error) {
-      console.warn('Failed to parse quick edit config from localStorage:', error);
+      logger.warn('Failed to parse quick edit config from localStorage:', error);
     }
   }
   
@@ -124,7 +126,7 @@ export const saveQuickEditConfig = (config: Partial<QuickEditConfig>): void => {
     const newConfig = { ...currentConfig, ...config };
     localStorage.setItem('quickEditConfig', JSON.stringify(newConfig));
   } catch (error) {
-    console.error('Failed to save quick edit config to localStorage:', error);
+    logger.error('Failed to save quick edit config to localStorage:', error);
   }
 };
 

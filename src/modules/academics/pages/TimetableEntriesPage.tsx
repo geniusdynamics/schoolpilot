@@ -1,6 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { ClassStream, Staff } from '@/types';
-import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject } from '@/core/types';
+// ABOUTME: Class timetable page — a day × period grid per class stream; each slot holds a subject and teacher.
+// ABOUTME: CRUD goes through the academics module context with string ids and update(id, patch).
+
+import React, { useState, useMemo } from 'react';
+
+import { DayOfWeek } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -8,36 +11,92 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, TableCellsIcon, PrinterIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+import { useAcademicDataContext } from '../data/AcademicDataContext';
+import { useAdministrationDataContext } from '@/modules/administration/data/AdministrationDataContext';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
-type TimetableEntryFormData = Omit<Partial<TimetableEntry>, 'id' | 'class_stream_id' | 'class_stream_name' | 'period_name' | 'subject_name' | 'teacher_name' | 'day_of_week'> & {
-    day_of_week?: DayOfWeek;
-};
+type Id = string | number;
 
+interface TimetableEntryFormData {
+  day_of_week?: DayOfWeek;
+  period_id?: string;
+  subject_id?: string;
+  teacher_id?: string;
+}
 
-const TimetableEntriesPage: React.FC = () => {
-  const { 
-    timetableEntries, 
-    classStreams,
-    timetablePeriodDefs,
-    subjects,
-    staff,
-    teacherSubjectAssignments, // Added
-    classSubjectAllocations, // Added
-    loading, 
-    getTimetableEntries,
-    addTimetableEntry, 
-    updateTimetableEntry, 
-    deleteTimetableEntry 
-  } = useAppData(); // Updated
-  
+interface Named { id: Id; name?: string | null; title?: string | null }
+interface StreamRecord extends Named { class_id?: Id | null; class_name?: string | null }
+interface PeriodDef { id: Id; period_name?: string; start_time: string; end_time: string }
+interface StaffRecord {
+  id: Id;
+  first_name?: string;
+  last_name?: string;
+  is_active?: boolean;
+  designation_id?: Id | null;
+  designation_title?: string | null;
+  department_id?: Id | null;
+  department_name?: string | null;
+}
+interface StoredEntry {
+  id: Id;
+  class_stream_id?: Id | null;
+  day_of_week: DayOfWeek;
+  period_id?: Id | null;
+  subject_id?: Id | null;
+  teacher_id?: Id | null;
+  subject_name?: string | null;
+  teacher_name?: string | null;
+}
+interface StoredAllocation { id: Id; class_stream_id?: Id | null; subject_id?: Id | null }
+interface StoredAssignment { id: Id; allocation_id?: Id | null; teacher_id?: Id | null }
+
+/** A timetable slot as shown in the grid, with subject and teacher names resolved. */
+interface EntryRow {
+  id: string;
+  class_stream_id: string;
+  day_of_week: DayOfWeek;
+  period_id: string;
+  subject_id: string;
+  teacher_id: string;
+  subject_name: string;
+  teacher_name: string;
+}
+
+const idOf = (value: Id | null | undefined): string => (value == null ? '' : String(value));
+const fullName = (person?: { first_name?: string; last_name?: string }) =>
+  person ? `${person.first_name ?? ''} ${person.last_name ?? ''}`.trim() : '';
+
+export const TimetableEntriesContent: React.FC = () => {
+  const { t } = useTranslation('academics');
+  const academic = useAcademicDataContext();
+  const admin = useAdministrationDataContext();
+  const { addTimetableEntry, updateTimetableEntry, deleteTimetableEntry } = academic;
+  const [isSaving, setIsSaving] = useState(false);
+
+  const classStreams = admin.classStreams as unknown as StreamRecord[];
+  const classes = admin.classes as unknown as Named[];
+  const staff = admin.staff as StaffRecord[];
+  const designations = admin.designations as unknown as Named[];
+  const departments = admin.departments as unknown as Named[];
+  const subjects = academic.subjects as Named[];
+  const timetablePeriodDefs = academic.timetablePeriodDefs as unknown as PeriodDef[];
+  const classSubjectAllocations = academic.classSubjectAllocations as unknown as StoredAllocation[];
+  const teacherSubjectAssignments = academic.teacherSubjectAssignments as StoredAssignment[];
+
+  const streamLabel = (stream: StreamRecord) => {
+    const className = classes.find(c => idOf(c.id) === idOf(stream.class_id))?.name ?? stream.class_name;
+    return className ? `${className} - ${stream.name ?? ''}` : (stream.name ?? '');
+  };
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<TimetableEntry | null>(null);
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>((classStreams && classStreams.length > 0) ? classStreams[0].id : undefined);
-  
+  const [editingEntry, setEditingEntry] = useState<EntryRow | null>(null);
+  const [selectedClassStreamId, setSelectedClassStreamId] = useState<string | undefined>(classStreams.length > 0 ? idOf(classStreams[0].id) : undefined);
+
   const initialFormData: TimetableEntryFormData = { 
     day_of_week: undefined, 
     period_id: undefined,
@@ -46,7 +105,7 @@ const TimetableEntriesPage: React.FC = () => {
   };
   const [formData, setFormData] = useState<TimetableEntryFormData>(initialFormData);
 
-  const openModal = (entry?: TimetableEntry, day?: DayOfWeek, periodId?: number) => {
+  const openModal = (entry?: EntryRow, day?: DayOfWeek, periodId?: string) => {
     setEditingEntry(entry || null);
     setFormData(entry ? 
       { 
@@ -67,14 +126,7 @@ const TimetableEntriesPage: React.FC = () => {
   };
 
   const handleInputChange = (name: keyof TimetableEntryFormData, value: string) => {
-    let processedValue: string | number | undefined = value;
-    if (name === 'period_id' || name === 'subject_id') {
-        processedValue = value ? parseInt(value) : undefined;
-    } else if (name === 'teacher_id' && value === '') {
-        processedValue = undefined;
-    }
-    
-    const newState = { ...formData, [name]: processedValue };
+    const newState = { ...formData, [name]: value || undefined };
     // If subject changes, reset teacher if the current teacher isn't assigned to the new subject
     if (name === 'subject_id') {
         newState.teacher_id = undefined; 
@@ -83,51 +135,63 @@ const TimetableEntriesPage: React.FC = () => {
   };
   
   const availableTeachers = useMemo(() => {
+    const active = staff.filter(s => s.is_active !== false);
     if (!formData.subject_id || !selectedClassStreamId) {
-      return (staff || []).filter(s => s.is_active && (s.department_name === 'Academics' || s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal')));
+      return active.filter(s => {
+        const designation = designations.find(d => idOf(d.id) === idOf(s.designation_id))?.title ?? s.designation_title ?? '';
+        const department = departments.find(d => idOf(d.id) === idOf(s.department_id))?.name ?? s.department_name ?? '';
+        return department === 'Academics' || /teacher|principal/i.test(designation);
+      });
     }
 
     // Find relevant ClassSubjectAllocations for the current stream and selected subject
-    const relevantAllocations = (classSubjectAllocations || []).filter(
-        csa => csa.class_stream_id === selectedClassStreamId && csa.subject_id === Number(formData.subject_id)
-    );
+    const relevantAllocationIds = new Set(classSubjectAllocations
+      .filter(csa => idOf(csa.class_stream_id) === selectedClassStreamId && idOf(csa.subject_id) === formData.subject_id)
+      .map(csa => idOf(csa.id)));
 
-    if (relevantAllocations.length === 0) return []; 
+    if (relevantAllocationIds.size === 0) return [];
 
-    const teacherIds = (teacherSubjectAssignments || [])
-        .filter(tsa => relevantAllocations.some(ra => ra.id === tsa.allocation_id))
-        .map(tsa => tsa.teacher_id);
-    
-    const uniqueTeacherIds = [...new Set(teacherIds)];
+    const teacherIds = new Set(teacherSubjectAssignments
+        .filter(tsa => relevantAllocationIds.has(idOf(tsa.allocation_id)))
+        .map(tsa => idOf(tsa.teacher_id)));
 
-    return (staff || []).filter(s => s.is_active && uniqueTeacherIds.includes(s.id));
-  }, [formData.subject_id, selectedClassStreamId, staff, classSubjectAllocations, teacherSubjectAssignments]);
+    return active.filter(s => teacherIds.has(idOf(s.id)));
+  }, [formData.subject_id, selectedClassStreamId, staff, designations, departments, classSubjectAllocations, teacherSubjectAssignments]);
 
-
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!selectedClassStreamId || !formData.day_of_week || !formData.period_id || !formData.subject_id || !formData.teacher_id) {
-      alert(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
+      toast.showWarning(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
       return;
     }
 
-    const payload: Omit<TimetableEntry, 'id'| 'class_stream_name' | 'period_name' | 'subject_name' | 'teacher_name'> = { 
-        class_stream_id: Number(selectedClassStreamId), 
-        day_of_week: formData.day_of_week!,
-        period_id: Number(formData.period_id!),
-        subject_id: Number(formData.subject_id!),
-        teacher_id: formData.teacher_id!,
+    const payload = {
+        class_stream_id: selectedClassStreamId,
+        day_of_week: formData.day_of_week,
+        period_id: formData.period_id,
+        subject_id: formData.subject_id,
+        teacher_id: formData.teacher_id,
     };
 
-    if (editingEntry) {
-      await updateTimetableEntry({ ...editingEntry, ...payload });
-    } else {
-      await addTimetableEntry(payload);
+    setIsSaving(true);
+    try {
+      if (editingEntry) {
+        await updateTimetableEntry(editingEntry.id, payload as never);
+      } else {
+        await addTimetableEntry(payload as never);
+      }
+      closeModal();
+    } catch (error) {
+      logger.error('Failed to save timetable slot:', error);
+      toast.showError('Failed to save timetable slot.');
+    } finally {
+      setIsSaving(false);
     }
-    closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this timetable slot?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this timetable slot?' }))) {
       await deleteTimetableEntry(id);
     }
   };
@@ -137,24 +201,31 @@ const TimetableEntriesPage: React.FC = () => {
     [...(timetablePeriodDefs || [])].sort((a,b) => a.start_time.localeCompare(b.start_time)), 
   [timetablePeriodDefs]);
 
-  const entriesForSelectedStream = useMemo(() => {
+  const entriesForSelectedStream = useMemo<EntryRow[]>(() => {
     if (!selectedClassStreamId) return [];
-    return getTimetableEntries(selectedClassStreamId);
-  }, [selectedClassStreamId, getTimetableEntries, timetableEntries]); 
+    return (academic.timetableEntries as unknown as StoredEntry[])
+      .filter(entry => idOf(entry.class_stream_id) === selectedClassStreamId)
+      .map(entry => ({
+        id: idOf(entry.id),
+        class_stream_id: idOf(entry.class_stream_id),
+        day_of_week: entry.day_of_week,
+        period_id: idOf(entry.period_id),
+        subject_id: idOf(entry.subject_id),
+        teacher_id: idOf(entry.teacher_id),
+        subject_name: subjects.find(s => idOf(s.id) === idOf(entry.subject_id))?.name ?? entry.subject_name ?? '',
+        teacher_name: fullName(staff.find(s => idOf(s.id) === idOf(entry.teacher_id))) || entry.teacher_name || '',
+      }));
+  }, [selectedClassStreamId, academic.timetableEntries, subjects, staff]);
 
-  const findEntry = (day: DayOfWeek, periodId: number): TimetableEntry | undefined => {
+  const findEntry = (day: DayOfWeek, periodId: string): EntryRow | undefined => {
     return entriesForSelectedStream.find(e => e.day_of_week === day && e.period_id === periodId);
   };
-  
-  const getSubjectColor = (subjectId: number): string => {
-    const colors = ['bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100'];
-    return colors[subjectId % colors.length];
+
+  const getSubjectColor = (subjectId: string): string => {
+    const colors = ['bg-primary-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100'];
+    const hash = Array.from(subjectId).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+    return colors[hash % colors.length];
   };
-
-
-  if (loading.timetableEntries || loading.classStreams || loading.timetablePeriodDefs || loading.subjects || loading.staff || loading.teacherSubjectAssignments || loading.classSubjectAllocations) {
-      return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
-  }
 
   return (
     <div className="space-y-6">
@@ -163,57 +234,57 @@ const TimetableEntriesPage: React.FC = () => {
           {/* <Button variant="secondary" leftIcon={<PrinterIcon className="w-5 h-5" />}>Print Timetable</Button> */}
         </>
       }>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
           <Select
             label="Select Class Stream"
-            value={selectedClassStreamId || ''}
-            onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
+            value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
+            onChange={(e) => setSelectedClassStreamId(e.target.value || undefined)}
           >
             <option value="">-- Select Class Stream --</option>
-            {(classStreams || []).map(cs => (
-              <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
+            {classStreams.map(cs => (
+              <option key={cs.id} value={idOf(cs.id)}>{streamLabel(cs)}</option>
             ))}
           </Select>
         </div>
 
-        {!selectedClassStreamId && <p className="text-center text-gray-500 py-4">Please select a class stream to view or manage its timetable.</p>}
+        {!selectedClassStreamId && <p className="text-center text-surface-muted-fg py-4">Please select a class stream to view or manage its timetable.</p>}
         
         {selectedClassStreamId && (
           <div className="table-responsive">
-            <table className="min-w-full border-collapse border border-gray-300">
+            <table className="min-w-full border-collapse border border-surface-border">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 p-2 text-xs font-medium text-gray-600">Time / Day</th>
+                <tr className="bg-surface-accent">
+                  <th className="border border-surface-border p-2 text-xs font-medium text-surface-muted-fg">Time / Day</th>
                   {daysOfWeekOrder.map(day => (
-                    <th key={day} className="border border-gray-300 p-2 text-xs font-medium text-gray-600 capitalize">{day.toLowerCase()}</th>
+                    <th key={day} className="border border-surface-border p-2 text-xs font-medium text-surface-muted-fg capitalize">{day.toLowerCase()}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {(sortedPeriods || []).map(period => (
                   <tr key={period.id}>
-                    <td className="border border-gray-300 p-2 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                    <td className="border border-surface-border p-2 text-xs font-semibold text-surface-foreground whitespace-nowrap">
                       {period.period_name}<br/>({period.start_time.slice(0,5)} - {period.end_time.slice(0,5)})
                     </td>
                     {daysOfWeekOrder.map(day => {
-                      const entry = findEntry(day, period.id);
+                      const entry = findEntry(day, idOf(period.id));
                       return (
-                        <td key={`${day}-${period.id}`} className={`border border-gray-300 p-1.5 text-xs relative group h-24 ${entry ? getSubjectColor(entry.subject_id) : 'hover:bg-gray-50'}`}>
+                        <td key={`${day}-${period.id}`} className={`border border-surface-border p-1.5 text-xs relative group h-24 ${entry ? getSubjectColor(entry.subject_id) : 'hover:bg-surface-muted'}`}>
                           {entry ? (
                             <div className="flex flex-col justify-between h-full">
                               <div>
-                                <p className="font-semibold text-gray-800">{entry.subject_name}</p>
-                                <p className="text-gray-600 text-[10px]">{entry.teacher_name}</p>
+                                <p className="font-semibold text-surface-foreground">{entry.subject_name}</p>
+                                <p className="text-surface-muted-fg text-[10px]">{entry.teacher_name}</p>
                               </div>
                               <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                                <Button size="sm" variant="ghost" className="p-0.5" onClick={() => openModal(entry, day, period.id)}><EditIcon className="w-3 h-3"/></Button>
+                                <Button size="sm" variant="ghost" className="p-0.5" onClick={() => openModal(entry, day, idOf(period.id))}><EditIcon className="w-3 h-3"/></Button>
                                 <Button size="sm" variant="ghost" className="p-0.5 text-red-500" onClick={() => handleDelete(entry.id)}><DeleteIcon className="w-3 h-3"/></Button>
                               </div>
                             </div>
                           ) : (
                             <div className="flex items-center justify-center h-full">
-                              <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 p-0.5" onClick={() => openModal(undefined, day, period.id)}>
-                                <PlusIcon className="w-4 h-4 text-gray-400"/>
+                              <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 p-0.5" onClick={() => openModal(undefined, day, idOf(period.id))}>
+                                <PlusIcon className="w-4 h-4 text-surface-muted-fg"/>
                               </Button>
                             </div>
                           )}
@@ -237,8 +308,8 @@ const TimetableEntriesPage: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button type="submit" disabled={loading.timetableEntries}>
-              {loading.timetableEntries ? <Spinner size="sm"/> : (editingEntry ? 'Save Changes' : 'Add Slot')}
+            <Button onClick={handleSubmit} loading={isSaving}>
+              {editingEntry ? 'Save Changes' : 'Add Slot'}
             </Button>
           </FormActions>
         }
@@ -261,14 +332,14 @@ const TimetableEntriesPage: React.FC = () => {
             <Select
               name="period_id"
               label="Period"
-              value={formData.period_id || ''}
+              value={formData.period_id ?? ''}
               onChange={(e) => handleInputChange('period_id', e.target.value)}
               required
               disabled={!!editingEntry}
             >
               <option value="">Select Period</option>
-              {(sortedPeriods || []).map((p: TimetablePeriodDef) => (
-                <option key={p.id} value={p.id}>{p.period_name} ({p.start_time.slice(0,5)}-{p.end_time.slice(0,5)})</option>
+              {sortedPeriods.map(p => (
+                <option key={p.id} value={idOf(p.id)}>{p.period_name} ({p.start_time.slice(0,5)}-{p.end_time.slice(0,5)})</option>
               ))}
             </Select>
           </FormField>
@@ -276,13 +347,13 @@ const TimetableEntriesPage: React.FC = () => {
             <Select
               name="subject_id"
               label="Subject"
-              value={formData.subject_id || ''}
+              value={formData.subject_id ?? ''}
               onChange={(e) => handleInputChange('subject_id', e.target.value)}
               required
             >
               <option value="">Select Subject</option>
-              {(subjects || []).map((subject: Subject) => (
-                <option key={subject.id} value={subject.id}>{subject.name}</option>
+              {subjects.map(subject => (
+                <option key={subject.id} value={idOf(subject.id)}>{subject.name}</option>
               ))}
             </Select>
           </FormField>
@@ -295,8 +366,8 @@ const TimetableEntriesPage: React.FC = () => {
               required
             >
               <option value="">Select Teacher</option>
-              {(availableTeachers || []).map((t: Staff) => (
-                <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
+              {availableTeachers.map(teacher => (
+                <option key={teacher.id} value={idOf(teacher.id)}>{fullName(teacher)}</option>
               ))}
             </Select>
           </FormField>
@@ -304,6 +375,10 @@ const TimetableEntriesPage: React.FC = () => {
       </DialogForm>
     </div>
   );
+};
+
+const TimetableEntriesPage: React.FC = () => {
+  return <TimetableEntriesContent />;
 };
 
 export default TimetableEntriesPage;

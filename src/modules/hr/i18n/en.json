@@ -5,6 +5,7 @@
       "title": "HR",
       "description": "Manage human resources, payroll, and staff compensation",
       "dashboard": "Dashboard",
+      "payroll": "Payroll",
       "payrollItemTypes": "Payroll Item Types",
       "payrollPeriods": "Payroll Periods",
       "payslips": "Payslips",

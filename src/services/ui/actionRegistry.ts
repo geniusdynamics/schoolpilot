@@ -1,6 +1,7 @@
 import React from 'react';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
+import { logger } from '@/utils/logging';
 
 // Core action definition interface with RBAC support
 export interface ActionDefinition {
@@ -340,19 +341,19 @@ export const useActionRegistry = create<ActionRegistryStore>()(subscribeWithSele
       const action = state.getActionById(actionId);
       
       if (!action) {
-        console.error(`Action not found: ${actionId}`);
+        logger.error(`Action not found: ${actionId}`);
         return;
       }
       
       // Validate permissions before execution
       if (!state.hasPermission(action, context.user.permissions, context.user.role)) {
-        console.error(`Insufficient permissions to execute action: ${actionId}`);
+        logger.error(`Insufficient permissions to execute action: ${actionId}`);
         return;
       }
       
       // Check if action is disabled
       if (action.disabled) {
-        console.warn(`Action is disabled: ${actionId}`);
+        logger.warn(`Action is disabled: ${actionId}`);
         return;
       }
       
@@ -367,9 +368,9 @@ export const useActionRegistry = create<ActionRegistryStore>()(subscribeWithSele
           await action.onClick(context);
         }
         
-        console.log(`Action executed successfully: ${actionId}`);
+        logger.info(`Action executed successfully: ${actionId}`);
       } catch (error) {
-        console.error(`Error executing action ${actionId}:`, error);
+        logger.error(`Error executing action ${actionId}:`, error);
         throw error;
       } finally {
         // Clear loading state

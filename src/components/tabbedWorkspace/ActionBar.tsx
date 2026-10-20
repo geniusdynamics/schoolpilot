@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { ChevronDown, ChevronRight, Search, Filter, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronDownIcon as ChevronDown,
+  ChevronRightIcon as ChevronRight,
+  MagnifyingGlassIcon as Search,
+  EllipsisHorizontalIcon as MoreHorizontal,
+} from '@heroicons/react/24/outline';
+
 import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../../services/ui/actionRegistry';
 import { useTabStore } from '../../stores/tabStore';
 import { cn } from '../../utils/cn';
 import { getIcon } from '../../utils/iconMap';
+import { logger } from '@/utils/logging';
 
 interface ActionBarProps {
   className?: string;
@@ -14,6 +21,13 @@ interface ActionBarProps {
   orientation?: 'horizontal' | 'vertical';
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'compact' | 'expanded';
+}
+
+interface AdditionalProps {
+  moduleContext?: string;
+  userRole?: string;
+  userPermissions?: string[];
+  onSettingsClick?: () => void;
 }
 
 interface ActionButtonProps {
@@ -36,7 +50,6 @@ interface ActionGroupComponentProps {
 
 const ActionButton: React.FC<ActionButtonProps> = ({
   action,
-  context,
   size,
   variant,
   onClick
@@ -341,7 +354,7 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
     try {
       await executeAction(actionId, actionContext);
     } catch (error) {
-      console.error('Failed to execute action:', error);
+      logger.error('Failed to execute action:', error);
       // Here you could show a toast notification or error message
     }
   }, [actionContext, executeAction]);
@@ -366,9 +379,11 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
 
   if (!actionContext || actions.length === 0) {
     return (
-      <div className={cn(
-        'flex items-center justify-center p-4 text-sm text-gray-500',
-        'bg-gray-50 border border-gray-200 rounded-lg',
+      <div
+        data-testid="action-bar"
+        className={cn(
+        'flex items-center justify-center p-4 text-sm text-surface-muted-fg',
+        'bg-surface-muted border border-surface-border rounded-lg',
         className
       )}>
         No actions available for current context
@@ -377,8 +392,10 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
   }
 
   return (
-    <div className={cn(
-      'bg-white border border-green-200 rounded-lg shadow-sm',
+    <div
+      data-testid="action-bar"
+      className={cn(
+      'bg-surface-card border border-green-200 rounded-lg shadow-sm',
       orientation === 'vertical' ? 'flex flex-col' : 'flex flex-row items-center',
       className
     )}>
@@ -391,7 +408,7 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
           {/* Search */}
           {showSearch && (
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-surface-muted-fg" />
               <input
                 type="text"
                 placeholder="Search actions..."
@@ -473,7 +490,7 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
                 
                 {showOverflow && (
                   <div className={cn(
-                    'absolute top-full left-0 mt-1 bg-white border border-green-200',
+                    'absolute top-full left-0 mt-1 bg-surface-card border border-green-200',
                     'rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto'
                   )}>
                     <div className="p-2 space-y-1">

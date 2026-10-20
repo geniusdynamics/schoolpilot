@@ -1,13 +1,15 @@
-// ABOUTME: Authentication service for user login, logout, and session management
-// ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (SQLite/PouchDB)
+import { logger } from '@/utils/logging';
+
+// ABOUTME: Authentication service for user login, logout, session management and first administrator creation
+// ABOUTME: Fails closed: demo login only for demo databases; storage errors or an empty users table never fall back to demo
 
 import { databaseService } from '../database/databaseService';
 // Using unified database service (SQLite-WASM/PouchDB)
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../../core/rbacService';
-import { unifiedConfigManager } from '../../config/unifiedConfig';
+import { unifiedConfigManager, getStoredDataMode } from '../../config/unifiedConfig';
 import { reportError } from '../../config/errorTracking';
-import { hashPassword, verifyPassword, generateSecureToken, checkPasswordComplexity } from '../../utils/passwordHash';
+import { hashPassword, verifyPassword, generateSecureToken } from '../../utils/passwordHash';
 import { CapabilityDetector } from '@/services/database/detection/CapabilityDetector';
 
 // Authentication Types
@@ -37,13 +39,41 @@ export interface AuthSession {
   isDemo: boolean;
 }
 
+/** Why a login was refused when the reason is not simply bad credentials. */
+export type AuthFailureReason = 'storage-unavailable' | 'no-administrator';
+
 export interface AuthResult {
   success: boolean;
   user?: AuthUser;
   session?: AuthSession;
   message: string;
   errors?: string[];
+  reason?: AuthFailureReason;
 }
+
+/** What the login page should offer: demo accounts, a sign-in form, or the create-administrator path. */
+export interface LoginState {
+  mode: 'demo' | 'live';
+  status: 'ready' | 'needs-administrator' | 'storage-unavailable';
+}
+
+export interface InitialAdministratorInput {
+  username: string;
+  displayName: string;
+  password: string;
+  email?: string;
+}
+
+export const MIN_ADMIN_PASSWORD_LENGTH = 10;
+const SUPER_ADMIN_ROLE = 'super_admin';
+const STORAGE_UNAVAILABLE_MESSAGE = 'The school database is not available on this device. Sign-in is disabled until storage is working.';
+const NO_ADMINISTRATOR_MESSAGE = 'No administrator account exists yet. Create the administrator to continue.';
+
+/** True when a users row is active. SQLite rows carry the schema column is_active (1/0); older rows use isActive. */
+const isUserRowActive = (user: { is_active?: unknown; isActive?: unknown }): boolean => {
+  const flag = user.is_active ?? user.isActive;
+  return flag === true || flag === 1 || flag === '1' || flag === 'true';
+};
 
 // Service Result Types
 export interface ServiceResult<T> {
@@ -54,7 +84,7 @@ export interface ServiceResult<T> {
 }
 
 class AuthService {
-  private isDemoMode: boolean = true;
+  private isDemoMode: boolean = false;
   private currentSession: AuthSession | null = null;
   private sessionKey = 'schoolpilot_auth_session';
   private databaseAvailable: boolean = false;
@@ -68,73 +98,87 @@ class AuthService {
   }
 
   private async initialize() {
-    console.log('🔐 [AuthService] initialize() called');
+    logger.info('🔐 [AuthService] initialize() called');
     try {
+      // Demo login is decided only by the persisted data mode, never by failures or environment defaults.
+      this.isDemoMode = await this.persistedModeIsDemo();
+
       // Check if IndexedDB is available using centralized CapabilityDetector
       const detector = CapabilityDetector.getInstance();
       const hasIndexedDB = await detector.hasCapability('hasIndexedDB');
-      console.log('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
-      
-      if (!hasIndexedDB) {
-        console.warn('🔐 [AuthService] IndexedDB not available, forcing demo mode');
-        this.isDemoMode = true;
-        this.databaseAvailable = false;
-        this.initializationComplete = true;
-        this.restoreSession();
-        return;
-      }
+      logger.info('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
 
-      // Try to initialize the dynamic database service with timeout
-      try {
-        const dbInitPromise = databaseService.initialize({
-          name: 'schoolpilot_db',
-          multiInstance: true,
-          ignoreDuplicate: true
-        });
+      if (hasIndexedDB) {
+        try {
+          const dbInitPromise = databaseService.initialize({
+            name: 'schoolpilot_db',
+            multiInstance: true,
+            ignoreDuplicate: true
+          });
 
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Database init timeout')), 10000);
-        });
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Database init timeout')), 10000);
+          });
 
-        await Promise.race([dbInitPromise, timeoutPromise]);
+          await Promise.race([dbInitPromise, timeoutPromise]);
 
-        this.databaseAvailable = databaseService.isServiceInitialized();
-        this.detectedProvider = databaseService.getDetectedProviderType() || 'unknown';
-
-        console.log(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.databaseAvailable}`);
-      } catch (error) {
-        console.warn('Database service initialization failed or timed out, forcing demo mode:', error);
-        this.databaseAvailable = false;
-        this.detectedProvider = 'unknown';
-      }
-
-      // Use unified configuration to determine mode
-      const config = unifiedConfigManager.getConfig();
-      
-      // Force demo mode if database is not available
-      if (!this.databaseAvailable) {
-        console.warn('Database not available, forcing demo mode');
-        this.isDemoMode = true;
-        await unifiedConfigManager.switchToDemo();
+          this.databaseAvailable = databaseService.isServiceInitialized();
+          this.detectedProvider = databaseService.getDetectedProviderType() || 'unknown';
+        } catch (error) {
+          logger.error('🔐 [AuthService] Database initialisation failed; sign-in is disabled until storage works:', error);
+          this.databaseAvailable = false;
+          this.detectedProvider = 'unknown';
+        }
       } else {
-        this.isDemoMode = config.mode === 'demo';
+        logger.error('🔐 [AuthService] IndexedDB not available; sign-in is disabled until storage works');
+        this.databaseAvailable = false;
       }
-      
-      this.initializationComplete = true;
-      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.databaseAvailable}, Provider = ${this.detectedProvider}`);
-      
-      // Restore session from localStorage
-      this.restoreSession();
-      
+
+      logger.info(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.databaseAvailable}, Provider = ${this.detectedProvider}`);
     } catch (error) {
-      console.error('AuthService initialization failed:', error);
-      // Force demo mode on any initialization error
-      this.isDemoMode = true;
+      logger.error('AuthService initialization failed:', error);
       this.databaseAvailable = false;
-      await unifiedConfigManager.switchToDemo().catch(() => {});
+    } finally {
       this.initializationComplete = true;
       this.restoreSession();
     }
+  }
+
+  /**
+   * True only when the stored configuration says this is a demo database. The configuration is
+   * loaded first (so a legacy data-mode key is migrated); unloaded or default values never count.
+   */
+  private async persistedModeIsDemo(): Promise<boolean> {
+    try {
+      await unifiedConfigManager.init();
+    } catch (error) {
+      logger.error('🔐 [AuthService] Could not load configuration; treating as live mode:', error);
+      return false;
+    }
+    try {
+      return getStoredDataMode() === 'demo';
+    } catch (error) {
+      logger.error('🔐 [AuthService] Could not read the stored data mode; treating as live mode:', error);
+      return false;
+    }
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initializationComplete && this.initializationPromise) {
+      await this.initializationPromise;
+    }
+  }
+
+  private storageUnavailable(): AuthResult {
+    return { success: false, reason: 'storage-unavailable', message: STORAGE_UNAVAILABLE_MESSAGE };
+  }
+
+  /** Returns the users collection, or null when live storage cannot be used. */
+  private async getUsersCollection() {
+    if (!this.databaseAvailable) return null;
+    await databaseService.getDatabase();
+    if (!databaseService.getProvider()) return null;
+    return databaseService.getCollection('users') || null;
   }
 
   // ===== DATABASE PROVIDER DETECTION (Legacy - now handled by dynamic service) =====
@@ -159,8 +203,8 @@ class AuthService {
       const session = JSON.parse(sessionData);
       const expiresAt = new Date(session.expiresAt);
       
-      // Check if session is expired
-      if (expiresAt < new Date()) {
+      // Check if session is expired; a demo session is never valid outside a demo database
+      if (expiresAt < new Date() || (session.isDemo && !this.isDemoMode)) {
         this.clearSession();
         return null;
       }
@@ -173,7 +217,7 @@ class AuthService {
       
       return this.currentSession;
     } catch (error) {
-      console.error('Error restoring session:', error);
+      logger.error('Error restoring session:', error);
       this.clearSession();
       return null;
     }
@@ -186,7 +230,7 @@ class AuthService {
 
   public getCurrentSession(): AuthSession | null {
     if (!this.initializationComplete) {
-      console.warn('AuthService not fully initialized');
+      logger.warn('AuthService not fully initialized');
       return null;
     }
     
@@ -210,14 +254,16 @@ class AuthService {
     return this.initializationComplete;
   }
 
+  /** True only when the persisted data mode is demo (false until initialisation has decided). */
+  public isDemoDatabase(): boolean {
+    return this.initializationComplete && this.isDemoMode;
+  }
+
   // ===== AUTHENTICATION METHODS =====
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {
     try {
-      // Wait for initialization if not complete
-      if (!this.initializationComplete && this.initializationPromise) {
-        await this.initializationPromise;
-      }
+      await this.ensureInitialized();
 
       if (this.isDemoMode) {
         return this.loginDemo(credentials);
@@ -225,7 +271,7 @@ class AuthService {
         return this.loginProduction(credentials);
       }
     } catch (error) {
-      console.error('AuthService login error:', error);
+      logger.error('AuthService login error:', error);
       
       // Report login error to Bugsink
       reportError(error instanceof Error ? error : new Error('Unknown login error'), {
@@ -292,7 +338,7 @@ class AuthService {
 
   private async loginDemo(credentials: LoginCredentials): Promise<AuthResult> {
     // SECURITY WARNING: Demo mode accepts any password and should only be used for testing
-    console.warn('🔐 [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
+    logger.warn('🔐 [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
     
     // Demo users for testing different roles
     const demoUsers: { [key: string]: AuthUser } = {
@@ -421,58 +467,19 @@ class AuthService {
   // ===== PRODUCTION MODE AUTHENTICATION =====
 
   private async loginProduction(credentials: LoginCredentials): Promise<AuthResult> {
-    // Ensure database is initialized before proceeding
-    if (!this.databaseAvailable) {
-      console.warn('🔐 [AuthService] Database not available, falling back to demo mode');
-      this.isDemoMode = true;
-      await unifiedConfigManager.switchToDemo();
-      return this.loginDemo(credentials);
-    }
-
-    // Double-check database is actually ready
-    await databaseService.getDatabase();
-    
     try {
-      // Get database provider from the dynamic service
-      const provider = databaseService.getProvider();
-      if (!provider) {
-        console.warn('🔐 [AuthService] Database provider not available, falling back to demo mode');
-        this.isDemoMode = true;
-        await unifiedConfigManager.switchToDemo();
-        return this.loginDemo(credentials);
-      }
-      
-      // Get users collection
-      const usersCollection = databaseService.getCollection('users');
+      const usersCollection = await this.getUsersCollection();
       if (!usersCollection) {
-        console.warn('🔐 [AuthService] Users collection not available, falling back to demo mode');
-        this.isDemoMode = true;
-        await unifiedConfigManager.switchToDemo();
-        return this.loginDemo(credentials);
+        logger.error('🔐 [AuthService] Live sign-in refused: users storage is unavailable');
+        return this.storageUnavailable();
       }
-      
-      // Check if any users exist in the database
+
+      // Fresh install: the administrator must be created; never fall back to demo accounts
       const allUsers = await usersCollection.find({ selector: {} });
       if (!allUsers || allUsers.length === 0) {
-        console.log('🔐 [AuthService] No users found in production database, switching to demo mode');
-        
-        // Switch to demo mode automatically
-        await unifiedConfigManager.switchToDemo();
-        this.isDemoMode = true;
-        
-        // Log the fallback to demo mode
-        console.warn('🔐 [AuthService] Automatically switched to demo mode due to empty user database');
-        reportError(new Error('Production database empty - switched to demo mode'), {
-          username: credentials.username,
-          loginType: 'production_fallback_to_demo',
-          errorContext: 'empty_database_fallback',
-          timestamp: new Date().toISOString()
-        });
-        
-        // Use demo login instead
-        return this.loginDemo(credentials);
+        return { success: false, reason: 'no-administrator', message: NO_ADMINISTRATOR_MESSAGE };
       }
-      
+
       // Find user by username
       const user = await usersCollection.findOne({ selector: { username: credentials.username } });
       if (!user) {
@@ -492,7 +499,7 @@ class AuthService {
       }
       
       // Check if user is active
-      if (!user.is_active) {
+      if (!isUserRowActive(user)) {
         // Report production login failure to Bugsink
         const loginError = new Error('Production login failed: Account deactivated');
         reportError(loginError, {
@@ -510,8 +517,9 @@ class AuthService {
       }
 
       // CRITICAL FIX: Implement proper password verification (CRIT-003, SEC-002)
-      // Check if user has a password hash stored
-      if (!user.password_hash) {
+      // Passwords are stored in the canonical `hashed_password` field using the
+      // serialized format `hash:salt:iterations` written by SettingsUsersPage.
+      if (!user.hashed_password) {
         // No password set - this shouldn't happen in production
         reportError(new Error('Production login failed: No password hash'), {
           username: credentials.username,
@@ -527,11 +535,30 @@ class AuthService {
         };
       }
       
+      // Parse the stored `hash:salt:iterations` triple. Placeholder values such as the
+      // legacy 'mockhashedpassword' seed have no salt and are rejected below.
+      const [storedHash, storedSalt, storedIterations] = String(user.hashed_password).split(':');
+
+      if (!storedHash || !storedSalt) {
+        reportError(new Error('Production login failed: Malformed password hash'), {
+          username: credentials.username,
+          userId: user.id,
+          loginType: 'production',
+          errorContext: 'malformed_password_hash',
+          timestamp: new Date().toISOString()
+        });
+        
+        return {
+          success: false,
+          message: 'Account not properly configured. Please contact administrator.'
+        };
+      }
+      
       // Verify password using PBKDF2 hashing
       const passwordValid = await verifyPassword(credentials.password, {
-        hash: user.password_hash,
-        salt: user.password_salt,
-        iterations: user.password_iterations || 100000
+        hash: storedHash,
+        salt: storedSalt,
+        iterations: parseInt(storedIterations, 10) || 100000
       });
       
       if (!passwordValid) {
@@ -558,12 +585,13 @@ class AuthService {
       const userRolesCollection = databaseService.getCollection('user_roles');
       const rolesCollection = databaseService.getCollection('rbac_roles');
       
-      const userRoles = userRolesCollection ? await userRolesCollection.find({ selector: { userId: user.id } }) : [];
+      // user_roles rows use the schema columns user_id/role_id.
+      const userRoles = userRolesCollection ? await userRolesCollection.find({ selector: { user_id: user.id } }) : [];
       const moduleAccess: string[] = [];
       
       for (const userRole of userRoles) {
         if (rolesCollection) {
-          const role = await rolesCollection.findOne({ selector: { id: userRole.roleId } });
+          const role = await rolesCollection.findOne({ selector: { id: userRole.role_id } });
           if (role) {
             Object.keys(role.moduleAccess || {}).forEach(moduleId => {
               if (role.moduleAccess[moduleId].enabled && !moduleAccess.includes(moduleId)) {
@@ -579,9 +607,9 @@ class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        fullName: user.full_name,
-        role: userRoles[0]?.roleId || 'user',
-        isActive: user.is_active,
+        fullName: user.display_name,
+        role: userRoles[0]?.role_id || user.role || 'user',
+        isActive: isUserRowActive(user),
         lastLoginAt: new Date(),
         createdAt: new Date(user.created_at),
         updatedAt: new Date(user.updated_at),
@@ -604,7 +632,7 @@ class AuthService {
         try {
           await usersCollection.update(user.id, { last_login_at: new Date().toISOString() });
         } catch (updateError) {
-          console.warn('Failed to update last login time:', updateError);
+          logger.warn('Failed to update last login time:', updateError);
           // Don't fail the login process if we can't update last login
         }
       }
@@ -626,7 +654,77 @@ class AuthService {
       
       return {
         success: false,
-        message: 'Login failed',
+        reason: 'storage-unavailable',
+        message: 'Login failed: the school database could not be read',
+        errors: [error instanceof Error ? error.message : 'Unknown error']
+      };
+    }
+  }
+
+  // ===== FIRST RUN =====
+
+  /** Tells the login page whether to offer demo accounts, sign-in, or the create-administrator path. */
+  async getLoginState(): Promise<LoginState> {
+    await this.ensureInitialized();
+    if (this.isDemoMode) return { mode: 'demo', status: 'ready' };
+    try {
+      const usersCollection = await this.getUsersCollection();
+      if (!usersCollection) return { mode: 'live', status: 'storage-unavailable' };
+      const users = await usersCollection.find({ selector: {} });
+      return { mode: 'live', status: users && users.length > 0 ? 'ready' : 'needs-administrator' };
+    } catch (error) {
+      logger.error('🔐 [AuthService] Could not read users:', error);
+      return { mode: 'live', status: 'storage-unavailable' };
+    }
+  }
+
+  /** Creates the first administrator of a live database. Refused once any user exists. */
+  async createInitialAdministrator(input: InitialAdministratorInput): Promise<AuthResult> {
+    await this.ensureInitialized();
+    const username = input.username.trim();
+    const displayName = input.displayName.trim();
+    if (this.isDemoMode) {
+      return { success: false, message: 'Administrator accounts cannot be created in a demo database.' };
+    }
+    if (username.length < 3 || !displayName) {
+      return { success: false, message: 'Enter a username (at least 3 characters) and a display name.' };
+    }
+    if (input.password.length < MIN_ADMIN_PASSWORD_LENGTH) {
+      return { success: false, message: `The password must be at least ${MIN_ADMIN_PASSWORD_LENGTH} characters.` };
+    }
+    try {
+      const usersCollection = await this.getUsersCollection();
+      if (!usersCollection) return this.storageUnavailable();
+      const existing = await usersCollection.find({ selector: {} });
+      if (existing && existing.length > 0) {
+        return { success: false, message: 'An administrator already exists. Sign in instead.' };
+      }
+
+      const hashed = await hashPassword(input.password);
+      const now = new Date().toISOString();
+      const created = await usersCollection.insert({
+        username,
+        display_name: displayName,
+        email: input.email?.trim() || '',
+        userType: 'Administrator',
+        role: SUPER_ADMIN_ROLE,
+        role_id: SUPER_ADMIN_ROLE,
+        is_active: true,
+        hashed_password: `${hashed.hash}:${hashed.salt}:${hashed.iterations}`,
+        created_at: now,
+        updated_at: now,
+      });
+
+      const userRolesCollection = databaseService.getCollection('user_roles');
+      if (userRolesCollection && created?.id) {
+        await userRolesCollection.insert({ user_id: created.id, role_id: SUPER_ADMIN_ROLE, created_at: now, updated_at: now });
+      }
+      return { success: true, message: 'Administrator created. You can now sign in.' };
+    } catch (error) {
+      logger.error('🔐 [AuthService] Creating the administrator failed:', error);
+      return {
+        success: false,
+        message: 'Could not create the administrator',
         errors: [error instanceof Error ? error.message : 'Unknown error']
       };
     }

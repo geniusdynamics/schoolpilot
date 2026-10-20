@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { DocumentTextIcon, PrinterIcon, DownloadIcon, ArrowPathIcon, ChevronDownIcon, ChevronUpIcon } from '@/components/ui/icons';
+
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -13,15 +13,16 @@ import Spinner from '@/components/ui/Spinner';
 import { useVoteheadStatement } from '../hooks/useVoteheadStatement';
 import type { VoteheadStatementRow } from '../hooks/useVoteheadStatement';
 import { useAppData } from '@/hooks/useAppData';
+import { ArrowPathIcon, DocumentTextIcon, DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 
 // Currency formatter for KES
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(value);
 
-const VoteheadStatementPage: React.FC = () => {
+export const VoteheadStatementPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: statementRows, loading, error, refresh } = useVoteheadStatement();
-  const { students, schoolPeriods, loading: appLoading } = useAppData();
+  const { schoolPeriods, loading: appLoading } = useAppData();
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,8 +39,8 @@ const VoteheadStatementPage: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (r) =>
-          r.admissionNo.toLowerCase().includes(term) ||
-          r.invoiceNumber.toLowerCase().includes(term)
+          (r.admissionNo?.toLowerCase() ?? '').includes(term) ||
+          (r.invoiceNumber?.toLowerCase() ?? '').includes(term)
       );
     }
 
@@ -86,7 +87,7 @@ const VoteheadStatementPage: React.FC = () => {
         sortable: true,
         render: (value, row) => (
           <button
-            className="text-blue-600 hover:underline"
+            className="text-primary-600 hover:underline"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedInvoiceId(row.invoiceId);
@@ -117,7 +118,7 @@ const VoteheadStatementPage: React.FC = () => {
         width: 130,
         sortable: true,
         render: (value) => (
-          <span className="font-mono text-blue-600">{formatCurrency(value)}</span>
+          <span className="font-mono text-primary-600">{formatCurrency(value)}</span>
         ),
       },
       {
@@ -231,7 +232,7 @@ const VoteheadStatementPage: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('voteheadStatement.title') || 'Votehead Statement'}>
         {/* Filters */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               placeholder={t('voteheadStatement.searchPlaceholder') || 'Search by admission no or invoice no...'}
@@ -278,9 +279,9 @@ const VoteheadStatementPage: React.FC = () => {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="bg-blue-50 p-3 rounded-md">
-            <div className="text-sm text-blue-600">{t('voteheadStatement.totalBilled') || 'Total Billed'}</div>
-            <div className="text-xl font-bold text-blue-800">{formatCurrency(totals.billed)}</div>
+          <div className="bg-primary-50 p-3 rounded-md">
+            <div className="text-sm text-primary-600">{t('voteheadStatement.totalBilled') || 'Total Billed'}</div>
+            <div className="text-xl font-bold text-primary-800">{formatCurrency(totals.billed)}</div>
           </div>
           <div className="bg-green-50 p-3 rounded-md">
             <div className="text-sm text-green-600">{t('voteheadStatement.totalPaid') || 'Total Paid'}</div>
@@ -317,11 +318,12 @@ const VoteheadStatementPage: React.FC = () => {
         <DataGrid
           columns={columns}
           data={filteredData}
+          keyField="invoiceItemId"
           onRowClick={handleRowClick}
           sortable
           filterable
           emptyState={{
-            icon: <DocumentTextIcon className="w-12 h-12 text-gray-400" />,
+            icon: <DocumentTextIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: t('voteheadStatement.noData') || 'No Data',
             description:
               t('voteheadStatement.noDataDescription') ||
@@ -332,5 +334,10 @@ const VoteheadStatementPage: React.FC = () => {
     </div>
   );
 };
+const VoteheadStatementPage: React.FC = () => (
+  <div className="space-y-6">
+    <VoteheadStatementPageContent />
+  </div>
+);
 
 export default VoteheadStatementPage;

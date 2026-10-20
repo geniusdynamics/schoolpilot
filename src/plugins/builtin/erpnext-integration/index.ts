@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * ERPNext Integration Plugin
  * 
@@ -11,7 +13,7 @@ import manifest from './plugin.json';
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[ERPNext Plugin] Activating...');
+    logger.info('[ERPNext Plugin] Activating...');
     
     try {
       // Get settings with defaults
@@ -19,7 +21,7 @@ const module: PluginModule = {
       
       // Check if this is first activation (no settings configured)
       if (!settings.baseUrl || !settings.apiKey || !settings.apiSecret) {
-        console.log('[ERPNext Plugin] No configuration found - plugin enabled but not configured');
+        logger.info('[ERPNext Plugin] No configuration found - plugin enabled but not configured');
         
         // Show notification to configure
         context.api.showNotification(
@@ -74,7 +76,7 @@ const module: PluginModule = {
         configSchema: manifest.settings,
       });
       
-      console.log('[ERPNext Plugin] Provider registered successfully');
+      logger.info('[ERPNext Plugin] Provider registered successfully');
       
       // Register hooks
       context.api.addHook('backend.provider.register', () => {
@@ -83,14 +85,14 @@ const module: PluginModule = {
       
       // Sync hooks
       context.api.addHook('sync.before', async (entity: string) => {
-        console.log(`[ERPNext Plugin] Starting sync for ${entity}`);
+        logger.info(`[ERPNext Plugin] Starting sync for ${entity}`);
       });
       
       context.api.addHook('sync.after', async (entity: string, result: any) => {
-        console.log(`[ERPNext Plugin] Sync completed for ${entity}:`, result);
+        logger.info(`[ERPNext Plugin] Sync completed for ${entity}:`, result);
       });
       
-      console.log('[ERPNext Plugin] Activated successfully');
+      logger.info('[ERPNext Plugin] Activated successfully');
       
       // Show success notification
       context.api.showNotification(
@@ -98,7 +100,7 @@ const module: PluginModule = {
         'success'
       );
     } catch (error) {
-      console.error('[ERPNext Plugin] Activation failed:', error);
+      logger.error('[ERPNext Plugin] Activation failed:', error);
       context.api.showNotification(
         `ERPNext activation failed: ${error instanceof Error ? error.message : String(error)}`,
         'error'
@@ -108,7 +110,7 @@ const module: PluginModule = {
   },
   
   async deactivate(context: PluginContext) {
-    console.log('[ERPNext Plugin] Deactivating...');
+    logger.info('[ERPNext Plugin] Deactivating...');
     
     try {
       const registry = BackendProviderRegistry.getInstance();
@@ -116,14 +118,14 @@ const module: PluginModule = {
       // Unregister provider
       await registry.unregister('erpnext');
       
-      console.log('[ERPNext Plugin] Deactivated successfully');
+      logger.info('[ERPNext Plugin] Deactivated successfully');
       
       context.api.showNotification(
         'ERPNext integration deactivated',
         'info'
       );
     } catch (error) {
-      console.error('[ERPNext Plugin] Deactivation failed:', error);
+      logger.error('[ERPNext Plugin] Deactivation failed:', error);
     }
   },
 };

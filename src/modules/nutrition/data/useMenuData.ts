@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for menu data management
 // ABOUTME: Provides CRUD operations for menu without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockMenus } from './mockData';
 import { Menu } from '@/core/types';
+import { useState } from 'react';
 
 export const useMenuData = () => {
   const [data, setData] = useState<Menu[]>(initialMockMenus);

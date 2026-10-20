@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * White-Label Plugin
  * 
@@ -109,7 +111,7 @@ export const manifest: PluginManifest = {
       key: 'primaryColor',
       label: 'Primary Brand Color',
       type: 'color',
-      defaultValue: '#3B82F6',
+      defaultValue: '#6366f1',
       description: 'Primary color for buttons and accents',
     },
     {
@@ -172,14 +174,14 @@ export const manifest: PluginManifest = {
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[WhiteLabel Plugin] Activating...');
+    logger.info('[WhiteLabel Plugin] Activating...');
 
     // Check entitlements
     const entitlements = getEntitlements();
     const whiteLabelCheck = entitlements.canUseWhiteLabel();
 
     if (!whiteLabelCheck.available) {
-      console.warn('[WhiteLabel Plugin] Feature not entitled:', whiteLabelCheck.reason);
+      logger.warn('[WhiteLabel Plugin] Feature not entitled:', whiteLabelCheck.reason);
       
       // Register a hook that shows upgrade prompt when settings are accessed
       context.api.addHook('ui.branding.header', (defaultBranding: any) => {
@@ -201,7 +203,7 @@ const module: PluginModule = {
       return; // Don't register other hooks
     }
 
-    console.log('[WhiteLabel Plugin] Entitlement verified, tier:', whiteLabelCheck.tier);
+    logger.info('[WhiteLabel Plugin] Entitlement verified, tier:', whiteLabelCheck.tier);
 
     // Check if full features are available (enterprise/reseller)
     const hasFullFeatures = entitlements.hasFeature('whitelabel-full');
@@ -271,12 +273,12 @@ const module: PluginModule = {
       };
     }, 10);
 
-    console.log('[WhiteLabel Plugin] Activated successfully');
+    logger.info('[WhiteLabel Plugin] Activated successfully');
   },
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deactivate(_context: PluginContext) {
-    console.log('[WhiteLabel Plugin] Deactivated');
+    logger.info('[WhiteLabel Plugin] Deactivated');
   },
 };
 
@@ -291,7 +293,7 @@ function getBrandingState(context: PluginContext): BrandingState {
     appName: enabled ? (context.api.getSetting('appName') || 'SchoolPilot3') : 'SchoolPilot3',
     tagline: enabled ? (context.api.getSetting('tagline') || '') : '',
     logo: enabled ? context.api.getSetting('logoLight') : null,
-    primaryColor: enabled ? (context.api.getSetting('primaryColor') || '#3B82F6') : '#3B82F6',
+    primaryColor: enabled ? (context.api.getSetting('primaryColor') || '#6366f1') : '#6366f1',
     secondaryColor: enabled ? (context.api.getSetting('secondaryColor') || '#10B981') : '#10B981',
     accentColor: enabled ? (context.api.getSetting('accentColor') || '#8B5CF6') : '#8B5CF6',
     hidePoweredBy: enabled ? (context.api.getSetting('hidePoweredBy') || false) : false,
@@ -316,7 +318,7 @@ export function createWhiteLabelHook(getPlugin: (id: string) => any, doHook: (na
         appName: defaultAppName,
         tagline: '',
         logo: null,
-        primaryColor: '#3B82F6',
+        primaryColor: '#6366f1',
         secondaryColor: '#10B981',
         accentColor: '#8B5CF6',
         hidePoweredBy: false,
@@ -334,7 +336,7 @@ function getBrandingStateFromDefaults(defaultAppName: string): BrandingState {
     appName: defaultAppName,
     tagline: '',
     logo: null,
-    primaryColor: '#3B82F6',
+    primaryColor: '#6366f1',
     secondaryColor: '#10B981',
     accentColor: '#8B5CF6',
     hidePoweredBy: false,

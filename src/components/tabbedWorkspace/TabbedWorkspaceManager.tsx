@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Tabbed workspace manager for handling module navigation and tab creation
 // ABOUTME: Ensures proper tab creation when switching between modules and pages
 // ABOUTME: Enhanced with TabStateManager for improved module dashboard detection and platform adaptation
@@ -6,7 +8,6 @@ import React, { useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTabStore } from '../../stores/tabStore';
 import { useDynamicNavigation } from '../../hooks/useDynamicNavigation';
-import { extractModuleId } from '../../utils/moduleUtils';
 import { TabStateManager, defaultTabStateConfig } from '../../services/ui/TabStateManager';
 
 interface TabbedWorkspaceManagerProps {
@@ -42,7 +43,7 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     const touchDevice = 'ontouchstart' in window;
     tabStateManager.current.setPlatformInfo({ platform, touchDevice });
     
-    console.log('🔧 [TabbedWorkspaceManager] TabStateManager initialized for platform:', platform);
+    logger.info('🔧 [TabbedWorkspaceManager] TabStateManager initialized for platform:', platform);
   }, [tabs, createTab, activateTab]);
 
   // Find the module and navigation item for the current path
@@ -75,26 +76,26 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     previousPathRef.current = location.pathname;
     
     try {
-      console.log('🔍 [TabbedWorkspaceManager] Handling route change to:', location.pathname);
+      logger.info('🔍 [TabbedWorkspaceManager] Handling route change to:', location.pathname);
       
       const navigationItem = findNavigationItemForPath(location.pathname);
       
       if (!navigationItem) {
-        console.warn('⚠️ [TabbedWorkspaceManager] No navigation item found for path:', location.pathname);
+        logger.warn('⚠️ [TabbedWorkspaceManager] No navigation item found for path:', location.pathname);
         return;
       }
 
-      console.log('🔍 [TabbedWorkspaceManager] Found navigation item:', navigationItem);
+      logger.info('🔍 [TabbedWorkspaceManager] Found navigation item:', navigationItem);
 
       // Use TabStateManager for enhanced tab creation with proper dashboard detection
       const result = await tabStateManager.current.createModuleTab(navigationItem, location);
       
       if (result.action === 'created') {
-        console.log('✅ [TabbedWorkspaceManager] Created new tab via TabStateManager:', result.tabId);
+        logger.info('✅ [TabbedWorkspaceManager] Created new tab via TabStateManager:', result.tabId);
       } else if (result.action === 'activated') {
-        console.log('✅ [TabbedWorkspaceManager] Activated existing tab via TabStateManager:', result.tabId);
+        logger.info('✅ [TabbedWorkspaceManager] Activated existing tab via TabStateManager:', result.tabId);
       } else if (result.action === 'error') {
-        console.error('❌ [TabbedWorkspaceManager] Error from TabStateManager:', result.message);
+        logger.error('❌ [TabbedWorkspaceManager] Error from TabStateManager:', result.message);
       }
       
     } finally {
@@ -110,13 +111,14 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     handleRouteChange();
   }, [handleRouteChange]);
 
-  // Log tab statistics periodically for debugging
+  // Log tab statistics periodically for debugging — only in dev and gated
   useEffect(() => {
+    if (import.meta.env.PROD) return;
+    if (!import.meta.env.DEV || (import.meta.env as any).DEBUG_TABS !== 'true') return;
     const interval = setInterval(() => {
       const stats = tabStateManager.current.getTabStatistics();
-      console.log('📊 [TabbedWorkspaceManager] Tab Statistics:', stats);
-    }, 30000); // Every 30 seconds
-    
+      logger.info('📊 [TabbedWorkspaceManager] Tab Statistics:', stats);
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 

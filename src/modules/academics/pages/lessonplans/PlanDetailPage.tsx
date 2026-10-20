@@ -20,14 +20,16 @@ import {
   ClockIcon,
   UserCircleIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan, PlanStatus, DayPlan } from '../../data/types';
+import { formatDate } from '@/utils/format';
+import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
+import type { DayPlan } from '../../data/types';
+
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<PlanStatus, string> = {
-  [PlanStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [PlanStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [PlanStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [PlanStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [PlanStatus.APPROVED]: 'bg-green-100 text-green-800',
   [PlanStatus.REJECTED]: 'bg-red-100 text-red-800',
 };
@@ -43,7 +45,7 @@ const PlanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('lessonplans');
-  const { weeklyPlans, loading, updateWeeklyPlan, submitPlan, reviewPlan } = useLessonPlansData();
+  const { weeklyPlans, loading, submitPlan, reviewPlan } = useLessonPlansData();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -159,9 +161,9 @@ const PlanDetailPage: React.FC = () => {
   if (!plan) {
     return (
       <div className="text-center py-12">
-        <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900">Plan not found</h3>
-        <p className="mt-1 text-sm text-gray-500">The weekly plan you're looking for doesn't exist.</p>
+        <CalendarDaysIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+        <h3 className="mt-2 text-lg font-medium text-surface-foreground">Plan not found</h3>
+        <p className="mt-1 text-sm text-surface-muted-fg">The weekly plan you're looking for doesn't exist.</p>
         <Button onClick={handleBack} className="mt-4">
           Back to Weekly Plans
         </Button>
@@ -184,10 +186,10 @@ const PlanDetailPage: React.FC = () => {
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-surface-foreground">
               Weekly Plan #{plan.id}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-surface-muted-fg">
               {plan.subjectName} - {plan.classStreamName}
             </p>
           </div>
@@ -251,32 +253,32 @@ const PlanDetailPage: React.FC = () => {
             <Card title="Plan Information">
               <div className="p-4 space-y-3">
                 <div className="flex items-center space-x-2">
-                  <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
+                  <CalendarDaysIcon className="w-5 h-5 text-surface-muted-fg" />
                   <div>
-                    <span className="text-sm text-gray-600">Week:</span>
+                    <span className="text-sm text-surface-muted-fg">Week:</span>
                     <p className="font-medium">
-                      {new Date(plan.weekStartDate).toLocaleDateString()} - {new Date(plan.weekEndDate).toLocaleDateString()}
+                      {plan.weekStartDate ? new Date(plan.weekStartDate).toLocaleDateString() : 'N/A'} - {plan.weekEndDate ? new Date(plan.weekEndDate).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <BookOpenIcon className="w-5 h-5 text-gray-400" />
+                  <BookOpenIcon className="w-5 h-5 text-surface-muted-fg" />
                   <div>
-                    <span className="text-sm text-gray-600">Subject:</span>
+                    <span className="text-sm text-surface-muted-fg">Subject:</span>
                     <p className="font-medium">{plan.subjectName || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <UserCircleIcon className="w-5 h-5 text-gray-400" />
+                  <UserCircleIcon className="w-5 h-5 text-surface-muted-fg" />
                   <div>
-                    <span className="text-sm text-gray-600">Teacher:</span>
+                    <span className="text-sm text-surface-muted-fg">Teacher:</span>
                     <p className="font-medium">{plan.teacherName || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ClockIcon className="w-5 h-5 text-gray-400" />
+                  <ClockIcon className="w-5 h-5 text-surface-muted-fg" />
                   <div>
-                    <span className="text-sm text-gray-600">Class:</span>
+                    <span className="text-sm text-surface-muted-fg">Class:</span>
                     <p className="font-medium">{plan.classStreamName || 'N/A'}</p>
                   </div>
                 </div>
@@ -286,21 +288,21 @@ const PlanDetailPage: React.FC = () => {
             {/* Objectives Card */}
             <Card title="Overall Objectives">
               <div className="p-4">
-                <p className="text-gray-700 whitespace-pre-wrap">{plan.overallObjectives}</p>
+                <p className="text-surface-foreground whitespace-pre-wrap">{plan.overallObjectives}</p>
               </div>
             </Card>
 
             {/* Teaching Aids */}
             <Card title="Teaching Aids">
               <div className="p-4">
-                <p className="text-gray-700">{plan.teachingAids || 'No teaching aids specified.'}</p>
+                <p className="text-surface-foreground">{plan.teachingAids || 'No teaching aids specified.'}</p>
               </div>
             </Card>
 
             {/* References */}
             <Card title="References">
               <div className="p-4">
-                <p className="text-gray-700 whitespace-pre-wrap">{plan.references || 'No references specified.'}</p>
+                <p className="text-surface-foreground whitespace-pre-wrap">{plan.references || 'No references specified.'}</p>
               </div>
             </Card>
 
@@ -308,32 +310,32 @@ const PlanDetailPage: React.FC = () => {
             <Card title="Summary" className="lg:col-span-2">
               <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{plan.dayPlans?.length || 0}</p>
-                  <p className="text-sm text-gray-500">Day Plans</p>
+                  <p className="text-2xl font-bold text-surface-foreground">{plan.dayPlans?.length || 0}</p>
+                  <p className="text-sm text-surface-muted-fg">Day Plans</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-surface-foreground">
                     {plan.dayPlans?.reduce((acc, day) => {
                       const periods = day.periodPlans?.length || 0;
                       return acc + periods;
                     }, 0) || 0}
                   </p>
-                  <p className="text-sm text-gray-500">Periods</p>
+                  <p className="text-sm text-surface-muted-fg">Periods</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-surface-foreground">
                     {plan.dayPlans?.reduce((acc, day) => {
                       const topics = day.topics ? day.topics.split(',').length : 0;
                       return acc + topics;
                     }, 0) || 0}
                   </p>
-                  <p className="text-sm text-gray-500">Topics</p>
+                  <p className="text-sm text-surface-muted-fg">Topics</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-surface-foreground">
                     {plan.submittedAt ? new Date(plan.submittedAt).toLocaleDateString() : 'N/A'}
                   </p>
-                  <p className="text-sm text-gray-500">Submitted</p>
+                  <p className="text-sm text-surface-muted-fg">Submitted</p>
                 </div>
               </div>
             </Card>
@@ -345,9 +347,9 @@ const PlanDetailPage: React.FC = () => {
             {!plan.dayPlans || plan.dayPlans.length === 0 ? (
               <Card>
                 <div className="text-center py-12">
-                  <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No day plans yet</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <CalendarDaysIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                  <h3 className="mt-2 text-sm font-medium text-surface-foreground">No day plans yet</h3>
+                  <p className="mt-1 text-sm text-surface-muted-fg">
                     Add day plans to this weekly plan.
                   </p>
                 </div>
@@ -357,42 +359,42 @@ const PlanDetailPage: React.FC = () => {
                 <Card key={day.id} title={`${day.dayOfWeek} - ${new Date(day.date).toLocaleDateString()}`}>
                   <div className="p-4 space-y-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Topics</h4>
-                      <p className="text-gray-600">{day.topics || 'No topics specified.'}</p>
+                      <h4 className="text-sm font-semibold text-surface-foreground mb-1">Topics</h4>
+                      <p className="text-surface-muted-fg">{day.topics || 'No topics specified.'}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Objectives</h4>
-                      <p className="text-gray-600">{day.objectives || 'No objectives specified.'}</p>
+                      <h4 className="text-sm font-semibold text-surface-foreground mb-1">Objectives</h4>
+                      <p className="text-surface-muted-fg">{day.objectives || 'No objectives specified.'}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Activities</h4>
-                      <p className="text-gray-600">{day.activities || 'No activities specified.'}</p>
+                      <h4 className="text-sm font-semibold text-surface-foreground mb-1">Activities</h4>
+                      <p className="text-surface-muted-fg">{day.activities || 'No activities specified.'}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Assessment</h4>
-                      <p className="text-gray-600">{day.assessment || 'No assessment specified.'}</p>
+                      <h4 className="text-sm font-semibold text-surface-foreground mb-1">Assessment</h4>
+                      <p className="text-surface-muted-fg">{day.assessment || 'No assessment specified.'}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Homework</h4>
-                      <p className="text-gray-600">{day.homework || 'No homework assigned.'}</p>
+                      <h4 className="text-sm font-semibold text-surface-foreground mb-1">Homework</h4>
+                      <p className="text-surface-muted-fg">{day.homework || 'No homework assigned.'}</p>
                     </div>
 
                     {/* Period Plans */}
                     {day.periodPlans && day.periodPlans.length > 0 && (
                       <div className="mt-4 pt-4 border-t">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Period Plans</h4>
+                        <h4 className="text-sm font-semibold text-surface-foreground mb-2">Period Plans</h4>
                         <div className="space-y-2">
                           {day.periodPlans.map((period) => (
-                            <div key={period.id} className="bg-gray-50 rounded-lg p-3">
+                            <div key={period.id} className="bg-surface-muted rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-sm">{period.periodName || `Period ${period.periodId}`}</span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-surface-muted-fg">
                                   {period.periodStartTime} - {period.periodEndTime} ({period.duration} min)
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-600">{period.topicDetail}</p>
+                              <p className="text-sm text-surface-muted-fg">{period.topicDetail}</p>
                               {period.teachingMethod && (
-                                <p className="text-xs text-gray-500 mt-1">Method: {period.teachingMethod}</p>
+                                <p className="text-xs text-surface-muted-fg mt-1">Method: {period.teachingMethod}</p>
                               )}
                             </div>
                           ))}
@@ -409,22 +411,22 @@ const PlanDetailPage: React.FC = () => {
         {activeTab === 'history' && (
           <Card title="Approval History">
             <div className="p-4">
-              <div className="border-l-2 border-gray-200 ml-3 space-y-6">
+              <div className="border-l-2 border-surface-border ml-3 space-y-6">
                 {/* Created */}
                 <div className="relative pl-8">
                   <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-gray-400" />
                   <p className="font-medium">Plan Created</p>
-                  <p className="text-sm text-gray-500">{formatDate(plan.createdAt)}</p>
+                  <p className="text-sm text-surface-muted-fg">{formatDate(plan.createdAt)}</p>
                 </div>
 
                 {/* Submitted */}
                 {plan.submittedAt && (
                   <div className="relative pl-8">
-                    <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-blue-500" />
+                    <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary-500" />
                     <p className="font-medium">Submitted for Review</p>
-                    <p className="text-sm text-gray-500">{formatDate(plan.submittedAt)}</p>
+                    <p className="text-sm text-surface-muted-fg">{formatDate(plan.submittedAt)}</p>
                     {plan.submittedByName && (
-                      <p className="text-sm text-gray-600">By: {plan.submittedByName}</p>
+                      <p className="text-sm text-surface-muted-fg">By: {plan.submittedByName}</p>
                     )}
                   </div>
                 )}
@@ -438,13 +440,13 @@ const PlanDetailPage: React.FC = () => {
                     <p className="font-medium">
                       {plan.status === PlanStatus.APPROVED ? 'Approved' : 'Rejected'}
                     </p>
-                    <p className="text-sm text-gray-500">{formatDate(plan.reviewedAt)}</p>
+                    <p className="text-sm text-surface-muted-fg">{formatDate(plan.reviewedAt)}</p>
                     {plan.reviewedByName && (
-                      <p className="text-sm text-gray-600">By: {plan.reviewedByName}</p>
+                      <p className="text-sm text-surface-muted-fg">By: {plan.reviewedByName}</p>
                     )}
                     {plan.reviewComments && (
-                      <div className="mt-2 bg-gray-50 p-3 rounded-lg">
-                        <p className="text-sm text-gray-600">
+                      <div className="mt-2 bg-surface-muted p-3 rounded-lg">
+                        <p className="text-sm text-surface-muted-fg">
                           <span className="font-medium">Comments:</span> {plan.reviewComments}
                         </p>
                       </div>
@@ -457,7 +459,7 @@ const PlanDetailPage: React.FC = () => {
                   <div className="relative pl-8">
                     <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-yellow-500" />
                     <p className="font-medium">Last Updated</p>
-                    <p className="text-sm text-gray-500">{formatDate(plan.updatedAt)}</p>
+                    <p className="text-sm text-surface-muted-fg">{formatDate(plan.updatedAt)}</p>
                   </div>
                 )}
               </div>

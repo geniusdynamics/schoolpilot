@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Memory management service for tracking and optimizing memory usage
 // ABOUTME: Provides memory leak detection, cleanup mechanisms, and optimization strategies
 
@@ -82,7 +84,7 @@ class MemoryManagerService {
   // Start memory monitoring
   private startMonitoring() {
     if (typeof window === 'undefined' || !('performance' in window)) {
-      console.warn('Memory monitoring not available in this environment');
+      logger.warn('Memory monitoring not available in this environment');
       return;
     }
 
@@ -195,7 +197,7 @@ class MemoryManagerService {
       window.dispatchEvent(new CustomEvent('memoryAlert', { detail: alert }));
     }
     
-    console.warn(`Memory Alert [${alert.type.toUpperCase()}]: ${alert.message}`);
+    logger.warn(`Memory Alert [${alert.type.toUpperCase()}]: ${alert.message}`);
   }
 
   // Perform automatic cleanup
@@ -222,7 +224,7 @@ class MemoryManagerService {
 
   // Perform emergency cleanup for critical memory situations
   private performEmergencyCleanup() {
-    console.warn('Performing emergency memory cleanup');
+    logger.warn('Performing emergency memory cleanup');
     
     // Aggressive cache cleanup
     this.clearCache();
@@ -290,7 +292,7 @@ class MemoryManagerService {
   // Suggest garbage collection
   private suggestGarbageCollection() {
     if (typeof window !== 'undefined' && (window as any).gc) {
-      console.log('Suggesting garbage collection');
+      logger.info('Suggesting garbage collection');
       setTimeout(() => {
         if ((window as any).gc) {
           (window as any).gc();

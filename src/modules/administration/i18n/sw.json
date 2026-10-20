@@ -6,7 +6,7 @@
       "description": "Simamia wanafunzi, wafanyakazi, muundo wa kitaaluma, na shughuli za shule",
       "dashboard": "Dashibodi",
       "applications": "Maombi",
-      "preNAsMarks": "Alama za Kabla ya NAs",
+      "entryMarks": "Alama za Kabla ya NAs",
       "students": "Wanafunzi",
       "staff": "Wafanyakazi",
       "partners": "Washirika",
@@ -95,7 +95,20 @@
     "deleteConfirm": "Una uhakika unataka kumfuta mwanafunzi huyu?",
     "detailsFieldset": "Maelezo ya Mwanafunzi",
     "guardianFieldset": "Mzazi/Mlezi Mkuu",
-    "examSummaryFieldset": "Muhtasari wa Matokeo ya Mtihani (k.m., KCPE)"
+    "examSummaryFieldset": "Muhtasari wa Matokeo ya Mtihani (k.m., KCPE)",
+    "detail": {
+      "editBioData": "Hariri data ya kibinafsi",
+      "firstName": "Jina la kwanza",
+      "middleName": "Jina la kati",
+      "lastName": "Jina la mwisho",
+      "gender": "Jinsia",
+      "dateOfBirth": "Tarehe ya kuzaliwa",
+      "religion": "Dini",
+      "email": "Barua pepe",
+      "phone": "Simu",
+      "address": "Anwani",
+      "remarks": "Maoni/Kuhusu"
+    }
   },
   "staff": {
     "title": "Usimamizi wa Wafanyakazi",
@@ -112,7 +125,24 @@
     "hodLabel": "Mkuu wa Idara (Ikiwa inahitajika)",
     "hodOptionNone": "Hakuna",
     "activeLabel": "Ni Mfanyakazi Hai",
-    "deleteConfirm": "Una uhakika unataka kumfuta mfanyakazi huyu?"
+    "deleteConfirm": "Una uhakika unataka kumfuta mfanyakazi huyu?",
+    "form": {
+      "email": "Barua pepe",
+      "gender": "Jinsia",
+      "genderPlaceholder": "Chagua jinsia",
+      "genderFemale": "Kike",
+      "genderMale": "Kiume",
+      "genderOther": "Nyingine",
+      "nationalId": "Namba ya kitambulisho cha kitaifa / Pasipoti",
+      "employerNumber": "Namba ya mwajiri (k.m. namba ya TSC)",
+      "employmentType": "Aina ya ajira",
+      "employmentTypePlaceholder": "Chagua aina ya ajira",
+      "employmentPermanent": "Muda wote",
+      "employmentContract": "Mkataba",
+      "employmentPartTime": "Muda mfupi",
+      "employmentBoard": "Bodi ya usimamizi",
+      "employmentIntern": "Mwanafunzi wa mazoezi / Kiambatisho"
+    }
   },
   "partners": {
     "title": "Usimamizi wa Washirika",
@@ -458,7 +488,7 @@
       "specialNeeds": "Makazi ya Mahitaji Maalum"
     }
   },
-  "preNAsMarks": {
+  "entryMarks": {
     "title": "Usimamizi wa Alama za Kabla ya NAs",
     "description": "Simamia alama za Tathmini za Kitaifa za Awali kwa wanafunzi na waombaji",
     "indexNumber": "Namba ya Fahirisi",
@@ -524,5 +554,66 @@
     "addMarks": "Ongeza Alama",
     "updateMarks": "Sasisha Alama",
     "cancel": "Ghairi"
+  },
+  "bulkStreams": {
+    "title": "Uundaji wa mikondo kwa wingi",
+    "subtitle": "Ongeza mikondo kadhaa kwenye darasa kwa wakati mmoja",
+    "addField": "Ongeza sehemu ya mkondo",
+    "selectClass": "Chagua darasa",
+    "selectClassPlaceholder": "-- Chagua darasa --",
+    "streamNames": "Majina ya mikondo",
+    "streamPlaceholder": "Jina la mkondo {{index}} (k.m., Mashariki, Magharibi, Kaskazini)",
+    "summary": "Itaunda mikondo {{count}} kwa \"{{className}}\"",
+    "summaryEmpty": "Chagua darasa na uweke majina ya mikondo hapo juu",
+    "duplicatesHint": "Tayari ipo au imerudiwa, itarukwa: {{names}}",
+    "duplicatesSkipped": "Majina ya mikondo yaliyopo au yaliyorudiwa yamerukwa: {{names}}",
+    "badge": "mikondo {{count}}",
+    "create": "Unda mikondo {{count}}",
+    "createdToast": "Imeunda mikondo {{count}} kwa {{className}}",
+    "createFailed": "Mkondo mmoja au zaidi haukuweza kuundwa.",
+    "createdTitle": "Mikondo imeundwa",
+    "repair": {
+      "title": "Mikondo iliyoharibika",
+      "subtitle": "Mikondo hii haina jina au darasa. Hamisha wanafunzi wao kwenye mkondo halali, kisha uiondoe.",
+      "unnamed": "Mkondo usio na jina",
+      "studentCount": "(wanafunzi {{count}})",
+      "moveTo": "Hamisha wanafunzi kwenda",
+      "chooseStream": "-- Chagua mkondo --",
+      "action": "Rekebisha mikondo",
+      "done": "Mikondo {{deleted}} iliyoharibika imeondolewa; wanafunzi {{reassigned}} wamehamishwa",
+      "failed": "Urekebishaji umeshindikana. Hakuna mikondo mingine iliyoondolewa."
+    }
+  },
+  "bulkOperations": {
+    "promotion": "Kupandishwa daraja"
+  },
+  "promotion": {
+    "title": "Pandisha darasa",
+    "unassigned": "Haijagawiwa",
+    "source": "Darasa la sasa",
+    "target": "Pandisha kwenda",
+    "academicYear": "Mwaka wa masomo",
+    "date": "Tarehe ya kupandisha",
+    "selectClass": "-- Chagua darasa --",
+    "chooseClasses": "Chagua darasa la sasa na darasa la kupandisha.",
+    "preview": "Hakiki",
+    "empty": "Hakuna wanafunzi katika darasa hili.",
+    "include": "Jumuisha",
+    "learner": "Mwanafunzi",
+    "from": "Kutoka",
+    "to": "Kwenda",
+    "note": "Kidokezo",
+    "commit": "Pandisha",
+    "commitCount": "Pandisha wanafunzi {{count}}",
+    "confirmTitle": "Thibitisha kupandishwa",
+    "confirmMessage": "Hamisha wanafunzi {{count}} kutoka {{from}} kwenda {{to}}? Unaweza kutendua baadaye.",
+    "partial": "Wanafunzi {{done}} wamepandishwa, {{failed}} hawakuweza kupandishwa.",
+    "done": "Wanafunzi {{count}} wamepandishwa.",
+    "failed": "Kupandisha kumeshindikana.",
+    "committed": "Wanafunzi {{count}} wamehamishwa kwenda {{to}}.",
+    "undo": "Tendua",
+    "undoPartial": "Wanafunzi {{done}} wamerejeshwa, {{failed}} walihamishwa tangu wakati huo na wameachwa kama walivyo.",
+    "undone": "Wanafunzi {{count}} wamerudi kwenye darasa lao la awali.",
+    "undoFailed": "Kutendua kumeshindikana."
   }
 }

@@ -1,16 +1,17 @@
-
+// ABOUTME: Settings Audit Log page - filterable list of create/update/delete actions recorded by the system.
+// ABOUTME: Reads auditLogs and users from AppDataContext.
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { ClockIcon, ArrowPathIcon as ResetIcon, MagnifyingGlassIcon } from '@/components/ui/icons'; // Added ResetIcon
+
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
 import { AuditLog, AuditAction, User } from '@/types';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import { ArrowPathIcon, ClockIcon } from '@/components/ui/icons';
 
-const AuditLogPage: React.FC = () => {
+export const AuditLogContent: React.FC = () => {
   const { auditLogs, users, loading } = useAppData();
 
   const [filters, setFilters] = useState<{
@@ -68,9 +69,9 @@ const AuditLogPage: React.FC = () => {
       render: (value) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
           value === 'CREATE' ? 'bg-green-100 text-green-800' :
-          value === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
+          value === 'UPDATE' ? 'bg-primary-100 text-primary-800' :
           value === 'DELETE' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-surface-accent text-surface-foreground'
         }`}>
           {value}
         </span>
@@ -97,9 +98,9 @@ const AuditLogPage: React.FC = () => {
     <div className="space-y-6">
       <Card title="System Audit Log">
         <div className="text-center py-8 border-b mb-6">
-          <ClockIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700">View System Audit Trails</h2>
-          <p className="text-gray-500">
+          <ClockIcon className="w-16 h-16 text-surface-muted-fg mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-surface-foreground">View System Audit Trails</h2>
+          <p className="text-surface-muted-fg">
             Review logs of significant actions performed within the system for security and accountability.
           </p>
         </div>
@@ -145,7 +146,7 @@ const AuditLogPage: React.FC = () => {
                 </Select>
             </div>
             <div className="p-4 text-right">
-                <Button onClick={resetFilters} variant="secondary" leftIcon={<ResetIcon className="w-4 h-4"/>}>
+                <Button onClick={resetFilters} variant="secondary" leftIcon={<ArrowPathIcon className="w-4 h-4"/>}>
                     Reset Filters
                 </Button>
             </div>
@@ -157,25 +158,16 @@ const AuditLogPage: React.FC = () => {
           loading={isLoadingPage}
           sortable={true}
           filterable={true}
-          emptyState={
-            <div className="text-center py-12">
-              <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No audit logs found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {Object.values(filters).some(v => v) ? 
-                  'No audit logs match your current filter criteria. Try adjusting your filters.' :
-                  'System audit logs will appear here as actions are performed.'
-                }
-              </p>
-              {Object.values(filters).some(v => v) && (
-                <div className="mt-6">
-                  <Button onClick={resetFilters} variant="secondary" leftIcon={<ResetIcon className="w-4 h-4" />}>
-                    Reset Filters
-                  </Button>
-                </div>
-              )}
-            </div>
-          }
+          emptyState={{
+            icon: <ClockIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No audit logs found',
+            description: Object.values(filters).some(v => v)
+              ? 'No audit logs match your current filter criteria. Try adjusting your filters.'
+              : 'System audit logs will appear here as actions are performed.',
+            ...(Object.values(filters).some(v => v)
+              ? { action: { label: 'Reset Filters', onClick: resetFilters } }
+              : {}),
+          }}
           className="mt-4"
         />
          <div className="mt-6 text-center">
@@ -186,6 +178,10 @@ const AuditLogPage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const AuditLogPage: React.FC = () => {
+  return <AuditLogContent />;
 };
 
 export default AuditLogPage;

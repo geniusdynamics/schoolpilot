@@ -6,6 +6,10 @@
       "title": "Settings",
       "description": "Configure system settings, modules, and user management",
       "dashboard": "Settings Dashboard",
+      "configuration": "Configuration",
+      "systemManagement": "System Management",
+      "schoolOperations": "School Operations",
+      "settingsDashboard": "Settings Dashboard",
       "unified": "Unified Settings",
       "general": "General Settings",
       "features": "Features",
@@ -25,7 +29,6 @@
       "dataLayer": "Data Layer",
       "databaseProvider": "Database Provider",
       "plugins": "Plugins",
-      "dataManagement": "Data Management",
       "backupSettings": "Backup Settings"
     }
   },
@@ -65,7 +68,14 @@
     "typeInternational": "International",
     "typeReligious": "Religious",
     "typeCommunity": "Community",
-    "codePlaceholder": "e.g., SCH001"
+    "codePlaceholder": "e.g., SCH001",
+    "setupWizard": {
+      "title": "Setup wizard",
+      "description": "Set up the school profile, academic year, classes, subjects and administrator step by step.",
+      "rerunDescription": "Setup is complete. Run the wizard again to review the school profile, year, classes and subjects; existing records are updated, never duplicated.",
+      "runButton": "Run setup wizard",
+      "rerunButton": "Re-run setup wizard"
+    }
   },
   "userManagement": {
     "title": "User Management",
@@ -193,7 +203,7 @@
   },
   "rolesPermissions": {
     "title": "Roles & Permissions",
-    "description": "Manage user roles and access permissions. Configure user management through {{userManagementLink}} and approval workflows through {{workflowsLink}}."
+    "description": "Manage user roles and access permissions, including user management and approval workflows."
   },
   "auditLog": {
     "title": "Audit Log",
@@ -344,5 +354,23 @@
     "noConflicts": "No Conflicts",
     "allClear": "All Clear!",
     "noConflictsMessage": "There are no sync conflicts that need resolution."
+  },
+  "systemManagement": {
+    "storage": {
+      "title": "Browser storage",
+      "modeLabel": "Storage mode",
+      "persistedLabel": "Persistent storage granted",
+      "mode": {
+        "opfs": "Persistent (OPFS)",
+        "memory": "Temporary (memory only)",
+        "unavailable": "Unavailable",
+        "uninitialised": "Not opened yet"
+      },
+      "persisted": {
+        "yes": "Yes",
+        "no": "No",
+        "unknown": "Unknown"
+      }
+    }
   }
 }

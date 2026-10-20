@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * TabValidationService - Centralized validation service for tab operations
  * Handles permissions, access control, state integrity, and data sanitization
@@ -5,6 +7,7 @@
  */
 
 import { Tab, TabState } from '@/types/tabbedWorkspace';
+import { routeToTabMapper } from './RouteToTabMapper';
 
 // ============================================================================
 // Types and Interfaces
@@ -101,7 +104,7 @@ export class TabValidationService {
    * Private constructor to enforce singleton pattern
    */
   private constructor() {
-    console.log('[TabValidation] Service initialized');
+    logger.info('[TabValidation] Service initialized');
   }
 
   // --------------------------------------------------------------------------
@@ -119,7 +122,7 @@ export class TabValidationService {
    */
   public validateTabAccess(tab: Partial<Tab>, userRole: string, userPermissions: string[]): boolean {
     if (!tab || !tab.id || typeof tab.id !== 'string') {
-      console.warn('[TabValidation] Invalid tab provided:', tab);
+      logger.warn('[TabValidation] Invalid tab provided:', tab);
       return false;
     }
 
@@ -131,7 +134,7 @@ export class TabValidationService {
     // Get role configuration
     const roleConfig = mutableRoleConfigs[userRole];
     if (!roleConfig) {
-      console.warn('[TabValidation] Unknown role:', userRole);
+      logger.warn('[TabValidation] Unknown role:', userRole);
       return false;
     }
 
@@ -152,7 +155,7 @@ export class TabValidationService {
       );
       
       if (!hasModuleAccess) {
-        console.warn(`[TabValidation] User role '${userRole}' does not have access to module '${tab.module}'`);
+        logger.warn(`[TabValidation] User role '${userRole}' does not have access to module '${tab.module}'`);
         return false;
       }
 
@@ -204,8 +207,11 @@ export class TabValidationService {
       warnings.push('A tab with this path already exists and is not dirty.');
     }
 
-    // Validate path format
-    if (newTab.path && typeof newTab.path === 'string') {
+    // Validate that the path is a real route, not a hub sub-tab id
+    if (newTab.path && typeof newTab.path === 'string' && newTab.path.trim() !== '') {
+      const routeValidation = this.validateTabRoute(newTab.path);
+      errors.push(...routeValidation.errors);
+
       if (!newTab.path.startsWith('/')) {
         warnings.push('Tab path should start with a forward slash (/) for consistency.');
       }
@@ -220,6 +226,35 @@ export class TabValidationService {
       valid: errors.length === 0,
       errors,
       warnings,
+    };
+  }
+
+  /**
+   * Validate that a tab path is an application route
+   * Hub sub-tabs (for example `bulk-streams` or `school-periods`) are URL
+   * state carried in the route query — they are never top-level tab paths.
+   *
+   * @param path - Candidate tab path
+   * @returns ValidationResult - Validation result with errors/warnings
+   */
+  public validateTabRoute(path: string): ValidationResult {
+    const errors: string[] = [];
+
+    if (!path || typeof path !== 'string' || path.trim() === '') {
+      errors.push('Tab path is required and cannot be empty.');
+      return { valid: false, errors, warnings: [] };
+    }
+
+    if (!routeToTabMapper.isTabRoutePath(path)) {
+      errors.push(
+        'Tab path must be an absolute app route such as /administration/classes; hub sub-tab ids such as "bulk-streams" are URL state, not tabs.'
+      );
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings: [],
     };
   }
 
@@ -246,6 +281,8 @@ export class TabValidationService {
 
     if (!tab.path || typeof tab.path !== 'string') {
       errors.push('Tab must have a valid path string.');
+    } else if (tab.path.trim() !== '') {
+      errors.push(...this.validateTabRoute(tab.path).errors);
     }
 
     if (!tab.module || typeof tab.module !== 'string') {
@@ -340,14 +377,14 @@ export class TabValidationService {
   ): Tab[] {
     // If no role provided, return empty
     if (!userRole) {
-      console.warn('[TabValidation] No user role provided, returning empty array');
+      logger.warn('[TabValidation] No user role provided, returning empty array');
       return [];
     }
 
     // Get role configuration
     const roleConfig = mutableRoleConfigs[userRole];
     if (!roleConfig) {
-      console.warn('[TabValidation] Unknown role:', userRole);
+      logger.warn('[TabValidation] Unknown role:', userRole);
       return [];
     }
 
@@ -531,7 +568,7 @@ export class TabValidationService {
    */
   public setRoleConfig(config: RoleAccessConfig): void {
     mutableRoleConfigs[config.role] = config;
-    console.log(`[TabValidation] Updated role config for: ${config.role}`);
+    logger.info(`[TabValidation] Updated role config for: ${config.role}`);
   }
 
   /**

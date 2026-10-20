@@ -8,13 +8,24 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, ArrowPathIcon, CheckIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { initialMockStudentRollNumbers } from '../data/mockData';
 import type { StudentRollNumber } from '../data/types';
+import type { Student } from '@/core/types';
+import { StudentStatus } from '@/core/types';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
-const BulkAssignRollNumbersPage: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { students, classes, loading } = useAppData();
+/** Students may carry a roll number assigned through bulk operations. */
+type StudentWithRoll = Student & { roll_number?: string | null };
+
+const composeClassName = (student: Student): string => {
+  const cls = student.current_class_name || '';
+  const stream = student.current_class_stream_name || '';
+  if (cls && stream) return `${cls} - ${stream}`;
+  return cls || stream;
+};
+
+export const BulkAssignRollNumbersContent: React.FC = () => {
+  const { students, loading, updateStudent } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState('');
@@ -22,46 +33,41 @@ const BulkAssignRollNumbersPage: React.FC = () => {
   const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual'>('auto');
   const [startRollNumber, setStartRollNumber] = useState('1');
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+  const [isAssigning, setIsAssigning] = useState(false);
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockStudents: StudentRollNumber[] = useMemo(() => {
-    let filtered = initialMockStudentRollNumbers;
+  // Live ACTIVE students from the database
+  const studentRows: StudentRollNumber[] = useMemo(() => {
+    let rows: StudentRollNumber[] = (students || [])
+      .filter(s => s.status === StudentStatus.ACTIVE && !s.deleted_at)
+      .map(s => ({
+        id: String(s.id),
+        student_id: String(s.id),
+        student_name: s.display_name || `${s.first_name} ${s.last_name}`.trim(),
+        admission_no: s.admission_no,
+        class_id: String(s.current_class_stream_id ?? ''),
+        class_name: composeClassName(s),
+        section: s.current_class_stream_name || '',
+        roll_number: (s as StudentWithRoll).roll_number || ''
+      }));
 
     if (selectedClass) {
-      filtered = filtered.filter(s => s.class_id === selectedClass);
+      rows = rows.filter(s => s.class_id === selectedClass);
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(s => 
-        s.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.admission_no.toLowerCase().includes(searchTerm.toLowerCase())
+      rows = rows.filter(s =>
+        (s.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
-    return filtered;
-  }, [selectedClass, searchTerm]);
+    return rows;
+  }, [students, selectedClass, searchTerm]);
 
-  const handleSelectStudent = (studentId: string) => {
-    const newSelection = new Set(selectedStudents);
-    if (newSelection.has(studentId)) {
-      newSelection.delete(studentId);
-    } else {
-      newSelection.add(studentId);
-    }
-    setSelectedStudents(newSelection);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedStudents.size === mockStudents.length) {
-      setSelectedStudents(new Set());
-    } else {
-      setSelectedStudents(new Set(mockStudents.map(s => s.id)));
-    }
-  };
-
+  const toast = useToast();
   const openAssignModal = () => {
     if (selectedStudents.size === 0 && !selectedClass) {
-      alert('Please select a class or specific students to assign roll numbers.');
+      toast.showWarning('Please select a class or specific students to assign roll numbers.');
       return;
     }
     setIsModalOpen(true);
@@ -73,41 +79,48 @@ const BulkAssignRollNumbersPage: React.FC = () => {
     setStartRollNumber('1');
   };
 
-  const handleAssignRollNumbers = () => {
-    const studentsToAssign = selectedStudents.size > 0 
-      ? Array.from(selectedStudents) 
-      : mockStudents.filter(s => s.class_id === selectedClass).map(s => s.id);
-    
-    console.log('Assigning roll numbers:', {
+  const handleAssignRollNumbers = async () => {
+    const studentsToAssign = selectedStudents.size > 0
+      ? Array.from(selectedStudents)
+      : studentRows.filter(s => s.class_id === selectedClass).map(s => s.id);
+
+    if (assignmentMode !== 'auto') {
+      logger.info('Manual roll number assignment requested:', { studentIds: studentsToAssign });
+      closeModal();
+      setSelectedStudents(new Set());
+      return;
+    }
+
+    setIsAssigning(true);
+    logger.info('Assigning roll numbers:', {
       mode: assignmentMode,
       startRollNumber,
       studentIds: studentsToAssign
     });
-    closeModal();
-    setSelectedStudents(new Set());
+    try {
+      const start = Math.max(1, parseInt(startRollNumber, 10) || 1);
+      // Sequential numbering ordered by student name for deterministic results
+      const ordered = [...studentsToAssign].sort((a, b) => {
+        const rowA = studentRows.find(s => s.id === a);
+        const rowB = studentRows.find(s => s.id === b);
+        return (rowA?.student_name ?? '').localeCompare(rowB?.student_name ?? '');
+      });
+      for (let i = 0; i < ordered.length; i++) {
+        const patch: Partial<Student> & { roll_number?: string } = { roll_number: String(start + i) };
+        await updateStudent(String(ordered[i]), patch);
+      }
+      toast.showSuccess(`Assigned roll numbers to ${ordered.length} student(s).`);
+      closeModal();
+      setSelectedStudents(new Set());
+    } catch (err) {
+      logger.error('Failed to assign roll numbers:', err);
+      toast.showError('Failed to assign roll numbers.');
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   const columns: DataGridColumn<StudentRollNumber>[] = [
-    {
-      key: 'select',
-      header: (
-        <input
-          type="checkbox"
-          checked={selectedStudents.size === mockStudents.length && mockStudents.length > 0}
-          onChange={handleSelectAll}
-          className="w-4 h-4"
-        />
-      ),
-      sortable: false,
-      render: (_, record) => (
-        <input
-          type="checkbox"
-          checked={selectedStudents.has(record.id)}
-          onChange={() => handleSelectStudent(record.id)}
-          className="w-4 h-4"
-        />
-      )
-    },
     {
       key: 'student_name',
       header: 'Student Name',
@@ -136,24 +149,24 @@ const BulkAssignRollNumbersPage: React.FC = () => {
       key: 'roll_number',
       header: 'Roll Number',
       sortable: true,
-      render: (value) => value ? <span className="font-semibold text-green-600">{value}</span> : <span className="text-gray-400">Not assigned</span>
+      render: (value) => value ? <span className="font-semibold text-green-600">{value}</span> : <span className="text-surface-muted-fg">Not assigned</span>
     }
   ];
 
   const uniqueClasses = useMemo(() => {
-    const classIds = [...new Set(mockStudents.map(s => s.class_id))];
-    return classIds.map(id => mockStudents.find(s => s.class_id === id)?.class_name || id);
-  }, [mockStudents]);
+    const classIds = [...new Set(studentRows.map(s => s.class_id))];
+    return classIds.map(id => studentRows.find(s => s.class_id === id)?.class_name || id);
+  }, [studentRows]);
 
   const totals = useMemo(() => {
     return {
-      total: mockStudents.length,
-      assigned: mockStudents.filter(s => s.roll_number).length,
-      unassigned: mockStudents.filter(s => !s.roll_number).length
+      total: studentRows.length,
+      assigned: studentRows.filter(s => s.roll_number).length,
+      unassigned: studentRows.filter(s => !s.roll_number).length
     };
-  }, [mockStudents]);
+  }, [studentRows]);
 
-  if (loading && mockStudents.length === 0) {
+  if (loading?.all && studentRows.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -164,7 +177,7 @@ const BulkAssignRollNumbersPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <Card 
+      <Card
         title={
           <div className="flex items-center gap-2">
             <UserIcon className="w-6 h-6 text-amber-600" />
@@ -184,7 +197,7 @@ const BulkAssignRollNumbersPage: React.FC = () => {
             <div>
               <h3 className="font-semibold text-amber-800">Auto/Manual Roll Number Assignment</h3>
               <p className="text-sm text-amber-700 mt-1">
-                Automatically assign sequential roll numbers to students in a class, or manually assign 
+                Automatically assign sequential roll numbers to students in a class, or manually assign
                 specific roll numbers. Select a class or specific students to begin assignment.
               </p>
             </div>
@@ -193,17 +206,17 @@ const BulkAssignRollNumbersPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Students</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Assigned</span>
             </div>
@@ -211,8 +224,8 @@ const BulkAssignRollNumbersPage: React.FC = () => {
               {totals.assigned}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowPathIcon className="w-5 h-5 text-amber-600" />
               <span className="text-sm font-medium">Unassigned</span>
             </div>
@@ -225,11 +238,11 @@ const BulkAssignRollNumbersPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
             <select
               value={selectedClass}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Classes</option>
               {uniqueClasses.map(cls => (
@@ -238,20 +251,24 @@ const BulkAssignRollNumbersPage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Student, admission..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockStudents}
+          data={studentRows}
           columns={columns}
+          selectable={true}
+          onSelectionChange={(selected: StudentRollNumber[]) =>
+            setSelectedStudents(new Set(selected.map(row => row.id)))
+          }
         />
       </Card>
 
@@ -264,7 +281,7 @@ const BulkAssignRollNumbersPage: React.FC = () => {
         <FormSection>
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              {selectedStudents.size > 0 
+              {selectedStudents.size > 0
                 ? `Assigning roll numbers to ${selectedStudents.size} selected student(s).`
                 : `Assigning roll numbers to all students in ${selectedClass || 'selected class'}.`
               }
@@ -303,15 +320,15 @@ const BulkAssignRollNumbersPage: React.FC = () => {
                 value={startRollNumber}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStartRollNumber(e.target.value)}
                 min="1"
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               />
             </FormField>
           )}
 
           {assignmentMode === 'manual' && (
-            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-600">
-                Manual assignment allows you to specify roll numbers for each student individually. 
+            <div className="p-3 bg-surface-muted border border-surface-border rounded-lg">
+              <p className="text-sm text-surface-muted-fg">
+                Manual assignment allows you to specify roll numbers for each student individually.
                 This will be implemented in the full version.
               </p>
             </div>
@@ -322,13 +339,19 @@ const BulkAssignRollNumbersPage: React.FC = () => {
           <Button onClick={closeModal} variant="secondary">
             Cancel
           </Button>
-          <Button onClick={handleAssignRollNumbers} variant="primary">
-            Assign Numbers
+          <Button onClick={() => void handleAssignRollNumbers()} variant="primary" disabled={isAssigning}>
+            {isAssigning ? 'Assigning...' : 'Assign Numbers'}
           </Button>
         </div>
       </DialogForm>
     </div>
   );
 };
+
+const BulkAssignRollNumbersPage: React.FC = () => (
+  <div className="space-y-6">
+    <BulkAssignRollNumbersContent />
+  </div>
+);
 
 export default BulkAssignRollNumbersPage;

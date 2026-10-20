@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for studentcategory data management
 // ABOUTME: Provides CRUD operations for studentcategory without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockStudentCategories } from '../../administration/data/mockData';
 import { StudentCategory } from '@/core/types';
+import { useState } from 'react';
 
 export const useStudentCategoryData = () => {
   const [data, setData] = useState<StudentCategory[]>(initialMockStudentCategories);

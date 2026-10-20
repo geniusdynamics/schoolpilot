@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
+import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -9,12 +9,14 @@ import FormField from '@/components/ui/forms/FormField';
 import { ChatBubbleLeftRightIcon, PlusIcon, BellIcon, CheckIcon, XMarkIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { initialMockAutoSMSSettings } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { AutoSMSSetting, TriggerType, RecipientType } from '../data/types';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
-const AutoSMSSettingsPage: React.FC = () => {
+export const AutoSMSSettingsContent: React.FC = () => {
   const { t } = useTranslation('administration');
-  const { loading } = useAppData();
+  const settingsCollection = useDatabaseCollection<AutoSMSSetting>('auto_sms_settings');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSetting, setEditingSetting] = useState<AutoSMSSetting | null>(null);
@@ -33,23 +35,23 @@ const AutoSMSSettingsPage: React.FC = () => {
   };
   const [formData, setFormData] = useState<Partial<AutoSMSSetting>>(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockSettings: AutoSMSSetting[] = useMemo(() => {
-    let filtered = initialMockAutoSMSSettings;
+  // Live auto-SMS rules from the database
+  const settings: AutoSMSSetting[] = useMemo(() => {
+    let filtered = settingsCollection.data;
 
     if (selectedTrigger) {
       filtered = filtered.filter(s => s.trigger_type === selectedTrigger);
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(s => 
-        s.trigger_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.template_name.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(s =>
+        (s.trigger_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.template_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
     return filtered;
-  }, [selectedTrigger, searchTerm]);
+  }, [settingsCollection.data, selectedTrigger, searchTerm]);
 
   const openModal = (setting?: AutoSMSSetting) => {
     setEditingSetting(setting || null);
@@ -80,22 +82,48 @@ const AutoSMSSettingsPage: React.FC = () => {
     }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.trigger_name || !formData.template_id) {
-      alert('Trigger name and template are required.');
+      toast.showWarning('Trigger name and template are required.');
       return;
     }
-    console.log('Saving auto-SMS setting:', formData);
-    closeModal();
+    logger.info('Saving auto-SMS setting:', formData);
+    const payload = {
+      trigger_type: formData.trigger_type || 'Attendance',
+      trigger_name: formData.trigger_name || '',
+      recipient_type: formData.recipient_type || 'Student',
+      template_id: formData.template_id || '',
+      template_name: formData.template_name || '',
+      is_enabled: formData.is_enabled ?? true,
+      send_time: formData.send_time,
+      conditions: formData.conditions
+    };
+    const save = editingSetting
+      ? settingsCollection.update(editingSetting.id, payload)
+      : settingsCollection.insert({ ...payload, created_at: new Date().toISOString() } as Omit<AutoSMSSetting, 'id'> & { id?: string });
+
+    void save.then(() => {
+      toast.showSuccess(editingSetting ? 'Auto-SMS rule updated.' : 'Auto-SMS rule added.');
+      closeModal();
+    }).catch((err: unknown) => {
+      logger.error('Failed to save auto-SMS setting:', err);
+      toast.showError('Failed to save auto-SMS rule.');
+    });
   };
 
   const toggleEnabled = (setting: AutoSMSSetting) => {
-    console.log('Toggling setting:', setting.id, !setting.is_enabled);
+    logger.info('Toggling setting:', setting.id, !setting.is_enabled);
+    void settingsCollection.update(setting.id, { is_enabled: !setting.is_enabled })
+      .catch((err: unknown) => {
+        logger.error('Failed to toggle auto-SMS setting:', err);
+        toast.showError('Failed to update auto-SMS rule.');
+      });
   };
 
   const getTriggerBadge = (type: TriggerType) => {
     const styles = {
-      'Attendance': 'bg-blue-100 text-blue-800',
+      'Attendance': 'bg-primary-100 text-primary-800',
       'Fees Due': 'bg-red-100 text-red-800',
       'Exam Results': 'bg-green-100 text-green-800',
       'Announcements': 'bg-purple-100 text-purple-800',
@@ -152,7 +180,7 @@ const AutoSMSSettingsPage: React.FC = () => {
       render: (value, record) => (
         <button
           onClick={() => toggleEnabled(record)}
-          className={`px-2 py-1 rounded-full text-xs font-medium ${value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
+          className={`px-2 py-1 rounded-full text-xs font-medium ${value ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'}`}
         >
           {value ? 'Enabled' : 'Disabled'}
         </button>
@@ -177,13 +205,13 @@ const AutoSMSSettingsPage: React.FC = () => {
 
   const totals = useMemo(() => {
     return {
-      total: mockSettings.length,
-      enabled: mockSettings.filter(s => s.is_enabled).length,
-      disabled: mockSettings.filter(s => !s.is_enabled).length
+      total: settings.length,
+      enabled: settings.filter(s => s.is_enabled).length,
+      disabled: settings.filter(s => !s.is_enabled).length
     };
-  }, [mockSettings]);
+  }, [settings]);
 
-  if (loading && mockSettings.length === 0) {
+  if (settingsCollection.loading && settings.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -195,7 +223,7 @@ const AutoSMSSettingsPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Auto-Send SMS Settings</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Auto-Send SMS Settings</h1>
         <Button onClick={() => openModal()} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Rule
@@ -217,17 +245,17 @@ const AutoSMSSettingsPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Rules</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Enabled</span>
             </div>
@@ -235,12 +263,12 @@ const AutoSMSSettingsPage: React.FC = () => {
               {totals.enabled}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <XMarkIcon className="w-5 h-5 text-gray-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <XMarkIcon className="w-5 h-5 text-surface-muted-fg" />
               <span className="text-sm font-medium">Disabled</span>
             </div>
-            <p className="text-2xl font-bold text-gray-600 mt-2">
+            <p className="text-2xl font-bold text-surface-muted-fg mt-2">
               {totals.disabled}
             </p>
           </div>
@@ -249,32 +277,32 @@ const AutoSMSSettingsPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Type</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Trigger Type</label>
+            <Select
               value={selectedTrigger}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedTrigger(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Triggers</option>
               {triggerTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Trigger, template..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockSettings}
+          data={settings}
           columns={columns}
         />
       </Card>
@@ -293,42 +321,42 @@ const AutoSMSSettingsPage: React.FC = () => {
               value={formData.trigger_name}
               onChange={handleInputChange}
               placeholder="e.g., Daily Attendance Notification"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Trigger Type" required>
-            <select
+            <Select
               name="trigger_type"
               value={formData.trigger_type}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {triggerTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Recipient Type" required>
-            <select
+            <Select
               name="recipient_type"
               value={formData.recipient_type}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {recipientTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Template" required>
-            <select
+            <Select
               name="template_id"
               value={formData.template_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select template</option>
               <option value="tpl-001">Attendance Alert</option>
@@ -336,7 +364,7 @@ const AutoSMSSettingsPage: React.FC = () => {
               <option value="tpl-003">Result Notification</option>
               <option value="tpl-004">Announcement Template</option>
               <option value="tpl-005">Birthday Wishes</option>
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Send Time">
@@ -345,7 +373,7 @@ const AutoSMSSettingsPage: React.FC = () => {
               name="send_time"
               value={formData.send_time}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -356,7 +384,7 @@ const AutoSMSSettingsPage: React.FC = () => {
               value={formData.conditions}
               onChange={handleInputChange}
               placeholder="e.g., When marked absent"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -386,5 +414,11 @@ const AutoSMSSettingsPage: React.FC = () => {
     </div>
   );
 };
+
+const AutoSMSSettingsPage: React.FC = () => (
+  <div className="space-y-6">
+    <AutoSMSSettingsContent />
+  </div>
+);
 
 export default AutoSMSSettingsPage;

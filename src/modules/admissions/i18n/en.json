@@ -6,9 +6,10 @@
       "description": "Manage student admissions and applications",
       "dashboard": "Dashboard",
       "newApplication": "New Application",
+      "applicationsHub": "Applications Hub",
       "applications": "Applications",
       "reviewQueue": "Review Queue",
-      "apply": "Apply Now",
+      "apply": "Apply",
       "track": "Track Application"
     }
   },
@@ -358,6 +359,12 @@
       "step1": "After submitting your application, you will receive a unique reference number.",
       "step2": "Enter that reference number above to see the current status of your application.",
       "step3": "The timeline will show you exactly where your application is in the review process."
+    }
+  },
+  "applicationForm": {
+    "validation": {
+      "requiredFields": "Please fill in all required fields (marked *) before continuing.",
+      "incompleteApplication": "Some required fields are missing. Go back and complete all required fields before submitting."
     }
   }
 }

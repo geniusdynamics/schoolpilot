@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for studentexamresult data management
 // ABOUTME: Provides CRUD operations for studentexamresult without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockStudentExamResults } from './mockData';
 import { StudentExamResult } from '@/core/types';
+import { useState } from 'react';
 
 export const useStudentExamResultData = () => {
   const [data, setData] = useState<StudentExamResult[]>(initialMockStudentExamResults);
@@ -11,7 +11,7 @@ export const useStudentExamResultData = () => {
   const create = async (newItem: Partial<StudentExamResult>) => {
     const newDataItem: StudentExamResult = {
       ...newItem,
-      id: Date.now(),
+      id: String(Date.now()),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as StudentExamResult;
@@ -19,7 +19,7 @@ export const useStudentExamResultData = () => {
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<StudentExamResult>) => {
+  const update = async (id: string, updatedData: Partial<StudentExamResult>) => {
     setData((prev: StudentExamResult[]) => prev.map((item: StudentExamResult) => 
       item.id === id 
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
@@ -27,7 +27,7 @@ export const useStudentExamResultData = () => {
     ));
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: string) => {
     setData((prev: StudentExamResult[]) => prev.filter((item: StudentExamResult) => item.id !== id));
   };
 

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Performance benchmarking service for baseline establishment and performance comparison
 // ABOUTME: Provides automated performance regression testing and optimization recommendations
 
@@ -106,7 +108,7 @@ class PerformanceBenchmarkService {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(initialStorage));
       }
     } catch (error) {
-      console.warn('Failed to initialize benchmark storage:', error);
+      logger.warn('Failed to initialize benchmark storage:', error);
     }
   }
 
@@ -117,7 +119,7 @@ class PerformanceBenchmarkService {
         return JSON.parse(stored);
       }
     } catch (error) {
-      console.warn('Failed to load benchmark storage:', error);
+      logger.warn('Failed to load benchmark storage:', error);
     }
 
     // Return default storage if loading fails
@@ -134,7 +136,7 @@ class PerformanceBenchmarkService {
       storage.lastUpdated = Date.now();
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(storage));
     } catch (error) {
-      console.warn('Failed to save benchmark storage:', error);
+      logger.warn('Failed to save benchmark storage:', error);
     }
   }
 
@@ -212,10 +214,10 @@ class PerformanceBenchmarkService {
 
       this.saveStorage(storage);
       
-      console.log('Performance baseline created:', baseline.name);
+      logger.info('Performance baseline created:', baseline.name);
       return baseline;
     } catch (error) {
-      console.error('Failed to create performance baseline:', error);
+      logger.error('Failed to create performance baseline:', error);
       throw new Error('Failed to create performance baseline');
     }
   }
@@ -253,10 +255,10 @@ class PerformanceBenchmarkService {
 
       this.saveStorage(storage);
       
-      console.log('Performance benchmark completed:', benchmark.name);
+      logger.info('Performance benchmark completed:', benchmark.name);
       return benchmark;
     } catch (error) {
-      console.error('Failed to run performance benchmark:', error);
+      logger.error('Failed to run performance benchmark:', error);
       throw new Error('Failed to run performance benchmark');
     }
   }
@@ -293,7 +295,7 @@ class PerformanceBenchmarkService {
       }
       return false;
     } catch (error) {
-      console.error('Failed to delete baseline:', error);
+      logger.error('Failed to delete baseline:', error);
       return false;
     }
   }
@@ -310,7 +312,7 @@ class PerformanceBenchmarkService {
       }
       return false;
     } catch (error) {
-      console.error('Failed to delete benchmark:', error);
+      logger.error('Failed to delete benchmark:', error);
       return false;
     }
   }
@@ -653,7 +655,7 @@ class PerformanceBenchmarkService {
       }
       return false;
     } catch (error) {
-      console.error('Failed to import benchmarks:', error);
+      logger.error('Failed to import benchmarks:', error);
       return false;
     }
   }
@@ -663,7 +665,7 @@ class PerformanceBenchmarkService {
       localStorage.removeItem(this.STORAGE_KEY);
       this.initializeStorage();
     } catch (error) {
-      console.error('Failed to clear benchmark data:', error);
+      logger.error('Failed to clear benchmark data:', error);
     }
   }
 }

@@ -1,5 +1,7 @@
+// ABOUTME: Integration tests for ModuleRegistry registration, dependency ordering and lifecycle.
+// ABOUTME: Uses in-memory mock modules to verify enable/disable and hook sequencing.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ModuleRegistry } from '@/core/ModuleRegistry';
+import { ModuleRegistry } from '@/core/moduleRegistry';
 import type { LoadedModule, LifecycleHooks } from '@/core/types/module';
 
 function createMockModule(id: string, deps: string[] = []): LoadedModule {

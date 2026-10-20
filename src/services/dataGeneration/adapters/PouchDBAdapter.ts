@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: PouchDB adapter for document-based storage with CouchDB sync
 // ABOUTME: Provides offline-first capabilities with automatic conflict resolution
 
@@ -21,9 +23,9 @@ export class PouchDBAdapter extends BaseStorageAdapter {
       this.PouchDB.plugin((PouchDBUpsert as any).default || PouchDBUpsert);
 
       this.initialized = true;
-      console.log('PouchDB adapter initialized successfully');
+      logger.info('PouchDB adapter initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize PouchDB adapter:', error);
+      logger.error('Failed to initialize PouchDB adapter:', error);
       throw error;
     }
   }
@@ -40,17 +42,18 @@ export class PouchDBAdapter extends BaseStorageAdapter {
       // Create indexes based on schema analysis
       await this.createIndexesFromSchema(db, schema);
       
-      console.log(`Created PouchDB database: ${dbName}`);
+      logger.info(`Created PouchDB database: ${dbName}`);
     } catch (error) {
-      console.error(`Failed to create schema for ${tableName}:`, error);
+      logger.error(`Failed to create schema for ${tableName}:`, error);
       throw error;
     }
   }
 
-  async insertBatch(tableName: string, data: any[]): Promise<void> {
+  async insertBatch(tableName: string, data: any[] | any): Promise<void> {
     this.validateInitialization();
-    
-    if (!data.length) return;
+
+    const rows = Array.isArray(data) ? data : [data];
+    if (!rows.length) return;
 
     const db = this.databases.get(tableName);
     if (!db) {
@@ -59,7 +62,7 @@ export class PouchDBAdapter extends BaseStorageAdapter {
 
     try {
       // Convert relational data to documents
-      const documents = data.map(record => ({
+      const documents = rows.map(record => ({
         _id: record.id || this.generateId(),
         type: tableName,
         ...record,
@@ -73,13 +76,13 @@ export class PouchDBAdapter extends BaseStorageAdapter {
       // Check for conflicts
       const conflicts = result.filter((r: any) => r.error);
       if (conflicts.length > 0) {
-        console.warn(`${conflicts.length} conflicts during batch insert to ${tableName}`);
+        logger.warn(`${conflicts.length} conflicts during batch insert to ${tableName}`);
         await this.handleConflicts(db, conflicts, documents);
       }
       
-      console.log(`Inserted ${data.length} documents into ${tableName}`);
+      logger.info(`Inserted ${rows.length} documents into ${tableName}`);
     } catch (error) {
-      console.error(`Failed to insert batch into ${tableName}:`, error);
+      logger.error(`Failed to insert batch into ${tableName}:`, error);
       throw error;
     }
   }
@@ -102,7 +105,7 @@ export class PouchDBAdapter extends BaseStorageAdapter {
         return { id: _id, ...data };
       });
     } catch (error) {
-      console.error('Query execution failed:', error);
+      logger.error('Query execution failed:', error);
       throw error;
     }
   }
@@ -111,13 +114,13 @@ export class PouchDBAdapter extends BaseStorageAdapter {
     try {
       for (const [tableName, db] of Array.from(this.databases.entries())) {
         await db.close();
-        console.log(`Closed database for ${tableName}`);
+        logger.info(`Closed database for ${tableName}`);
       }
       this.databases.clear();
       this.initialized = false;
-      console.log('PouchDB adapter cleaned up');
+      logger.info('PouchDB adapter cleaned up');
     } catch (error) {
-      console.error('Error during cleanup:', error);
+      logger.error('Error during cleanup:', error);
     }
   }
 
@@ -141,11 +144,11 @@ export class PouchDBAdapter extends BaseStorageAdapter {
     });
 
     sync.on('change', (info: any) => {
-      console.log(`Sync change for ${tableName}:`, info);
+      logger.info(`Sync change for ${tableName}:`, info);
     });
 
     sync.on('error', (err: any) => {
-      console.error(`Sync error for ${tableName}:`, err);
+      logger.error(`Sync error for ${tableName}:`, err);
     });
 
     return sync;
@@ -226,9 +229,9 @@ export class PouchDBAdapter extends BaseStorageAdapter {
             const existing = await db.get(conflict.id);
             doc._rev = existing._rev;
             await db.put(doc);
-            console.log(`Resolved conflict for document ${conflict.id}`);
+            logger.info(`Resolved conflict for document ${conflict.id}`);
           } catch (error) {
-            console.error(`Failed to resolve conflict for ${conflict.id}:`, error);
+            logger.error(`Failed to resolve conflict for ${conflict.id}:`, error);
           }
         }
       }

@@ -1,9 +1,10 @@
 // ABOUTME: Enhanced Kanban Board component with drag-and-drop functionality
 // ABOUTME: Modern, interactive kanban cards and columns with mobile-responsive touch support
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { designTokens } from '../../../utils/designTokens';
-import { useAnimation, transitions } from '../../../utils/animations';
+import { transitions } from '../../../utils/animations';
+
 import { useReducedMotion } from '../../../utils/accessibility';
 
 // Types and interfaces
@@ -102,7 +103,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
     ...column,
     cards: column.cards.filter(card => 
       !filterText || 
-      card.title.toLowerCase().includes(filterText.toLowerCase()) ||
+      (card.title?.toLowerCase() ?? '').includes(filterText.toLowerCase()) ||
       card.description?.toLowerCase().includes(filterText.toLowerCase()) ||
       card.tags?.some(tag => tag.toLowerCase().includes(filterText.toLowerCase()))
     ),
@@ -248,7 +249,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
     return (
       <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
         <div
-          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+          className="bg-primary-500 h-2 rounded-full transition-all duration-300"
           style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
         />
       </div>
@@ -269,12 +270,12 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
           />
         ) : (
           <div
-            className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600"
+            className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-surface-muted-fg"
           >
             {assignee.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <span className="text-sm text-gray-600 truncate">{assignee.name}</span>
+        <span className="text-sm text-surface-muted-fg truncate">{assignee.name}</span>
       </div>
     );
   };
@@ -288,13 +289,13 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
         {tags.slice(0, 3).map((tag, index) => (
           <span
             key={index}
-            className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700"
+            className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-surface-accent text-surface-foreground"
           >
             {tag}
           </span>
         ))}
         {tags.length > 3 && (
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-500">
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-surface-accent text-surface-muted-fg">
             +{tags.length - 3}
           </span>
         )}
@@ -311,7 +312,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
       <div key={card.id} className="relative">
         {/* Drop indicator */}
         {isDraggedOver && (
-          <div className="h-1 bg-blue-500 rounded-full mb-2 opacity-75" />
+          <div className="h-1 bg-primary-500 rounded-full mb-2 opacity-75" />
         )}
         
         <div
@@ -331,9 +332,9 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
             }
           }}
           className={`
-            bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer
+            bg-surface-card rounded-lg shadow-sm border border-surface-border p-4 cursor-pointer
             transition-all duration-200 hover:shadow-md hover:-translate-y-1
-            ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
+            ${isSelected ? 'ring-2 ring-primary-500 bg-primary-50' : ''}
             ${dragState.isDragging && dragState.draggedCard?.id === card.id ? 'opacity-50' : ''}
             ${!prefersReducedMotion ? 'transform' : ''}
           `}
@@ -343,7 +344,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
         >
           {/* Card header */}
           <div className="flex items-start justify-between mb-2">
-            <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1">
+            <h4 className="font-medium text-surface-foreground text-sm leading-tight flex-1">
               {card.title}
             </h4>
             {allowMultiSelect && (
@@ -354,14 +355,14 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
                   e.stopPropagation();
                   handleCardSelect(card.id, true);
                 }}
-                className="ml-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="ml-2 rounded border-surface-border text-primary-600 focus:ring-primary-500"
               />
             )}
           </div>
           
           {/* Card description */}
           {card.description && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+            <p className="text-sm text-surface-muted-fg mb-3 line-clamp-2">
               {card.description}
             </p>
           )}
@@ -384,7 +385,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
           
           {/* Due date */}
           {card.dueDate && (
-            <div className="flex items-center mt-2 text-xs text-gray-500">
+            <div className="flex items-center mt-2 text-xs text-surface-muted-fg">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -405,8 +406,8 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
       <div
         key={column.id}
         className={`
-          flex-shrink-0 w-80 bg-gray-50 rounded-lg p-4
-          ${isDraggedOver && canDrop ? 'bg-blue-50 ring-2 ring-blue-200' : ''}
+          flex-shrink-0 w-80 bg-surface-muted rounded-lg p-4
+          ${isDraggedOver && canDrop ? 'bg-primary-50 ring-2 ring-primary-200' : ''}
           ${!canDrop ? 'opacity-60' : ''}
         `}
         onDragOver={canDrop ? (e) => handleDragOver(e, column.id) : undefined}
@@ -422,8 +423,8 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
                 style={{ backgroundColor: column.color }}
               />
             )}
-            <h3 className="font-semibold text-gray-900">{column.title}</h3>
-            <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full">
+            <h3 className="font-semibold text-surface-foreground">{column.title}</h3>
+            <span className="bg-gray-200 text-surface-muted-fg text-xs px-2 py-1 rounded-full">
               {column.cards.length}
               {column.maxCards && `/${column.maxCards}`}
             </span>
@@ -432,7 +433,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
           {/* Column actions */}
           <div className="flex items-center space-x-1">
             <button
-              className="p-1 text-gray-400 hover:text-gray-600 rounded"
+              className="p-1 text-surface-muted-fg hover:text-surface-muted-fg rounded"
               onClick={() => onColumnUpdate?.(column.id, {})}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,7 +450,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
           {/* Drop zone at end of column */}
           {canDrop && dragState.isDragging && (
             <div
-              className="h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm"
+              className="h-12 border-2 border-dashed border-surface-border rounded-lg flex items-center justify-center text-surface-muted-fg text-sm"
               onDragOver={(e) => handleDragOver(e, column.id, column.cards.length)}
               onDrop={(e) => handleDrop(e, column.id, column.cards.length)}
             >
@@ -465,7 +466,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
     return (
       <div className={`flex space-x-6 overflow-x-auto pb-4 ${className}`}>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex-shrink-0 w-80 bg-gray-50 rounded-lg p-4 animate-pulse">
+          <div key={i} className="flex-shrink-0 w-80 bg-surface-muted rounded-lg p-4 animate-pulse">
             <div className="h-6 bg-gray-200 rounded mb-4" />
             <div className="space-y-3">
               {[1, 2, 3].map((j) => (

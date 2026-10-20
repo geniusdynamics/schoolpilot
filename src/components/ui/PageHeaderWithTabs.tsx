@@ -2,7 +2,7 @@
 // ABOUTME: Minimizes vertical space between navigation and content
 
 import React from 'react';
-import { TabNavigation } from './TabNavigation';
+import PageErrorBoundary from '@/components/PageErrorBoundary';
 
 export interface Tab {
   id: string;
@@ -20,17 +20,22 @@ interface PageHeaderWithTabsProps {
   action?: React.ReactNode;
   secondaryAction?: React.ReactNode;
   variant?: 'default' | 'compact' | 'minimal';
-  colorScheme?: 'blue' | 'emerald' | 'indigo' | 'violet' | 'amber' | 'rose';
+  /**
+   * Content of the active tab. When provided it is rendered as the tab panel inside an
+   * error boundary keyed on the active tab, so a crashing tab never blanks its siblings.
+   */
+  children?: React.ReactNode;
+  colorScheme?: 'blue' | 'emerald' | 'indigo' | 'violet' | 'amber' | 'rose' | 'green' | 'teal' | 'cyan' | 'purple' | 'orange' | 'slate';
 }
 
 const colorSchemes = {
   blue: {
-    activeBg: 'bg-blue-50',
-    activeText: 'text-blue-700',
-    activeBorder: 'border-blue-500',
-    badgeBg: 'bg-blue-100',
-    badgeText: 'text-blue-700',
-    hover: 'hover:bg-blue-50',
+    activeBg: 'bg-primary-50',
+    activeText: 'text-primary-700',
+    activeBorder: 'border-primary-500',
+    badgeBg: 'bg-primary-100',
+    badgeText: 'text-primary-700',
+    hover: 'hover:bg-primary-50',
   },
   emerald: {
     activeBg: 'bg-emerald-50',
@@ -72,6 +77,54 @@ const colorSchemes = {
     badgeText: 'text-rose-700',
     hover: 'hover:bg-rose-50',
   },
+  green: {
+    activeBg: 'bg-green-50',
+    activeText: 'text-green-700',
+    activeBorder: 'border-green-500',
+    badgeBg: 'bg-green-100',
+    badgeText: 'text-green-700',
+    hover: 'hover:bg-green-50',
+  },
+  teal: {
+    activeBg: 'bg-teal-50',
+    activeText: 'text-teal-700',
+    activeBorder: 'border-teal-500',
+    badgeBg: 'bg-teal-100',
+    badgeText: 'text-teal-700',
+    hover: 'hover:bg-teal-50',
+  },
+  cyan: {
+    activeBg: 'bg-cyan-50',
+    activeText: 'text-cyan-700',
+    activeBorder: 'border-cyan-500',
+    badgeBg: 'bg-cyan-100',
+    badgeText: 'text-cyan-700',
+    hover: 'hover:bg-cyan-50',
+  },
+  purple: {
+    activeBg: 'bg-purple-50',
+    activeText: 'text-purple-700',
+    activeBorder: 'border-purple-500',
+    badgeBg: 'bg-purple-100',
+    badgeText: 'text-purple-700',
+    hover: 'hover:bg-purple-50',
+  },
+  orange: {
+    activeBg: 'bg-orange-50',
+    activeText: 'text-orange-700',
+    activeBorder: 'border-orange-500',
+    badgeBg: 'bg-orange-100',
+    badgeText: 'text-orange-700',
+    hover: 'hover:bg-orange-50',
+  },
+  slate: {
+    activeBg: 'bg-slate-50',
+    activeText: 'text-slate-700',
+    activeBorder: 'border-slate-500',
+    badgeBg: 'bg-slate-100',
+    badgeText: 'text-slate-700',
+    hover: 'hover:bg-slate-50',
+  },
 };
 
 export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
@@ -84,26 +137,63 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   secondaryAction,
   variant = 'compact',
   colorScheme = 'blue',
+  children,
 }) => {
   const colors = colorSchemes[colorScheme];
+
+  const renderTabPanel = () => {
+    if (children === undefined || children === null) return null;
+    const panelKey = activeTab ?? '';
+    return (
+      <div
+        role="tabpanel"
+        id={`tabpanel-${panelKey}`}
+        aria-labelledby={`tab-${panelKey}`}
+        className="mt-4"
+      >
+        <PageErrorBoundary pageName={title ? `${title} / ${panelKey}` : panelKey} resetKey={panelKey}>
+          {children}
+        </PageErrorBoundary>
+      </div>
+    );
+  };
 
   const renderCustomTabs = () => {
     if (!tabs || tabs.length === 0) return null;
 
+    const handleTabKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+      let newIndex: number | null = null;
+      if (e.key === 'ArrowRight') {
+        newIndex = (currentIndex + 1) % tabs.length;
+      } else if (e.key === 'ArrowLeft') {
+        newIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      }
+      if (newIndex !== null) {
+        e.preventDefault();
+        onTabChange?.(tabs[newIndex].id);
+      }
+    };
+
     return (
-      <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-lg">
-        {tabs.map((tab) => {
+      <div className="flex items-center gap-1 bg-gray-100/80 dark:bg-slate-800/80 p-1 rounded-lg" role="tablist" aria-label="Tab navigation">
+        {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`tabpanel-${tab.id}`}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => onTabChange?.(tab.id)}
+              onKeyDown={(e) => handleTabKeyDown(e, index)}
               className={`
                 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md
                 transition-all duration-200
                 ${isActive 
                   ? `${colors.activeBg} ${colors.activeText} shadow-sm` 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                  : 'text-surface-muted-fg hover:text-surface-foreground hover:bg-gray-200/50'
                 }
               `}
             >
@@ -112,7 +202,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
               {tab.badge !== undefined && tab.badge > 0 && (
                 <span className={`
                   ml-1 px-1.5 py-0.5 text-xs rounded-full
-                  ${isActive ? colors.badgeBg + ' ' + colors.badgeText : 'bg-gray-200 text-gray-600'}
+                  ${isActive ? colors.badgeBg + ' ' + colors.badgeText : 'bg-gray-200 text-surface-muted-fg'}
                 `}>
                   {tab.badge}
                 </span>
@@ -126,15 +216,18 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
 
   if (variant === 'minimal') {
     return (
-      <div className="flex items-center justify-between py-2 border-b border-gray-200 mb-3">
-        <div className="flex items-center gap-4">
-          {renderCustomTabs()}
+      <>
+        <div className="flex items-center justify-between py-2 border-b border-surface-border mb-3">
+          <div className="flex items-center gap-4">
+            {renderCustomTabs()}
+          </div>
+          <div className="flex items-center gap-2">
+            {secondaryAction}
+            {action}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {secondaryAction}
-          {action}
-        </div>
-      </div>
+        {renderTabPanel()}
+      </>
     );
   }
 
@@ -145,12 +238,12 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div>
             {title && (
-              <h1 className={`font-semibold text-gray-900 ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
+              <h1 className={`font-semibold text-surface-foreground ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
                 {title}
               </h1>
             )}
             {subtitle && (
-              <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+              <p className="text-sm text-surface-muted-fg mt-0.5">{subtitle}</p>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -166,6 +259,8 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
           {renderCustomTabs()}
         </div>
       )}
+
+      {renderTabPanel()}
     </div>
   );
 };

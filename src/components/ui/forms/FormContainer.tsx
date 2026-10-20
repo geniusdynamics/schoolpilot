@@ -2,7 +2,6 @@
 // ABOUTME: Provides consistent structure, padding, and layout for forms
 
 import React, { ReactNode, forwardRef } from 'react';
-import { useTransition } from '../../../utils/animations';
 
 export type FormType = 'default' | 'dialog' | 'slideout' | 'tabbed' | 'wizard' | 'minimal' | 'print';
 
@@ -81,8 +80,6 @@ const FormContainer = forwardRef<HTMLFormElement, FormContainerProps>(({
   maxHeight,
   ariaLabel,
 }, ref) => {
-  const transitionStyles = useTransition(['all']);
-
   // Size styles (affects padding)
   const sizeStyles = {
     sm: 'p-4',
@@ -95,18 +92,17 @@ const FormContainer = forwardRef<HTMLFormElement, FormContainerProps>(({
   // Type-specific styles
   const typeStyles = {
     default: '',
+    // Dialogs render inside Modal's padded body — don't add a second layer
     dialog: 'max-h-full',
     slideout: 'h-full flex flex-col',
     tabbed: 'flex flex-col h-full',
     wizard: 'flex flex-col h-full',
-    minimal: 'p-0',
+    minimal: '',
     print: 'print:p-0',
   };
 
-  // Scrollable content styles
-  const scrollStyles = scrollable
-    ? `overflow-y-auto ${maxHeight ? `max-h-[${maxHeight}]` : 'flex-1'}`
-    : '';
+  // Dialogs/minimal never add their own padding
+  const paddingClass = type === 'dialog' || type === 'minimal' ? '' : sizeStyles[size];
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -121,23 +117,22 @@ const FormContainer = forwardRef<HTMLFormElement, FormContainerProps>(({
       id={formId}
       name={name}
       className={`
-        flex flex-col
-        ${sizeStyles[size]}
+        flex flex-col relative
+        ${paddingClass}
         ${typeStyles[type]}
-        ${scrollStyles}
+        ${scrollable ? 'overflow-y-auto flex-1' : ''}
         ${disabled ? 'opacity-60 pointer-events-none' : ''}
         ${className}
       `}
+      style={scrollable && maxHeight ? { maxHeight } : undefined}
       onSubmit={handleSubmit}
       autoComplete={autoComplete}
-      disabled={disabled}
       aria-label={ariaLabel}
       aria-busy={loading}
-      style={transitionStyles}
     >
       {loading && (
-        <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="absolute inset-0 bg-surface-card flex items-center justify-center z-10 rounded-b-2xl">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-surface-border border-t-primary-600" />
         </div>
       )}
       {children}

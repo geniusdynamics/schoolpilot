@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Production LiveStore Configuration
  * 
@@ -183,11 +185,11 @@ export function getLiveStoreConfig(environment: 'development' | 'staging' | 'pro
   
   // Validate required configuration
   if (config.sync.enabled && !config.sync.endpoint) {
-    console.warn('[LiveStore] Sync is enabled but no endpoint configured - disabling sync');
+    logger.warn('[LiveStore] Sync is enabled but no endpoint configured - disabling sync');
     config.sync.enabled = false;
   }
   
-  console.log(`[LiveStore] Using configuration for environment: ${environment}`);
+  logger.info(`[LiveStore] Using configuration for environment: ${environment}`);
   return config;
 }
 
@@ -218,7 +220,7 @@ export function validateLiveStoreConfig(config: ProductionLiveStoreConfig): bool
   }
   
   if (errors.length > 0) {
-    console.error('[LiveStore] Configuration validation failed:', errors);
+    logger.error('[LiveStore] Configuration validation failed:', errors);
     return false;
   }
   

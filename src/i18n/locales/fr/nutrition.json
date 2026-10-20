@@ -12,5 +12,78 @@
   "reports": "Rapports nutritionnels",
   "compliance": "Conformité sanitaire",
   "catering": "Services de restauration",
-  "feedback": "Commentaires sur les repas"
+  "feedback": "Commentaires sur les repas",
+  "kitchenManagement": {
+    "title": "School Kitchen Management",
+    "description": "Manage food inventory with dietary restrictions tracking, meal plans, and cost monitoring",
+    "foodInventory": "Food Inventory",
+    "mealPlans": "Meal Plans",
+    "costAnalysis": "Cost Analysis",
+    "dietaryRestrictions": "Dietary Restrictions",
+    "itemName": "Item Name",
+    "category": "Category",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "costPerUnit": "Cost Per Unit",
+    "totalValue": "Total Value",
+    "supplier": "Supplier",
+    "expiryDate": "Expiry Date",
+    "stockStatus": "Stock Status",
+    "inStock": "In Stock",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock",
+    "dietarySuitable": "Dietary Suitable For",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "glutenFree": "Gluten-Free",
+    "dairyFree": "Dairy-Free",
+    "nutFree": "Nut-Free",
+    "halal": "Halal",
+    "kosher": "Kosher",
+    "addItem": "Add Food Item",
+    "dailyMealCost": "Daily Meal Cost",
+    "students": "Students"
+  },
+  "mealPlans": {
+    "managementTitle": "Meal Plans",
+    "addMealPlan": "Add Meal Plan",
+    "managementDescription": "Management Description",
+    "editMealPlan": "Edit Meal Plan",
+    "addNewMealPlan": "Add New Meal Plan",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "addPlan": "Add Plan",
+    "planName": "Plan Name",
+    "description": "Description",
+    "costPerPeriod": "Cost Per Period"
+  },
+  "menus": {
+    "management": {
+      "title": "Management",
+      "description": "Description"
+    },
+    "add": {
+      "button": "Add",
+      "title": "Add"
+    },
+    "edit": {
+      "title": "Edit"
+    },
+    "date": {
+      "label": "Date"
+    },
+    "mealType": {
+      "label": "Meal Type"
+    },
+    "description": {
+      "label": "Description",
+      "placeholder": "Placeholder"
+    },
+    "cancel": {
+      "button": "Cancel"
+    },
+    "save": {
+      "button": "Save"
+    }
+  }
 }

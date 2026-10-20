@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for classstream data management
 // ABOUTME: Provides CRUD operations for classstream without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockClassStreams } from './mockData';
 import { ClassStream } from '@/core/types';
+import { useState } from 'react';
 
 export const useClassStreamData = () => {
   const [data, setData] = useState<ClassStream[]>(initialMockClassStreams);

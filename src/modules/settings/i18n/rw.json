@@ -135,5 +135,32 @@
     "states": "Imimerere",
     "stateName": "Izina ry'Imimerere",
     "order": "Imbera"
+  },
+  "systemManagement": {
+    "storage": {
+      "title": "Ububiko bw'umushakisha",
+      "modeLabel": "Uburyo bw'ububiko",
+      "persistedLabel": "Ububiko buhoraho bwemerewe",
+      "mode": {
+        "opfs": "Buhoraho (OPFS)",
+        "memory": "By'agatebe (mu bwibutse gusa)",
+        "unavailable": "Ntibiboneka",
+        "uninitialised": "Ntiburafungurwa"
+      },
+      "persisted": {
+        "yes": "Yego",
+        "no": "Oya",
+        "unknown": "Ntibizwi"
+      }
+    }
+  },
+  "schoolProfile": {
+    "setupWizard": {
+      "title": "Ubuyobozi bwo gutegura",
+      "description": "Tegura umwirondoro w'ishuri, umwaka w'amashuri, amaklasi, amasomo n'umuyobozi intambwe ku yindi.",
+      "rerunDescription": "Gutegura byarangiye. Ongera utangize ubuyobozi kugira ngo usubire urebe umwirondoro w'ishuri, umwaka, amaklasi n'amasomo; inyandiko zisanzwe zihindurwa, ntizongerwaho kabiri.",
+      "runButton": "Tangiza ubuyobozi bwo gutegura",
+      "rerunButton": "Ongera utangize ubuyobozi bwo gutegura"
+    }
   }
 }

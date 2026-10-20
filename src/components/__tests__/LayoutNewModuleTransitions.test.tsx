@@ -1,8 +1,15 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import LayoutNew from '../LayoutNew';
+import LayoutNew from '../Layout'; // merged into Layout.tsx (flag-aware)
+import { SecondarySidebarProvider } from '../../contexts/SecondarySidebarContext';
+
+// Layout.tsx itself calls useSecondarySidebar(); these files import RTL's
+// render directly (bypassing the global provider wrapper), so wrap the layout
+// in the SecondarySidebarProvider it expects. FullWidthContext is mocked below.
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<SecondarySidebarProvider>{ui}</SecondarySidebarProvider>, options);
 
 const openTabMock = vi.fn();
 const switchModuleSessionMock = vi.fn();
@@ -46,6 +53,17 @@ vi.mock('../SecondarySidebar', () => ({
       <button onClick={() => onItemClick?.({ path: '/finance/reports' })}>cross-module-item</button>
     </div>
   )
+}));
+
+vi.mock('../../contexts/FullWidthContext', () => ({
+  useFullWidth: () => ({
+    isFullWidth: false,
+    isSecondaryAsPrimary: false,
+    toggleFullWidth: vi.fn(),
+    enableFullWidth: vi.fn(),
+    disableFullWidth: vi.fn(),
+    setSecondaryAsPrimary: vi.fn()
+  })
 }));
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -166,7 +184,7 @@ describe('LayoutNew module transitions', () => {
     switchModuleSessionMock.mockResolvedValue('tab-academics-dashboard');
   });
 
-  it('switches to the target module dashboard with a refreshed session', async () => {
+  it('switches to the target module dashboard via a module session', async () => {
     render(
       <MemoryRouter initialEntries={['/administration/dashboard']}>
         <LayoutNew />
@@ -180,7 +198,7 @@ describe('LayoutNew module transitions', () => {
         '/academics/dashboard',
         expect.objectContaining({
           preservePinned: true,
-          refresh: true,
+          refresh: false,
           pinned: false,
           canPreserveTab: expect.any(Function)
         })
@@ -204,7 +222,7 @@ describe('LayoutNew module transitions', () => {
     expect(switchModuleSessionMock).not.toHaveBeenCalled();
   });
 
-  it('redirects cross-module submenu clicks to the destination dashboard session', async () => {
+  it('opens a tab for cross-module submenu clicks', async () => {
     render(
       <MemoryRouter initialEntries={['/administration/dashboard']}>
         <LayoutNew />
@@ -214,13 +232,10 @@ describe('LayoutNew module transitions', () => {
     fireEvent.click(screen.getByText('cross-module-item'));
 
     await waitFor(() => {
-      expect(switchModuleSessionMock).toHaveBeenCalledWith(
-        '/finance/dashboard',
-        expect.objectContaining({
-          preservePinned: true,
-          refresh: true
-        })
-      );
+      // Sidebar nav clicks always open a tab — module sessions are only
+      // switched from the primary sidebar's module selection.
+      expect(openTabMock).toHaveBeenCalledWith('/finance/reports', { pinned: false });
     });
+    expect(switchModuleSessionMock).not.toHaveBeenCalled();
   });
 });

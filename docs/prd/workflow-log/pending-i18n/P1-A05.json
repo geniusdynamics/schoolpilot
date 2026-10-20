@@ -1,0 +1,27 @@
+{
+  "task": "P1-A05",
+  "note": "New migration framework strings used with inline English defaults. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values.",
+  "en": {
+    "common": {
+      "migration": {
+        "title": "Updating the database",
+        "failedTitle": "The database update failed",
+        "preparing": "Preparing the database update",
+        "current": "Applying migration {{version}} of {{total}}: {{name}}",
+        "completed": "The database is up to date",
+        "failed": "The migration failed",
+        "failedMigration": "Migration {{name}} failed",
+        "failedAnnouncement": "Migration {{version}} ({{name}}) failed: {{error}}",
+        "progressLabel": "Database migration progress",
+        "progressText": "{{completed}} of {{total}} migrations applied",
+        "counts": "{{completed}} of {{total}} applied · {{pending}} remaining",
+        "interrupted": "The previous run was interrupted at migration {{name}}. It will be run again.",
+        "backup": "A backup was taken at {{location}}",
+        "retry": "Try again",
+        "rollback": "Roll back",
+        "rollbackTo": "Roll back to version",
+        "rollbackChoose": "Choose a version"
+      }
+    }
+  }
+}

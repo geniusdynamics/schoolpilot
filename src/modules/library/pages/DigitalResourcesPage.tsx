@@ -7,16 +7,16 @@ import { useBookData } from '../data/useBookData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormField from '@/components/ui/forms/FormField';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { UploadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
-const DigitalResourcesPage: React.FC = () => {
+export const DigitalResourcesPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { data: books, isLoading: booksLoading, update: updateBook } = useBookData();
   
@@ -115,9 +115,9 @@ const DigitalResourcesPage: React.FC = () => {
             filterable={true}
             emptyState={
               <div className="text-center py-12">
-                <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No digital resources found</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <UploadIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">No digital resources found</h3>
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   Upload digital files to create and update digital resources linked to books.
                 </p>
               </div>
@@ -160,5 +160,10 @@ const DigitalResourcesPage: React.FC = () => {
     </div>
   );
 };
+const DigitalResourcesPage: React.FC = () => (
+  <div className="space-y-6">
+    <DigitalResourcesPageContent />
+  </div>
+);
 
 export default DigitalResourcesPage;

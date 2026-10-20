@@ -105,6 +105,8 @@ export interface NavItem {
   isActive?: boolean; // Whether this module/feature is active
   page?: string; // Optional explicit page component name for dynamic import
   deprecated?: boolean; // Mark item as deprecated; UI should hide or redirect
+  redirectTo?: string; // Destination for deprecated routes
+  showInModes?: ('standard' | 'fullwidth')[]; // Which layout modes show this item
 }
 
 export interface LanguageOption {
@@ -159,6 +161,7 @@ export interface ModuleDefinition {
   isActive: boolean; // Whether the module is enabled
   version: string;
   dependencies?: ModuleDependency[]; // Required and optional dependencies with version constraints
+  optionalDependencies?: ModuleDependency[]; // Optional dependencies with version constraints
   permissions?: string[]; // Permissions required to access this module
   navigation: NavItem[]; // Navigation items for this module
   features?: string[]; // List of features this module provides

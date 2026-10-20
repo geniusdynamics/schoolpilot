@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // Network state management and backend connectivity monitoring
 export interface NetworkState {
   isOnline: boolean;
@@ -66,18 +68,26 @@ export class NetworkStateManager {
                           window.location.hostname === 'localhost' ||
                           window.location.hostname === '127.0.0.1';
       
-      // Also check if there's an app mode setting
-      const storedConfig = localStorage.getItem('app-config');
+      // Also check if there's an app mode setting (UnifiedAppConfig uses dataMode/demo.active)
+      const storedConfig = localStorage.getItem('app-config') || localStorage.getItem('schoolpilot_config');
       if (storedConfig) {
-        const config = JSON.parse(storedConfig);
-        if (config.mode === 'demo') {
-          return true;
-        }
+        try {
+          const config = JSON.parse(storedConfig);
+          if (config.dataMode === 'demo' || config.mode === 'demo' || config.demo?.active === true) {
+            return true;
+          }
+        } catch {}
       }
+      // Also check unified config manager if available
+      try {
+        const { unifiedConfigManager } = require('@/config/unifiedConfig');
+        const cfg: any = unifiedConfigManager.getConfig?.();
+        if (cfg?.dataMode === 'demo' || cfg?.demo?.active) return true;
+      } catch {}
       
       return isDemoBuild;
     } catch (error) {
-      console.warn('Error checking demo mode:', error);
+      logger.warn('Error checking demo mode:', error);
       return true; // Default to demo mode if unsure
     }
   }
@@ -145,7 +155,7 @@ export class NetworkStateManager {
         try {
           healthData = await response.json();
           // Use healthData for future health monitoring features
-          console.log('Backend health:', healthData);
+          logger.info('Backend health:', healthData);
         } catch (e) {
           // Health endpoint might not return JSON
         }
@@ -162,7 +172,7 @@ export class NetworkStateManager {
 
       return available;
     } catch (error) {
-      console.warn('Backend health check failed:', error);
+      logger.warn('Backend health check failed:', error);
       this.updateState({
         backendAvailable: false,
         latency: null,
@@ -196,8 +206,12 @@ export class NetworkStateManager {
     const previousState = { ...this.state };
     this.state = { ...this.state, ...updates };
     
-    // Notify listeners if state changed
-    if (JSON.stringify(previousState) !== JSON.stringify(this.state)) {
+    // Only notify if semantic fields changed — ignore lastCheck/latency churn that fires every 30s
+    const semanticChanged =
+      previousState.isOnline !== this.state.isOnline ||
+      previousState.backendAvailable !== this.state.backendAvailable ||
+      previousState.connectionQuality !== this.state.connectionQuality;
+    if (semanticChanged) {
       this.listeners.forEach(listener => listener(this.state));
     }
   }

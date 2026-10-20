@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import type { ModuleMetadata, ModuleDependency } from '@/core/types/module';
 
 // Mock the module.json files

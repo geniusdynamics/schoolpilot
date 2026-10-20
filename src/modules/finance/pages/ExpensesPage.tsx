@@ -1,314 +1,91 @@
-import React, { useState, useMemo } from 'react';
-import { ExpenseClaim, ExpenseClaimantType, ExpenseCategory } from '@/modules/finance';
-import { Staff, Student } from '@/modules/administration';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon, CurrencyDollarIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+// ABOUTME: Hub page for expenses and banking
+// ABOUTME: Consolidates expenses, banks, and suppliers into tabbed interface
 
-type ExpenseClaimFormData = Omit<Partial<ExpenseClaim>, 'id' | 'created_at' | 'updated_at' | 'claimant_name' | 'expense_category_name' | 'claimant_type'> & {
-    claimant_type: ExpenseClaimantType; // Ensure this is required for form logic
-};
+import React, { useState, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import {
+  BanknotesIcon,
+  BuildingOffice2Icon,
+  UserGroupIcon,
+} from '@/components/ui/icons';
+import { BanksPageContent } from './BanksPage';
+import { SuppliersPageContent } from './SuppliersPage';
+
+interface HubTab {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  component: React.ReactNode;
+}
 
 const ExpensesPage: React.FC = () => {
-  const { 
-    expenseClaims, 
-    expenseCategories,
-    staff,
-    students,
-    loading, 
-    addExpenseClaim, 
-    updateExpenseClaim, 
-    deleteExpenseClaim 
-  } = useAppData();
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingClaim, setEditingClaim] = useState<ExpenseClaim | null>(null);
-  
-  const initialFormData: ExpenseClaimFormData = { 
-    claimant_type: ExpenseClaimantType.STAFF, 
-    claimant_id: undefined, 
-    claim_date: new Date().toISOString().split('T')[0], 
-    description: '', 
-    amount: 0, 
-    expense_category_id: undefined 
-  };
-  const [formData, setFormData] = useState<ExpenseClaimFormData>(initialFormData);
+  const { t } = useTranslation('finance');
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const claimantList = useMemo(() => {
-    if (formData.claimant_type === ExpenseClaimantType.STAFF) {
-      return (staff || []).filter(s => s.is_active).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Staff)` }));
-    } else if (formData.claimant_type === ExpenseClaimantType.STUDENT) {
-      return (students || []).filter(s => s.status === 'Active').map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Student)` }));
-    }
-    return [];
-  }, [formData.claimant_type, staff, students]);
-
-  const openModal = (claim?: ExpenseClaim) => {
-    setEditingClaim(claim || null);
-    setFormData(claim ? 
-      { 
-        claimant_type: claim.claimant_type, 
-        claimant_id: claim.claimant_id, 
-        claim_date: new Date(claim.claim_date).toISOString().split('T')[0], 
-        description: claim.description, 
-        amount: claim.amount, 
-        expense_category_id: claim.expense_category_id 
-      } : 
-      initialFormData
-    );
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingClaim(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    let processedValue: string | number | undefined = value;
-    if (name === 'expense_category_id' || name === 'claimant_id') {
-        processedValue = value || undefined;
-    } else if (name === 'amount') {
-        processedValue = parseFloat(value) || 0;
-    }
-    
-    setFormData(prev => {
-        const newState = { ...prev, [name]: processedValue };
-        if (name === 'claimant_type') { // Reset claimant_id if type changes
-            newState.claimant_id = undefined;
-        }
-        return newState;
-    });
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.claimant_id || !formData.claim_date || !formData.description || formData.amount <= 0 || !formData.expense_category_id) {
-      alert("Claimant, Claim Date, Description, valid Amount, and Expense Category are required.");
-      return;
-    }
-    const payload: Omit<ExpenseClaim, 'id' | 'created_at' | 'updated_at' | 'claimant_name' | 'expense_category_name'> = {
-      claimant_type: formData.claimant_type,
-      claimant_id: formData.claimant_id!,
-      claim_date: formData.claim_date!,
-      description: formData.description!,
-      amount: Number(formData.amount),
-      expense_category_id: Number(formData.expense_category_id!),
-      // workflow_state_id and approved_by would be handled by a workflow system
-    };
-
-    if (editingClaim) {
-      await updateExpenseClaim({ ...editingClaim, ...payload });
-    } else {
-      await addExpenseClaim(payload);
-    }
-    closeModal();
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this expense claim?')) {
-      await deleteExpenseClaim(id);
-    }
-  };
-
-  const columns: DataGridColumn<ExpenseClaim>[] = [
+  const tabs: HubTab[] = [
     {
-      key: 'id',
-      header: 'Claim ID',
-      sortable: true,
-      filterable: true,
-      width: 120,
-      sticky: 'left',
-      render: (value) => (
-        <span className="font-mono font-medium text-gray-900">
-          {value}
-        </span>
-      )
+      id: 'expenses',
+      label: t('expenses.title', 'Expenses'),
+      icon: <BanknotesIcon className="w-4 h-4" />,
+      component: <div className="p-4"><BanknotesIcon className="w-6 h-6 text-surface-muted-fg" /> <span className="text-surface-muted-fg ml-2">Expense records will appear here</span></div>,
     },
     {
-      key: 'claimant_name',
-      header: 'Claimant',
-      sortable: true,
-      filterable: true,
-      width: 200,
-      render: (value) => (
-        <span className="font-medium text-gray-900">
-          {value}
-        </span>
-      )
+      id: 'banks',
+      label: t('banks.title', 'Banks'),
+      icon: <BuildingOffice2Icon className="w-4 h-4" />,
+      component: <BanksPageContent />,
     },
     {
-      key: 'claimant_type',
-      header: 'Type',
-      sortable: true,
-      filterable: true,
-      width: 100,
-      render: (value) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-          value === ExpenseClaimantType.STAFF ? 'bg-blue-100 text-blue-800' :
-          value === ExpenseClaimantType.STUDENT ? 'bg-green-100 text-green-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {value}
-        </span>
-      )
+      id: 'suppliers',
+      label: t('suppliers.title', 'Suppliers'),
+      icon: <UserGroupIcon className="w-4 h-4" />,
+      component: <SuppliersPageContent />,
     },
-    {
-      key: 'claim_date',
-      header: 'Date',
-      sortable: true,
-      width: 120,
-      render: (value) => (
-        <span className="text-sm text-gray-600">
-          {new Date(value).toLocaleDateString()}
-        </span>
-      )
-    },
-    {
-      key: 'amount',
-      header: 'Amount (KES)',
-      sortable: true,
-      width: 120,
-      render: (value) => (
-        <span className="font-medium text-green-600">
-          {value.toFixed(2)}
-        </span>
-      )
-    },
-    {
-      key: 'expense_category_name',
-      header: 'Category',
-      sortable: true,
-      filterable: true,
-      width: 150,
-      render: (value) => (
-        <span className="text-sm text-gray-600">
-          {value}
-        </span>
-      )
-    },
-    {
-      key: 'description',
-      header: 'Description',
-      sortable: true,
-      filterable: true,
-      width: 250,
-      render: (value) => (
-        <p className="truncate max-w-xs text-sm text-gray-900">
-          {value}
-        </p>
-      )
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      width: 160,
-      render: (_, row) => (
-        <div className="flex space-x-1">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => openModal(row)} 
-            leftIcon={<EditIcon className="w-4 h-4" />}
-          >
-            Edit
-          </Button>
-          <Button 
-            size="sm" 
-            variant="danger" 
-            onClick={() => handleDelete(row.id)} 
-            leftIcon={<DeleteIcon className="w-4 h-4" />}
-          >
-            Delete
-          </Button>
-        </div>
-      )
-    }
   ];
 
-  const isLoadingPageData = loading.expenseClaims || loading.expenseCategories || loading.staff || loading.students;
+  const activeTabFromUrl = searchParams.get('tab') || 'expenses';
+  const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
-  if (isLoadingPageData && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Expense Claims...</span>
-      </div>
-    );
-  }
+  const handleTabChange = useCallback(
+    (tabId: string) => {
+      setActiveTab(tabId);
+      if (tabId === 'expenses') {
+        navigate('/finance/expenses', { replace: true });
+      } else {
+        setSearchParams({ tab: tabId }, { replace: true });
+      }
+    },
+    [navigate, setSearchParams]
+  );
+
+  const activeTabData = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
-    <div className="space-y-6">
-      <Card title="Expense Claims Management" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Expense Claim
-        </Button>
-      }>
-        <p className="text-sm text-gray-600 mb-4">
-          Record and manage expense claims submitted by staff or students.
-        </p>
-        <DataGrid 
-          columns={columns} 
-          data={expenseClaims || []} 
-          isLoading={loading.expenseClaims && isModalOpen}
-          sortable
-          filterable
-          emptyState={{
-            icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
-            title: "No Expense Claims Found",
-            description: "Get started by recording your first expense claim from staff or students.",
-            action: (
-              <Button 
-                onClick={() => openModal()} 
-                leftIcon={<PlusIcon className="w-5 h-5" />}
-              >
-                Add Expense Claim
-              </Button>
-            )
-          }}
-        />
-      </Card>
-
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingClaim ? 'Edit Expense Claim' : 'Add New Expense Claim'} size="xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.expenseClaims}>
-              {loading.expenseClaims ? <Spinner size="sm"/> : (editingClaim ? 'Save Changes' : 'Add Claim')}
-            </Button>
-          </>
-        }
+    <div className="space-y-4">
+      <PageHeaderWithTabs
+        title={t('expensesHub.title', 'Expenses & Banking')}
+        subtitle={t(
+          'expensesHub.subtitle',
+          'Manage expenses, bank accounts, and suppliers'
+        )}
+        tabs={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          icon: tab.icon,
+        }))}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        variant="compact"
+        colorScheme="orange"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select name="claimant_type" label="Claimant Type" value={formData.claimant_type} onChange={handleInputChange} required>
-                {Object.values(ExpenseClaimantType).map(type => (<option key={type} value={type}>{type}</option>))}
-            </Select>
-            <Select name="claimant_id" label="Claimant" value={formData.claimant_id || ''} onChange={handleInputChange} required>
-                <option value="">Select Claimant</option>
-                {(claimantList || []).map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-            </Select>
-            <Input name="claim_date" label="Claim Date" type="date" value={formData.claim_date || ''} onChange={handleInputChange} required />
-            <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={formData.amount || ''} onChange={handleInputChange} required />
-            <Select name="expense_category_id" label="Expense Category" value={formData.expense_category_id || ''} onChange={handleInputChange} required className="md:col-span-2">
-                <option value="">Select Expense Category</option>
-                {(expenseCategories || []).map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-            </Select>
-            <Textarea name="description" label="Description of Expense" value={formData.description || ''} onChange={handleInputChange} required rows={3} containerClassName="md:col-span-2"/>
-        </div>
-      </DialogForm>
+        {activeTabData.component}
+      </PageHeaderWithTabs>
     </div>
   );
 };
 
 export default ExpensesPage;
+

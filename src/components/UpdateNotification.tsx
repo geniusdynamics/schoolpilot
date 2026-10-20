@@ -6,7 +6,10 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { RefreshCw, X } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { usePWA } from '@/hooks/usePWA';
 import { Button } from '@/components/ui/Button';
 
@@ -54,7 +57,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({
       }`}
     >
       <div className="flex items-center gap-4 max-w-4xl w-full">
-        <RefreshCw className="w-5 h-5 animate-spin" />
+        <ArrowPathIcon className="w-5 h-5 animate-spin" />
         
         <div className="flex-1">
           <p className="text-sm font-medium">
@@ -80,7 +83,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({
             className="text-primary-foreground hover:text-primary-foreground/80"
             onClick={handleDismiss}
           >
-            <X className="w-4 h-4" />
+            <XMarkIcon className="w-4 h-4" />
           </Button>
         </div>
       </div>

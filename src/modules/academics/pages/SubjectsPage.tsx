@@ -1,177 +1,131 @@
-import React, { useState } from 'react';
-import { Subject } from '@/core/types';
+// ABOUTME: Subjects management page — CRUD-pattern pilot (docs/contributing/crud.md).
+// ABOUTME: List page = Card + DataGrid + EntityForm dialog + ConfirmDialog delete,
+// ABOUTME: data via useEntityCrud (optimistic updates, toasts, rollback).
+
+import React, { useMemo, useState } from 'react';
+import { Subject } from '../data/types';
 import { SubjectGrouping } from '../data/enums';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '@/hooks/useAppData'; 
-import Spinner from '@/components/ui/Spinner';
+import { useAppData } from '@/hooks/useAppData';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
+import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
+import { useEntityCrud } from '@/hooks/useEntityCrud';
 
-interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name' | 'papers'> {
-  department_id?: string | null;
-}
+/**
+ * Runtime subject row. Collection ids are strings (PouchDB-backed); the
+ * `number` typing on the legacy Subject interface predates id normalization.
+ */
+type SubjectRow = Omit<Subject, 'id'> & { id: string };
 
-const SubjectsPage: React.FC = () => {
-  const { subjects: subjectsState, loading, rawInitialData } = useAppData();
-  // Get departments with fallback to empty array
-  const initialMockDepartments = rawInitialData?.departments || [];
+export const SubjectsContent: React.FC = () => {
+  const { rawInitialData } = useAppData();
+  // Departments feed the form's select options only — subjects data lives in useEntityCrud.
+  const departments = rawInitialData?.departments || [];
   const { t } = useTranslation('academics');
 
+  const [editingSubject, setEditingSubject] = useState<SubjectRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const initialFormData: SubjectFormData = { subject_code: '', abbreviation: '', name: '', grouping: SubjectGrouping.OTHER, is_compulsory: false };
-  const [formData, setFormData] = useState<SubjectFormData>({});
 
+  const subjects = useEntityCrud<SubjectRow>({
+    collectionName: 'subjects',
+    entityName: 'Subject',
+  });
 
-  const openModal = (subject?: Subject) => {
+  const openModal = (subject?: SubjectRow) => {
     setEditingSubject(subject || null);
-    setFormData(subject ? 
-        { 
-            subject_code: subject.subject_code, 
-            abbreviation: subject.abbreviation, 
-            name: subject.name, 
-            department_id: subject.department_id, 
-            is_compulsory: subject.is_compulsory, 
-            grouping: subject.grouping 
-        } : 
-        initialFormData);
     setIsModalOpen(true);
   };
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingSubject(null);
-    setFormData(initialFormData);
-  };
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    let processedValue: string | boolean | number | undefined = value;
-
-    if (type === 'checkbox' && 'checked' in e.target) {
-        processedValue = (e.target as HTMLInputElement).checked;
-    } else if (name === 'department_id') {
-        processedValue = value ? parseInt(value, 10) : undefined;
-        if (Number.isNaN(processedValue as number)) processedValue = undefined;
-    }
-    
-    setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.subject_code || !formData.abbreviation || !formData.grouping) {
-        alert(t('validation.nameCodeAbbreviationAndGroupingAreRequired'));
-        return;
-    }
-    
-    const payload: Omit<Subject, 'id' | 'department_name' | 'papers'> = {
-        subject_code: formData.subject_code!,
-        abbreviation: formData.abbreviation!,
-        name: formData.name!,
-        department_id: formData.department_id,
-        is_compulsory: formData.is_compulsory || false,
-        grouping: formData.grouping!,
-    };
-
+  const handleSave = async (values: Record<string, any>) => {
     if (editingSubject) {
-        // Placeholder for updateSubject
+      await subjects.update(editingSubject.id, values);
     } else {
-        // Placeholder for addSubject
-    }
-    closeModal();
-  };
-
-  const handleDelete = async (subjectId: number) => {
-    if (window.confirm('Are you sure you want to delete this subject?')) {
-        // Placeholder for deleteSubject
+      await subjects.create(values as Omit<SubjectRow, 'id' | 'created_at' | 'updated_at'>);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    await subjects.confirmRemove(id);
+  };
 
-  const columns: DataGridColumn<Subject>[] = [
-    { key: 'subject_code', header: t('subjects.code') },
-    { key: 'abbreviation', header: t('subjects.abbreviation') },
-    { key: 'name', header: t('subjects.name') },
-    { key: 'department_name', header: t('subjects.department') },
-    { key: 'grouping', header: t('subjects.grouping') },
-    { key: 'is_compulsory', header: t('subjects.isCompulsory'), render: (value: any, item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
+  const fields: EntityFieldConfig[] = useMemo(() => [
+    { name: 'subject_code', label: t('subjects.code'), required: true },
+    { name: 'abbreviation', label: t('subjects.abbreviation'), required: true },
+    { name: 'name', label: t('subjects.name'), required: true, colSpan: 2 },
+    {
+      name: 'department_id',
+      label: t('subjects.department'),
+      type: 'select',
+      options: departments
+        .filter((d: { is_academic: boolean }) => d.is_academic)
+        .map((dep: { id: string | number; name: string }) => ({ value: dep.id, label: dep.name })),
+    },
+    {
+      name: 'grouping',
+      label: t('subjects.grouping'),
+      type: 'select',
+      required: true,
+      options: Object.values(SubjectGrouping).map(group => ({ value: group, label: group })),
+    },
+    { name: 'is_compulsory', label: t('subjects.isCompulsory'), type: 'checkbox' },
+  ], [t, departments]);
+
+  const columns: DataGridColumn<SubjectRow>[] = [
+    { key: 'subject_code', header: t('subjects.code'), sortable: true, filterable: true },
+    { key: 'abbreviation', header: t('subjects.abbreviation'), sortable: true },
+    { key: 'name', header: t('subjects.name'), sortable: true, filterable: true, render: (_v: any, item: SubjectRow) => <span className="truncate block max-w-[240px]" title={item.name}>{item.name}</span> },
+    { key: 'department_name', header: t('subjects.department'), sortable: true, filterable: true, render: (_v: any, item: SubjectRow) => <span className="truncate block max-w-[160px]" title={item.department_name || ''}>{item.department_name || '—'}</span> },
+    { key: 'grouping', header: t('subjects.grouping'), sortable: true },
+    { key: 'is_compulsory', header: t('subjects.isCompulsory'), align: 'center', render: (_value: any, item: SubjectRow) => item.is_compulsory ? t('common:yes') : t('common:no') },
     {
       key: 'actions',
       header: t('common:actions'),
-      render: (value: any, item: Subject) => (
-        <div className="space-x-2">
+      sticky: 'right',
+      sortable: false,
+      filterable: false,
+      render: (_value: any, item: SubjectRow) => (
+        <div className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>{t('common:edit')}</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>{t('common:delete')}</Button>
         </div>
       ),
     },
   ];
-  
-  if ((loading.subjects || loading.departments) && !isModalOpen) {
-     return <div className="flex justify-center items-center h-full"> <Spinner size="lg" /> </div>;
-  }
 
   return (
     <div className="space-y-6">
-      <Card title={t('subjects.management')} actions={
+      <Card title={t('subjects.management')} bodyClassName="p-0" actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>Add Subject</Button>
       }>
-        <DataGrid columns={columns} data={subjectsState || []} loading={loading.subjects && isModalOpen} />
+        <div className="border-t border-surface-border">
+          <DataGrid columns={columns} data={subjects.items} loading={subjects.loading} sortable filterable pagination />
+        </div>
       </Card>
 
-      <DialogForm
+      <EntityForm
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={t(editingSubject ? 'subjects.edit' : 'subjects.addNew')}
-        size="lg"
-      >
-        <FormSection title="Basic Information">
-          <FormField label={t('subjects.code')} required>
-            <Input name="subject_code" value={formData.subject_code || ''} onChange={handleInputChange} required />
-          </FormField>
-          <FormField label={t('subjects.abbreviation')} required>
-            <Input name="abbreviation" value={formData.abbreviation || ''} onChange={handleInputChange} required />
-          </FormField>
-          <FormField label={t('subjects.name')} required>
-            <Input name="name" value={formData.name || ''} onChange={handleInputChange} className="md:col-span-2" required />
-          </FormField>
-        </FormSection>
-        <FormSection title="Classification">
-          <FormField label={t('subjects.department')}>
-            <Select name="department_id" value={formData.department_id ?? ''} onChange={handleInputChange}>
-                <option value="">Select Department</option>
-                {(initialMockDepartments || []).filter((d: { is_academic: boolean }) => d.is_academic).map((dep: { id: string; name: string }) => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
-            </Select>
-          </FormField>
-          <FormField label={t('subjects.grouping')} required>
-            <Select name="grouping" value={formData.grouping || SubjectGrouping.OTHER} onChange={handleInputChange} required>
-                {Object.values(SubjectGrouping).map(group => <option key={group} value={group}>{group}</option>)}
-            </Select>
-          </FormField>
-          <FormField label={t('subjects.isCompulsory')}>
-            <div className="flex items-center mt-2">
-                <input id="is_compulsory" name="is_compulsory" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
-                    checked={formData.is_compulsory || false} onChange={handleInputChange} />
-                <label htmlFor="is_compulsory" className="ml-2 block text-sm text-gray-900">{t('subjects.isCompulsory')}</label>
-            </div>
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.subjects}>{loading.subjects ? <Spinner size="sm" /> : 'Save'}</Button>
-        </FormActions>
-      </DialogForm>
+        title={editingSubject ? String(t('subjects.edit')) : String(t('subjects.addNew'))}
+        initialData={editingSubject ?? undefined}
+        fields={fields}
+        onSubmit={handleSave}
+      />
     </div>
   );
 };
+
+const SubjectsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SubjectsContent />
+  </div>
+);
 
 export default SubjectsPage;

@@ -5,10 +5,9 @@ import { describe, expect, it } from 'vitest';
 import {
   FinOpeningBalanceTypeEnum,
   InvoiceStatus,
-  SchoolPeriod,
-  StudentInvoice,
-  StudentPayment
-} from '@/types';
+} from '@/modules/finance/data/types';
+import type { StudentInvoice, StudentPayment } from '@/modules/finance/data/types';
+import type { SchoolPeriod } from '@/core/types';
 import { buildStudentVoteheadStatement } from '../studentVoteheadStatement';
 
 const schoolPeriods: SchoolPeriod[] = [
@@ -108,6 +107,26 @@ describe('buildStudentVoteheadStatement', () => {
     expect(statement.openingBalance).toBe(100);
     expect(paymentRow?.credit).toBe(200);
     expect(statement.rows.at(-1)?.balance).toBe(500);
+  });
+
+  it('accepts string period ids from select controls', () => {
+    const statement = buildStudentVoteheadStatement({
+      selectedStudentId: 'S001',
+      selectedSchoolPeriodId: '1',
+      schoolPeriods,
+      studentInvoices,
+      studentInvoiceItems: [],
+      studentPayments,
+      invoicePaymentApplications: [
+        { id: 'APP-001', payment_id: 'PAY-001', invoice_item_id: 'ITEM-TUITION', amount_applied: 150 },
+        { id: 'APP-002', payment_id: 'PAY-001', invoice_item_id: 'ITEM-MEALS', amount_applied: 50 },
+        { id: 'APP-003', payment_id: 'PAY-001', invoice_item_id: 'ITEM-OTHER-PERIOD', amount_applied: 300 }
+      ],
+      studentOpeningBalances: []
+    });
+
+    const paymentRow = statement.rows.find((row) => row.paymentRef === 'RCPT-001');
+    expect(paymentRow?.credit).toBe(200);
   });
 
   it('excludes billed opening balances from the statement totals', () => {

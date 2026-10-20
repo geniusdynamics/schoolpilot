@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Student Financial Summary Page - displays all students with their financial position
 // ABOUTME: Uses useStudentFinancialSummary hook to aggregate billing, payments, and adjustments
 
@@ -18,7 +20,7 @@ import { useAppData } from '@/hooks/useAppData';
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(value);
 
-const StudentFinancialSummaryPage: React.FC = () => {
+export const StudentFinancialSummaryPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: summaries, loading, error, refresh } = useStudentFinancialSummary();
   const { classes, classStreams, schoolPeriods, loading: appLoading } = useAppData();
@@ -38,8 +40,8 @@ const StudentFinancialSummaryPage: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (r) =>
-          r.admissionNo.toLowerCase().includes(term) ||
-          r.name.toLowerCase().includes(term)
+          (r.admissionNo?.toLowerCase() ?? '').includes(term) ||
+          (r.name?.toLowerCase() ?? '').includes(term)
       );
     }
 
@@ -120,7 +122,7 @@ const StudentFinancialSummaryPage: React.FC = () => {
         width: 120,
         sortable: true,
         render: (value) => (
-          <span className="font-mono text-blue-600">{formatCurrency(value)}</span>
+          <span className="font-mono text-primary-600">{formatCurrency(value)}</span>
         ),
       },
       {
@@ -167,7 +169,7 @@ const StudentFinancialSummaryPage: React.FC = () => {
         width: 100,
         sortable: true,
         render: (value) => (
-          <span className={`font-mono ${value > 0 ? 'text-purple-600' : 'text-gray-400'}`}>
+          <span className={`font-mono ${value > 0 ? 'text-purple-600' : 'text-surface-muted-fg'}`}>
             {formatCurrency(value)}
           </span>
         ),
@@ -226,7 +228,7 @@ const StudentFinancialSummaryPage: React.FC = () => {
 
   // Handle row click to view details
   const handleRowClick = useCallback((row: StudentFinancialSummary) => {
-    console.log('View student financial detail:', row);
+    logger.info('View student financial detail:', row);
     // TODO: Navigate to detailed view or open modal
   }, []);
 
@@ -258,7 +260,7 @@ const StudentFinancialSummaryPage: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('studentFinancialSummary.title') || 'Student Financial Summary'}>
         {/* Filters */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Input
               placeholder={t('studentFinancialSummary.searchPlaceholder') || 'Search by admission no or name...'}
@@ -315,9 +317,9 @@ const StudentFinancialSummaryPage: React.FC = () => {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-4 gap-4 mb-4">
-          <div className="bg-blue-50 p-3 rounded-md">
-            <div className="text-sm text-blue-600">{t('studentFinancialSummary.totalStudents') || 'Total Students'}</div>
-            <div className="text-xl font-bold text-blue-800">{filteredData.length}</div>
+          <div className="bg-primary-50 p-3 rounded-md">
+            <div className="text-sm text-primary-600">{t('studentFinancialSummary.totalStudents') || 'Total Students'}</div>
+            <div className="text-xl font-bold text-primary-800">{filteredData.length}</div>
           </div>
           <div className="bg-red-50 p-3 rounded-md">
             <div className="text-sm text-red-600">{t('studentFinancialSummary.inArrears') || 'In Arrears'}</div>
@@ -366,11 +368,12 @@ const StudentFinancialSummaryPage: React.FC = () => {
         <DataGrid
           columns={columns}
           data={filteredData}
+          keyField="studentId"
           onRowClick={handleRowClick}
           sortable
           filterable
           emptyState={{
-            icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
+            icon: <CurrencyDollarIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: t('studentFinancialSummary.noData') || 'No Data',
             description:
               t('studentFinancialSummary.noDataDescription') ||
@@ -381,5 +384,10 @@ const StudentFinancialSummaryPage: React.FC = () => {
     </div>
   );
 };
+const StudentFinancialSummaryPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentFinancialSummaryPageContent />
+  </div>
+);
 
 export default StudentFinancialSummaryPage;

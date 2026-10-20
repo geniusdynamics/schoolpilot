@@ -4,9 +4,10 @@
 // ABOUTME: This script tests CRUD operations, reactive subscriptions, and compatibility
 
 import { SQLiteWASMProvider } from '@/services/database/LiveStoreProvider';
+import type { DatabaseConfig } from '@/services/database/interfaces';
 import { LiveStoreSchema } from '../livestore/schema';
-import { DatabaseConfig, QueryOptions } from '@/services/database/interfaces';
-import { Student, Staff, Class, Subject } from '@/core/types';
+import type { Student } from '@/core/types';
+
 
 interface TestResult {
   testName: string;
@@ -18,7 +19,7 @@ interface TestResult {
 
 class SQLiteWASMIntegrationTest {
   private provider: SQLiteWASMProvider | null = null;
-  private results: TestResult[] = [];
+  readonly results: TestResult[] = [];
 
   async initialize(): Promise<void> {
     console.log('🧪 Initializing LiveStore Integration Test...');
@@ -412,8 +413,9 @@ class SQLiteWASMIntegrationTest {
 }
 
 export async function runIntegrationTests(): Promise<void> {
-  const test = new SQLiteWASMIntegrationTest();
-  
+
+  const tester = new SQLiteWASMIntegrationTest();
+
   try {
     await tester.initialize();
     await tester.runAllTests();

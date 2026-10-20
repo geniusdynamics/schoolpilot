@@ -1,0 +1,33 @@
+{
+  "updated": "2026-10-19",
+  "note": "Thresholds for scripts/prd/gate.mjs. Tighten via `baseline --update`. Typecheck is calibrated to the Linux CI runner: the local Windows tsc measures 2481 on the same tree, CI measures 2500 (platform-dependent resolution), and 2500 is still tighter than the previous 2628. Update the number from an actual CI gate run, not a local one.",
+  "typecheck": {
+    "total": 2500,
+    "missingNames": 0
+  },
+  "contracts": {
+    "undefinedCollections": 0,
+    "missingAppDataFunctions": 0,
+    "singleArgUpdateCalls": 0,
+    "numericIdWrites": 0,
+    "numericIdSelectors": 0,
+    "mockBackedHooksInUi": 0,
+    "routesOutsideNavigation": 0
+  },
+  "tests": {
+    "failedFiles": 4,
+    "failedTests": 0,
+    "totalTests": 1676,
+    "knownFailingFiles": [
+      "src/core/__tests__/ModuleLoader.test.ts",
+      "src/core/__tests__/ModuleRegistry.integration.test.ts",
+      "src/services/database/__tests__/CapabilityDetector.property.test.ts",
+      "src/services/database/__tests__/SyncComponents.property.test.ts"
+    ]
+  },
+  "probe": {
+    "pass": 0,
+    "total": 16
+  },
+  "lintRequired": true
+}

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Performance monitoring display component for development and debugging
 // ABOUTME: Shows real-time performance metrics and allows performance analysis
 
@@ -55,7 +57,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         return prevReport;
       });
     } catch (error) {
-      console.warn('Error updating performance report:', error);
+      logger.warn('Error updating performance report:', error);
     }
   }, [isVisible]);
 
@@ -118,7 +120,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
       <div className="fixed bottom-4 right-4 z-50">
         <button
           onClick={handleToggleVisibility}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-medium transition-colors"
+          className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-medium transition-colors"
           title="Show Performance Monitor"
         >
           📊 Perf
@@ -128,22 +130,22 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   }
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 bg-white rounded-lg shadow-xl border border-gray-200 ${className}`}>
+    <div className={`fixed bottom-4 right-4 z-50 bg-surface-card rounded-lg shadow-xl border border-surface-border ${className}`}>
       <div className="p-4 max-w-md max-h-96 overflow-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-800">Performance Monitor</h3>
+          <h3 className="text-lg font-semibold text-surface-foreground">Performance Monitor</h3>
           <div className="flex items-center space-x-2">
             <button 
               onClick={handleManualRefresh}
-              className="text-blue-500 hover:text-blue-700 text-sm"
+              className="text-primary-500 hover:text-primary-700 text-sm"
               title="Refresh data"
             >
               🔄
             </button>
             <button
               onClick={handleToggleVisibility}
-              className="text-gray-500 hover:text-gray-700 text-xl"
+              className="text-surface-muted-fg hover:text-surface-foreground text-xl"
               title="Hide Performance Monitor"
             >
               ×
@@ -160,13 +162,13 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             onChange={(e) => setAutoRefresh(e.target.checked)}
             className="mr-1 h-3 w-3"
           />
-          <label htmlFor="perfMonitorAutoRefresh" className="text-gray-600">
+          <label htmlFor="perfMonitorAutoRefresh" className="text-surface-muted-fg">
             Auto-refresh (may cause UI updates)
           </label>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-1 mb-3 bg-gray-100 rounded-lg p-1">
+        <div className="flex space-x-1 mb-3 bg-surface-accent rounded-lg p-1">
           {[
             { key: 'overview', label: 'Overview' },
             { key: 'modules', label: 'Modules' },
@@ -178,8 +180,8 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               onClick={() => handleTabChange(tab.key as typeof activeTab)}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.key
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-surface-card text-primary-600 shadow-sm'
+                  : 'text-surface-muted-fg hover:text-surface-foreground'
               }`}
             >
               {tab.label}
@@ -197,9 +199,9 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                     <div className="text-green-800 font-medium">Startup Time</div>
                     <div className="text-green-600">{formatTime(report.startupTime)}</div>
                   </div>
-                  <div className="bg-blue-50 p-2 rounded">
-                    <div className="text-blue-800 font-medium">Memory Usage</div>
-                    <div className="text-blue-600">{formatMemory(report.memoryUsage)}</div>
+                  <div className="bg-primary-50 p-2 rounded">
+                    <div className="text-primary-800 font-medium">Memory Usage</div>
+                    <div className="text-primary-600">{formatMemory(report.memoryUsage)}</div>
                   </div>
                   <div className="bg-purple-50 p-2 rounded">
                     <div className="text-purple-800 font-medium">Avg Module Load</div>
@@ -210,7 +212,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                     <div className="text-orange-600">{formatTime(report.averageInteractionTime)}</div>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500 text-center">
+                <div className="text-xs text-surface-muted-fg text-center">
                   {report.totalMetrics} metrics collected
                 </div>
               </div>
@@ -218,11 +220,11 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
 
             {activeTab === 'modules' && (
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-800">Module Loading Times</h4>
+                <h4 className="font-medium text-surface-foreground">Module Loading Times</h4>
                 <div className="space-y-1 max-h-48 overflow-y-auto">
                   {performanceMonitor.getModuleMetrics().slice(-10).map((metric, index) => (
                     <div key={index} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">{metric.moduleId}</span>
+                      <span className="text-surface-muted-fg">{metric.moduleId}</span>
                       <span className={`font-medium ${
                         metric.success ? 'text-green-600' : 'text-red-600'
                       }`}>
@@ -237,15 +239,15 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
 
             {activeTab === 'data' && (
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-800">Data Operations</h4>
-                <div className="text-sm bg-gray-50 p-2 rounded">
-                  <div className="text-gray-600">Average Operation Time</div>
+                <h4 className="font-medium text-surface-foreground">Data Operations</h4>
+                <div className="text-sm bg-surface-muted p-2 rounded">
+                  <div className="text-surface-muted-fg">Average Operation Time</div>
                   <div className="font-medium">{formatTime(report.averageDataOperationTime)}</div>
                 </div>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {performanceMonitor.getDataMetrics().slice(-5).map((metric, index) => (
                     <div key={index} className="flex justify-between items-center text-xs">
-                      <span className="text-gray-600">
+                      <span className="text-surface-muted-fg">
                         {metric.operation} {metric.entity}
                       </span>
                       <span className="font-medium">{formatTime(metric.duration)}</span>
@@ -257,15 +259,15 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
 
             {activeTab === 'interactions' && (
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-800">User Interactions</h4>
-                <div className="text-sm bg-gray-50 p-2 rounded">
-                  <div className="text-gray-600">Average Response Time</div>
+                <h4 className="font-medium text-surface-foreground">User Interactions</h4>
+                <div className="text-sm bg-surface-muted p-2 rounded">
+                  <div className="text-surface-muted-fg">Average Response Time</div>
                   <div className="font-medium">{formatTime(report.averageInteractionTime)}</div>
                 </div>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {performanceMonitor.getInteractionMetrics().slice(-5).map((metric, index) => (
                     <div key={index} className="flex justify-between items-center text-xs">
-                      <span className="text-gray-600">
+                      <span className="text-surface-muted-fg">
                         {metric.action} on {metric.component}
                       </span>
                       <span className="font-medium">{formatTime(metric.duration)}</span>
@@ -278,7 +280,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         )}
 
         {/* Actions */}
-        <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="mt-3 pt-3 border-t border-surface-border">
           <div className="flex space-x-2">
             <button
               onClick={() => {
@@ -286,7 +288,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                 performanceMonitor.clearOldMetrics(0); // Clear all metrics
                 handleManualRefresh(); // Use the event-driven refresh
               }}
-              className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
+              className="text-xs bg-surface-accent hover:bg-gray-200 px-2 py-1 rounded transition-colors"
             >
               Clear Metrics
             </button>
@@ -294,10 +296,10 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               onClick={() => {
                 trackUserInteraction('export_performance_data');
                 const data = performanceMonitor.exportMetrics();
-                console.log('Performance Data Export:', data);
+                logger.info('Performance Data Export:', data);
                 // Could also download as JSON file
               }}
-              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
+              className="text-xs bg-primary-100 hover:bg-primary-200 text-primary-700 px-2 py-1 rounded transition-colors"
             >
               Export Data
             </button>

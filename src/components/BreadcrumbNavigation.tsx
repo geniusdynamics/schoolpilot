@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced breadcrumb navigation component with hierarchical support
 // ABOUTME: Provides navigation context, recovery options, and hierarchical path management
 
@@ -92,11 +94,11 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
           if (typeof translated === 'string') {
             label = translated;
           } else {
-            console.warn('Translation returned non-string for key:', navItem.name, translated);
+            logger.warn('Translation returned non-string for key:', navItem.name, translated);
             label = formatSegmentLabel(segment);
           }
         } catch (error) {
-          console.warn('Translation error for key:', navItem.name, error);
+          logger.warn('Translation error for key:', navItem.name, error);
           label = formatSegmentLabel(segment);
         }
       }
@@ -169,7 +171,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
       }
     } catch (error) {
       const navError = error as Error;
-      console.error(`🧭 [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
+      logger.error(`🧭 [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
       
       // Mark path as having an error
       setNavigationErrors(prev => new Set(prev).add(path));
@@ -201,10 +203,10 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
   }
 
   // Custom separator or default
-  const separatorElement = separator || <ChevronRightIcon className="w-3 h-3 mx-0.5 text-gray-400" />;
+  const separatorElement = separator || <ChevronRightIcon className="w-3 h-3 mx-0.5 text-surface-muted-fg" />;
 
   return (
-    <nav className={`flex items-center space-x-0.5 text-sm text-gray-600 ${className}`} aria-label="Breadcrumb">
+    <nav className={`flex items-center space-x-0.5 text-sm text-surface-muted-fg ${className}`} aria-label="Breadcrumb">
       <ol className="flex items-center space-x-0.5">
         {currentBreadcrumbs.map((item, index) => (
           <li key={`${item.path}-${index}`} className="flex items-center">
@@ -213,9 +215,9 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
             )}
             
             {item.label === '...' ? (
-              <span className="px-1 py-0.5 text-gray-400">...</span>
+              <span className="px-1 py-0.5 text-surface-muted-fg">...</span>
             ) : item.isActive ? (
-              <span className="font-semibold text-gray-900 flex items-center px-2 py-1 bg-gray-100 rounded-md">
+              <span className="font-semibold text-surface-foreground flex items-center px-2 py-1 bg-surface-accent rounded-md">
                 {('hasError' in item && item.hasError) && (
                   <AlertTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
                 )}
@@ -230,10 +232,10 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
                 <button
                   onClick={() => handleNavigate(item.path)}
                   className={`
-                    flex items-center px-2 py-1 rounded-md hover:bg-gray-100 transition-colors duration-200
+                    flex items-center px-2 py-1 rounded-md hover:bg-surface-accent transition-colors duration-200
                     ${('isAccessible' in item ? item.isAccessible : true)
-                      ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' 
-                      : 'text-gray-400 cursor-not-allowed'
+                      ? 'text-primary-600 hover:text-primary-800 hover:bg-primary-50' 
+                      : 'text-surface-muted-fg cursor-not-allowed'
                     }
                     ${('hasError' in item && item.hasError) ? 'text-orange-600' : ''}
                   `}
@@ -288,7 +290,6 @@ export const BreadcrumbNavigation = React.memo(BreadcrumbNavigationComponent, (p
     prevProps.separator === nextProps.separator &&
     prevProps.enableHierarchicalMode === nextProps.enableHierarchicalMode &&
     prevProps.onNavigate === nextProps.onNavigate &&
-    prevProps.onItemClick === nextProps.onItemClick &&
     prevProps.onNavigationError === nextProps.onNavigationError &&
     JSON.stringify(prevProps.customItems) === JSON.stringify(nextProps.customItems)
   );

@@ -1,18 +1,218 @@
 {
-  "desktop": "Bureau",
-  "workspaces": "Espaces de travail",
-  "website": "Site Web",
-  "reload": "Recharger",
-  "toggleFullWidth": "Basculer la pleine largeur",
-  "toggleTheme": "Basculer le thème",
-  "help": "Aide",
-  "about": "À propos",
-  "keyboardShortcuts": "Raccourcis clavier",
+  "desktop": "Desktop",
+  "workspaces": "Workspaces",
+  "website": "Website",
+  "reload": "Reload",
+  "toggleFullWidth": "Toggle Full Width",
+  "toggleTheme": "Toggle Theme",
+  "help": "Help",
+  "about": "About",
+  "keyboardShortcuts": "Keyboard Shortcuts",
   "notifications": {
-    "backendUnavailable": "Le serveur est actuellement indisponible. Fonctionnement en mode hors ligne.",
-    "offline": "Vous êtes actuellement hors ligne. Les modifications seront synchronisées lors de la connexion.",
-    "syncError": "Erreur de synchronisation : {{error}}",
-    "unknownError": "Une erreur inconnue s'est produite",
-    "pendingSync": "{{count}} modifications en attente de synchronisation"
+    "backendUnavailable": "Backend is currently unavailable. Working in offline mode.",
+    "offline": "You are currently offline. Changes will sync when connected.",
+    "syncError": "Sync error: {{error}}",
+    "unknownError": "Unknown error occurred",
+    "pendingSync": "{{count}} changes pending sync"
+  },
+  "exitFullWidth": "Quitter la pleine largeur",
+  "settings": "Settings",
+  "validation": {
+    "required": "{{field}} is required",
+    "minLength": "{{field}} must be at least {{min}} characters",
+    "maxLength": "{{field}} must not exceed {{max}} characters",
+    "min": "{{field}} must be at least {{min}}",
+    "max": "{{field}} must not exceed {{max}}",
+    "pattern": "{{field}} is invalid",
+    "email": "{{field}} must be a valid email address",
+    "unique": "{{field}} already exists",
+    "invalid": "{{field}} is invalid",
+    "paperNameAndSubjectAreRequired": "Paper Name And Subject Are Required",
+    "classsubjectAllocationAndTeacherAreRequired": "Classsubject Allocation And Teacher Are Required",
+    "structureNameRequired": "Structure Name Required",
+    "allFieldsRequired": "All Fields Required",
+    "endDateAfterStartDate": "End Date After Start Date",
+    "clubNameAndTypeAreRequired": "Club Name And Type Are Required",
+    "templateNameTypeAndBodyAreRequired": "Template Name Type And Body Are Required",
+    "subjectIsRequiredForEmailAndPushNotificationTemplates": "Subject Is Required For Email And Push Notification Templates",
+    "academicYearPeriodDefinitionFinancialYearStartDateAndEndDateAreRequired": "Academic Year Period Definition Financial Year Start Date And End Date Are Required",
+    "midbreakEndDateMustBeAfterMidbreakStartDate": "Midbreak End Date Must Be After Midbreak Start Date",
+    "itemAssetTagRequired": "Item Asset Tag Required",
+    "supplierOrderDateStatusRequired": "Supplier Order Date Status Required",
+    "pleaseSelectAnItemSpecifyAValidQuantityAndUnitPrice": "Please Select An Item Specify AValid Quantity And Unit Price",
+    "requestingStaffRequestDateAndStatusAreRequired": "Requesting Staff Request Date And Status Are Required",
+    "pleaseSelectAnItemAndSpecifyAValidQuantity": "Please Select An Item And Specify AValid Quantity",
+    "itemWarehouseValidQuantityAndTransactionDateAreRequired": "Item Warehouse Valid Quantity And Transaction Date Are Required",
+    "pleaseSelectASchoolPeriod": "Please Select ASchool Period"
+  },
+  "yes": "Yes",
+  "no": "No",
+  "messages": {
+    "thisTeacherIsAlreadyAssignedToThisClasssubjectAllocation": "This Teacher Is Already Assigned To This Classsubject Allocation",
+    "noDataToExport": "No Data To Export",
+    "printToBeDeveloped": "Print To Be Developed",
+    "exportToBeDeveloped": "Export To Be Developed"
+  },
+  "create": "Create",
+  "active": "Active",
+  "inactive": "Inactive",
+  "inventory": {
+    "contracts": {
+      "updated": "Updated",
+      "created": "Created",
+      "deleted": "Deleted",
+      "contractNumber": "Contract Number",
+      "title": "Contracts",
+      "supplier": "Supplier",
+      "value": "Value",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "expiringSoon": "Expiring Soon",
+      "status": "Status",
+      "add": "Add",
+      "search": "Search",
+      "edit": "Edit",
+      "description": "Description",
+      "currency": "Currency",
+      "paymentTerms": "Payment Terms",
+      "deliveryTerms": "Delivery Terms",
+      "termsAndConditions": "Terms And Conditions"
+    },
+    "suppliers": {
+      "updated": "Updated",
+      "created": "Created",
+      "deleted": "Deleted",
+      "name": "Suppliers",
+      "contactPerson": "Contact Person",
+      "email": "Email",
+      "phone": "Phone",
+      "status": "Status",
+      "rating": "Rating",
+      "title": "Suppliers",
+      "add": "Add",
+      "search": "Search",
+      "edit": "Edit",
+      "address": "Address",
+      "taxId": "Tax Id",
+      "registrationNumber": "Registration Number",
+      "paymentTerms": "Payment Terms",
+      "creditLimit": "Credit Limit"
+    }
+  },
+  "common": {
+    "error": "Error",
+    "confirmDelete": "Confirm Delete",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "errorLoading": "Error Loading",
+    "all": "All",
+    "cancel": "Cancel",
+    "update": "Update",
+    "create": "Create"
+  },
+  "errors": {
+    "insufficientPermissions": "Insufficient Permissions",
+    "accessDenied": "Access Denied"
+  },
+  "disable": "Disable",
+  "enable": "Enable",
+  "configure": "Configure",
+  "all": "All",
+  "manage": "Manage",
+  "entities": {
+    "students": "Students",
+    "teachers": "Teachers",
+    "classes": "Classes",
+    "subjects": "Subjects",
+    "attendance": "Attendance",
+    "exams": "Exams",
+    "marks": "Marks",
+    "timetable": "Timetable",
+    "fees": "Fees",
+    "payments": "Payments",
+    "inventory": "Inventory",
+    "books": "Books",
+    "loans": "Loans",
+    "meals": "Meals",
+    "users": "Users"
+  },
+  "tabs": {
+    "editEntity": "Edit {{entity}}",
+    "viewEntity": "{{entity}}",
+    "validation": {
+      "routePath": "Le chemin de l'onglet doit être une route absolue de l'application, par exemple /administration/classes ; les identifiants de sous-onglets du hub comme « bulk-streams » sont un état d'URL, pas des onglets."
+    }
+  },
+  "storage": {
+    "unavailable": {
+      "title": "Ce navigateur ne peut pas stocker de données hors ligne",
+      "action": "Utilisez Chrome ou Edge 109 ou une version plus récente, ou connectez-vous au serveur de l'école.",
+      "otherTab": "Si SchoolPilot est déjà ouvert dans un autre onglet, fermez cet onglet et réessayez.",
+      "noWrites": "Rien ne peut être enregistré tant que le stockage persistant n'est pas disponible.",
+      "details": "Détails techniques",
+      "retry": "Réessayer"
+    },
+    "temporaryData": {
+      "label": "DONNÉES TEMPORAIRES",
+      "hint": "Les données sont conservées uniquement en mémoire et sont effacées lorsque la page est rechargée."
+    }
+  },
+  "auth": {
+    "login": {
+      "storageUnavailable": "La base de données de l'école n'est pas disponible sur cet appareil. La connexion est désactivée jusqu'à ce que le stockage fonctionne."
+    },
+    "createAdministrator": {
+      "title": "Créer un administrateur",
+      "intro": "Aucun compte n'existe encore. Créez l'administrateur qui gérera cette école.",
+      "username": "Nom d'utilisateur",
+      "displayName": "Nom d'affichage",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Créer un administrateur",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 10 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "failed": "Impossible de créer l'administrateur.",
+      "created": "Administrateur créé. Connectez-vous avec votre nouveau compte."
+    }
+  },
+  "onboarding": {
+    "initialising": {
+      "title": "Préparation de votre base de données",
+      "detail": "Ouverture du stockage sécurisé sur cet appareil. Cela peut prendre quelques secondes."
+    }
+  },
+  "setupWizard": {
+    "year": {
+      "description": "L'année, les dates de chaque trimestre et son exercice financier",
+      "termDates": "Dates des trimestres",
+      "financialYear": "Exercice financier",
+      "financialYearCalendar": "Année civile",
+      "financialYearCustom": "Autres dates",
+      "financialYearHint": "Les trimestres sont liés à {{name}}. Un exercice financier existant couvrant ces dates est réutilisé."
+    },
+    "admin": {
+      "title": "Administrateur",
+      "description": "Le compte qui gère cette école",
+      "exists": "Un compte administrateur existe déjà. Connectez-vous avec celui-ci après la configuration.",
+      "intro": "Créez l'administrateur qui se connectera et gérera cette école. Le mot de passe doit contenir au moins 10 caractères.",
+      "username": "Nom d'utilisateur",
+      "displayName": "Nom d'affichage",
+      "password": "Mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "detailsRequired": "Saisissez un nom d'utilisateur (au moins 3 caractères) et un nom d'affichage.",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 10 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas."
+    },
+    "completeError": "Impossible de terminer la configuration."
+  },
+  "remove": "Supprimer",
+  "academicYears": {
+    "endBeforeStart": "La date de fin doit être postérieure à la date de début.",
+    "overlapsYear": "Ces dates chevauchent {{name}}."
+  },
+  "datePicker": {
+    "month": "Mois",
+    "year": "Année"
   }
 }

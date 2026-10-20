@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Database-agnostic schema utility that abstracts RxDB types and provides common interfaces for both RxDB and PouchDB
 // ABOUTME: Includes schema conversion, validation, and helper functions for creating database schemas
 
@@ -32,9 +34,18 @@ export interface DatabaseProperty {
   pattern?: string;
   format?: string;
   ref?: string; // For references to other collections
+  unique?: boolean;
   nullable?: boolean;
   final?: boolean;
 }
+
+/**
+ * A composite unique key for storage DDL. The object form can carry a partial-index
+ * predicate, which SQLite needs because NULLs never collide inside a unique index.
+ */
+export type UniqueConstraintDefinition =
+  | string[]
+  | { columns: string[]; where?: string };
 
 // Backward-compatible type alias
 export type PropertyDefinition = DatabaseProperty;
@@ -54,10 +65,14 @@ export interface DatabaseSchema {
   properties: Record<string, DatabaseProperty>;
   required?: string[];
   indexes?: Array<string | string[]>;
+  unique?: UniqueConstraintDefinition[];
+  /**
+   * Canonical DDL mode: emit NOT NULL from the root required list and REFERENCES from `ref`
+   * properties. Legacy collections leave this unset to keep their historical DDL.
+   */
+  strict?: boolean;
   encrypted?: string[];
 }
-
-// Collection configuration interface
 export interface DatabaseCollectionConfig {
   name: string;
   schema: DatabaseSchema;
@@ -799,6 +814,8 @@ export function createDatabaseSchema(config: {
   properties: Record<string, DatabaseProperty>;
   required?: string[];
   indexes?: Array<string | string[]>;
+  unique?: UniqueConstraintDefinition[];
+  strict?: boolean;
   encrypted?: string[];
 }): DatabaseSchema {
   return {
@@ -810,6 +827,8 @@ export function createDatabaseSchema(config: {
     properties: config.properties,
     required: config.required,
     indexes: config.indexes,
+    unique: config.unique,
+    strict: config.strict,
     encrypted: config.encrypted
   };
 }
@@ -833,7 +852,7 @@ export function createEntitySchema(
   required?: string[],
   indexes?: string[]
 ): DatabaseSchema {
-  console.warn('createEntitySchema is deprecated. Use createDatabaseSchema instead.');
+  logger.warn('createEntitySchema is deprecated. Use createDatabaseSchema instead.');
   return createDatabaseSchema({
     title,
     primaryKey,

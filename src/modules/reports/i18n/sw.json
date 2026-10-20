@@ -4,6 +4,8 @@
     "reports": {
       "title": "Ripoti",
       "description": "Tengeneza na uangalie ripoti mbalimbali na uchambuzi",
+      "dashboard": "Dashibodi ya Ripoti",
+      "overview": "Ripoti Zote",
       "accountLedger": "Daftari la Akaunti",
       "examResultsHorizontal": "Matokeo ya Mitihani ya Mlalo",
       "feeCollectionSummary": "Muhtasari wa Ukusanyaji wa Ada",
@@ -11,7 +13,6 @@
       "studentMasterlist": "Orodha Kuu ya Wanafunzi",
       "studentVoteheadStatement": "Taarifa ya Kichwa cha Kura cha Mwanafunzi",
       "teacherAssignments": "Mgawo wa Walimu",
-      "dashboard": "Dashibodi ya Ripoti",
       "classLists": "Orodha za Darasa",
       "overdueBooks": "Vitabu Vilivyopitwa na Muda",
       "inventoryStatus": "Hali ya Hesabu"

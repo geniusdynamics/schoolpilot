@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This page component displays exam results in a horizontal (marksheet) format.
 // ABOUTME: It allows filtering by exam session and class stream to generate the report.
 
@@ -7,11 +9,9 @@ import Card from '@/components/ui/Card';
 import { ChartPieIcon, PrinterIcon, DownloadIcon as ExportIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Student, Class as SchoolClass, ClassStream } from '@/types'; 
-import { AcademicsExamSessionType as ExamSession, AcademicsStudentExamResultWithDetailsType as StudentExamResultWithDetails, AcademicsExamPaperSettingType as ExamPaperSetting } from '@/types'; 
 
 
 interface ReportRow {
@@ -24,13 +24,13 @@ interface ReportRow {
   rank?: number; 
 }
 
-const ExamResultsHorizontalPage: React.FC = () => {
+export const ExamResultsHorizontalPageContent: React.FC = () => {
   const { t } = useTranslation(['reports', 'common']); 
   const { students, examSessions, classes, classStreams, studentExamResults, loading } = useAppData();
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>();
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
-  const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
+  const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<ReportRow[]>([]);
   const [dynamicColumns, setDynamicColumns] = useState<any[]>([]);
@@ -38,7 +38,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
 
   const availableStreams = useMemo(() => {
     if (!selectedClassId) return (classStreams || []);
-    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => String(cs.class_id) === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
@@ -53,7 +53,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
     try {
       const currentSession = (examSessions || []).find(es => es.id === selectedExamSessionId);
       if (!currentSession || !currentSession.paper_settings) {
-          console.warn("Selected exam session not found or has no paper settings.");
+          logger.warn("Selected exam session not found or has no paper settings.");
           setReportData([]);
           setDynamicColumns([]);
           setIsGenerating(false); 
@@ -68,7 +68,6 @@ const ExamResultsHorizontalPage: React.FC = () => {
           ...(paperSettings || []).map(ps => ({
               header: `${(ps.subject_name || 'N/A').substring(0,5)} - ${(ps.subject_paper_name || 'N/A').substring(0,7)} (${ps.marks_out_of || 'N/A'})`, 
               key: `paper_${ps.id}` as keyof ReportRow, 
-              id: `paper_${ps.id}`, 
           })),
           { header: t('tableHeaders.totalMarks'), key: 'totalMarks' as keyof ReportRow },
           { header: t('tableHeaders.meanGrade'), key: 'meanGrade' as keyof ReportRow },
@@ -76,7 +75,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
       ];
       setDynamicColumns(newDynamicColumns);
 
-      const studentsInStream = (students || []).filter(s => s.current_class_stream_id === selectedStreamId);
+      const studentsInStream = (students || []).filter(s => String(s.current_class_stream_id) === selectedStreamId);
       const resultsForSessionAndStream = (studentExamResults || []).filter(
         res => res.exam_session_id === selectedExamSessionId && (studentsInStream || []).some(s => s.id === res.student_id)
       );
@@ -85,7 +84,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
         const result = (resultsForSessionAndStream || []).find(res => res.student_id === student.id);
         const row: ReportRow = {
           studentId: student.id,
-          studentName: `${student.first_name} ${student.last_name}`,
+          studentName: [student.first_name, student.last_name].filter(Boolean).join(' ') || '—',
           admissionNo: student.admission_no,
           totalMarks: result?.total_marks || 0,
           meanGrade: result?.mean_grade || '-',
@@ -105,7 +104,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
 
       setReportData(newReportData);
     } catch (error) {
-        console.error("Error generating report:", error);
+        logger.error("Error generating report:", error);
         setReportData([]);
         setDynamicColumns([]);
     } finally {
@@ -119,7 +118,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('examResultsHorizontal.title')}>
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-md bg-gray-50 filter-section">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-md bg-surface-muted filter-section">
             <Select
                 label={t('examResultsHorizontal.examSession')}
                 value={selectedExamSessionId || ''}
@@ -133,7 +132,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
             <Select
                 label={t('examResultsHorizontal.class')}
                 value={selectedClassId || ''}
-                onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}
+                onChange={e => {setSelectedClassId(e.target.value || undefined); setSelectedStreamId(undefined);}}
             >
                 <option value="">{t('examResultsHorizontal.optionAllClasses')}</option>
                 {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -141,7 +140,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
             <Select
                 label={t('examResultsHorizontal.stream')}
                 value={selectedStreamId || ''}
-                onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)}
+                onChange={e => setSelectedStreamId(e.target.value || undefined)}
                 disabled={!selectedClassId}
             >
                 <option value="">{t('examResultsHorizontal.optionAllStreams')}</option>
@@ -167,10 +166,10 @@ const ExamResultsHorizontalPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => window.print()} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.csvExportToBeDeveloped'))} leftIcon={<ExportIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.exportCSV')}</Button>
                 </div>
-                <Table columns={dynamicColumns} data={(reportData || [])} isLoading={isGenerating} />
+                <DataGrid columns={dynamicColumns} data={(reportData || [])} loading={isGenerating} keyField="studentId" />
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">
+            <p className="text-center text-surface-muted-fg py-4">
                 {t('examResultsHorizontal.selectFiltersMessage')}
             </p>
         )}
@@ -178,4 +177,10 @@ const ExamResultsHorizontalPage: React.FC = () => {
     </div>
   );
 };
+const ExamResultsHorizontalPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamResultsHorizontalPageContent />
+  </div>
+);
+
 export default ExamResultsHorizontalPage;

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Accessibility utilities for the SchoolPilot3 design system
 // ABOUTME: WCAG compliance helpers, focus management, and screen reader support
 
@@ -213,7 +215,7 @@ export const useReducedMotion = (): boolean => {
       return () => mediaQuery.removeEventListener('change', handleChange);
     } catch (error) {
       // Silently handle any matchMedia errors in test environment
-      console.warn('matchMedia not available:', error);
+      logger.warn('matchMedia not available:', error);
     }
   }, []);
 

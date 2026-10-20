@@ -1,19 +1,22 @@
 // ABOUTME: This component renders the main application header.
-// ABOUTME: It includes the mobile sidebar toggle, page title/welcome message, and user profile area.
+// ABOUTME: It shows the saved school name (school_details), search, status indicators and the user profile area.
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { BellIcon, CogIcon } from './ui/icons';
 import LanguageSwitcher from './ui/LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { NetworkStatusIndicator } from './OfflineCapability';
 import ModuleHealthIndicator from './ModuleHealthIndicator';
-import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
+import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
+import { TemporaryDataBadge } from './StorageUnavailableScreen';
+import { useSchoolProfile } from '../hooks/useSchoolProfile';
+
+const PRODUCT_NAME = 'schoolpilot';
 const notifications = 3; // Example notification count
 
-const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
-  const navigate = useNavigate();
+const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModuleSelect?: (moduleKey: string) => void }> = ({ onSettings }) => {
   const { config } = useUnifiedConfig();
+  const { schoolName } = useSchoolProfile();
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = useRef(0);
@@ -38,21 +41,18 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
 
   return (
     <header
-      className={`fixed top-0 left-16 sm:left-20 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
+      className={`fixed top-0 left-16 sm:left-20 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 dark:bg-slate-900/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
       style={{ height: '48px' }}
     >
       <div className="max-w-full mx-auto flex items-center justify-between h-12 px-3 sm:px-6">
-        {/* Left: Logo & App Name — click to go to Dashboard */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
-          title="Go to Dashboard"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">
+        {/* Left: Logo & App Name */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">
             E
           </div>
-          <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block">schoolpilot</span>
-        </button>
+          <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block truncate max-w-[16rem]" title={schoolName ?? PRODUCT_NAME}>{schoolName ?? PRODUCT_NAME}</span>
+          <TemporaryDataBadge />
+        </div>
         
         {/* Center: Compact Search Bar - Hidden on mobile, responsive on tablet+ */}
         <div className="hidden md:flex flex-1 justify-center mx-4">
@@ -65,7 +65,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
             <input
               type="text"
               placeholder="Search"
-              className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-50/80 border border-slate-200/50 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 text-slate-700 placeholder-slate-400 text-sm transition-all duration-200 hover:bg-white/60"
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-50/80 border border-slate-200/50 shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 text-slate-700 placeholder-slate-400 text-sm transition-all duration-200 hover:bg-white/60 dark:hover:bg-slate-900/60"
             />
           </div>
         </div>
@@ -74,7 +74,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
         <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
           {/* Mobile Search Button - Only on mobile */}
           <button
-            className="md:hidden p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600"
+            className="md:hidden p-2 rounded-xl bg-white/70 dark:bg-slate-900/70 hover:bg-white/90 dark:hover:bg-slate-900/90 shadow text-slate-600"
             title="Search"
             onClick={() => setShowMobileSearch(!showMobileSearch)}
           >
@@ -86,20 +86,20 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           {/* Network Status Indicator - Between search and notifications */}
           {config.features.networkStatusIndicator && (
             <div className="hidden sm:block">
-              <NetworkStatusIndicator className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white/90 shadow text-xs" />
+              <NetworkStatusIndicator className="px-2 py-1 rounded-lg bg-white/70 dark:bg-slate-900/70 hover:bg-white/90 dark:hover:bg-slate-900/90 shadow text-xs" />
             </div>
           )}
           
           {/* Module Health Indicator */}
           {config.features.moduleHealthIndicator && (
             <div className="hidden sm:block">
-              <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
+              <ModuleHealthIndicator className="rounded-lg bg-white/70 dark:bg-slate-900/70 hover:bg-white/90 dark:hover:bg-slate-900/90 shadow" showCount={true} />
             </div>
           )}
           
           {/* Notifications */}
           <div className="relative">
-            <button className="p-1.5 sm:p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600 relative">
+            <button className="p-1.5 sm:p-2 rounded-xl bg-white/70 dark:bg-slate-900/70 hover:bg-white/90 dark:hover:bg-slate-900/90 shadow text-slate-600 relative">
               <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               {notifications > 0 && (
                 <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full px-1 sm:px-1.5 py-0.5 shadow min-w-[16px] h-4 flex items-center justify-center">{notifications}</span>
@@ -113,7 +113,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           </div>
           
           {/* Settings - Always visible */}
-          <button className="p-1.5 sm:p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600" title="Settings" onClick={onSettings}>
+          <button className="p-1.5 sm:p-2 rounded-xl bg-white/70 dark:bg-slate-900/70 hover:bg-white/90 dark:hover:bg-slate-900/90 shadow text-slate-600" title="Settings" onClick={onSettings}>
             <CogIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
           
@@ -124,12 +124,12 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
       
       {/* Mobile Search Bar - Only shows when toggled */}
       {showMobileSearch && (
-        <div className="md:hidden border-t border-slate-200/50 bg-white/95 lg:backdrop-blur-sm px-3 py-2">
+        <div className="md:hidden border-t border-slate-200/50 bg-white/95 dark:bg-slate-900/95 lg:backdrop-blur-sm px-3 py-2">
           <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="Search..."
-              className="flex-1 px-3 py-1.5 rounded-lg bg-white/60 border border-slate-200 shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-700 placeholder-slate-400 text-sm"
+              className="flex-1 px-3 py-1.5 rounded-lg bg-white/60 dark:bg-slate-900/60 border border-slate-200 shadow-inner focus:outline-none focus:ring-2 focus:ring-primary-400 text-slate-700 placeholder-slate-400 text-sm"
               autoFocus
             />
             <button

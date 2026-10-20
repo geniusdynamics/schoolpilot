@@ -8,7 +8,7 @@
     "description": "Manage students, staff, classes, and administrative operations",
     "dashboard": "Admin Dashboard",
     "applications": "Applications",
-    "preNAsMarks": "PreNAs Marks",
+    "entryMarks": "Entry Marks Marks",
     "students": "Students",
     "staff": "Staff",
     "classes": "Classes & Streams",

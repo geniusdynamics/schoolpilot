@@ -2,9 +2,36 @@
 // ABOUTME: Tests toast management, stacking, progress operations, and helper functions
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useToast, ToastProvider, useToastHelpers, useProgressToast } from '@/hooks/useToast';
+import { expectTypeOf } from 'vitest';
+
+import {
+  useToast,
+  ToastProvider,
+  useToastHelpers,
+  useProgressToast,
+  type ToastContextValue,
+  type ToastOptions,
+} from '@/hooks/useToast';
+// Bare render (no global provider wrapper) for tests that assert provider-less behavior.
+import { screen, render as renderWithoutProviders } from '@testing-library/react';
+
+type ShowToast = ToastContextValue['showToast'];
+type ShowSuccess = ToastContextValue['showSuccess'];
+
+// Never called at runtime: the compiler checks these lines, so a regression in the
+// toast API turns the @ts-expect-error directives into build errors.
+const assertTypedToastApi = (showToast: ShowToast, showSuccess: ShowSuccess) => {
+  showToast({ message: 'Saved', variant: 'error' });
+  showSuccess('Saved');
+
+  // @ts-expect-error the legacy (message, variant) string signature must not compile
+  showToast('Saved', 'error');
+  // @ts-expect-error message is required
+  showToast({});
+  // @ts-expect-error variant must be a ToastVariant
+  showToast({ message: 'Saved', variant: 'danger' });
+};
+void assertTypedToastApi;
 
 // Test component that uses the toast hook
 const TestComponent: React.FC = () => {
@@ -66,6 +93,67 @@ const renderWithProvider = (maxToasts = 5, position = 'top-right' as const) => {
   );
 };
 
+const EmptyMessageProbe: React.FC = () => {
+  const { toasts, showToast } = useToast();
+  const { showSuccess } = useToastHelpers();
+
+  return (
+    <div>
+      <div data-testid="toast-count">{toasts.length}</div>
+      <div data-testid="stored-messages">{toasts.map(toast => toast.message).join('|')}</div>
+      <button onClick={() => showToast({ message: '' })}>Show Empty</button>
+      <button onClick={() => showToast({ message: '   ' })}>Show Whitespace</button>
+      <button onClick={() => showSuccess('')}>Show Empty Success</button>
+      <button onClick={() => showToast({ message: '  Padded message  ' })}>Show Padded</button>
+    </div>
+  );
+};
+
+describe('toast API contract', () => {
+  it('keeps the options-object signature and rejects legacy string calls', () => {
+    expectTypeOf<ShowToast>().toEqualTypeOf<(options: ToastOptions) => string>();
+    expectTypeOf<ShowSuccess>().toEqualTypeOf<
+      (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) => string
+    >();
+  });
+});
+
+describe('empty toast guard', () => {
+  afterEach(() => cleanup());
+
+  const renderProbe = () =>
+    renderWithoutProviders(
+      <ToastProvider>
+        <EmptyMessageProbe />
+      </ToastProvider>
+    );
+
+  it('suppresses empty and whitespace-only messages', async () => {
+    renderProbe();
+
+    fireEvent.click(screen.getByText('Show Empty'));
+    fireEvent.click(screen.getByText('Show Whitespace'));
+    fireEvent.click(screen.getByText('Show Empty Success'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('toast-count')).toHaveTextContent('0');
+    });
+    expect(document.body.querySelector('[role="alert"]')).not.toBeInTheDocument();
+  });
+
+  it('trims and still renders a valid message', async () => {
+    renderProbe();
+
+    fireEvent.click(screen.getByText('Show Padded'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('toast-count')).toHaveTextContent('1');
+      expect(screen.getByTestId('stored-messages').textContent).toBe('Padded message');
+      expect(document.body.querySelector('[role="alert"]')).toHaveTextContent('Padded message');
+    });
+  });
+});
+
 describe('useToast Hook', () => {
   afterEach(() => {
     // Properly cleanup React components and DOM
@@ -75,9 +163,9 @@ describe('useToast Hook', () => {
   it('throws error when used outside ToastProvider', () => {
     // Suppress console.error for this test
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     expect(() => {
-      render(<TestComponent />);
+      renderWithoutProviders(<TestComponent />);
     }).toThrow('useToast must be used within a ToastProvider');
 
     consoleSpy.mockRestore();

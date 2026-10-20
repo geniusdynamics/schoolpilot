@@ -1,6 +1,8 @@
+import { logger } from '@/utils/logging';
+
 // Data strategy management and intelligent operation routing
 import { NetworkStateManager, NetworkState } from '../data/NetworkStateManager';
-import { BackendAPIService, RequestOptions, APIResponse } from '../backend/BackendAPIService';
+import { BackendAPIService, RequestOptions } from '../backend/BackendAPIService';
 import { generateId } from '../database/databaseService';
 
 export interface DataStrategy {
@@ -111,7 +113,7 @@ export class DataStrategyManager {
     } catch (error) {
       // Try fallback if available
       if (executionPlan.fallback) {
-        console.warn(`Primary execution failed, trying fallback: ${executionPlan.fallback}`, error);
+        logger.warn(`Primary execution failed, trying fallback: ${executionPlan.fallback}`, error);
         
         const fallbackPlan: ExecutionPlan = {
           ...executionPlan,
@@ -371,7 +373,7 @@ export class DataStrategyManager {
         }
       }
     } catch (error) {
-      console.warn('Failed to update local cache:', error);
+      logger.warn('Failed to update local cache:', error);
     }
   }
 
@@ -402,7 +404,7 @@ export class DataStrategyManager {
         await db.sync_queue.insert(syncItem);
       }
     } catch (error) {
-      console.warn('Failed to persist sync queue item:', error);
+      logger.warn('Failed to persist sync queue item:', error);
     }
 
     // Process immediately if strategy allows
@@ -457,7 +459,7 @@ export class DataStrategyManager {
           // Re-queue for retry
           this.syncQueue.push(item);
         } else {
-          console.error('Sync item failed after max retries:', item, error);
+          logger.error('Sync item failed after max retries:', item, error);
           await this.removeSyncItem(item.id);
         }
       }
@@ -493,7 +495,7 @@ export class DataStrategyManager {
         }
       }
     } catch (error) {
-      console.warn('Failed to remove sync item from persistent queue:', error);
+      logger.warn('Failed to remove sync item from persistent queue:', error);
     }
   }
 

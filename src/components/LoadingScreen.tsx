@@ -24,7 +24,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {spinner && (
           <div className="relative w-16 h-16 mb-4">
             {/* Spinner rings */}
-            <div className="absolute inset-0 border-4 border-blue-200 rounded-full animate-[spin_3s_linear_infinite]" />
+            <div className="absolute inset-0 border-4 border-primary-200 rounded-full animate-[spin_3s_linear_infinite]" />
             <div className="absolute inset-2 border-4 border-cyan-300 rounded-full animate-[spin_2s_linear_infinite]" />
             <div className="absolute inset-4 border-4 border-indigo-400 rounded-full animate-[spin_1.5s_linear_infinite]" />
             {/* Center dot */}

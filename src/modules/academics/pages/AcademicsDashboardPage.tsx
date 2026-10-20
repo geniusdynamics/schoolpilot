@@ -4,19 +4,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  BeakerIcon,
-  BookOpenIcon,
-  ShieldCheckIcon,
-  AcademicCapIcon,
-  CalendarDaysIcon,
-  TableCellsIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  DocumentTextIcon,
-} from '@/components/ui/icons';
+import { BeakerIcon, BookOpenIcon, ShieldCheckIcon, AcademicCapIcon, TableCellsIcon, ArrowRightIcon, ClockIcon, DocumentTextIcon } from '@/components/ui/icons';
 import {
   ResponsiveContainer,
   BarChart as RechartsBarChart,
@@ -42,9 +30,9 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-const AcademicsDashboardPage: React.FC = () => {
+export const AcademicsDashboardPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const {
     loading,
@@ -53,7 +41,7 @@ const AcademicsDashboardPage: React.FC = () => {
     examSessions = [],
     gradingSchemes = [],
     departments = [],
-    examResults = [],
+    studentExamResults: examResults = [],
     timetableEntries = [],
     classes = [],
   } = useAppData();
@@ -245,7 +233,7 @@ const AcademicsDashboardPage: React.FC = () => {
             <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} interval={0} />
             <YAxis allowDecimals={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
             <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
-            <Bar dataKey="uv" fill="#3b82f6" name="Subjects" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="uv" fill="#6366f1" name="Subjects" radius={[4, 4, 0, 0]} />
           </RechartsBarChart>
         </ResponsiveContainer>
       ),
@@ -316,29 +304,29 @@ const AcademicsDashboardPage: React.FC = () => {
       {/* Additional Academic Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Academic Structure Summary */}
-        <Card title="Academic Structure" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Academic Structure" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Academic Departments</span>
-              <span className="font-semibold text-gray-900">{academicDepartments.length}</span>
+              <span className="text-sm text-surface-muted-fg">Academic Departments</span>
+              <span className="font-semibold text-surface-foreground">{academicDepartments.length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Total Classes</span>
-              <span className="font-semibold text-gray-900">{classes?.length || 0}</span>
+              <span className="text-sm text-surface-muted-fg">Total Classes</span>
+              <span className="font-semibold text-surface-foreground">{classes?.length || 0}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Timetable Entries</span>
-              <span className="font-semibold text-gray-900">{timetableEntries?.length || 0}</span>
+              <span className="text-sm text-surface-muted-fg">Timetable Entries</span>
+              <span className="font-semibold text-surface-foreground">{timetableEntries?.length || 0}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Exam Results Recorded</span>
-              <span className="font-semibold text-blue-600">{examResults?.length || 0}</span>
+              <span className="text-sm text-surface-muted-fg">Exam Results Recorded</span>
+              <span className="font-semibold text-primary-600">{examResults?.length || 0}</span>
             </div>
           </div>
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -346,7 +334,7 @@ const AcademicsDashboardPage: React.FC = () => {
                   flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0
                   ${activity.type === 'exam' ? 'bg-violet-100 text-violet-600' :
                     activity.type === 'grading' ? 'bg-emerald-100 text-emerald-600' :
-                    activity.type === 'subject' ? 'bg-blue-100 text-blue-600' :
+                    activity.type === 'subject' ? 'bg-primary-100 text-primary-600' :
                     'bg-amber-100 text-amber-600'}
                 `}>
                   {activity.type === 'exam' ? <AcademicCapIcon className="h-4 w-4" /> :
@@ -355,8 +343,8 @@ const AcademicsDashboardPage: React.FC = () => {
                    <TableCellsIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -367,12 +355,12 @@ const AcademicsDashboardPage: React.FC = () => {
         </Card>
 
         {/* Quick Academic Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-blue-50 p-3 text-center">
-                <p className="text-2xl font-bold text-blue-700">{subjects.length}</p>
-                <p className="text-xs text-blue-600">Subjects</p>
+              <div className="rounded-lg bg-primary-50 p-3 text-center">
+                <p className="text-2xl font-bold text-primary-700">{subjects.length}</p>
+                <p className="text-xs text-primary-600">Subjects</p>
               </div>
               <div className="rounded-lg bg-violet-50 p-3 text-center">
                 <p className="text-2xl font-bold text-violet-700">{subjectPapers.length}</p>
@@ -396,8 +384,8 @@ const AcademicsDashboardPage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/academics/exam-analysis'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              onClick={() => window.location.hash = '#/academics/exam-analysis'}
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               View Exam Analysis <ArrowRightIcon className="h-4 w-4" />
             </button>
@@ -407,5 +395,10 @@ const AcademicsDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const AcademicsDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <AcademicsDashboardPageContent />
+  </div>
+);
 
 export default AcademicsDashboardPage;

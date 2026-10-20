@@ -4,10 +4,11 @@
 import React, { useState } from 'react';
 import { useModuleLoadingPerformance } from '../hooks/useModuleLoadingPerformance';
 import { ModuleLoadingPriority } from '../services/module/dynamicModuleLoader';
-import { RefreshCwIcon, ChartBarIcon, ClockIcon } from './ui/icons';
+
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
+import { RefreshCwIcon } from '@/components/ui/icons';
 
 interface ModuleLoadingPerformancePanelProps {
   className?: string;
@@ -33,13 +34,13 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
       case ModuleLoadingPriority.HIGH:
         return 'text-orange-500';
       case ModuleLoadingPriority.NORMAL:
-        return 'text-blue-500';
+        return 'text-primary-500';
       case ModuleLoadingPriority.LOW:
         return 'text-green-500';
       case ModuleLoadingPriority.LAZY:
         return 'text-purple-500';
       default:
-        return 'text-gray-500';
+        return 'text-surface-muted-fg';
     }
   };
   
@@ -48,7 +49,7 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
     if (loadTime < 100) {
       return 'text-green-600';
     } else if (loadTime < 300) {
-      return 'text-blue-600';
+      return 'text-primary-600';
     } else if (loadTime < 1000) {
       return 'text-orange-500';
     } else {
@@ -60,59 +61,59 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
   const renderSummaryTab = () => (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-          <div className="text-sm text-gray-500">Total Modules</div>
+        <div className="bg-surface-card rounded-lg shadow p-4 border-l-4 border-primary-500">
+          <div className="text-sm text-surface-muted-fg">Total Modules</div>
           <div className="text-2xl font-bold">{performanceReport.totalModules}</div>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-          <div className="text-sm text-gray-500">Average Load Time</div>
+        <div className="bg-surface-card rounded-lg shadow p-4 border-l-4 border-green-500">
+          <div className="text-sm text-surface-muted-fg">Average Load Time</div>
           <div className="text-2xl font-bold">{performanceReport.averageLoadTime}</div>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
-          <div className="text-sm text-gray-500">Total Load Time</div>
+        <div className="bg-surface-card rounded-lg shadow p-4 border-l-4 border-red-500">
+          <div className="text-sm text-surface-muted-fg">Total Load Time</div>
           <div className="text-2xl font-bold">{performanceReport.totalLoadTime}</div>
         </div>
       </div>
       
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-surface-card rounded-lg shadow p-4">
         <h3 className="text-lg font-medium mb-3">Module Priority Distribution</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          <div className="bg-gray-50 p-3 rounded text-center">
-            <div className="text-xs text-gray-500">Critical</div>
+          <div className="bg-surface-muted p-3 rounded text-center">
+            <div className="text-xs text-surface-muted-fg">Critical</div>
             <div className="text-xl font-bold text-red-600">{performanceReport.priorityCounts[ModuleLoadingPriority.CRITICAL]}</div>
           </div>
           
-          <div className="bg-gray-50 p-3 rounded text-center">
-            <div className="text-xs text-gray-500">High</div>
+          <div className="bg-surface-muted p-3 rounded text-center">
+            <div className="text-xs text-surface-muted-fg">High</div>
             <div className="text-xl font-bold text-orange-500">{performanceReport.priorityCounts[ModuleLoadingPriority.HIGH]}</div>
           </div>
           
-          <div className="bg-gray-50 p-3 rounded text-center">
-            <div className="text-xs text-gray-500">Normal</div>
-            <div className="text-xl font-bold text-blue-500">{performanceReport.priorityCounts[ModuleLoadingPriority.NORMAL]}</div>
+          <div className="bg-surface-muted p-3 rounded text-center">
+            <div className="text-xs text-surface-muted-fg">Normal</div>
+            <div className="text-xl font-bold text-primary-500">{performanceReport.priorityCounts[ModuleLoadingPriority.NORMAL]}</div>
           </div>
           
-          <div className="bg-gray-50 p-3 rounded text-center">
-            <div className="text-xs text-gray-500">Low</div>
+          <div className="bg-surface-muted p-3 rounded text-center">
+            <div className="text-xs text-surface-muted-fg">Low</div>
             <div className="text-xl font-bold text-green-500">{performanceReport.priorityCounts[ModuleLoadingPriority.LOW]}</div>
           </div>
           
-          <div className="bg-gray-50 p-3 rounded text-center">
-            <div className="text-xs text-gray-500">Lazy</div>
+          <div className="bg-surface-muted p-3 rounded text-center">
+            <div className="text-xs text-surface-muted-fg">Lazy</div>
             <div className="text-xl font-bold text-purple-500">{performanceReport.priorityCounts[ModuleLoadingPriority.LAZY]}</div>
           </div>
         </div>
       </div>
       
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-surface-card rounded-lg shadow p-4">
         <h3 className="text-lg font-medium mb-3">Slowest Modules</h3>
         <div className="space-y-2">
           {performanceReport.moduleLoadTimes.slice(0, 5).map((item: any, index: number) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+            <div key={index} className="flex items-center justify-between p-2 bg-surface-muted rounded">
               <div className="flex items-center">
-                <span className="text-gray-500 mr-2">{index + 1}.</span>
+                <span className="text-surface-muted-fg mr-2">{index + 1}.</span>
                 <span className="font-medium">{item.moduleId}</span>
                 <Badge 
                   variant="secondary" 
@@ -139,25 +140,25 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
       .sort((a, b) => b.loadTime - a.loadTime);
     
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-surface-card rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-surface-border">
+          <thead className="bg-surface-muted">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Module ID
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Load Time
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-surface-muted-fg uppercase tracking-wider">
                 Priority
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-surface-card divide-y divide-surface-border">
             {moduleLoadTimes.map(({ moduleId, loadTime }) => (
               <tr key={moduleId}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-surface-foreground">
                   {moduleId}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -203,17 +204,17 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
     const maxCount = Math.max(...ranges.map(r => r.count));
     
     return (
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-surface-card rounded-lg shadow p-4">
         <h3 className="text-lg font-medium mb-4">Module Load Time Distribution</h3>
         
         <div className="space-y-4">
           {ranges.map((range, index) => (
             <div key={index} className="flex items-center">
-              <div className="w-24 text-sm text-gray-600">{range.label}</div>
+              <div className="w-24 text-sm text-surface-muted-fg">{range.label}</div>
               <div className="flex-1 ml-2">
-                <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-6 bg-surface-accent rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${index === 0 ? 'bg-green-500' : index === 1 ? 'bg-blue-500' : index === 2 ? 'bg-yellow-500' : index === 3 ? 'bg-orange-500' : 'bg-red-500'}`}
+                    className={`h-full ${index === 0 ? 'bg-green-500' : index === 1 ? 'bg-primary-500' : index === 2 ? 'bg-yellow-500' : index === 3 ? 'bg-orange-500' : 'bg-red-500'}`}
                     style={{ width: `${maxCount > 0 ? (range.count / maxCount) * 100 : 0}%` }}
                   ></div>
                 </div>
@@ -223,7 +224,7 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
           ))}
         </div>
         
-        <div className="mt-6 text-sm text-gray-500">
+        <div className="mt-6 text-sm text-surface-muted-fg">
           Note: This is a simplified visualization. For more detailed analytics, consider using a dedicated performance monitoring tool.
         </div>
       </div>
@@ -248,19 +249,19 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
       <div className="mb-4 border-b">
         <div className="flex space-x-4">
           <button
-            className={`pb-2 px-1 ${activeTab === 'summary' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`pb-2 px-1 ${activeTab === 'summary' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-surface-muted-fg hover:text-surface-foreground'}`}
             onClick={() => setActiveTab('summary')}
           >
             Summary
           </button>
           <button
-            className={`pb-2 px-1 ${activeTab === 'modules' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`pb-2 px-1 ${activeTab === 'modules' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-surface-muted-fg hover:text-surface-foreground'}`}
             onClick={() => setActiveTab('modules')}
           >
             All Modules
           </button>
           <button
-            className={`pb-2 px-1 ${activeTab === 'chart' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`pb-2 px-1 ${activeTab === 'chart' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-surface-muted-fg hover:text-surface-foreground'}`}
             onClick={() => setActiveTab('chart')}
           >
             Charts
@@ -270,7 +271,7 @@ const ModuleLoadingPerformancePanel: React.FC<ModuleLoadingPerformancePanelProps
       
       {isLoading ? (
         <div className="flex justify-center items-center p-8">
-          <RefreshCwIcon className="w-6 h-6 animate-spin text-blue-500 mr-2" />
+          <RefreshCwIcon className="w-6 h-6 animate-spin text-primary-500 mr-2" />
           <span>Loading performance data...</span>
         </div>
       ) : (

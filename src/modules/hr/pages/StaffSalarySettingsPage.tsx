@@ -1,9 +1,13 @@
-import React, { useState, useCallback, useMemo } from 'react';
+// ABOUTME: Staff Salary Settings page — per-staff earnings and deductions in the 'staff_salary_components' collection.
+// ABOUTME: Ids and staff_id stay strings (UUIDs); edits use update(id, patch) and deletes confirm in a dialog.
+
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -11,10 +15,35 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import type { StaffSalaryComponent } from '@/types';
+import { logger } from '@/utils/logging';
+
+import { formatKES, formatDate } from '@/utils/format';
+
+export const STAFF_SALARY_COMPONENTS_COLLECTION = 'staff_salary_components';
+
+/** A stored salary component; ids are strings at runtime. */
+interface StaffSalaryComponent {
+  id: string;
+  staff_id: string;
+  component_name: string;
+  component_type: 'earning' | 'deduction';
+  amount: number;
+  is_active?: boolean;
+  effective_from?: string;
+  effective_to?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface StaffOption {
+  id: string | number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+}
 
 interface SalaryComponentFormData {
-  staff_id: number | null;
+  staff_id: string | null;
   component_name: string;
   component_type: 'earning' | 'deduction';
   amount: number | null;
@@ -23,12 +52,17 @@ interface SalaryComponentFormData {
   effective_to: string;
 }
 
-const StaffSalarySettingsPage: React.FC = () => {
+export const StaffSalarySettingsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
-  const { staff, loading: appDataLoading, refreshCollection } = useAppData();
-  
-  const [salaryComponents, setSalaryComponents] = useState<StaffSalaryComponent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const confirm = useConfirm();
+  const {
+    data: salaryComponents,
+    loading,
+    insert,
+    update,
+    remove,
+  } = useDatabaseCollection<StaffSalaryComponent>(STAFF_SALARY_COMPONENTS_COLLECTION);
+  const { data: staff } = useDatabaseCollection<StaffOption>('staff');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState<StaffSalaryComponent | null>(null);
@@ -43,31 +77,11 @@ const StaffSalarySettingsPage: React.FC = () => {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const loadSalaryComponents = useCallback(async () => {
-    setLoading(true);
-    try {
-      const dbManager = await import('@/services/database/UnifiedDatabaseManager').then(m => m.UnifiedDatabaseManager);
-      const db = dbManager.getInstance();
-      const collection = db.getCollection<StaffSalaryComponent>('staff_salary_components');
-      const data = await collection?.find({}) || [];
-      setSalaryComponents(data);
-    } catch (error) {
-      console.error('Error loading salary components:', error);
-      setSalaryComponents([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    loadSalaryComponents();
-  }, [loadSalaryComponents]);
-
   const openModal = useCallback((component?: StaffSalaryComponent) => {
     if (component) {
       setEditingComponent(component);
       setFormData({
-        staff_id: component.staff_id,
+        staff_id: component.staff_id == null ? null : String(component.staff_id),
         component_name: component.component_name,
         component_type: component.component_type,
         amount: component.amount,
@@ -110,7 +124,7 @@ const StaffSalarySettingsPage: React.FC = () => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
                 type === 'number' ? (value ? parseFloat(value) : null) : 
-                name === 'staff_id' ? (value ? parseInt(value) : null) : value;
+                name === 'staff_id' ? (value || null) : value;
     setFormData(prev => ({ ...prev, [name]: val }));
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
@@ -144,68 +158,50 @@ const StaffSalarySettingsPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const dbManager = await import('@/services/database/UnifiedDatabaseManager').then(m => m.UnifiedDatabaseManager);
-      const db = dbManager.getInstance();
-      const collection = db.getCollection<StaffSalaryComponent>('staff_salary_components');
-      
       const timestamp = new Date().toISOString();
+      const fields = {
+        staff_id: formData.staff_id!,
+        component_name: formData.component_name.trim(),
+        component_type: formData.component_type,
+        amount: formData.amount!,
+        is_active: formData.is_active,
+        effective_from: new Date(formData.effective_from).toISOString(),
+        effective_to: formData.effective_to ? new Date(formData.effective_to).toISOString() : null,
+        updated_at: timestamp,
+      };
 
       if (editingComponent) {
-        await collection?.update(editingComponent.id.toString(), {
-          staff_id: formData.staff_id!,
-          component_name: formData.component_name,
-          component_type: formData.component_type as 'earning' | 'deduction',
-          amount: formData.amount!,
-          is_active: formData.is_active,
-          effective_from: new Date(formData.effective_from!).toISOString(),
-          effective_to: formData.effective_to ? new Date(formData.effective_to).toISOString() : undefined,
-          updated_at: timestamp,
-        });
+        await update(String(editingComponent.id), fields);
       } else {
-        const newId = Date.now();
-        await collection?.insert({
-          id: newId,
-          staff_id: formData.staff_id!,
-          component_name: formData.component_name!,
-          component_type: formData.component_type as 'earning' | 'deduction',
-          amount: formData.amount!,
-          is_active: formData.is_active,
-          effective_from: new Date(formData.effective_from!).toISOString(),
-          effective_to: formData.effective_to ? new Date(formData.effective_to).toISOString() : undefined,
-          created_at: timestamp,
-          updated_at: timestamp,
-        });
+        await insert({ ...fields, created_at: timestamp });
       }
 
-      await loadSalaryComponents();
       closeModal();
     } catch (error) {
-      console.error('Error saving salary component:', error);
+      logger.error('Error saving salary component:', error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [editingComponent, formData, loadSalaryComponents, closeModal, validateForm]);
+  }, [editingComponent, formData, insert, update, closeModal, validateForm]);
 
   const handleDelete = useCallback(async (component: StaffSalaryComponent) => {
-    if (!confirm(t('salarySettings.confirmDelete') || 'Are you sure you want to delete this component?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      variant: 'danger',
+      message: t('salarySettings.confirmDelete') || 'Are you sure you want to delete this component?',
+    });
+    if (!confirmed) return;
 
     try {
-      const dbManager = await import('@/services/database/UnifiedDatabaseManager').then(m => m.UnifiedDatabaseManager);
-      const db = dbManager.getInstance();
-      const collection = db.getCollection<StaffSalaryComponent>('staff_salary_components');
-      await collection?.remove(component.id.toString());
-      await loadSalaryComponents();
+      await remove(String(component.id));
     } catch (error) {
-      console.error('Error deleting salary component:', error);
+      logger.error('Error deleting salary component:', error);
     }
-  }, [loadSalaryComponents, t]);
+  }, [confirm, remove, t]);
 
-  const getStaffName = (staffId: number) => {
-    const staffMember = (staff as any[])?.find(s => s.id === staffId);
+  const getStaffName = (staffId: string) => {
+    const staffMember = staff.find(s => String(s.id) === String(staffId));
     return staffMember?.first_name && staffMember?.last_name 
-      ? `${staffMember.first_name} ${staffMember.last_name}` 
+      ? [staffMember.first_name, staffMember.last_name].filter(Boolean).join(' ')
       : staffMember?.username || `Staff #${staffId}`;
   };
 
@@ -214,29 +210,29 @@ const StaffSalarySettingsPage: React.FC = () => {
     { 
       header: t('tableHeaders.staff'), 
       key: 'staff_id' as keyof StaffSalaryComponent,
-      render: (value: number) => getStaffName(value)
+      render: (value: string) => getStaffName(value)
     },
     { header: t('tableHeaders.componentName'), key: 'component_name' as keyof StaffSalaryComponent },
     { header: t('tableHeaders.type'), key: 'component_type' as keyof StaffSalaryComponent },
     { 
       header: t('tableHeaders.amount'), 
       key: 'amount' as keyof StaffSalaryComponent,
-      render: (value: number) => value?.toLocaleString() || '0'
+      render: (value: number) => formatKES(value)
     },
     { 
       header: t('tableHeaders.effectiveFrom'), 
       key: 'effective_from' as keyof StaffSalaryComponent,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { header: t('tableHeaders.status'), key: 'is_active' as keyof StaffSalaryComponent, render: (value: boolean) => (
-      <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'}`}>
         {value ? t('common:active') : t('common:inactive')}
       </span>
     )},
     {
       header: t('tableHeaders.actions'),
       key: 'id' as keyof StaffSalaryComponent,
-      render: (_: any, item: StaffSalaryComponent) => (
+      render: (_: unknown, item: StaffSalaryComponent) => (
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
             {t('common:edit')}
@@ -259,16 +255,16 @@ const StaffSalarySettingsPage: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">{t('salarySettings.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('salarySettings.description')}</p>
         {loading ? (
           <div className="flex justify-center py-8">
             <Spinner />
           </div>
         ) : (
-          <Table
+          <DataGrid
             columns={columns}
             data={salaryComponents}
-            emptyStateMessage={t('salarySettings.noComponents') || 'No salary components found'}
+            emptyState={t('salarySettings.noComponents') || 'No salary components found'}
           />
         )}
       </Card>
@@ -287,11 +283,11 @@ const StaffSalarySettingsPage: React.FC = () => {
               value={formData.staff_id || ''}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">{t('fields.selectStaff')}</option>
-              {(staff as any[] || []).map(s => (
-                <option key={s.id} value={s.id}>
+              {staff.map(s => (
+                <option key={s.id} value={String(s.id)}>
                   {s.first_name} {s.last_name} - {s.username}
                 </option>
               ))}
@@ -312,7 +308,7 @@ const StaffSalarySettingsPage: React.FC = () => {
               value={formData.component_type || 'earning'}
               onChange={handleInputChange}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="earning">{t('fields.typeEarning')}</option>
               <option value="deduction">{t('fields.typeDeduction')}</option>
@@ -356,9 +352,9 @@ const StaffSalarySettingsPage: React.FC = () => {
                 checked={formData.is_active ?? true}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                className="w-4 h-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700">{t('fields.isActive')}</span>
+              <span className="text-sm text-surface-foreground">{t('fields.isActive')}</span>
             </label>
           </FormField>
         </FormSection>
@@ -366,13 +362,19 @@ const StaffSalarySettingsPage: React.FC = () => {
           <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
             {t('common:cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <Spinner size="sm" /> : (editingComponent ? t('common:save') : t('common:create'))}
+          <Button type="submit" loading={isSubmitting}>
+            {editingComponent ? t('common:save') : t('common:create')}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+
+const StaffSalarySettingsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StaffSalarySettingsPageContent />
+  </div>
+);
 
 export default StaffSalarySettingsPage;

@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for teachersubjectassignment data management
 // ABOUTME: Provides CRUD operations for teachersubjectassignment without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockTeacherSubjectAssignments } from './mockData';
 import { TeacherSubjectAssignment } from '@/core/types';
+import { useState } from 'react';
 
 export const useTeacherSubjectAssignmentData = () => {
   const [data, setData] = useState<TeacherSubjectAssignment[]>(initialMockTeacherSubjectAssignments);
@@ -11,7 +11,7 @@ export const useTeacherSubjectAssignmentData = () => {
   const create = async (newItem: Partial<TeacherSubjectAssignment>) => {
     const newDataItem: TeacherSubjectAssignment = {
       ...newItem,
-      id: Date.now(),
+      id: String(Date.now()),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as TeacherSubjectAssignment;
@@ -19,7 +19,7 @@ export const useTeacherSubjectAssignmentData = () => {
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<TeacherSubjectAssignment>) => {
+  const update = async (id: string, updatedData: Partial<TeacherSubjectAssignment>) => {
     setData((prev: TeacherSubjectAssignment[]) => prev.map((item: TeacherSubjectAssignment) => 
       item.id === id 
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
@@ -27,7 +27,7 @@ export const useTeacherSubjectAssignmentData = () => {
     ));
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: string) => {
     setData((prev: TeacherSubjectAssignment[]) => prev.filter((item: TeacherSubjectAssignment) => item.id !== id));
   };
 

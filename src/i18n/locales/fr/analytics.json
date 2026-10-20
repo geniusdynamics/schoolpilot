@@ -1,0 +1,47 @@
+{
+  "class": {
+    "averageScore": "Average Score",
+    "passRate": "Pass Rate",
+    "trendUp": "Trend Up",
+    "trendDown": "Trend Down",
+    "trendStable": "Trend Stable",
+    "title": "Class",
+    "compareClasses": "Compare Classes",
+    "subjectBreakdown": "Subject Breakdown",
+    "topPerformers": "Top Performers",
+    "bottomPerformers": "Bottom Performers"
+  },
+  "period": {
+    "term": "Term",
+    "semester": "Semester",
+    "year": "Year",
+    "custom": "Custom"
+  },
+  "export": {
+    "title": "Export",
+    "reportType": "Report Type",
+    "format": "Format",
+    "download": "Download"
+  },
+  "subject": {
+    "passRate": "Pass Rate",
+    "averageScore": "Average Score",
+    "trendUp": "Trend Up",
+    "trendDown": "Trend Down",
+    "trendStable": "Trend Stable",
+    "title": "Subject",
+    "gradeDistribution": "Grade Distribution",
+    "compareSubjects": "Compare Subjects"
+  },
+  "common": {
+    "totalTeachers": "Total Teachers"
+  },
+  "dashboard": {
+    "passRate": "Pass Rate",
+    "overview": "Overview",
+    "attendanceRate": "Attendance Rate",
+    "assignmentsGraded": "Assignments Graded",
+    "title": "Dashboard"
+  },
+  "description": "Description"
+}

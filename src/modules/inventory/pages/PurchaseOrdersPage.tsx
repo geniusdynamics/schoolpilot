@@ -1,35 +1,35 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, Supplier, ItemInv } from '@/types';
+// ABOUTME: Purchase orders (LPOs) list, add/edit dialog and per-order line items.
+// ABOUTME: Orders and items come from useInventory, suppliers from useSupplierData; line items are nested on the order.
+
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
+import Modal from '@/components/ui/Modal';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ShoppingCartIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { useInventory } from '../hooks/useInventory';
+import { useSupplierData } from '../data/useSupplierData';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { PurchaseOrderStatus } from '@/core/types';
+import type { PurchaseOrder, PurchaseOrderItem } from '@/core/types';
 
 type PurchaseOrderFormData = Omit<Partial<PurchaseOrder>, 'id' | 'created_at' | 'updated_at' | 'items' | 'supplier_name' | 'total_value' | 'status'> & {
     status: PurchaseOrderStatus;
 };
 type PurchaseOrderItemFormData = Omit<Partial<PurchaseOrderItem>, 'id' | 'purchase_order_id' | 'item_name' | 'line_total'>;
 
-const PurchaseOrdersPage: React.FC = () => {
-  const { 
-    purchaseOrders, 
-    suppliers,
-    itemsInv,
-    loading, 
-    addPurchaseOrder, 
-    updatePurchaseOrder, 
-    deletePurchaseOrder 
-  } = useAppData(); // Updated
+export const PurchaseOrdersPageContent: React.FC = () => {
+  const { purchaseOrders, items: itemsInv, addPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder } = useInventory();
+  const { suppliers } = useSupplierData();
+  const { t } = useTranslation('inventory');
+  const confirm = useConfirm();
   
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -81,7 +81,7 @@ const PurchaseOrdersPage: React.FC = () => {
 
   const handlePOInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setPoFormData(prev => ({ ...prev, [name]: name === 'supplier_id' ? (value ? parseInt(value) : undefined) : value }));
+    setPoFormData(prev => ({ ...prev, [name]: name === 'supplier_id' ? (value || undefined) : value }));
   };
 
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -116,9 +116,9 @@ const PurchaseOrdersPage: React.FC = () => {
     };
 
     if (editingPO) {
-      await updatePurchaseOrder({ ...editingPO, ...payloadBase }, editingPO.items || []);
+      await updatePurchaseOrder(editingPO.id, { ...payloadBase, items: editingPO.items || [] });
     } else {
-      await addPurchaseOrder(payloadBase, []);
+      await addPurchaseOrder({ ...payloadBase, items: [] });
     }
     closePOModal();
   };
@@ -160,28 +160,25 @@ const PurchaseOrdersPage: React.FC = () => {
       newItemsList = [...existingItems, newItem];
     }
     
-    await updatePurchaseOrder(currentPOForItems, newItemsList);
-    
-    const updatedPO = purchaseOrders.find(r => r.id === currentPOForItems.id);
-    if (updatedPO) setCurrentPOForItems(updatedPO);
+    await updatePurchaseOrder(currentPOForItems.id, { items: newItemsList });
+    setCurrentPOForItems({ ...currentPOForItems, items: newItemsList });
 
     setEditingPOItem(null);
     setItemFormData(initialItemFormData); 
   };
   
   const handleDeletePO = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this purchase order?')) {
+    if (await confirm({ title: 'Delete purchase order', message: 'Are you sure you want to delete this purchase order?', variant: 'danger' })) {
       await deletePurchaseOrder(id);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
       if (!currentPOForItems) return;
-      if (window.confirm('Are you sure you want to delete this item from the purchase order?')) {
+      if (await confirm({ title: 'Remove item', message: 'Are you sure you want to delete this item from the purchase order?', variant: 'danger' })) {
           const updatedItems = (currentPOForItems.items || []).filter(i => i.id !== itemId);
-          await updatePurchaseOrder(currentPOForItems, updatedItems);
-          const updatedPO = purchaseOrders.find(r => r.id === currentPOForItems.id);
-          if (updatedPO) setCurrentPOForItems(updatedPO);
+          await updatePurchaseOrder(currentPOForItems.id, { items: updatedItems });
+          setCurrentPOForItems({ ...currentPOForItems, items: updatedItems });
       }
   };
 
@@ -212,9 +209,9 @@ const PurchaseOrdersPage: React.FC = () => {
       key: 'status', 
       header: 'Status', 
       render: (value: any, item: PurchaseOrder) => {
-        let colorClass = 'bg-gray-200 text-gray-800';
+        let colorClass = 'bg-gray-200 text-surface-foreground';
         if (item.status === PurchaseOrderStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
-        else if (item.status === PurchaseOrderStatus.APPROVED || item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === PurchaseOrderStatus.APPROVED || item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER) colorClass = 'bg-primary-100 text-primary-800';
         else if (item.status === PurchaseOrderStatus.FULLY_RECEIVED || item.status === PurchaseOrderStatus.PARTIALLY_RECEIVED) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === PurchaseOrderStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
@@ -300,15 +297,6 @@ const PurchaseOrdersPage: React.FC = () => {
     },
   ];
   
-  const isLoadingPage = loading.purchaseOrders || loading.suppliers || loading.itemsInv;
-
-  if (isLoadingPage && !isPOModalOpen && !isItemModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Purchase Orders...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -323,7 +311,7 @@ const PurchaseOrdersPage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ShoppingCartIcon className="w-8 h-8 text-gray-400" />,
+            icon: <ShoppingCartIcon className="w-8 h-8 text-surface-muted-fg" />,
             title: "No purchase orders found",
             description: "Get started by creating your first purchase order."
           }}
@@ -334,8 +322,8 @@ const PurchaseOrdersPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closePOModal}>Cancel</Button>
-            <Button onClick={handlePOSubmit} disabled={loading.purchaseOrders}>
-              {loading.purchaseOrders ? <Spinner size="sm"/> : (editingPO ? 'Save Changes' : 'Add Purchase Order')}
+            <Button onClick={handlePOSubmit}>
+              {editingPO ? 'Save Changes' : 'Add Purchase Order'}
             </Button>
           </>
         }
@@ -372,20 +360,20 @@ const PurchaseOrdersPage: React.FC = () => {
                 <Input name="unit_price" label="Unit Price (KES)" type="number" step="0.01" value={itemFormData.unit_price ?? ''} onChange={handleItemInputChange} required/>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" disabled={loading.purchaseOrders}>
-                  {loading.purchaseOrders ? <Spinner size="sm"/> : (editingPOItem ? 'Update Item' : 'Add Item')}
+                <Button onClick={handleItemSubmit} size="sm">
+                  {editingPOItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Purchase Order</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Items in this Purchase Order</h4>
             <DataGrid 
               columns={poItemColumns} 
               data={currentPOForItems.items || []} 
               sortable
               filterable
               emptyState={{
-                icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
+                icon: <ListBulletIcon className="w-8 h-8 text-surface-muted-fg" />,
                 title: "No items added",
                 description: "No items added to this purchase order yet."
               }}
@@ -396,5 +384,10 @@ const PurchaseOrdersPage: React.FC = () => {
     </div>
   );
 };
+const PurchaseOrdersPage: React.FC = () => (
+  <div className="space-y-6">
+    <PurchaseOrdersPageContent />
+  </div>
+);
 
 export default PurchaseOrdersPage;

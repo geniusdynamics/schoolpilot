@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
@@ -12,10 +12,11 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import type { PayrollItemType } from '@/modules/hr/data/types';
+import { logger } from '@/utils/logging';
 
 type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at' | 'updated_at'>;
 
-const PayrollItemTypesPage: React.FC = () => {
+export const PayrollItemTypesPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { payrollItemTypes, loading: appDataLoading, refreshCollection } = useAppData();
   
@@ -138,7 +139,7 @@ const PayrollItemTypesPage: React.FC = () => {
       await refreshCollection('payrollItemTypes');
       closeModal();
     } catch (error) {
-      console.error('Error saving payroll item type:', error);
+      logger.error('Error saving payroll item type:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,7 +162,7 @@ const PayrollItemTypesPage: React.FC = () => {
       await collection?.remove(item.id.toString());
       await refreshCollection('payrollItemTypes');
     } catch (error) {
-      console.error('Error deleting payroll item type:', error);
+      logger.error('Error deleting payroll item type:', error);
     }
   }, [refreshCollection, t]);
 
@@ -173,8 +174,8 @@ const PayrollItemTypesPage: React.FC = () => {
     { header: t('tableHeaders.status'), key: 'is_active' as keyof PayrollItemType },
     {
       header: t('tableHeaders.actions'),
-      key: 'id' as keyof PayrollItemType,
-      render: (_: any, item: PayrollItemType) => (
+      key: 'actions',
+      render: (_v: any, item: PayrollItemType) => (
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
             {t('common:edit')}
@@ -199,16 +200,16 @@ const PayrollItemTypesPage: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">{t('payrollItemTypes.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('payrollItemTypes.description')}</p>
         {appDataLoading.payrollItemTypes ? (
           <div className="flex justify-center py-8">
             <Spinner />
           </div>
         ) : (
-          <Table
+          <DataGrid
             columns={columns}
             data={payrollItemTypes || []}
-            emptyStateMessage={t('payrollItemTypes.noItems') || 'No payroll item types found'}
+            emptyState={t('payrollItemTypes.noItems') || 'No payroll item types found'}
           />
         )}
       </Card>
@@ -245,7 +246,7 @@ const PayrollItemTypesPage: React.FC = () => {
               value={formData.type || ''}
               onChange={handleInputChange}
               disabled={isSubmitting || editingItem?.is_system_defined}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="earning">{t('fields.typeEarning')}</option>
               <option value="deduction">{t('fields.typeDeduction')}</option>
@@ -259,7 +260,7 @@ const PayrollItemTypesPage: React.FC = () => {
               disabled={isSubmitting}
               placeholder={t('fields.descriptionPlaceholder')}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </FormField>
           <FormField>
@@ -270,9 +271,9 @@ const PayrollItemTypesPage: React.FC = () => {
                 checked={formData.is_active ?? true}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                className="w-4 h-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700">{t('fields.isActive')}</span>
+              <span className="text-sm text-surface-foreground">{t('fields.isActive')}</span>
             </label>
           </FormField>
         </FormSection>
@@ -280,13 +281,19 @@ const PayrollItemTypesPage: React.FC = () => {
           <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
             {t('common:cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <Spinner size="sm" /> : (editingItem ? t('common:save') : t('common:create'))}
+          <Button type="submit" loading={isSubmitting}>
+            {editingItem ? t('common:save') : t('common:create')}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+
+const PayrollItemTypesPage: React.FC = () => (
+  <div className="space-y-6">
+    <PayrollItemTypesPageContent />
+  </div>
+);
 
 export default PayrollItemTypesPage;

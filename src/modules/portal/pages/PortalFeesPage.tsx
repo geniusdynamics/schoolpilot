@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Spinner from '@/components/ui/Spinner';
-import Button from '@/components/ui/Button';
 import { usePortalData } from '../data/usePortalData';
+import { PortalAccessNotice, shouldShowAccessNotice } from '../components/PortalAccessNotice';
 import type { PortalFeeSummary } from '../data/types';
 import {
   CurrencyDollarIcon,
@@ -19,37 +19,40 @@ interface InvoiceRow {
   invoiceNumber: string;
   issueDate: string;
   dueDate: string;
-  totalAmount: string;
-  amountPaid: string;
-  balance: string;
+  totalAmount: number;
+  amountPaid: number;
+  balance: number;
   status: string;
 }
 
 interface PaymentRow {
   receiptNo: string;
   paymentDate: string;
-  amount: string;
+  amount: number;
   paymentMethod: string;
 }
+
+const formatKES = (amount: number) => `KES ${amount.toLocaleString()}`;
 
 const statusBadgeClass: Record<string, string> = {
   'Paid': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700',
   'Partially Paid': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700',
-  'Due': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700',
+  'Due': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-700',
   'Overdue': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-rose-100 text-rose-700',
-  'Voided': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-500',
+  'Voided': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-surface-accent text-surface-muted-fg',
 };
 
-const PortalFeesPage: React.FC = () => {
+export const PortalFeesContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const {
     feeSummaries,
     loading,
+    accessStatus,
     loadFeeSummaries,
   } = usePortalData();
 
   useEffect(() => {
-    loadFeeSummaries('STU001');
+    loadFeeSummaries();
   }, [loadFeeSummaries]);
 
   const feeSummary: PortalFeeSummary | null = feeSummaries.length > 0 ? feeSummaries[0] : null;
@@ -69,13 +72,14 @@ const PortalFeesPage: React.FC = () => {
 
   const invoiceRows: InvoiceRow[] = useMemo(() => {
     if (!feeSummary) return [];
+    // Keep amounts numeric so DataGrid sorting is numeric, not lexicographic
     return feeSummary.invoices.map(inv => ({
       invoiceNumber: inv.invoiceNumber,
       issueDate: inv.issueDate,
       dueDate: inv.dueDate,
-      totalAmount: `KES ${inv.totalAmount.toLocaleString()}`,
-      amountPaid: `KES ${inv.amountPaid.toLocaleString()}`,
-      balance: `KES ${inv.balance.toLocaleString()}`,
+      totalAmount: inv.totalAmount,
+      amountPaid: inv.amountPaid,
+      balance: inv.balance,
       status: inv.status,
     }));
   }, [feeSummary]);
@@ -85,7 +89,7 @@ const PortalFeesPage: React.FC = () => {
     return feeSummary.payments.map(pay => ({
       receiptNo: pay.receiptNo,
       paymentDate: pay.paymentDate,
-      amount: `KES ${pay.amount.toLocaleString()}`,
+      amount: pay.amount,
       paymentMethod: pay.paymentMethod,
     }));
   }, [feeSummary]);
@@ -96,7 +100,7 @@ const PortalFeesPage: React.FC = () => {
       header: t('fees.invoiceNumber'),
       sortable: true,
       filterable: true,
-      render: (value: string) => <span className="font-mono text-sm font-medium text-gray-900">{value}</span>,
+      render: (value: string) => <span className="font-mono text-sm font-medium text-surface-foreground">{value}</span>,
     },
     {
       key: 'issueDate',
@@ -105,7 +109,7 @@ const PortalFeesPage: React.FC = () => {
       filterable: true,
       width: 120,
       render: (value: string) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </span>
       ),
@@ -119,7 +123,7 @@ const PortalFeesPage: React.FC = () => {
       render: (value: string, row) => {
         const isPastDue = new Date(value) < new Date() && row.status !== 'Paid';
         return (
-          <span className={`text-sm ${isPastDue ? 'text-rose-600 font-medium' : 'text-gray-600'}`}>
+          <span className={`text-sm ${isPastDue ? 'text-rose-600 font-medium' : 'text-surface-muted-fg'}`}>
             {new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
         );
@@ -132,7 +136,7 @@ const PortalFeesPage: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: string) => <span className="font-mono text-sm text-gray-900">{value}</span>,
+      render: (value: number) => <span className="font-mono text-sm text-surface-foreground">{formatKES(value)}</span>,
     },
     {
       key: 'amountPaid',
@@ -141,7 +145,7 @@ const PortalFeesPage: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: string) => <span className="font-mono text-sm text-emerald-600">{value}</span>,
+      render: (value: number) => <span className="font-mono text-sm text-emerald-600">{formatKES(value)}</span>,
     },
     {
       key: 'balance',
@@ -150,9 +154,9 @@ const PortalFeesPage: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: string, row) => (
-        <span className={`font-mono text-sm ${row.status === 'Paid' ? 'text-gray-400' : 'text-rose-600 font-medium'}`}>
-          {value}
+      render: (value: number, row) => (
+        <span className={`font-mono text-sm ${row.status === 'Paid' ? 'text-surface-muted-fg' : 'text-rose-600 font-medium'}`}>
+          {formatKES(value)}
         </span>
       ),
     },
@@ -176,7 +180,7 @@ const PortalFeesPage: React.FC = () => {
       header: t('fees.receiptNumber'),
       sortable: true,
       filterable: true,
-      render: (value: string) => <span className="font-mono text-sm font-medium text-gray-900">{value}</span>,
+      render: (value: string) => <span className="font-mono text-sm font-medium text-surface-foreground">{value}</span>,
     },
     {
       key: 'paymentDate',
@@ -185,7 +189,7 @@ const PortalFeesPage: React.FC = () => {
       filterable: true,
       width: 140,
       render: (value: string) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </span>
       ),
@@ -197,7 +201,7 @@ const PortalFeesPage: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: string) => <span className="font-mono text-sm font-semibold text-emerald-600">{value}</span>,
+      render: (value: number) => <span className="font-mono text-sm font-semibold text-emerald-600">{formatKES(value)}</span>,
     },
     {
       key: 'paymentMethod',
@@ -205,7 +209,7 @@ const PortalFeesPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value: string) => <span className="text-sm text-gray-700">{value}</span>,
+      render: (value: string) => <span className="text-sm text-surface-foreground">{value}</span>,
     },
   ];
 
@@ -213,18 +217,22 @@ const PortalFeesPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />
-        <span className="ml-3 text-gray-600">{t('common.loading')}</span>
+        <span className="ml-3 text-surface-muted-fg">{t('common.loading')}</span>
       </div>
     );
   }
 
   if (!feeSummary) {
+    // Auth-gated: without a linked student there is nothing to show but a notice.
+    if (shouldShowAccessNotice(accessStatus)) {
+      return <PortalAccessNotice status={accessStatus} />;
+    }
     return (
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="text-center py-12">
           <CurrencyDollarIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-900">{t('common.noData')}</h3>
-          <p className="text-sm text-gray-500 mt-2">No fee statements are available at this time.</p>
+          <h3 className="text-lg font-medium text-surface-foreground">{t('common.noData')}</h3>
+          <p className="text-sm text-surface-muted-fg mt-2">No fee statements are available at this time.</p>
         </div>
       </Card>
     );
@@ -234,14 +242,14 @@ const PortalFeesPage: React.FC = () => {
     <div className="space-y-6">
       {/* Fee Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-slate-200 bg-surface-card shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-50 p-2.5">
-              <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />
+            <div className="rounded-lg bg-primary-50 p-2.5">
+              <CurrencyDollarIcon className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">{t('fees.totalFees')}</p>
-              <p className="text-xl font-semibold text-gray-900">KES {feeSummary.totalFees.toLocaleString()}</p>
+              <p className="text-sm text-surface-muted-fg">{t('fees.totalFees')}</p>
+              <p className="text-xl font-semibold text-surface-foreground">KES {feeSummary.totalFees.toLocaleString()}</p>
             </div>
           </div>
         </Card>
@@ -278,24 +286,24 @@ const PortalFeesPage: React.FC = () => {
       </div>
 
       {/* Payment Progress Bar */}
-      <Card className="border-slate-200 bg-white shadow-sm">
+      <Card className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex items-center gap-4">
-          <CurrencyDollarIcon className="w-5 h-5 text-gray-400" />
+          <CurrencyDollarIcon className="w-5 h-5 text-surface-muted-fg" />
           <div className="flex-1">
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Payment Progress</span>
-              <span className="font-medium text-gray-900">{paymentProgress}%</span>
+              <span className="text-surface-muted-fg">Payment Progress</span>
+              <span className="font-medium text-surface-foreground">{paymentProgress}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div
                 className={`h-3 rounded-full transition-all ${
                   paymentProgress >= 100 ? 'bg-emerald-500' :
-                  paymentProgress >= 50 ? 'bg-blue-500' : 'bg-amber-500'
+                  paymentProgress >= 50 ? 'bg-primary-500' : 'bg-amber-500'
                 }`}
                 style={{ width: `${Math.min(paymentProgress, 100)}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-surface-muted-fg mt-1">
               KES {feeSummary.totalPaid.toLocaleString()} of KES {feeSummary.totalFees.toLocaleString()} paid
             </p>
           </div>
@@ -333,10 +341,11 @@ const PortalFeesPage: React.FC = () => {
 
       {/* Invoices */}
       {invoiceRows.length > 0 && (
-        <Card title={t('fees.invoices')} className="border-slate-200 bg-white shadow-sm">
+        <Card title={t('fees.invoices')} className="border-slate-200 bg-surface-card shadow-sm">
           <DataGrid
             columns={invoiceColumns}
             data={invoiceRows}
+            keyField="invoiceNumber"
             sortable
             filterable
             emptyState={{
@@ -350,10 +359,11 @@ const PortalFeesPage: React.FC = () => {
 
       {/* Payment History */}
       {paymentRows.length > 0 && (
-        <Card title={t('fees.payments')} className="border-slate-200 bg-white shadow-sm">
+        <Card title={t('fees.payments')} className="border-slate-200 bg-surface-card shadow-sm">
           <DataGrid
             columns={paymentColumns}
             data={paymentRows}
+            keyField="receiptNo"
             sortable
             filterable
             emptyState={{
@@ -366,6 +376,10 @@ const PortalFeesPage: React.FC = () => {
       )}
     </div>
   );
+};
+
+const PortalFeesPage: React.FC = () => {
+  return <PortalFeesContent />;
 };
 
 export default PortalFeesPage;

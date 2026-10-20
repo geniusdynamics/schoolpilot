@@ -21,7 +21,7 @@ export class StudentService {
   /**
    * Get student class schedule
    */
-  async getClassSchedule(studentId: string): Promise<any[]> {
+  async getClassSchedule(_studentId: string): Promise<any[]> {
     // In a real implementation, fetch from timetable
     return [];
   }
@@ -29,7 +29,7 @@ export class StudentService {
   /**
    * Check student eligibility for exam
    */
-  async checkExamEligibility(studentId: string, examId: string): Promise<boolean> {
+  async checkExamEligibility(_studentId: string, _examId: string): Promise<boolean> {
     // In a real implementation, check attendance, fee payment, etc.
     return true;
   }

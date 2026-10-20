@@ -53,7 +53,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  *   // Only recalculates layout 200ms after resize stops
  *   const layout = useMemo(() => calculateLayout(debouncedWidth), [debouncedWidth]);
  *   
- *   return <div>{/* ... */}</div>;
+ *   return <div>...</div>;
  * }
  * ```
  */

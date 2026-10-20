@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Database connection pooling system
 // ABOUTME: Manages connection lifecycle, pooling, and resource optimization
 import { IDatabaseProvider } from './interfaces';
@@ -96,7 +98,7 @@ export class DatabaseConnectionPool {
 
     this.startCleanupProcess();
     this.startMetricsCollection();
-    console.log('🏊 [ConnectionPool] Initialized with config:', this.config);
+    logger.info('🏊 [ConnectionPool] Initialized with config:', this.config);
   }
 
   /**
@@ -133,7 +135,7 @@ export class DatabaseConnectionPool {
         this.metrics.totalAcquired++;
         return newConnection;
       } catch (error) {
-        console.error('❌ [ConnectionPool] Failed to create new connection:', error);
+        logger.error('❌ [ConnectionPool] Failed to create new connection:', error);
         throw error;
       }
     }
@@ -237,7 +239,7 @@ export class DatabaseConnectionPool {
       this.metrics.totalDestroyed++;
       databaseMemoryManager.unregisterConnection(connection.id);
     } catch (error) {
-      console.error(`❌ [ConnectionPool] Error destroying connection ${connection.id}:`, error);
+      logger.error(`❌ [ConnectionPool] Error destroying connection ${connection.id}:`, error);
     }
   }
 
@@ -332,7 +334,7 @@ export class DatabaseConnectionPool {
         try {
           await this.createConnection();
         } catch (error) {
-          console.error('❌ [ConnectionPool] Failed to create minimum connection:', error);
+          logger.error('❌ [ConnectionPool] Failed to create minimum connection:', error);
           break;
         }
       }
@@ -356,7 +358,7 @@ export class DatabaseConnectionPool {
       try {
         listener(this.metrics);
       } catch (error) {
-        console.error('❌ [ConnectionPool] Listener error:', error);
+        logger.error('❌ [ConnectionPool] Listener error:', error);
       }
     });
   }

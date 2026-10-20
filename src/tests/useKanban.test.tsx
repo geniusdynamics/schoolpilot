@@ -489,8 +489,11 @@ describe('useKanban', () => {
       act(() => {
         actions.setFilter('frontend');
       });
-      
-      const filteredColumns = actions.getFilteredColumns();
+
+      // Re-read actions after the state update: the `actions` destructured
+      // above is a stale closure (getFilteredColumns captured filterText='')
+      const [, freshActions] = result.current;
+      const filteredColumns = freshActions.getFilteredColumns();
       
       // Should only include cards with 'frontend' tag
       expect(filteredColumns[0].cards).toHaveLength(1);
@@ -545,8 +548,10 @@ describe('useKanban', () => {
       act(() => {
         actions.selectCard('1');
       });
-      
-      const stats = actions.getColumnStats('todo');
+
+      // Re-read actions after the state update (stale closure otherwise)
+      const [, statsActions] = result.current;
+      const stats = statsActions.getColumnStats('todo');
       expect(stats.total).toBe(2);
       expect(stats.filtered).toBe(2); // No filter applied
       expect(stats.selected).toBe(1);
@@ -564,8 +569,10 @@ describe('useKanban', () => {
         actions.selectCard('1', true);
         actions.selectCard('2', true);
       });
-      
-      const stats = actions.getBoardStats();
+
+      // Re-read actions after the state update (stale closure otherwise)
+      const [, statsActions] = result.current;
+      const stats = statsActions.getBoardStats();
       expect(stats.totalCards).toBe(3);
       expect(stats.totalColumns).toBe(3);
       expect(stats.selectedCards).toBe(2);

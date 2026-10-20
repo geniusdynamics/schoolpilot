@@ -1,13 +1,23 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Pin, Copy, ExternalLink, MoreVertical, AlertCircle, Star } from 'lucide-react';
+
 import { createPortal } from 'react-dom';
+import {
+  ArrowTopRightOnSquareIcon,
+  ExclamationCircleIcon,
+  MapPinIcon,
+  Square2StackIcon,
+  StarIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { cn } from '@/utils/cn';
 import { Tab as TabType } from '@/types/tabbedWorkspace';
-import { HierarchicalTab, SubTab } from '@/types/hierarchical';
+import { HierarchicalTab } from '@/types/hierarchical';
+
 import { getIcon } from '@/utils/iconMap';
 import { useTabStore } from '@/stores/tabStore';
 import { SubTabNavigation } from '../SubTabNavigation';
 import { useFavorites } from '@/hooks/useFavorites';
+import { logger } from '@/utils/logging';
 
 // Legacy TabProps for backward compatibility
 interface LegacyTabProps {
@@ -26,6 +36,7 @@ interface LegacyTabProps {
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseTabsToLeft?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onCloseTab?: () => void;
   onCloseAllExceptPinned?: () => void;
 }
 
@@ -46,6 +57,7 @@ interface HierarchicalTabProps {
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseTabsToLeft?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onCloseTab?: () => void;
   onCloseAllExceptPinned?: () => void;
   // Hierarchical features
   enableHierarchicalMode?: boolean;
@@ -76,6 +88,7 @@ interface ContextMenuProps {
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseTabsToLeft?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onCloseTab?: () => void;
   onCloseAllExceptPinned?: () => void;
 }
 
@@ -93,12 +106,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onCloseTabsToRight,
   onCloseTabsToLeft,
   onCloseAllTabs,
+  onCloseTab,
   onCloseAllExceptPinned
 }) => {
   const tabStore = useTabStore();
   
   const handleAction = (action: string) => {
     switch (action) {
+      case 'close':
+        if (onCloseTab) onCloseTab();
+        break;
       case 'close-others':
         if (onCloseOtherTabs) onCloseOtherTabs(tab.id);
         else tabStore.closeOtherTabs(tab.id);
@@ -116,7 +133,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         else tabStore.closeAllTabs();
         break;
       default:
-        console.log(`Context menu action: ${action}`);
+        logger.info(`Context menu action: ${action}`);
     }
     onClose();
   };
@@ -150,15 +167,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuItems = [
     {
       id: 'pin',
-      label: tab.pinned ? 'Unpin Tab' : 'Pin Tab',
-      icon: Pin,
+      label: tab.pinned ? 'Unpin Tab' : 'MapPinIcon Tab',
+      icon: MapPinIcon,
       onClick: onPin,
       shortcut: 'Ctrl+P'
     },
     {
       id: 'favorite',
       label: isFavorite ? 'Unfavorite Tab' : 'Favorite Tab',
-      icon: Star,
+      icon: StarIcon,
       onClick: () => {
         onToggleFavorite?.();
         onClose();
@@ -167,41 +184,42 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     {
       id: 'duplicate',
       label: 'Duplicate Tab',
-      icon: Copy,
+      icon: Square2StackIcon,
       onClick: onDuplicate,
       shortcut: 'Ctrl+D'
     },
     ...(onOpenInNewWindow ? [{
       id: 'newWindow',
       label: 'Open in New Window',
-      icon: ExternalLink,
+      icon: ArrowTopRightOnSquareIcon,
       onClick: onOpenInNewWindow,
       shortcut: 'Ctrl+Shift+N'
     }] : []),
+    { id: 'closeTab', label: 'Close Tab', icon: XMarkIcon, onClick: () => handleAction('close'), shortcut: 'Del' },
     { id: 'separator1', type: 'separator' as const },
     {
       id: 'closeOthers',
       label: 'Close Other Tabs',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-others'),
       shortcut: 'Ctrl+Alt+W'
     },
     {
       id: 'closeToRight',
       label: 'Close Tabs to Right',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-to-right')
     },
     {
       id: 'closeToLeft',
       label: 'Close Tabs to Left',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-to-left')
     },
     {
       id: 'closeNonPinned',
       label: 'Close Non-Pinned Tabs',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => {
         if (onCloseAllExceptPinned) onCloseAllExceptPinned();
         else tabStore.closeAllExceptPinned();
@@ -211,7 +229,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     {
       id: 'closeAll',
       label: 'Close All Tabs',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-all'),
       shortcut: 'Ctrl+Shift+W'
     }
@@ -221,7 +239,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     <div
       ref={menuRef}
       className={cn(
-        'fixed bg-white border border-green-200 rounded-lg shadow-xl z-[9999]',
+        'fixed bg-surface-card border border-green-200 rounded-lg shadow-xl z-[9999]',
         'min-w-[180px] py-1 text-sm'
       )}
       style={{
@@ -249,14 +267,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
             onClick={item.onClick}
             className={cn(
               'w-full px-3 py-2 text-left hover:bg-green-50 transition-colors',
-              'flex items-center gap-3 text-gray-700 hover:text-green-800'
+              'flex items-center gap-3 text-surface-foreground hover:text-green-800'
             )}
             role="menuitem"
           >
             <Icon className="w-4 h-4 text-green-600" />
             <span className="flex-1">{item.label}</span>
             {item.shortcut && (
-              <span className="text-xs text-gray-400">{item.shortcut}</span>
+              <span className="text-xs text-surface-muted-fg">{item.shortcut}</span>
             )}
           </button>
         );
@@ -304,6 +322,11 @@ export const Tab: React.FC<TabProps> = (props) => {
   const tabRef = useRef<HTMLDivElement>(null);
 
   // Handle close context menu
+  const handleCloseTabFromContext = useCallback(() => {
+    // Create a minimal mouse event-like object to satisfy onClose signature
+    (onClose as any)({ preventDefault: () => {}, stopPropagation: () => {} });
+  }, [onClose]);
+
   const handleCloseContextMenu = useCallback(() => {
     setContextMenu(prev => ({ ...prev, isVisible: false }));
   }, []);
@@ -385,7 +408,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         <div className={cn(
           'w-3 h-3 border-2 rounded-full animate-spin',
           tabStyle === 'modern'
-            ? 'border-gray-300 border-t-gray-600'
+            ? 'border-surface-border border-t-gray-600'
             : 'border-green-300 border-t-green-600'
         )} />
       );
@@ -393,7 +416,7 @@ export const Tab: React.FC<TabProps> = (props) => {
     
     if ('hasError' in tab && tab.hasError) {
       return (
-        <AlertCircle className="w-3 h-3 text-red-500" />
+        <ExclamationCircleIcon className="w-3 h-3 text-red-500" />
       );
     }
     
@@ -413,23 +436,23 @@ export const Tab: React.FC<TabProps> = (props) => {
   const getTabStyling = () => {
     if (tabStyle === 'modern') {
       return {
-        base: 'bg-white border-gray-200 text-gray-700',
-        active: 'bg-white border-blue-500 text-blue-800 shadow-sm',
-        inactive: 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-        pinned: 'bg-blue-50 border-blue-200 text-blue-800',
+        base: 'bg-surface-card border-surface-border text-surface-foreground',
+        active: 'bg-surface-card border-primary-500 text-primary-800 shadow-sm',
+        inactive: 'bg-surface-muted border-transparent text-surface-muted-fg hover:bg-surface-accent hover:text-surface-foreground',
+        pinned: 'bg-primary-50 border-primary-200 text-primary-800',
         error: 'bg-red-50 border-red-300',
-        loading: 'bg-blue-50 border-blue-300'
+        loading: 'bg-primary-50 border-primary-300'
       };
     }
     
     // Legacy styling
     return {
       base: 'bg-green-50 border-green-200 text-green-700',
-      active: 'bg-white border-green-500 text-green-800 shadow-sm',
-      inactive: 'bg-green-50 border-transparent text-gray-600 hover:bg-green-100 hover:text-green-700',
+      active: 'bg-surface-card border-green-500 text-green-800 shadow-sm',
+      inactive: 'bg-green-50 border-transparent text-surface-muted-fg hover:bg-green-100 hover:text-green-700',
       pinned: 'bg-green-100 border-green-300 text-green-800',
       error: 'bg-red-50 border-red-300',
-      loading: 'bg-blue-50 border-blue-300'
+      loading: 'bg-primary-50 border-primary-300'
     };
   };
 
@@ -479,7 +502,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         aria-label={`${tab.title} tab${isPinned ? ' (pinned)' : ''}${tab.isDirty ? ' (unsaved changes)' : ''}`}
         title={`${tab.title}${tab.path ? ` - ${tab.path}` : ''}${isPinned ? ' (pinned)' : ''}${tab.isDirty ? ' (unsaved changes)' : ''}`}
       >
-        {/* Pin indicator */}
+        {/* MapPinIcon indicator */}
         {isPinned && (
           <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm z-10" />
         )}
@@ -494,8 +517,8 @@ export const Tab: React.FC<TabProps> = (props) => {
             <span className={cn(
               'flex-shrink-0 text-sm',
               isActive 
-                ? (tabStyle === 'modern' ? 'text-blue-600' : 'text-green-600')
-                : (isPinned ? (tabStyle === 'modern' ? 'text-blue-700' : 'text-green-700') : 'text-gray-500')
+                ? (tabStyle === 'modern' ? 'text-primary-600' : 'text-green-600')
+                : (isPinned ? (tabStyle === 'modern' ? 'text-primary-700' : 'text-green-700') : 'text-surface-muted-fg')
             )}>
               {(() => {
                 const IconComponent = getIcon(tab.icon);
@@ -509,8 +532,8 @@ export const Tab: React.FC<TabProps> = (props) => {
             <span className={cn(
               'truncate text-sm font-medium min-w-0',
               isActive 
-                ? (tabStyle === 'modern' ? 'text-blue-800' : 'text-green-800')
-                : 'text-gray-700'
+                ? (tabStyle === 'modern' ? 'text-primary-800' : 'text-green-800')
+                : 'text-surface-foreground'
             )}>
               {tab.title}
             </span>
@@ -520,7 +543,7 @@ export const Tab: React.FC<TabProps> = (props) => {
           {!isPinned && (
             <div className="flex-shrink-0 flex items-center gap-1">
               {isTabFavorite && (
-                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                <StarIcon className="w-3 h-3 text-yellow-400 fill-current" />
               )}
               {getStatusIndicator()}
             </div>
@@ -538,7 +561,7 @@ export const Tab: React.FC<TabProps> = (props) => {
               }}
               className={cn(
                 'flex-shrink-0 p-0.5 rounded transition-colors ml-1 relative z-10',
-                'text-gray-500 hover:text-red-600',
+                'text-surface-muted-fg hover:text-red-600',
                 tabStyle === 'modern'
                   ? 'hover:bg-gray-200'
                   : 'hover:bg-green-200'
@@ -546,7 +569,7 @@ export const Tab: React.FC<TabProps> = (props) => {
               aria-label={`Close ${tab.title} tab`}
               tabIndex={-1}
             >
-              <X className="w-3 h-3" />
+              <XMarkIcon className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -567,7 +590,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         {isActive && !isPinned && (
           <div className={cn(
             'absolute bottom-0 left-0 right-0 h-0.5',
-            tabStyle === 'modern' ? 'bg-blue-500' : 'bg-green-500'
+            tabStyle === 'modern' ? 'bg-primary-500' : 'bg-green-500'
           )} />
         )}
 
@@ -576,7 +599,7 @@ export const Tab: React.FC<TabProps> = (props) => {
           'absolute inset-0 border-2 border-transparent transition-colors pointer-events-none',
           isPinned ? 'rounded-lg' : 'rounded-t',
           tabStyle === 'modern'
-            ? 'focus-within:border-blue-400 focus-within:shadow-sm'
+            ? 'focus-within:border-primary-400 focus-within:shadow-sm'
             : 'focus-within:border-green-400 focus-within:shadow-sm'
         )} />
       </div>
@@ -599,13 +622,15 @@ export const Tab: React.FC<TabProps> = (props) => {
           module: tab.module || 'dashboard'
         })}
         onCloseOtherTabs={onCloseOtherTabs}
-        onCloseTabsToRight={onCloseTabsToRight}
-        onCloseTabsToLeft={onCloseTabsToLeft}
-        onCloseAllTabs={onCloseAllTabs}
-        onCloseAllExceptPinned={onCloseAllExceptPinned}
+          onCloseTabsToRight={onCloseTabsToRight}
+          onCloseTabsToLeft={onCloseTabsToLeft}
+          onCloseAllTabs={onCloseAllTabs}
+          onCloseTab={handleCloseTabFromContext}
+          onCloseAllExceptPinned={onCloseAllExceptPinned}
       />
     </>
   );
 };
 
 export type { TabProps };
+

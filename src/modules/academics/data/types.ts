@@ -13,38 +13,22 @@ export {
   SubmissionStatus
 } from './enums';
 
-// Core academic enums (moved from core/types/academic.ts)
-export enum SubjectGrouping {
-  GROUP_1_COMPULSORY = "Group 1 (Compulsory)",
-  GROUP_2_SCIENCES = "Group 2 (Sciences)",
-  GROUP_3_HUMANITIES = "Group 3 (Humanities)",
-  GROUP_4_TECHNICALS = "Group 4 (Technicals)",
-  GROUP_5_LANGUAGES = "Group 5 (Foreign Languages)",
-  OTHER = "Other/Optional"
-}
+// Shared academic enums (single definition in @/core/types/enums; re-exported for module consumers)
+import { SubjectGrouping, DayOfWeek, StudentEnrollmentStatus, ExamSessionStatus } from '@/core/types/enums';
+export { SubjectGrouping, DayOfWeek, StudentEnrollmentStatus, ExamSessionStatus };
 
-export enum DayOfWeek {
-  MONDAY = 'MONDAY',
-  TUESDAY = 'TUESDAY',
-  WEDNESDAY = 'WEDNESDAY',
-  THURSDAY = 'THURSDAY',
-  FRIDAY = 'FRIDAY',
-  SATURDAY = 'SATURDAY',
-  SUNDAY = 'SUNDAY'
-}
+// Local enum bindings used within this module's interface definitions.
+import { GradingSystemType, AssessmentType, AcademicPeriodType, AssignmentStatus, SubmissionStatus } from './enums';
 
-export enum StudentEnrollmentStatus {
-  ENROLLED = 'Enrolled',
-  WITHDRAWN = 'Withdrawn'
-}
-
-export enum ExamSessionStatus {
-  PLANNING = 'Planning',
-  MARKS_ENTRY_OPEN = 'Marks Entry Open',
-  PUBLISHED = 'Published',
-  CLOSED = 'Closed',
-  ARCHIVED = 'Archived'
-}
+// Shared academic-calendar entities are owned by the core registry; re-exported here so
+// module consumers (hooks, mock data) resolve them via the module's own types barrel.
+export type {
+  AcademicYear,
+  SchoolPeriod,
+  AcademicYearStructure,
+  AcademicPeriodDefinition,
+  TimetablePeriodDef,
+} from '@/core/types';
 
 // Core academic types (moved from core/types/academic.ts)
 export interface ClassSubjectAllocation {
@@ -79,6 +63,77 @@ export interface SubjectPaper {
   subject_name?: string | null;
 }
 
+// Assignments domain (module-local)
+export interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  subjectId: string;
+  subjectName: string;
+  classId: string;
+  className: string;
+  classStreamId: string;
+  classStreamName: string;
+  teacherId: string;
+  teacherName: string;
+  assignedDate: string;
+  dueDate: string;
+  maxScore: number;
+  weightPercentage: number;
+  status: AssignmentStatus;
+  allowLateSubmission: boolean;
+  latePenaltyPercentage: number;
+  instructions?: string;
+  attachments?: string[];
+  rubricId?: string;
+  rubric?: RubricCriterion[];
+  createdAt: string;
+  updatedAt: string;
+  submissionCount?: number;
+}
+
+// Rubric grading criteria (module-local)
+export interface RubricLevel {
+  id: string;
+  name: string;
+  description?: string;
+  points: number;
+}
+export interface RubricCriterion {
+  id: string;
+  name: string;
+  description?: string;
+  maxPoints: number;
+  weightPercentage?: number;
+  levels?: RubricLevel[];
+}
+
+export interface AssignmentSubmission {
+  id: string;
+  assignmentId: string;
+  studentId: string;
+  studentName: string;
+  status: SubmissionStatus;
+  submissionDate: string | null;
+  score: number | null;
+  grade: string | null;
+  feedback: string | null;
+  maxScore: number;
+  gradedBy?: string | null;
+  gradedByName?: string | null;
+  gradedAt?: string | null;
+  isLate?: boolean;
+}
+
+export interface GradeSubmissionInput {
+  score: number;
+  maxScore: number;
+  grade: string;
+  feedback?: string;
+  gradedBy: string;
+  gradedByName: string;
+}
+
 export interface Subject {
   id: number;
   subject_code: string;
@@ -89,6 +144,8 @@ export interface Subject {
   grouping: SubjectGrouping;
   department_name?: string | null;
   papers?: SubjectPaper[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface StudentSubjectEnrollment {
@@ -132,11 +189,27 @@ export interface TimetableEntry {
 
 export interface ExamSchedule {
   id: string;
-  exam_id: string;
+  // Canonical scheduling identifiers (ExamScheduleManager / ConflictDetectionEngine)
+  exam_id?: string;
   period_id: number;
   class_stream_id: number;
-  invigilator_id: string;
-  room_number: string;
+  subject_id?: number;
+  invigilator_id?: string;
+  room_number?: string;
+  // UI / seeded-data shape (SchedulingCalendar and mock data)
+  exam_session_id?: string;
+  subject_paper_id?: number;
+  room?: string;
+  invigilator?: string;
+  date?: string;
+  // Denormalized / UI display fields (list + calendar views)
+  subject_name?: string;
+  start_time?: string;
+  end_time?: string;
+  duration_minutes?: number;
+  max_students?: number;
+  status?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -146,6 +219,7 @@ export interface GradingSchemeLevel {
   scheme_id: number;
   grade: string;
   min_score: number;
+  max_score?: number | null;
   points?: number | null;
   comment?: string | null;
 }
@@ -167,6 +241,7 @@ export interface ExamSession {
   created_at: string;
   updated_at: string;
   school_period_name?: string | null;
+  result_publication_date?: string | null;
   paper_settings?: ExamPaperSetting[];
 }
 
@@ -256,7 +331,33 @@ export interface StudentExamResultWithDetails extends StudentExamResult {
   class_name?: string | null;
   stream_name?: string | null;
   exam_session_name?: string | null;
+  overall_comment?: string | null;
   marks?: StudentPaperMarkWithDetails[];
+}
+
+// A single period (lesson slot) within a day of a weekly plan.
+export interface PeriodPlan {
+  id: string;
+  periodId?: string;
+  periodName?: string;
+  periodStartTime?: string;
+  periodEndTime?: string;
+  duration?: number;
+  topicDetail?: string;
+  teachingMethod?: string;
+}
+
+// A single day within a weekly plan, optionally broken down into period plans.
+export interface DayPlan {
+  id: string;
+  dayOfWeek: string;
+  date: string;
+  topics?: string;
+  objectives?: string;
+  activities?: string;
+  assessment?: string;
+  homework?: string;
+  periodPlans?: PeriodPlan[];
 }
 
 export interface WeeklyPlan {
@@ -273,6 +374,12 @@ export interface WeeklyPlan {
   objectives: string[];
   materials: string[];
   duration: number;
+  // Optional week-level scheduling and breakdown fields consumed by the lesson-plan pages.
+  weekStartDate?: string;
+  weekEndDate?: string;
+  dayPlans?: DayPlan[];
+  overallObjectives?: string;
+  teachingAids?: string;
   created_at: string;
   updated_at: string;
 }
@@ -285,45 +392,90 @@ export enum PlanStatus {
 }
 
 // === EDUCATION SYSTEM CONFIGURATION TYPES ===
+
+// Nested configuration shapes consumed by education-system mock data / templates.
+export interface EducationGradeRange {
+  grade: string;
+  min: number;
+  max: number;
+  description?: string;
+}
+
+export interface EducationGradingSystemConfig {
+  system_type: GradingSystemType;
+  passing_threshold?: number;
+  grade_ranges?: EducationGradeRange[];
+}
+
+export interface EducationAssessmentRule {
+  assessment_type: AssessmentType;
+  weight: number;
+  min_assessments?: number;
+  max_assessments?: number;
+  description?: string;
+}
+
+export interface EducationAcademicPeriod {
+  period_type: AcademicPeriodType;
+  name: string;
+  start_month?: number;
+  end_month?: number;
+  order?: number;
+}
+
 export interface EducationSystemConfiguration {
   id?: string;
   name: string;
-  country_code: string;
+  country_code?: string;
   system_type: any; // Will use EducationSystemType from enums
   grading_system_type: any; // Will use GradingSystemType from enums
   min_grade_level?: number;
   max_grade_level?: number;
-  academic_period_type: any; // Will use AcademicPeriodType from enums
-  periods_per_year: number;
-  
+  academic_period_type?: any; // Will use AcademicPeriodType from enums
+  periods_per_year?: number;
+
   // Grading Configuration
   passing_grade?: number;
   max_grade_value?: number;
   grade_precision?: number;
-  
+
   // Assessment Configuration
-  assessment_types: any[]; // Will use AssessmentType[] from enums
+  assessment_types?: any[]; // Will use AssessmentType[] from enums
   continuous_assessment_weight?: number;
   final_exam_weight?: number;
-  
+
   // Competency-Based Configuration
   uses_competency_tracking?: boolean;
   competency_levels?: string[];
-  
+
   // Credit Hour Configuration (for universities/colleges)
   uses_credit_hours?: boolean;
   min_credits_per_course?: number;
   max_credits_per_course?: number;
   min_credits_for_graduation?: number;
-  
+
   // System Rules
   allows_grade_modification?: boolean;
+  allows_grade_repetition?: boolean;
   requires_external_moderation?: boolean;
   supports_remedial_exams?: boolean;
-  
+  min_subjects_per_student?: number;
+  max_subjects_per_student?: number;
+  is_default?: boolean;
+
+  // Rich descriptor shape used by seeded configurations
+  description?: string;
+  country?: string;
+  grading_system?: EducationGradingSystemConfig;
+  assessment_rules?: EducationAssessmentRule[];
+  academic_periods?: EducationAcademicPeriod[];
+  subjects?: number[];
+  is_active?: boolean;
+
   created_at?: string;
   updated_at?: string;
 }
+
 
 // Result approval types
 export interface AuditLog {
@@ -414,6 +566,9 @@ export interface GazetteStudent {
   average: number;
   grade: string;
   position: string;
+  /** Per-student marks keyed by subject_id — without this the detail table
+   *  can only repeat class-level subject averages for every student. */
+  marks?: Record<string, number>;
 }
 
 export interface GazetteSubject {

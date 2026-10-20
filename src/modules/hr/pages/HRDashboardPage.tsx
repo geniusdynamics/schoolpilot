@@ -1,19 +1,5 @@
 import React from 'react';
-import {
-  BriefcaseIcon,
-  UsersIcon,
-  ListBulletIcon,
-  CalendarDaysIcon,
-  CogIcon,
-  WalletIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  DocumentTextIcon,
-  BanknotesIcon,
-  ChartBarIcon,
-} from '@/components/ui/icons';
+import { BriefcaseIcon, UsersIcon, ListBulletIcon, CalendarDaysIcon, CogIcon, WalletIcon, ArrowRightIcon, ClockIcon, DocumentTextIcon, BanknotesIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { ChartData } from '@/types';
@@ -27,7 +13,7 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const HRDashboardPage: React.FC = () => {
+export const HRDashboardPageContent: React.FC = () => {
   const {
     staff,
     payrollPeriods,
@@ -259,29 +245,29 @@ const HRDashboardPage: React.FC = () => {
       {/* Additional HR Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Payroll Summary */}
-        <Card title="Payroll Summary" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Payroll Summary" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Payroll Periods</span>
-              <span className="font-semibold text-gray-900">{(payrollPeriods || []).length}</span>
+              <span className="text-sm text-surface-muted-fg">Payroll Periods</span>
+              <span className="font-semibold text-surface-foreground">{(payrollPeriods || []).length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Active Periods</span>
+              <span className="text-sm text-surface-muted-fg">Active Periods</span>
               <span className="font-semibold text-cyan-600">{activePayrollPeriods}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Payroll Item Types</span>
+              <span className="text-sm text-surface-muted-fg">Payroll Item Types</span>
               <span className="font-semibold text-emerald-600">{(payrollItemTypes || []).length}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Generated Payslips</span>
+              <span className="text-sm text-surface-muted-fg">Generated Payslips</span>
               <span className="font-semibold text-violet-600">{(payslips || []).length}</span>
             </div>
           </div>
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -298,8 +284,8 @@ const HRDashboardPage: React.FC = () => {
                    <UsersIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -310,7 +296,7 @@ const HRDashboardPage: React.FC = () => {
         </Card>
 
         {/* Quick Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-indigo-50 p-3 text-center">
@@ -349,8 +335,8 @@ const HRDashboardPage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/hr/payslips'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              onClick={() => window.location.hash = '#/hr/payslips'}
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               View Payslips <ArrowRightIcon className="h-4 w-4" />
             </button>
@@ -360,5 +346,10 @@ const HRDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const HRDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <HRDashboardPageContent />
+  </div>
+);
 
 export default HRDashboardPage;

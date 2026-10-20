@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Factory for creating storage adapters based on configuration
 // ABOUTME: Provides centralized adapter management and initialization
 
@@ -45,7 +47,7 @@ export class AdapterFactory {
     // Cache the adapter
     this.adapters.set(storageType, adapter);
     
-    console.log(`Created and initialized ${storageType} adapter`);
+    logger.info(`Created and initialized ${storageType} adapter`);
     return adapter;
   }
 
@@ -62,7 +64,7 @@ export class AdapterFactory {
     if (adapter) {
       await adapter.cleanup();
       this.adapters.delete(storageType);
-      console.log(`Cleaned up ${storageType} adapter`);
+      logger.info(`Cleaned up ${storageType} adapter`);
     }
   }
 
@@ -71,16 +73,16 @@ export class AdapterFactory {
       async ([storageType, adapter]) => {
         try {
           await adapter.cleanup();
-          console.log(`Cleaned up ${storageType} adapter`);
+          logger.info(`Cleaned up ${storageType} adapter`);
         } catch (error) {
-          console.error(`Error cleaning up ${storageType} adapter:`, error);
+          logger.error(`Error cleaning up ${storageType} adapter:`, error);
         }
       }
     );
 
     await Promise.all(cleanupPromises);
     this.adapters.clear();
-    console.log('All adapters cleaned up');
+    logger.info('All adapters cleaned up');
   }
 
   static getActiveAdapters(): StorageType[] {
@@ -121,7 +123,7 @@ export class AdapterFactory {
       
       return success;
     } catch (error) {
-      console.error(`Adapter test failed for ${storageType}:`, error);
+      logger.error(`Adapter test failed for ${storageType}:`, error);
       return false;
     }
   }

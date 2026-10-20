@@ -9,6 +9,7 @@ export { default as FeeAdjustmentsPage } from './FeeAdjustmentsPage';
 export { default as FeeCollectionSummaryPage } from './FeeCollectionSummaryPage';
 export { default as FeeTemplatesPage } from './FeeTemplatesPage';
 export { default as FinanceDashboardPage } from './FinanceDashboardPage';
+export { default as FinancialYearsPage } from './FinancialYearsPage';
 export { default as GeneralReceiptsPage } from './GeneralReceiptsPage';
 export { default as StudentOpeningBalancesPage } from './StudentOpeningBalancesPage';
 export { default as StudentPaymentsPage } from './StudentPaymentsPage';
@@ -28,3 +29,13 @@ export { default as JournalRegisterPage } from './JournalRegisterPage';
 export { default as PreviousSessionFeesPage } from './PreviousSessionFeesPage';
 export { default as StudentsPaidBookPage } from './StudentsPaidBookPage';
 export { default as TrialBalancePage } from './TrialBalancePage';
+
+// Hub pages
+export { default as FeeConfigurationPage } from './FeeConfigurationPage';
+export { default as FeeRulesPage } from './FeeRulesPage';
+
+export { default as PaymentsPage } from './PaymentsPage';
+// FinanceReportsHubPage has been relocated to the reports module (M3 hub consolidation)
+// and is now available as `FinancialReportsHubPage` from `@/modules/reports/pages`.
+export { default as InvoicingPage } from './InvoicingPage';
+export { default as TransportFinancePage } from './TransportFinancePage';

@@ -11,13 +11,17 @@ import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+import { CalendarIcon, PlusIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type InstallmentFormData = Omit<Partial<FeeInstallment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
-const FeesInstallmentsPage: React.FC = () => {
+export const FeesInstallmentsPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { 
     students,
@@ -57,7 +61,7 @@ const FeesInstallmentsPage: React.FC = () => {
       notes: '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      student_name: `${student.first_name} ${student.last_name}`,
+      student_name: [student.first_name, student.last_name].filter(Boolean).join(' ') || 'Unknown',
       school_period_name: 'Term 1 2024'
     }));
   }, [students]);
@@ -97,24 +101,25 @@ const FeesInstallmentsPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || !formData.due_date || !formData.amount_due) {
-      alert('Student, school period, due date, and amount due are required.');
+      toast.showWarning('Student, school period, due date, and amount due are required.');
       return;
     }
 
     // In production, this would call addFeeInstallment or updateFeeInstallment
-    console.log('Saving installment:', formData);
+    logger.info('Saving installment:', formData);
     closeModal();
   };
 
   const getStatusBadge = (status: InstallmentStatus) => {
     const styles = {
-      [InstallmentStatus.PENDING]: 'bg-gray-100 text-gray-800',
+      [InstallmentStatus.PENDING]: 'bg-surface-accent text-surface-foreground',
       [InstallmentStatus.PARTIAL]: 'bg-yellow-100 text-yellow-800',
       [InstallmentStatus.PAID]: 'bg-green-100 text-green-800',
       [InstallmentStatus.OVERDUE]: 'bg-red-100 text-red-800',
-      [InstallmentStatus.WAIVED]: 'bg-blue-100 text-blue-800'
+      [InstallmentStatus.WAIVED]: 'bg-primary-100 text-primary-800'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
@@ -148,29 +153,29 @@ const FeesInstallmentsPage: React.FC = () => {
       key: 'due_date',
       header: 'Due Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'amount_due',
       header: 'Amount Due',
       sortable: true,
-      render: (value) => value ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'amount_paid',
       header: 'Amount Paid',
       sortable: true,
-      render: (value) => value ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'balance',
       header: 'Balance',
       sortable: true,
       render: (_, item) => {
-        const balance = item.amount_due - item.amount_paid;
+        const balance = (item.amount_due ?? 0) - (item.amount_paid ?? 0);
         return (
           <span className={`font-semibold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            KES {balance.toLocaleString()}
+            KES {balance?.toLocaleString?.() ?? balance}
           </span>
         );
       }
@@ -190,7 +195,7 @@ const FeesInstallmentsPage: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => openModal(item)}
-            className="text-blue-600 hover:text-blue-800"
+            className="text-primary-600 hover:text-primary-800"
             title="Edit"
           >
             Edit
@@ -200,7 +205,7 @@ const FeesInstallmentsPage: React.FC = () => {
     }
   ];
 
-  if (loading && mockInstallments.length === 0) {
+  if (loading?.students && !students && mockInstallments.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -214,7 +219,7 @@ const FeesInstallmentsPage: React.FC = () => {
       <Card 
         title={
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-6 h-6 text-blue-600" />
+            <CalendarIcon className="w-6 h-6 text-primary-600" />
             <span>Fee Installments</span>
           </div>
         }
@@ -225,12 +230,12 @@ const FeesInstallmentsPage: React.FC = () => {
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <CalendarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">About Fee Installments</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">About Fee Installments</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 Fee installments allow you to break down fee payments into scheduled payments for students. 
                 Track due dates, payments, and balances for each installment across the academic period.
               </p>
@@ -258,7 +263,7 @@ const FeesInstallmentsPage: React.FC = () => {
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              options={students?.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name} (${s.admission_no})` })) || []}
+              options={students?.map(s => ({ value: s.id, label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '') })) || []}
               placeholder="Select student"
             />
           </FormField>
@@ -266,9 +271,9 @@ const FeesInstallmentsPage: React.FC = () => {
           <FormField label="School Period" required>
             <Select
               name="school_period_id"
-              value={formData.school_period_id?.toString() || ''}
+              value={formData.school_period_id != null ? String(formData.school_period_id) : ''}
               onChange={handleInputChange}
-              options={schoolPeriods?.map(sp => ({ value: sp.id.toString(), label: sp.name })) || []}
+              options={schoolPeriods?.map(sp => ({ value: sp.id != null ? String(sp.id) : '', label: sp.name })) || []}
               placeholder="Select school period"
             />
           </FormField>
@@ -361,5 +366,11 @@ const FeesInstallmentsPage: React.FC = () => {
     </div>
   );
 };
+
+const FeesInstallmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeesInstallmentsPageContent />
+  </div>
+);
 
 export default FeesInstallmentsPage;

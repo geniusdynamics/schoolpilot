@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Custom hook for dynamic navigation management
 // ABOUTME: Provides real-time navigation updates and module management
 
@@ -32,15 +34,15 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
     try {
       const items = getDynamicNavigationItems();
       setNavigationItems(Array.isArray(items) ? items : []);
-      console.log('[useDynamicNavigation] navigationItems:', items);
+      logger.info('[useDynamicNavigation] navigationItems:', items);
       
       // Get enabled module IDs (getEnabledModules returns string[], not objects)
       const modules = getEnabledModules();
       setEnabledModules(Array.isArray(modules) ? modules : []);
-      console.log('[useDynamicNavigation] enabledModules:', modules);
+      logger.info('[useDynamicNavigation] enabledModules:', modules);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error loading navigation items');
-      console.error('Error loading navigation items:', error);
+      logger.error('Error loading navigation items:', error);
       setError(error);
       // Provide fallback empty arrays to maintain hook stability
       setNavigationItems([]);
@@ -53,7 +55,7 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
   // Enable a module
   const enableModuleById = useCallback((moduleId: string) => {
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useDynamicNavigation] Invalid moduleId provided to enableModule:', moduleId);
+      logger.warn('[useDynamicNavigation] Invalid moduleId provided to enableModule:', moduleId);
       return false;
     }
     const success = enableModule(moduleId);
@@ -66,7 +68,7 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
   // Disable a module
   const disableModuleById = useCallback((moduleId: string) => {
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useDynamicNavigation] Invalid moduleId provided to disableModule:', moduleId);
+      logger.warn('[useDynamicNavigation] Invalid moduleId provided to disableModule:', moduleId);
       return false;
     }
     const success = disableModule(moduleId);
@@ -94,7 +96,7 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
     try {
       return Array.isArray(navigationItems) ? navigationItems : [];
     } catch (err) {
-      console.error('[useDynamicNavigation] Error memoizing navigation items:', err);
+      logger.error('[useDynamicNavigation] Error memoizing navigation items:', err);
       return [];
     }
   }, [navigationItems]);
@@ -144,7 +146,7 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
       try {
         loadNavigationItems();
       } catch (err) {
-        console.error('[useDynamicNavigation] Auto-load failed:', err);
+        logger.error('[useDynamicNavigation] Auto-load failed:', err);
       }
     }
   }, [stableAutoLoad, loadNavigationItems]);

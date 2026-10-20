@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Runtime helpers for reading and exporting database configuration values.
 // ABOUTME: Keeps env/file parsing separate while preserving unifiedConfig facade behavior.
 
@@ -254,11 +256,11 @@ export async function loadDatabaseConfigFromFile(
     const response = await fetcher('/database-config.json');
     if (response.ok) {
       const config = await response.json();
-      console.log('📁 [UnifiedConfig] Loaded database configuration from file');
+      logger.info('📁 [UnifiedConfig] Loaded database configuration from file');
       return config;
     }
   } catch {
-    console.log('📁 [UnifiedConfig] No database configuration file found');
+    logger.info('📁 [UnifiedConfig] No database configuration file found');
   }
 
   return {};

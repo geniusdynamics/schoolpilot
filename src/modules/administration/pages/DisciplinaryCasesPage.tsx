@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,10 +12,8 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
 import type { DisciplinaryCase } from '../data/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -48,8 +47,8 @@ const DisciplinaryCasesPage: React.FC = () => {
   };
 
   const statusColors: Record<DisciplinaryStatus, string> = {
-    Reported: 'bg-gray-100 text-gray-800',
-    'Under Investigation': 'bg-blue-100 text-blue-800',
+    Reported: 'bg-surface-accent text-surface-foreground',
+    'Under Investigation': 'bg-primary-100 text-primary-800',
     'Pending Review': 'bg-yellow-100 text-yellow-800',
     Resolved: 'bg-green-100 text-green-800',
     Dismissed: 'bg-purple-100 text-purple-800',
@@ -106,9 +105,10 @@ const DisciplinaryCasesPage: React.FC = () => {
     setEditingCase(null);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.title || !formData.description) {
-      alert('Please fill in all required fields');
+      toast.showWarning('Please fill in all required fields');
       return;
     }
 
@@ -139,8 +139,8 @@ const DisciplinaryCasesPage: React.FC = () => {
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error saving disciplinary case:', error);
-      alert('Failed to save case');
+      logger.error('Error saving disciplinary case:', error);
+      toast.showError('Failed to save case');
     }
   };
 
@@ -159,7 +159,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error resolving case:', error);
+      logger.error('Error resolving case:', error);
     }
   };
 
@@ -172,7 +172,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       });
       setCases((result?.docs || []) as DisciplinaryCase[]);
     } catch (error) {
-      console.error('Error loading cases:', error);
+      logger.error('Error loading cases:', error);
     } finally {
       setLoading(false);
     }
@@ -273,8 +273,8 @@ const DisciplinaryCasesPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No disciplinary cases found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No disciplinary cases found.</p>
             </div>
           }
         />
@@ -282,7 +282,7 @@ const DisciplinaryCasesPage: React.FC = () => {
 
       {/* Case Details Modal */}
       {selectedCase && (
-        <DialogForm
+        <Modal
           isOpen={!!selectedCase}
           onClose={() => setSelectedCase(null)}
           title={`Case Details: ${selectedCase.case_number}`}
@@ -291,19 +291,19 @@ const DisciplinaryCasesPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Student</label>
+                <label className="text-sm font-medium text-surface-foreground">Student</label>
                 <p className="mt-1">{selectedCase.student_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Admission No</label>
+                <label className="text-sm font-medium text-surface-foreground">Admission No</label>
                 <p className="mt-1">{selectedCase.admission_number}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Category</label>
+                <label className="text-sm font-medium text-surface-foreground">Category</label>
                 <div className="mt-1"><Badge variant="neutral">{selectedCase.category}</Badge></div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Severity</label>
+                <label className="text-sm font-medium text-surface-foreground">Severity</label>
                 <div className="mt-1">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${severityColors[selectedCase.severity]}`}>
                     {selectedCase.severity}
@@ -311,7 +311,7 @@ const DisciplinaryCasesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[selectedCase.status]}`}>
                     {selectedCase.status}
@@ -319,18 +319,18 @@ const DisciplinaryCasesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Incident Date</label>
+                <label className="text-sm font-medium text-surface-foreground">Incident Date</label>
                 <p className="mt-1">{new Date(selectedCase.incident_date).toLocaleDateString()}</p>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Title</label>
+              <label className="text-sm font-medium text-surface-foreground">Title</label>
               <p className="mt-1 font-medium">{selectedCase.title}</p>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Description</label>
+              <label className="text-sm font-medium text-surface-foreground">Description</label>
               <p className="mt-1">{selectedCase.description}</p>
             </div>
 
@@ -370,129 +370,116 @@ const DisciplinaryCasesPage: React.FC = () => {
               </div>
             )}
           </div>
-        </DialogForm>
+        </Modal>
       )}
 
       {/* New/Edit Case Modal */}
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingCase ? 'Edit Disciplinary Case' : 'New Disciplinary Case'}
         size="lg"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>
+              {editingCase ? 'Update Case' : 'Create Case'}
+            </Button>
+          </>
+        }
       >
-        <FormSection title="Student Information" columns={2}>
-          <FormField label="Student Name" required>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <Input
+              label="Student Name"
               value={formData.student_name}
               onChange={(value) => handleInputChange('student_name', value)}
               required
             />
-          </FormField>
-          <FormField label="Admission Number">
             <Input
+              label="Admission Number"
               value={formData.admission_number}
               onChange={(value) => handleInputChange('admission_number', value)}
             />
-          </FormField>
-        </FormSection>
+          </div>
 
-        <FormSection>
-          <FormField label="Category" required>
-            <Select
-              value={formData.category}
-              onChange={(value) => handleInputChange('category', value)}
-              options={Object.values(DisciplinaryCategory).map(c => ({ label: c, value: c }))}
-              required
-            />
-          </FormField>
-        </FormSection>
+          <Select
+            label="Category"
+            value={formData.category}
+            onChange={(value) => handleInputChange('category', value)}
+            options={Object.values(DisciplinaryCategory).map(c => ({ label: c, value: c }))}
+            required
+          />
 
-        <FormSection title="Incident Details" columns={2}>
-          <FormField label="Severity" required>
+          <div className="grid grid-cols-2 gap-4">
             <Select
+              label="Severity"
               value={formData.severity}
               onChange={(value) => handleInputChange('severity', value)}
               options={Object.values(DisciplinarySeverity).map(s => ({ label: s, value: s }))}
               required
             />
-          </FormField>
-          <FormField label="Incident Date" required>
             <Input
+              label="Incident Date"
               type="date"
               value={formData.incident_date}
               onChange={(value) => handleInputChange('incident_date', value)}
               required
             />
-          </FormField>
-          <FormField label="Title" required>
-            <Input
-              value={formData.title}
-              onChange={(value) => handleInputChange('title', value)}
-              required
-            />
-          </FormField>
-          <FormField label="Incident Location">
-            <Input
-              value={formData.incident_location}
-              onChange={(value) => handleInputChange('incident_location', value)}
-            />
-          </FormField>
-        </FormSection>
+          </div>
 
-        <FormSection title="Description">
-          <FormField label="Description" required>
-            <Textarea
-              value={formData.description}
-              onChange={(value) => handleInputChange('description', value)}
-              required
-              rows={4}
-            />
-          </FormField>
-          <FormField label="Witnesses">
-            <Textarea
-              value={formData.witnesses}
-              onChange={(value) => handleInputChange('witnesses', value)}
-              rows={2}
-            />
-          </FormField>
-        </FormSection>
+          <Input
+            label="Title"
+            value={formData.title}
+            onChange={(value) => handleInputChange('title', value)}
+            required
+          />
 
-        <FormSection title="Additional Options">
+          <Textarea
+            label="Description"
+            value={formData.description}
+            onChange={(value) => handleInputChange('description', value)}
+            required
+            rows={4}
+          />
+
+          <Input
+            label="Incident Location"
+            value={formData.incident_location}
+            onChange={(value) => handleInputChange('incident_location', value)}
+          />
+
+          <Textarea
+            label="Witnesses"
+            value={formData.witnesses}
+            onChange={(value) => handleInputChange('witnesses', value)}
+            rows={2}
+          />
+
           <div className="flex items-center space-x-4">
             <label className="flex items-center">
               <input
                 type="checkbox"
                 checked={formData.parent_notified}
                 onChange={(e) => handleInputChange('parent_notified', e.target.checked)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Parent Notified</span>
+              <span className="ml-2 text-sm text-surface-foreground">Parent Notified</span>
             </label>
             <label className="flex items-center">
               <input
                 type="checkbox"
                 checked={formData.follow_up_required}
                 onChange={(e) => handleInputChange('follow_up_required', e.target.checked)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-primary-600 border-surface-border rounded focus:ring-primary-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Follow-up Required</span>
+              <span className="ml-2 text-sm text-surface-foreground">Follow-up Required</span>
             </label>
           </div>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>
-            Cancel
-          </Button>
-          <Button type="submit">
-            {editingCase ? 'Update Case' : 'Create Case'}
-          </Button>
-        </FormActions>
-      </DialogForm>
+        </div>
+      </Modal>
     </div>
   );
 };

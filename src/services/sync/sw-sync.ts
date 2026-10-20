@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Service Worker Sync
  * 
@@ -43,7 +45,7 @@ async function getQueue(): Promise<QueuedOperation[]> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error('[SW] Failed to get queue:', error);
+    logger.error('[SW] Failed to get queue:', error);
     return [];
   }
 }
@@ -69,7 +71,7 @@ async function addToQueue(operation: SyncOperation): Promise<void> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error('[SW] Failed to add to queue:', error);
+    logger.error('[SW] Failed to add to queue:', error);
   }
 }
 
@@ -88,7 +90,7 @@ async function removeFromQueue(operationId: string): Promise<void> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error('[SW] Failed to remove from queue:', error);
+    logger.error('[SW] Failed to remove from queue:', error);
   }
 }
 
@@ -112,7 +114,7 @@ async function updateRetryCount(operationId: string, error?: string): Promise<vo
       }
     };
   } catch (error) {
-    console.error('[SW] Failed to update retry count:', error);
+    logger.error('[SW] Failed to update retry count:', error);
   }
 }
 
@@ -149,16 +151,16 @@ async function processQueue(backendUrl: string, authToken: string): Promise<void
   const queue = await getQueue();
   
   if (queue.length === 0) {
-    console.log('[SW] Sync queue empty');
+    logger.info('[SW] Sync queue empty');
     return;
   }
 
-  console.log(`[SW] Processing ${queue.length} queued operations`);
+  logger.info(`[SW] Processing ${queue.length} queued operations`);
 
   for (const operation of queue) {
     // Skip if max retries reached
     if (operation._retryCount >= 5) {
-      console.warn(`[SW] Max retries reached for operation ${operation.id}`);
+      logger.warn(`[SW] Max retries reached for operation ${operation.id}`);
       continue;
     }
 
@@ -167,13 +169,13 @@ async function processQueue(backendUrl: string, authToken: string): Promise<void
       
       if (success) {
         await removeFromQueue(operation.id);
-        console.log(`[SW] Operation ${operation.id} succeeded`);
+        logger.info(`[SW] Operation ${operation.id} succeeded`);
       } else {
         await updateRetryCount(operation.id, 'Server returned error');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`[SW] Operation ${operation.id} failed:`, errorMessage);
+      logger.error(`[SW] Operation ${operation.id} failed:`, errorMessage);
       await updateRetryCount(operation.id, errorMessage);
     }
   }
@@ -235,7 +237,7 @@ async function notifyClients(type: string, data: any): Promise<void> {
  * Handle sync event
  */
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Sync event received:', event.tag);
+  logger.info('[SW] Sync event received:', event.tag);
 
   if (event.tag === 'background-sync') {
     event.waitUntil(
@@ -265,7 +267,7 @@ self.addEventListener('sync', (event) => {
  * Handle push event (for server-initiated sync)
  */
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push event received');
+  logger.info('[SW] Push event received');
 
   const data = event.data?.json() || {};
   
@@ -394,7 +396,7 @@ async function saveBackendConfig(config: BackendConfig): Promise<void> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    console.error('[SW] Failed to save backend config:', error);
+    logger.error('[SW] Failed to save backend config:', error);
   }
 }
 

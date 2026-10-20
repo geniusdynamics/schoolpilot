@@ -38,7 +38,7 @@ export const MeritListActions: React.FC<MeritListActionsProps> = ({
             'flex items-center justify-center gap-2',
             action.variant === 'secondary' || !action.variant
               ? 'bg-slate-700 text-white hover:bg-slate-800'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-primary-600 text-white hover:bg-primary-700'
           )}
         >
           {action.icon}
@@ -67,7 +67,7 @@ export const MeritListActions: React.FC<MeritListActionsProps> = ({
                 className="fixed inset-0 z-10"
                 onClick={() => setDropdownOpen(false)}
               />
-              <div className="absolute right-0 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute right-0 mt-1 w-full bg-surface-card rounded-lg shadow-lg border border-surface-border py-1 z-20">
                 {dropdownActions.map((action) => (
                   <button
                     key={action.id}
@@ -75,7 +75,7 @@ export const MeritListActions: React.FC<MeritListActionsProps> = ({
                       action.onClick();
                       setDropdownOpen(false);
                     }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    className="w-full px-4 py-2 text-left text-sm text-surface-foreground hover:bg-surface-muted"
                   >
                     {action.label}
                   </button>

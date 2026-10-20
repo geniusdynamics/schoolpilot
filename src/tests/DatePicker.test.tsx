@@ -1,11 +1,11 @@
 // ABOUTME: Comprehensive tests for DatePicker component functionality and accessibility
 // ABOUTME: Tests single date, date range, keyboard navigation, validation, and screen reader support
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import DatePicker from '@/components/ui/forms/DatePicker';
+import { screen } from '@testing-library/react';
 
 // Mock the utility functions
 vi.mock('../utils/animations', () => ({
@@ -15,12 +15,11 @@ vi.mock('../utils/animations', () => ({
   slideOut: 'slideOut'
 }));
 
-vi.mock('../utils/accessibility', () => ({
+vi.mock('../utils/accessibility', async (importOriginal: () => Promise<any>) => ({
+  ...(await importOriginal<typeof import('../utils/accessibility')>()),
   announceToScreenReader: vi.fn(),
   trapFocus: vi.fn(),
-  restoreFocus: vi.fn(),
-  getNextFocusableElement: vi.fn(),
-  getPreviousFocusableElement: vi.fn()
+  restoreFocus: vi.fn()
 }));
 
 vi.mock('../utils/designTokens', () => ({
@@ -144,8 +143,7 @@ describe('DatePicker Component', () => {
       // Click on a date (assuming today's date is available)
       const today = new Date();
       const todayButton = screen.getByRole('button', { 
-        name: new RegExp(today.getDate().toString()) 
-      });
+        name: today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })});
       await user.click(todayButton);
       
       expect(handleChange).toHaveBeenCalledWith(expect.any(Date));
@@ -340,8 +338,7 @@ describe('DatePicker Component', () => {
       });
       
       const todayButton = screen.getByRole('button', { 
-        name: new RegExp(today.getDate().toString()) 
-      });
+        name: `${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}, disabled`});
       expect(todayButton).toBeDisabled();
     });
   });
@@ -420,14 +417,14 @@ describe('DatePicker Component', () => {
       render(<DatePicker variant="filled" />);
       
       const input = screen.getByRole('combobox');
-      expect(input).toHaveClass('bg-gray-50', 'border-transparent');
+      expect(input).toHaveClass('bg-surface-muted', 'border-transparent');
     });
 
     it('applies disabled styling', () => {
       render(<DatePicker disabled />);
       
       const input = screen.getByRole('combobox');
-      expect(input).toHaveClass('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+      expect(input).toHaveClass('bg-surface-accent', 'text-surface-muted-fg', 'cursor-not-allowed');
       expect(input).toBeDisabled();
     });
   });

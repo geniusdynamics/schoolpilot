@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Nutrition domain hook — MealPlans, Menus, StudentMealPlans,
 // ABOUTME: MealConsumptionLogs, Merchants, StudentWallets, WalletTransactions
 // ABOUTME: Uses real database-backed hooks for persistent data
@@ -128,7 +130,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
       };
       const result = await db.meal_consumption_logs?.insert(logWithId);
       return result?.doc || null;
-    } catch (error) { console.error('Error adding meal consumption log:', error); throw error; }
+    } catch (error) { logger.error('Error adding meal consumption log:', error); throw error; }
   }, [getStudents, getMenus, getStudentMealPlans, getStudentWallets]);
 
   // ── Merchants ─────────────────────────────────────────────────────────────────
@@ -182,7 +184,7 @@ export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
       }
 
       return result?.doc || null;
-    } catch (error) { console.error('Error adding wallet transaction:', error); throw error; }
+    } catch (error) { logger.error('Error adding wallet transaction:', error); throw error; }
   }, [getStudentWallets, getStudents]);
 
   return {

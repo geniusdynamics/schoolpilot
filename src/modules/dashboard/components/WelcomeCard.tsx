@@ -26,7 +26,7 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({
         'relative overflow-hidden rounded-2xl p-6',
         backgroundGradient 
           ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50' 
-          : 'bg-white',
+          : 'bg-surface-card',
         'border border-gray-100 shadow-sm',
         className
       )}
@@ -45,18 +45,18 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({
               className="h-16 w-16 rounded-full object-cover border-2 border-white shadow-md"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white border-2 border-white shadow-md">
-              <UserCircleIcon className="h-10 w-10 text-gray-400" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-card border-2 border-white shadow-md">
+              <UserCircleIcon className="h-10 w-10 text-surface-muted-fg" />
             </div>
           )}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-gray-900">
-            Welcome back, <span className="text-blue-600">{userName}</span>!
+          <h2 className="text-xl font-bold text-surface-foreground">
+            Welcome back, <span className="text-primary-600">{userName}</span>!
           </h2>
-          <p className="mt-1 text-sm text-gray-600">{subtitle}</p>
+          <p className="mt-1 text-sm text-surface-muted-fg">{subtitle}</p>
         </div>
       </div>
     </div>

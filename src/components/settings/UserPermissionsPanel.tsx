@@ -2,21 +2,12 @@
 // ABOUTME: Allows defining user types, individual permissions, and role-based access control
 
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckIcon, 
-  XIcon, 
-  PlusIcon,
-  DeleteIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  UsersIcon,
-  ShieldCheckIcon
-} from '../ui/icons';
+import { PlusIcon, EyeIcon, UsersIcon, ShieldCheckIcon } from '../ui/icons';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Modal from '../ui/Modal';
-import Table from '../ui/Table';
+import DataGrid from '../ui/data/DataGrid';
 import { moduleRegistry } from '@/core/moduleRegistry';
 
 // Types for User Permissions System
@@ -166,50 +157,32 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
     setShowPermissionModal(true);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter(u => u.id !== userId));
-    setMessage({ type: 'success', text: 'User deleted successfully' });
-  };
-
-  const handleDeletePermission = (permissionId: string) => {
-    if (permissionId === '*') {
-      setMessage({ type: 'error', text: 'Cannot delete admin permission' });
-      return;
-    }
-    setPermissions(perms => perms.filter(p => p.id !== permissionId));
-    setMessage({ type: 'success', text: 'Permission deleted successfully' });
-  };
-
-  const getPermissionNames = (permissionIds: string[]) => {
-    return permissionIds.map(id => permissions.find(p => p.id === id)?.name || id).join(', ');
-  };
-
   const userColumns = [
-    { header: 'Username', accessor: 'username' as keyof User },
-    { header: 'Full Name', accessor: 'fullName' as keyof User },
-    { header: 'Email', accessor: 'email' as keyof User },
-    { header: 'Active', accessor: (user: User) => user.isActive ? 'Yes' : 'No' },
-    { header: 'Actions', accessor: (user: User) => (
+    { header: 'Username', key: 'username' as keyof User },
+    { header: 'Full Name', key: 'fullName' as keyof User },
+    { header: 'Email', key: 'email' as keyof User },
+    { header: 'Active', key: 'is_active', render: (_v: any, user: User) => user.isActive ? 'Yes' : 'No' },
+    { header: 'Actions', key: 'actions', sortable: false, filterable: false, render: (_v: any, user: User) => (
       <Button size="sm" onClick={() => handleEditUser(user)}>Edit</Button>
     ) }
   ];
 
   const permissionColumns = [
-    { header: 'Name', accessor: 'name' as keyof Permission },
-    { header: 'Description', accessor: 'description' as keyof Permission },
-    { header: 'Module', accessor: 'module' as keyof Permission },
-    { header: 'Action', accessor: 'action' as keyof Permission },
-    { header: 'Resource', accessor: 'resource' as keyof Permission },
-    { header: 'Actions', accessor: (permission: Permission) => (
+    { header: 'Name', key: 'name' as keyof Permission },
+    { header: 'Description', key: 'description' as keyof Permission },
+    { header: 'Module', key: 'module' as keyof Permission },
+    { header: 'Action', key: 'action' as keyof Permission },
+    { header: 'Resource', key: 'resource' as keyof Permission },
+    { header: 'Actions', key: 'actions', sortable: false, filterable: false, render: (_v: any, permission: Permission) => (
       <Button size="sm" onClick={() => handleEditPermission(permission)}>Edit</Button>
     ) }
   ];
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">User Permissions Management</h3>
-        <p className="text-sm text-gray-600 mt-1">
+    <div className={`bg-surface-card rounded-lg shadow-sm border border-surface-border ${className}`}>
+      <div className="px-6 py-4 border-b border-surface-border">
+        <h3 className="text-lg font-semibold text-surface-foreground">User Permissions Management</h3>
+        <p className="text-sm text-surface-muted-fg mt-1">
           Manage users, user types, and permissions for role-based access control.
         </p>
       </div>
@@ -219,12 +192,12 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
         <div className={`px-6 py-3 border-b ${
           message.type === 'success' ? 'bg-green-50 border-green-200' :
           message.type === 'error' ? 'bg-red-50 border-red-200' :
-          'bg-blue-50 border-blue-200'
+          'bg-primary-50 border-primary-200'
         }`}>
           <div className={`flex items-center gap-2 text-sm ${
             message.type === 'success' ? 'text-green-800' :
             message.type === 'error' ? 'text-red-800' :
-            'text-blue-800'
+            'text-primary-800'
           }`}>
             {message.text}
           </div>
@@ -232,7 +205,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-surface-border">
         <nav className="flex space-x-8 px-6">
           {[
             { id: 'users', label: 'Users', icon: UsersIcon },
@@ -246,8 +219,8 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-surface-muted-fg hover:text-surface-foreground hover:border-surface-border'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -269,7 +242,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
                 Add User
               </Button>
             </div>
-            <Table data={users} columns={userColumns} />
+            <DataGrid data={users} columns={userColumns} />
           </div>
         )}
 
@@ -283,7 +256,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
                 Add Permission
               </Button>
             </div>
-            <Table data={permissions} columns={permissionColumns} />
+            <DataGrid data={permissions} columns={permissionColumns} />
           </div>
         )}
       </div>

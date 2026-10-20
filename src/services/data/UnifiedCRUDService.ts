@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Unified CRUD operations interface that works across all data sources
 // ABOUTME: Provides consistent API for mock data, RxDB, and backend operations with caching
 
@@ -662,7 +664,7 @@ export class UnifiedCRUDService {
       // If no services are available, consider it as working (fallback mode)
       return true;
     } catch (error) {
-      console.warn('Connection test failed:', error);
+      logger.warn('Connection test failed:', error);
       return false;
     }
   }

@@ -224,7 +224,6 @@ export class PluginSecuritySandbox {
    */
   createSandboxedContext(plugin: LoadedPlugin): Partial<PluginContext> {
     const tier = this.getSecurityTier(plugin.manifest.category || 'community');
-    const config = this.TIER_CONFIG[tier];
 
     return {
       pluginId: plugin.manifest.id,

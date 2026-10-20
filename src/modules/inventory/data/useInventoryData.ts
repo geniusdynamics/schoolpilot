@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Inventory domain hook — Warehouses, ItemCategories, StockItems, FixedAssets,
 // ABOUTME: AssetDepreciationLogs, Requisitions, PurchaseOrders, StockTransactions, RFQs
 // ABOUTME: Uses real database-backed hooks for persistent data
@@ -76,7 +78,7 @@ export function useInventoryData() {
       const logWithId = { ...logData, id: databaseService.generateId() };
       const result = await db.asset_depreciation_logs?.insert(logWithId);
       return result?.doc || null;
-    } catch (error) { console.error('Error adding asset depreciation log:', error); throw error; }
+    } catch (error) { logger.error('Error adding asset depreciation log:', error); throw error; }
   }, []);
 
   // ── Requisitions ──────────────────────────────────────────────────────────────

@@ -12,5 +12,8 @@
   "timetable": "Emploi du temps",
   "enrollment": "Inscription",
   "transcripts": "Relevés de notes",
-  "certificates": "Certificats"
+  "certificates": "Certificats",
+  "validation": {
+    "allFieldsAreRequired": "All Fields Are Required"
+  }
 }

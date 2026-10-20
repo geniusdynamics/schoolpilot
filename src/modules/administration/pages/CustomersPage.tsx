@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Customer } from '@/types';
+import { useCustomerData, type CustomerRecord as Customer } from '@/modules/administration/data/useCustomerData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon as CustomersIcon } from '@/components/ui/icons';
-import { useCustomerData } from '@/modules/administration/data/useCustomerData';
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -42,9 +42,10 @@ const CustomersPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert(t('validation.customerNameIsRequired'));
+      toast.showWarning(t('validation.customerNameIsRequired'));
       return;
     }
     const payload = {
@@ -54,15 +55,16 @@ const CustomersPage: React.FC = () => {
     };
 
     if (editingCustomer) {
-      await updateCustomer({ ...editingCustomer, ...payload });
+      await updateCustomer(String(editingCustomer.id), payload);
     } else {
       await addCustomer(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+  const confirm = useConfirm();
+  const handleDelete = async (id: string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this customer?' }))) {
       await deleteCustomer(id);
     }
   };
@@ -74,7 +76,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'name', 
@@ -82,7 +84,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'phone', 
@@ -90,7 +92,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     { 
       key: 'email', 
@@ -98,7 +100,7 @@ const CustomersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'actions',
@@ -123,7 +125,7 @@ const CustomersPage: React.FC = () => {
           {t('customers.addCustomer')}
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           {t('customers.managementDescription')}
         </p>
         <DataGrid 
@@ -131,13 +133,11 @@ const CustomersPage: React.FC = () => {
           data={customers} 
           sortable 
           filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <CustomersIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No customers found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first customer.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <CustomersIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No customers found',
+            description: 'Get started by adding your first customer.',
+          }}
         />
       </Card>
 

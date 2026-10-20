@@ -1,3 +1,8 @@
+// ABOUTME: Application entry gate: shows first-run onboarding until setup is complete, preferring
+// ABOUTME: school_details.setup_completed_at from an existing production database over the legacy browser flag.
+
+import { logger } from '@/utils/logging';
+
 /**
  * OnboardingGate - Application entry point that shows onboarding for first-time users
  *
@@ -7,6 +12,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { FirstRunOnboarding, shouldShowOnboarding } from '@/components/FirstRunOnboarding';
+import { isSetupComplete, readSetupCompletedAt } from '@/components/setup/steps/setupStatus';
+import { getStoredDataMode } from '@/config/dataModePolicies';
 
 interface OnboardingGateProps {
   children: React.ReactNode;
@@ -17,13 +24,30 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check onboarding status on mount
     const check = async () => {
       try {
-        const needsOnboarding = shouldShowOnboarding();
-        setShowOnboarding(needsOnboarding);
+        // If user already has a valid auth session, don't block with onboarding
+        const hasSession = (() => {
+          try { return !!localStorage.getItem('schoolpilot_auth_session'); } catch { return false; }
+        })();
+        if (hasSession) {
+          setShowOnboarding(false);
+          return;
+        }
+        // Allow URL bypass: ?skipOnboarding=1 or #skipOnboarding
+        const bypass = window.location.search.includes('skipOnboarding') || window.location.hash.includes('skipOnboarding');
+        if (bypass) {
+          setShowOnboarding(false);
+          return;
+        }
+        const legacyComplete = !shouldShowOnboarding();
+        // A production database already exists: its school_details.setup_completed_at is preferred. A fresh
+        // install (no stored data mode) never opens a database here, so onboarding can still choose the provider.
+        const completedAt = !legacyComplete && getStoredDataMode() === 'production'
+          ? await readSetupCompletedAt()
+          : null;
+        setShowOnboarding(!isSetupComplete(completedAt, legacyComplete));
       } catch {
-        // If check fails, don't show onboarding to avoid blocking the app
         setShowOnboarding(false);
       } finally {
         setIsChecking(false);
@@ -34,22 +58,22 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   }, []);
 
   const handleOnboardingComplete = (path: 'demo' | 'production') => {
-    console.log(`[OnboardingGate] User completed onboarding via ${path} pathway`);
+    logger.info(`[OnboardingGate] User completed onboarding via ${path} pathway`);
     setShowOnboarding(false);
   };
 
   const handleOnboardingSkip = () => {
-    console.log('[OnboardingGate] User skipped onboarding');
+    logger.info('[OnboardingGate] User skipped onboarding');
     setShowOnboarding(false);
   };
 
   // While checking, show minimal loading
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-          <p className="text-gray-600">Loading SchoolPilot...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto" />
+          <p className="text-surface-muted-fg">Loading SchoolPilot...</p>
         </div>
       </div>
     );

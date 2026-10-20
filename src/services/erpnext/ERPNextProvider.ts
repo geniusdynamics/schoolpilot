@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * ERPNext Provider
  * 
@@ -8,7 +10,7 @@
 import type { DataProvider, DataProviderConfig, Query } from '../data/types';
 import type { ERPNextConfig, ERPNextEntityStatus, ERPNextSyncState } from './types';
 import { ERPNextClient } from './ERPNextClient';
-import { defaultMappings, toERPNext, fromERPNext, getMapping, getDefaultSyncConfig } from './mappings';
+import { defaultMappings, toERPNext, fromERPNext, getMapping } from './mappings';
 
 export interface ERPNextProviderConfig extends DataProviderConfig {
   erpnext: ERPNextConfig;
@@ -119,7 +121,7 @@ export class ERPNextProvider implements DataProvider {
 
         return localRecords;
       } catch (error) {
-        console.warn(`ERPNext fetch failed for ${collection}, using cache:`, error);
+        logger.warn(`ERPNext fetch failed for ${collection}, using cache:`, error);
       }
     }
 
@@ -149,7 +151,7 @@ export class ERPNextProvider implements DataProvider {
           return localRecord;
         }
       } catch (error) {
-        console.warn(`ERPNext fetch failed for ${collection}/${id}:`, error);
+        logger.warn(`ERPNext fetch failed for ${collection}/${id}:`, error);
       }
     }
 
@@ -274,7 +276,7 @@ export class ERPNextProvider implements DataProvider {
     this.ensureInitialized();
 
     if (!navigator.onLine) {
-      console.log('Offline, skipping sync');
+      logger.info('Offline, skipping sync');
       return;
     }
 
@@ -297,7 +299,7 @@ export class ERPNextProvider implements DataProvider {
           await this.syncToERPNext(mapping);
         }
       } catch (error) {
-        console.error(`Sync failed for ${mapping.localEntity}:`, error);
+        logger.error(`Sync failed for ${mapping.localEntity}:`, error);
         errors.push(error as Error);
       }
     }
@@ -349,7 +351,7 @@ export class ERPNextProvider implements DataProvider {
           operation.retryCount++;
           this.pendingQueue.push(operation);
         } else {
-          console.error('Operation failed after max retries:', operation, error);
+          logger.error('Operation failed after max retries:', operation, error);
         }
       }
     }
@@ -431,7 +433,7 @@ export class ERPNextProvider implements DataProvider {
 
     this.syncInterval = window.setInterval(() => {
       this.sync().catch(error => {
-        console.error('Auto-sync failed:', error);
+        logger.error('Auto-sync failed:', error);
       });
     }, intervalSeconds * 1000);
   }
@@ -530,7 +532,7 @@ export class ERPNextProvider implements DataProvider {
         }
       }
     } catch (error) {
-      console.warn('Failed to load cache:', error);
+      logger.warn('Failed to load cache:', error);
     }
   }
 
@@ -542,7 +544,7 @@ export class ERPNextProvider implements DataProvider {
       }
       localStorage.setItem(`erpnext_cache_${this.config.erpnext.id}`, JSON.stringify(data));
     } catch (error) {
-      console.warn('Failed to save cache:', error);
+      logger.warn('Failed to save cache:', error);
     }
   }
 
@@ -553,7 +555,7 @@ export class ERPNextProvider implements DataProvider {
         this.pendingQueue = JSON.parse(queued);
       }
     } catch (error) {
-      console.warn('Failed to load pending queue:', error);
+      logger.warn('Failed to load pending queue:', error);
     }
   }
 
@@ -561,7 +563,7 @@ export class ERPNextProvider implements DataProvider {
     try {
       localStorage.setItem(`erpnext_queue_${this.config.erpnext.id}`, JSON.stringify(this.pendingQueue));
     } catch (error) {
-      console.warn('Failed to save pending queue:', error);
+      logger.warn('Failed to save pending queue:', error);
     }
   }
 

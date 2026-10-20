@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Protected route component for authentication-based access control
 // ABOUTME: Redirects unauthenticated users to login and handles permission checks
 
@@ -29,10 +31,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     let cancelled = false;
 
     const checkAccess = async () => {
-      console.log('🔍 [ProtectedRoute] Starting access check for:', { requiredModule, requiredPermission });
+      logger.info('🔍 [ProtectedRoute] Starting access check for:', { requiredModule, requiredPermission });
       
       if (!isAuthenticated) {
-        console.log('🔍 [ProtectedRoute] User not authenticated');
+        logger.info('🔍 [ProtectedRoute] User not authenticated');
         if (!cancelled) {
           setHasAccess(null);
           setCheckingAccess(false);
@@ -49,23 +51,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         // Check module access if required
         if (requiredModule) {
           const moduleAccess = await hasModuleAccess(requiredModule);
-          console.log('🔍 [ProtectedRoute] Module access check for', requiredModule, ':', moduleAccess);
+          logger.info('🔍 [ProtectedRoute] Module access check for', requiredModule, ':', moduleAccess);
           hasAccess = hasAccess && moduleAccess;
         }
 
         // Check permission if required
         if (requiredPermission) {
           const permissionAccess = await hasPermission(requiredPermission);
-          console.log('🔍 [ProtectedRoute] Permission check for', requiredPermission, ':', permissionAccess);
+          logger.info('🔍 [ProtectedRoute] Permission check for', requiredPermission, ':', permissionAccess);
           hasAccess = hasAccess && permissionAccess;
         }
 
-        console.log('🔍 [ProtectedRoute] Final access result:', hasAccess);
+        logger.info('🔍 [ProtectedRoute] Final access result:', hasAccess);
         if (!cancelled) {
           setHasAccess(hasAccess);
         }
       } catch (error) {
-        console.error('Error checking access:', error);
+        logger.error('Error checking access:', error);
         if (!cancelled) {
           setHasAccess(false);
         }
@@ -87,7 +89,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Checking access...</p>
+          <p className="mt-4 text-surface-muted-fg">Checking access...</p>
         </div>
       </div>
     );
@@ -108,8 +110,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Access Denied</h2>
+          <p className="text-surface-muted-fg mb-4">
             {requiredPermission && `You don't have the required permission: ${requiredPermission}`}
             {requiredModule && `You don't have access to the module: ${requiredModule}`}
           </p>

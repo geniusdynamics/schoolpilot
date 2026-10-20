@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Comprehensive security audit logging system
 // ABOUTME: Tracks security events, access patterns, and compliance reporting
 export interface SecurityEvent {
@@ -176,7 +178,7 @@ export class SecurityAuditLogger {
       await this.triggerSecurityAlert(event);
     }
 
-    console.log(`🔒 [SecurityAudit] ${eventType.toUpperCase()}: ${action} on ${resource} - ${outcome} (Risk: ${event.riskScore})`);
+    logger.info(`🔒 [SecurityAudit] ${eventType.toUpperCase()}: ${action} on ${resource} - ${outcome} (Risk: ${event.riskScore})`);
   }
 
   /**
@@ -786,7 +788,7 @@ export class SecurityAuditLogger {
    * Trigger security alert
    */
   private async triggerSecurityAlert(event: SecurityEvent): Promise<void> {
-    console.warn(`🚨 [SecurityAlert] HIGH RISK EVENT DETECTED:
+    logger.warn(`🚨 [SecurityAlert] HIGH RISK EVENT DETECTED:
       Type: ${event.eventType}
       Action: ${event.action}
       Resource: ${event.resource}
@@ -810,7 +812,7 @@ export class SecurityAuditLogger {
       
       const removedCount = initialCount - this.events.length;
       if (removedCount > 0) {
-        console.log(`🧹 [SecurityAudit] Cleaned up ${removedCount} old audit events`);
+        logger.info(`🧹 [SecurityAudit] Cleaned up ${removedCount} old audit events`);
       }
     }, 24 * 60 * 60 * 1000); // Run daily
   }
@@ -823,7 +825,7 @@ export class SecurityAuditLogger {
       try {
         listener(event);
       } catch (error) {
-        console.error('❌ [SecurityAudit] Listener error:', error);
+        logger.error('❌ [SecurityAudit] Listener error:', error);
       }
     });
   }
@@ -855,7 +857,7 @@ export class SecurityAuditLogger {
 
   public updateConfig(config: Partial<typeof this.config>): void {
     this.config = { ...this.config, ...config };
-    console.log('🔧 [SecurityAudit] Configuration updated');
+    logger.info('🔧 [SecurityAudit] Configuration updated');
   }
 
   public getConfig(): typeof this.config {

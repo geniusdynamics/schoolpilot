@@ -8,5 +8,6 @@ export { default as DigitalResourcesPage } from './DigitalResourcesPage';
 export { default as FinesPage } from './FinesPage';
 export { default as ImportBooksPage } from './ImportBooksPage';
 export { default as LibraryDashboardPage } from './LibraryDashboardPage';
+export { default as LibraryResourcesHubPage } from './LibraryResourcesHubPage';
 export { default as LibrarySettingsPage } from './LibrarySettingsPage';
 export { default as UserLibraryPortalPage } from './UserLibraryPortalPage';

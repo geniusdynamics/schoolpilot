@@ -6,7 +6,7 @@
       "description": "Gucunga abanyeshuri, abakozi, imiterere y'uburezi, n'ibikorwa by'ishuri",
       "dashboard": "Ikibaho",
       "applications": "Amasaba",
-      "preNAsMarks": "Amanota mbere ya NAs",
+      "entryMarks": "Amanota mbere ya NAs",
       "students": "Abanyeshuri",
       "staff": "Abakozi",
       "partners": "Abafatanyabikorwa",
@@ -95,7 +95,20 @@
     "deleteConfirm": "Uzi neza ko ushaka gusiba uyu munyeshuri?",
     "detailsFieldset": "Amakuru y'umunyeshuri",
     "guardianFieldset": "Umubyeyi/umurerezi mukuru",
-    "examSummaryFieldset": "Incamake y'ibisubizo by'ibizamini (urugero, KCPE)"
+    "examSummaryFieldset": "Incamake y'ibisubizo by'ibizamini (urugero, KCPE)",
+    "detail": {
+      "editBioData": "Hindura amakuru y'ubuzima",
+      "firstName": "Izina rya mbere",
+      "middleName": "Izina ryo hagati",
+      "lastName": "Izina rya nyuma",
+      "gender": "Igitsina",
+      "dateOfBirth": "Itariki y'amavuko",
+      "religion": "Idini",
+      "email": "Imeyili",
+      "phone": "Terefone",
+      "address": "Aderesi",
+      "remarks": "Ibisobanuro/Ibyerekeye"
+    }
   },
   "staff": {
     "title": "Gucunga abakozi",
@@ -112,7 +125,24 @@
     "hodLabel": "Umuyobozi w'ishami (Niba bikenewe)",
     "hodOptionNone": "Nta na kimwe",
     "activeLabel": "Ni umukozi ukora",
-    "deleteConfirm": "Uzi neza ko ushaka gusiba uyu mukozi?"
+    "deleteConfirm": "Uzi neza ko ushaka gusiba uyu mukozi?",
+    "form": {
+      "email": "Imeyili",
+      "gender": "Igitsina",
+      "genderPlaceholder": "Hitamo igitsina",
+      "genderFemale": "Gore",
+      "genderMale": "Gabo",
+      "genderOther": "Ikindi",
+      "nationalId": "Nomero y'indangamuntu / Pasiporo",
+      "employerNumber": "Nomero y'umukoresha (urugero nomero ya TSC)",
+      "employmentType": "Ubwoko bw'akazi",
+      "employmentTypePlaceholder": "Hitamo ubwoko bw'akazi",
+      "employmentPermanent": "Buhoraho",
+      "employmentContract": "Amasezerano",
+      "employmentPartTime": "Igice cy'igihe",
+      "employmentBoard": "Inama y'ubuyobozi",
+      "employmentIntern": "Uwimyitozo / Umwanya w'imyitozo"
+    }
   },
   "partners": {
     "title": "Gucunga abafatanyabikorwa",
@@ -458,7 +488,7 @@
       "specialNeeds": "Gukemura ibikenewe bidasanzwe"
     }
   },
-  "preNAsMarks": {
+  "entryMarks": {
     "title": "Gucunga amanota mbere ya NAs",
     "description": "Gucunga amanota y'isuzuma ry'igihugu rya mbere ku banyeshuri n'abasaba",
     "indexNumber": "Nomero y'urutonde",
@@ -524,5 +554,66 @@
     "addMarks": "Ongeraho amanota",
     "updateMarks": "Vugurura amanota",
     "cancel": "Kuraguza"
+  },
+  "bulkStreams": {
+    "title": "Gukora amashami menshi icyarimwe",
+    "subtitle": "Ongeraho amashami menshi mu klasi imwe icyarimwe",
+    "addField": "Ongeraho umwanya w'ishami",
+    "selectClass": "Hitamo iklasi",
+    "selectClassPlaceholder": "-- Hitamo iklasi --",
+    "streamNames": "Amazina y'amashami",
+    "streamPlaceholder": "Izina ry'ishami {{index}} (urugero, Iburasirazuba, Uburengerazuba, Amajyaruguru)",
+    "summary": "Bizakora amashami {{count}} ya \"{{className}}\"",
+    "summaryEmpty": "Hitamo iklasi hanyuma winjize amazina y'amashami haruguru",
+    "duplicatesHint": "Bisanzwe bihari cyangwa byongerejwe, bizasimbukwa: {{names}}",
+    "duplicatesSkipped": "Amazina y'amashami asanzwe cyangwa yongerejwe yasimbuwe: {{names}}",
+    "badge": "amashami {{count}}",
+    "create": "Kora amashami {{count}}",
+    "createdToast": "Hashyizweho amashami {{count}} ya {{className}}",
+    "createFailed": "Umwe cyangwa amenshi mu mashami ntiyashoboye gukorwa.",
+    "createdTitle": "Amashami yarakozwe",
+    "repair": {
+      "title": "Amashami yononye",
+      "subtitle": "Aya mashami nta zina cyangwa nta klasi afite. Imura abanyeshuri bawo mu shami ryemewe, hanyuma ubikureho.",
+      "unnamed": "Ishami ridafite izina",
+      "studentCount": "(abanyeshuri {{count}})",
+      "moveTo": "Imura abanyeshuri ujye kuri",
+      "chooseStream": "-- Hitamo ishami --",
+      "action": "Gusana amashami",
+      "done": "Hakuwemo amashami {{deleted}} yononye; himuwe abanyeshuri {{reassigned}}",
+      "failed": "Gusana byanze. Nta yandi mashami yakuweho."
+    }
+  },
+  "bulkOperations": {
+    "promotion": "Kuzamurwa"
+  },
+  "promotion": {
+    "title": "Zamura iklasi",
+    "unassigned": "Ntabwo yahawe",
+    "source": "Iklasi iriho",
+    "target": "Zamura ujye kuri",
+    "academicYear": "Umwaka w'amashuri",
+    "date": "Itariki yo kuzamura",
+    "selectClass": "-- Hitamo iklasi --",
+    "chooseClasses": "Hitamo iklasi iriho n'iklasi uzamuriramo.",
+    "preview": "Reba mbere",
+    "empty": "Nta banyeshuri muri iyi klasi.",
+    "include": "Shyiramo",
+    "learner": "Umunyeshuri",
+    "from": "Kuva",
+    "to": "Kuri",
+    "note": "Icyitonderwa",
+    "commit": "Zamura",
+    "commitCount": "Zamura abanyeshuri {{count}}",
+    "confirmTitle": "Emeza kuzamurwa",
+    "confirmMessage": "Imura abanyeshuri {{count}} kuva {{from}} ujye {{to}}? Ushobora gusubiza inyuma nyuma yaho.",
+    "partial": "Abanyeshuri {{done}} bazamuwe, {{failed}} ntibashoboye kuzamurwa.",
+    "done": "Abanyeshuri {{count}} bazamuwe.",
+    "failed": "Kuzamura byanze.",
+    "committed": "Abanyeshuri {{count}} bimuwe bajya {{to}}.",
+    "undo": "Subiza inyuma",
+    "undoPartial": "Abanyeshuri {{done}} bagarujwe, {{failed}} bari bimuwe nyuma yaho basigaye uko bari.",
+    "undone": "Abanyeshuri {{count}} bagarutse mu klasi yabo yabanje.",
+    "undoFailed": "Gusubiza inyuma byanze."
   }
 }

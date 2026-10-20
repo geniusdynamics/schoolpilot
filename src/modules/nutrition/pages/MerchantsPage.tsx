@@ -11,34 +11,39 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { useNutrition } from '../hooks/useNutrition';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
-type MerchantFormData = Omit<Partial<Merchant>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
+// GL account ids are opaque strings (UUIDs); never coerce them to numbers (SO-22).
+type MerchantFormData = { name?: string; gl_account_id?: string };
 
-const MerchantsPage: React.FC = () => {
-  const { 
-    merchants, 
-    chartOfAccounts,
-    loading, 
-    addMerchant, 
-    updateMerchant, 
-    deleteMerchant 
-  } = useAppData();
+export const MerchantsPageContent: React.FC = () => {
+  // Chart of accounts is cross-domain read data; merchant CRUD lives on the nutrition module hook.
+  const { chartOfAccounts } = useAppData();
+  const { merchants, addMerchant, updateMerchant, deleteMerchant } = useNutrition();
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMerchant, setEditingMerchant] = useState<Merchant | null>(null);
   const initialFormData: MerchantFormData = { name: '', gl_account_id: undefined };
   const [formData, setFormData] = useState<MerchantFormData>(initialFormData);
+  const [saving, setSaving] = useState(false);
 
   const revenueAccounts = useMemo(() => 
-    chartOfAccounts.filter(coa => coa.type === AccountType.REVENUE && coa.is_active), 
+    (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), 
   [chartOfAccounts]);
+
+  // Resolve the GL account name at read time so renamed accounts show their current name.
+  const glAccountName = (merchant: Merchant): string | null | undefined => {
+    if (merchant.gl_account_id == null) return merchant.gl_account_name;
+    const account = (chartOfAccounts || []).find(coa => String(coa.id) === String(merchant.gl_account_id));
+    return account ? `${account.account_code} - ${account.name}` : merchant.gl_account_name;
+  };
 
   const openModal = (merchant?: Merchant) => {
     setEditingMerchant(merchant || null);
     setFormData(merchant ? 
-      { name: merchant.name, gl_account_id: merchant.gl_account_id } : 
+      { name: merchant.name, gl_account_id: merchant.gl_account_id != null ? String(merchant.gl_account_id) : undefined } : 
       initialFormData
     );
     setIsModalOpen(true);
@@ -52,7 +57,7 @@ const MerchantsPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'gl_account_id' ? (value ? parseInt(value) : undefined) : value }));
+    setFormData(prev => ({ ...prev, [name]: name === 'gl_account_id' ? (value || undefined) : value }));
   };
 
   const handleSubmit = async () => {
@@ -60,21 +65,26 @@ const MerchantsPage: React.FC = () => {
       alert("Merchant name is required.");
       return;
     }
-    const payload: Omit<Merchant, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'> = {
-      name: formData.name!,
-      gl_account_id: formData.gl_account_id ? Number(formData.gl_account_id) : undefined,
+    const payload = {
+      name: formData.name,
+      gl_account_id: formData.gl_account_id || null,
     };
 
-    if (editingMerchant) {
-      await updateMerchant({ ...editingMerchant, ...payload });
-    } else {
-      await addMerchant(payload);
+    setSaving(true);
+    try {
+      if (editingMerchant) {
+        await updateMerchant(String(editingMerchant.id), payload);
+      } else {
+        await addMerchant(payload);
+      }
+      closeModal();
+    } finally {
+      setSaving(false);
     }
-    closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this merchant?')) {
+  const handleDelete = async (id: string) => {
+    if (await confirm({ title: 'Delete merchant', message: 'Are you sure you want to delete this merchant?', variant: 'danger' })) {
       await deleteMerchant(id);
     }
   };
@@ -100,10 +110,10 @@ const MerchantsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => row.gl_account_name || 'N/A'
+      render: (value, row) => glAccountName(row) || 'N/A'
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
@@ -112,19 +122,11 @@ const MerchantsPage: React.FC = () => {
       render: (value, row) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(String(row.id))} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
   ];
-
-  if ((loading.merchants || loading.chartOfAccounts) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Merchants...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -133,17 +135,16 @@ const MerchantsPage: React.FC = () => {
           Add Merchant
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define merchants where students can make purchases using their wallets. Link to a revenue GL account.
         </p>
         <DataGrid 
           columns={columns} 
           data={merchants || []} 
-          isLoading={loading.merchants && isModalOpen}
           sortable
           filterable
           emptyState={{
-            icon: <BuildingStorefrontIcon className="w-12 h-12 text-gray-400" />,
+            icon: <BuildingStorefrontIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No merchants found",
             description: "Add merchants where students can make purchases using their wallets.",
             action: {
@@ -188,14 +189,19 @@ const MerchantsPage: React.FC = () => {
           </FormField>
         </FormSection>
         <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.merchants}>
-            {loading.merchants ? <Spinner size="sm"/> : (editingMerchant ? 'Save Changes' : 'Add Merchant')}
+          <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit" loading={saving}>
+            {editingMerchant ? 'Save Changes' : 'Add Merchant'}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+const MerchantsPage: React.FC = () => (
+  <div className="space-y-6">
+    <MerchantsPageContent />
+  </div>
+);
 
 export default MerchantsPage;

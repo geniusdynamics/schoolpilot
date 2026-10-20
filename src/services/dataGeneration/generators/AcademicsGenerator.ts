@@ -22,8 +22,10 @@ export class AcademicsGenerator extends BaseGenerator {
   async generate(): Promise<any[]> {
     const results: any[] = [];
 
-    // Generate comprehensive academic data
-    results.push(...await this.generateSubjectHierarchy(50));
+    // Phase1 alignment: keep canonical 18 subjects only; hierarchy expansions go to subjectOfferings
+    results.push(...await this.generateSubjectHierarchy(18));
+    // optional expanded offerings (forms*streams) moved to separate table, not counted as subjects
+    results.push(...await this.generateSubjectOfferings());
     results.push(...await this.generateGradingSchemes(10));
     results.push(...await this.generateAssessmentFrameworks(15));
     results.push(...await this.generateGradeBoundaries(100));
@@ -37,176 +39,80 @@ export class AcademicsGenerator extends BaseGenerator {
   }
 
   private async generateSubjectHierarchy(count: number): Promise<any[]> {
+    // Phase1: canonical 18 subjects only (no form/stream expansion)
     const results: any[] = [];
-    
-    const subjectCategories = {
-      'Core Subjects': {
-        'Languages': {
-          'English': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Grammar', 'Literature', 'Composition', 'Oral Skills', 'Reading Comprehension'],
-            assessment_types: ['CAT', 'Assignment', 'Project', 'End Term Exam']
-          },
-          'Kiswahili': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Sarufi', 'Fasihi', 'Insha', 'Mazungumzo', 'Kusoma'],
-            assessment_types: ['CAT', 'Assignment', 'Project', 'End Term Exam']
-          }
-        },
-        'Mathematics': {
-          'Pure Mathematics': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Algebra', 'Geometry', 'Trigonometry', 'Statistics', 'Calculus'],
-            assessment_types: ['CAT', 'Assignment', 'End Term Exam']
-          }
-        },
-        'Sciences': {
-          'Biology': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C'],
-            topics: ['Cell Biology', 'Genetics', 'Ecology', 'Human Physiology', 'Plant Biology'],
-            assessment_types: ['CAT', 'Practical', 'Assignment', 'End Term Exam']
-          },
-          'Chemistry': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C'],
-            topics: ['Organic Chemistry', 'Inorganic Chemistry', 'Physical Chemistry', 'Analytical Chemistry'],
-            assessment_types: ['CAT', 'Practical', 'Assignment', 'End Term Exam']
-          },
-          'Physics': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C'],
-            topics: ['Mechanics', 'Thermodynamics', 'Electricity', 'Magnetism', 'Waves'],
-            assessment_types: ['CAT', 'Practical', 'Assignment', 'End Term Exam']
-          }
+    const canonical = [
+      { name: 'English', code: 'ENG', category: 'Core Subjects', department: 'Languages' },
+      { name: 'Kiswahili', code: 'KIS', category: 'Core Subjects', department: 'Languages' },
+      { name: 'Mathematics', code: 'MAT', category: 'Core Subjects', department: 'Mathematics' },
+      { name: 'Biology', code: 'BIO', category: 'Core Subjects', department: 'Sciences' },
+      { name: 'Chemistry', code: 'CHE', category: 'Core Subjects', department: 'Sciences' },
+      { name: 'Physics', code: 'PHY', category: 'Core Subjects', department: 'Sciences' },
+      { name: 'History', code: 'HIS', category: 'Humanities', department: 'Social Studies' },
+      { name: 'Geography', code: 'GEO', category: 'Humanities', department: 'Social Studies' },
+      { name: 'CRE', code: 'CRE', category: 'Humanities', department: 'Religious Studies' },
+      { name: 'IRE', code: 'IRE', category: 'Humanities', department: 'Religious Studies' },
+      { name: 'Business Studies', code: 'BST', category: 'Technical Subjects', department: 'Business' },
+      { name: 'Computer Studies', code: 'COM', category: 'Technical Subjects', department: 'Technology' },
+      { name: 'Agriculture', code: 'AGR', category: 'Technical Subjects', department: 'Applied Sciences' },
+      { name: 'Home Science', code: 'HSC', category: 'Technical Subjects', department: 'Applied Sciences' },
+      { name: 'Art & Design', code: 'ART', category: 'Creative Arts', department: 'Visual Arts' },
+      { name: 'Music', code: 'MUS', category: 'Creative Arts', department: 'Performing Arts' },
+      { name: 'French', code: 'FRE', category: 'Foreign Languages', department: 'European Languages' },
+      { name: 'German', code: 'GER', category: 'Foreign Languages', department: 'European Languages' },
+    ];
+    // limit to requested count but cap at 18
+    const limit = Math.min(count, canonical.length);
+    for (let i = 0; i < limit; i++) {
+      const s = canonical[i];
+      results.push({
+        table: 'subjects',
+        data: {
+          id: i + 1,
+          name: s.name,
+          code: s.code,
+          category: s.category,
+          department: s.department,
+          description: `${s.name} subject`,
+          is_core: s.category === 'Core Subjects',
+          is_optional: s.category !== 'Core Subjects',
+          is_active: true,
+          created_at: this.generateTimestamp(365),
+          updated_at: this.generateTimestamp(30)
         }
-      },
-      'Humanities': {
-        'Social Studies': {
-          'History': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['World History', 'African History', 'Kenyan History', 'Government'],
-            assessment_types: ['CAT', 'Assignment', 'Project', 'End Term Exam']
-          },
-          'Geography': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Physical Geography', 'Human Geography', 'Economic Geography', 'Map Work'],
-            assessment_types: ['CAT', 'Assignment', 'Field Work', 'End Term Exam']
-          }
-        },
-        'Religious Studies': {
-          'CRE': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Old Testament', 'New Testament', 'Christian Ethics', 'Church History'],
-            assessment_types: ['CAT', 'Assignment', 'Project', 'End Term Exam']
-          },
-          'IRE': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Quran Studies', 'Hadith', 'Islamic History', 'Islamic Ethics'],
-            assessment_types: ['CAT', 'Assignment', 'Project', 'End Term Exam']
-          }
-        }
-      },
-      'Technical Subjects': {
-        'Technology': {
-          'Computer Studies': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C'],
-            topics: ['Programming', 'Database Management', 'Computer Networks', 'Web Development'],
-            assessment_types: ['CAT', 'Practical', 'Project', 'End Term Exam']
-          }
-        },
-        'Business': {
-          'Business Studies': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C', 'D'],
-            topics: ['Entrepreneurship', 'Marketing', 'Finance', 'Management'],
-            assessment_types: ['CAT', 'Assignment', 'Project', 'End Term Exam']
-          }
-        },
-        'Applied Sciences': {
-          'Agriculture': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C'],
-            topics: ['Crop Production', 'Animal Husbandry', 'Soil Science', 'Farm Management'],
-            assessment_types: ['CAT', 'Practical', 'Project', 'End Term Exam']
-          },
-          'Home Science': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B', 'C'],
-            topics: ['Nutrition', 'Clothing', 'Home Management', 'Child Development'],
-            assessment_types: ['CAT', 'Practical', 'Project', 'End Term Exam']
-          }
-        }
-      },
-      'Creative Arts': {
-        'Visual Arts': {
-          'Art & Design': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B'],
-            topics: ['Drawing', 'Painting', 'Sculpture', 'Graphic Design'],
-            assessment_types: ['CAT', 'Practical', 'Portfolio', 'End Term Exam']
-          }
-        },
-        'Performing Arts': {
-          'Music': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B'],
-            topics: ['Music Theory', 'Performance', 'Composition', 'Music History'],
-            assessment_types: ['CAT', 'Practical', 'Performance', 'End Term Exam']
-          }
-        }
-      },
-      'Foreign Languages': {
-        'European Languages': {
-          'French': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B'],
-            topics: ['Grammar', 'Vocabulary', 'Conversation', 'Literature'],
-            assessment_types: ['CAT', 'Oral Test', 'Assignment', 'End Term Exam']
-          },
-          'German': {
-            forms: ['Form 1', 'Form 2', 'Form 3', 'Form 4'],
-            streams: ['A', 'B'],
-            topics: ['Grammar', 'Vocabulary', 'Conversation', 'Culture'],
-            assessment_types: ['CAT', 'Oral Test', 'Assignment', 'End Term Exam']
-          }
-        }
-      }
-    };
+      });
+    }
+    this.subjectHierarchy = results;
+    return results;
+  }
 
-    let subjectId = 1;
+  /** Previous hierarchy (216 rows) retired to separate table subject_offerings */
+  private async generateSubjectOfferings(): Promise<any[]> {
+    const results: any[] = [];
+    // Preserve previous expansion logic but write to subject_offerings instead of subjects
+    const subjectCategories: any = {
+      'Core Subjects': { 'Languages': { 'English': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] }, 'Kiswahili': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] } }, 'Mathematics': { 'Pure Mathematics': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] } }, 'Sciences': { 'Biology': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C'] }, 'Chemistry': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C'] }, 'Physics': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C'] } } },
+      'Humanities': { 'Social Studies': { 'History': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] }, 'Geography': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] } }, 'Religious Studies': { 'CRE': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] }, 'IRE': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] } } },
+      'Technical Subjects': { 'Technology': { 'Computer Studies': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C'] } }, 'Business': { 'Business Studies': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C','D'] } }, 'Applied Sciences': { 'Agriculture': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C'] }, 'Home Science': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B','C'] } } },
+      'Creative Arts': { 'Visual Arts': { 'Art & Design': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B'] } }, 'Performing Arts': { 'Music': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B'] } } },
+      'Foreign Languages': { 'European Languages': { 'French': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B'] }, 'German': { forms: ['Form 1','Form 2','Form 3','Form 4'], streams: ['A','B'] } } }
+    };
+    let oid = 1;
     for (const [categoryName, categoryData] of Object.entries(subjectCategories)) {
-      for (const [departmentName, departmentData] of Object.entries(categoryData)) {
-        for (const [subjectName, subjectData] of Object.entries(departmentData as any)) {
-          const typedSubjectData = subjectData as any;
-          for (const form of typedSubjectData.forms) {
-            for (const stream of typedSubjectData.streams) {
+      for (const [dept, deptData] of Object.entries(categoryData as any)) {
+        for (const [subjectName, sd] of Object.entries(deptData as any)) {
+          const typed = sd as any;
+          for (const form of typed.forms) {
+            for (const stream of typed.streams) {
               results.push({
-                table: 'subjects',
+                table: 'subject_offerings',
                 data: {
-                  id: this.generateId('subj', subjectId++),
-                  name: subjectName,
-                  code: this.generateSubjectCode(subjectName, form, stream),
+                  id: oid++,
+                  subject_name: subjectName,
                   category: categoryName,
-                  department: departmentName,
-                  form: form,
-                  stream: stream,
-                  description: `${subjectName} for ${form} ${stream}`,
-                  topics: typedSubjectData.topics,
-                  assessment_types: typedSubjectData.assessment_types,
-                  credit_hours: this.randomInt(3, 6),
-                  is_core: categoryName === 'Core Subjects',
-                  is_optional: categoryName !== 'Core Subjects',
-                  prerequisites: this.generatePrerequisites(subjectName, form),
-                  learning_outcomes: this.generateLearningOutcomes(subjectName),
+                  department: dept,
+                  form, stream,
+                  code: this.generateSubjectCode(subjectName, form, stream),
                   is_active: true,
                   created_at: this.generateTimestamp(365),
                   updated_at: this.generateTimestamp(30)
@@ -217,8 +123,6 @@ export class AcademicsGenerator extends BaseGenerator {
         }
       }
     }
-
-    this.subjectHierarchy = results;
     return results;
   }
 

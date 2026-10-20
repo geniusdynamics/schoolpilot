@@ -25,7 +25,7 @@ export const resolveTabContent = (tab: Tab): React.ReactNode => {
     case 'empty':
     default:
       return (
-        <div className="flex items-center justify-center h-full text-gray-500">
+        <div className="flex items-center justify-center h-full text-surface-muted-fg">
           <div className="text-center">
             <p>This tab is empty.</p>
           </div>

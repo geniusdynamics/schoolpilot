@@ -4,6 +4,9 @@
     "reports": {
       "title": "Reports",
       "description": "Generate and view various reports and analytics",
+      "dashboard": "Reports Dashboard",
+      "overview": "All Reports",
+      "studentReports": "Student Reports",
       "accountLedger": "Account Ledger",
       "examResultsHorizontal": "Exam Results Horizontal",
       "feeCollectionSummary": "Fee Collection Summary",
@@ -11,7 +14,6 @@
       "studentMasterlist": "Student Masterlist",
       "studentVoteheadStatement": "Student Votehead Statement",
       "teacherAssignments": "Teacher Assignments",
-      "dashboard": "Reports Dashboard",
       "classLists": "Class Lists",
       "overdueBooks": "Overdue Books",
       "inventoryStatus": "Inventory Status"

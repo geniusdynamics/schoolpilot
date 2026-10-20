@@ -1,5 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ReorderAlert } from '@/components/ReorderAlertsPanel';
+
+// Local type definition for ReorderAlert (different from service definition)
+interface ReorderAlert {
+  id: string;
+  itemName: string;
+  currentStock: number;
+  reorderLevel: number;
+  category: string;
+  supplier: string;
+  status: 'critical' | 'warning' | 'normal' | 'out_of_stock';
+  lastRestockDate?: string;
+  daysUntilReorder: number;
+}
 
 interface UseReorderMonitoringReturn {
   alerts: ReorderAlert[];

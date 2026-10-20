@@ -1,12 +1,11 @@
 // ABOUTME: Workflow-level end-to-end test for consolidated data management settings
 // ABOUTME: Exercises mode, database, backend, sync, and reset interactions across one page flow
 
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DataLayerSettingsPage } from '@/modules/settings/pages/DataLayerSettingsPage';
+import DataLayerSettingsPage from '@/modules/settings/pages/DataLayerSettingsPage';
 
 const mocks = vi.hoisted(() => ({
   switchMode: vi.fn().mockResolvedValue(undefined),
@@ -75,7 +74,7 @@ vi.mock('../../hooks/useUnifiedConfig', () => ({
   }),
 }));
 
-vi.mock('../../services/DataServiceFactory', () => ({
+vi.mock('@/services/data/DataServiceFactory', () => ({
   DataServiceFactory: {
     getUserDatabaseConfig: () => ({ provider: 'sqlite-wasm', environment: 'demo' }),
     setUserDatabaseConfig: mocks.setUserDatabaseConfig,

@@ -1,28 +1,14 @@
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger, Badge, Alert, AlertDescription } from '@/components/ui';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Button,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Badge,
-  Alert,
-  AlertDescription,
-} from '@/components/ui';
-import {
-  Bell,
-  Settings,
-  TrendingUp,
-  Package,
-  AlertTriangle,
-  BarChart3,
-  Clock
-} from 'lucide-react';
+  ArchiveBoxIcon,
+  ArrowTrendingUpIcon,
+  BellIcon,
+  ChartBarIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { ReorderAlertsPanel } from '@/components/ReorderAlertsPanel';
 import { useReorderMonitoring } from '@/hooks/useReorderMonitoring';
@@ -32,7 +18,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 /**
  * Reorder Alerts Page - Main dashboard for automated reorder management
  */
-export const ReorderAlertsPage: React.FC = () => {
+export const ReorderAlertsContent: React.FC = () => {
   const { t } = useTranslation('inventory');
   const [activeTab, setActiveTab] = useState('alerts');
   
@@ -52,30 +38,30 @@ export const ReorderAlertsPage: React.FC = () => {
       {
         title: t('reorderAlerts.summary.activeAlerts'),
         value: totalAlertsCount,
-        icon: <Bell className="h-4 w-4" />,
+        icon: <BellIcon className="h-4 w-4" />,
         color: totalAlertsCount > 0 ? 'text-red-600' : 'text-green-600',
         bgColor: totalAlertsCount > 0 ? 'bg-red-50' : 'bg-green-50'
       },
       {
         title: t('reorderAlerts.tabs.high'),
         value: highPriorityAlerts.length,
-        icon: <AlertTriangle className="h-4 w-4" />,
-        color: highPriorityAlerts.length > 0 ? 'text-red-600' : 'text-gray-600',
-        bgColor: highPriorityAlerts.length > 0 ? 'bg-red-50' : 'bg-gray-50'
+        icon: <ExclamationTriangleIcon className="h-4 w-4" />,
+        color: highPriorityAlerts.length > 0 ? 'text-red-600' : 'text-surface-muted-fg',
+        bgColor: highPriorityAlerts.length > 0 ? 'bg-red-50' : 'bg-surface-muted'
       },
       {
         title: t('reorderAlerts.tabs.medium'),
         value: mediumPriorityAlerts.length,
-        icon: <Clock className="h-4 w-4" />,
-        color: mediumPriorityAlerts.length > 0 ? 'text-orange-600' : 'text-gray-600',
-        bgColor: mediumPriorityAlerts.length > 0 ? 'bg-orange-50' : 'bg-gray-50'
+        icon: <ClockIcon className="h-4 w-4" />,
+        color: mediumPriorityAlerts.length > 0 ? 'text-orange-600' : 'text-surface-muted-fg',
+        bgColor: mediumPriorityAlerts.length > 0 ? 'bg-orange-50' : 'bg-surface-muted'
       },
       {
         title: t('reorderAlerts.summary.totalMonitored'),
         value: monitoringResult?.total_items_monitored || 0,
-        icon: <Package className="h-4 w-4" />,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50'
+        icon: <ArchiveBoxIcon className="h-4 w-4" />,
+        color: 'text-primary-600',
+        bgColor: 'bg-primary-50'
       }
     ];
   };
@@ -85,7 +71,7 @@ export const ReorderAlertsPage: React.FC = () => {
       <PageHeader
         title={t('reorderAlerts.title')}
         description={t('reorderAlerts.description', 'Monitor and manage automated reorder alerts for inventory items')}
-        icon={<Bell className="h-6 w-6" />}
+        icon={<BellIcon className="h-6 w-6" />}
         actions={
           <div className="flex items-center gap-2">
             {totalAlertsCount > 0 && (
@@ -101,7 +87,7 @@ export const ReorderAlertsPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
+            <ExclamationTriangleIcon className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -133,7 +119,7 @@ export const ReorderAlertsPage: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="alerts" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
+              <BellIcon className="h-4 w-4" />
               {t('reorderAlerts.activeAlerts')}
               {totalAlertsCount > 0 && (
                 <Badge variant="destructive" className="ml-1">
@@ -142,12 +128,12 @@ export const ReorderAlertsPage: React.FC = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
+              <ChartBarIcon className="h-4 w-4" />
               {t('common.analytics', 'Analytics')}
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              {t('common.settings', 'Settings')}
+              <Cog6ToothIcon className="h-4 w-4" />
+              {t('common.settings', 'Cog6ToothIcon')}
             </TabsTrigger>
           </TabsList>
 
@@ -166,7 +152,7 @@ export const ReorderAlertsPage: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
+                    <ArrowTrendingUpIcon className="h-5 w-5" />
                     {t('reorderAlerts.analytics.trends', 'Reorder Trends')}
                   </CardTitle>
                   <CardDescription>
@@ -183,7 +169,7 @@ export const ReorderAlertsPage: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
+                    <ChartBarIcon className="h-5 w-5" />
                     {t('reorderAlerts.analytics.performance', 'Alert Performance')}
                   </CardTitle>
                   <CardDescription>
@@ -206,8 +192,8 @@ export const ReorderAlertsPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">0</div>
+                    <div className="text-center p-4 bg-primary-50 rounded-lg">
+                      <div className="text-2xl font-bold text-primary-600">0</div>
                       <div className="text-sm text-muted-foreground">
                         {t('reorderAlerts.analytics.alertsGenerated', 'Alerts Generated')}
                       </div>
@@ -230,7 +216,7 @@ export const ReorderAlertsPage: React.FC = () => {
             </div>
           </TabsContent>
 
-          {/* Settings Tab */}
+          {/* Cog6ToothIcon Tab */}
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
@@ -250,7 +236,7 @@ export const ReorderAlertsPage: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('reorderAlerts.settings.globalSettings', 'Global Settings')}</CardTitle>
+                <CardTitle>{t('reorderAlerts.settings.globalSettings', 'Global Cog6ToothIcon')}</CardTitle>
                 <CardDescription>
                   {t('reorderAlerts.settings.globalDescription', 'Configure system-wide reorder alert preferences')}
                 </CardDescription>
@@ -268,6 +254,10 @@ export const ReorderAlertsPage: React.FC = () => {
       </div>
     </PageContainer>
   );
+};
+
+const ReorderAlertsPage: React.FC = () => {
+  return <ReorderAlertsContent />;
 };
 
 export default ReorderAlertsPage;

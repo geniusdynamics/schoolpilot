@@ -174,7 +174,7 @@ export function getStatusBadge(status: string): string {
     overdue: 'bg-red-100 text-red-800',
   };
 
-  return statusMap[status] || 'bg-gray-100 text-gray-800';
+  return statusMap[status] || 'bg-surface-accent text-surface-foreground';
 }
 
 export function getStatusLabel(status: string): string {

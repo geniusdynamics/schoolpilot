@@ -5,19 +5,23 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { PrinterIcon, DocumentTextIcon, EyeIcon, PlusIcon, TrashIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
+import { fileToImageDataUrl, ImageUploadError } from '@/services/storage/imageUpload';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
+import { logger } from '@/utils/logging';
+import { formatDate } from '@/utils/format';
+import { useSchoolProfile, formatSchoolAddress, formatSchoolContact } from '@/hooks/useSchoolProfile';
 
-const FeesReceiptTemplatePage: React.FC = () => {
-  const { t } = useTranslation('finance');
+export const FeesReceiptTemplatePageContent: React.FC = () => {
   const { receiptTemplates, loading } = useAppData();
+  // The saved school profile (school_details) fills receipt headers a template leaves blank
+  const { profile: schoolProfile, schoolName } = useSchoolProfile();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -40,7 +44,13 @@ const FeesReceiptTemplatePage: React.FC = () => {
 
   const openModal = (template?: ReceiptTemplate) => {
     setEditingTemplate(template || null);
-    setFormData(template ? { ...template } : initialFormData);
+    setFormData(template ? { ...template } : {
+      ...initialFormData,
+      school_name: schoolName ?? '',
+      school_address: formatSchoolAddress(schoolProfile),
+      school_phone: schoolProfile?.telephone || schoolProfile?.phone || '',
+      school_email: schoolProfile?.email || '',
+    });
     setIsModalOpen(true);
   };
 
@@ -68,19 +78,45 @@ const FeesReceiptTemplatePage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  // Logo upload — size/type-guarded data URL stored in logo_url (2.6)
+  const handleLogoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const dataUrl = await fileToImageDataUrl(file);
+      setFormData(prev => ({ ...prev, logo_url: dataUrl }));
+      toast.showSuccess('Logo uploaded. Save the template to keep it.');
+    } catch (error) {
+      if (error instanceof ImageUploadError) {
+        toast.showWarning(error.message);
+      } else {
+        toast.showError('Failed to read the logo image.');
+      }
+    }
+  };
+
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.school_name) {
-      alert('Template name and school name are required.');
+      toast.showWarning('Template name and school name are required.');
       return;
     }
     // In production, this would call addReceiptTemplate or updateReceiptTemplate
-    console.log('Saving template:', formData);
+    logger.info('Saving template:', formData);
     closeModal();
   };
 
   const handlePrint = () => {
     window.print();
   };
+
+  // Receipt header: the template's own school details, else the saved school profile
+  const receiptSchoolName = formData.school_name || schoolName || '';
+  const receiptSchoolAddress = formData.school_address || formatSchoolAddress(schoolProfile);
+  const receiptSchoolContact = (formData.school_phone || formData.school_email)
+    ? [formData.school_phone, formData.school_email].filter(Boolean).join(' | ')
+    : formatSchoolContact(schoolProfile);
 
   const columns: DataGridColumn<ReceiptTemplate>[] = [
     {
@@ -92,7 +128,7 @@ const FeesReceiptTemplatePage: React.FC = () => {
         <div className="flex items-center gap-2">
           {value}
           {item.is_default && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Default</span>
+            <span className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full">Default</span>
           )}
         </div>
       )
@@ -101,7 +137,8 @@ const FeesReceiptTemplatePage: React.FC = () => {
       key: 'school_name',
       header: 'School Name',
       sortable: true,
-      filterable: true
+      filterable: true,
+      render: (value) => value || schoolName || '-'
     },
     {
       key: 'school_address',
@@ -113,7 +150,7 @@ const FeesReceiptTemplatePage: React.FC = () => {
       key: 'created_at',
       header: 'Created',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'actions',
@@ -123,7 +160,7 @@ const FeesReceiptTemplatePage: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => openPreview(item)}
-            className="text-blue-600 hover:text-blue-800"
+            className="text-primary-600 hover:text-primary-800"
             title="Preview"
           >
             <EyeIcon className="w-4 h-4" />
@@ -146,7 +183,7 @@ const FeesReceiptTemplatePage: React.FC = () => {
     }
   ];
 
-  if (loading && mockTemplates.length === 0) {
+  if (loading?.all && templates.length === 0 && !receiptTemplates) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -160,23 +197,23 @@ const FeesReceiptTemplatePage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center gap-2">
-            <DocumentTextIcon className="w-6 h-6 text-blue-600" />
+            <DocumentTextIcon className="w-6 h-6 text-primary-600" />
             <span>Custom Fees Receipt Templates</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             <PlusIcon className="w-4 h-4 mr-2" />
             New Template
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <DocumentTextIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">About Receipt Templates</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">About Receipt Templates</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 Create custom receipt templates with your school branding, logo, and personalized messages.
                 These templates are used when generating fee payment receipts for students and parents.
               </p>
@@ -266,13 +303,22 @@ const FeesReceiptTemplatePage: React.FC = () => {
             />
           </FormField>
 
-          <FormField label="Logo URL">
-            <Input
-              name="logo_url"
-              value={formData.logo_url || ''}
-              onChange={handleInputChange}
-              placeholder="URL to school logo image"
-            />
+          <FormField label="School Logo">
+            <div className="space-y-2">
+              {formData.logo_url && (
+                <img src={formData.logo_url} alt="School logo preview" className="h-12 w-auto rounded border border-surface-border bg-surface-card p-1" />
+              )}
+              <Input
+                name="logo_url"
+                value={formData.logo_url || ''}
+                onChange={handleInputChange}
+                placeholder="Paste an image URL or upload below"
+              />
+              <label className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handleLogoSelected} />
+                Upload logo (max 2 MB)
+              </label>
+            </div>
           </FormField>
 
           <FormField label="Set as Default">
@@ -303,71 +349,71 @@ const FeesReceiptTemplatePage: React.FC = () => {
         title="Receipt Preview"
         size="large"
       >
-        <div className="bg-white p-8 border border-gray-300 max-w-2xl mx-auto">
+        <div className="bg-surface-card p-8 border border-surface-border max-w-2xl mx-auto">
           {/* Receipt Header */}
           <div className="text-center mb-6">
             {formData.logo_url && (
               <img src={formData.logo_url} alt="School Logo" className="h-16 mx-auto mb-2" />
             )}
-            <h1 className="text-2xl font-bold text-gray-800">{formData.school_name}</h1>
-            <p className="text-sm text-gray-600">{formData.school_address}</p>
-            <p className="text-sm text-gray-600">{formData.school_phone} | {formData.school_email}</p>
+            <h1 className="text-2xl font-bold text-surface-foreground">{receiptSchoolName}</h1>
+            {receiptSchoolAddress && <p className="text-sm text-surface-muted-fg">{receiptSchoolAddress}</p>}
+            {receiptSchoolContact && <p className="text-sm text-surface-muted-fg">{receiptSchoolContact}</p>}
           </div>
 
           <div className="border-t-2 border-b-2 border-gray-800 py-3 mb-6 text-center">
-            <h2 className="text-xl font-bold text-gray-800">{formData.header_text}</h2>
+            <h2 className="text-xl font-bold text-surface-foreground">{formData.header_text}</h2>
           </div>
 
           {/* Sample Receipt Content */}
           <div className="space-y-3 text-sm mb-6">
             <div className="flex justify-between">
-              <span className="text-gray-600">Receipt No:</span>
+              <span className="text-surface-muted-fg">Receipt No:</span>
               <span className="font-semibold">RCP-2024-001234</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Date:</span>
-              <span className="font-semibold">{new Date().toLocaleDateString()}</span>
+              <span className="text-surface-muted-fg">Date:</span>
+              <span className="font-semibold">{formatDate()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Student:</span>
+              <span className="text-surface-muted-fg">Student:</span>
               <span className="font-semibold">John Doe (ADM-001)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Class:</span>
+              <span className="text-surface-muted-fg">Class:</span>
               <span className="font-semibold">Grade 10 - A</span>
             </div>
           </div>
 
           <table className="w-full mb-6 text-sm">
             <thead>
-              <tr className="border-b border-gray-300">
+              <tr className="border-b border-surface-border">
                 <th className="text-left py-2">Description</th>
                 <th className="text-right py-2">Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-surface-border">
                 <td className="py-2">Tuition Fee - Term 1</td>
                 <td className="text-right py-2">KES 45,000.00</td>
               </tr>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-surface-border">
                 <td className="py-2">Activity Fee</td>
                 <td className="text-right py-2">KES 5,000.00</td>
               </tr>
-              <tr className="border-b border-gray-300 font-bold">
+              <tr className="border-b border-surface-border font-bold">
                 <td className="py-2">Total</td>
                 <td className="text-right py-2">KES 50,000.00</td>
               </tr>
             </tbody>
           </table>
 
-          <div className="text-center text-sm text-gray-600 mb-6">
+          <div className="text-center text-sm text-surface-muted-fg mb-6">
             <p>Amount Paid: KES 50,000.00</p>
             <p>Payment Method: Cash</p>
           </div>
 
           {/* Receipt Footer */}
-          <div className="border-t border-gray-300 pt-4 text-center text-sm text-gray-600">
+          <div className="border-t border-surface-border pt-4 text-center text-sm text-surface-muted-fg">
             <p>{formData.footer_text}</p>
           </div>
         </div>
@@ -385,5 +431,11 @@ const FeesReceiptTemplatePage: React.FC = () => {
     </div>
   );
 };
+
+const FeesReceiptTemplatePage: React.FC = () => (
+  <div className="space-y-6">
+    <FeesReceiptTemplatePageContent />
+  </div>
+);
 
 export default FeesReceiptTemplatePage;

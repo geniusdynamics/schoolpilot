@@ -8,11 +8,9 @@ import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormField from '@/components/ui/forms/FormField';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import { UploadIcon, DocumentTextIcon, CheckIcon, XMarkIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -37,7 +35,7 @@ interface ImportRow {
   import_status: 'pending' | 'success' | 'error';
 }
 
-const ImportBooksPage: React.FC = () => {
+export const ImportBooksPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { create: addBook, isLoading: booksLoading } = useBookData();
   const { data: bookCategories } = useBookCategoryData();
@@ -208,7 +206,7 @@ const ImportBooksPage: React.FC = () => {
           status: row.status as LibBookStatusEnum,
           location_shelf: row.location_shelf || undefined,
           category_id: category?.id,
-          is_digital: row.is_digital.toLowerCase() === 'true',
+          is_digital: row.is_digital?.toLowerCase() === 'true',
           digital_access_url: row.digital_access_url || undefined,
           digital_format: row.digital_format || undefined,
           availability_status: LibBookAvailabilityStatusEnum.AVAILABLE,
@@ -337,9 +335,9 @@ const ImportBooksPage: React.FC = () => {
         }
       >
         <div className="text-center py-12">
-          <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No import file selected</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <DocumentTextIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+          <h3 className="mt-2 text-sm font-medium text-surface-foreground">No import file selected</h3>
+          <p className="mt-1 text-sm text-surface-muted-fg">
             Upload a CSV or Excel file to bulk import books into the library catalog.
           </p>
           <div className="mt-6 space-y-2">
@@ -349,7 +347,7 @@ const ImportBooksPage: React.FC = () => {
             >
               Select File to Import
             </Button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-surface-muted-fg">
               Supported formats: CSV, XLSX, XLS
             </p>
           </div>
@@ -364,21 +362,21 @@ const ImportBooksPage: React.FC = () => {
       >
         <FormSection columns={1}>
           {isProcessing && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
               <div className="flex items-center space-x-2">
                 <Spinner size="sm" />
                 <span className="text-sm">
                   Processing: {processedCount} / {importData.filter(row => row.validation_errors.length === 0).length}
                 </span>
               </div>
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-surface-muted-fg">
                 Success: {successCount}, Errors: {errorCount}
               </div>
             </div>
           )}
 
           <div className="grid grid-cols-3 gap-4 text-sm">
-            <div className="bg-gray-50 p-3 rounded">
+            <div className="bg-surface-muted p-3 rounded">
               <div className="font-medium">Total Rows</div>
               <div className="text-lg">{importData.length}</div>
             </div>
@@ -434,5 +432,10 @@ const ImportBooksPage: React.FC = () => {
     </div>
   );
 };
+const ImportBooksPage: React.FC = () => (
+  <div className="space-y-6">
+    <ImportBooksPageContent />
+  </div>
+);
 
 export default ImportBooksPage;

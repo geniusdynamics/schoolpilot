@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Staff, Class, ClassStream } from '@/types';
-import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
+import { CampaignStatus, CampaignAudienceType, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -9,25 +8,26 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '@/components/ui/icons';
-import { useCampaignData } from '@/modules/administration/data/useCampaignData';
-import { useTemplateCommData } from '@/modules/administration/data/useTemplateCommData';
+import { useCampaignData, type CampaignRecord as Campaign } from '@/modules/administration/data/useCampaignData';
+import { useTemplateCommData, type TemplateCommRecord as TemplateComm } from '@/modules/administration/data/useTemplateCommData';
 import { useAppData } from '@/hooks/useAppData'; // For classStreams only
-import Spinner from '@/components/ui/Spinner';
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'template_name' | 'created_by_name' | 'target_audience_display' | 'approved_by' | 'status' | 'template_id' | 'target_audience_type' | 'approved_by_name'> & {
     status: CampaignStatus;
-    template_id?: number;
+    template_id?: string;
     target_audience_type?: CampaignAudienceType;
 };
 
 
-const MessageCampaignsPage: React.FC = () => {
+export const MessageCampaignsContent: React.FC = () => {
   const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaignData();
   const { templateComms } = useTemplateCommData();
   const { classStreams = [] } = useAppData(); // For classStreams only
@@ -91,9 +91,9 @@ const MessageCampaignsPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    let processedValue: string | number | undefined = value;
+    let processedValue: string | undefined = value;
     if (name === 'template_id') {
-        processedValue = value ? parseInt(value) : undefined;
+        processedValue = value || undefined;
     }
     
     setFormData(prev => {
@@ -112,27 +112,28 @@ const MessageCampaignsPage: React.FC = () => {
     });
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.status) {
-      alert(t('validation.campaignNameAndStatusAreRequired'));
+      toast.showWarning(t('validation.campaignNameAndStatusAreRequired'));
       return;
     }
     if (!formData.body) {
-        alert(t('validation.campaignBodyContentIsRequired'));
+        toast.showWarning(t('validation.campaignBodyContentIsRequired'));
         return;
     }
     if (selectedTemplate && (selectedTemplate.type === TemplateType.EMAIL || selectedTemplate.type === TemplateType.PUSH_NOTIFICATION) && !formData.subject) {
-        alert(t('validation.subjectIsRequiredForEmailpushNotificationCampaignsBasedOnTheSelectedTemplate'));
+        toast.showWarning(t('validation.subjectIsRequiredForEmailpushNotificationCampaignsBasedOnTheSelectedTemplate'));
         return;
     }
      if ((formData.target_audience_type === CampaignAudienceType.STUDENTS_OF_CLASS || formData.target_audience_type === CampaignAudienceType.PARENTS_OF_CLASS) && !formData.target_id) {
-        alert(t('validation.pleaseSelectAClassstreamForTheChosenTargetAudience'));
+        toast.showError(t('validation.pleaseSelectAClassstreamForTheChosenTargetAudience'));
         return;
     }
 
     const payload: Omit<Campaign, 'id' | 'created_at' | 'updated_at' | 'approved_by' | 'template_name' | 'created_by_name' | 'target_audience_display'| 'approved_by_name'> = {
       name: formData.name!,
-      template_id: formData.template_id ? Number(formData.template_id) : undefined,
+      template_id: formData.template_id || undefined,
       subject: formData.subject || undefined,
       body: formData.body!,
       status: formData.status!,
@@ -144,16 +145,17 @@ const MessageCampaignsPage: React.FC = () => {
     };
 
     if (editingCampaign) {
-      await updateCampaign({ ...editingCampaign, ...payload, created_by: editingCampaign.created_by }); // Keep original created_by on update
+      await updateCampaign(String(editingCampaign.id), { ...payload, created_by: editingCampaign.created_by }); // Keep original created_by on update
     } else {
       await addCampaign(payload);
     }
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this message campaign?')) {
-      deleteCampaign(id);
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this message campaign?' }))) {
+      await deleteCampaign(id);
     }
   };
 
@@ -164,7 +166,7 @@ const MessageCampaignsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'name', 
@@ -172,7 +174,7 @@ const MessageCampaignsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'status', 
@@ -181,9 +183,9 @@ const MessageCampaignsPage: React.FC = () => {
       filterable: true, 
       width: 120,
       render: (value, item) => {
-        let colorClass = 'bg-gray-200 text-gray-800';
+        let colorClass = 'bg-gray-200 text-surface-foreground';
         if (item.status === CampaignStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
-        else if (item.status === CampaignStatus.APPROVED) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === CampaignStatus.APPROVED) colorClass = 'bg-primary-100 text-primary-800';
         else if (item.status === CampaignStatus.SENT) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === CampaignStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
@@ -203,7 +205,7 @@ const MessageCampaignsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'scheduled_for', 
@@ -245,7 +247,7 @@ const MessageCampaignsPage: React.FC = () => {
           {t('MessageCampaignsPage.createCampaign')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('MessageCampaignsPage.designAndManageCommunicationCampaigns')}
         </p>
         <DataGrid 
@@ -253,13 +255,11 @@ const MessageCampaignsPage: React.FC = () => {
           data={campaigns || []} 
           sortable 
           filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <MegaphoneIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No message campaigns found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first message campaign.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <MegaphoneIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No message campaigns found',
+            description: 'Get started by creating your first message campaign.',
+          }}
         />
       </Card>
 
@@ -370,5 +370,11 @@ const MessageCampaignsPage: React.FC = () => {
     </div>
   );
 };
+
+const MessageCampaignsPage: React.FC = () => (
+  <div className="space-y-6">
+    <MessageCampaignsContent />
+  </div>
+);
 
 export default MessageCampaignsPage;

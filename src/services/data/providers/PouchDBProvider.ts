@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * PouchDB Provider
  * 
@@ -12,8 +14,8 @@
  * - Full-text search via pouchdb-quick-search
  */
 
-import type { Observable } from 'rxjs';
-import { BehaviorSubject, fromEventPattern } from 'rxjs';
+import { Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import type {
   DataProvider,
   ProviderCapabilities,
@@ -126,9 +128,9 @@ export class PouchDBProvider implements DataProvider {
       // Create indexes for common queries
       await this.createIndexes();
 
-      console.log('✅ PouchDBProvider initialized successfully');
+      logger.info('✅ PouchDBProvider initialized successfully');
     } catch (error) {
-      console.error('❌ Failed to initialize PouchDBProvider:', error);
+      logger.error('❌ Failed to initialize PouchDBProvider:', error);
       throw error;
     }
   }
@@ -388,7 +390,7 @@ export class PouchDBProvider implements DataProvider {
         const result = await this.create<T>(collection, item);
         results.push(result);
       } catch (error) {
-        console.error('Bulk create error:', error);
+        logger.error('Bulk create error:', error);
         throw error;
       }
     }
@@ -404,7 +406,7 @@ export class PouchDBProvider implements DataProvider {
         const result = await this.update<T>(collection, id, data);
         results.push(result);
       } catch (error) {
-        console.error('Bulk update error:', error);
+        logger.error('Bulk update error:', error);
         throw error;
       }
     }
@@ -573,7 +575,7 @@ export class PouchDBProvider implements DataProvider {
 
     this.syncHandler
       .on('change', (change: any) => {
-        console.log('Sync change:', change);
+        logger.info('Sync change:', change);
         
         // Notify about changes from remote
         if (change.change?.docs) {
@@ -591,15 +593,15 @@ export class PouchDBProvider implements DataProvider {
         }
       })
       .on('paused', () => {
-        console.log('Sync paused');
+        logger.info('Sync paused');
         this.syncStatus.next('idle');
       })
       .on('active', () => {
-        console.log('Sync active');
+        logger.info('Sync active');
         this.syncStatus.next('syncing');
       })
       .on('error', (error: any) => {
-        console.error('Sync error:', error);
+        logger.error('Sync error:', error);
         this.syncStatus.next('error');
       });
   }

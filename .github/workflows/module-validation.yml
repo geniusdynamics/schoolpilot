@@ -75,6 +75,24 @@ jobs:
       - name: Run TypeScript check
         run: npm run typecheck
 
+  demo-data-integrity:
+    name: Demo Data Integrity (FK validation)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Validate demo data relationships
+        run: npm run seed:validate
+        env:
+          CI: 'true'
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -99,7 +117,7 @@ jobs:
   validation-summary:
     name: Validation Summary
     runs-on: ubuntu-latest
-    needs: [detect-cross-module-imports, eslint, typecheck, test]
+    needs: [detect-cross-module-imports, eslint, typecheck, test, demo-data-integrity]
     if: always()
     
     steps:
@@ -115,7 +133,8 @@ jobs:
           needs.detect-cross-module-imports.result == 'failure' ||
           needs.eslint.result == 'failure' ||
           needs.typecheck.result == 'failure' ||
-          needs.test.result == 'failure'
+          needs.test.result == 'failure' ||
+          needs.demo-data-integrity.result == 'failure'
         run: |
           echo "❌ One or more validation checks failed"
           exit 1

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Builtin Plugin Loader
  * 
@@ -6,10 +8,6 @@
  */
 
 import type { LoadedPlugin, PluginManifest, PluginModule } from '../types';
-import { logger } from '@/utils/logging';
-
-// Use Vite's import.meta.glob for proper dynamic imports
-const pluginModules = import.meta.glob('./builtin/*/index.ts', { eager: false });
 
 interface PluginDirectory {
   name: string;
@@ -21,51 +19,54 @@ interface PluginDirectory {
  * This is the source of truth for builtin plugins
  */
 const BUILTIN_PLUGINS: PluginDirectory[] = [
-  { name: 'whitelabel', path: 'whitelabel' },
-  { name: 'grading-engine', path: 'grading-engine' },
-  { name: 'fee-calculator', path: 'fee-calculator' },
-  { name: 'analytics-mock', path: 'analytics-mock' },
-  { name: 'payment-mock', path: 'payment-mock' },
-  { name: 'sms-gateway', path: 'sms-gateway' },
-  // Backend Integration Plugins
-  { name: 'erpnext-integration', path: 'erpnext-integration' },
-  { name: 'frappe-integration', path: 'frappe-integration' },
-  { name: 'saas-backend', path: 'saas-backend' },
-  { name: 'generic-rest', path: 'generic-rest' },
+  { name: 'whitelabel', path: './whitelabel' },
+  { name: 'grading-engine', path: './grading-engine' },
+  { name: 'fee-calculator', path: './fee-calculator' },
 ];
+
+/**
+ * Dormant builtin plugins (Phase 4.3).
+ *
+ * These ship with the app but stay unregistered until the corresponding
+ * feature flag (`plugin_<name>`) is enabled in featureFlagStore — loading
+ * them changes nothing by default.
+ */
+const DORMANT_PLUGINS: PluginDirectory[] = [
+  { name: 'analytics-mock', path: './analytics-mock' },
+  { name: 'erpnext-integration', path: './erpnext-integration' },
+  { name: 'frappe-integration', path: './frappe-integration' },
+  { name: 'generic-rest', path: './generic-rest' },
+  { name: 'payment-mock', path: './payment-mock' },
+  { name: 'saas-backend', path: './saas-backend' },
+  { name: 'sms-gateway', path: './sms-gateway' },
+  { name: 'sms-mock', path: './sms-mock' },
+];
+
+function isPluginEnabled(name: string): boolean {
+  try {
+    const raw = localStorage.getItem('sp_feature_flags_store');
+    if (!raw) return false;
+    const flags = JSON.parse(raw)?.state?.flags;
+    return Boolean(flags?.[`plugin_${name}`]);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Load a single builtin plugin
  */
 async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin | null> {
   try {
-    // Check if plugin exists in glob map
-    const modulePath = `./builtin/${dirInfo.path}/index.ts`;
-    const loader = pluginModules[modulePath];
+    // Dynamically import the plugin module (extension included so Vite can analyze the import)
+    const pluginModule = await import(`./builtin/${dirInfo.name}/index.ts`);
     
-    if (!loader) {
-      // Plugin doesn't exist, log at debug level only
-      logger.debug(`[BuiltinLoader] Plugin ${dirInfo.name} not found at ${modulePath}`);
-      return null;
-    }
-
-    // Load the module
-    const pluginModule = await loader();
-    
-    if (!pluginModule || typeof pluginModule !== 'object') {
+    if (!pluginModule.default || !pluginModule.default.manifest || !pluginModule.default.module) {
       logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} has invalid structure`);
       return null;
     }
 
-    // Handle both default export and direct export patterns
-    const mod = (pluginModule as any).default || pluginModule;
-    
-    if (!mod.manifest || !mod.module) {
-      logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} missing manifest or module`);
-      return null;
-    }
-
-    const { manifest, module } = mod as {
+    const { manifest, module } = pluginModule.default as {
       manifest: PluginManifest;
       module: PluginModule;
     };
@@ -78,13 +79,7 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
       source: 'builtin' as const,
     };
   } catch (error) {
-    // Only log as error if it's not a "module not found" error
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    if (errorMsg.includes('not found') || errorMsg.includes('Unknown variable')) {
-      logger.debug(`[BuiltinLoader] Plugin ${dirInfo.name} not available: ${errorMsg}`);
-    } else {
-      logger.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
-    }
+    logger.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
     return null;
   }
 }
@@ -94,7 +89,7 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
  * Returns array of loaded plugins (excludes failed loads)
  */
 export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
-  logger.debug('[BuiltinLoader] Discovering builtin plugins...');
+  logger.info('[BuiltinLoader] Discovering builtin plugins...');
   
   const plugins: LoadedPlugin[] = [];
   
@@ -102,17 +97,27 @@ export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
     const plugin = await loadBuiltinPlugin(dirInfo);
     if (plugin) {
       plugins.push(plugin);
-      logger.debug(`[BuiltinLoader] ✓ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
+      logger.info(`[BuiltinLoader] ✓ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
     }
   }
 
-  logger.debug(`[BuiltinLoader] Total builtin plugins loaded: ${plugins.length}`);
+  // Dormant plugins load only when explicitly enabled via feature flags
+  for (const dirInfo of DORMANT_PLUGINS) {
+    if (!isPluginEnabled(dirInfo.name)) continue;
+    const plugin = await loadBuiltinPlugin(dirInfo);
+    if (plugin) {
+      plugins.push(plugin);
+      logger.info(`[BuiltinLoader] ✓ Loaded dormant plugin ${plugin.manifest.name} (${plugin.manifest.id})`);
+    }
+  }
+
+  logger.info(`[BuiltinLoader] Total builtin plugins loaded: ${plugins.length}`);
   return plugins;
 }
 
 /**
- * Get list of available builtin plugin IDs
+ * Get list of available builtin plugin IDs (active + dormant)
  */
 export function getBuiltinPluginIds(): string[] {
-  return BUILTIN_PLUGINS.map(p => p.name);
+  return [...BUILTIN_PLUGINS, ...DORMANT_PLUGINS].map(p => p.name);
 }

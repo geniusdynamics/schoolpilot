@@ -1,19 +1,23 @@
 // src/modules/academics/pages/EducationSystemConfigPage.tsx
 
 import React from 'react';
-import EducationSystemForm from '@/components/EducationSystemForm';
+import EducationSystemForm from '../components/EducationSystemForm';
 
-const EducationSystemConfigPage: React.FC<any> = ({ editingSystem, onSave, onCancel }) => {
+export const EducationSystemConfigPageContent: React.FC<any> = ({ editingSystem, onSave, onCancel }) => {
   return (
     <div>
-      <EducationSystemForm 
-        initialData={editingSystem} 
-        onSave={onSave} 
-        onCancel={onCancel} 
+      <EducationSystemForm
+        initialData={editingSystem}
+        onSave={onSave}
+        onCancel={onCancel}
       />
     </div>
   );
 };
+const EducationSystemConfigPage: React.FC = () => (
+  <div className="space-y-6">
+    <EducationSystemConfigPageContent />
+  </div>
+);
 
 export default EducationSystemConfigPage;
-

@@ -110,7 +110,7 @@ const useLoanData = () => {
       loan.book_title?.toLowerCase().includes(lowerCaseQuery) ||
       loan.user_name?.toLowerCase().includes(lowerCaseQuery) ||
       loan.branch_id?.toLowerCase().includes(lowerCaseQuery) ||
-      loan.userType.toLowerCase().includes(lowerCaseQuery)
+      (loan.userType?.toLowerCase() ?? '').includes(lowerCaseQuery)
     );
   };
 

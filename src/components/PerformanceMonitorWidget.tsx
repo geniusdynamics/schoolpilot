@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Standalone Performance Monitor Widget for feature flag controlled display
 // ABOUTME: This is a simplified version of the PerformanceMonitor for widget use
 
@@ -41,7 +43,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
       const newReport = performanceMonitor.getPerformanceReport();
       setReport(newReport);
     } catch (error) {
-      console.warn('Error updating performance report:', error);
+      logger.warn('Error updating performance report:', error);
     }
   }, []);
 
@@ -135,32 +137,32 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
         </div>
       ) : (
         // Expanded view - detailed performance information
-        <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-80">
+        <div className="bg-surface-card rounded-lg shadow-xl border border-surface-border w-80">
           <div className="p-4">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <h3 className="text-lg font-semibold text-surface-foreground flex items-center">
                 <span className="mr-2">📊</span>
                 Performance
               </h3>
               <div className="flex items-center space-x-2">
                 <button 
                   onClick={updateReport}
-                  className="text-blue-500 hover:text-blue-700 text-sm p-1"
+                  className="text-primary-500 hover:text-primary-700 text-sm p-1"
                   title="Refresh data"
                 >
                   🔄
                 </button>
                 <button
                   onClick={handleToggleExpanded}
-                  className="text-gray-500 hover:text-gray-700 text-sm p-1"
+                  className="text-surface-muted-fg hover:text-surface-foreground text-sm p-1"
                   title="Collapse widget"
                 >
                   ➖
                 </button>
                 <button
                   onClick={handleHideWidget}
-                  className="text-gray-500 hover:text-gray-700 text-lg p-1"
+                  className="text-surface-muted-fg hover:text-surface-foreground text-lg p-1"
                   title="Hide widget"
                 >
                   ×
@@ -170,12 +172,12 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
 
             {/* Auto-refresh toggle */}
             <div className="mb-3">
-              <label className="flex items-center text-xs text-gray-600">
+              <label className="flex items-center text-xs text-surface-muted-fg">
                 <input
                   type="checkbox"
                   checked={autoRefresh}
                   onChange={(e) => setAutoRefresh(e.target.checked)}
-                  className="mr-2 h-3 w-3 text-blue-600 rounded"
+                  className="mr-2 h-3 w-3 text-primary-600 rounded"
                 />
                 Auto-refresh (may cause flickering)
               </label>
@@ -186,9 +188,9 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
               <div className="space-y-3">
                 {/* Key metrics grid */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="bg-blue-50 p-2 rounded">
-                    <div className="text-blue-800 font-medium">Startup</div>
-                    <div className="text-blue-600">{formatTime(report.startupTime)}</div>
+                  <div className="bg-primary-50 p-2 rounded">
+                    <div className="text-primary-800 font-medium">Startup</div>
+                    <div className="text-primary-600">{formatTime(report.startupTime)}</div>
                   </div>
                   <div className="bg-green-50 p-2 rounded">
                     <div className="text-green-800 font-medium">Memory</div>
@@ -199,7 +201,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
                 {/* Additional details if enabled */}
                 {showDetails && (
                   <div className="space-y-2">
-                    <div className="text-xs text-gray-600 border-t pt-2">
+                    <div className="text-xs text-surface-muted-fg border-t pt-2">
                       <div className="flex justify-between">
                         <span>Modules Loaded:</span>
                         <span>{report.moduleMetrics?.length || 0}</span>
@@ -221,7 +223,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
                         performanceColor === 'yellow' ? 'bg-yellow-400' :
                         performanceColor === 'red' ? 'bg-red-400' : 'bg-gray-400'
                       }`}></div>
-                      <span className="text-gray-600">
+                      <span className="text-surface-muted-fg">
                         {performanceColor === 'green' ? 'Good Performance' :
                          performanceColor === 'yellow' ? 'Moderate Performance' :
                          performanceColor === 'red' ? 'Poor Performance' : 'Unknown'}
@@ -231,8 +233,8 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
                 )}
               </div>
             ) : (
-              <div className="text-center py-4 text-gray-500">
-                <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+              <div className="text-center py-4 text-surface-muted-fg">
+                <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-2"></div>
                 <div className="text-sm">Loading metrics...</div>
               </div>
             )}

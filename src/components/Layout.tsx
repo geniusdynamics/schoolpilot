@@ -1,317 +1,409 @@
-// ABOUTME: Main layout component for the application
-// ABOUTME: Handles navigation, tab management, and overall app structure
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+// ABOUTME: Single canonical authenticated layout shell (URL-driven tab system).
+// ABOUTME: Consolidated from Layout.tsx + LayoutNew.tsx — the legacy workspace shell
+// ABOUTME was retired (useNewTabSystem defaulted true; old code lives in git history).
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
+import type { NavItem } from '../core/types';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
-import { ChevronUpIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { useFullWidth } from '../contexts/FullWidthContext';
+import { useSecondarySidebar, SECONDARY_SIDEBAR_WIDTHS } from '../contexts/SecondarySidebarContext';
+import { useTabs } from '../hooks/tabs';
+import type { Tab } from '../services/tabs/types';
+import { routeToTabMapper } from '../services/tabs/RouteToTabMapper';
+import { normalizeModuleId } from '../utils/moduleStyles';
 import Header from './Header';
-import Sidebar from './Sidebar';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
+import TopOverflowMenu from './TopOverflowMenu';
 import LoadingScreen from './LoadingScreen';
 import SettingsPopup from './SettingsPopup';
-import BreadcrumbNavigation from './BreadcrumbNavigation';
-import NavigationErrorBoundary from './NavigationErrorBoundary';
-import { useRoutePersistence } from '../hooks/useRoutePersistence';
-import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
-import { TabbedWorkspace } from './tabbedWorkspace';
-import { useTabStore } from '../stores/tabStore';
-import { extractModuleId, getModuleDashboardPath } from '../utils/moduleUtils';
-import { TabbedWorkspaceManager } from './tabbedWorkspace/TabbedWorkspaceManager';
-import { isTabbedModeEnabled } from '../services/ui/tabbedModeFeatureFlag';
-import DynamicPageComponent from './DynamicPageComponent';
+import { TabBar } from './tabbedWorkspace/TabBar';
+import { TabWorkspaceErrorBoundary } from './tabbedWorkspace/TabWorkspaceErrorBoundary';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY RENDER
-  // No conditional hooks or early returns before all hooks are called
-  
-  // Custom hooks (always called first)
-  const { getMainModules, isLoading } = useDynamicNavigation(true);
-  const { trackNavigation } = useInteractionTracking('Layout');
-  const { getStoredRoute } = useRoutePersistence();
-  const { user } = useAuth();
-  
-  // Router hooks
-  const navigate = useNavigate();
+// Props for Layout
+interface LayoutProps {
+  children?: React.ReactNode;
+}
+
+const routeModuleId = (path?: string): string => {
+  if (!path) return '';
+  const trimmed = path.startsWith('/') ? path.slice(1) : path;
+  return trimmed.split('/')[0] || '';
+};
+
+const flattenNavigationItems = (items: NavItem[]): NavItem[] => {
+  return items.flatMap(item => [item, ...(item.children ? flattenNavigationItems(item.children) : [])]);
+};
+
+const normalizeRoutePath = (path?: string): string => {
+  if (!path) return '';
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  const [pathname] = normalized.split('?');
+  return pathname.replace(/\/+$/, '') || '/';
+};
+
+const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
+
   const location = useLocation();
+  const { hasModuleAccess, hasPermission } = useAuth();
+  const { getMainModules, isLoading: navLoading, navigationItems } = useDynamicNavigation(true);
   
-  // Tab store for managing tabbed workspace
-  const { tabs, activeTabId, createTab, initialize, isStoreInitialized } = useTabStore();
+  // Full-width mode + secondary minimize context for margin calc
+  const { isFullWidth } = useFullWidth();
+  const { isSecondaryMinimized } = useSecondarySidebar();
   
-  // State hooks (always in same order)
+  // New tab system
+  const {
+    tabs: urlTabs,
+    activeTab,
+    activeTabId,
+    activateTab,
+    closeTab,
+    reorderTabs,
+    pinTab,
+    unpinTab,
+    openTab,
+    switchModuleSession,
+    closeOtherTabs,
+    closeTabsToRight,
+    closeTabsToLeft,
+    closeAllTabs,
+    closeAllExceptPinned,
+    duplicateTab
+  } = useTabs();
+  
+  // Transform URL-driven tabs to format expected by TabBar component
+  const tabs = useMemo(() => {
+    return urlTabs.map(tab => ({
+      id: tab.id,
+      title: tab.title,
+      path: tab.url, // Map url to path for compatibility
+      module: tab.module,
+      icon: tab.icon,
+      pinned: tab.pinned,
+      isDirty: tab.isDirty,
+      canClose: !tab.pinned, // Can close if not pinned
+      lastAccessed: tab.metadata?.lastAccessed || Date.now(),
+      metadata: tab.metadata || {}
+    }));
+  }, [urlTabs]);
+  
+  // UI State
   const [showSettings, setShowSettings] = useState(false);
   const [selectedModuleKey, setSelectedModuleKey] = useState('');
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
-  const [showScrollHelpers, setShowScrollHelpers] = useState(false);
-  const [isTabSystemReady, setIsTabSystemReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
-  // Move useCallback hooks to top level to prevent React hooks rule violation
-  const handleSettingsClick = useCallback(() => setShowSettings(true), []);
-  const handleTabContentRender = useCallback((tab) => {
-    // Custom content renderer for tabs
-    return (
-      <NavigationErrorBoundary
-        onError={(error, errorInfo, currentRoute) => {
-          console.error(`Tab navigation error on ${currentRoute}:`, error);
-        }}
-        maxRetries={2}
-        enableFallbackRoutes={true}
-        fallbackRoutes={['/dashboard', '/reports', '/administration']}
-      >
-        {tab.content.type === 'component' && tab.content.component === 'DynamicPageComponent' ? (
-          // For route-based tabs, render the actual dynamic page component
-          <DynamicPageComponent path={tab.path} />
-        ) : tab.content.type === 'component' && tab.content.component ? (
-          <tab.content.component {...(tab.content.props || {})} />
-        ) : (
-          children
-        )}
-      </NavigationErrorBoundary>
+  const moduleDashboardRoute = useCallback((moduleId: string) => {
+    const modules = getMainModules();
+    const selectedModule = modules.find(module => normalizeModuleId(module.modulePath || module.path || module.name) === moduleId);
+    const preferredChild = selectedModule?.children?.find(child => child.path?.includes('/dashboard'));
+    const firstChildPath = selectedModule?.children?.find(child => !!child.path)?.path;
+    const moduleBasePath = selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`;
+    const fallbackDashboardPath = moduleId === 'dashboard'
+      ? '/dashboard'
+      : `${moduleBasePath.replace(/\/$/, '')}/dashboard`;
+
+    return preferredChild?.path || firstChildPath || fallbackDashboardPath;
+  }, [getMainModules]);
+
+  const canRestorePinnedTab = useCallback(async (tab: Tab) => {
+    const moduleId = routeModuleId(tab.url);
+    if (!moduleId) {
+      return false;
+    }
+
+    const canAccessModule = await hasModuleAccess(moduleId);
+    if (!canAccessModule) {
+      return false;
+    }
+
+    const normalizedTabPath = normalizeRoutePath(tab.url);
+    const matchingNavItem = flattenNavigationItems(navigationItems).find(item => {
+      const itemPath = normalizeRoutePath(item.path);
+      return itemPath === normalizedTabPath || normalizedTabPath.startsWith(`${itemPath}/`);
+    });
+    const requiredPermissions = matchingNavItem?.permissions || [];
+
+    if (requiredPermissions.length === 0) {
+      return true;
+    }
+
+    const permissionChecks = await Promise.all(requiredPermissions.map(permission => hasPermission(permission)));
+    return permissionChecks.every(Boolean);
+  }, [hasModuleAccess, hasPermission, navigationItems]);
+
+  const getModuleChildrenCount = useCallback((moduleId: string): number => {
+    const module = navigationItems.find(item =>
+      normalizeModuleId(item.modulePath || item.path || item.name) === moduleId
     );
-  }, [children]);
+    return module?.children?.length || 0;
+  }, [navigationItems]);
 
-  // Initialize tab store on mount
-  useEffect(() => {
-    let isMounted = true;
+  const transitionToModule = useCallback(async (moduleId: string) => {
+    const nextRoute = moduleDashboardRoute(moduleId);
+    const canAccessModule = await hasModuleAccess(moduleId);
 
-    const initializeTabSystem = async () => {
-      try {
-        await initialize();
-        if (isMounted) {
-          setIsTabSystemReady(true);
-        }
-      } catch (error) {
-        console.error('Failed to initialize tab system:', error);
-        if (isMounted) {
-          setIsTabSystemReady(false);
-        }
-      }
-    };
-
-    initializeTabSystem();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [initialize]);
-  
-  // Track scroll position to show/hide scroll helpers
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 200; // Show after scrolling 200px
-      setShowScrollHelpers(scrolled);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Set default module when navigation loads, but respect current route
-  useEffect(() => {
-    if (!isLoading) {
-      const mainModules = getMainModules();
-      
-      if (mainModules.length > 0 && !selectedModuleKey) {
-        // Determine the appropriate module based on current path
-        const currentPath = location.pathname;
-        
-        // Find module that matches current path
-        let matchingModule = null;
-        for (const module of mainModules) {
-          if (module.children) {
-            for (const child of module.children) {
-              if (child.path === currentPath) {
-                // Extract the clean module ID from the translation key (e.g., "navigation:academics.title" → "academics")
-                matchingModule = extractModuleId(module.name);
-                break;
-              }
-            }
-          }
-          if (matchingModule) break;
-        }
-        
-        // If we found a matching module, use it; otherwise use the first module
-        // Always extract the clean module ID from the translation key
-        const moduleToSelect = matchingModule || extractModuleId(mainModules[0].name);
-        setSelectedModuleKey(moduleToSelect);
-        
-        // Only navigate to dashboard if we're on the root path AND the first module is dashboard
-        // AND there's no stored route from a previous session
-        const storedRoute = getStoredRoute();
-        if (currentPath === '/' && extractModuleId(mainModules[0].name) === 'dashboard' && !storedRoute) {
-          navigate('/dashboard', { replace: true });
-        }
-      }
+    if (!canAccessModule) {
+      return;
     }
-  }, [isLoading, getMainModules, selectedModuleKey, navigate, location.pathname, getStoredRoute]);
 
-  const handleModuleSelect = async (moduleKey: string) => {
-    if (moduleKey === selectedModuleKey) {
-      setIsSubmenuOpen((open: boolean) => !open); // toggle submenu
+    setSelectedModuleKey(moduleId);
+    const childrenCount = getModuleChildrenCount(moduleId);
+    if (childrenCount >= 2) {
+      setIsSubmenuOpen(true);
     } else {
-      setSelectedModuleKey(moduleKey);
-      // Keep submenu collapsed by default when switching modules
-      // User can manually open it by clicking the module again
       setIsSubmenuOpen(false);
-      
-      // Generate the correct dashboard path for the module
-      const modulePath = getModuleDashboardPath(moduleKey);
-      const trackNav = trackNavigation(location.pathname, modulePath);
-      navigate(modulePath);
-      
-      // Track navigation completion after a brief delay
-      setTimeout(trackNav, 100);
     }
+    await switchModuleSession(nextRoute, {
+      preservePinned: true,
+      refresh: false,
+      pinned: moduleId === 'dashboard',
+      canPreserveTab: canRestorePinnedTab
+    });
+  }, [canRestorePinnedTab, getModuleChildrenCount, hasModuleAccess, moduleDashboardRoute, switchModuleSession]);
+  
+  // Initialize - ensure a tab exists for the current route
+  useEffect(() => {
+    if (navLoading) return;
+
+    const currentPath = location.pathname + location.search;
+    if (currentPath === '/') return;
+
+    // Never mirror a path the router cannot render (for example a stale
+    // #/bulk-streams hit): unknown routes must not become workspace tabs.
+    if (!routeToTabMapper.isKnownAppRoute(currentPath)) return;
+
+    // Check if current URL already has a matching tab
+    const hasMatchingTab = tabs.some(
+      t => t.path === currentPath || t.path === location.pathname
+    );
+
+    if (!hasMatchingTab) {
+      // If the only tab is a default dashboard tab, keep it and add current route tab
+      const isDefaultDashboard = tabs.length === 1 && tabs[0].url === '/dashboard';
+      if (isDefaultDashboard) {
+        openTab(currentPath, { pinned: false });
+      } else {
+        openTab(currentPath, { pinned: location.pathname === '/dashboard' });
+      }
+    }
+  }, [navLoading, location.pathname, location.search, tabs, openTab]);
+  
+  // Determine current module from URL
+  useEffect(() => {
+    if (!navLoading) {
+      const path = location.pathname;
+      const moduleMatch = path.match(/^\/([^/]+)/);
+      if (moduleMatch && moduleMatch[1]) {
+        const moduleId = normalizeModuleId(moduleMatch[1]);
+        setSelectedModuleKey(moduleId);
+        
+        // Auto-open submenu only if module has 2+ navigation items
+        const mainModules = getMainModules();
+        const hasModule = mainModules.some(m => normalizeModuleId(m.modulePath || m.path || m.name) === moduleId);
+        if (hasModule) {
+          const childrenCount = getModuleChildrenCount(moduleId);
+          setIsSubmenuOpen(childrenCount >= 2);
+        } else {
+          // Close sidebar for modules with no navigation (e.g. dashboard)
+          setIsSubmenuOpen(false);
+        }
+      }
+      setIsReady(true);
+    }
+  }, [navLoading, location.pathname, getMainModules, getModuleChildrenCount]);
+  
+  // Handle module selection from sidebar
+  const handleModuleSelect = useCallback(async (moduleKey: string) => {
+    const moduleId = normalizeModuleId(moduleKey);
+    if (!moduleId) {
+      return;
+    }
+
+    if (moduleId === selectedModuleKey) {
+      const childrenCount = getModuleChildrenCount(moduleId);
+      if (childrenCount >= 2) {
+        setIsSubmenuOpen(prev => !prev);
+      }
+    } else {
+      await transitionToModule(moduleId);
+    }
+  }, [selectedModuleKey, getModuleChildrenCount, transitionToModule]);
+  
+  // Handle tab click
+  const handleTabClick = useCallback((tabId: string) => {
+    activateTab(tabId);
+  }, [activateTab]);
+  
+  // Handle tab close
+  const handleTabClose = useCallback((tabId: string) => {
+    closeTab(tabId);
+  }, [closeTab]);
+  
+  // Handle tab reorder
+  const handleTabReorder = useCallback((sourceIndex: number, destinationIndex: number) => {
+    const newOrder = [...tabs];
+    const [moved] = newOrder.splice(sourceIndex, 1);
+    newOrder.splice(destinationIndex, 0, moved);
+    reorderTabs(newOrder.map(t => t.id));
+  }, [tabs, reorderTabs]);
+  
+  // Handle new tab button click
+  const handleNewTab = useCallback(() => {
+    // Open dashboard as default new tab ├óÔé¼ÔÇØ pinned so it survives close-others
+    openTab('/dashboard', { pinned: true });
+  }, [openTab]);
+  
+  // Handle navigation item click from secondary sidebar
+  const handleNavItemClick = useCallback(async (item: { path: string; name?: string }) => {
+    if (!item.path) return;
+    // Always open a new tab from sidebar nav - do NOT call transitionToModule
+    // (which closes other tabs) for sidebar nav clicks. Module switching is
+    // handled by handleModuleSelect on the primary sidebar.
+    openTab(item.path, { pinned: false });
+  }, [openTab]);
+  
+  // Get navigation items for current module
+  const currentModuleNav = useMemo(() => {
+    if (!selectedModuleKey) return [];
+    
+    const module = navigationItems.find(item => 
+      normalizeModuleId(item.modulePath || item.path || item.name) === selectedModuleKey
+    );
+    
+    return module?.children || [];
+  }, [navigationItems, selectedModuleKey]);
+  
+  // Render tab content
+  const renderTabContent = () => {
+    if (!activeTab) {
+      return (
+        <div className="flex-1 flex items-center justify-center bg-surface-muted">
+          <div className="text-center p-8">
+            <div className="text-6xl mb-4">├░┼©ÔÇ£┼í</div>
+            <h2 className="text-2xl font-bold text-surface-foreground mb-2">Welcome to SchoolPilot</h2>
+            <p className="text-surface-muted-fg mb-6">Select a module from the sidebar to get started</p>
+            <button
+              onClick={() => openTab('/dashboard')}
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Open Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <TabWorkspaceErrorBoundary>
+        <div className="flex-1 overflow-auto bg-surface-card">
+          {/* 
+            The actual page content is rendered by React Router
+            We just provide the container
+          */}
+          {children}
+        </div>
+      </TabWorkspaceErrorBoundary>
+    );
   };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const scrollToNavigation = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Check if tabbed mode is enabled for the current module
-  const isTabbedMode = useMemo(() => {
-    const currentModule = extractModuleId(selectedModuleKey || 'dashboard');
-    return isTabbedModeEnabled(currentModule);
-  }, [selectedModuleKey]);
-
-  // Only proceed when both the store is initialized and tab system is ready
-  const isAppReady = isStoreInitialized && isTabSystemReady;
-
-  // Show loading screen while initializing
-  if (!isAppReady) {
+  
+  if (!isReady) {
     return (
       <LoadingScreen 
-        message="Initializing system..."
+        message="Initializing..."
         spinner={true}
         overlay={true}
       />
     );
   }
-
+  
   return (
-    <TabbedWorkspaceManager>
-      <div className="flex flex-col min-h-screen w-screen bg-slate-100">
-        <Header onSettings={() => setShowSettings(true)} />
-        <div className="flex flex-1 pt-16 md:pt-16">
-          {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}
-          <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
-          <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-          <main 
-            className="flex-1 overflow-hidden"
-            style={{
-              marginLeft: isSubmenuOpen ? 'calc(5rem + 13rem)' : '5rem'
-            }}
-          >
-            {isTabbedMode ? (
-              /* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */
-              <TabbedWorkspace
-                className="h-full"
-                showActionBar={true}
-                showSettings={true}
-                onSettingsClick={handleSettingsClick}
-                maxTabs={20}
-                enableTabGroups={false}
-                enableTabPersistence={true}
-                theme="default"
-                userRole={user?.role || 'guest'}
-                userPermissions={user?.permissions || []}
-                moduleContext={extractModuleId(selectedModuleKey || 'dashboard')}
-                onTabContentRender={handleTabContentRender}
-                enableHierarchicalMode={true}
-                showBreadcrumbs={true}
-                tabStyle="modern"
-                showCloseButton={true}
-              />
-            ) : (
-              /* Traditional Layout Mode - Standard layout with breadcrumbs */
-              <div className="h-full p-2 sm:p-3 lg:p-4">
-                <div className="h-full overflow-y-auto">
-                  {/* Breadcrumb Navigation */}
-                  <div className="mb-2">
-                    <BreadcrumbNavigation 
-                      className="mb-1"
-                      onNavigationError={(path, error) => {
-                        console.error(`Navigation error for ${path}:`, error);
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Main content wrapped with navigation error boundary */}
-                  <NavigationErrorBoundary
-                    onError={(error, errorInfo, currentRoute) => {
-                      console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
-                    }}
-                    maxRetries={2}
-                    enableFallbackRoutes={true}
-                    fallbackRoutes={['/dashboard', '/reports', '/administration']}
-                  >
-                    {children}
-                  </NavigationErrorBoundary>
-                </div>
-              </div>
-            )}
-          </main>
-          <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
+    <div className="flex flex-col min-h-screen w-screen bg-slate-100">
+      <Header
+        onSettings={() => setShowSettings(true)}
+        currentModule={selectedModuleKey}
+        onModuleSelect={handleModuleSelect}
+      />
+      
+      <div className="flex flex-1 pt-16">
+        {/* Floating TopOverflowMenu ├óÔé¼ÔÇØ utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
+        <div className="fixed top-0 left-0 z-[60] w-16 sm:w-20">
+          <TopOverflowMenu
+            currentModule={selectedModuleKey}
+            onModuleSelect={handleModuleSelect}
+          />
         </div>
 
-        {/* Floating Navigation Helpers - appear when scrolled down */}
-        {showScrollHelpers && (
-          <>
-            {/* Navigation Button - positioned on the left where navigation is */}
-            <div className="fixed bottom-6 left-6 z-50">
-              <button
-                onClick={scrollToNavigation}
-                className="
-                  group flex items-center gap-2 px-3 py-2
-                  bg-white/80 hover:bg-white/90
-                  backdrop-blur-md
-                  text-slate-600 hover:text-slate-800
-                  rounded-lg shadow-sm hover:shadow-md
-                  border border-slate-200/50 hover:border-slate-300/70
-                  transition-all duration-300 ease-out
-                  hover:scale-105 focus:scale-105
-                  focus:outline-none focus:ring-2 focus:ring-slate-400/30
-                  opacity-80 hover:opacity-100
-                "
-                title="Back to Navigation"
-              >
-                <Bars3Icon className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
-                <span className="text-xs font-medium whitespace-nowrap">Menu</span>
-              </button>
-            </div>
-
-            {/* Back to Top Button - remains on the right */}
-            <div className="fixed bottom-6 right-6 z-50">
-              <button
-                onClick={scrollToTop}
-                className="
-                  group flex items-center justify-center
-                  w-12 h-12
-                  bg-blue-600/90 hover:bg-blue-500/95
-                  backdrop-blur-md
-                  text-white
-                  rounded-full shadow-lg hover:shadow-xl
-                  border border-blue-400/20 hover:border-blue-300/30
-                  transition-all duration-300 ease-out
-                  hover:scale-110 focus:scale-110
-                  focus:outline-none focus:ring-2 focus:ring-blue-400/50
-                "
-                title="Back to Top"
-              >
-                <ChevronUpIcon className="w-6 h-6 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5" />
-              </button>
-            </div>
-          </>
-        )}
+        {/* Primary Sidebar ├óÔé¼ÔÇØ hidden via width animation in fullwidth mode */}
+        <PrimarySidebar 
+          selectedModuleKey={selectedModuleKey} 
+          onModuleSelect={handleModuleSelect}
+          collapsed={isFullWidth}
+        />
+        
+        {/* Secondary Sidebar ├óÔé¼ÔÇØ slides to far-left in fullwidth mode */}
+        <SecondarySidebar 
+          selectedModuleKey={selectedModuleKey} 
+          isOpen={isSubmenuOpen} 
+          isSecondaryAsPrimary={isFullWidth}
+          onClose={() => setIsSubmenuOpen(false)}
+          onItemClick={handleNavItemClick}
+          items={currentModuleNav}
+        />
+        
+        {/* Main Content Area ÔÇö margin mirrors SecondarySidebar actual width */}
+        <main 
+          className="flex-1 flex flex-col overflow-hidden min-w-0 transition-[margin] duration-300 ease-in-out"
+          style={{
+            marginLeft: (() => {
+              const primaryWidth = isFullWidth ? '0rem' : '5rem';
+              const secondaryWidth = !isSubmenuOpen
+                ? '0rem'
+                : isSecondaryMinimized
+                  ? isFullWidth ? SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_PRIMARY : SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_DESKTOP
+                  : SECONDARY_SIDEBAR_WIDTHS.EXPANDED;
+              return primaryWidth === '0rem' && secondaryWidth === '0rem' ? '0rem' : `calc(${primaryWidth} + ${secondaryWidth})`;
+            })()
+          }}
+        >
+          {/* Tab Bar */}
+          <div className="flex-shrink-0 bg-surface-card border-b border-surface-border">
+            <TabBar
+              tabs={tabs as any}
+              activeTabId={activeTabId}
+              onTabClick={handleTabClick}
+              onTabClose={handleTabClose}
+              onTabReorder={handleTabReorder}
+              onTabPin={pinTab}
+              onTabUnpin={unpinTab}
+              onTabDuplicate={duplicateTab}
+              onCloseOtherTabs={closeOtherTabs}
+              onCloseTabsToRight={closeTabsToRight}
+              onCloseTabsToLeft={closeTabsToLeft}
+              onCloseAllTabs={closeAllTabs}
+              onCloseAllExceptPinned={closeAllExceptPinned}
+              onNewTab={handleNewTab}
+              maxTabs={20}
+              showAddButton={true}
+            />
+          </div>
+          
+          {/* Tab Content */}
+          {renderTabContent()}
+        </main>
       </div>
-    </TabbedWorkspaceManager>
+      
+      {/* Settings Modal */}
+      <SettingsPopup 
+        open={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
+    </div>
   );
 };
 
-export default Layout;
+export default LayoutNew;
+

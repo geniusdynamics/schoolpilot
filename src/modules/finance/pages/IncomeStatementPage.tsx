@@ -2,15 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { ChartBarIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { IncomeStatementItem } from '../data/types';
 
-const IncomeStatementPage: React.FC = () => {
-  const { t } = useTranslation('finance');
+import Spinner from '@/components/ui/Spinner';
+import { IncomeStatementItem } from '../data/types';
+import { ChartBarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
+
+export const IncomeStatementPageContent: React.FC = () => {
+
   const { incomeStatementItems, loading } = useAppData();
 
   const [startDate, setStartDate] = useState(() => {
@@ -29,11 +28,11 @@ const IncomeStatementPage: React.FC = () => {
   const totals = useMemo(() => {
     const revenue = incomeStatement
       .filter(item => item.category === 'Revenue')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     const expenses = incomeStatement
       .filter(item => item.category === 'Expense')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     return {
       revenue,
@@ -75,7 +74,7 @@ const IncomeStatementPage: React.FC = () => {
       sortable: true,
       render: (value, item) => (
         <span className={`font-semibold ${item.category === 'Revenue' ? 'text-green-600' : 'text-red-600'}`}>
-          KES {value.toLocaleString()}
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -83,11 +82,11 @@ const IncomeStatementPage: React.FC = () => {
       key: 'percentage',
       header: '% of Total',
       sortable: true,
-      render: (value) => value !== undefined ? `${value.toFixed(1)}%` : '-'
+      render: (value) => value != null ? `${value?.toFixed?.(1) ?? value}%` : '-'
     }
   ];
 
-  if (loading && incomeStatement.length === 0) {
+  if (loading?.all && incomeStatement.length === 0 && !incomeStatementItems) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -101,17 +100,17 @@ const IncomeStatementPage: React.FC = () => {
       <Card 
         title={
           <div className="flex items-center gap-2">
-            <ChartBarIcon className="w-6 h-6 text-blue-600" />
+            <ChartBarIcon className="w-6 h-6 text-primary-600" />
             <span>Income Statement</span>
           </div>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <ChartBarIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <ChartBarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">Revenue vs Expenses for Period</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">Revenue vs Expenses for Period</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 The Income Statement shows the financial performance over a period, comparing revenue against expenses 
                 to determine net income or loss. Use this to analyze profitability and identify cost-saving opportunities.
               </p>
@@ -122,7 +121,7 @@ const IncomeStatementPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Start Date</label>
             <Input
               type="date"
               value={startDate}
@@ -131,7 +130,7 @@ const IncomeStatementPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">End Date</label>
             <Input
               type="date"
               value={endDate}
@@ -147,47 +146,47 @@ const IncomeStatementPage: React.FC = () => {
                 onChange={(e) => setComparisonPeriod(e.target.checked)}
                 className="w-4 h-4"
               />
-              <span className="text-sm font-medium text-gray-700">Compare with Previous Period</span>
+              <span className="text-sm font-medium text-surface-foreground">Compare with Previous Period</span>
             </label>
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChartBarIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Total Revenue</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.revenue.toLocaleString()}
+              KES {totals.revenue?.toLocaleString?.() ?? '-'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChartBarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Total Expenses</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.expenses.toLocaleString()}
+              KES {totals.expenses?.toLocaleString?.() ?? '-'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Net Income</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              KES {totals.netIncome.toLocaleString()}
+              KES {totals.netIncome?.toLocaleString?.() ?? '-'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ChartBarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Profit Margin</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {totals.profitMargin.toFixed(1)}%
+              {totals.profitMargin?.toFixed?.(1) ?? '-'}%
             </p>
           </div>
         </div>
@@ -196,22 +195,22 @@ const IncomeStatementPage: React.FC = () => {
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <h4 className="font-semibold text-green-800 mb-3">Revenue Breakdown</h4>
-            {mockIncomeStatement.filter(i => i.category === 'Revenue').map(item => (
+            {incomeStatement.filter(i => i.category === 'Revenue').map(item => (
               <div key={item.id} className="flex justify-between py-2 border-b border-green-100 last:border-0">
                 <span className="text-sm text-green-700">{item.account_name}</span>
                 <span className="text-sm font-semibold text-green-800">
-                  KES {item.amount.toLocaleString()}
+                  KES {item.amount?.toLocaleString?.() ?? '-'}
                 </span>
               </div>
             ))}
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h4 className="font-semibold text-red-800 mb-3">Expense Breakdown</h4>
-            {mockIncomeStatement.filter(i => i.category === 'Expense').map(item => (
+            {incomeStatement.filter(i => i.category === 'Expense').map(item => (
               <div key={item.id} className="flex justify-between py-2 border-b border-red-100 last:border-0">
                 <span className="text-sm text-red-700">{item.account_name}</span>
                 <span className="text-sm font-semibold text-red-800">
-                  KES {item.amount.toLocaleString()}
+                  KES {item.amount?.toLocaleString?.() ?? '-'}
                 </span>
               </div>
             ))}
@@ -229,5 +228,10 @@ const IncomeStatementPage: React.FC = () => {
     </div>
   );
 };
+const IncomeStatementPage: React.FC = () => (
+  <div className="space-y-6">
+    <IncomeStatementPageContent />
+  </div>
+);
 
 export default IncomeStatementPage;

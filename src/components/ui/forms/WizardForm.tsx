@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: WizardForm component for multi-step forms with progress indicators
 // ABOUTME: Provides step navigation, validation, and progress tracking
 
-import React, { ReactNode, useState, useCallback, useMemo, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { ReactNode, useState, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTransition } from '../../../utils/animations';
 import Button from '../Button';
 import { ChevronLeftIcon, ChevronRightIcon, CheckIcon } from '../icons';
@@ -163,7 +165,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
           return;
         }
       } catch (error) {
-        console.error('Step validation error:', error);
+        logger.error('Step validation error:', error);
         return;
       } finally {
         setIsValidating(false);
@@ -190,7 +192,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
           return;
         }
       } catch (error) {
-        console.error('Step validation error:', error);
+        logger.error('Step validation error:', error);
         return;
       } finally {
         setIsValidating(false);
@@ -201,7 +203,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
     try {
       await onComplete();
     } catch (error) {
-      console.error('Form completion error:', error);
+      logger.error('Form completion error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -240,13 +242,13 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
           {/* Progress bar */}
           {showProgress && (
             <div className="mb-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <div className="flex justify-between text-sm text-surface-muted-fg mb-2">
                 <span>Step {currentStep + 1} of {steps.length}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                  className="h-full bg-primary-600 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -266,10 +268,10 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
                     flex items-center justify-center w-10 h-10 rounded-full
                     font-semibold text-sm transition-all duration-200
                     ${index === currentStep
-                      ? 'bg-blue-600 text-white ring-4 ring-blue-100'
+                      ? 'bg-primary-600 text-white ring-4 ring-primary-100'
                       : index < currentStep || completedSteps.has(index)
                         ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600'
-                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-gray-200 text-surface-muted-fg cursor-not-allowed'
                     }
                   `}
                   aria-current={index === currentStep ? 'step' : undefined}
@@ -285,11 +287,11 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
 
                 {/* Step label */}
                 <div className="ml-3 hidden sm:block">
-                  <p className={`text-sm font-medium ${index === currentStep ? 'text-blue-600' : 'text-gray-500'}`}>
+                  <p className={`text-sm font-medium ${index === currentStep ? 'text-primary-600' : 'text-surface-muted-fg'}`}>
                     {step.title}
                   </p>
                   {showStepDescriptions && step.description && (
-                    <p className="text-xs text-gray-400">{step.description}</p>
+                    <p className="text-xs text-surface-muted-fg">{step.description}</p>
                   )}
                 </div>
 
@@ -323,10 +325,10 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
                   w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left
                   transition-all duration-200
                   ${index === currentStep
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-primary-50 text-primary-700'
                     : index < currentStep || completedSteps.has(index)
-                      ? 'text-gray-700 hover:bg-gray-50'
-                      : 'text-gray-400 cursor-not-allowed'
+                      ? 'text-surface-foreground hover:bg-surface-muted'
+                      : 'text-surface-muted-fg cursor-not-allowed'
                   }
                 `}
               >
@@ -334,10 +336,10 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
                   flex items-center justify-center w-8 h-8 rounded-full
                   font-semibold text-sm
                   ${index === currentStep
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : index < currentStep || completedSteps.has(index)
                       ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-500'
+                      : 'bg-gray-200 text-surface-muted-fg'
                   }
                 `}>
                   {index < currentStep || completedSteps.has(index) ? (
@@ -362,7 +364,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
 
   // Default navigation buttons - right-aligned per design standard
   const defaultNavigation = (
-    <div className="flex justify-end items-center gap-3 pt-6 border-t border-gray-200">
+    <div className="flex justify-end items-center gap-3 pt-6 border-t border-surface-border">
       {onCancel && (
         <Button
           variant="ghost"

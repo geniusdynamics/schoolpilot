@@ -1,8 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: React hook for managing data layer mode state and operations
 // ABOUTME: Provides a clean interface for components to interact with DataModeManager
 
 import { useState, useEffect, useCallback } from 'react';
-import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions, isDemoDataCleared as checkIsDemoDataCleared, markDemoDataCleared as serviceMarkDemoCleared } from '../services/data/dataModeManager';
+import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions, markDemoDataCleared as serviceMarkDemoCleared } from '../services/data/dataModeManager';
 
 // Use the same key as the service for consistency
 const DEMO_CLEARED_KEY = 'schoolpilot_demo_data_cleared';
@@ -40,7 +42,7 @@ export function useDataMode(): UseDataModeReturn {
       setStatus(currentStatus);
       setError(null);
     } catch (err) {
-      console.error('Failed to refresh status:', err);
+      logger.error('Failed to refresh status:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh status');
     }
   }, [dataModeManager]);
@@ -51,7 +53,7 @@ export function useDataMode(): UseDataModeReturn {
       setError(null);
       await dataModeManager.switchMode(mode, options);
     } catch (err) {
-      console.error('Failed to switch mode:', err);
+      logger.error('Failed to switch mode:', err);
       setError(err instanceof Error ? err.message : 'Failed to switch mode');
       throw err;
     } finally {
@@ -71,7 +73,7 @@ export function useDataMode(): UseDataModeReturn {
       }
       await refreshStatus();
     } catch (err) {
-      console.error('Failed to clear data:', err);
+      logger.error('Failed to clear data:', err);
       setError(err instanceof Error ? err.message : 'Failed to clear data');
       throw err;
     } finally {
@@ -86,7 +88,7 @@ export function useDataMode(): UseDataModeReturn {
       await dataModeManager.seedDemoData(volume, modules);
       await refreshStatus();
     } catch (err) {
-      console.error('Failed to seed data:', err);
+      logger.error('Failed to seed data:', err);
       setError(err instanceof Error ? err.message : 'Failed to seed data');
       throw err;
     } finally {

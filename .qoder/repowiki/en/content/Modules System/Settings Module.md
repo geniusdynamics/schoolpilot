@@ -18,20 +18,16 @@
 - [useDataMode.ts](file://src/hooks/useDataMode.ts)
 - [dataModeManager.ts](file://src/services/data/dataModeManager.ts)
 - [DataLayerSettingsPage.tsx](file://src/modules/settings/pages/DataLayerSettingsPage.tsx)
-- [FeatureSettingsPage.tsx](file://src/modules/settings/pages/FeatureSettingsPage.tsx)
-- [FeatureSettings.tsx](file://src/components/FeatureSettings.tsx)
-- [loader.ts](file://src/i18n/loader.ts)
-- [navigation.json](file://src/modules/core/i18n/fr/navigation.json)
-- [navigation.json](file://src/modules/core/i18n/en/navigation.json)
+- [productionDemo.ts](file://src/config/productionDemo.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated DataLayerSettingsPage documentation to reflect new demo mode restrictions and safety mechanisms
-- Added comprehensive coverage of demo mode blocking logic and visual feedback systems
-- Enhanced safety mechanisms documentation for production data protection
-- Updated configuration validation and error handling procedures
-- Added warning banner and button disable functionality documentation
+- Updated DataLayerSettingsPage documentation to reflect hard enforcement safeguards for demo data protection
+- Added comprehensive coverage of demo data permanence mechanism and production data loss prevention
+- Enhanced data layer configuration security documentation with service-level enforcement details
+- Updated troubleshooting guide with demo data clearing scenarios and recovery procedures
+- Expanded security considerations section with production data protection measures
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -39,21 +35,19 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Data Layer Settings Management](#data-layer-settings-management)
-7. [Safety Mechanisms and Demo Mode Restrictions](#safety-mechanisms-and-demo-mode-restrictions)
-8. [Internationalization and Localization](#internationalization-and-localization)
-9. [Dependency Analysis](#dependency-analysis)
-10. [Performance Considerations](#performance-considerations)
-11. [Troubleshooting Guide](#troubleshooting-guide)
-12. [Conclusion](#conclusion)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Security and Data Protection](#security-and-data-protection)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
 
 ## Introduction
 
 The Settings module serves as the centralized configuration management system for the EduGen school management platform. It provides a unified interface for managing database settings, feature flags, module management, and system configuration across different deployment environments. The module implements a comprehensive configuration architecture that supports development, demo, and production modes with robust validation, auditing, and integration capabilities.
 
-The Settings module is built around three core pillars: unified configuration management, modular feature control, and environment-aware data layer configuration. It provides administrators and developers with powerful tools to configure, monitor, and optimize the system's behavior across various operational contexts.
+**Updated** The module now features enhanced data protection mechanisms with hard enforcement safeguards to prevent production data loss. The DataLayerSettingsPage includes comprehensive demo data safeguards that implement permanent blocking of demo mode switching after demo data has been cleared, ensuring irreversible transition to production mode.
 
-**Updated** The module now features enhanced safety mechanisms with comprehensive demo mode restrictions designed to prevent accidental production data loss during environment transitions. The DataLayerSettingsPage incorporates critical safety checks that block demo mode switching when demo data has been permanently cleared, providing visual warnings and disabling configuration buttons to protect production environments.
+The Settings module is built around three core pillars: unified configuration management, modular feature control, and environment-aware data layer configuration. It provides administrators and developers with powerful tools to configure, monitor, and optimize the system's behavior across various operational contexts while maintaining strict data integrity and security standards.
 
 ## Project Structure
 
@@ -73,14 +67,11 @@ G --> J[Feature Flags]
 G --> K[DataLayerConfig]
 L[Hooks & Services] --> M[useUnifiedConfig]
 L --> N[useDataMode]
-O[Configuration Files] --> P[modules.json]
-O --> Q[databaseConfigSchema]
-R[Internationalization] --> S[i18n Loader]
-R --> T[Translation Files]
-R --> U[Navigation Keys]
-S[Data Layer Management] --> V[DataModeManager]
-S --> W[DataServiceFactory]
-S --> X[Demo Data Control]
+O[Data Protection Layer] --> P[Demo Data Permanence]
+O --> Q[Production Demo State]
+O --> R[Hard Enforcement Mechanisms]
+S[Configuration Files] --> T[modules.json]
+S --> U[databaseConfigSchema]
 end
 ```
 
@@ -88,16 +79,15 @@ end
 - [index.ts:1-13](file://src/components/settings/index.ts#L1-L13)
 - [unifiedConfig.ts:1-221](file://src/config/unifiedConfig.ts#L1-L221)
 - [configManager.ts:1-800](file://src/config/configManager.ts#L1-L800)
-- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [productionDemo.ts:1-200](file://src/config/productionDemo.ts#L1-L200)
 
 The module organizes its functionality into several key areas:
 
 - **Component Layer**: React components that provide user interfaces for configuration management
 - **Configuration Layer**: Centralized configuration management with validation and persistence
-- **Service Layer**: Business logic for data mode switching and configuration operations
-- **Hook Layer**: React hooks for accessing configuration state and services
-- **Internationalization Layer**: Comprehensive translation management with validation
-- **Data Layer Management**: Safety mechanisms and demo mode restrictions for production protection
+- **Service Layer**: Business logic for data mode switching and configuration operations with hard enforcement
+- **Protection Layer**: Security mechanisms preventing production data loss through demo data permanence
+- **Hook Layer**: React hooks for accessing configuration state and services with data protection awareness
 
 **Section sources**
 - [index.ts:1-13](file://src/components/settings/index.ts#L1-L13)
@@ -111,13 +101,15 @@ The Settings module's foundation lies in its unified configuration system, which
 
 The configuration architecture implements a layered approach with clear separation between core configuration, environment-specific settings, and feature-specific controls. This design enables flexible configuration management while maintaining system stability and consistency.
 
-**Updated** The unified system now consolidates all configuration management into a streamlined interface, eliminating redundant components and simplifying the user experience while enhancing internationalization support and incorporating comprehensive safety mechanisms.
+**Updated** The unified system now incorporates hard enforcement mechanisms that prevent accidental or malicious attempts to revert production systems back to demo mode, ensuring irreversible transition to production environments.
 
 ### Database Configuration Management
 
 The database configuration system provides comprehensive management of database providers, connection settings, and performance tuning parameters. It supports multiple database backends including SQLite, PouchDB, LiveStore, and backend APIs, with automatic validation and migration capabilities.
 
 The system includes sophisticated validation rules that ensure configuration integrity and provide automated fixes for common configuration issues. It also maintains detailed audit trails and supports configuration export/import for backup and migration scenarios.
+
+**Updated** Enhanced with production data protection that permanently blocks demo mode switching after demo data has been cleared, preventing accidental data overwrite scenarios.
 
 ### Feature Flag Management
 
@@ -144,7 +136,7 @@ C[BackendConfiguration] --> D[BackendType Selector]
 E[ModuleManagementPanel] --> F[Module List]
 G[UserPermissionsPanel] --> H[Permission Grid]
 I[UnifiedModeSwitch] --> J[Mode Cards]
-K[DataLayerSettingsPage] --> L[Demo Mode Restrictions]
+K[DataLayerSettingsPage] --> L[Hard Enforcement UI]
 end
 subgraph "Configuration Management"
 M[UnifiedConfigManager] --> N[Config Persistence]
@@ -152,52 +144,37 @@ M --> O[Validation Engine]
 M --> P[Feature Flags]
 M --> Q[Environment Config]
 end
+subgraph "Data Protection Layer"
+R[DataModeManager] --> S[Demo Data Permanence]
+R --> T[Production Demo State]
+R --> U[Hard Enforcement Checks]
+V[useDataMode Hook] --> W[Demo Cleared Flag]
+end
 subgraph "Data Layer"
-R[DataModeManager] --> S[Provider Factory]
-R --> T[Demo Data Seeder]
-U[DatabaseConfigValidator] --> V[Validation Rules]
-U --> W[Migration System]
-X[useDataMode] --> Y[Demo Mode State]
-Y --> Z[Demo Data Cleared Flag]
+X[DataModeManager] --> Y[Provider Factory]
+X --> Z[Demo Data Seeder]
+AA[DatabaseConfigValidator] --> BB[Validation Rules]
+AA --> CC[Migration System]
 end
 subgraph "Services & Hooks"
-AA[useUnifiedConfig] --> BB[Context Provider]
-CC[useConfig] --> DD[State Access]
-EE[useDataMode] --> FF[Mode Operations]
-FF --> GG[Demo Safety Checks]
-end
-subgraph "Internationalization"
-HH[i18n Loader] --> II[Translation Bundles]
-HH --> JJ[Navigation Keys]
-HH --> KK[Validation System]
-end
-A --> M
-C --> M
-E --> M
-G --> M
-I --> M
-K --> M
-M --> R
-M --> U
-M --> HH
-AA --> M
-CC --> M
-EE --> R
-FF --> GG
-HH --> II
-II --> JJ
-JJ --> KK
+DD[useUnifiedConfig] --> EE[Context Provider]
+FF[useDataMode] --> GG[Status Management]
+HH[dataModeManager] --> II[Mode Operations]
+K --> R
+M --> X
+DD --> M
+FF --> V
+II --> HH
 ```
 
 **Diagram sources**
-- [FeatureSettings.tsx:167-378](file://src/components/settings/FeatureSettings.tsx#L167-L378)
-- [configManager.ts:415-437](file://src/config/configManager.ts#L415-L437)
-- [useDataMode.ts:1-178](file://src/hooks/useDataMode.ts#L1-L178)
-- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [DataLayerSettingsPage.tsx:71-75](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L71-L75)
+- [dataModeManager.ts:133-142](file://src/services/data/dataModeManager.ts#L133-L142)
+- [useDataMode.ts:28](file://src/hooks/useDataMode.ts#L28)
 
-The architecture follows a unidirectional data flow pattern where configuration changes propagate through the system via event emitters and state management. This design ensures consistency and enables real-time updates across the application.
+The architecture follows a unidirectional data flow pattern where configuration changes propagate through the system via event emitters and state management. This design ensures consistency and enables real-time updates across the application while implementing hard enforcement mechanisms at the service level.
 
-**Updated** The architecture now features enhanced safety mechanisms with comprehensive demo mode restrictions that prevent accidental production data loss. The DataLayerSettingsPage incorporates visual feedback systems and button disabling logic to provide clear warnings when demo mode transitions are blocked.
+**Updated** The architecture now includes comprehensive data protection mechanisms with hard enforcement checks that prevent demo mode switching after demo data has been permanently cleared, ensuring production data integrity.
 
 **Section sources**
 - [unifiedConfig.ts:106-221](file://src/config/unifiedConfig.ts#L106-L221)
@@ -209,7 +186,7 @@ The architecture follows a unidirectional data flow pattern where configuration 
 
 The FeatureSettings component serves as the primary interface for managing application features and system configuration. It implements a tabbed interface using the AdaptiveTabs system and provides comprehensive access to various configuration domains.
 
-**Updated** The component has been consolidated into a unified interface that eliminates the deprecated FeatureSettingsNew component, providing a streamlined user experience with enhanced functionality and improved internationalization support.
+**Updated** The component has been consolidated into a unified interface that eliminates the deprecated FeatureSettingsNew component, providing a streamlined user experience with enhanced functionality and integrated data protection warnings.
 
 ```mermaid
 classDiagram
@@ -377,208 +354,35 @@ The component implements a sophisticated state management system with loading st
 **Section sources**
 - [UnifiedModeSwitch.tsx:16-264](file://src/components/settings/UnifiedModeSwitch.tsx#L16-L264)
 
-## Data Layer Settings Management
+### DataLayerSettingsPage Component
 
-The DataLayerSettingsPage serves as the primary interface for managing database providers, data modes, and backend configurations. It provides a comprehensive unified workflow for configuring the entire data layer ecosystem.
-
-### Unified Configuration Workflow
-
-The DataLayerSettingsPage implements a sophisticated configuration workflow that consolidates multiple configuration steps into a single, intuitive interface:
+**Updated** The DataLayerSettingsPage component has received significant improvements with comprehensive demo data safeguards to prevent production data loss. The component now implements hard enforcement mechanisms at both the UI and service levels to block switching to demo mode after demo data has been cleared.
 
 ```mermaid
 flowchart TD
-A[User Opens DataLayerSettingsPage] --> B[Initialize with Current Mode]
-B --> C[Display Mode Selection]
-C --> D{User Selects Mode}
-D --> |Demo| E[Show Demo Options]
-D --> |Production| F[Show Production Options]
-E --> G[Configure Database Provider]
-F --> G
-G --> H[Select Backend Integration]
-H --> I[Review Configuration Summary]
-I --> J{Demo Data Cleared?}
-J --> |Yes| K[Block Demo Mode Switch]
-J --> |No| L[Allow Configuration]
-K --> M[Show Warning Banner]
-L --> N[Enable Apply Button]
-M --> O[Disable Apply Button]
-N --> P[User Clicks Apply]
-O --> P
-P --> Q[Validate Configuration]
-Q --> R[Apply Changes]
-R --> S[Update Unified Config]
-S --> T[Reload Application]
+A[DataLayerSettingsPage] --> B[Hard Enforcement Check]
+B --> C{Is Demo Mode Blocked?}
+C --> |Yes| D[Display Production Mode Locked Warning]
+C --> |No| E[Allow Mode Switch]
+D --> F[Disable Apply Button]
+E --> G[Proceed with Normal Operation]
+F --> H[Show Error Message]
+G --> I[Execute Mode Switch]
+I --> J[Update Configuration]
+J --> K[Reload Application]
 ```
 
 **Diagram sources**
-- [DataLayerSettingsPage.tsx:71-159](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L71-L159)
-- [useDataMode.ts:162-174](file://src/hooks/useDataMode.ts#L162-L174)
-
-The workflow ensures that configuration changes are validated, audited, and applied consistently across the entire system. It provides real-time feedback and error handling to prevent invalid configurations.
-
-### Configuration Validation and Safety Checks
-
-The DataLayerSettingsPage implements comprehensive validation and safety mechanisms:
-
-- **Demo Mode Blocking**: Prevents switching to demo mode when demo data has been permanently cleared
-- **Visual Warning Systems**: Displays clear warning banners when demo mode restrictions are active
-- **Button State Management**: Automatically disables the Apply Configuration button when demo mode is blocked
-- **Configuration Preview**: Shows detailed configuration summaries before applying changes
-- **Error Handling**: Provides detailed error messages for failed configuration attempts
-
-**Section sources**
-- [DataLayerSettingsPage.tsx:71-159](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L71-L159)
-- [useDataMode.ts:162-174](file://src/hooks/useDataMode.ts#L162-L174)
-
-## Safety Mechanisms and Demo Mode Restrictions
-
-The Settings module implements comprehensive safety mechanisms to prevent accidental production data loss during environment transitions. These mechanisms are particularly important for the DataLayerSettingsPage, which manages critical database configurations.
-
-### Demo Data Protection System
-
-The demo data protection system consists of multiple layers designed to prevent accidental data loss:
-
-```mermaid
-stateDiagram-v2
-[*] --> DemoMode
-DemoMode --> DemoCleared : Data Cleared
-DemoCleared --> ProductionMode : Transition Complete
-ProductionMode --> [*] : System Active
-DemoMode --> Blocked : Demo Data Cleared Flag Set
-Blocked --> DemoMode : Cannot Switch Back
-DemoMode --> Error : Attempted Switch
-Error --> Blocked : Show Warning
-```
-
-**Diagram sources**
-- [dataModeManager.ts:43-64](file://src/services/data/dataModeManager.ts#L43-L64)
-- [useDataMode.ts:32-35](file://src/hooks/useDataMode.ts#L32-L35)
-
-The system uses a permanent flag stored in localStorage to track whether demo data has been cleared. Once cleared, the system prevents any attempt to return to demo mode, ensuring that production environments remain protected.
-
-### Visual Feedback and User Experience
-
-The DataLayerSettingsPage provides comprehensive visual feedback for safety mechanisms:
-
-- **Warning Banners**: Amber-colored banners with AlertTriangle icons when demo mode is blocked
-- **Button Disabling**: Apply Configuration button becomes disabled with tooltips explaining the restriction
-- **Status Indicators**: Clear status messages indicating whether demo reseeding is available
-- **Configuration Locks**: Prevents modification of configuration when demo mode restrictions are active
-
-### Implementation Details
-
-The safety mechanisms are implemented through several coordinated components:
-
-**DataModeManager Service**: Enforces hard restrictions on demo mode switching and seeding operations when demo data has been cleared.
-
-**useDataMode Hook**: Manages the demo cleared state and provides it to components for UI decisions.
-
-**DataLayerSettingsPage Component**: Implements the user-facing safety mechanisms with visual warnings and button state management.
-
-**Storage Management**: Uses localStorage to persist the demo cleared flag across browser sessions.
-
-**Section sources**
-- [dataModeManager.ts:133-142](file://src/services/data/dataModeManager.ts#L133-L142)
-- [useDataMode.ts:28-35](file://src/hooks/useDataMode.ts#L28-L35)
+- [DataLayerSettingsPage.tsx:71-75](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L71-L75)
 - [DataLayerSettingsPage.tsx:335-345](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L335-L345)
 
-## Internationalization and Localization
-
-The Settings module implements a comprehensive internationalization (i18n) system that supports multiple languages with robust validation and error handling. The system has been recently enhanced with improved French translation support and corrected navigation key structures.
-
-### Translation Loading System
-
-The i18n loader manages translation resources for multiple languages and namespaces, ensuring proper initialization and validation of localized content:
-
-```mermaid
-flowchart TD
-A[i18n Loader] --> B[Load English Resources]
-A --> C[Load French Resources]
-B --> D[Common Namespace]
-B --> E[Navigation Namespace]
-B --> F[Settings Namespace]
-B --> G[Other Namespaces]
-C --> H[Common Namespace]
-C --> I[Navigation Namespace]
-C --> J[Settings Namespace]
-C --> K[Other Namespaces]
-L[Translation Validation] --> M[Key Structure Check]
-L --> N[Missing Key Detection]
-L --> O[Malformed Key Correction]
-M --> P[Navigation Keys]
-N --> Q[Settings Keys]
-O --> R[Core Keys]
-```
-
-**Diagram sources**
-- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
-
-The loader registers translation bundles for English and French languages across multiple namespaces including common, navigation, settings, and module-specific translations. This centralized approach ensures consistent translation management and easy maintenance.
-
-### Navigation Key Validation
-
-Recent improvements have focused on validating and correcting navigation keys, particularly in the French translation file. The system now includes enhanced validation to prevent malformed navigation keys and ensure consistent localization across all supported languages.
-
-**Updated** The French translation file has been corrected to address 21 malformed navigation keys, improving the overall quality and consistency of the French localization. The corrections include proper key naming conventions, standardized value formats, and enhanced translation accuracy.
-
-### Translation Key Structure
-
-The navigation translation system follows a structured approach with consistent key hierarchies:
-
-```mermaid
-classDiagram
-class NavigationTranslation {
-+object dashboard
-+object administration
-+object academics
-+object finance
-+object hr
-+object inventory
-+object library
-+object nutrition
-+object reports
-+object settings
-+object vendor
-+string sidebarNavigation
-+string sidebarNavigationMobile
-}
-class SettingsNamespace {
-+string title
-+string description
-+string general
-+string schoolProfile
-+string userManagement
-+string workflows
-+string auditLog
-+string database
-+string databaseProvider
-+string databaseSettings
-+string dataLayerSettings
-+string users
-+string tabbedWorkspaceTest
-}
-NavigationTranslation --> SettingsNamespace : "contains"
-```
-
-**Diagram sources**
-- [navigation.json:139-153](file://src/modules/core/i18n/fr/navigation.json#L139-L153)
-- [navigation.json:139-153](file://src/modules/core/i18n/en/navigation.json#L139-L153)
-
-The settings namespace contains comprehensive localization for all configuration management features, including database management, user management, workflow configuration, and audit logging.
-
-### Translation Quality Improvements
-
-The recent updates have significantly improved translation quality and consistency:
-
-- **French Translation Corrections**: Fixed 21 malformed navigation keys in the French translation file
-- **Enhanced Validation**: Implemented improved validation for navigation key structures
-- **Consistent Naming**: Standardized key naming conventions across all supported languages
-- **Improved Accuracy**: Enhanced translation accuracy for technical terms and system features
+The component implements a two-tier enforcement system:
+1. **UI-Level Enforcement**: Prevents demo mode selection and displays clear warnings when demo data has been cleared
+2. **Service-Level Enforcement**: Blocks mode switching at the business logic level with comprehensive error handling
 
 **Section sources**
-- [loader.ts:21-34](file://src/i18n/loader.ts#L21-L34)
-- [navigation.json:1-164](file://src/modules/core/i18n/fr/navigation.json#L1-164)
-- [navigation.json:1-163](file://src/modules/core/i18n/en/navigation.json#L1-163)
+- [DataLayerSettingsPage.tsx:71-75](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L71-L75)
+- [DataLayerSettingsPage.tsx:335-345](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L335-L345)
 
 ## Dependency Analysis
 
@@ -590,53 +394,45 @@ subgraph "External Dependencies"
 A[React] --> B[FeatureSettings]
 C[Heroicons] --> D[UI Icons]
 E[Lucide React] --> F[Mode Switch Icons]
-G[i18next] --> H[Translation System]
-I[events] --> J[EventEmitter]
 end
 subgraph "Internal Dependencies"
-K[UnifiedConfigManager] --> L[FeatureSettings]
-K --> M[ModuleManagementPanel]
-K --> N[UserPermissionsPanel]
-K --> O[UnifiedModeSwitch]
-P[DatabaseConfigValidator] --> Q[BackendConfiguration]
-R[DataModeManager] --> S[DataLayerSettingsPage]
-T[useUnifiedConfig] --> U[All Components]
-V[i18n Loader] --> W[Translation Resources]
-X[DataServiceFactory] --> Y[Database Operations]
+G[UnifiedConfigManager] --> H[FeatureSettings]
+G --> I[ModuleManagementPanel]
+G --> J[UserPermissionsPanel]
+G --> K[UnifiedModeSwitch]
+L[DatabaseConfigValidator] --> M[BackendConfiguration]
+N[DataModeManager] --> O[UnifiedModeSwitch]
+P[useUnifiedConfig] --> Q[All Components]
+R[useDataMode] --> S[DataLayerSettingsPage]
+T[productionDemo] --> U[Demo Data Permanence]
 end
 subgraph "Configuration Dependencies"
-Z[modules.json] --> AA[Module Registry]
-BB[databaseConfigSchema] --> CC[Validation Rules]
-DD[features.ts] --> EE[Feature Flags]
-FF[Navigation Keys] --> GG[Localization System]
-HH[DEMO_DATA_CLEARED_KEY] --> II[Demo Safety Mechanism]
+V[modules.json] --> W[Module Registry]
+X[databaseConfigSchema] --> Y[Validation Rules]
+Z[features.ts] --> AA[Feature Flags]
+BB[productionDemo.ts] --> CC[Hard Enforcement]
 end
-L --> K
-M --> K
-N --> K
-O --> K
-Q --> P
-U --> K
-W --> V
-Y --> R
-AA --> M
-CC --> P
-DD --> K
-FF --> V
-GG --> V
-II --> HH
+H --> G
+I --> G
+J --> G
+K --> G
+M --> L
+Q --> G
+W --> I
+Y --> L
+AA --> G
+CC --> R
 ```
 
 **Diagram sources**
 - [FeatureSettings.tsx:6-34](file://src/components/settings/FeatureSettings.tsx#L6-L34)
 - [useUnifiedConfig.ts:4-19](file://src/hooks/useUnifiedConfig.ts#L4-L19)
-- [modules.json:1-74](file://src/config/modules.json#L1-L74)
-- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
-- [dataModeManager.ts:36-46](file://src/services/data/dataModeManager.ts#L36-L46)
+- [useDataMode.ts:4](file://src/hooks/useDataMode.ts#L4-L4)
+- [productionDemo.ts:1-200](file://src/config/productionDemo.ts#L1-L200)
 
 The dependency structure follows clean architecture principles with clear boundaries between presentation, domain, and infrastructure layers. Components depend on abstractions rather than concrete implementations, enabling flexibility and testability.
 
-**Updated** The dependency structure has been enhanced with improved internationalization dependencies, including better translation resource management and validation systems. The addition of the DEMO_DATA_CLEARED_KEY demonstrates the integration of safety mechanisms into the dependency architecture.
+**Updated** The dependency structure now includes production demo protection mechanisms that integrate tightly with the data mode management system to prevent accidental data loss scenarios.
 
 **Section sources**
 - [unifiedConfig.ts:106-221](file://src/config/unifiedConfig.ts#L106-L221)
@@ -651,14 +447,53 @@ The Settings module implements several performance optimization strategies:
 - **Configuration Caching**: Frequently accessed configuration data is cached to reduce computation overhead
 - **Event-Driven Architecture**: Uses event emitters to minimize unnecessary re-renders
 - **Validation Optimization**: Database configuration validation is performed asynchronously to avoid blocking the UI
-- **Translation Caching**: Translation resources are cached to reduce loading overhead
-- **Key Validation**: Navigation key validation occurs during initialization to prevent runtime errors
-- **Demo Mode Caching**: Demo mode state is cached locally to avoid repeated localStorage reads
-- **Safety Mechanism Optimization**: Demo mode restrictions are computed efficiently using useMemo
+- **Hard Enforcement Caching**: Demo data permanence checks are cached locally to improve response times
 
 The module also includes built-in performance monitoring capabilities through the PerformanceDashboard and MemoryDashboard components, providing insights into system performance metrics and memory usage patterns.
 
-**Updated** Performance optimizations have been enhanced through the consolidated architecture and improved internationalization support, reducing component overhead and improving overall system responsiveness while maintaining translation quality. The demo mode safety mechanisms are optimized to minimize performance impact while providing comprehensive protection.
+**Updated** Performance optimizations have been enhanced through the consolidated architecture and hard enforcement mechanisms, reducing component overhead and improving overall system responsiveness while maintaining security.
+
+## Security and Data Protection
+
+**Updated** The Settings module now implements comprehensive data protection mechanisms to prevent production data loss through hard enforcement safeguards.
+
+### Demo Data Permanence System
+
+The system implements a permanent blocking mechanism that prevents any attempt to switch back to demo mode after demo data has been cleared:
+
+```mermaid
+stateDiagram-v2
+[*] --> DemoActive
+DemoActive --> DemoCleared : Data Cleared
+DemoCleared --> ProductionMode : Transition Complete
+ProductionMode --> [*] : System Locked
+```
+
+**Diagram sources**
+- [dataModeManager.ts:43-64](file://src/services/data/dataModeManager.ts#L43-L64)
+- [dataModeManager.ts:290-295](file://src/services/data/dataModeManager.ts#L290-L295)
+
+### Hard Enforcement Mechanisms
+
+The system implements multiple layers of protection:
+
+1. **Service-Level Enforcement**: DataModeManager blocks demo mode switching when `isDemoDataCleared()` returns true
+2. **UI-Level Enforcement**: DataLayerSettingsPage displays warnings and disables demo mode options
+3. **Hook-Level Enforcement**: useDataMode hook tracks demo data cleared state and prevents transitions
+4. **Storage-Level Enforcement**: Local storage flag permanently marks demo data as cleared
+
+### Production Data Protection Features
+
+- **Irreversible Transitions**: Once demo data is cleared, the system cannot return to demo mode
+- **Comprehensive Auditing**: All data clearance operations are logged with timestamps and environment context
+- **Multi-Factor Confirmation**: Production data clearing requires explicit confirmation with typed verification
+- **Session-Based Protection**: Production demo sessions are tracked and can be extended or cleaned up
+
+**Section sources**
+- [dataModeManager.ts:133-142](file://src/services/data/dataModeManager.ts#L133-L142)
+- [dataModeManager.ts:309-318](file://src/services/data/dataModeManager.ts#L309-L318)
+- [useDataMode.ts:28](file://src/hooks/useDataMode.ts#L28)
+- [productionDemo.ts:287-301](file://src/config/productionDemo.ts#L287-L301)
 
 ## Troubleshooting Guide
 
@@ -687,18 +522,21 @@ The module also includes built-in performance monitoring capabilities through th
 - Verify sufficient disk space for data migration
 - Check for active database connections during mode switching
 - Review error logs for specific failure reasons
+- **Updated** For demo data permanence issues: Check if demo data has been permanently cleared and review production data protection mechanisms
 
-**Demo Mode Safety Mechanisms**
-- Verify demo data has been properly cleared before attempting production transition
-- Check localStorage for DEMO_DATA_CLEARED_KEY flag
-- Review warning banners for detailed error messages
-- Ensure Apply Configuration button is disabled when demo mode is blocked
+### Production Data Protection Issues
 
-**Translation Loading Issues**
-- Verify translation files are properly formatted JSON
-- Check for missing translation keys in target languages
-- Ensure navigation key structures follow required conventions
-- Validate translation resource bundles are correctly registered
+**Demo Mode Switch Blocked**
+- Verify that demo data has been cleared and system is in production mode
+- Check local storage flag `schoolpilot_demo_data_cleared`
+- Review audit logs for data clearance operations
+- Use production demo session management for temporary access
+
+**Data Clearance Failures**
+- Verify production environment requirements
+- Check storage permissions for local storage operations
+- Review audit logging for clearance operations
+- Implement manual recovery procedures if needed
 
 ### Diagnostic Tools
 
@@ -706,27 +544,24 @@ The Settings module provides comprehensive diagnostic capabilities:
 
 - **Configuration Export/Import**: Full configuration backup and restoration
 - **Validation Reports**: Detailed validation results with suggested fixes
-- **Audit Logging**: Complete audit trail of configuration changes
+- **Audit Logging**: Complete audit trail of configuration changes and data protection events
 - **Health Monitoring**: Real-time system health and performance metrics
 - **Error Tracking**: Comprehensive error reporting and debugging information
-- **Translation Validation**: Automated checking of translation key structures
-- **Navigation Key Audit**: Systematic review of navigation key consistency
-- **Demo Mode Status**: Real-time monitoring of demo mode safety mechanisms
+- **Production Demo State**: Session tracking and expiration management
 
 **Section sources**
 - [databaseConfigSchema.ts:317-360](file://src/config/databaseConfigSchema.ts#L317-L360)
 - [configManager.ts:704-725](file://src/config/configManager.ts#L704-L725)
+- [dataModeManager.ts:290-302](file://src/services/data/dataModeManager.ts#L290-L302)
 
 ## Conclusion
 
 The Settings module represents a comprehensive and well-architected configuration management system that provides administrators and developers with powerful tools to manage and optimize the EduGen platform. Its unified approach to configuration management, combined with robust validation, auditing, and monitoring capabilities, ensures system reliability and flexibility across diverse deployment scenarios.
 
-**Updated** The module's recent consolidation into a unified architecture, enhanced with improved internationalization support and comprehensive demo mode safety mechanisms, demonstrates superior maintainability and user experience while preserving all essential functionality. The removal of deprecated components, streamlining of the component structure, and enhanced translation validation improve system performance and reduce complexity.
+**Updated** The module's recent enhancements demonstrate improved data protection and security through comprehensive demo data safeguards. The hard enforcement mechanisms implemented in the DataLayerSettingsPage and DataModeManager provide multiple layers of protection against production data loss, ensuring that once a system has been transitioned to production mode, it cannot accidentally revert to demo mode.
 
-The introduction of demo mode restrictions and visual feedback systems represents a significant advancement in system safety and protection against accidental production data loss. The DataLayerSettingsPage now provides comprehensive safety mechanisms that prevent unauthorized transitions between demo and production modes, ensuring system integrity and data protection.
+The module's design emphasizes modularity, maintainability, user experience, and security, providing intuitive interfaces for complex administrative tasks while maintaining system stability and performance. The integration of feature flags, module management, environment-aware configuration, and production data protection creates a robust foundation for system evolution and adaptation to changing requirements.
 
-The module's design emphasizes modularity, maintainability, and user experience, providing intuitive interfaces for complex administrative tasks while maintaining system stability and performance. The integration of feature flags, module management, environment-aware configuration, comprehensive internationalization, and robust safety mechanisms creates a flexible foundation for system evolution and adaptation to changing requirements.
+Through its comprehensive validation systems, audit capabilities, diagnostic tools, and hard enforcement mechanisms, the Settings module enables effective system governance and troubleshooting, supporting both day-to-day operations and long-term system maintenance and enhancement efforts while ensuring the highest standards of data integrity and security.
 
-Through its comprehensive validation systems, audit capabilities, diagnostic tools, enhanced translation support, and advanced safety mechanisms, the Settings module enables effective system governance and troubleshooting, supporting both day-to-day operations and long-term system maintenance and enhancement efforts. The recent improvements in French translation quality, navigation key validation, and demo mode protection demonstrate the module's commitment to providing high-quality, accessible, and secure localization across all supported languages and operational contexts.
-
-The enhanced safety mechanisms, particularly the demo mode restrictions and visual feedback systems, represent best practices in enterprise-grade configuration management. These features ensure that critical system transitions are protected against human error while providing clear guidance to administrators about system state and available actions.
+The implementation of production data protection mechanisms demonstrates the module's commitment to preventing catastrophic data loss scenarios and maintaining the trust of production system operators through comprehensive safety measures and clear operational boundaries.

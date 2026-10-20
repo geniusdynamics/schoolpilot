@@ -2,19 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { BuildingLibraryIcon, CalendarIcon, CurrencyDollarIcon, ScaleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { BalanceSheetItem } from '../data/types';
+import { BuildingLibraryIcon, CurrencyDollarIcon, ScaleIcon } from '@/components/ui/icons';
 
 // ABOUTME: BalanceSheetPage displays the school's financial position snapshot
 // ABOUTME: with assets, liabilities, and equity breakdowns
 
-const BalanceSheetPage: React.FC = () => {
-  const { t } = useTranslation('finance');
+export const BalanceSheetPageContent: React.FC = () => {
+
   const { balanceSheetItems, loading } = useAppData();
 
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0]);
@@ -26,8 +23,8 @@ const BalanceSheetPage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(item => 
-        item.account_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.subcategory.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.account_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.subcategory?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -42,23 +39,23 @@ const BalanceSheetPage: React.FC = () => {
   const totals = useMemo(() => {
     const assets = mockBalanceSheet
       .filter(item => item.category === 'Asset')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
     
     const liabilities = mockBalanceSheet
       .filter(item => item.category === 'Liability')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
     
     const equity = mockBalanceSheet
       .filter(item => item.category === 'Equity')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     const currentAssets = mockBalanceSheet
       .filter(item => item.category === 'Asset' && item.subcategory === 'Current Assets')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     const currentLiabilities = mockBalanceSheet
       .filter(item => item.category === 'Liability' && item.subcategory === 'Current Liabilities')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
     
     return {
       assets,
@@ -74,7 +71,7 @@ const BalanceSheetPage: React.FC = () => {
 
   const getCategoryBadge = (category: string) => {
     const styles = {
-      'Asset': 'bg-blue-100 text-blue-800',
+      'Asset': 'bg-primary-100 text-primary-800',
       'Liability': 'bg-red-100 text-red-800',
       'Equity': 'bg-green-100 text-green-800'
     };
@@ -110,8 +107,8 @@ const BalanceSheetPage: React.FC = () => {
       header: 'Amount',
       sortable: true,
       render: (value, item) => (
-        <span className={`font-semibold ${item.category === 'Asset' || item.category === 'Equity' ? 'text-blue-600' : 'text-red-600'}`}>
-          KES {value.toLocaleString()}
+        <span className={`font-semibold ${item.category === 'Asset' || item.category === 'Equity' ? 'text-primary-600' : 'text-red-600'}`}>
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -119,13 +116,13 @@ const BalanceSheetPage: React.FC = () => {
       key: 'percentage',
       header: '% of Category',
       sortable: true,
-      render: (value) => value !== undefined ? `${value.toFixed(1)}%` : '-'
+      render: (value) => value != null ? `${value?.toFixed?.(1) ?? value}%` : '-'
     }
   ];
 
   const categories = ['Asset', 'Liability', 'Equity'];
 
-  if (loading && mockBalanceSheet.length === 0) {
+  if (loading?.all && mockBalanceSheet.length === 0 && !balanceSheetItems) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -153,20 +150,20 @@ const BalanceSheetPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">As of Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">As of Date</label>
             <input
               type="date"
               value={asOfDate}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAsOfDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Category</label>
             <select
               value={categoryFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoryFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Categories</option>
               {categories.map(c => (
@@ -175,30 +172,30 @@ const BalanceSheetPage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Account or subcategory..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <CurrencyDollarIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">Total Assets</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               KES {(totals.assets / 1000000).toFixed(1)}M
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Total Liabilities</span>
             </div>
@@ -206,8 +203,8 @@ const BalanceSheetPage: React.FC = () => {
               KES {(totals.liabilities / 1000000).toFixed(1)}M
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Total Equity</span>
             </div>
@@ -215,17 +212,17 @@ const BalanceSheetPage: React.FC = () => {
               KES {(totals.equity / 1000000).toFixed(1)}M
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ScaleIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Working Capital</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.workingCapital >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              KES {totals.workingCapital.toLocaleString()}
+              KES {totals.workingCapital?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <BuildingLibraryIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Debt Ratio</span>
             </div>
@@ -237,20 +234,20 @@ const BalanceSheetPage: React.FC = () => {
 
         {/* Balance Summary */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-800 mb-3">Assets Breakdown</h4>
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+            <h4 className="font-semibold text-primary-800 mb-3">Assets Breakdown</h4>
             <div className="space-y-2">
               {mockBalanceSheet.filter(i => i.category === 'Asset').map(item => (
-                <div key={item.id} className="flex justify-between py-1 border-b border-blue-100 last:border-0">
-                  <span className="text-sm text-blue-700">{item.account_name}</span>
-                  <span className="text-sm font-semibold text-blue-800">
+                <div key={item.id} className="flex justify-between py-1 border-b border-primary-100 last:border-0">
+                  <span className="text-sm text-primary-700">{item.account_name}</span>
+                  <span className="text-sm font-semibold text-primary-800">
                     KES {(item.amount / 1000000).toFixed(2)}M
                   </span>
                 </div>
               ))}
-              <div className="flex justify-between py-2 border-t-2 border-blue-300 font-bold">
-                <span className="text-sm text-blue-800">Total Assets</span>
-                <span className="text-sm text-blue-800">KES {(totals.assets / 1000000).toFixed(2)}M</span>
+              <div className="flex justify-between py-2 border-t-2 border-primary-300 font-bold">
+                <span className="text-sm text-primary-800">Total Assets</span>
+                <span className="text-sm text-primary-800">KES {(totals.assets / 1000000).toFixed(2)}M</span>
               </div>
             </div>
           </div>
@@ -283,5 +280,10 @@ const BalanceSheetPage: React.FC = () => {
     </div>
   );
 };
+const BalanceSheetPage: React.FC = () => (
+  <div className="space-y-6">
+    <BalanceSheetPageContent />
+  </div>
+);
 
 export default BalanceSheetPage;

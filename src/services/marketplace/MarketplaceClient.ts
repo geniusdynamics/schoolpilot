@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Marketplace Client
  * 
@@ -103,7 +105,7 @@ export class MarketplaceClient {
 
       throw new Error(result.message || 'Invalid marketplace key');
     } catch (error) {
-      console.error('[MarketplaceClient] Key validation failed:', error);
+      logger.error('[MarketplaceClient] Key validation failed:', error);
       throw error;
     }
   }
@@ -133,7 +135,7 @@ export class MarketplaceClient {
       
       return result.config;
     } catch (error) {
-      console.error('[MarketplaceClient] Key activation failed:', error);
+      logger.error('[MarketplaceClient] Key activation failed:', error);
       throw error;
     }
   }
@@ -212,7 +214,7 @@ export class MarketplaceClient {
 
       return result;
     } catch (error) {
-      console.error('[MarketplaceClient] Search failed:', error);
+      logger.error('[MarketplaceClient] Search failed:', error);
       throw error;
     }
   }
@@ -251,7 +253,7 @@ export class MarketplaceClient {
 
       return result;
     } catch (error) {
-      console.error('[MarketplaceClient] Failed to get plugin details:', error);
+      logger.error('[MarketplaceClient] Failed to get plugin details:', error);
       throw error;
     }
   }
@@ -363,7 +365,7 @@ export class MarketplaceClient {
 
       return { data, signature };
     } catch (error) {
-      console.error('[MarketplaceClient] Download failed:', error);
+      logger.error('[MarketplaceClient] Download failed:', error);
       throw error;
     }
   }
@@ -382,7 +384,7 @@ export class MarketplaceClient {
       const expires = new Date(signature.expiresAt);
       
       if (now > expires) {
-        console.warn('[MarketplaceClient] Signature has expired');
+        logger.warn('[MarketplaceClient] Signature has expired');
         return false;
       }
 
@@ -392,7 +394,7 @@ export class MarketplaceClient {
 
       return true;
     } catch (error) {
-      console.error('[MarketplaceClient] Signature verification failed:', error);
+      logger.error('[MarketplaceClient] Signature verification failed:', error);
       return false;
     }
   }
@@ -462,7 +464,7 @@ export class MarketplaceClient {
     } catch (error) {
       // Re-add events on failure
       this.pendingAnalytics = [...events, ...this.pendingAnalytics];
-      console.error('[MarketplaceClient] Failed to flush analytics:', error);
+      logger.error('[MarketplaceClient] Failed to flush analytics:', error);
     }
   }
 

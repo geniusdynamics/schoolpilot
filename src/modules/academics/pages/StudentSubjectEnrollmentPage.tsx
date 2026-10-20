@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Student, AcademicYear, SchoolPeriod, Class as SchoolClass, ClassStream, StudentStatus } from '@/types';
-import { StudentSubjectEnrollment } from '@/core/types';
-import { StudentEnrollmentStatus, Subject } from '@/modules/academics/data/types'; // Corrected imports
+// ABOUTME: Student subject enrolment page — year/period/class/stream pickers drive a grid of enrolment checkboxes.
+// ABOUTME: CRUD goes through the academics module context; ids stay strings and labels are resolved at read time.
+
+import React, { useState, useMemo, useCallback } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -11,31 +12,141 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input'; 
-import { PlusIcon, EditIcon, DeleteIcon, UsersIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
-type EnrollmentFormData = Omit<Partial<StudentSubjectEnrollment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'class_name' | 'stream_name' | 'subject_name' | 'academic_year_name' | 'enrollment_status_display' | 'status'> & {
-    status: StudentEnrollmentStatus;
-};
+import { logger } from '@/utils/logging';
+import { StudentEnrollmentStatus, StudentStatus } from '@/core/types';
+import { useAcademicDataContext } from '../data/AcademicDataContext';
+import { useAdministrationDataContext } from '@/modules/administration/data/AdministrationDataContext';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
-const StudentSubjectEnrollmentPage: React.FC = () => {
-  const { 
-    studentSubjectEnrollments, 
-    students,
-    classSubjectAllocations,
-    academicYears, // Added
-    schoolPeriods, // Added
-    classes,       // Added
-    classStreams,  // Added
-    subjects,      // Added
-    loading, 
-  } = useAppData(); // Updated
-  
+type Id = string | number;
+
+interface EnrollmentFormData {
+  student_id?: string;
+  class_subject_allocation_id?: string;
+  enrollment_date?: string;
+  status: StudentEnrollmentStatus;
+}
+
+interface Named { id: Id; name?: string | null }
+interface StreamRecord extends Named { class_id?: Id | null }
+interface PeriodRecord extends Named {
+  academic_year_id?: Id | null;
+  period_definition_id?: Id | null;
+  period_definition_name?: string | null;
+  start_date?: string | null;
+}
+interface StudentRecord {
+  id: Id;
+  first_name?: string;
+  last_name?: string;
+  admission_no?: string;
+  status?: string;
+  current_class_stream_id?: Id | null;
+}
+interface StoredAllocation {
+  id: Id;
+  class_stream_id?: Id | null;
+  subject_id?: Id | null;
+  academic_year_id?: Id | null;
+  subject_name?: string | null;
+}
+interface StoredEnrollment {
+  id: Id;
+  student_id?: Id | null;
+  class_subject_allocation_id?: Id | null;
+  enrollment_date: string;
+  status: string;
+}
+
+/** An enrolment row as listed, with names resolved from the referenced records. */
+interface EnrollmentRow {
+  id: string;
+  student_id: string;
+  class_subject_allocation_id: string;
+  enrollment_date: string;
+  status: string;
+  student_name: string;
+  class_name: string;
+  stream_name: string;
+  subject_name: string;
+  academic_year_name: string;
+}
+
+/** A stream's allocation as offered in the grid, with its subject name resolved. */
+interface AllocationOption {
+  id: string;
+  class_stream_id: string;
+  academic_year_id: string;
+  subject_name: string;
+  label: string;
+}
+
+const idOf = (value: Id | null | undefined): string => (value == null ? '' : String(value));
+const fullName = (person?: { first_name?: string; last_name?: string }) =>
+  person ? [person.first_name, person.last_name].filter(Boolean).join(' ') : '';
+
+export const StudentSubjectEnrollmentPageContent: React.FC = () => {
+  const confirm = useConfirm();
+  const toast = useToast();
+  const academic = useAcademicDataContext();
+  const admin = useAdministrationDataContext();
+  const { addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment } = academic;
+  const [isSaving, setIsSaving] = useState(false);
+
+  const students = admin.students as unknown as StudentRecord[];
+  const classes = admin.classes as unknown as Named[];
+  const classStreams = admin.classStreams as unknown as StreamRecord[];
+  const academicYears = academic.academicYears as unknown as Named[];
+  const schoolPeriods = academic.schoolPeriods as unknown as PeriodRecord[];
+  const periodDefinitions = academic.academicPeriodDefinitions as unknown as Named[];
+  const subjects = academic.subjects as Named[];
+
+  const nameIn = useCallback((list: Named[], id: Id | null | undefined) =>
+    list.find(item => idOf(item.id) === idOf(id))?.name ?? '', []);
+
+  const periodLabel = (period: PeriodRecord) =>
+    period.name || period.period_definition_name || nameIn(periodDefinitions, period.period_definition_id) || period.start_date || idOf(period.id);
+
+  const storedAllocations = academic.classSubjectAllocations as unknown as StoredAllocation[];
+  const classSubjectAllocations = useMemo<AllocationOption[]>(() =>
+    storedAllocations.map(alloc => {
+      const stream = classStreams.find(cs => idOf(cs.id) === idOf(alloc.class_stream_id));
+      const subjectName = nameIn(subjects, alloc.subject_id) || alloc.subject_name || '';
+      const streamName = stream ? `${nameIn(classes, stream.class_id)} ${stream.name ?? ''}`.trim() : '';
+      return {
+        id: idOf(alloc.id),
+        class_stream_id: idOf(alloc.class_stream_id),
+        academic_year_id: idOf(alloc.academic_year_id),
+        subject_name: subjectName,
+        label: `${subjectName} (${streamName} - ${nameIn(academicYears, alloc.academic_year_id)})`,
+      };
+    }), [storedAllocations, classStreams, classes, subjects, academicYears, nameIn]);
+
+  const studentSubjectEnrollments = useMemo<EnrollmentRow[]>(() =>
+    (academic.studentSubjectEnrollments as StoredEnrollment[]).map(enr => {
+      const student = students.find(s => idOf(s.id) === idOf(enr.student_id));
+      const alloc = storedAllocations.find(a => idOf(a.id) === idOf(enr.class_subject_allocation_id));
+      const stream = classStreams.find(cs => idOf(cs.id) === idOf(alloc?.class_stream_id));
+      return {
+        id: idOf(enr.id),
+        student_id: idOf(enr.student_id),
+        class_subject_allocation_id: idOf(enr.class_subject_allocation_id),
+        enrollment_date: enr.enrollment_date,
+        status: enr.status,
+        student_name: fullName(student),
+        class_name: nameIn(classes, stream?.class_id),
+        stream_name: stream?.name ?? '',
+        subject_name: nameIn(subjects, alloc?.subject_id) || alloc?.subject_name || '',
+        academic_year_name: nameIn(academicYears, alloc?.academic_year_id),
+      };
+    }), [academic.studentSubjectEnrollments, storedAllocations, students, classStreams, classes, subjects, academicYears, nameIn]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEnrollment, setEditingEnrollment] = useState<StudentSubjectEnrollment | null>(null);
-  
+  const [editingEnrollment, setEditingEnrollment] = useState<EnrollmentRow | null>(null);
+
   const initialFormData: EnrollmentFormData = { 
     student_id: undefined, 
     class_subject_allocation_id: undefined,
@@ -45,38 +156,38 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   const [formData, setFormData] = useState<EnrollmentFormData>(initialFormData);
 
   // Filters state
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>();
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>();
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
-  const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<string | undefined>();
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>();
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
+  const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
 
   const [showEnrollmentGrid, setShowEnrollmentGrid] = useState(false);
 
   // Filtered data for dropdowns
   const filteredSchoolPeriods = useMemo(() => {
     if (!selectedAcademicYearId) return [];
-    return (schoolPeriods || []).filter(sp => sp.academic_year_id === selectedAcademicYearId);
+    return schoolPeriods.filter(sp => idOf(sp.academic_year_id) === selectedAcademicYearId);
   }, [selectedAcademicYearId, schoolPeriods]);
 
   const filteredClassStreams = useMemo(() => {
     if (!selectedClassId) return [];
-    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
+    return classStreams.filter(cs => idOf(cs.class_id) === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   // Data for the enrollment grid
   const studentsForGrid = useMemo(() => {
     if (!selectedStreamId) return [];
-    return (students || []).filter(s => s.current_class_stream_id === selectedStreamId && s.status === StudentStatus.ACTIVE);
+    return students.filter(s => idOf(s.current_class_stream_id) === selectedStreamId && s.status === StudentStatus.ACTIVE);
   }, [selectedStreamId, students]);
 
   const subjectsForGrid = useMemo(() => {
     if (!selectedStreamId || !selectedAcademicYearId) return [];
-    return (classSubjectAllocations || []).filter(
+    return classSubjectAllocations.filter(
       csa => csa.class_stream_id === selectedStreamId && csa.academic_year_id === selectedAcademicYearId
     );
   }, [selectedStreamId, selectedAcademicYearId, classSubjectAllocations]);
 
-  const openModal = (enrollment?: StudentSubjectEnrollment) => {
+  const openModal = (enrollment?: EnrollmentRow) => {
     setEditingEnrollment(enrollment || null);
     setFormData(enrollment ? {
       student_id: enrollment.student_id,
@@ -100,11 +211,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.class_subject_allocation_id || !formData.enrollment_date || !formData.status) {
-      alert(t('validation.studentSubjectAllocationEnrollmentDateAndStatusAreRequired'));
+      toast.showWarning('Student, subject allocation, enrollment date, and status are required.');
       return;
     }
 
-    const isDuplicate = (studentSubjectEnrollments || []).some(
+    const isDuplicate = studentSubjectEnrollments.some(
         enr => enr.id !== editingEnrollment?.id &&
                enr.student_id === formData.student_id &&
                enr.class_subject_allocation_id === formData.class_subject_allocation_id &&
@@ -112,65 +223,88 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     );
 
     if (isDuplicate && formData.status === StudentEnrollmentStatus.ENROLLED) {
-        alert(t('messages.thisStudentIsAlreadyActivelyEnrolledInThisSubject'));
+        toast.showError('This student is already actively enrolled in this subject.');
         return;
     }
 
-    const payload = { 
-        student_id: formData.student_id!, 
-        class_subject_allocation_id: formData.class_subject_allocation_id!,
-        enrollment_date: formData.enrollment_date!,
-        status: formData.status!,
+    const payload = {
+      student_id: formData.student_id,
+      class_subject_allocation_id: formData.class_subject_allocation_id,
+      enrollment_date: formData.enrollment_date,
+      status: formData.status,
     };
-
-    if (editingEnrollment) {
-      // TODO: Implement updateStudentSubjectEnrollment when available in context
-    } else {
-      // TODO: Implement addStudentSubjectEnrollment when available in context
+    setIsSaving(true);
+    try {
+      if (editingEnrollment) {
+        await updateStudentSubjectEnrollment(editingEnrollment.id, payload);
+        toast.showSuccess('Enrollment updated successfully.');
+      } else {
+        await addStudentSubjectEnrollment(payload);
+        toast.showSuccess('Student enrolled successfully.');
+      }
+      closeModal();
+    } catch (error) {
+      logger.error('Failed to save enrollment:', error);
+      toast.showError('Failed to save enrollment.');
+    } finally {
+      setIsSaving(false);
     }
-    closeModal();
   };
   
-  const handleGridEnrollmentChange = async (studentId: string, csaId: string, isCurrentlyEnrolled: boolean) => {
+  const handleGridEnrollmentChange = useCallback(async (studentId: string, csaId: string, isCurrentlyEnrolled: boolean) => {
     if (isCurrentlyEnrolled) { // User wants to unenroll
-      const existingEnrollment = (studentSubjectEnrollments || []).find(
+      const existingEnrollment = studentSubjectEnrollments.find(
         e => e.student_id === studentId && e.class_subject_allocation_id === csaId && e.status === StudentEnrollmentStatus.ENROLLED
       );
       if (existingEnrollment) {
-        // Option 1: Update status to Withdrawn
-        // await updateStudentSubjectEnrollment({ ...existingEnrollment, status: StudentEnrollmentStatus.WITHDRAWN });
-        // Option 2: Delete enrollment record
-        if (window.confirm("Are you sure you want to unenroll this student from the subject?")) {
-            // TODO: Implement deleteStudentSubjectEnrollment when available in context
+        // Withdraw (keep the record for history) rather than hard-delete
+        if ((await confirm({ variant: 'danger', message: "Are you sure you want to unenroll this student from the subject?" }))) {
+          try {
+            await updateStudentSubjectEnrollment(existingEnrollment.id, { status: StudentEnrollmentStatus.WITHDRAWN });
+            toast.showSuccess('Student unenrolled.');
+          } catch (error) {
+            logger.error('Failed to unenroll student:', error);
+            toast.showError('Failed to unenroll student.');
+          }
         }
       }
     } else { // User wants to enroll
-      const payload = {
-        student_id: studentId,
-        class_subject_allocation_id: csaId,
-        enrollment_date: new Date().toISOString().split('T')[0], // Default to today
-        status: StudentEnrollmentStatus.ENROLLED,
-      };
-      // TODO: Implement addStudentSubjectEnrollment when available in context
+      try {
+        await addStudentSubjectEnrollment({
+          student_id: studentId,
+          class_subject_allocation_id: csaId,
+          enrollment_date: new Date().toISOString().slice(0, 10),
+          status: StudentEnrollmentStatus.ENROLLED,
+        });
+        toast.showSuccess('Student enrolled.');
+      } catch (error) {
+        logger.error('Failed to enroll student:', error);
+        toast.showError('Failed to enroll student.');
+      }
     }
-  };
+  }, [studentSubjectEnrollments, confirm, updateStudentSubjectEnrollment, addStudentSubjectEnrollment, toast]);
 
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this enrollment record?')) {
-      // TODO: Implement deleteStudentSubjectEnrollment when available in context
+  const handleDelete = async (_id: string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this enrollment record?' }))) {
+      try {
+        await deleteStudentSubjectEnrollment(_id);
+        toast.showSuccess('Enrollment record deleted.');
+      } catch (error) {
+        logger.error('Failed to delete enrollment record:', error);
+        toast.showError('Failed to delete enrollment record.');
+      }
     }
   };
   
-  const columnsForListing: DataGridColumn<StudentSubjectEnrollment>[] = [
+  const columnsForListing: DataGridColumn<EnrollmentRow>[] = [
     { key: 'id', header: 'ID' },
     { key: 'student_name', header: 'Student' },
-    { key: 'class_stream', header: 'Class-Stream', render: (value: any, item: StudentSubjectEnrollment) => `${item.class_name || ''} - ${item.stream_name || ''}`},
+    { key: 'class_name', header: 'Class-Stream', render: (_value: any, item: EnrollmentRow) => `${item.class_name || ''} - ${item.stream_name || ''}`},
     { key: 'subject_name', header: 'Subject' },
     { key: 'academic_year_name', header: 'Academic Year' },
-    { key: 'enrollment_date', header: 'Enrollment Date', render: (value: any, item: StudentSubjectEnrollment) => new Date(item.enrollment_date).toLocaleDateString() },
+    { key: 'enrollment_date', header: 'Enrollment Date', render: (_value: any, item: EnrollmentRow) => new Date(item.enrollment_date).toLocaleDateString() },
     { key: 'status', header: 'Status', 
-      render: (value: any, item: StudentSubjectEnrollment) => (
+      render: (_value: any, item: EnrollmentRow) => (
         <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${item.status === StudentEnrollmentStatus.ENROLLED ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
             {item.status}
         </span>
@@ -179,7 +313,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: StudentSubjectEnrollment) => (
+      render: (_value: any, item: EnrollmentRow) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit Status</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -190,47 +324,35 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
-    const studentCol = { header: 'Student Name', key: 'student_name', render: (value: any, item: Student) => `${item.first_name} ${item.last_name}` };
-    const subjectCols = (subjectsForGrid || []).map(csa => ({
+    const studentCol = { header: 'Student Name', key: 'student_name', render: (_value: unknown, item: StudentRecord) => fullName(item) || '—' };
+    const subjectCols = subjectsForGrid.map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
-      key: 'id', // Use student ID to look up enrollment
-      render: (value: any, student: Student) => {
-        const isEnrolled = (studentSubjectEnrollments || []).some(
-          e => e.student_id === student.id && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
+      // Unique key per allocation — reusing 'id' for every column breaks React keys and filters
+      key: `allocation_${csa.id}`,
+      render: (_value: unknown, student: StudentRecord) => {
+        const isEnrolled = studentSubjectEnrollments.some(
+          e => e.student_id === idOf(student.id) && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
         );
         return (
           <input
             type="checkbox"
-            className="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            className="h-5 w-5 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
             checked={isEnrolled}
-            onChange={() => handleGridEnrollmentChange(student.id, csa.id, isEnrolled)}
-            disabled={loading.studentSubjectEnrollments}
+            onChange={() => handleGridEnrollmentChange(idOf(student.id), csa.id, isEnrolled)}
           />
         );
       }
     }));
     return [studentCol, ...subjectCols];
-  }, [showEnrollmentGrid, subjectsForGrid, studentsForGrid, studentSubjectEnrollments, loading.studentSubjectEnrollments, handleGridEnrollmentChange]);
+  }, [showEnrollmentGrid, subjectsForGrid, studentSubjectEnrollments, handleGridEnrollmentChange]);
 
-
-  const isLoadingPage = loading.studentSubjectEnrollments || loading.students || loading.classSubjectAllocations || loading.academicYears || loading.schoolPeriods || loading.classes || loading.classStreams;
-
-  if (isLoadingPage && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Student Enrollments...</span>
-      </div>
-    );
-  }
-  
-  const handleShowGrid = () => {
+  const handleShowGrid= () => {
     if (selectedAcademicYearId && selectedStreamId) {
         setShowEnrollmentGrid(true);
     } else {
-        alert(t('validation.pleaseSelectAcademicYearSchoolPeriodClassAndStreamFirst'));
+        toast.showWarning('Please select academic year, school period, class, and stream first.');
     }
   }
-
 
   return (
     <div className="space-y-6">
@@ -239,26 +361,26 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
           Single Enrollment
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Enroll students into subjects. Use filters to narrow down student list for grid enrollment, or use "Single Enrollment" for individual management.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
-            <Select label="Academic Year" value={selectedAcademicYearId || ''} onChange={e => {setSelectedAcademicYearId(Number(e.target.value) || undefined); setSelectedSchoolPeriodId(undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
+            <Select label="Academic Year" value={selectedAcademicYearId ? String(selectedAcademicYearId) : ''} onChange={e => {setSelectedAcademicYearId(e.target.value || undefined);setSelectedSchoolPeriodId(undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}}>
                 <option value="">Select Year</option>
-                {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
+                {academicYears.map(ay => <option key={ay.id} value={idOf(ay.id)}>{ay.name}</option>)}
             </Select>
-            <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => {setSelectedSchoolPeriodId(Number(e.target.value) || undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedAcademicYearId}>
+            <Select label="School Period" value={selectedSchoolPeriodId ? String(selectedSchoolPeriodId) : ''} onChange={e => {setSelectedSchoolPeriodId(e.target.value || undefined);setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedAcademicYearId}>
                 <option value="">Select Period</option>
-                {filteredSchoolPeriods.map(sp => <option key={sp.id} value={sp.id}>{sp.period_definition_name}</option>)}
+                {filteredSchoolPeriods.map(sp => <option key={sp.id} value={idOf(sp.id)}>{periodLabel(sp)}</option>)}
             </Select>
-            <Select label="Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedSchoolPeriodId}>
+            <Select label="Class" value={selectedClassId ? String(selectedClassId) : ''} onChange={e => {setSelectedClassId(e.target.value || undefined);setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedSchoolPeriodId}>
                 <option value="">Select Class</option>
-                {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {classes.map(c => <option key={c.id} value={idOf(c.id)}>{c.name}</option>)}
             </Select>
-            <Select label="Stream" value={selectedStreamId || ''} onChange={e => {setSelectedStreamId(Number(e.target.value) || undefined); setShowEnrollmentGrid(false);}} disabled={!selectedClassId}>
+            <Select label="Stream" value={selectedStreamId ? String(selectedStreamId) : ''} onChange={e => {setSelectedStreamId(e.target.value || undefined);setShowEnrollmentGrid(false);}} disabled={!selectedClassId}>
                 <option value="">Select Stream</option>
-                {filteredClassStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+                {filteredClassStreams.map(cs => <option key={cs.id} value={idOf(cs.id)}>{cs.name}</option>)}
             </Select>
         </div>
         <div className="mb-4">
@@ -268,18 +390,17 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         </div>
 
         {showEnrollmentGrid && studentsForGrid.length > 0 && subjectsForGrid.length > 0 && (
-            <Card title={`Enrollment Grid for ${(classStreams || []).find(cs=>cs.id === selectedStreamId)?.name} - ${(academicYears || []).find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
-                <p className="text-xs text-gray-500 mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
-                <DataGrid columns={gridColumns} data={studentsForGrid} loading={loading.studentSubjectEnrollments} />
+            <Card title={`Enrollment Grid for ${nameIn(classStreams, selectedStreamId)} - ${nameIn(academicYears, selectedAcademicYearId)}`} className="mt-4">
+                <p className="text-xs text-surface-muted-fg mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
+                <DataGrid columns={gridColumns} data={studentsForGrid} />
             </Card>
         )}
          {showEnrollmentGrid && (studentsForGrid.length === 0 || subjectsForGrid.length === 0) && (
-            <p className="text-center text-gray-500 py-4">No students or no subjects allocated to this class stream for the selected academic year.</p>
+            <p className="text-center text-surface-muted-fg py-4">No students or no subjects allocated to this class stream for the selected academic year.</p>
         )}
 
-
         <h3 className="text-lg font-semibold mt-8 mb-2">All Enrollment Records</h3>
-        <DataGrid columns={columnsForListing} data={(studentSubjectEnrollments || [])} loading={loading.studentSubjectEnrollments && isModalOpen} />
+        <DataGrid columns={columnsForListing} data={studentSubjectEnrollments} />
       </Card>
 
       <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingEnrollment ? 'Edit Enrollment Status' : 'Enroll Student in Subject'} size="lg">
@@ -293,8 +414,8 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
               disabled={!!editingEnrollment} 
             >
               <option value="">Select Student</option>
-              {(students || []).filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
-                <option key={std.id} value={std.id}>{std.first_name} {std.last_name} ({std.admission_no}) - {std.current_class_name} {std.current_class_stream_name}</option>
+              {students.filter(s => s.status === StudentStatus.ACTIVE).map(std => (
+                <option key={std.id} value={idOf(std.id)}>{fullName(std)} ({std.admission_no})</option>
               ))}
             </Select>
           </FormField>
@@ -307,12 +428,10 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
               disabled={!!editingEnrollment || !formData.student_id}
             >
               <option value="">Select Subject (for Student's Class)</option>
-              {(classSubjectAllocations || [])
-                .filter(alloc => !formData.student_id || alloc.class_stream_id === (students || []).find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
-                .map((alloc: any) => (
-                <option key={alloc.id} value={alloc.id}>
-                  {alloc.subject_name} ({alloc.class_stream_name} - {alloc.academic_year_name})
-                </option>
+              {classSubjectAllocations
+                .filter(alloc => !formData.student_id || alloc.class_stream_id === idOf(students.find(s => idOf(s.id) === formData.student_id)?.current_class_stream_id)) // Filter by selected student's class stream
+                .map(alloc => (
+                <option key={alloc.id} value={alloc.id}>{alloc.label}</option>
               ))}
             </Select>
           </FormField>
@@ -341,13 +460,19 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.studentSubjectEnrollments}>
-            {loading.studentSubjectEnrollments ? <Spinner size="sm"/> : (editingEnrollment ? 'Save Changes' : 'Enroll Student')}
+          <Button onClick={handleSubmit} loading={isSaving}>
+            {editingEnrollment ? 'Save Changes' : 'Enroll Student'}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+
+const StudentSubjectEnrollmentPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentSubjectEnrollmentPageContent />
+  </div>
+);
 
 export default StudentSubjectEnrollmentPage;

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ============================================================================
 // DEPRECATED: This file is deprecated and will be removed in a future version.
 // Please import from '@/components/settings' instead.
@@ -17,7 +19,7 @@ export interface FeatureSettingsProps {
 export function FeatureSettings(props: FeatureSettingsProps) {
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.warn(
+      logger.warn(
         '[DEPRECATED] Importing FeatureSettings from "@/components/FeatureSettings" is deprecated. ' +
         'Please import from "@/components/settings" instead. ' +
         'This export will be removed in v3.0.'

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Service for integrating module data hooks with the global AppDataContext
 // ABOUTME: Ensures consistent data flow between module hooks and global context
 // ABOUTME: Provides unified data access patterns across all modules
@@ -80,7 +82,7 @@ export class DataContextIntegrationService {
     
     // Log registration results
     if (this.options.logDataOperations) {
-      console.log(`[DataContextIntegration] Registered ${registeredEntities.length} module data entities with AppDataContext`);
+      logger.info(`[DataContextIntegration] Registered ${registeredEntities.length} module data entities with AppDataContext`);
     }
   }
   
@@ -137,10 +139,10 @@ export class DataContextIntegrationService {
       
       // Log successful registration
       if (this.options.logDataOperations) {
-        console.log(`[DataContextIntegration] Registered entity ${entity.entityName} from module ${entity.moduleName}`);
+        logger.info(`[DataContextIntegration] Registered entity ${entity.entityName} from module ${entity.moduleName}`);
       }
     } catch (error) {
-      console.error(`[DataContextIntegration] Failed to register entity ${entity.entityName}:`, error);
+      logger.error(`[DataContextIntegration] Failed to register entity ${entity.entityName}:`, error);
     }
   }
   
@@ -153,7 +155,7 @@ export class DataContextIntegrationService {
     }, this.options.syncInterval);
     
     if (this.options.logDataOperations) {
-      console.log(`[DataContextIntegration] Started auto sync with interval ${this.options.syncInterval}ms`);
+      logger.info(`[DataContextIntegration] Started auto sync with interval ${this.options.syncInterval}ms`);
     }
   }
   
@@ -165,7 +167,7 @@ export class DataContextIntegrationService {
     this.syncIntervalId = null;
     
     if (this.options.logDataOperations) {
-      console.log('[DataContextIntegration] Stopped auto sync');
+      logger.info('[DataContextIntegration] Stopped auto sync');
     }
   }
   
@@ -174,7 +176,7 @@ export class DataContextIntegrationService {
   // Hooks can only be called inside React components, not in service classes
   public async syncAllModuleData(): Promise<void> {
     if (this.options.logDataOperations) {
-      console.log('[DataContextIntegration] Sync requested - data operations should be handled through React components');
+      logger.info('[DataContextIntegration] Sync requested - data operations should be handled through React components');
     }
     
     // Instead of calling hooks directly, we rely on:

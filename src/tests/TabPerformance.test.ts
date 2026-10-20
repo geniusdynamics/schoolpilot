@@ -5,6 +5,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TabPerformanceManager, defaultTabPerformanceConfig, TabContentInfo } from '../services/ui/TabPerformanceManager';
+import { logger } from '@/utils/logging';
+import type { ReactElement } from 'react';
 
 // Mock performance API
 const mockPerformance = {
@@ -41,9 +43,9 @@ describe('TabPerformanceManager', () => {
 
     performanceManager = new TabPerformanceManager(defaultTabPerformanceConfig);
 
-    // Reset mocks
+    // Reset mocks (mockReset also drops leftover mockReturnValueOnce queue)
     vi.clearAllMocks();
-    mockPerformance.now.mockImplementation(() => Date.now());
+    mockPerformance.now.mockReset().mockImplementation(() => Date.now());
   });
 
   afterEach(() => {
@@ -95,9 +97,9 @@ describe('TabPerformanceManager', () => {
 
       // Should return placeholder content
       expect(content).toBeDefined();
-      expect(mockReact.createElement).toHaveBeenCalledWith(
-        'div',
-        expect.objectContaining({ className: expect.stringContaining('items-center') })
+      // The manager renders via its own React import; inspect the element props
+      expect((content as ReactElement).props.className).toEqual(
+        expect.stringContaining('items-center')
       );
     });
 
@@ -111,9 +113,8 @@ describe('TabPerformanceManager', () => {
 
       // Should return error content
       expect(content).toBeDefined();
-      expect(mockReact.createElement).toHaveBeenCalledWith(
-        'div',
-        expect.objectContaining({ className: expect.stringContaining('bg-red-50') })
+      expect((content as ReactElement).props.className).toEqual(
+        expect.stringContaining('bg-red-50')
       );
     });
   });
@@ -129,14 +130,15 @@ describe('TabPerformanceManager', () => {
     };
 
     it('should switch tabs within performance threshold', async () => {
-      const startTime = 200;
-      const endTime = 250; // 50ms
-      
-      mockPerformance.now
-        .mockReturnValueOnce(startTime)
-        .mockReturnValueOnce(endTime);
+      // The switch duration is measured between the manager's internal
+      // performance.now() calls; control the mocked clock directly
+      let nowValue = 200;
+      mockPerformance.now.mockImplementation(() => nowValue);
 
-      await performanceManager.switchTab('tab-1', 'tab-2', mockTabInfo);
+      const switchPromise = performanceManager.switchTab('tab-1', 'tab-2', mockTabInfo);
+      nowValue = 250; // 50ms later
+
+      await switchPromise;
 
       const metrics = performanceManager.getPerformanceMetrics();
       expect(metrics.tabSwitchTimes.get('tab-2')).toBe(50);
@@ -161,14 +163,24 @@ describe('TabPerformanceManager', () => {
     });
 
     it('should update average switch time correctly', async () => {
-      mockPerformance.now
-        .mockReturnValueOnce(100).mockReturnValueOnce(150) // 50ms
-        .mockReturnValueOnce(200).mockReturnValueOnce(300) // 100ms
-        .mockReturnValueOnce(400).mockReturnValueOnce(475); // 75ms
+      let nowValue = 100;
+      mockPerformance.now.mockImplementation(() => nowValue);
 
-      await performanceManager.switchTab('tab-1', 'tab-2', mockTabInfo);
-      await performanceManager.switchTab('tab-2', 'tab-3', { ...mockTabInfo, id: 'tab-3' });
-      await performanceManager.switchTab('tab-3', 'tab-4', { ...mockTabInfo, id: 'tab-4' });
+      // Each switch captures its start time synchronously when invoked;
+      // advance the clock before awaiting to control the measured duration
+      const switch1 = performanceManager.switchTab('tab-1', 'tab-2', mockTabInfo);
+      nowValue = 150; // 50ms
+      await switch1;
+
+      nowValue = 200;
+      const switch2 = performanceManager.switchTab('tab-2', 'tab-3', { ...mockTabInfo, id: 'tab-3' });
+      nowValue = 300; // 100ms
+      await switch2;
+
+      nowValue = 400;
+      const switch3 = performanceManager.switchTab('tab-3', 'tab-4', { ...mockTabInfo, id: 'tab-4' });
+      nowValue = 475; // 75ms
+      await switch3;
 
       const metrics = performanceManager.getPerformanceMetrics();
       expect(metrics.averageSwitchTime).toBe(75); // (50 + 100 + 75) / 3
@@ -180,19 +192,21 @@ describe('TabPerformanceManager', () => {
       config.monitoring.alertSlowOperations = true;
       performanceManager.updateConfig(config);
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
 
-      mockPerformance.now
-        .mockReturnValueOnce(100)
-        .mockReturnValueOnce(250); // 150ms - should trigger alert
+      let nowValue = 100;
+      mockPerformance.now.mockImplementation(() => nowValue);
 
-      await performanceManager.switchTab('tab-1', 'tab-2', mockTabInfo);
+      const switchPromise = performanceManager.switchTab('tab-1', 'tab-2', mockTabInfo);
+      nowValue = 250; // 150ms - should trigger alert
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      await switchPromise;
+
+      expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('Slow tab switch detected: 150ms')
       );
 
-      consoleSpy.mockRestore();
+      warnSpy.mockRestore();
     });
   });
 
@@ -204,18 +218,28 @@ describe('TabPerformanceManager', () => {
 
     it('should trigger cleanup when memory threshold is exceeded', async () => {
       const config = performanceManager.getConfig();
-      config.tabMemory.memoryThreshold = 100 * 1024 * 1024; // 100MB
+      config.tabMemory.memoryThreshold = 1; // tiny threshold so any cached content exceeds it
       performanceManager.updateConfig(config);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const logSpy = vi.spyOn(logger, 'info').mockImplementation(() => {});
+
+      // Cache content so total tracked memory exceeds the threshold
+      performanceManager.loadTabContent({
+        id: 'tab-1',
+        title: 'Dashboard',
+        module: 'dashboard',
+        path: '/dashboard',
+        isActive: true,
+        canClose: false
+      });
 
       await performanceManager.performMemoryCleanup();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('Memory threshold exceeded')
       );
 
-      consoleSpy.mockRestore();
+      logSpy.mockRestore();
     });
 
     it('should track memory usage per tab', () => {
@@ -234,22 +258,21 @@ describe('TabPerformanceManager', () => {
       expect(metrics.peakMemoryUsage).toBeGreaterThan(0);
     });
 
-    it('should clean up inactive tabs after timeout', (done) => {
+    it('should clean up inactive tabs after timeout', async () => {
       const config = performanceManager.getConfig();
       config.tabMemory.inactiveTabTimeout = 100; // 100ms for testing
       performanceManager.updateConfig(config);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const logSpy = vi.spyOn(logger, 'info').mockImplementation(() => {});
 
       performanceManager.scheduleTabCleanup('tab-1');
 
-      setTimeout(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
+      await vi.waitFor(() => {
+        expect(logSpy).toHaveBeenCalledWith(
           expect.stringContaining('Cleaned up inactive tab: tab-1')
         );
-        consoleSpy.mockRestore();
-        done();
-      }, 150);
+      }, { timeout: 500, interval: 50 });
+      logSpy.mockRestore();
     });
 
     it('should cancel cleanup when tab becomes active', () => {
@@ -275,7 +298,7 @@ describe('TabPerformanceManager', () => {
       // Wait longer than timeout to ensure cleanup doesn't happen
       return new Promise(resolve => {
         setTimeout(() => {
-          const metrics = performanceManager.getPerformanceMetrics();
+
           // Tab should still be tracked (not cleaned up)
           resolve(undefined);
         }, 150);
@@ -434,7 +457,7 @@ describe('TabPerformanceManager', () => {
     });
 
     it('should handle content rendering errors', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
       // Mock rendering error
       vi.spyOn(performanceManager as any, 'renderTabContent').mockImplementation(() => {
@@ -453,11 +476,12 @@ describe('TabPerformanceManager', () => {
       const content = performanceManager.loadTabContent(tabInfo);
 
       expect(content).toBeDefined();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error loading content for tab tab-1')
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error loading content for tab tab-1'),
+        expect.any(Error)
       );
 
-      consoleErrorSpy.mockRestore();
+      errorSpy.mockRestore();
     });
   });
 });
@@ -468,6 +492,9 @@ describe('TabPerformanceManager Integration', () => {
   beforeEach(() => {
     global.performance = mockPerformance as any;
     global.React = mockReact as any;
+    // Reset the mocked clock: earlier tests may have left a frozen
+    // mockImplementation behind
+    mockPerformance.now.mockReset().mockImplementation(() => Date.now());
     performanceManager = new TabPerformanceManager(defaultTabPerformanceConfig);
   });
 
@@ -482,11 +509,12 @@ describe('TabPerformanceManager Integration', () => {
       { id: 'tab-3', title: 'Reports', module: 'reports', path: '/reports' }
     ];
 
-    // Load content for all tabs
+    // Load content for all tabs (active so they are rendered and cached;
+    // inactive tabs only get uncached placeholders under lazy loading)
     tabs.forEach(tab => {
       const tabInfo: TabContentInfo = {
         ...tab,
-        isActive: false,
+        isActive: true,
         canClose: true
       };
       performanceManager.loadTabContent(tabInfo);

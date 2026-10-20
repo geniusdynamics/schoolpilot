@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Reusable hook for loading, subscribing to, and mutating a single database document
 // ABOUTME: Provides the foundation for single-document collections like school_details
 
@@ -44,7 +46,7 @@ export function useDatabaseDocument<T>(
       const coll = db.getCollection(collectionName) as ICollection<T> | null;
 
       if (!coll) {
-        console.warn(`[useDatabaseDocument] Collection '${collectionName}' not found`);
+        logger.warn(`[useDatabaseDocument] Collection '${collectionName}' not found`);
         if (isMountedRef.current) {
           setCollection(null);
           setData(null);
@@ -73,7 +75,7 @@ export function useDatabaseDocument<T>(
         setData(doc);
       }
     } catch (err) {
-      console.error(`[useDatabaseDocument] Error loading document from '${collectionName}':`, err);
+      logger.error(`[useDatabaseDocument] Error loading document from '${collectionName}':`, err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err : new Error(String(err)));
         setData(null);
@@ -97,22 +99,28 @@ export function useDatabaseDocument<T>(
         }
 
         if (typeof (collection as any).subscribeToChanges === 'function') {
-          const sub = (collection as any).subscribeToChanges(() => {
-            if (isMountedRef.current) {
-              refresh();
-            }
-          });
-          subscriptionRef.current = sub;
+          const observable = (collection as any).subscribeToChanges();
+          if (observable && typeof observable.subscribe === 'function') {
+            const sub = observable.subscribe(() => {
+              if (isMountedRef.current) {
+                refresh();
+              }
+            });
+            subscriptionRef.current = sub;
+          }
         } else if (typeof (collection as any).subscribe === 'function') {
-          const sub = (collection as any).subscribe(() => {
-            if (isMountedRef.current) {
-              refresh();
-            }
-          });
-          subscriptionRef.current = sub;
+          const observable = (collection as any).subscribe();
+          if (observable && typeof observable.subscribe === 'function') {
+            const sub = observable.subscribe(() => {
+              if (isMountedRef.current) {
+                refresh();
+              }
+            });
+            subscriptionRef.current = sub;
+          }
         }
       } catch (err) {
-        console.warn(`[useDatabaseDocument] Subscription not available for '${collectionName}':`, err);
+        logger.warn(`[useDatabaseDocument] Subscription not available for '${collectionName}':`, err);
       }
     };
 
@@ -170,7 +178,7 @@ export function useDatabaseDocument<T>(
 
         throw new Error(`Collection '${collectionName}' does not support insert or update`);
       } catch (err) {
-        console.error(`[useDatabaseDocument] Error saving to '${collectionName}':`, err);
+        logger.error(`[useDatabaseDocument] Error saving to '${collectionName}':`, err);
         throw err;
       }
     },

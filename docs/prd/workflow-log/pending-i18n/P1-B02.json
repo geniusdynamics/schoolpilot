@@ -1,0 +1,48 @@
+{
+  "task": "P1-B02",
+  "note": "New repository error and invariant strings. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values.",
+  "en": {
+    "common": {
+      "repository": {
+        "errors": {
+          "notFound": "No {{entity}} row with id {{id}}",
+          "validation": "The {{entity}} payload is not valid at {{path}}: {{message}}",
+          "validationPlain": "The {{entity}} payload is not valid",
+          "uniqueConflict": "{{entity}} breaks the unique constraint on {{columns}}",
+          "staleVersion": "{{entity}} {{id}} has version {{actualVersion}}, but the write expected {{expectedVersion}}",
+          "versionLost": "{{entity}} {{id}} changed while the write was in flight",
+          "reference": "{{entity}}.{{column}} points at {{relation}} {{referencedId}}, which does not exist",
+          "permission": "Not allowed to {{action}} {{entity}}",
+          "invariant": "Invariant {{invariant}} was violated",
+          "serverOwnedField": "{{field}} is set by the repository and cannot be written",
+          "invalidId": "The id must be a UUIDv7 string",
+          "malformedId": "The stored {{entity}} row carries a malformed id",
+          "unknownColumn": "{{column}} is not a column of {{entity}}",
+          "emptyCondition": "The filter on {{column}} has no condition",
+          "invalidCursor": "The cursor is not a cursor this repository issued",
+          "requiredColumn": "{{column}} is required"
+        },
+        "invariants": {
+          "tenancy": "{{column}} points at a row that belongs to another institution",
+          "singleActiveEnrolment": "The learner already has an active enrolment in this academic year on these dates",
+          "classGroupLevel": "The class group belongs to a different level",
+          "classGroupYear": "The class group belongs to a different academic year",
+          "enrolmentLevel": "Enrolment {{id}} belongs to a different level",
+          "enrolmentYear": "Enrolment {{id}} belongs to a different academic year",
+          "periodBeforeYear": "The period starts before the academic year",
+          "periodAfterYear": "The period ends after the academic year",
+          "periodOverlap": "The period overlaps another {{kind}} of the same academic year",
+          "currentPeriod": "The academic year already has a current {{kind}}",
+          "currentYear": "The calendar already has a current academic year",
+          "teachingGroup": "The enrolment is not a member of a teaching group for this learning area on the assessment date",
+          "publishedSnapshot": "A published report card snapshot never changes",
+          "postedImmutable": "{{field}} cannot change once the {{entity}} is {{status}}",
+          "postedUnpost": "A {{status}} {{entity}} cannot move back to {{nextStatus}}; post a reversal instead",
+          "allocationCurrency": "The allocation currency differs from the payment currency",
+          "allocationExceedsPayment": "The allocations of this payment exceed the amount that was paid",
+          "attendanceDateInPeriod": "The register date {{date}} lies outside the academic period {{name}} ({{startDate}} to {{endDate}})"
+        }
+      }
+    }
+  }
+}

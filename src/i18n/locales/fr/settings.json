@@ -1,0 +1,16 @@
+{
+  "title": "Paramètres",
+  "general": "Général",
+  "system": "Système",
+  "school": "École",
+  "configuration": "Configuration",
+  "dataManagement": "Gestion des données",
+  "database": "Base de données",
+  "backup": "Sauvegarde",
+  "auditLog": "Journal d'audit",
+  "features": "Fonctionnalités",
+  "modules": "Modules",
+  "plugins": {
+    "confirmUninstall": "Confirm Uninstall"
+  }
+}

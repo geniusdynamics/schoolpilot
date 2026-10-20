@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Card, { CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import {
   ArrowLeftIcon,
   EditIcon,
@@ -19,16 +18,18 @@ import type { AssignmentSubmission } from '../../data/types';
 import { AssignmentStatus, SubmissionStatus } from '../../data/types';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.NOT_SUBMITTED]: 'bg-gray-100 text-gray-800',
-  [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [SubmissionStatus.PENDING_REVIEW]: 'bg-surface-accent text-surface-foreground',
+  [SubmissionStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
   [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
   [SubmissionStatus.RETURNED]: 'bg-purple-100 text-purple-800',
 };
 
 const AssignmentDetailPage: React.FC = () => {
+  const confirm = useConfirm();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('assignments');
@@ -53,7 +54,7 @@ const AssignmentDetailPage: React.FC = () => {
       s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED
     ).length;
     const notSubmitted = assignmentSubmissions.filter(
-      s => s.status === SubmissionStatus.NOT_SUBMITTED
+      s => s.status === SubmissionStatus.PENDING_REVIEW
     ).length;
     const late = assignmentSubmissions.filter(
       s => s.status === SubmissionStatus.LATE
@@ -71,7 +72,7 @@ const AssignmentDetailPage: React.FC = () => {
   // Handle delete
   const handleDelete = async () => {
     if (!assignment) return;
-    if (!window.confirm(`Are you sure you want to delete "${assignment.title}"?`)) return;
+    if (!(await confirm({ title: 'Delete assignment', message: `Are you sure you want to delete "${assignment.title}"?`, variant: 'danger' }))) return;
 
     try {
       await deleteAssignment(assignment.id);
@@ -91,8 +92,8 @@ const AssignmentDetailPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">{t('common.loading')}</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <span className="ml-3 text-surface-muted-fg">{t('common.loading')}</span>
       </div>
     );
   }
@@ -100,8 +101,8 @@ const AssignmentDetailPage: React.FC = () => {
   if (!assignment) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">Assignment not found</h3>
-        <p className="mt-2 text-sm text-gray-500">The assignment you are looking for does not exist.</p>
+        <h3 className="text-lg font-medium text-surface-foreground">Assignment not found</h3>
+        <p className="mt-2 text-sm text-surface-muted-fg">The assignment you are looking for does not exist.</p>
         <Button className="mt-4" onClick={() => navigate('/assignments/all')}>
           Back to Assignments
         </Button>
@@ -154,7 +155,7 @@ const AssignmentDetailPage: React.FC = () => {
       header: t('submission.fields.feedback'),
       sortable: false,
       render: (value) => (
-        <span className="text-sm text-gray-600 truncate block max-w-xs" title={value || ''}>
+        <span className="text-sm text-surface-muted-fg truncate block max-w-xs" title={value || ''}>
           {value || '-'}
         </span>
       ),
@@ -174,8 +175,8 @@ const AssignmentDetailPage: React.FC = () => {
             {t('common.back')}
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{assignment.title}</h1>
-            <p className="text-sm text-gray-500 mt-1">{assignment.subjectName} - {assignment.classStreamName}</p>
+            <h1 className="text-2xl font-bold text-surface-foreground">{assignment.title}</h1>
+            <p className="text-sm text-surface-muted-fg mt-1">{assignment.subjectName} - {assignment.classStreamName}</p>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -207,69 +208,69 @@ const AssignmentDetailPage: React.FC = () => {
       <Card title="Assignment Details" variant="default">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.description')}
             </label>
-            <p className="text-sm text-gray-900">{assignment.description || 'No description provided.'}</p>
+            <p className="text-sm text-surface-foreground">{assignment.description || 'No description provided.'}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.instructions')}
             </label>
-            <p className="text-sm text-gray-900 whitespace-pre-wrap">{assignment.instructions || 'No instructions provided.'}</p>
+            <p className="text-sm text-surface-foreground whitespace-pre-wrap">{assignment.instructions || 'No instructions provided.'}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.teacher')}
             </label>
-            <p className="text-sm text-gray-900">{assignment.teacherName || 'N/A'}</p>
+            <p className="text-sm text-surface-foreground">{assignment.teacherName || 'N/A'}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.status')}
             </label>
             <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-              assignment.status === AssignmentStatus.DRAFT ? 'bg-gray-100 text-gray-800' :
-              assignment.status === AssignmentStatus.PUBLISHED ? 'bg-blue-100 text-blue-800' :
-              assignment.status === AssignmentStatus.CLOSED ? 'bg-orange-100 text-orange-800' :
+              assignment.status === AssignmentStatus.DRAFT ? 'bg-surface-accent text-surface-foreground' :
+              assignment.status === AssignmentStatus.PUBLISHED ? 'bg-primary-100 text-primary-800' :
+              assignment.status === AssignmentStatus.ARCHIVED ? 'bg-orange-100 text-orange-800' :
               'bg-green-100 text-green-800'
             }`}>
               {t(`assignment.status.${assignment.status}`)}
             </span>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.assignedDate')}
             </label>
-            <p className="text-sm text-gray-900">
+            <p className="text-sm text-surface-foreground">
               {new Date(assignment.assignedDate).toLocaleDateString()}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.dueDate')}
             </label>
-            <p className="text-sm text-gray-900">
+            <p className="text-sm text-surface-foreground">
               {new Date(assignment.dueDate).toLocaleDateString()}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.maxScore')}
             </label>
-            <p className="text-sm text-gray-900">{assignment.maxScore ? `${assignment.maxScore} points` : 'N/A'}</p>
+            <p className="text-sm text-surface-foreground">{assignment.maxScore ? `${assignment.maxScore} points` : 'N/A'}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.weightPercentage')}
             </label>
-            <p className="text-sm text-gray-900">{assignment.weightPercentage ? `${assignment.weightPercentage}%` : 'N/A'}</p>
+            <p className="text-sm text-surface-foreground">{assignment.weightPercentage ? `${assignment.weightPercentage}%` : 'N/A'}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-xs font-medium text-surface-muted-fg uppercase tracking-wide mb-1">
               {t('assignment.fields.allowLateSubmission')}
             </label>
-            <p className="text-sm text-gray-900">
+            <p className="text-sm text-surface-foreground">
               {assignment.allowLateSubmission ? 'Yes' : 'No'}
               {assignment.latePenaltyPercentage ? ` (${assignment.latePenaltyPercentage}% penalty)` : ''}
             </p>
@@ -281,12 +282,12 @@ const AssignmentDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card variant="compact">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <UsersIcon className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <UsersIcon className="w-6 h-6 text-primary-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              <p className="text-xs text-gray-500">Total Submissions</p>
+              <p className="text-2xl font-bold text-surface-foreground">{stats.total}</p>
+              <p className="text-xs text-surface-muted-fg">Total Submissions</p>
             </div>
           </div>
         </Card>
@@ -296,8 +297,8 @@ const AssignmentDetailPage: React.FC = () => {
               <CheckCircleIcon className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.submitted}</p>
-              <p className="text-xs text-gray-500">Submitted</p>
+              <p className="text-2xl font-bold text-surface-foreground">{stats.submitted}</p>
+              <p className="text-xs text-surface-muted-fg">Submitted</p>
             </div>
           </div>
         </Card>
@@ -307,8 +308,8 @@ const AssignmentDetailPage: React.FC = () => {
               <ExclamationTriangleIcon className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.late}</p>
-              <p className="text-xs text-gray-500">Late</p>
+              <p className="text-2xl font-bold text-surface-foreground">{stats.late}</p>
+              <p className="text-xs text-surface-muted-fg">Late</p>
             </div>
           </div>
         </Card>
@@ -318,8 +319,8 @@ const AssignmentDetailPage: React.FC = () => {
               <ClockIcon className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.graded}</p>
-              <p className="text-xs text-gray-500">Graded</p>
+              <p className="text-2xl font-bold text-surface-foreground">{stats.graded}</p>
+              <p className="text-xs text-surface-muted-fg">Graded</p>
             </div>
           </div>
         </Card>
@@ -331,14 +332,14 @@ const AssignmentDetailPage: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="flex-1">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-gray-600">Class Average</span>
-                <span className="text-lg font-bold text-gray-900">{stats.avgScore}%</span>
+                <span className="text-sm text-surface-muted-fg">Class Average</span>
+                <span className="text-lg font-bold text-surface-foreground">{stats.avgScore}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
                   className={`h-3 rounded-full ${
                     stats.avgScore >= 80 ? 'bg-green-500' :
-                    stats.avgScore >= 60 ? 'bg-blue-500' :
+                    stats.avgScore >= 60 ? 'bg-primary-500' :
                     stats.avgScore >= 40 ? 'bg-yellow-500' :
                     'bg-red-500'
                   }`}
@@ -357,15 +358,11 @@ const AssignmentDetailPage: React.FC = () => {
           data={assignmentSubmissions}
           sortable
           filterable={false}
-          emptyState={
-            <div className="text-center py-8">
-              <UsersIcon className="mx-auto h-10 w-10 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No submissions yet</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Students have not submitted their work yet.
-              </p>
-            </div>
-          }
+          emptyState={{
+            icon: <UsersIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No submissions yet',
+            description: 'Students have not submitted their work yet.',
+          }}
         />
       </Card>
     </div>

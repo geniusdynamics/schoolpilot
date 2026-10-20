@@ -195,3 +195,8 @@ export { initialMockAnnouncements as initialMockPortalAnnouncements };
 export { initialMockAttendanceRecords as initialMockPortalAttendanceRecords };
 export { initialMockResults as initialMockPortalResults };
 export { initialMockFeeSummaries as initialMockPortalFeeSummaries };
+
+// -- Seedable exports ---------------------------------------------
+// Non-'initialMock*' aliases are picked up by seedProviderWithDemoData
+// (demoDataSeed.ts) and inserted into the real 'announcements' collection.
+export const announcements = initialMockAnnouncements;

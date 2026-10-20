@@ -4,10 +4,11 @@
 import React, { useState } from 'react';
 import { useModuleHealth } from '../hooks/useModuleHealth';
 import { ModuleHealthStatus } from '../services/module/enhancedModuleLoader';
-import { CheckCircleIcon, AlertTriangleIcon, AlertCircleIcon, XCircleIcon } from './ui/icons';
+
 import ModuleHealthDashboard from './ModuleHealthDashboard';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
+import { AlertCircleIcon, AlertTriangleIcon, CheckCircleIcon } from '@/components/ui/icons';
 
 interface ModuleHealthIndicatorProps {
   showCount?: boolean;
@@ -59,7 +60,7 @@ const ModuleHealthIndicator: React.FC<ModuleHealthIndicatorProps> = ({
     <>
       <button
         onClick={() => setIsDashboardOpen(true)}
-        className={`flex items-center px-2 py-1 rounded hover:bg-gray-100 ${className}`}
+        className={`flex items-center px-2 py-1 rounded hover:bg-surface-accent ${className}`}
         title={statusText}
       >
         <StatusIcon className={`w-5 h-5 ${statusColor}`} />
@@ -71,7 +72,7 @@ const ModuleHealthIndicator: React.FC<ModuleHealthIndicatorProps> = ({
         )}
         
         {showLabel && (
-          <span className="ml-2 text-sm text-gray-600">
+          <span className="ml-2 text-sm text-surface-muted-fg">
             {statusText}
           </span>
         )}

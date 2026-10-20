@@ -1,38 +1,36 @@
-// ABOUTME: Self-contained hook for fixedasset data management
-// ABOUTME: Provides CRUD operations for fixedasset without depending on AppDataContext
+// ABOUTME: Database-backed hook for fixed asset data management
+// ABOUTME: Provides CRUD operations for fixed assets against the 'fixed_assets' collection
 
-import { useState, useEffect } from 'react';
-import { initialMockFixedAssets } from './mockData';
+import { useCallback } from 'react';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { FixedAsset } from '@/core/types';
 
 export const useFixedAssetData = () => {
-  const [data, setData] = useState<FixedAsset[]>(initialMockFixedAssets);
+  const fixedAssetsCollection = useDatabaseCollection<FixedAsset>('fixed_assets');
 
-  const create = async (newItem: Partial<FixedAsset>) => {
-    const newDataItem: FixedAsset = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
+  const create = useCallback(async (newItem: Partial<FixedAsset>) => {
+    const now = new Date().toISOString();
+    const payload = {
+      created_at: now,
+      updated_at: now,
+      ...newItem
+    } as Omit<FixedAsset, 'id'> & { id?: string };
+    return fixedAssetsCollection.insert(payload);
+  }, [fixedAssetsCollection]);
+
+  const update = useCallback(async (id: number | string, updatedData: Partial<FixedAsset>) => {
+    return fixedAssetsCollection.update(String(id), {
+      ...updatedData,
       updated_at: new Date().toISOString()
-    } as FixedAsset;
-    setData((prev: FixedAsset[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
+    });
+  }, [fixedAssetsCollection]);
 
-  const update = async (id: number, updatedData: Partial<FixedAsset>) => {
-    setData((prev: FixedAsset[]) => prev.map((item: FixedAsset) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: number) => {
-    setData((prev: FixedAsset[]) => prev.filter((item: FixedAsset) => item.id !== id));
-  };
+  const remove = useCallback(async (id: number | string) => {
+    return fixedAssetsCollection.remove(String(id));
+  }, [fixedAssetsCollection]);
 
   return {
-    data,
+    data: fixedAssetsCollection.data,
     create,
     update,
     remove

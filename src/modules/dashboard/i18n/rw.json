@@ -130,5 +130,15 @@
   "studentStatusOverview": "Incamake yerekeye Uko Abanyeshuri Bameze",
   "feeCollectionOverview": "Incamake y'Ukusarura Amafaranga (Ibyifuzwa)",
   "paidAmount": "Amafaranga Yishyuwe",
-  "billedAmount": "Amafaranga Yafaturishijwe"
+  "billedAmount": "Amafaranga Yafaturishijwe",
+  "classPerformance": "Incamake y'imikorere y'amaklasi",
+  "noExamResults": "Nta bisubizo by'ibizamini byanditswe.",
+  "examResultsCount": "ibisubizo {{count}}",
+  "meanMarks": "Amanota apuzandengo",
+  "noApplications": "Nta basaba baje.",
+  "studentsByClass": "Abanyeshuri ku klasi",
+  "noClassAssignments": "Nta banyeshuri bahawe amaklasi.",
+  "count": "Umubare",
+  "noDisciplinaryCases": "Nta manza y'imyitwarire yanditswe.",
+  "routesInUse": "Inzira zikoreshwa"
 }

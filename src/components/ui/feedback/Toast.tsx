@@ -1,3 +1,6 @@
+import { logger } from '@/utils/logging';
+import { DARK_MODE_ENABLED } from '@/hooks/useTheme';
+
 // ABOUTME: Enhanced toast notification component with spring animations and gesture support
 // ABOUTME: Supports success, error, warning, info variants with auto-dismiss, progress indicators, pause-on-hover, and swipe-to-dismiss
 
@@ -106,7 +109,7 @@ const Toast: React.FC<ToastProps> = ({
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.3);
         } catch (error) {
-          console.warn('Sound notification failed:', error);
+          logger.warn('Sound notification failed:', error);
         }
       };
       
@@ -193,7 +196,9 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   const getVariantStyles = () => {
-    const isDark = _theme === 'dark' || (_theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    // Dark mode is disabled system-wide (DARK_MODE_ENABLED in hooks/useTheme) —
+    // toasts always use the light palette until it is properly implemented.
+    const isDark = DARK_MODE_ENABLED && (_theme === 'dark' || (_theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches));
     
     // Calculate stacking transform
     const stackOffset = _stackIndex * 4;
@@ -219,9 +224,9 @@ const Toast: React.FC<ToastProps> = ({
           case 'warning':
             return 'bg-yellow-900/90 border-yellow-700 text-yellow-100';
           case 'progress':
-            return 'bg-blue-900/90 border-blue-700 text-blue-100';
+            return 'bg-primary-900/90 border-primary-700 text-primary-100';
           default:
-            return 'bg-blue-900/90 border-blue-700 text-blue-100';
+            return 'bg-primary-900/90 border-primary-700 text-primary-100';
         }
       } else {
         switch (variant) {
@@ -232,9 +237,9 @@ const Toast: React.FC<ToastProps> = ({
           case 'warning':
             return 'bg-yellow-50/95 border-yellow-200 text-yellow-800';
           case 'progress':
-            return 'bg-blue-50/95 border-blue-200 text-blue-800';
+            return 'bg-primary-50/95 border-primary-200 text-primary-800';
           default:
-            return 'bg-blue-50/95 border-blue-200 text-blue-800';
+            return 'bg-primary-50/95 border-primary-200 text-primary-800';
         }
       }
     };
@@ -266,14 +271,14 @@ const Toast: React.FC<ToastProps> = ({
         );
       case 'progress':
         return (
-          <svg className={`${iconClass} text-blue-500 animate-spin`} fill="none" viewBox="0 0 24 24">
+          <svg className={`${iconClass} text-primary-500 animate-spin`} fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         );
       default:
         return (
-          <svg className={`${iconClass} text-blue-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`${iconClass} text-primary-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
@@ -367,7 +372,7 @@ const Toast: React.FC<ToastProps> = ({
               variant === 'success' ? 'bg-green-500' :
               variant === 'error' ? 'bg-red-500' :
               variant === 'warning' ? 'bg-yellow-500' :
-              'bg-blue-500'
+              'bg-primary-500'
             }`}
             style={{ width: `${progressPercentage}%` }}
           />

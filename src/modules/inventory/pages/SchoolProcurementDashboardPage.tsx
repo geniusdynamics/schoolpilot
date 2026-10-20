@@ -5,7 +5,7 @@ import { useAppData } from '@/hooks/useAppData';
 import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardPanel, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 import { ArchiveIcon, CheckCircleIcon, ClockIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 
-const SchoolProcurementDashboardPage: React.FC = () => {
+export const SchoolProcurementDashboardPageContent: React.FC = () => {
   const { requisitions, purchaseOrders, suppliers } = useAppData();
 
   const openRequisitions = requisitions.filter((req: any) => String(req.status || '').toLowerCase().includes('pending'));
@@ -15,7 +15,7 @@ const SchoolProcurementDashboardPage: React.FC = () => {
   const utilization = totalRequested > 0 ? Math.round((totalCommitted / totalRequested) * 100) : 0;
 
   const metrics: DashboardMetric[] = [
-    { key: 'reqs', label: 'Open Requisitions', value: openRequisitions.length, icon: <ClockIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'reqs', label: 'Open Requisitions', value: openRequisitions.length, icon: <ClockIcon className="h-6 w-6 text-primary-700" /> },
     { key: 'pos', label: 'Approved Orders', value: approvedOrders.length, icon: <CheckCircleIcon className="h-6 w-6 text-emerald-700" /> },
     { key: 'suppliers', label: 'Active Suppliers', value: suppliers.length, icon: <ArchiveIcon className="h-6 w-6 text-indigo-700" /> },
     { key: 'committed', label: 'Committed Spend', value: `Ksh ${totalCommitted.toLocaleString()}`, icon: <CurrencyDollarIcon className="h-6 w-6 text-cyan-700" /> },
@@ -96,7 +96,7 @@ const SchoolProcurementDashboardPage: React.FC = () => {
       notifications={notifications}
       charts={panels}
     >
-      <Card title="Procurement Actions" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Procurement Actions" className="border-slate-200 bg-surface-card shadow-sm">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <Link className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100" to="/inventory/requisitions/new">Create Requisition</Link>
           <Link className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100" to="/inventory/purchase-orders/new">Create Purchase Order</Link>
@@ -106,5 +106,10 @@ const SchoolProcurementDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const SchoolProcurementDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <SchoolProcurementDashboardPageContent />
+  </div>
+);
 
 export default SchoolProcurementDashboardPage;

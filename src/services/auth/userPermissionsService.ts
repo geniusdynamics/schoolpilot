@@ -1,7 +1,8 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: User permissions service for managing users, user types, and permissions
 // ABOUTME: Works with both demo mode (mock data) and production mode (RxDB)
 
-import { useAppData } from '../../hooks/useAppData';
 import { useUnifiedConfig } from '../../hooks/useUnifiedConfig';
 // RXDB removed - Phase 4: Using unified database service
 import * as databaseService from '../database/databaseService';
@@ -545,7 +546,7 @@ class UserPermissionsService {
 
       return false;
     } catch (error) {
-      console.error('Error checking user permission:', error);
+      logger.error('Error checking user permission:', error);
       return false;
     }
   }
@@ -566,7 +567,7 @@ class UserPermissionsService {
 
       return Array.from(permissions);
     } catch (error) {
-      console.error('Error getting user permissions:', error);
+      logger.error('Error getting user permissions:', error);
       return [];
     }
   }

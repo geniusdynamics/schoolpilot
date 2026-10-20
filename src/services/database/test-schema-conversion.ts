@@ -118,7 +118,7 @@ for (const errorCase of errorCases) {
   console.log('Input:', errorCase.input);
   
   try {
-    const result = convertRxDBSchema(errorCase.input);
+
     console.error('❌ Should have thrown an error but succeeded');
   } catch (error) {
     console.log('✅ Correctly threw error:', error.message);

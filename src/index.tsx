@@ -10,19 +10,32 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { initializeI18n } from './i18n/i18n'; // Import your i18n configuration
-import { initializeUnifiedConfig } from './config/unifiedConfig';
+import { initUnifiedConfig, initializeUnifiedConfig } from './config/unifiedConfig';
+import { initializeTheme } from './hooks/useTheme';
 import { performanceEventManager } from './services/performance/performanceEventManager';
 import { logger } from './utils/logging';
 import { initializeDevTools } from './utils/devTools';
 
-// Initialize unified configuration
-initializeUnifiedConfig();
+// Apply the theme before first paint. While dark mode is disabled
+// (DARK_MODE_ENABLED=false in hooks/useTheme) this forces light mode, drops any
+// stray 'dark' class and clears a previously stored dark/system preference.
+initializeTheme();
 
-// Wait for i18n to be ready before rendering
-const initializeApp = async () => {
+// Load the persisted configuration and wait for i18n before rendering
+export const initializeApp = async () => {
   performanceEventManager.markDiagnostic('app_initialize_start', {
     href: window.location.href
   });
+
+  // The unified configuration manager is the single source of truth for dataMode;
+  // it must be hydrated from storage before any provider reads it.
+  try {
+    await initUnifiedConfig();
+  } catch (error) {
+    logger.warn('⚠️ Unified configuration initialization failed, continuing with defaults:', error);
+  }
+  initializeUnifiedConfig();
+
   try {
     // Wait for i18n to be ready
     await initializeI18n();
@@ -61,7 +74,7 @@ const renderApp = () => {
                 Loading...
               </span>
             </div>
-            <p className="mt-4 text-gray-600">Loading translations...</p>
+            <p className="mt-4 text-surface-muted-fg">Loading translations...</p>
           </div>
         </div>
       }>

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides the React component for the Exam Scheduling UI
 // ABOUTME: allowing users to create, edit, and manage exam schedules with conflict detection
 
@@ -84,7 +86,7 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
       setAvailableRooms(availableSlots.availableRooms);
       setAvailableInvigilators(availableSlots.availableInvigilators);
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      logger.error('Error loading initial data:', error);
     } finally {
       setLoading(false);
     }
@@ -94,7 +96,7 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
     try {
       const schedule: ExamSchedule = {
         id: examId || `temp-${Date.now()}`,
-        exam_session_id: formData.exam_session_id,
+        exam_session_id: String(formData.exam_session_id),
         class_stream_id: formData.class_stream_id,
         subject_id: formData.subject_id,
         subject_name: `Subject ${formData.subject_id}`,
@@ -114,7 +116,7 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
       setConflicts(validation.conflicts);
       setWarnings(validation.warnings);
     } catch (error) {
-      console.error('Error checking conflicts:', error);
+      logger.error('Error checking conflicts:', error);
     }
   };
 
@@ -126,7 +128,7 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
 
       const schedule: ExamSchedule = {
         id: examId || `schedule-${Date.now()}`,
-        exam_session_id: formData.exam_session_id,
+        exam_session_id: String(formData.exam_session_id),
         class_stream_id: formData.class_stream_id,
         subject_id: formData.subject_id,
         subject_name: `Subject ${formData.subject_id}`,
@@ -157,9 +159,21 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
 
       let result;
       if (examId) {
-        result = await scheduleManager.update(schedule.id, schedule);
+        result = await scheduleManager.updateExamSchedule(schedule.id, {
+          exam_id: schedule.exam_id ?? schedule.exam_session_id ?? '',
+          period_id: schedule.period_id,
+          class_stream_id: schedule.class_stream_id,
+          invigilator_id: schedule.invigilator_id ?? '',
+          room_number: schedule.room_number ?? '',
+        });
       } else {
-        result = await scheduleManager.create(schedule);
+        result = await scheduleManager.createExamSchedule({
+          exam_id: schedule.exam_id ?? schedule.exam_session_id ?? '',
+          period_id: schedule.period_id,
+          class_stream_id: schedule.class_stream_id,
+          invigilator_id: schedule.invigilator_id ?? '',
+          room_number: schedule.room_number ?? '',
+        });
       }
 
       if (result) {
@@ -169,7 +183,7 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
         onScheduleComplete?.(schedule);
       }
     } catch (error) {
-      console.error('Error saving schedule:', error);
+      logger.error('Error saving schedule:', error);
       const err = error as Error;
       setConflicts([err.message || 'Error saving schedule']);
     } finally {
@@ -234,11 +248,17 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
             <label>Room Number</label>
             <input
               type="text"
+              list="available-rooms"
               value={formData.room_number}
               onChange={(e) => handleInputChange('room_number', e.target.value)}
               placeholder="Room Number"
               required
             />
+            <datalist id="available-rooms">
+              {availableRooms.map((room) => (
+                <option key={room} value={room} />
+              ))}
+            </datalist>
           </div>
 
           <div className="form-group">
@@ -256,11 +276,17 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
             <label>Invigilator</label>
             <input
               type="text"
+              list="available-invigilators"
               value={formData.invigilator_id}
               onChange={(e) => handleInputChange('invigilator_id', e.target.value)}
               placeholder="Invigilator ID"
               required
             />
+            <datalist id="available-invigilators">
+              {availableInvigilators.map((inv) => (
+                <option key={inv} value={inv} />
+              ))}
+            </datalist>
           </div>
 
           <div className="form-group">
@@ -340,7 +366,7 @@ const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
         </div>
       </form>
 
-      <style jsx>{`
+      <style>{`
         .exam-scheduling-ui {
           max-width: 800px;
           margin: 0 auto;

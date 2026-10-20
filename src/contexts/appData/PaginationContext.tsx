@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
+import { logger } from '@/utils/logging';
+
 
 export interface PaginationOptions {
   page: number;
@@ -66,7 +68,7 @@ export const PaginationProvider: React.FC<{ children: ReactNode }> = ({ children
         hasPreviousPage: options.page > 1
       };
     } catch (err) {
-      console.error(`[PaginationContext] Error fetching page for ${collectionName}:`, err);
+      logger.error(`[PaginationContext] Error fetching page for ${collectionName}:`, err);
       throw err;
     }
   }, []);

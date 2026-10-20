@@ -1,7 +1,6 @@
 // ABOUTME: Test file for DataGrid table rendering with various data states
 // ABOUTME: Tests empty modules array, missing/undefined properties, loading states, and console error prevention
 
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
@@ -130,8 +129,8 @@ describe('DataGrid Table Rendering - Various Data States', () => {
       const customEmptyState = (
         <div className="text-center py-12">
           <div className="text-4xl mb-4">📦</div>
-          <div className="text-lg font-medium text-gray-900 mb-2">No modules available</div>
-          <div className="text-gray-500">Add your first module to get started</div>
+          <div className="text-lg font-medium text-surface-foreground mb-2">No modules available</div>
+          <div className="text-surface-muted-fg">Add your first module to get started</div>
         </div>
       );
 
@@ -149,15 +148,17 @@ describe('DataGrid Table Rendering - Various Data States', () => {
     });
 
     it('displays default empty state when no custom empty state is provided', () => {
-      render(
+      const { container } = render(
         <DataGrid
           columns={moduleColumns}
           data={[]}
         />
       );
 
+      // Default empty state: "No data available" plus a table icon (the
+      // former emoji placeholder was replaced by a proper icon)
       expect(screen.getByText('No data available')).toBeInTheDocument();
-      expect(screen.getByText('📊')).toBeInTheDocument();
+      expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
     it('renders table headers even when data is empty', () => {
@@ -320,8 +321,8 @@ describe('DataGrid Table Rendering - Various Data States', () => {
       const customLoadingState = (
         <div className="flex items-center justify-center py-8">
           <div className="animate-pulse flex items-center">
-            <div className="h-4 w-4 bg-blue-400 rounded-full mr-3"></div>
-            <span className="text-gray-600">Loading modules data...</span>
+            <div className="h-4 w-4 bg-primary-400 rounded-full mr-3"></div>
+            <span className="text-surface-muted-fg">Loading modules data...</span>
           </div>
         </div>
       );
@@ -437,9 +438,9 @@ describe('DataGrid Table Rendering - Various Data States', () => {
         expect(screen.getByText('Incomplete Module 1')).toBeInTheDocument();
       });
 
-      // Should have warnings for missing fields (this is expected behavior)
-      expect(consoleWarnSpy).toHaveBeenCalled();
-      // But should not have any render errors
+      // Missing fields render gracefully without warnings (placeholders, no noise)
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      // And without any render errors
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
@@ -468,8 +469,8 @@ describe('DataGrid Table Rendering - Various Data States', () => {
         expect(screen.getByText('Test Module')).toBeInTheDocument();
       });
 
-      // Should warn about missing data but not crash
-      expect(consoleWarnSpy).toHaveBeenCalled();
+      // Null/undefined values render as placeholders without warnings or crashes
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: SQLite Provider Factory for database abstraction layer
 // ABOUTME: Supports multiple storage types (OPFS, file, memory) based on configuration
 
@@ -35,7 +37,7 @@ export class SQLiteProvider implements IDatabaseProvider {
       const dbName = config.name ? `${config.name}.db` : 'schoolpilot.db';
       await this.sqliteService.initialize(dbName);
       this.isInitialized = true;
-      console.log('[SQLiteProvider] Provider initialized successfully');
+      logger.info('[SQLiteProvider] Provider initialized successfully');
     } catch (error) {
       throw new Error(`Failed to initialize SQLite provider: ${error.message}`);
     }
@@ -73,7 +75,7 @@ export class SQLiteProvider implements IDatabaseProvider {
     try {
       await this.sqliteService.destroy();
       this.isInitialized = false;
-      console.log('[SQLiteProvider] Provider destroyed successfully');
+      logger.info('[SQLiteProvider] Provider destroyed successfully');
     } catch (error) {
       throw new Error(`Failed to destroy SQLite provider: ${error.message}`);
     }

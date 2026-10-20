@@ -26,7 +26,7 @@ const EnquiryConversionChart: React.FC<EnquiryConversionChartProps> = ({
   return (
     <div className="w-full h-[280px]">
       {title && (
-        <h3 className="text-center text-sm font-semibold text-blue-600 mb-2">
+        <h3 className="text-center text-sm font-semibold text-primary-600 mb-2">
           {title}
         </h3>
       )}

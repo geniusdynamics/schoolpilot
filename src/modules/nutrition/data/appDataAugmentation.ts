@@ -2,7 +2,7 @@
 // ABOUTME: Extends AppDataType and AppDataContextType with nutrition-specific properties
 // ABOUTME: This is the compile-time equivalent of Frappe's DocType self-registration
 
-// Nutrition types are currently defined in the library module
+// Nutrition domain types are owned by the library module and re-exported via the core registry.
 import type {
   MealPlan,
   Menu,
@@ -11,7 +11,7 @@ import type {
   MealConsumptionLog,
   WalletTransaction,
   StudentWallet,
-} from '@/modules/library/data/types';
+} from '@/core/types';
 
 declare module '@/core/types' {
   export interface AppDataType {

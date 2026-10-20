@@ -38,7 +38,7 @@ const workingCapitalTrend = [
   { month: 'December', value: 9000000 },
 ];
 
-const ReportsPage: React.FC = () => {
+export const ReportsPageContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState(reportTabs[0]);
 
   return (
@@ -48,7 +48,7 @@ const ReportsPage: React.FC = () => {
         {(reportTabs || []).map(tab => (
           <button
             key={tab}
-            className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all ${activeTab === tab ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'bg-white text-gray-600 hover:bg-blue-50'}`}
+            className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all ${activeTab === tab ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500' : 'bg-surface-card text-surface-muted-fg hover:bg-primary-50'}`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -89,7 +89,7 @@ const ReportsPage: React.FC = () => {
             {(workingCapitalTrend || []).map((item, idx) => (
               <div key={item.month} className="flex flex-col items-center justify-end h-full">
                 <div
-                  className="bg-blue-400 rounded-t w-8"
+                  className="bg-primary-400 rounded-t w-8"
                   style={{ height: `${item.value / 1500000}px`, minHeight: '20px' }}
                   title={item.value.toLocaleString()}
                 ></div>
@@ -104,7 +104,7 @@ const ReportsPage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mt-4">
         {(summaryData || []).map((item, idx) => (
           <Card key={item.label} className="flex flex-col items-center p-3">
-            <span className="text-xs text-gray-500 mb-1">{item.label}</span>
+            <span className="text-xs text-surface-muted-fg mb-1">{item.label}</span>
             <span className="text-lg font-bold">{item.value.toLocaleString()}</span>
           </Card>
         ))}
@@ -112,5 +112,10 @@ const ReportsPage: React.FC = () => {
     </div>
   );
 };
+const ReportsPage: React.FC = () => (
+  <div className="space-y-6">
+    <ReportsPageContent />
+  </div>
+);
 
-export default ReportsPage; 
+export default ReportsPage;

@@ -69,7 +69,7 @@ const AssignmentRubricsPage: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value) => (
-        <span className="font-medium text-gray-900">{value}</span>
+        <span className="font-medium text-surface-foreground">{value}</span>
       ),
     },
     {
@@ -77,7 +77,7 @@ const AssignmentRubricsPage: React.FC = () => {
       header: t('rubric.title'),
       sortable: false,
       render: (value) => (
-        <span className="text-sm text-gray-600 truncate block max-w-xs" title={value || ''}>
+        <span className="text-sm text-surface-muted-fg truncate block max-w-xs" title={value || ''}>
           {value || '-'}
         </span>
       ),
@@ -110,9 +110,9 @@ const AssignmentRubricsPage: React.FC = () => {
       width: 200,
       render: (value, item) => (
         <div>
-          <span className="text-sm text-gray-900">{value}</span>
+          <span className="text-sm text-surface-foreground">{value}</span>
           {item.subjectName && (
-            <p className="text-xs text-gray-500">{item.subjectName}</p>
+            <p className="text-xs text-surface-muted-fg">{item.subjectName}</p>
           )}
         </div>
       ),
@@ -124,8 +124,8 @@ const AssignmentRubricsPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('rubric.title')} Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Define and manage grading rubrics for assignments</p>
+          <h1 className="text-2xl font-bold text-surface-foreground">{t('rubric.title')} Management</h1>
+          <p className="text-sm text-surface-muted-fg mt-1">Define and manage grading rubrics for assignments</p>
         </div>
         <Button
           variant="primary"
@@ -140,43 +140,43 @@ const AssignmentRubricsPage: React.FC = () => {
       {/* Coming Soon Banner */}
       <Card variant="filled">
         <div className="flex items-start space-x-4">
-          <div className="p-3 bg-blue-100 rounded-lg flex-shrink-0">
-            <ClipboardDocumentListIcon className="w-8 h-8 text-blue-600" />
+          <div className="p-3 bg-primary-100 rounded-lg flex-shrink-0">
+            <ClipboardDocumentListIcon className="w-8 h-8 text-primary-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-surface-foreground mb-2">
               Rubrics Feature Coming Soon
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-surface-muted-fg mb-4">
               The rubrics management system is currently under development. Soon you will be able to:
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <div className="flex items-start space-x-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-sm text-gray-700">
+                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-sm text-surface-foreground">
                   <span className="font-medium">Create custom rubrics</span> with multiple criteria and performance levels
                 </p>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-sm text-gray-700">
+                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-sm text-surface-foreground">
                   <span className="font-medium">Assign rubrics</span> to assignments for consistent grading
                 </p>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-sm text-gray-700">
+                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-sm text-surface-foreground">
                   <span className="font-medium">Score using rubric levels</span> directly in the grading interface
                 </p>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-sm text-gray-700">
+                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-sm text-surface-foreground">
                   <span className="font-medium">Reuse rubrics</span> across multiple assignments and subjects
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-blue-600">
+            <div className="flex items-center space-x-2 text-sm text-primary-600">
               <ExclamationTriangleIcon className="w-4 h-4" />
               <span>Full rubric support will be available in a future update.</span>
             </div>
@@ -191,24 +191,24 @@ const AssignmentRubricsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card variant="compact">
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{rubricData.length}</p>
-                <p className="text-xs text-gray-500">Assignments with Rubrics</p>
+                <p className="text-2xl font-bold text-surface-foreground">{rubricData.length}</p>
+                <p className="text-xs text-surface-muted-fg">Assignments with Rubrics</p>
               </div>
             </Card>
             <Card variant="compact">
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{allCriteria.length}</p>
-                <p className="text-xs text-gray-500">Total Criteria</p>
+                <p className="text-2xl font-bold text-surface-foreground">{allCriteria.length}</p>
+                <p className="text-xs text-surface-muted-fg">Total Criteria</p>
               </div>
             </Card>
             <Card variant="compact">
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-surface-foreground">
                   {allCriteria.length > 0
                     ? Math.round(allCriteria.reduce((sum, c) => sum + (c.weightPercentage || 0), 0) / allCriteria.length)
                     : 0}%
                 </p>
-                <p className="text-xs text-gray-500">Avg Weight per Criterion</p>
+                <p className="text-xs text-surface-muted-fg">Avg Weight per Criterion</p>
               </div>
             </Card>
           </div>
@@ -225,9 +225,9 @@ const AssignmentRubricsPage: React.FC = () => {
                   width: 250,
                   render: (value, item) => (
                     <div>
-                      <span className="font-medium text-gray-900">{value}</span>
+                      <span className="font-medium text-surface-foreground">{value}</span>
                       {item.subjectName && (
-                        <p className="text-xs text-gray-500">{item.subjectName}</p>
+                        <p className="text-xs text-surface-muted-fg">{item.subjectName}</p>
                       )}
                     </div>
                   ),
@@ -252,15 +252,11 @@ const AssignmentRubricsPage: React.FC = () => {
               data={rubricData}
               sortable
               filterable
-              emptyState={
-                <div className="text-center py-8">
-                  <ClipboardDocumentListIcon className="mx-auto h-10 w-10 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No rubrics assigned</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    No assignments have rubrics configured yet.
-                  </p>
-                </div>
-              }
+              emptyState={{
+                icon: <ClipboardDocumentListIcon className="h-12 w-12 text-surface-muted-fg" />,
+                title: 'No rubrics assigned',
+                description: 'No assignments have rubrics configured yet.',
+              }}
             />
           </Card>
 
@@ -272,15 +268,11 @@ const AssignmentRubricsPage: React.FC = () => {
               sortable
               filterable
               loading={loading}
-              emptyState={
-                <div className="text-center py-8">
-                  <ChartBarIcon className="mx-auto h-10 w-10 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No criteria found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    No rubric criteria are currently defined.
-                  </p>
-                </div>
-              }
+              emptyState={{
+                icon: <ChartBarIcon className="h-12 w-12 text-surface-muted-fg" />,
+                title: 'No criteria found',
+                description: 'No rubric criteria are currently defined.',
+              }}
             />
           </Card>
         </>
@@ -289,8 +281,8 @@ const AssignmentRubricsPage: React.FC = () => {
         <Card>
           <div className="text-center py-12">
             <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-gray-300" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No rubrics configured yet</h3>
-            <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+            <h3 className="mt-4 text-lg font-medium text-surface-foreground">No rubrics configured yet</h3>
+            <p className="mt-2 text-sm text-surface-muted-fg max-w-md mx-auto">
               Once assignments are created with rubric criteria, they will appear here.
               Rubrics help standardize grading across assignments and provide clear expectations for students.
             </p>

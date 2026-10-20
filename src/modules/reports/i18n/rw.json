@@ -4,6 +4,8 @@
     "reports": {
       "title": "Raporo",
       "description": "Gukora no kureba raporo zitandukanye n'isesengura",
+      "dashboard": "Ikibaho cy'Iraporo",
+      "overview": "Raporo Zose",
       "accountLedger": "Igitabo cy'Amakonti",
       "examResultsHorizontal": "Ibisubizo by'Ibizamini Bitambitse",
       "feeCollectionSummary": "Incamake y'Ikusanyiriza ry'Amafaranga",
@@ -11,7 +13,6 @@
       "studentMasterlist": "Urutonde Rukuru rw'Abanyeshuri",
       "studentVoteheadStatement": "Raporo y'Umutwe w'Amajwi w'Umunyeshuri",
       "teacherAssignments": "Gutanga Inshingano ku Barimu",
-      "dashboard": "Ikibaho cy'Iraporo",
       "classLists": "Urutonde rw'Amasomo",
       "overdueBooks": "Ibitabo byarenze igihe",
       "inventoryStatus": "Imiterere y'Ibikoresho"

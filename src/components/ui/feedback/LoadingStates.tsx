@@ -3,8 +3,7 @@
 
 import React from 'react';
 import { useReducedMotion } from '../../../utils/accessibility';
-import { designTokens } from '../../../utils/designTokens';
-import { createAnimation } from '../../../utils/animations';
+
 
 // Base skeleton component with shimmer animation
 interface SkeletonProps {
@@ -131,7 +130,7 @@ export const CardSkeleton: React.FC<CardSkeletonProps> = ({
   animation = 'shimmer',
 }) => {
   return (
-    <div className={`p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 ${className}`} role="status" aria-label="Loading card content">
+    <div className={`p-6 bg-surface-card dark:bg-gray-800 rounded-lg border border-surface-border dark:border-gray-700 ${className}`} role="status" aria-label="Loading card content">
       <div className="space-y-4">
         {/* Header with optional avatar */}
         <div className="flex items-center space-x-3">
@@ -179,7 +178,7 @@ export const TableSkeleton: React.FC<TableSkeletonProps> = ({
     <div className={`space-y-3 ${className}`} role="status" aria-label="Loading table content">
       {/* Header */}
       {showHeader && (
-        <div className="grid gap-4 pb-2 border-b border-gray-200 dark:border-gray-700" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+        <div className="grid gap-4 pb-2 border-b border-surface-border dark:border-gray-700" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, index) => (
             <Skeleton
               key={`header-${index}`}
@@ -265,7 +264,7 @@ export const ListSkeleton: React.FC<ListSkeletonProps> = ({
   return (
     <div className={`space-y-4 ${className}`} role="status" aria-label="Loading list content">
       {Array.from({ length: items }).map((_, index) => (
-        <div key={`item-${index}`} className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div key={`item-${index}`} className="flex items-center space-x-3 p-3 bg-surface-card dark:bg-gray-800 rounded-lg border border-surface-border dark:border-gray-700">
           {showAvatar && <AvatarSkeleton size="md" animation={animation} />}
           <div className="flex-1 space-y-2">
             <Skeleton height="1rem" width="70%" animation={animation} aria-label={`Loading item title ${index + 1}`} />
@@ -297,9 +296,9 @@ export const ProgressiveLoader: React.FC<ProgressiveLoaderProps> = ({
   return (
     <div className={`space-y-2 ${className}`} role="status" aria-label={`${label} ${clampedProgress}% complete`}>
       <div className="flex justify-between items-center">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
+        <span className="text-sm font-medium text-surface-foreground dark:text-gray-300">{label}</span>
         {showPercentage && (
-          <span className="text-sm text-gray-500 dark:text-gray-400">{clampedProgress}%</span>
+          <span className="text-sm text-surface-muted-fg dark:text-gray-400">{clampedProgress}%</span>
         )}
       </div>
       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -411,10 +410,10 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       aria-label={message}
       aria-live="polite"
     >
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg max-w-sm mx-4">
+      <div className="bg-surface-card dark:bg-gray-800 rounded-lg p-6 shadow-lg max-w-sm mx-4">
         <div className="flex items-center space-x-3">
           <SpinnerLoader size="md" />
-          <span className="text-gray-700 dark:text-gray-300 font-medium">{message}</span>
+          <span className="text-surface-foreground dark:text-gray-300 font-medium">{message}</span>
         </div>
       </div>
     </div>

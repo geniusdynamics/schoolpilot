@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides the ConflictDetectionEngine for detecting scheduling conflicts
 // ABOUTME: in exam schedules including room, invigilator, and student conflicts
 
@@ -78,7 +80,7 @@ export class ConflictDetectionEngine {
 
       return null;
     } catch (error) {
-      console.error('Error detecting room conflict:', error);
+      logger.error('Error detecting room conflict:', error);
       return null;
     }
   }
@@ -105,7 +107,7 @@ export class ConflictDetectionEngine {
 
       return null;
     } catch (error) {
-      console.error('Error detecting invigilator conflict:', error);
+      logger.error('Error detecting invigilator conflict:', error);
       return null;
     }
   }
@@ -135,7 +137,7 @@ export class ConflictDetectionEngine {
 
       return null;
     } catch (error) {
-      console.error('Error detecting student conflict:', error);
+      logger.error('Error detecting student conflict:', error);
       return null;
     }
   }
@@ -162,7 +164,7 @@ export class ConflictDetectionEngine {
       // In practice, you'd need to query actual student enrollment data
       return conflictingSchedules.length > 0 ? ['conflicting_students'] : [];
     } catch (error) {
-      console.error('Error getting conflicting students:', error);
+      logger.error('Error getting conflicting students:', error);
       return [];
     }
   }
@@ -221,8 +223,8 @@ export class ConflictDetectionEngine {
       }) || [];
 
       // Extract used rooms and invigilators
-      const usedRooms = new Set(conflictingSchedules.map(s => s.room_number).filter(Boolean) as string[]);
-      const usedInvigilators = new Set(conflictingSchedules.map(s => s.invigilator_id).filter(Boolean) as string[]);
+      const usedRooms = new Set(conflictingSchedules.map((s: ExamSchedule) => s.room_number).filter(Boolean) as string[]);
+      const usedInvigilators = new Set(conflictingSchedules.map((s: ExamSchedule) => s.invigilator_id).filter(Boolean) as string[]);
 
       // Define default available rooms and invigilators if not provided by database
       // In a production system, these would be fetched from their respective collections
@@ -246,7 +248,7 @@ export class ConflictDetectionEngine {
         conflictingSchedules: conflictingSchedules as ExamSchedule[]
       };
     } catch (error) {
-      console.error('Error getting available slots:', error);
+      logger.error('Error getting available slots:', error);
       return {
         availableRooms: [],
         availableInvigilators: [],

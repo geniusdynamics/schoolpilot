@@ -36,7 +36,7 @@ export interface AccountLedgerRow {
  * - Other → "General Journal Entry"
  *
  * Aggregates from:
- * - general_ledger (primary)
+ * - general_ledger_entries (primary)
  * - students (for payment particulars)
  * - staff (for payroll particulars)
  * - supplier_invoices + suppliers (for supplier invoice particulars)
@@ -47,7 +47,7 @@ export interface AccountLedgerRow {
  * ```
  */
 export function useAccountLedger() {
-  const generalLedgerCol = useDatabaseCollection<Record<string, any>>('general_ledger');
+  const generalLedgerCol = useDatabaseCollection<Record<string, any>>('general_ledger_entries');
   const studentsCol = useDatabaseCollection<Record<string, any>>('students');
   const staffCol = useDatabaseCollection<Record<string, any>>('staff');
   const supplierInvoicesCol = useDatabaseCollection<Record<string, any>>('supplier_invoices');
@@ -179,6 +179,7 @@ export function useAccountLedger() {
       supplierInvoicesCol.refresh(),
       suppliersCol.refresh(),
     ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- collection hooks return a fresh object each render
   }, [
     generalLedgerCol.refresh, studentsCol.refresh, staffCol.refresh,
     supplierInvoicesCol.refresh, suppliersCol.refresh,

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Comprehensive data validation utilities for defensive programming
 // ABOUTME: Provides null/undefined checks and safe data access patterns for table rendering
 
@@ -49,7 +51,7 @@ export class DataValidationUtils {
     // Check if all required fields exist and are not null/undefined
     for (const field of requiredFields) {
       if (this.safeGet(moduleData, field) === null) {
-        console.warn(`Missing required field '${field}' in module data`);
+        logger.warn(`Missing required field '${field}' in module data`);
         return null;
       }
     }
@@ -123,7 +125,7 @@ export class DataValidationUtils {
       for (const column of requiredColumns) {
         if (this.safeGet(row, column) === null && this.safeGet(row, column) !== '') {
           // Only warn, don't invalidate the entire row
-          console.warn(`Row ${index} missing value for required column '${column}'`);
+          logger.warn(`Row ${index} missing value for required column '${column}'`);
         }
       }
     });
@@ -151,7 +153,7 @@ export class DataValidationUtils {
         const result = renderFn(value, row);
         return result !== null && result !== undefined ? result : '-';
       } catch (error) {
-        console.error('Error in table cell renderer:', error);
+        logger.error('Error in table cell renderer:', error);
         return <span className="text-red-500 text-xs">Error</span>;
       }
     };
@@ -165,7 +167,7 @@ export class DataValidationUtils {
     
     return validColumns.map((column, index) => {
       if (!column || typeof column !== 'object') {
-        console.warn(`Column ${index} is not a valid object`);
+        logger.warn(`Column ${index} is not a valid object`);
         return {
           key: `invalid_${index}`,
           header: 'Invalid Column',
@@ -188,7 +190,7 @@ export class DataValidationUtils {
   static createErrorBoundaryProps(componentName: string) {
     return {
       onError: (error: Error, errorInfo: any) => {
-        console.error(`Error in ${componentName}:`, error, errorInfo);
+        logger.error(`Error in ${componentName}:`, error, errorInfo);
       },
       fallback: <div className="text-red-500 p-4 border border-red-200 rounded">
         <p className="font-semibold">Error loading {componentName}</p>

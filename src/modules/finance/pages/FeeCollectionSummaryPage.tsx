@@ -1,7 +1,7 @@
 // ABOUTME: This page component displays a summary of fee collections by votehead.
 // ABOUTME: It allows filtering by school period and class to generate the report.
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons'; 
@@ -10,8 +10,8 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { SchoolPeriod, Class as SchoolClass } from '@/core/types'; 
-import { StudentInvoice, InvoiceStatus, InvoicePaymentApplication } from '@/modules/finance'; 
+import { InvoiceStatus } from '@/core/types';
+import { useToast } from '@/hooks/useToast';
 
 interface FeeCollectionSummaryRow {
   votehead: string;
@@ -20,7 +20,7 @@ interface FeeCollectionSummaryRow {
   arrears: number;
 }
 
-const FeeCollectionSummaryPage: React.FC = () => {
+export const FeeCollectionSummaryPageContent: React.FC = () => {
   const { t } = useTranslation('reports');
   const { 
     schoolPeriods, 
@@ -32,26 +32,29 @@ const FeeCollectionSummaryPage: React.FC = () => {
     loading 
   } = useAppData();
 
-  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    (schoolPeriods || []).find(sp => sp.is_active)?.id || (schoolPeriods || [])[0]?.id
-  );
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
+  const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(() => {
+    const period = (schoolPeriods || []).find(sp => sp.is_active) || (schoolPeriods || [])[0];
+    return period?.id != null ? String(period.id) : undefined;
+  });
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<FeeCollectionSummaryRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const toast = useToast();
+
   const handleGenerateReport = useCallback(() => {
     if (!selectedSchoolPeriodId) {
-      alert(t('feeCollection.alertSelectPeriod'));
+      toast.showError(t('feeCollection.alertSelectPeriod'));
       setReportData([]);
       return;
     }
     setIsGenerating(true);
     
     const invoicesForPeriod = (studentInvoices || []).filter(inv =>
-      inv.school_period_id === selectedSchoolPeriodId &&
+      String(inv.school_period_id) === selectedSchoolPeriodId &&
       inv.status !== InvoiceStatus.VOIDED &&
-      (!selectedClassId || (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id && (classStreams || []).find(cs => cs.id === (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id)?.class_id === selectedClassId)
+      (!selectedClassId || (students || []).find(s => String(s.id) === String(inv.student_id))?.current_class_stream_id && String((classStreams || []).find(cs => String(cs.id) === String((students || []).find(s => String(s.id) === String(inv.student_id))?.current_class_stream_id))?.class_id) === selectedClassId)
     );
 
     const summaryMap = new Map<string, { expected: number; paid: number }>();
@@ -81,7 +84,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
     setReportData(summaryData);
     setIsGenerating(false);
    
-  }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams, t]);
+  }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams, t, toast]);
   
 
   useEffect(() => {
@@ -96,7 +99,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 250,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'expectedAmount', 
@@ -104,7 +107,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="font-mono text-blue-600">{row.expectedAmount.toFixed(2)}</span>
+      render: (value, row) => <span className="font-mono text-primary-600">{row.expectedAmount.toFixed(2)}</span>
     },
     { 
       key: 'paidAmount', 
@@ -121,7 +124,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
       filterable: true, 
       width: 150,
       render: (value, row) => <span className={`font-mono ${
-        row.arrears > 0 ? 'text-red-600' : 'text-gray-600'
+        row.arrears > 0 ? 'text-red-600' : 'text-surface-muted-fg'
       }`}>{row.arrears.toFixed(2)}</span>
     },
   ];
@@ -134,7 +137,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
 
   const handleExportCSV = () => {
     if (reportData.length === 0) {
-      alert(t('common:noDataToExport')); 
+      toast.showError(t('common:noDataToExport'));
       return;
     }
     const headers = columns.map(col => col.header).join(',');
@@ -172,16 +175,16 @@ const FeeCollectionSummaryPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('feeCollection.title')}>
-         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-            <p className="text-sm text-gray-600 mb-4">
+         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 {t('feeCollection.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label={t('feeCollection.schoolPeriod')} value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
+                <Select label={t('feeCollection.schoolPeriod')} value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">{t('feeCollection.optionAllPeriods')}</option>
                     {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
-                <Select label={t('feeCollection.classOptional')} value={selectedClassId || ''} onChange={e => setSelectedClassId(Number(e.target.value) || undefined)}>
+                <Select label={t('feeCollection.classOptional')} value={selectedClassId || ''} onChange={e => setSelectedClassId(e.target.value || undefined)}>
                     <option value="">{t('feeCollection.optionAllClasses')}</option>
                     {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>
@@ -208,18 +211,23 @@ const FeeCollectionSummaryPage: React.FC = () => {
                   sortable
                   filterable
                   emptyState={{
-                    icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
+                    icon: <CurrencyDollarIcon className="w-12 h-12 text-surface-muted-fg" />,
                     title: t('feeCollection.noData'),
                     description: "Adjust your filters and generate the report to view fee collection summary data."
                   }}
                 />
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">{t('feeCollection.selectFiltersMessage')}</p>
+            <p className="text-center text-surface-muted-fg py-4">{t('feeCollection.selectFiltersMessage')}</p>
         )}
       </Card>
     </div>
   );
 };
+const FeeCollectionSummaryPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeeCollectionSummaryPageContent />
+  </div>
+);
 
 export default FeeCollectionSummaryPage;

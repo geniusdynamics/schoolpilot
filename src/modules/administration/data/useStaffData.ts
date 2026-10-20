@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for staff data management
 // ABOUTME: Provides CRUD operations for staff without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockStaff } from './mockData';
 import { Staff } from '@/core/types';
+import { useState } from 'react';
 
 export const useStaffData = () => {
   const [data, setData] = useState<Staff[]>(initialMockStaff || []);

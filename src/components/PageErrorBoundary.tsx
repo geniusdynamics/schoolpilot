@@ -1,11 +1,15 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Page-level error boundary for individual page failures
 // ABOUTME: Provides navigation alternatives when specific pages fail to load
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
   pageName: string;
+  /** When this value changes (e.g. the active hub tab), a caught error is cleared. */
+  resetKey?: string | number;
   onError?: (pageName: string, error: Error) => void;
 }
 
@@ -33,7 +37,7 @@ class PageErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { pageName, onError } = this.props;
     
-    console.error(`📄 [PageErrorBoundary] Page "${pageName}" error:`, {
+    logger.error(`📄 [PageErrorBoundary] Page "${pageName}" error:`, {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack
@@ -41,6 +45,15 @@ class PageErrorBoundary extends Component<Props, State> {
 
     if (onError) {
       onError(pageName, error);
+    }
+  }
+
+  componentDidUpdate(prevProps: Readonly<Props>) {
+    if (this.state.hasError && this.props.resetKey !== prevProps.resetKey) {
+      this.setState({
+        hasError: false,
+        error: null
+      });
     }
   }
 
@@ -71,8 +84,8 @@ class PageErrorBoundary extends Component<Props, State> {
       const errorId = `page-error-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+        <div className="min-h-screen flex items-center justify-center bg-surface-muted">
+          <div className="max-w-md w-full bg-surface-card shadow-lg rounded-lg p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
                 <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,20 +93,20 @@ class PageErrorBoundary extends Component<Props, State> {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-surface-foreground">
                   Page Error
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-surface-muted-fg">
                   Failed to load page: {pageName}
                 </p>
               </div>
             </div>
 
             <div className="mb-4">
-              <p className="text-sm text-gray-700 mb-2">
+              <p className="text-sm text-surface-foreground mb-2">
                 <strong>Error:</strong> {error.message}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-surface-muted-fg">
                 Error ID: {errorId}
               </p>
             </div>
@@ -101,7 +114,7 @@ class PageErrorBoundary extends Component<Props, State> {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 onClick={this.handleRetry}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 Try Again
               </button>
@@ -129,10 +142,10 @@ class PageErrorBoundary extends Component<Props, State> {
             </div>
 
             <details className="mt-4">
-              <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">
+              <summary className="text-sm text-surface-muted-fg cursor-pointer hover:text-surface-foreground">
                 Technical Details
               </summary>
-              <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-700 max-h-32 overflow-y-auto">
+              <div className="mt-2 p-3 bg-surface-accent rounded text-xs font-mono text-surface-foreground max-h-32 overflow-y-auto">
                 {error.stack}
               </div>
             </details>

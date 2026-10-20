@@ -2,73 +2,47 @@
 // ABOUTME: Provides comprehensive contract management with CRUD operations, search, and filtering.
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Grid,
-  Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  Tooltip,
-  LinearProgress
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-  Description as ContractIcon,
-  CalendarToday as CalendarIcon,
-  AttachMoney as MoneyIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
-import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Modal from '@/components/ui/Modal';
+import Badge from '@/components/ui/Badge';
+import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { EditIcon, DeleteIcon, PlusIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useSupplierContractData } from '../data/useSupplierContractData';
 import { useSupplierData } from '../data/useSupplierData';
 import { InvSupplierContractType, InvContractStatusEnum } from '../data/types';
 import { useTranslation } from 'react-i18next';
-import { useSnackbar } from 'notistack';
 import { format, differenceInDays, parseISO } from 'date-fns';
 
-const SupplierContractsPage: React.FC = () => {
+/** Contract form state; supplier ids are strings (UUIDs) at runtime and are never coerced. */
+type ContractFormData = Omit<Partial<InvSupplierContractType>, 'supplier_id'> & { supplier_id?: string | number };
+
+export const SupplierContractsPageContent: React.FC = () => {
   const { t } = useTranslation();
-  const { enqueueSnackbar } = useSnackbar();
+  const toast = useToast();
+  const confirm = useConfirm();
   const {
     contracts,
     loading,
     error,
     create,
     update,
-    remove,
-    findActiveContracts,
-    findExpiringContracts,
-    findContractsByStatus
+    remove
   } = useSupplierContractData();
-  
+
   const { suppliers } = useSupplierData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [supplierFilter, setSupplierFilter] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingContract, setEditingContract] = useState<InvSupplierContractType | null>(null);
-  const [formData, setFormData] = useState<Partial<InvSupplierContractType>>({
-    supplier_id: 0,
+  const [formData, setFormData] = useState<ContractFormData>({
+    supplier_id: '',
     contract_number: '',
     title: '',
     description: '',
@@ -90,8 +64,8 @@ const SupplierContractsPage: React.FC = () => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(contract =>
-        contract.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (contract.contract_number?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (contract.title?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         contract.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -103,7 +77,7 @@ const SupplierContractsPage: React.FC = () => {
 
     // Apply supplier filter
     if (supplierFilter !== 'ALL') {
-      filtered = filtered.filter(contract => contract.supplier_id.toString() === supplierFilter);
+      filtered = filtered.filter(contract => contract.supplier_id?.toString() === supplierFilter);
     }
 
     setFilteredContracts(filtered);
@@ -116,7 +90,7 @@ const SupplierContractsPage: React.FC = () => {
     } else {
       setEditingContract(null);
       setFormData({
-        supplier_id: 0,
+        supplier_id: '',
         contract_number: '',
         title: '',
         description: '',
@@ -139,56 +113,58 @@ const SupplierContractsPage: React.FC = () => {
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       if (editingContract) {
         await update(editingContract.id, {
           ...formData,
           updated_at: new Date().toISOString()
         } as InvSupplierContractType);
-        enqueueSnackbar(t('inventory.contracts.updated'), { variant: 'success' });
+        toast.showSuccess(t('inventory.contracts.updated'));
       } else {
         const now = new Date().toISOString();
-        const supplier = suppliers?.find(s => s.id === formData.supplier_id);
+        const supplier = suppliers?.find(s => String(s.id) === String(formData.supplier_id));
         await create({
           ...formData,
-          id: Date.now(), // Simple ID generation for demo
           supplier_name: supplier?.name || '',
           created_at: now,
           updated_at: now
         } as InvSupplierContractType);
-        enqueueSnackbar(t('inventory.contracts.created'), { variant: 'success' });
+        toast.showSuccess(t('inventory.contracts.created'));
       }
       handleCloseDialog();
-    } catch (error) {
-      enqueueSnackbar(t('common.error'), { variant: 'error' });
+    } catch {
+      toast.showError(t('common.error'));
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('common.confirmDelete'))) {
+    if (await confirm({ title: t('common.delete'), message: t('common.confirmDelete'), variant: 'danger' })) {
       try {
         await remove(id);
-        enqueueSnackbar(t('inventory.contracts.deleted'), { variant: 'success' });
-      } catch (error) {
-        enqueueSnackbar(t('common.error'), { variant: 'error' });
+        toast.showSuccess(t('inventory.contracts.deleted'));
+      } catch {
+        toast.showError(t('common.error'));
       }
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case InvContractStatusEnum.ACTIVE:
         return 'success';
       case InvContractStatusEnum.DRAFT:
-        return 'default';
+        return 'secondary';
       case InvContractStatusEnum.EXPIRED:
-        return 'error';
+        return 'danger';
       case InvContractStatusEnum.TERMINATED:
-        return 'error';
+        return 'danger';
       case InvContractStatusEnum.PENDING_APPROVAL:
         return 'warning';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 
@@ -204,340 +180,263 @@ const SupplierContractsPage: React.FC = () => {
     }).format(amount);
   };
 
-  const columns: GridColDef[] = [
+  const columns: DataGridColumn<InvSupplierContractType>[] = [
     {
-      field: 'contract_number',
-      headerName: t('inventory.contracts.contractNumber'),
-      flex: 1,
+      key: 'contract_number',
+      header: t('inventory.contracts.contractNumber'),
       minWidth: 150,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ContractIcon color="primary" />
-          <Typography variant="body2" fontWeight="medium">
-            {params.value}
-          </Typography>
-        </Box>
+      render: (_v, contract) => (
+        <span className="font-medium text-surface-foreground">{contract.contract_number}</span>
       )
     },
     {
-      field: 'title',
-      headerName: t('inventory.contracts.title'),
-      flex: 1,
+      key: 'title',
+      header: t('inventory.contracts.title'),
       minWidth: 200
     },
     {
-      field: 'supplier_name',
-      headerName: t('inventory.contracts.supplier'),
-      flex: 1,
+      key: 'supplier_name',
+      header: t('inventory.contracts.supplier'),
       minWidth: 150
     },
     {
-      field: 'contract_value',
-      headerName: t('inventory.contracts.value'),
-      width: 120,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <MoneyIcon fontSize="small" color="action" />
-          <Typography variant="body2">
-            {formatCurrency(params.value, params.row.currency)}
-          </Typography>
-        </Box>
-      )
+      key: 'contract_value',
+      header: t('inventory.contracts.value'),
+      width: 140,
+      render: (_v, contract) => formatCurrency(contract.contract_value, contract.currency)
     },
     {
-      field: 'start_date',
-      headerName: t('inventory.contracts.startDate'),
-      width: 120,
-      renderCell: (params) => params.value ? format(parseISO(params.value), 'MMM dd, yyyy') : ''
+      key: 'start_date',
+      header: t('inventory.contracts.startDate'),
+      width: 130,
+      render: (_v, contract) => contract.start_date ? format(parseISO(contract.start_date), 'MMM dd, yyyy') : ''
     },
     {
-      field: 'end_date',
-      headerName: t('inventory.contracts.endDate'),
-      width: 120,
-      renderCell: (params) => {
-        if (!params.value) return '';
-        const daysUntilExpiry = getDaysUntilExpiry(params.value);
+      key: 'end_date',
+      header: t('inventory.contracts.endDate'),
+      width: 150,
+      render: (_v, contract) => {
+        if (!contract.end_date) return '';
+        const daysUntilExpiry = getDaysUntilExpiry(contract.end_date);
         const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
-        
+
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span className={`inline-flex items-center gap-1 ${isExpiringSoon ? 'text-amber-600' : ''}`}>
             {isExpiringSoon && (
-              <Tooltip title={t('inventory.contracts.expiringSoon')}>
-                <WarningIcon fontSize="small" color="warning" />
-              </Tooltip>
+              <ExclamationTriangleIcon
+                className="w-4 h-4 text-amber-500"
+                aria-label={t('inventory.contracts.expiringSoon')}
+              />
             )}
-            <Typography variant="body2" color={isExpiringSoon ? 'warning.main' : 'inherit'}>
-              {format(parseISO(params.value), 'MMM dd, yyyy')}
-            </Typography>
-          </Box>
+            {format(parseISO(contract.end_date), 'MMM dd, yyyy')}
+          </span>
         );
       }
     },
     {
-      field: 'status',
-      headerName: t('inventory.contracts.status'),
-      width: 120,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={getStatusColor(params.value) as any}
-          size="small"
-        />
+      key: 'status',
+      header: t('inventory.contracts.status'),
+      width: 170,
+      render: (_v, contract) => (
+        <Badge variant={getStatusVariant(contract.status) as any}>
+          {contract.status}
+        </Badge>
       )
     },
     {
-      field: 'actions',
-      type: 'actions',
-      headerName: t('common.actions'),
+      key: 'actions',
+      header: t('common.actions'),
       width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          icon={<EditIcon />}
-          label={t('common.edit')}
-          onClick={() => handleOpenDialog(params.row)}
-        />,
-        <GridActionsCellItem
-          icon={<DeleteIcon />}
-          label={t('common.delete')}
-          onClick={() => handleDelete(params.row.id)}
-        />
-      ]
+      sortable: false,
+      filterable: false,
+      render: (_v, contract) => (
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(contract)} leftIcon={<EditIcon className="w-4 h-4" />}>
+            {t('common.edit')}
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(contract.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>
+            {t('common.delete')}
+          </Button>
+        </div>
+      )
     }
   ];
 
   if (error) {
     return (
-      <Alert severity="error">
+      <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700">
         {t('common.errorLoading')}: {error.message}
-      </Alert>
+      </div>
     );
   }
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            {t('inventory.contracts.title')}
-          </Typography>
-          <Button
-            variant="contained"
-            leftIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            {t('inventory.contracts.add')}
-          </Button>
-        </Box>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-surface-foreground">
+          {t('inventory.contracts.title')}
+        </h1>
+        <Button onClick={() => handleOpenDialog()} leftIcon={<PlusIcon className="w-4 h-4" />}>
+          {t('inventory.contracts.add')}
+        </Button>
+      </div>
 
-        {/* Filters */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  placeholder={t('inventory.contracts.search')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('inventory.contracts.status')}</InputLabel>
-                  <Select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    label={t('inventory.contracts.status')}
-                  >
-                    <MenuItem value="ALL">{t('common.all')}</MenuItem>
-                    {Object.values(InvContractStatusEnum).map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('inventory.contracts.supplier')}</InputLabel>
-                  <Select
-                    value={supplierFilter}
-                    onChange={(e) => setSupplierFilter(e.target.value)}
-                    label={t('inventory.contracts.supplier')}
-                  >
-                    <MenuItem value="ALL">{t('common.all')}</MenuItem>
-                    {suppliers?.map((supplier) => (
-                      <MenuItem key={supplier.id} value={supplier.id.toString()}>
-                        {supplier.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* Data Grid */}
-        <Card>
-          <DataGrid
-            rows={filteredContracts}
-            columns={columns}
-            loading={loading}
-            autoHeight
-            disableRowSelectionOnClick
-            pageSizeOptions={[10, 25, 50]}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 25 } }
-            }}
+      {/* Filters */}
+      <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Input
+            placeholder={t('inventory.contracts.search')}
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           />
-        </Card>
+          <Select
+            label={t('inventory.contracts.status')}
+            value={statusFilter}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+            options={[
+              { value: 'ALL', label: t('common.all') },
+              ...Object.values(InvContractStatusEnum).map((status) => ({
+                value: status,
+                label: status
+              }))
+            ]}
+          />
+          <Select
+            label={t('inventory.contracts.supplier')}
+            value={supplierFilter}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSupplierFilter(e.target.value)}
+            options={[
+              { value: 'ALL', label: t('common.all') },
+              ...(suppliers || []).map((supplier) => ({
+                value: supplier.id.toString(),
+                label: supplier.name
+              }))
+            ]}
+          />
+        </div>
+      </div>
 
-        {/* Add/Edit Dialog */}
-        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-          <DialogTitle>
-            {editingContract ? t('inventory.contracts.edit') : t('inventory.contracts.add')}
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.contractNumber')}
-                  value={formData.contract_number || ''}
-                  onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>{t('inventory.contracts.supplier')}</InputLabel>
-                  <Select
-                    value={formData.supplier_id || ''}
-                    onChange={(e) => setFormData({ ...formData, supplier_id: Number(e.target.value) })}
-                    label={t('inventory.contracts.supplier')}
-                  >
-                    {suppliers?.map((supplier) => (
-                      <MenuItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.title')}
-                  value={formData.title || ''}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.description')}
-                  multiline
-                  rows={3}
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <DatePicker
-                  label={t('inventory.contracts.startDate')}
-                  value={formData.start_date ? parseISO(formData.start_date) : null}
-                  onChange={(date) => setFormData({ ...formData, start_date: date?.toISOString().split('T')[0] || '' })}
-                  slotProps={{ textField: { fullWidth: true, required: true } }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <DatePicker
-                  label={t('inventory.contracts.endDate')}
-                  value={formData.end_date ? parseISO(formData.end_date) : null}
-                  onChange={(date) => setFormData({ ...formData, end_date: date?.toISOString().split('T')[0] || '' })}
-                  slotProps={{ textField: { fullWidth: true } }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('inventory.contracts.status')}</InputLabel>
-                  <Select
-                    value={formData.status || InvContractStatusEnum.DRAFT}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as InvContractStatusEnum })}
-                    label={t('inventory.contracts.status')}
-                  >
-                    {Object.values(InvContractStatusEnum).map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.value')}
-                  type="number"
-                  value={formData.contract_value || 0}
-                  onChange={(e) => setFormData({ ...formData, contract_value: parseFloat(e.target.value) || 0 })}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.currency')}
-                  value={formData.currency || 'USD'}
-                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  placeholder="USD, EUR, GBP"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.paymentTerms')}
-                  value={formData.payment_terms || ''}
-                  onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-                  placeholder="e.g., Net 30, COD"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.deliveryTerms')}
-                  value={formData.delivery_terms || ''}
-                  onChange={(e) => setFormData({ ...formData, delivery_terms: e.target.value })}
-                  placeholder="e.g., FOB, CIF"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label={t('inventory.contracts.termsAndConditions')}
-                  multiline
-                  rows={4}
-                  value={formData.terms_and_conditions || ''}
-                  onChange={(e) => setFormData({ ...formData, terms_and_conditions: e.target.value })}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
-            <Button onClick={handleSave} variant="contained">
+      {/* Data Grid */}
+      <DataGrid
+        columns={columns}
+        data={filteredContracts}
+        loading={loading}
+        pagination={{ pageSize: 25 }}
+        emptyState={{
+          title: t('inventory.contracts.title'),
+          description: t('common.noData')
+        }}
+      />
+
+      {/* Add/Edit Dialog */}
+      <Modal
+        isOpen={dialogOpen}
+        onClose={handleCloseDialog}
+        title={editingContract ? t('inventory.contracts.edit') : t('inventory.contracts.add')}
+        size="lg"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCloseDialog}>{t('common.cancel')}</Button>
+            <Button onClick={handleSave} disabled={saving || !formData.contract_number || !formData.title}>
               {editingContract ? t('common.update') : t('common.create')}
             </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </LocalizationProvider>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label={t('inventory.contracts.contractNumber')}
+            value={formData.contract_number || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, contract_number: e.target.value })}
+            required
+          />
+          <Select
+            label={t('inventory.contracts.supplier')}
+            value={formData.supplier_id ? String(formData.supplier_id) : ''}
+            onValueChange={(value) => setFormData({ ...formData, supplier_id: String(value) })}
+            required
+            options={(suppliers || []).map((supplier) => ({
+              value: supplier.id,
+              label: supplier.name
+            }))}
+          />
+          <div className="md:col-span-2">
+            <Input
+              label={t('inventory.contracts.title')}
+              value={formData.title || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Input
+              label={t('inventory.contracts.description')}
+              value={formData.description || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, description: e.target.value })}
+            />
+          </div>
+          <Input
+            label={t('inventory.contracts.startDate')}
+            type="date"
+            value={formData.start_date || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, start_date: e.target.value })}
+            required
+          />
+          <Input
+            label={t('inventory.contracts.endDate')}
+            type="date"
+            value={formData.end_date || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, end_date: e.target.value })}
+          />
+          <Select
+            label={t('inventory.contracts.status')}
+            value={formData.status || InvContractStatusEnum.DRAFT}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, status: e.target.value as InvContractStatusEnum })}
+            options={Object.values(InvContractStatusEnum).map((status) => ({
+              value: status,
+              label: status
+            }))}
+          />
+          <Input
+            label={t('inventory.contracts.value')}
+            type="number"
+            value={formData.contract_value || 0}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, contract_value: parseFloat(e.target.value) || 0 })}
+          />
+          <Input
+            label={t('inventory.contracts.currency')}
+            value={formData.currency || 'USD'}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, currency: e.target.value })}
+            placeholder="USD, EUR, GBP"
+          />
+          <Input
+            label={t('inventory.contracts.paymentTerms')}
+            value={formData.payment_terms || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, payment_terms: e.target.value })}
+            placeholder="e.g., Net 30, COD"
+          />
+          <Input
+            label={t('inventory.contracts.deliveryTerms')}
+            value={formData.delivery_terms || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, delivery_terms: e.target.value })}
+            placeholder="e.g., FOB, CIF"
+          />
+          <div className="md:col-span-2">
+            <Input
+              label={t('inventory.contracts.termsAndConditions')}
+              value={formData.terms_and_conditions || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, terms_and_conditions: e.target.value })}
+            />
+          </div>
+        </div>
+      </Modal>
+    </div>
   );
 };
+const SupplierContractsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SupplierContractsPageContent />
+  </div>
+);
 
 export default SupplierContractsPage;

@@ -5,7 +5,7 @@
       "description": "Gestione studenti, personale, struttura accademica e operazioni scolastiche",
       "dashboard": "Dashboard",
       "applications": "Domande",
-      "preNAsMarks": "Voti Pre-NAs",
+      "entryMarks": "Voti Entry Marks",
       "students": "Studenti",
       "studentMasterlist": "Lista Principale Studenti",
       "studentPromotion": "Promozione Studenti",

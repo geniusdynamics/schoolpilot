@@ -1,19 +1,38 @@
+﻿// ABOUTME: Settings › School Profile — edits the single school_details record (name, code, contacts, motto)
+// ABOUTME: Reads and saves through useDatabaseDocument so the profile persists and refreshes live (SO-17);
+// ABOUTME: also (re-)opens the setup wizard, labelled as a re-run once school_details.setup_completed_at is set.
+
 import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import { IdentificationIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
+import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import { SchoolDetails } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
+import { SetupWizard } from '@/components/setup/SetupWizard';
 
-const SettingsSchoolProfilePage: React.FC = () => {
-  const { schoolDetails: initialSchoolDetails, updateSchoolDetails, loading } = useAppData();
+
+// school_details rows are keyed by string ids in the database layer
+type SchoolProfile = Omit<SchoolDetails, 'id'> & { id?: string; setup_completed_at?: string | null };
+
+export const SettingsSchoolProfileContent: React.FC = () => {
+  const {
+    data: initialSchoolDetails,
+    save: saveSchoolDetails,
+    loading,
+    refresh,
+  } = useDatabaseDocument<SchoolProfile>('school_details');
+  const [wizardOpen, setWizardOpen] = useState(false);
+  // Only block the form on the first load; refreshes after a save keep it on screen
+  const pageIsLoading = loading && !initialSchoolDetails;
   const { t } = useTranslation('settings');
-  
-  const [schoolDetails, setSchoolDetails] = useState<Partial<SchoolDetails>>(initialSchoolDetails || {});
+
+  const [schoolDetails, setSchoolDetails] = useState<Partial<SchoolProfile>>(initialSchoolDetails || {});
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -26,30 +45,59 @@ const SettingsSchoolProfilePage: React.FC = () => {
     setSchoolDetails({ ...schoolDetails, [e.target.name]: e.target.value });
   };
 
+  const toast = useToast();
   const handleSaveSchoolDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await updateSchoolDetails(schoolDetails);
-      alert(t('schoolProfile.saveSuccess'));
+      const now = new Date().toISOString();
+      await saveSchoolDetails({
+        ...schoolDetails,
+        ...(schoolDetails.id ? {} : { created_at: now }),
+        updated_at: now,
+      });
+      toast.showSuccess(t('schoolProfile.saveSuccess'));
     } catch (error) {
-      console.error("Failed to save school details:", error);
-      alert(t('schoolProfile.saveError'));
+      logger.error("Failed to save school details:", error);
+      toast.showError(t('schoolProfile.saveError'));
     } finally {
       setIsSaving(false);
     }
   };
   
-  const pageIsLoading = loading.schoolDetails || (loading.all && !initialSchoolDetails);
 
+
+  const setupCompleted = Boolean(initialSchoolDetails?.setup_completed_at);
+  const closeWizard = () => {
+    setWizardOpen(false);
+    void refresh();
+  };
+
+  if (wizardOpen) {
+    return <SetupWizard onComplete={closeWizard} onCancel={closeWizard} />;
+  }
 
   return (
     <div className="space-y-6">
+      <Card title={t('schoolProfile.setupWizard.title', 'Setup wizard')}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-surface-muted-fg">
+            {setupCompleted
+              ? t('schoolProfile.setupWizard.rerunDescription', 'Setup is complete. Run the wizard again to review the school profile, year, classes and subjects; existing records are updated, never duplicated.')
+              : t('schoolProfile.setupWizard.description', 'Set up the school profile, academic year, classes, subjects and administrator step by step.')}
+          </p>
+          <Button type="button" variant="secondary" onClick={() => setWizardOpen(true)}>
+            {setupCompleted
+              ? t('schoolProfile.setupWizard.rerunButton', 'Re-run setup wizard')
+              : t('schoolProfile.setupWizard.runButton', 'Run setup wizard')}
+          </Button>
+        </div>
+      </Card>
       <Card title={t('schoolProfile.title')}>
         <div className="text-center py-8 border-b mb-6">
           <IdentificationIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">{t('schoolProfile.header')}</h2>
-          <p className="text-gray-500">{t('schoolProfile.description')}</p>
+          <h2 className="text-xl font-semibold text-surface-foreground">{t('schoolProfile.header')}</h2>
+          <p className="text-surface-muted-fg">{t('schoolProfile.description')}</p>
         </div>
 
         {pageIsLoading ? (
@@ -91,6 +139,10 @@ const SettingsSchoolProfilePage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const SettingsSchoolProfilePage: React.FC = () => {
+  return <SettingsSchoolProfileContent />;
 };
 
 export default SettingsSchoolProfilePage;

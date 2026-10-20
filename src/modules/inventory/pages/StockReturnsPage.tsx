@@ -1,41 +1,17 @@
+// ABOUTME: Stock returns: groups return transactions and records returns to store or to a supplier.
+// ABOUTME: Items, warehouses and transactions come from useInventory; stock levels move via useStockLevelService.
+
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  Chip,
-  Alert,
-  Autocomplete
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
-  Undo as UndoIcon
-} from '@mui/icons-material';
-import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData } from '../data';
-import { InvStockTransactionType, InvItemType, InvWarehouseType } from '../data/types';
+  PlusIcon,
+  TrashIcon,
+  ArrowUturnLeftIcon,
+} from '@heroicons/react/24/outline';
+import { StockTransactionType } from '../data/types';
+import { useInventory } from '../hooks/useInventory';
+import { useStockLevelService } from '../hooks/useStockLevelService';
+import { Card, Input, Select, Button, Alert, Badge } from '@/components/ui';
+import { DialogForm } from '@/components/ui/forms';
 
 interface StockReturnItem {
   id: string;
@@ -44,7 +20,7 @@ interface StockReturnItem {
   quantity: number;
   batch_number?: string;
   expiry_date?: string;
-  warehouse_id: number;
+  warehouse_id: string;
   warehouse_name: string;
   return_reason: string;
   condition: 'GOOD' | 'DAMAGED' | 'EXPIRED' | 'DEFECTIVE';
@@ -71,7 +47,7 @@ const RETURN_REASONS = [
   'Other'
 ];
 
-const StockReturnsPage: React.FC = () => {
+export const StockReturnsPageContent: React.FC = () => {
   const [returns, setReturns] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingReturn, setEditingReturn] = useState<StockReturnForm | null>(null);
@@ -79,32 +55,25 @@ const StockReturnsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Data hooks
-  const { items, loading: itemsLoading } = useItemData();
-  const { warehouses, loading: warehousesLoading } = useWarehouseData();
-  const { createStockTransaction, getStockTransactionsByType } = useStockTransactionData();
-  const { updateStockLevel } = useStockLevelData();
+  // Database-backed module hooks
+  const { items, warehouses, stockTransactions, addStockTransaction } = useInventory();
+  const { processTransaction } = useStockLevelService();
 
+  // Derive returns from return transactions whenever the data changes
   useEffect(() => {
-    loadReturns();
-  }, []);
-
-  const loadReturns = async () => {
     try {
       setLoading(true);
-      const returnToStoreTransactions = await getStockTransactionsByType(InvStockTransactionType.RETURN_TO_STORE);
-      const returnToSupplierTransactions = await getStockTransactionsByType(InvStockTransactionType.RETURN_TO_SUPPLIER);
-      const allReturns = [...returnToStoreTransactions, ...returnToSupplierTransactions];
-      
-      // Group transactions by reference number or date to show as returns
-      const groupedReturns = groupTransactionsByReturn(allReturns);
-      setReturns(groupedReturns);
-    } catch (err) {
+      const returnTransactions = (stockTransactions || []).filter(
+        t => String(t.transaction_type) === StockTransactionType.RETURN_TO_STORE ||
+             String(t.transaction_type) === StockTransactionType.RETURN_TO_SUPPLIER
+      );
+      setReturns(groupTransactionsByReturn(returnTransactions));
+    } catch {
       setError('Failed to load stock returns');
     } finally {
       setLoading(false);
     }
-  };
+  }, [stockTransactions]);
 
   const groupTransactionsByReturn = (transactions: any[]) => {
     const grouped = transactions.reduce((acc, transaction) => {
@@ -170,7 +139,7 @@ const StockReturnsPage: React.FC = () => {
 
   const handleAddItem = () => {
     if (!editingReturn) return;
-    
+
     const newItem: StockReturnItem = {
       id: `temp-${Date.now()}`,
       item_id: '',
@@ -178,13 +147,13 @@ const StockReturnsPage: React.FC = () => {
       quantity: 0,
       batch_number: '',
       expiry_date: '',
-      warehouse_id: 0,
+      warehouse_id: '',
       warehouse_name: '',
       return_reason: '',
       condition: 'GOOD',
       notes: ''
     };
-    
+
     setEditingReturn({
       ...editingReturn,
       items: [...editingReturn.items, newItem]
@@ -193,7 +162,7 @@ const StockReturnsPage: React.FC = () => {
 
   const handleRemoveItem = (index: number) => {
     if (!editingReturn) return;
-    
+
     const updatedItems = editingReturn.items.filter((_, i) => i !== index);
     setEditingReturn({
       ...editingReturn,
@@ -203,26 +172,26 @@ const StockReturnsPage: React.FC = () => {
 
   const handleItemChange = (index: number, field: keyof StockReturnItem, value: any) => {
     if (!editingReturn) return;
-    
+
     const updatedItems = [...editingReturn.items];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
-    
+
     // Auto-populate item name when item is selected
     if (field === 'item_id') {
-      const selectedItem = items.find(item => item.id === value);
+      const selectedItem = items.find(item => String(item.id) === String(value));
       if (selectedItem) {
         updatedItems[index].item_name = selectedItem.name;
       }
     }
-    
+
     // Auto-populate warehouse name when warehouse is selected
     if (field === 'warehouse_id') {
-      const selectedWarehouse = warehouses.find(wh => wh.id === value);
+      const selectedWarehouse = warehouses.find(wh => String(wh.id) === String(value));
       if (selectedWarehouse) {
         updatedItems[index].warehouse_name = selectedWarehouse.name;
       }
     }
-    
+
     setEditingReturn({
       ...editingReturn,
       items: updatedItems
@@ -231,403 +200,354 @@ const StockReturnsPage: React.FC = () => {
 
   const handleSaveReturn = async () => {
     if (!editingReturn) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       // Validate form
       if (editingReturn.items.length === 0) {
         setError('Please add at least one item to return');
         return;
       }
-      
+
       for (const item of editingReturn.items) {
         if (!item.item_id || !item.warehouse_id || item.quantity <= 0 || !item.return_reason) {
           setError('Please fill in all required fields for each item');
           return;
         }
       }
-      
-      // Create stock transactions for each item
+
+      // Create stock transactions for each item and adjust stock levels
       for (const item of editingReturn.items) {
-        const transactionData = {
-          item_id: item.item_id,
-          warehouse_id: item.warehouse_id,
-          transaction_type: editingReturn.return_type === 'RETURN_TO_STORE' 
-            ? InvStockTransactionType.RETURN_TO_STORE 
-            : InvStockTransactionType.RETURN_TO_SUPPLIER,
+        const transaction = {
+          item_id: String(item.item_id),
+          warehouse_id: String(item.warehouse_id),
+          transaction_type: editingReturn.return_type === 'RETURN_TO_STORE'
+            ? StockTransactionType.RETURN_TO_STORE
+            : StockTransactionType.RETURN_TO_SUPPLIER,
           quantity: -item.quantity, // Negative quantity for returns
-          batch_number: item.batch_number || undefined,
-          expiry_date: item.expiry_date || undefined,
           source_table: 'stock_return',
           source_id: editingReturn.reference_number,
           transaction_date: editingReturn.return_date,
-          notes: `Return Reason: ${item.return_reason}, Condition: ${item.condition}. ${editingReturn.notes || ''} ${item.notes || ''}`.trim()
+          notes: [
+            `Return Reason: ${item.return_reason}`,
+            `Condition: ${item.condition}`,
+            editingReturn.notes,
+            item.notes,
+            item.batch_number ? `Batch: ${item.batch_number}` : ''
+          ].filter(Boolean).join(' | ')
         };
-        
-        await createStockTransaction(transactionData);
-        
-        // Update stock levels (reduce quantity)
-        if (editingReturn.return_type === 'RETURN_TO_STORE') {
-          const stockLevelId = `${item.item_id}|${item.warehouse_id}${item.batch_number ? `|${item.batch_number}` : ''}`;
-          await updateStockLevel(stockLevelId, {
-            item_id: item.item_id,
-            warehouse_id: item.warehouse_id,
-            quantity: -item.quantity, // Reduce stock
-            batch_number: item.batch_number,
-            expiry_date: item.expiry_date
-          });
-        }
+        const saved = await addStockTransaction(transaction);
+        // StockLevelService adds stock for returns to store and removes it for returns to supplier
+        await processTransaction({ ...transaction, id: saved?.id ?? undefined });
       }
-      
+
       setSuccess('Stock return recorded successfully');
-      await loadReturns();
       handleCloseDialog();
-    } catch (err) {
+    } catch {
       setError('Failed to save stock return');
     } finally {
       setLoading(false);
     }
   };
 
-  const getReturnTypeChip = (returnType: string) => {
-    return (
-      <Chip
-        label={returnType === 'RETURN_TO_STORE' ? 'To Store' : 'To Supplier'}
-        color={returnType === 'RETURN_TO_STORE' ? 'primary' : 'secondary'}
-        size="small"
-      />
-    );
-  };
-
-  const getConditionChip = (condition: string) => {
-    const colorMap = {
-      GOOD: 'success',
-      DAMAGED: 'warning',
-      EXPIRED: 'error',
-      DEFECTIVE: 'error'
-    } as const;
-    
-    return (
-      <Chip
-        label={condition}
-        color={colorMap[condition as keyof typeof colorMap] || 'default'}
-        size="small"
-      />
-    );
-  };
+  const getReturnTypeChip = (returnType: string) => (
+    <Badge variant={returnType === 'RETURN_TO_STORE' ? 'primary' : 'secondary'} size="sm">
+      {returnType === 'RETURN_TO_STORE' ? 'To Store' : 'To Supplier'}
+    </Badge>
+  );
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          <UndoIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-          Stock Returns
-        </Typography>
-        <Button
-          variant="contained"
-          leftIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          disabled={loading}
-        >
+    <div className="p-6 space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/15 text-primary-600 dark:text-primary-400">
+            <ArrowUturnLeftIcon className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-surface-foreground">Stock Returns</h1>
+            <p className="text-sm text-surface-muted-fg">Send stock back to storage or suppliers</p>
+          </div>
+        </div>
+        <Button leftIcon={<PlusIcon className="h-4 w-4" />} onClick={() => handleOpenDialog()} disabled={loading}>
           New Return
         </Button>
-      </Box>
+      </div>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert variant="destructive" onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+        <Alert variant="success" onClose={() => setSuccess(null)}>
           {success}
         </Alert>
       )}
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Recent Stock Returns
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Reference</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Items Count</TableCell>
-                  <TableCell>Total Quantity</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : returns.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No stock returns found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  returns.map((returnRecord) => (
-                    <TableRow key={returnRecord.id}>
-                      <TableCell>{returnRecord.reference_number || 'N/A'}</TableCell>
-                      <TableCell>{new Date(returnRecord.return_date).toLocaleDateString()}</TableCell>
-                      <TableCell>{getReturnTypeChip(returnRecord.return_type)}</TableCell>
-                      <TableCell>{returnRecord.items.length}</TableCell>
-                      <TableCell>{returnRecord.total_quantity}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          onClick={() => handleOpenDialog(returnRecord)}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
+      <Card title="Recent Stock Returns">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-surface-border text-sm">
+            <thead>
+              <tr className="table-header">
+                <th className="px-4 py-3 text-left font-medium">Reference</th>
+                <th className="px-4 py-3 text-left font-medium">Date</th>
+                <th className="px-4 py-3 text-left font-medium">Type</th>
+                <th className="px-4 py-3 text-left font-medium">Items Count</th>
+                <th className="px-4 py-3 text-left font-medium">Total Quantity</th>
+                <th className="px-4 py-3 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-border">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-surface-muted-fg">
+                    Loading...
+                  </td>
+                </tr>
+              ) : returns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-surface-muted-fg">
+                    No stock returns found
+                  </td>
+                </tr>
+              ) : (
+                returns.map((returnRecord) => (
+                  <tr key={returnRecord.id} className="hover:bg-surface-accent/60 transition-colors">
+                    <td className="px-4 py-3 font-medium text-surface-foreground">{returnRecord.reference_number || 'N/A'}</td>
+                    <td className="px-4 py-3 text-surface-muted-fg">{new Date(returnRecord.return_date).toLocaleDateString()}</td>
+                    <td className="px-4 py-3">{getReturnTypeChip(returnRecord.return_type)}</td>
+                    <td className="px-4 py-3 text-surface-muted-fg">{returnRecord.items.length}</td>
+                    <td className="px-4 py-3 text-surface-muted-fg">{returnRecord.total_quantity}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(returnRecord)}>
+                        View
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Return Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          {editingReturn?.reference_number && editingReturn.reference_number.startsWith('RET-') ? 'New Stock Return' : 'View Stock Return'}
-        </DialogTitle>
-        <DialogContent>
-          {editingReturn && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Return Date"
-                  type="date"
-                  value={editingReturn.return_date}
-                  onChange={(e) => setEditingReturn({
-                    ...editingReturn,
-                    return_date: e.target.value
-                  })}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Reference Number"
-                  value={editingReturn.reference_number}
-                  onChange={(e) => setEditingReturn({
-                    ...editingReturn,
-                    reference_number: e.target.value
-                  })}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Return Type</InputLabel>
-                  <Select
-                    value={editingReturn.return_type}
-                    label="Return Type"
-                    onChange={(e) => setEditingReturn({
-                      ...editingReturn,
-                      return_type: e.target.value as 'RETURN_TO_STORE' | 'RETURN_TO_SUPPLIER'
-                    })}
-                  >
-                    <MenuItem value="RETURN_TO_STORE">Return to Store</MenuItem>
-                    <MenuItem value="RETURN_TO_SUPPLIER">Return to Supplier</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              {editingReturn.return_type === 'RETURN_TO_SUPPLIER' && (
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Supplier Reference"
-                    value={editingReturn.supplier_reference}
-                    onChange={(e) => setEditingReturn({
-                      ...editingReturn,
-                      supplier_reference: e.target.value
-                    })}
-                  />
-                </Grid>
-              )}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Notes"
-                  multiline
-                  rows={2}
-                  value={editingReturn.notes}
-                  onChange={(e) => setEditingReturn({
-                    ...editingReturn,
-                    notes: e.target.value
-                  })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Items to Return</Typography>
-                  <Button
-                    variant="outlined"
-                    leftIcon={<AddIcon />}
-                    onClick={handleAddItem}
-                  >
-                    Add Item
-                  </Button>
-                </Box>
-                
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Item</TableCell>
-                        <TableCell>Warehouse</TableCell>
-                        <TableCell>Quantity</TableCell>
-                        <TableCell>Batch/Lot</TableCell>
-                        <TableCell>Reason</TableCell>
-                        <TableCell>Condition</TableCell>
-                        <TableCell>Notes</TableCell>
-                        <TableCell>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
+      <DialogForm
+        isOpen={openDialog}
+        onClose={handleCloseDialog}
+        title={editingReturn?.reference_number && editingReturn.reference_number.startsWith('RET-') ? 'New Stock Return' : 'View Stock Return'}
+        description="Specify the items being returned, their condition and destination."
+        size="xl"
+        onSubmit={(e) => { e.preventDefault(); void handleSaveReturn(); }}
+      >
+        {editingReturn && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-5">
+              <Input
+                label="Return Date"
+                type="date"
+                value={editingReturn.return_date}
+                onChange={(e) => setEditingReturn({
+                  ...editingReturn,
+                  return_date: e.target.value
+                })}
+              />
+              <Input
+                label="Reference Number"
+                value={editingReturn.reference_number}
+                onChange={(e) => setEditingReturn({
+                  ...editingReturn,
+                  reference_number: e.target.value
+                })}
+              />
+              <Select
+                label="Return Type"
+                value={editingReturn.return_type}
+                onChange={(e) => setEditingReturn({
+                  ...editingReturn,
+                  return_type: e.target.value as 'RETURN_TO_STORE' | 'RETURN_TO_SUPPLIER'
+                })}
+              >
+                <option value="RETURN_TO_STORE">Return to Store</option>
+                <option value="RETURN_TO_SUPPLIER">Return to Supplier</option>
+              </Select>
+            </div>
+
+            {editingReturn.return_type === 'RETURN_TO_SUPPLIER' && (
+              <Input
+                label="Supplier Reference"
+                value={editingReturn.supplier_reference}
+                onChange={(e) => setEditingReturn({
+                  ...editingReturn,
+                  supplier_reference: e.target.value
+                })}
+              />
+            )}
+
+            <Input
+              label="Notes"
+              value={editingReturn.notes}
+              onChange={(e) => setEditingReturn({
+                ...editingReturn,
+                notes: e.target.value
+              })}
+            />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-surface-foreground">Items to Return</h3>
+                <Button type="button" variant="outline" size="sm" leftIcon={<PlusIcon className="h-4 w-4" />} onClick={handleAddItem}>
+                  Add Item
+                </Button>
+              </div>
+
+              {editingReturn.items.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-surface-border px-4 py-8 text-center text-sm text-surface-muted-fg">
+                  No items added. Click "Add Item" to start.
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-surface-border">
+                  <table className="min-w-full divide-y divide-surface-border text-sm">
+                    <thead>
+                      <tr className="table-header">
+                        <th className="px-3 py-2.5 text-left font-medium">Item</th>
+                        <th className="px-3 py-2.5 text-left font-medium">Warehouse</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-20">Qty</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-28">Batch/Lot</th>
+                        <th className="px-3 py-2.5 text-left font-medium min-w-[140px]">Reason</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-28">Condition</th>
+                        <th className="px-3 py-2.5 text-left font-medium w-28">Notes</th>
+                        <th className="px-3 py-2.5 text-right font-medium w-14"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-border">
                       {editingReturn.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Autocomplete
-                              size="small"
-                              options={items}
-                              getOptionLabel={(option) => option.name}
-                              value={items.find(i => i.id === item.item_id) || null}
-                              onChange={(_, newValue) => {
-                                handleItemChange(index, 'item_id', newValue?.id || '');
-                              }}
-                              renderInput={(params) => (
-                                <TextField {...params} placeholder="Select item" />
-                              )}
-                              sx={{ minWidth: 200 }}
+                        <tr key={index}>
+                          <td className="px-3 py-2 min-w-[200px]">
+                            <Select
+                              searchable
+                              size="sm"
+                              placeholder="Select item"
+                              options={items.map(i => ({ value: String(i.id), label: i.name }))}
+                              value={String(item.item_id ?? '')}
+                              onValueChange={(value) => handleItemChange(index, 'item_id', value)}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                              <Select
-                                value={item.warehouse_id}
-                                onChange={(e) => handleItemChange(index, 'warehouse_id', e.target.value)}
-                              >
-                                {warehouses.map((warehouse) => (
-                                  <MenuItem key={warehouse.id} value={warehouse.id}>
-                                    {warehouse.name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2 min-w-[140px]">
+                            <Select
+                              size="sm"
+                              placeholder="Select warehouse"
+                              value={item.warehouse_id ? String(item.warehouse_id) : ''}
+                              onChange={(e) => handleItemChange(index, 'warehouse_id', e.target.value)}
+                            >
+                              <option value="">Select warehouse…</option>
+                              {warehouses.map((warehouse) => (
+                                <option key={warehouse.id} value={warehouse.id}>
+                                  {warehouse.name}
+                                </option>
+                              ))}
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               type="number"
+                              min={0}
                               value={item.quantity}
                               onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
-                              sx={{ width: 80 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               value={item.batch_number}
                               onChange={(e) => handleItemChange(index, 'batch_number', e.target.value)}
-                              sx={{ width: 100 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                              <Select
-                                value={item.return_reason}
-                                onChange={(e) => handleItemChange(index, 'return_reason', e.target.value)}
-                              >
-                                {RETURN_REASONS.map((reason) => (
-                                  <MenuItem key={reason} value={reason}>
-                                    {reason}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </TableCell>
-                          <TableCell>
-                            <FormControl size="small" sx={{ minWidth: 100 }}>
-                              <Select
-                                value={item.condition}
-                                onChange={(e) => handleItemChange(index, 'condition', e.target.value)}
-                              >
-                                <MenuItem value="GOOD">Good</MenuItem>
-                                <MenuItem value="DAMAGED">Damaged</MenuItem>
-                                <MenuItem value="EXPIRED">Expired</MenuItem>
-                                <MenuItem value="DEFECTIVE">Defective</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2">
+                            <Select
+                              size="sm"
+                              value={item.return_reason}
+                              onChange={(e) => handleItemChange(index, 'return_reason', e.target.value)}
+                            >
+                              <option value="">Select reason…</option>
+                              {RETURN_REASONS.map((reason) => (
+                                <option key={reason} value={reason}>
+                                  {reason}
+                                </option>
+                              ))}
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2">
+                            <Select
+                              size="sm"
+                              value={item.condition}
+                              onChange={(e) => handleItemChange(index, 'condition', e.target.value)}
+                            >
+                              <option value="GOOD">Good</option>
+                              <option value="DAMAGED">Damaged</option>
+                              <option value="EXPIRED">Expired</option>
+                              <option value="DEFECTIVE">Defective</option>
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="sm"
                               value={item.notes}
                               onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
-                              sx={{ width: 100 }}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <IconButton
-                              size="small"
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <button
+                              type="button"
                               onClick={() => handleRemoveItem(index)}
-                              color="error"
+                              className="rounded-md p-1.5 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                              aria-label={`Remove item ${index + 1}`}
                             >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
                       ))}
-                      {editingReturn.items.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={8} align="center">
-                            No items added. Click "Add Item" to start.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} leftIcon={<CancelIcon />}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveReturn}
-            variant="contained"
-            leftIcon={<SaveIcon />}
-            disabled={loading || !editingReturn?.items.length}
-          >
-            {loading ? 'Saving...' : 'Save Return'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                {error}
+              </Alert>
+            )}
+
+            <div className="flex items-center justify-end gap-3 border-t border-surface-border pt-4">
+              <Button variant="secondary" onClick={handleCloseDialog} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                loading={loading}
+                disabled={loading || !editingReturn?.items.length}
+              >
+                Save Return
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogForm>
+    </div>
   );
 };
+
+const StockReturnsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StockReturnsPageContent />
+  </div>
+);
 
 export default StockReturnsPage;

@@ -1,8 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: SQLite File Provider for development mode with file storage
 // ABOUTME: Wraps SQLiteFileService to provide a consistent provider interface for development database access
 
 import { ICollection, CollectionSchema, DatabaseProvider, ProviderConfig } from '../database/interfaces';
-import { SQLiteFileService, SQLiteFileCollection } from './SQLiteFileService';
+import { SQLiteFileService } from './SQLiteFileService';
 import { DatabaseError } from '../database/interfaces';
 
 export interface SQLiteFileConfig extends ProviderConfig {
@@ -39,7 +41,7 @@ export class SQLiteFileProvider implements DatabaseProvider {
       await this.service.initialize(dbName);
       this.isInitialized = true;
       
-      console.log('[SQLiteFileProvider] Provider initialized successfully');
+      logger.info('[SQLiteFileProvider] Provider initialized successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize SQLite File provider: ${error.message}`,
@@ -94,7 +96,7 @@ export class SQLiteFileProvider implements DatabaseProvider {
       const collection = this.service.getCollection(name);
       if (collection) {
         await collection.destroy();
-        console.log(`[SQLiteFileProvider] Collection '${name}' dropped successfully`);
+        logger.info(`[SQLiteFileProvider] Collection '${name}' dropped successfully`);
       }
     } catch (error) {
       throw new DatabaseError(
@@ -109,7 +111,7 @@ export class SQLiteFileProvider implements DatabaseProvider {
     try {
       await this.service.destroy();
       this.isInitialized = false;
-      console.log('[SQLiteFileProvider] Provider destroyed successfully');
+      logger.info('[SQLiteFileProvider] Provider destroyed successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to destroy SQLite File provider: ${error.message}`,
@@ -247,7 +249,7 @@ export class SQLiteFileProvider implements DatabaseProvider {
           }
         }
       }
-      console.log('[SQLiteFileProvider] All data cleared successfully');
+      logger.info('[SQLiteFileProvider] All data cleared successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to clear all data: ${error.message}`,
@@ -276,7 +278,7 @@ export class SQLiteFileProvider implements DatabaseProvider {
       
       return stats;
     } catch (error) {
-      console.error('[SQLiteFileProvider] Failed to get collection stats:', error);
+      logger.error('[SQLiteFileProvider] Failed to get collection stats:', error);
       return {};
     }
   }

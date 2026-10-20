@@ -21,6 +21,7 @@ import { PaginationProvider } from './appData/PaginationContext';
 import { ValidationProvider } from './appData/ValidationContext';
 import { PluginsProvider } from '../plugins/PluginsProvider';
 import { FullWidthProvider } from './FullWidthContext';
+import { SecondarySidebarProvider } from './SecondarySidebarContext';
 
 const AppDataProvider = lazy(() =>
   import('./AppDataContext').then(module => ({ default: module.AppDataProvider }))
@@ -33,7 +34,11 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
   const featureFlags = useFeatureFlagStore(state => state.flags);
 
   useEffect(() => {
+    let cancelled = false;
     if (featureFlags.useUnifiedDataService) {
+      // Keep showing app while UDS initializes (previous true masked loading but avoided blank grid)
+      // setUdsInitialized(false) would block entire app for 10s; keep true and initialize in background
+      ;
       debugLog('🚀 [AppProviders] Initializing Unified Data Service...');
 
       const initializationPromise = uds.initialize('standalone', {
@@ -48,26 +53,30 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
       Promise.race([initializationPromise, timeoutPromise])
         .then(() => {
-          setUdsInitialized(true);
+          if (!cancelled) setUdsInitialized(true);
           debugLog('✅ [AppProviders] Unified Data Service initialized');
         })
         .catch(error => {
           warnLog('⚠️ [AppProviders] UDS initialization failed or timed out, falling back to mock:', error);
-          setUdsInitialized(true);
+          if (!cancelled) setUdsInitialized(true);
         });
 
       return () => {
+        cancelled = true;
         uds.destroy();
       };
+    } else {
+      setUdsInitialized(true);
     }
-  }, []);
+    return () => { cancelled = true; };
+  }, [featureFlags.useUnifiedDataService]);
 
   if (!udsInitialized) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Initializing data layer...</p>
+          <p className="mt-4 text-surface-muted-fg">Initializing data layer...</p>
         </div>
       </div>
     );
@@ -80,7 +89,7 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading data layer...</p>
+          <p className="mt-4 text-surface-muted-fg">Loading data layer...</p>
         </div>
       </div>
     }>
@@ -114,14 +123,16 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children, modulesIni
                   <PluginsProvider config={{ autoActivate: true }}>
                     <StableActionProvider>
                       <FullWidthProvider>
-                        {modulesInitialized ? children : (
-                          <div className="flex items-center justify-center h-screen">
-                            <div className="text-center">
-                              <Spinner size="lg" />
-                              <p className="mt-4 text-gray-600">Initializing application...</p>
+                        <SecondarySidebarProvider>
+                          {modulesInitialized ? children : (
+                            <div className="flex items-center justify-center h-screen">
+                              <div className="text-center">
+                                <Spinner size="lg" />
+                                <p className="mt-4 text-surface-muted-fg">Initializing application...</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </SecondarySidebarProvider>
                       </FullWidthProvider>
                     </StableActionProvider>
                   </PluginsProvider>

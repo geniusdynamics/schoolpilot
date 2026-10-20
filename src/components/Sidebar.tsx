@@ -19,6 +19,8 @@ import {
   IconProps
 } from './ui/icons';
 import SettingsPopup from './SettingsPopup';
+import { CogIcon } from '@/components/ui/icons';
+import { useCallback } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -186,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
               hover:bg-slate-600/10 hover:border-slate-600/20
               transition-all duration-500 ease-out cursor-pointer
               hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-900/20
-              ${isGroupActive ? 'bg-blue-500/10 border-blue-500/20 shadow-lg shadow-blue-500/10' : ''}
+              ${isGroupActive ? 'bg-primary-500/10 border-primary-500/20 shadow-lg shadow-primary-500/10' : ''}
             `}
             aria-label={translatedName} 
             aria-expanded={isOpen} 
@@ -205,11 +207,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
                 bg-slate-600/5 group-hover:bg-slate-600/15
                 transition-all duration-500 ease-out
                 group-hover:scale-110 group-hover:rotate-3
-                ${isGroupActive ? 'bg-blue-500/20 shadow-lg shadow-blue-500/20' : ''}
+                ${isGroupActive ? 'bg-primary-500/20 shadow-lg shadow-primary-500/20' : ''}
               `}>
                 {item.icon && React.cloneElement(item.icon as React.ReactElement<IconProps>, { 
                   className: `w-5 h-5 transition-all duration-500 ${
-                    isGroupActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-300'
+                    isGroupActive ? 'text-primary-400' : 'text-slate-400 group-hover:text-slate-300'
                   }` 
                 })}
               </div>
@@ -217,7 +219,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
                 nav-item-text
                 font-medium text-sm tracking-tight
                 transition-all duration-500
-                ${isGroupActive ? 'text-blue-100 font-semibold' : 'text-slate-300 group-hover:text-slate-100'}
+                ${isGroupActive ? 'text-primary-100 font-semibold' : 'text-slate-300 group-hover:text-slate-100'}
               `}>
                 {translatedName}
               </span>
@@ -227,14 +229,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
                 nav-group-chevron
                 w-4 h-4 transition-all duration-500 ease-out
                 ${isOpen ? 'rotate-180 scale-110' : ''}
-                ${isGroupActive ? 'text-blue-400' : 'text-slate-400'}
+                ${isGroupActive ? 'text-primary-400' : 'text-slate-400'}
                 group-hover:scale-110
               `} 
             />
           </div>
           {isOpen && (
             <div className="nav-group-children ml-3 pl-3 border-l-2 border-slate-600/10 relative overflow-hidden">
-              <div className="absolute left-[-1px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 to-transparent opacity-0 transition-all duration-500 ease-out nav-group-open:opacity-100"></div>
+              <div className="absolute left-[-1px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500 to-transparent opacity-0 transition-all duration-500 ease-out nav-group-open:opacity-100"></div>
               <ul className="space-y-1 mt-2">
                 {item.children.map((child: NavItem, childIndex: number) => (
                   <NavItemLink 
@@ -262,7 +264,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
             className={`
               flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all duration-300
               ${collapsed ? 'justify-center' : ''}
-              ${isActive ? 'bg-gradient-to-r from-blue-400/80 to-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-slate-600/20 hover:text-slate-100'}
+              ${isActive ? 'bg-gradient-to-r from-primary-400/80 to-primary-600/80 text-white shadow-lg shadow-primary-500/20' : 'text-slate-300 hover:bg-slate-600/20 hover:text-slate-100'}
               group relative
             `}
             style={{ minHeight: 48 }}
@@ -292,14 +294,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
       {/* Header */}
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} h-20 px-4`}> 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-700 to-purple-900 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-700 to-purple-900 rounded-2xl flex items-center justify-center shadow-lg">
             <SchoolIcon className="w-6 h-6 text-white" />
           </div>
           {!collapsed && <span className="text-xl font-bold text-slate-100 tracking-tight">{t(APP_NAME_KEY, { ns: 'common' })}</span>}
         </div>
         <button
           onClick={handleCollapseToggle}
-          className="p-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800/40 transition-all duration-300"
+          className="p-2 rounded-lg text-slate-400 hover:text-primary-400 hover:bg-slate-800/40 transition-all duration-300"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRightIcon className="w-6 h-6" /> : <ChevronLeftIcon className="w-6 h-6" />}

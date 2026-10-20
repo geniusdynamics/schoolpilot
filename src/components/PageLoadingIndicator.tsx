@@ -82,16 +82,16 @@ const PageLoadingIndicator: React.FC<PageLoadingIndicatorProps> = ({
   if (isTimedOut) {
     return (
       <div className={`flex items-center justify-center min-h-96 ${className}`}>
-        <div className={`bg-white rounded-lg shadow-sm border border-orange-200 text-center ${sizeClasses[size]}`}>
+        <div className={`bg-surface-card rounded-lg shadow-sm border border-orange-200 text-center ${sizeClasses[size]}`}>
           <div className="text-orange-500 mb-4">
             <AlertCircleIcon className="w-8 h-8 mx-auto" />
           </div>
           
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-surface-foreground mb-2">
             Loading Timeout
           </h3>
           
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-surface-muted-fg mb-4">
             {showPageName && pageName 
               ? `The ${pageName} page is taking longer than expected to load.`
               : 'The page is taking longer than expected to load.'
@@ -106,7 +106,7 @@ const PageLoadingIndicator: React.FC<PageLoadingIndicatorProps> = ({
             Try Again
           </button>
           
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-surface-muted-fg mt-3">
             Loading time: {Math.round((Date.now() - startTime) / 1000)}s
           </p>
         </div>
@@ -122,31 +122,31 @@ const PageLoadingIndicator: React.FC<PageLoadingIndicatorProps> = ({
         </div>
         
         {showPageName && pageName && (
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-surface-foreground mb-2">
             Loading {pageName}
           </h3>
         )}
         
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Please wait while the page loads...
         </p>
         
         {showProgress && (
           <div className="w-full max-w-xs mx-auto">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500">Progress</span>
-              <span className="text-xs font-medium text-blue-600">{progress}%</span>
+              <span className="text-xs text-surface-muted-fg">Progress</span>
+              <span className="text-xs font-medium text-primary-600">{progress}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="h-2 bg-blue-600 rounded-full transition-all duration-300 ease-out"
+                className="h-2 bg-primary-600 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
         )}
         
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-surface-muted-fg mt-3">
           Loading time: {Math.round((Date.now() - startTime) / 1000)}s
         </p>
       </div>

@@ -1,63 +1,59 @@
-// ABOUTME: Self-contained hook for customer data management
-// ABOUTME: Provides CRUD operations for customer without depending on AppDataContext
+// ABOUTME: Database-backed customers (collection 'customers') with CRUD that persists across navigation and reload.
+// ABOUTME: Replaces the former in-memory mock hook; ids are strings and update accepts a record or (id, patch).
 
-import { useState, useEffect } from 'react';
-import { initialMockCustomers } from '../../administration/data/mockData';
+import { useCallback, useMemo } from 'react';
 import { Customer } from '@/core/types';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+export const CUSTOMERS_COLLECTION = 'customers';
+
+/** A stored customer; ids are strings at runtime. */
+export type CustomerRecord = Omit<Customer, 'id'> & { id: string };
+type CustomerInput = Omit<CustomerRecord, 'id' | 'created_at' | 'updated_at'>;
+
+const stamp = () => new Date().toISOString();
+
+const toStored = (record: Partial<CustomerRecord>) =>
+  Object.fromEntries(Object.entries(record).filter(([key, value]) => key !== 'id' && value !== undefined)) as Partial<CustomerRecord>;
 
 export const useCustomerData = () => {
-  const [data, setData] = useState<Customer[]>(initialMockCustomers || []);
-  const [loading, setLoading] = useState({ customers: false });
+  const collection = useDatabaseCollection<CustomerRecord>(CUSTOMERS_COLLECTION);
+  const { data, insert, update: updateDocument, remove: removeDocument, refresh } = collection;
 
-  const addCustomer = async (newItem: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
-    setLoading(prev => ({ ...prev, customers: true }));
-    try {
-      const newDataItem: Customer = {
-        ...newItem,
-        id: Date.now(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setData((prev: Customer[]) => [...prev, newDataItem]);
-      return newDataItem;
-    } finally {
-      setLoading(prev => ({ ...prev, customers: false }));
-    }
-  };
+  const customers = useMemo(() => [...data].sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? ''))), [data]);
 
-  const updateCustomer = async (updatedItem: Customer) => {
-    setLoading(prev => ({ ...prev, customers: true }));
-    try {
-      setData((prev: Customer[]) => prev.map((item: Customer) => 
-        item.id === updatedItem.id 
-          ? { ...updatedItem, updated_at: new Date().toISOString() }
-          : item
-      ));
-    } finally {
-      setLoading(prev => ({ ...prev, customers: false }));
-    }
-  };
+  const addCustomer = useCallback(
+    async (newItem: CustomerInput) => {
+      const now = stamp();
+      return insert({ ...(toStored(newItem) as CustomerInput), created_at: now, updated_at: now });
+    },
+    [insert]
+  );
 
-  const deleteCustomer = async (id: number) => {
-    setLoading(prev => ({ ...prev, customers: true }));
-    try {
-      setData((prev: Customer[]) => prev.filter((item: Customer) => item.id !== id));
-    } finally {
-      setLoading(prev => ({ ...prev, customers: false }));
-    }
-  };
+  const updateCustomer = useCallback(
+    async (idOrRecord: string | CustomerRecord, patch?: Partial<CustomerRecord>) => {
+      const id = typeof idOrRecord === 'object' ? idOrRecord.id : idOrRecord;
+      const changes = typeof idOrRecord === 'object' ? idOrRecord : patch ?? {};
+      return updateDocument(String(id), { ...toStored(changes), updated_at: stamp() });
+    },
+    [updateDocument]
+  );
+
+  const deleteCustomer = useCallback(async (id: string) => removeDocument(String(id)), [removeDocument]);
 
   return {
-    customers: data,
-    loading,
+    customers,
+    loading: { customers: collection.loading },
+    error: collection.error,
+    refresh,
     addCustomer,
     updateCustomer,
     deleteCustomer,
     // Legacy compatibility
-    data,
+    data: customers,
     create: addCustomer,
     update: updateCustomer,
-    remove: deleteCustomer
+    remove: deleteCustomer,
   };
 };
 

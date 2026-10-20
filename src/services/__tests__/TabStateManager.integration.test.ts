@@ -2,7 +2,7 @@
 // ABOUTME: Verifies route mapping service integration for tab creation and navigation
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { TabStateManager, defaultTabStateConfig } from '../TabStateManager';
+import { TabStateManager, defaultTabStateConfig } from '../ui/TabStateManager';
 import { routeToTabMapper } from '../tabs/RouteToTabMapper';
 
 describe('TabStateManager + RouteToTabMapper Integration', () => {

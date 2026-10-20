@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * useFrappeRealtime Hook
  * 
@@ -32,7 +34,7 @@ export function useFrappeRealtime(options: UseFrappeRealtimeOptions): void {
     
     const realtime = client.realtime;
     if (!realtime) {
-      console.warn('[useFrappeRealtime] Socket.IO not enabled');
+      logger.warn('[useFrappeRealtime] Socket.IO not enabled');
       return;
     }
     

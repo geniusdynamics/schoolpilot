@@ -1,105 +1,104 @@
-import React, { useState } from 'react';
-import { Dormitory, Staff } from '@/types';
+// ABOUTME: Dormitories page — grid plus add/edit/delete dialog backed by the 'dormitories' collection.
+// ABOUTME: CRUD goes through useAdministration() with update(id, patch); the master's name is resolved from staff.
+
+import React, { useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingLibraryIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
-import Spinner from '@/components/ui/Spinner';
+import { useAdministration } from '../hooks/useAdministration';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import EntityForm from '@/components/ui/forms/EntityForm';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
-type DormitoryFormData = Omit<Partial<Dormitory>, 'id' | 'created_at' | 'updated_at' | 'master_name'>;
+/** A dormitory row as shown in the grid; ids are strings and the master's name is resolved at read time. */
+interface DormitoryRow {
+  id: string;
+  name: string;
+  capacity?: number | null;
+  master_id?: string | null;
+  master_name?: string | null;
+}
 
-const DormitoriesPage: React.FC = () => {
-  const { dormitories, staff, loading, addDormitory, updateDormitory, deleteDormitory } = useAppData();
+interface StaffOption {
+  id: string | number;
+  first_name?: string;
+  last_name?: string;
+  designation_title?: string | null;
+  is_active?: boolean;
+}
+
+export const DormitoriesContent: React.FC = () => {
+  const { dormitories, staff, addDormitory, updateDormitory, deleteDormitory } = useAdministration();
   const { t } = useTranslation('administration');
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDormitory, setEditingDormitory] = useState<Dormitory | null>(null);
-  const initialFormData: DormitoryFormData = { name: '', master_id: undefined, capacity: undefined };
-  const [formData, setFormData] = useState<DormitoryFormData>(initialFormData);
 
-  const openModal = (dorm?: Dormitory) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDormitory, setEditingDormitory] = useState<DormitoryRow | null>(null);
+
+  const staffMembers = staff as StaffOption[];
+  const rows = useMemo<DormitoryRow[]>(() => {
+    const staffName = (id: unknown) => {
+      const member = staffMembers.find(s => String(s.id) === String(id));
+      return member ? `${member.first_name ?? ''} ${member.last_name ?? ''}`.trim() : null;
+    };
+    return (dormitories as unknown as DormitoryRow[]).map(dorm => ({
+      ...dorm,
+      id: String(dorm.id),
+      master_id: dorm.master_id == null ? dorm.master_id : String(dorm.master_id),
+      master_name: (dorm.master_id != null ? staffName(dorm.master_id) : null) ?? dorm.master_name ?? null,
+    }));
+  }, [dormitories, staffMembers]);
+
+  const openModal = (dorm?: DormitoryRow) => {
     setEditingDormitory(dorm || null);
-    setFormData(dorm ? { name: dorm.name, master_id: dorm.master_id, capacity: dorm.capacity } : initialFormData);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingDormitory(null);
-    setFormData(initialFormData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value === '' && name === 'master_id' ? undefined : (name === 'capacity' ? (value ? parseInt(value) : undefined) : value) }));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.name) {
-      alert(t('validation.dormitoryNameIsRequired'));
-      return;
-    }
-    const payload = {
-      name: formData.name!,
-      master_id: formData.master_id || undefined,
-      capacity: formData.capacity || undefined,
-    };
-
-    if (editingDormitory) {
-      await updateDormitory({ ...editingDormitory, ...payload });
-    } else {
-      await addDormitory(payload);
-    }
-    closeModal();
-  };
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this dormitory?')) {
+  const confirm = useConfirm();
+  const handleDelete = async (id: string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this dormitory?' }))) {
       await deleteDormitory(id);
     }
   };
 
-  const columns: DataGridColumn<Dormitory>[] = [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      sortable: true, 
-      filterable: true, 
+  const columns: DataGridColumn<DormitoryRow>[] = [
+    {
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      filterable: true,
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
-    { 
-      key: 'name', 
-      header: 'Dormitory Name', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'name',
+      header: 'Dormitory Name',
+      sortable: true,
+      filterable: true,
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
-    { 
-      key: 'master_name', 
-      header: 'Master/Mistress', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'master_name',
+      header: 'Master/Mistress',
+      sortable: true,
+      filterable: true,
       width: 180,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
-    { 
-      key: 'capacity', 
-      header: 'Capacity', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'capacity',
+      header: 'Capacity',
+      sortable: true,
+      filterable: true,
       width: 120,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'actions',
@@ -116,89 +115,74 @@ const DormitoriesPage: React.FC = () => {
       ),
     },
   ];
-  
-  if ((loading.dormitories || loading.staff) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Dormitories...</span>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
+    <>
       <Card title={t('dormitories.management')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('dormitories.addDormitory')}
         </Button>
       }>
-        <DataGrid 
-          columns={columns} 
-          data={dormitories} 
-          loading={loading.dormitories && isModalOpen}
-          sortable 
-          filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <BuildingLibraryIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No dormitories found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first dormitory.</p>
-            </div>
-          }
+        <DataGrid
+          columns={columns}
+          data={rows}
+          sortable
+          filterable
+          emptyState={{
+            icon: <BuildingLibraryIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No dormitories found',
+            description: 'Get started by adding your first dormitory.',
+          }}
         />
       </Card>
 
-      <DialogForm
+      <EntityForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingDormitory ? t('dormitories.editDormitory') : t('dormitories.addNewDormitory')}
-        size="lg"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
+        initialData={editingDormitory
+          ? { name: editingDormitory.name, master_id: editingDormitory.master_id, capacity: editingDormitory.capacity }
+          : undefined}
+        fields={[
+          { name: 'name', label: t('dormitories.dormitoryName'), required: true },
+          { name: 'capacity', label: t('dormitories.capacity'), type: 'number' },
+          {
+            name: 'master_id',
+            label: t('dormitories.dormitoryMasterMistress'),
+            type: 'select',
+            placeholder: t('dormitories.selectStaffMember'),
+            options: staffMembers
+              .filter(s => s.is_active)
+              .map(staffMember => ({
+                value: String(staffMember.id),
+                label: `${staffMember.first_name} ${staffMember.last_name} (${staffMember.designation_title || 'N/A'})`,
+              })),
+          },
+        ]}
+        submitLabel={editingDormitory ? t('dormitories.saveChanges') : t('dormitories.addDormitory')}
+        cancelLabel={t('dormitories.cancel')}
+        onSubmit={async (values) => {
+          const payload = {
+            name: String(values.name ?? ''),
+            master_id: values.master_id ? String(values.master_id) : null,
+            capacity: values.capacity !== undefined && values.capacity !== '' ? Number(values.capacity) : null,
+          };
+          if (editingDormitory) {
+            await updateDormitory(editingDormitory.id, payload);
+          } else {
+            const now = new Date().toISOString();
+            await addDormitory({ ...payload, created_at: now, updated_at: now });
+          }
         }}
-      >
-        <FormSection>
-          <FormField label={t('dormitories.dormitoryName')} required>
-            <Input
-              name="name"
-              value={formData.name || ''}
-              onChange={handleInputChange}
-              required
-            />
-          </FormField>
-          <FormField label={t('dormitories.capacity')}>
-            <Input
-              name="capacity"
-              type="number"
-              value={formData.capacity || ''}
-              onChange={handleInputChange}
-            />
-          </FormField>
-          <FormField label={t('dormitories.dormitoryMasterMistress')}>
-            <Select
-              name="master_id"
-              value={formData.master_id || ''}
-              onChange={handleInputChange}
-            >
-              <option value="">{t('dormitories.selectStaffMember')}</option>
-              {staff.filter(s => s.is_active).map((staffMember: Staff) => (
-                <option key={staffMember.id} value={staffMember.id}>
-                  {staffMember.first_name} {staffMember.last_name} ({staffMember.designation_title || 'N/A'})
-                </option>
-              ))}
-            </Select>
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>{t('dormitories.cancel')}</Button>
-          <Button type="submit" disabled={loading.dormitories}>
-            {loading.dormitories ? <Spinner size="sm"/> : (editingDormitory ? t('dormitories.saveChanges') : t('dormitories.addDormitory'))}
-          </Button>
-        </FormActions>
-      </DialogForm>
-    </div>
+      />
+    </>
   );
 };
+
+const DormitoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <DormitoriesContent />
+  </div>
+);
 
 export default DormitoriesPage;

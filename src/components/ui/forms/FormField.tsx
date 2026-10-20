@@ -3,7 +3,6 @@
 
 import React, { ReactNode } from 'react';
 import { getFormFieldIds, createAriaDescribedBy } from '../../../utils/accessibility';
-import { useTransition } from '../../../utils/animations';
 
 export interface FormFieldProps {
   children: ReactNode;
@@ -35,8 +34,7 @@ const FormField: React.FC<FormFieldProps> = ({
   size = 'md',
 }) => {
   const fieldIds = getFormFieldIds(fieldId || 'field');
-  const transitionStyles = useTransition(['all']);
-  
+
   // Size variants
   const sizeStyles = {
     sm: {
@@ -46,16 +44,16 @@ const FormField: React.FC<FormFieldProps> = ({
       error: 'text-xs',
     },
     md: {
-      spacing: 'space-y-2',
+      spacing: 'space-y-1.5',
       label: 'text-sm font-medium',
-      helper: 'text-sm',
-      error: 'text-sm',
+      helper: 'text-xs',
+      error: 'text-xs',
     },
     lg: {
-      spacing: 'space-y-3',
-      label: 'text-base font-medium',
-      helper: 'text-base',
-      error: 'text-sm',
+      spacing: 'space-y-2',
+      label: 'text-sm font-medium',
+      helper: 'text-xs',
+      error: 'text-xs',
     },
   };
   
@@ -70,9 +68,9 @@ const FormField: React.FC<FormFieldProps> = ({
   
   // State-based label colors
   const getLabelColor = () => {
-    if (error) return 'text-red-700';
-    if (success) return 'text-green-700';
-    return 'text-gray-700';
+    if (error) return 'text-red-600 dark:text-red-400';
+    if (success) return 'text-green-600 dark:text-green-400';
+    return 'text-surface-foreground';
   };
   
   // Success icon component
@@ -97,77 +95,74 @@ const FormField: React.FC<FormFieldProps> = ({
   // Clone children to add ARIA attributes
   const enhancedChildren = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
-      return React.cloneElement(child, {
+      return React.cloneElement(child as React.ReactElement<any>, {
         id: fieldIds.field,
         'aria-describedby': describedBy,
         'aria-invalid': error ? 'true' : undefined,
         'aria-required': required ? 'true' : undefined,
-        ...child.props,
+        ...(child.props as Record<string, unknown>),
       });
     }
     return child;
   });
   
   return (
-    <div 
-      className={`${currentLayout} ${currentSize.spacing} ${className}`}
-      style={transitionStyles}
-    >
+    <div className={`${currentLayout} ${currentSize.spacing} ${className}`}>
       {/* Label section */}
       {label && (
         <div className={layout === 'horizontal' ? 'flex-shrink-0 w-32' : ''}>
           <label
             htmlFor={fieldIds.field}
             className={`
-              block ${currentSize.label} ${getLabelColor()} 
+              block ${currentSize.label} ${getLabelColor()}
               ${labelClassName}
             `}
           >
             {label}
             {required && (
-              <span className="text-red-500 ml-1" aria-label="required">
+              <span className="text-red-500 ml-0.5" aria-label="required">
                 *
               </span>
             )}
             {optional && (
-              <span className="text-gray-500 ml-1 font-normal">
+              <span className="text-surface-muted-fg ml-1 font-normal">
                 (optional)
               </span>
             )}
           </label>
         </div>
       )}
-      
+
       {/* Field section */}
       <div className="flex-1 min-w-0">
         {/* Input field */}
         <div className="relative">
           {enhancedChildren}
         </div>
-        
+
         {/* Helper text */}
         {helperText && !error && (
-          <p 
+          <p
             id={fieldIds.description}
-            className={`mt-1 ${currentSize.helper} text-gray-600`}
+            className={`mt-1.5 ${currentSize.helper} text-surface-muted-fg`}
           >
             {helperText}
           </p>
         )}
-        
+
         {/* Success message */}
         {success && !error && (
-          <p className={`mt-1 ${currentSize.helper} text-green-600 flex items-center gap-1`}>
+          <p className={`mt-1.5 ${currentSize.helper} text-green-600 dark:text-green-400 flex items-center gap-1`}>
             <SuccessIcon />
             Field is valid
           </p>
         )}
-        
+
         {/* Error message */}
         {error && (
-          <p 
+          <p
             id={fieldIds.error}
-            className={`mt-1 ${currentSize.error} text-red-600 flex items-center gap-1`}
+            className={`mt-1.5 ${currentSize.error} text-red-600 dark:text-red-400 font-medium flex items-center gap-1`}
             role="alert"
           >
             <ErrorIcon />

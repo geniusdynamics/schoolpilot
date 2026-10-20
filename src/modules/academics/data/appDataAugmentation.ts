@@ -34,11 +34,11 @@ declare module '@/core/types' {
   export interface AppDataContextType {
     // Exam Session CRUD
     addExamSession: (data: any) => Promise<void>;
-    updateExamSession: (data: any) => Promise<void>;
+    updateExamSession: (id: string, data: any) => Promise<void>;
     deleteExamSession: (id: string) => Promise<void>;
     // Exam Paper Setting CRUD
     addExamPaperSetting: (data: any) => Promise<void>;
-    updateExamPaperSetting: (data: any) => Promise<void>;
+    updateExamPaperSetting: (id: string, data: any) => Promise<void>;
     deleteExamPaperSetting: (id: string) => Promise<void>;
     // Exam Schedule CRUD
     addExamSchedule: (schedule: any) => Promise<void>;
@@ -55,5 +55,25 @@ declare module '@/core/types' {
     addEducationSystemConfiguration: (config: Partial<EducationSystemConfiguration>) => Promise<void>;
     updateEducationSystemConfiguration: (config: EducationSystemConfiguration) => Promise<void>;
     deleteEducationSystemConfiguration: (id: string) => Promise<void>;
+    // Subject Paper CRUD
+    addSubjectPaper: (data: any) => Promise<void>;
+    updateSubjectPaper: (id: string, data: any) => Promise<void>;
+    deleteSubjectPaper: (id: string) => Promise<void>;
+    // Grading Scheme CRUD
+    addGradingScheme: (data: any) => Promise<void>;
+    updateGradingScheme: (id: string, data: any) => Promise<void>;
+    deleteGradingScheme: (id: string) => Promise<void>;
+    // Class Subject Allocation CRUD
+    addClassSubjectAllocation: (data: any) => Promise<void>;
+    updateClassSubjectAllocation: (id: string, data: any) => Promise<void>;
+    deleteClassSubjectAllocation: (id: string) => Promise<void>;
+    // Teacher Subject Assignment CRUD
+    addTeacherSubjectAssignment: (data: any) => Promise<void>;
+    updateTeacherSubjectAssignment: (id: string, data: any) => Promise<void>;
+    deleteTeacherSubjectAssignment: (id: string) => Promise<void>;
+    // Student Subject Enrollment CRUD
+    addStudentSubjectEnrollment: (data: any) => Promise<any>;
+    updateStudentSubjectEnrollment: (id: string, data: any) => Promise<any>;
+    deleteStudentSubjectEnrollment: (id: string) => Promise<void>;
   }
 }

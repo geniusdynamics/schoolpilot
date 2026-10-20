@@ -2,14 +2,14 @@
 // ABOUTME: It helps prevent untranslated keys from appearing in the UI.
 
 import i18n from '../../i18n/i18n';
-import { getEnabledModules } from '@/core/moduleRegistry';
+import { moduleRegistry } from '@/core/moduleRegistry';
 
 describe('Translation Integrity', () => {
   it('should have a translation for every navigation item', async () => {
     // Ensure i18next is initialized
     await i18n.init();
 
-    const enabledModules = getEnabledModules();
+    const enabledModules = moduleRegistry.getEnabledModules();
     const missingTranslations: string[] = [];
 
     for (const module of enabledModules) {

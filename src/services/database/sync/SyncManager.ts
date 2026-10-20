@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * SyncManager - Bidirectional sync between backend and local cache
  *
@@ -208,7 +210,7 @@ export class SyncManager extends EventEmitter {
     try {
       changes = await this.backendProvider.getChangesSince(lastSync);
     } catch (error) {
-      console.warn('[SyncManager] Failed to fetch changes from backend:', error);
+      logger.warn('[SyncManager] Failed to fetch changes from backend:', error);
       return;
     }
 
@@ -244,7 +246,7 @@ export class SyncManager extends EventEmitter {
 
         this.emit('sync-progress', this.state.progress);
       } catch (error) {
-        console.error(`[SyncManager] Failed to sync ${change.collection}/${change.id}:`, error);
+        logger.error(`[SyncManager] Failed to sync ${change.collection}/${change.id}:`, error);
         this.state.statistics.errors++;
       }
     }
@@ -257,7 +259,7 @@ export class SyncManager extends EventEmitter {
     try {
       localChanges = await this.cacheProvider.getChangesSince(lastSync);
     } catch (error) {
-      console.warn('[SyncManager] Failed to fetch local changes:', error);
+      logger.warn('[SyncManager] Failed to fetch local changes:', error);
       return;
     }
 
@@ -288,7 +290,7 @@ export class SyncManager extends EventEmitter {
 
         this.emit('sync-progress', this.state.progress);
       } catch (error) {
-        console.error(`[SyncManager] Failed to push ${change.collection}/${change.id}:`, error);
+        logger.error(`[SyncManager] Failed to push ${change.collection}/${change.id}:`, error);
         this.state.statistics.errors++;
       }
     }

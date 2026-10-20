@@ -175,12 +175,28 @@ describe('Module dashboard modernization', () => {
         totalApplications: 10,
         pendingReview: 3,
         approved: 4,
-        enrolled: 2,
         rejected: 1,
-        thisMonth: 5,
+        deferred: 0,
         waitlisted: 1,
+        enrolled: 2,
+        thisMonth: 5,
+        thisWeek: 2,
+        today: 1,
+        pipeline: { contacts: 8, enquired: 6, applied: 10, admitted: 4, enrolled: 2 },
         byStatus: [{ status: 'Pending', count: 3 }],
         byClass: [{ className: 'Grade 7', count: 4 }],
+        monthlyData: [
+          { month: 'Jan', enquiries: 2, applications: 3, enrolled: 1 },
+          { month: 'Feb', enquiries: 3, applications: 4, enrolled: 2 },
+        ],
+        funnel: [],
+        postAdmissions: { declined: 0, enrolled: 2, total: 2 },
+        trends: {
+          enquiries: { direction: 'neutral', value: '0%' },
+          applications: { direction: 'neutral', value: '0%' },
+          enrollment: { direction: 'neutral', value: '0%' },
+          conversionRate: { direction: 'neutral', value: '0%' },
+        },
       },
     });
   });
@@ -214,13 +230,19 @@ describe('Module dashboard modernization', () => {
   it('renders quick action buttons across modernized module dashboards', async () => {
     renderWithRouter(<FinanceDashboardPage />);
     expect(await screen.findByText('Record Payment')).toBeInTheDocument();
-    expect(screen.getByText('General Receipts')).toBeInTheDocument();
+    // "General Receipts" appears both as a quick action link and in the Quick
+    // Overview stats card; assert the quick action itself.
+    // Finance renders quick actions as QuickNavCard buttons whose accessible
+    // name includes the label plus description text
+    expect(screen.getByRole('button', { name: /General Receipts/ })).toBeInTheDocument();
   });
 
   it('renders admissions analytical widgets and application stats', async () => {
     renderWithRouter(<AdmissionsDashboardPage />);
-    expect(await screen.findByText('Admissions Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Total Applications')).toBeInTheDocument();
-    expect(screen.getByText('Review Queue')).toBeInTheDocument();
+    expect(await screen.findByText('Welcome, Sharon')).toBeInTheDocument();
+    // Metric labels can also appear inside chart legends — assert at least one of each
+    expect(screen.getAllByText('Enquiries').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Applicants').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Enrollment').length).toBeGreaterThan(0);
   });
 });

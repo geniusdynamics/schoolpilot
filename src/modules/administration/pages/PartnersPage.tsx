@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { AdminPartnerType as Partner, PartnerType } from '../data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -8,18 +8,18 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon as PartnersIcon } from '@/components/ui/icons';
 import { usePartnerData } from '../data/usePartnerData'; // Use module-specific hook
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at' | 'partner_type'> & {
     partner_type: PartnerType; // Make type required for the form
 };
 
-const PartnersPage: React.FC = () => {
+export const PartnersContent: React.FC = () => {
   const {
     data: partners,
     create: addPartner,
@@ -66,11 +66,11 @@ const PartnersPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const { t } = useTranslation();
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.partner_type) {
-      alert('Partner name and type are required');
+      toast.showWarning('Partner name and type are required');
       return;
     }
     const payload: Omit<Partner, 'id' | 'created_at' | 'updated_at'> = {
@@ -83,15 +83,16 @@ const PartnersPage: React.FC = () => {
     };
 
     if (editingPartner) {
-      await updatePartner({ ...editingPartner, ...payload });
+      await updatePartner(String(editingPartner.id), payload);
     } else {
       await addPartner(payload);
     }
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this partner?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this partner?' }))) {
       await deletePartner(id);
     }
   };
@@ -103,7 +104,7 @@ const PartnersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'name', 
@@ -111,7 +112,7 @@ const PartnersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'partner_type', 
@@ -119,7 +120,7 @@ const PartnersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, item) => value
+      render: (value) => value
     },
     { 
       key: 'contact_person', 
@@ -127,7 +128,7 @@ const PartnersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     { 
       key: 'email', 
@@ -135,7 +136,7 @@ const PartnersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     { 
       key: 'phone', 
@@ -143,7 +144,7 @@ const PartnersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, item) => value || '-'
+      render: (value) => value || '-'
     },
     {
       key: 'actions',
@@ -171,7 +172,7 @@ const PartnersPage: React.FC = () => {
           Add Partner
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage school partners such as sponsors, board members, service providers, and government agencies.
         </p>
         <DataGrid 
@@ -179,13 +180,11 @@ const PartnersPage: React.FC = () => {
           data={partners} 
           sortable 
           filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <PartnersIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No partners found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first partner.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <PartnersIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No partners found',
+            description: 'Get started by adding your first partner.',
+          }}
         />
       </Card>
 
@@ -260,5 +259,11 @@ const PartnersPage: React.FC = () => {
     </div>
   );
 };
+
+const PartnersPage: React.FC = () => (
+  <div className="space-y-6">
+    <PartnersContent />
+  </div>
+);
 
 export default PartnersPage;

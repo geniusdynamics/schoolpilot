@@ -40,7 +40,7 @@ const alertConfig: Record<AlertType, {
   },
   task: {
     icon: <ClipboardDocumentListIcon className="h-5 w-5" />,
-    gradient: 'from-cyan-50 via-sky-50 to-blue-50',
+    gradient: 'from-cyan-50 via-sky-50 to-primary-50',
     borderColor: 'border-cyan-200',
     iconBg: 'bg-cyan-100',
     iconColor: 'text-cyan-600',
@@ -128,20 +128,20 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
               `}>
                 {count}
               </span>
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-sm font-semibold text-surface-foreground">
                 {label}
               </span>
             </div>
             {description && (
-              <p className="mt-0.5 text-xs text-gray-600">{description}</p>
+              <p className="mt-0.5 text-xs text-surface-muted-fg">{description}</p>
             )}
           </div>
         </div>
         
         <div className={`
           flex h-8 w-8 items-center justify-center rounded-full
-          bg-white/60 text-gray-500 transition-all
-          group-hover:bg-white group-hover:text-gray-700
+          bg-white/60 dark:bg-slate-900/60 text-surface-muted-fg transition-all
+          group-hover:bg-surface-card group-hover:text-surface-foreground
           ${to || onClick ? 'opacity-100' : 'opacity-0'}
         `}>
           <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

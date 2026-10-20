@@ -34,7 +34,7 @@ const formatDate = (dateStr: string) => {
   }
 };
 
-const AccountLedgerPage: React.FC = () => {
+export const AccountLedgerPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: ledgerRows, loading, error, refresh } = useAccountLedger();
   const { chartOfAccounts, loading: appLoading } = useAppData();
@@ -54,8 +54,8 @@ const AccountLedgerPage: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (r) =>
-          r.description.toLowerCase().includes(term) ||
-          r.particulars.toLowerCase().includes(term)
+          (r.description?.toLowerCase() ?? '').includes(term) ||
+          (r.particulars?.toLowerCase() ?? '').includes(term)
       );
     }
 
@@ -107,8 +107,8 @@ const AccountLedgerPage: React.FC = () => {
         header: t('tableHeaders.particulars') || 'Particulars',
         width: 280,
         sortable: true,
-        render: (value, row) => (
-          <span className="text-gray-600">{value}</span>
+        render: (value) => (
+          <span className="text-surface-muted-fg">{value}</span>
         ),
       },
       {
@@ -117,7 +117,7 @@ const AccountLedgerPage: React.FC = () => {
         width: 130,
         sortable: true,
         render: (value) => (
-          <span className="font-mono text-blue-600">
+          <span className="font-mono text-primary-600">
             {value !== null ? formatCurrency(value) : '-'}
           </span>
         ),
@@ -138,7 +138,7 @@ const AccountLedgerPage: React.FC = () => {
         header: t('tableHeaders.account') || 'Account',
         width: 100,
         sortable: true,
-        render: (value, row) => {
+        render: (value) => {
           const account = chartOfAccounts?.find((a) => a.id === value);
           return account?.name || `ACCT-${value}`;
         },
@@ -191,7 +191,7 @@ const AccountLedgerPage: React.FC = () => {
     );
   }, [filteredData]);
 
-  if (loading || appLoading) {
+  if ((loading || (appLoading as any)?.all) && ledgerRows.length === 0 && !error) {
     return (
       <div className="flex justify-center items-center py-20">
         <Spinner size="lg" />
@@ -219,7 +219,7 @@ const AccountLedgerPage: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('accountLedger.title') || 'Account Ledger'}>
         {/* Filters */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Input
               placeholder={t('accountLedger.searchPlaceholder') || 'Search by description or particulars...'}
@@ -270,17 +270,17 @@ const AccountLedgerPage: React.FC = () => {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="bg-blue-50 p-3 rounded-md">
-            <div className="text-sm text-blue-600">{t('accountLedger.totalDebit') || 'Total Debit'}</div>
-            <div className="text-xl font-bold text-blue-800">{formatCurrency(totals.debit)}</div>
+          <div className="bg-primary-50 p-3 rounded-md">
+            <div className="text-sm text-primary-600">{t('accountLedger.totalDebit') || 'Total Debit'}</div>
+            <div className="text-xl font-bold text-primary-800">{formatCurrency(totals.debit)}</div>
           </div>
           <div className="bg-green-50 p-3 rounded-md">
             <div className="text-sm text-green-600">{t('accountLedger.totalCredit') || 'Total Credit'}</div>
             <div className="text-xl font-bold text-green-800">{formatCurrency(totals.credit)}</div>
           </div>
-          <div className="bg-gray-50 p-3 rounded-md">
-            <div className="text-sm text-gray-600">{t('accountLedger.netBalance') || 'Net Balance'}</div>
-            <div className={`text-xl font-bold ${totals.debit - totals.credit >= 0 ? 'text-blue-800' : 'text-green-800'}`}>
+          <div className="bg-surface-muted p-3 rounded-md">
+            <div className="text-sm text-surface-muted-fg">{t('accountLedger.netBalance') || 'Net Balance'}</div>
+            <div className={`text-xl font-bold ${totals.debit - totals.credit >= 0 ? 'text-primary-800' : 'text-green-800'}`}>
               {formatCurrency(totals.debit - totals.credit)}
             </div>
           </div>
@@ -311,10 +311,11 @@ const AccountLedgerPage: React.FC = () => {
         <DataGrid
           columns={columns}
           data={filteredData}
+          keyField="transactionId"
           sortable
           filterable
           emptyState={{
-            icon: <BookOpenIcon className="w-12 h-12 text-gray-400" />,
+            icon: <BookOpenIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: t('accountLedger.noData') || 'No Data',
             description:
               t('accountLedger.noDataDescription') ||
@@ -325,5 +326,10 @@ const AccountLedgerPage: React.FC = () => {
     </div>
   );
 };
+const AccountLedgerPage: React.FC = () => (
+  <div className="space-y-6">
+    <AccountLedgerPageContent />
+  </div>
+);
 
 export default AccountLedgerPage;

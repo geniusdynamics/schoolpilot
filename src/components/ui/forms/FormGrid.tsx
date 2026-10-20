@@ -2,7 +2,6 @@
 // ABOUTME: Provides flexible grid system with consistent spacing for form fields
 
 import React, { ReactNode } from 'react';
-import { useTransition } from '../../../utils/animations';
 
 export interface FormGridProps {
   /** Grid content (typically FormField components) */
@@ -79,8 +78,6 @@ const FormGrid: React.FC<FormGridProps> = ({
   className = '',
   noStack = false,
 }) => {
-  const transitionStyles = useTransition(['all']);
-
   // Column grid classes
   const columnClasses = {
     1: noStack ? 'grid-cols-1' : 'grid-cols-1',
@@ -89,19 +86,16 @@ const FormGrid: React.FC<FormGridProps> = ({
     4: noStack ? 'grid-cols-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
   };
 
-  // Gap classes
+  // Gap classes — roomier vertical rhythm so labeled fields breathe
   const gapClasses = {
     none: 'gap-0',
-    sm: 'gap-2',
-    md: 'gap-4',
-    lg: 'gap-6',
+    sm: 'gap-x-3 gap-y-3',
+    md: 'gap-x-4 gap-y-5',
+    lg: 'gap-x-6 gap-y-6',
   };
 
   return (
-    <div
-      className={`${columnClasses[columns]} ${gapClasses[gap]} ${className}`}
-      style={transitionStyles}
-    >
+    <div className={`${columnClasses[columns]} ${gapClasses[gap]} ${className}`}>
       {children}
     </div>
   );

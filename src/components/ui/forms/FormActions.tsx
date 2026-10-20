@@ -2,7 +2,6 @@
 // ABOUTME: Provides standardized form action container with responsive behavior
 
 import React, { ReactNode } from 'react';
-import { useTransition } from '../../../utils/animations';
 
 export interface FormActionsProps {
   /** Button elements or other action content */
@@ -63,8 +62,6 @@ const FormActions: React.FC<FormActionsProps> = ({
   stackOnMobile = true,
   align = 'right',
 }) => {
-  const transitionStyles = useTransition(['all']);
-
   // Alignment styles
   const alignmentStyles = {
     right: 'justify-end',
@@ -75,9 +72,9 @@ const FormActions: React.FC<FormActionsProps> = ({
 
   // Background styles
   const backgroundStyles = {
-    default: 'bg-gray-50',
+    default: 'bg-surface-muted',
     transparent: 'bg-transparent',
-    filled: 'bg-white',
+    filled: 'bg-surface-card',
   };
 
   // Padding styles
@@ -93,7 +90,7 @@ const FormActions: React.FC<FormActionsProps> = ({
     alignmentStyles[align],
     backgroundStyles[background],
     paddingStyles[padding],
-    divider ? 'border-t border-gray-200' : '',
+    divider ? 'border-t border-surface-border' : '',
     sticky ? 'sticky bottom-0 z-10' : '',
     'print:hidden', // Hide in print mode
   ].filter(Boolean).join(' ');
@@ -106,7 +103,6 @@ const FormActions: React.FC<FormActionsProps> = ({
   return (
     <div
       className={`${baseClasses} ${mobileClasses} ${className}`}
-      style={transitionStyles}
       role="group"
       aria-label="Form actions"
     >

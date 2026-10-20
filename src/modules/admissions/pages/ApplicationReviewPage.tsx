@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from 'react';
+// ABOUTME: Admissions review page - review queue of submitted applications and a per-application review/decision view.
+// ABOUTME: Reads applications via useAdmissionsData; tolerates applications captured without applicant names.
+
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -10,16 +13,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Spinner from '@/components/ui/Spinner';
-import {
-  ArrowLeftIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  UsersIcon,
-  AcademicCapIcon,
-  DocumentTextIcon,
-  ExclamationTriangleIcon,
-} from '@/components/ui/icons';
+import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon, ClockIcon, UsersIcon, DocumentTextIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   Application,
@@ -31,7 +25,11 @@ import {
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext';
 
-const ApplicationReviewPage: React.FC = () => {
+/** Avatar initials; applications captured without a name must not crash the page. */
+const applicantInitials = (app: Pick<Application, 'firstName' | 'lastName'>): string =>
+  `${(app.firstName ?? '').charAt(0)}${(app.lastName ?? '').charAt(0)}` || '?';
+
+export const ApplicationReviewPageContent: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
   const navigate = useNavigate();
   const { getApplication, addReview, makeDecision, applications } = useAdmissionsData();
@@ -67,9 +65,31 @@ const ApplicationReviewPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load applications for queue view
-  const pendingApplications = applications.filter(
+  const pendingApplications = (applications ?? []).filter(
     app => app.status === ApplicationStatus.SUBMITTED || app.status === ApplicationStatus.UNDER_REVIEW
   );
+
+  // getApplication is recreated on every render by useAdmissionsData; read it
+  // through a ref so loading an application does not re-trigger itself.
+  const getApplicationRef = useRef(getApplication);
+  useEffect(() => {
+    getApplicationRef.current = getApplication;
+  });
+
+  const loadApplication = useCallback(async (id: string) => {
+    setLoading(true);
+    try {
+      const app = await getApplicationRef.current(id);
+      setApplication(app);
+    } catch {
+      showToast({
+        type: 'error',
+        message: 'Failed to load application.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
     if (applicationId) {
@@ -79,22 +99,7 @@ const ApplicationReviewPage: React.FC = () => {
       setActiveView('queue');
       setLoading(false);
     }
-  }, [applicationId, applications]);
-
-  const loadApplication = async (id: string) => {
-    setLoading(true);
-    try {
-      const app = await getApplication(id);
-      setApplication(app);
-    } catch (error) {
-      showToast({
-        type: 'error',
-        message: 'Failed to load application.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [applicationId, applications, loadApplication]);
 
   const handleReviewChange = (field: keyof ReviewFormData, value: string | number) => {
     setReviewData(prev => ({ ...prev, [field]: value }));
@@ -116,7 +121,7 @@ const ApplicationReviewPage: React.FC = () => {
       });
       // Reload application to get updated data
       await loadApplication(application.id);
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to save review.',
@@ -138,11 +143,11 @@ const ApplicationReviewPage: React.FC = () => {
       await makeDecision(application.id, decisionData, user.id);
       showToast({
         type: 'success',
-        message: `Application ${decisionData.decision.toLowerCase()} successfully.`,
+        message: `Application ${decisionData.decision?.toLowerCase() ?? ''} successfully.`,
       });
       setShowDecisionModal(false);
       navigate('/admissions/applications');
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to process decision.',
@@ -158,28 +163,28 @@ const ApplicationReviewPage: React.FC = () => {
         {pendingApplications.length === 0 ? (
           <div className="text-center py-12">
             <CheckCircleIcon className="mx-auto h-12 w-12 text-green-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">All caught up!</h3>
-            <p className="mt-1 text-sm text-gray-500">No applications are pending review.</p>
+            <h3 className="mt-2 text-sm font-medium text-surface-foreground">All caught up!</h3>
+            <p className="mt-1 text-sm text-surface-muted-fg">No applications are pending review.</p>
           </div>
         ) : (
           <div className="divide-y">
             {pendingApplications.map((app) => (
               <div
                 key={app.id}
-                className="p-4 hover:bg-gray-50 cursor-pointer flex items-center justify-between"
+                className="p-4 hover:bg-surface-muted cursor-pointer flex items-center justify-between"
                 onClick={() => navigate(`/admissions/review/${app.id}`)}
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold">
-                      {app.firstName.charAt(0)}{app.lastName.charAt(0)}
+                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-primary-600 font-semibold">
+                      {applicantInitials(app)}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-surface-foreground">
                       {app.firstName} {app.middleName} {app.lastName}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-surface-muted-fg">
                       #{app.applicationNumber} • {app.intendedClassName || 'No class specified'}
                     </p>
                   </div>
@@ -187,7 +192,7 @@ const ApplicationReviewPage: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <span className={`px-2 py-1 rounded-full text-xs ${
                     app.status === ApplicationStatus.SUBMITTED
-                      ? 'bg-blue-100 text-blue-800'
+                      ? 'bg-primary-100 text-primary-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
                     {app.status}
@@ -216,10 +221,10 @@ const ApplicationReviewPage: React.FC = () => {
               <ArrowLeftIcon className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-surface-foreground">
                 Review Application
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-surface-muted-fg">
                 #{application.applicationNumber} • {application.firstName} {application.lastName}
               </p>
             </div>
@@ -240,26 +245,26 @@ const ApplicationReviewPage: React.FC = () => {
             <Card title="Applicant Information">
               <div className="p-4 space-y-3">
                 <div className="flex items-center space-x-3 pb-3 border-b">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-lg">
-                      {application.firstName.charAt(0)}{application.lastName.charAt(0)}
+                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-primary-600 font-semibold text-lg">
+                      {applicantInitials(application)}
                     </span>
                   </div>
                   <div>
                     <p className="font-semibold">{application.firstName} {application.lastName}</p>
-                    <p className="text-sm text-gray-500">{application.gender}</p>
+                    <p className="text-sm text-surface-muted-fg">{application.gender}</p>
                   </div>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Date of Birth:</span>
+                  <span className="text-surface-muted-fg">Date of Birth:</span>
                   <p>{application.dateOfBirth}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Application Type:</span>
+                  <span className="text-surface-muted-fg">Application Type:</span>
                   <p>{application.applicationType}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Intended Class:</span>
+                  <span className="text-surface-muted-fg">Intended Class:</span>
                   <p>{application.intendedClassName || 'Not specified'}</p>
                 </div>
               </div>
@@ -268,19 +273,19 @@ const ApplicationReviewPage: React.FC = () => {
             <Card title="Academic Background">
               <div className="p-4 space-y-3">
                 <div className="text-sm">
-                  <span className="text-gray-600">Previous School:</span>
+                  <span className="text-surface-muted-fg">Previous School:</span>
                   <p>{application.previousSchool || 'N/A'}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Previous Class:</span>
+                  <span className="text-surface-muted-fg">Previous Class:</span>
                   <p>{application.previousClass || 'N/A'}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">KCPE Marks:</span>
+                  <span className="text-surface-muted-fg">KCPE Marks:</span>
                   <p>{application.kcpeMarks || 'N/A'}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">KCPE Grade:</span>
+                  <span className="text-surface-muted-fg">KCPE Grade:</span>
                   <p>{application.kcpeGrade || 'N/A'}</p>
                 </div>
               </div>
@@ -289,15 +294,15 @@ const ApplicationReviewPage: React.FC = () => {
             <Card title="Guardian Information">
               <div className="p-4 space-y-3">
                 <div className="text-sm">
-                  <span className="text-gray-600">Name:</span>
+                  <span className="text-surface-muted-fg">Name:</span>
                   <p>{application.guardianFirstName} {application.guardianLastName}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Phone:</span>
+                  <span className="text-surface-muted-fg">Phone:</span>
                   <p>{application.guardianPhone || 'N/A'}</p>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Email:</span>
+                  <span className="text-surface-muted-fg">Email:</span>
                   <p>{application.guardianEmail || 'N/A'}</p>
                 </div>
               </div>
@@ -310,7 +315,7 @@ const ApplicationReviewPage: React.FC = () => {
               <div className="p-4 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-surface-foreground mb-1">
                       Academic Score (/100)
                     </label>
                     <Input
@@ -323,7 +328,7 @@ const ApplicationReviewPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-surface-foreground mb-1">
                       Interview Score (/100)
                     </label>
                     <Input
@@ -336,7 +341,7 @@ const ApplicationReviewPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-surface-foreground mb-1">
                       Recommendation
                     </label>
                     <Select
@@ -353,7 +358,7 @@ const ApplicationReviewPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-surface-foreground mb-1">
                     Behavioral Assessment
                   </label>
                   <Textarea
@@ -365,7 +370,7 @@ const ApplicationReviewPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-surface-foreground mb-1">
                     Review Comments
                   </label>
                   <Textarea
@@ -377,7 +382,7 @@ const ApplicationReviewPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-surface-foreground mb-1">
                     Internal Notes (Not visible to applicant)
                   </label>
                   <Textarea
@@ -574,9 +579,9 @@ const ApplicationReviewPage: React.FC = () => {
               id="generateInvoice"
               checked={decisionData.generateInvoice}
               onChange={(e) => handleDecisionChange('generateInvoice', e.target.checked)}
-              className="rounded border-gray-300"
+              className="rounded border-surface-border"
             />
-            <label htmlFor="generateInvoice" className="text-sm text-gray-700">
+            <label htmlFor="generateInvoice" className="text-sm text-surface-foreground">
               Generate invoice upon enrollment
             </label>
           </div>
@@ -585,5 +590,10 @@ const ApplicationReviewPage: React.FC = () => {
     </>
   );
 };
+const ApplicationReviewPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationReviewPageContent />
+  </div>
+);
 
 export default ApplicationReviewPage;

@@ -27,7 +27,7 @@ const DonutChart: React.FC<DonutChartProps> = ({
 }) => {
   return (
     <div style={{ width: '100%', height: 300 }}>
-      {title && <h3 className="text-center text-md font-semibold text-gray-700 mb-2">{title}</h3>}
+      {title && <h3 className="text-center text-md font-semibold text-surface-foreground mb-2">{title}</h3>}
       <ResponsiveContainer>
         <PieChart>
           <Pie
@@ -48,7 +48,7 @@ const DonutChart: React.FC<DonutChartProps> = ({
             ))}
           </Pie>
           {centerText && (
-            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-xl font-bold fill-current text-gray-700">
+            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-xl font-bold fill-current text-surface-foreground">
               {centerText()}
             </text>
           )}

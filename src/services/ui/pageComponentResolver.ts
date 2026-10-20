@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced page component resolver with multiple fallback strategies
 // ABOUTME: Provides robust component resolution with health monitoring integration
 
@@ -95,15 +97,15 @@ class PageComponentResolver {
   private async resolveByExplicitMapping(nav: any): Promise<React.ComponentType | null> {
     if (!nav.page) return null;
     
-    console.log(`🔍 [PageComponentResolver] Trying explicit mapping for: ${nav.page}`);
+    logger.info(`🔍 [PageComponentResolver] Trying explicit mapping for: ${nav.page}`);
     
     const mappedComponent = explicitPageMapping[nav.page];
     if (mappedComponent) {
-      console.log(`✅ [PageComponentResolver] Found explicit mapping for: ${nav.page}`);
+      logger.info(`✅ [PageComponentResolver] Found explicit mapping for: ${nav.page}`);
       return mappedComponent;
     }
     
-    console.log(`❌ [PageComponentResolver] No explicit mapping found for: ${nav.page}`);
+    logger.info(`❌ [PageComponentResolver] No explicit mapping found for: ${nav.page}`);
     return null;
   }
 
@@ -130,7 +132,7 @@ class PageComponentResolver {
     // Try each strategy in order
     for (const strategy of this.strategies) {
       try {
-        console.log(`🔍 [PageComponentResolver] Trying strategy: ${strategy.name} for ${pageName}`);
+        logger.info(`🔍 [PageComponentResolver] Trying strategy: ${strategy.name} for ${pageName}`);
         
         const component = await strategy.resolve(nav);
         if (component) {
@@ -142,7 +144,7 @@ class PageComponentResolver {
           // Record success in health monitor
           pageHealthMonitor.recordSuccess(pageName, loadTime);
           
-          console.log(`✅ [PageComponentResolver] Successfully resolved ${pageName} using ${strategy.name}`);
+          logger.info(`✅ [PageComponentResolver] Successfully resolved ${pageName} using ${strategy.name}`);
           
           return {
             component,
@@ -152,7 +154,7 @@ class PageComponentResolver {
           };
         }
       } catch (error) {
-        console.warn(`❌ [PageComponentResolver] Strategy ${strategy.name} failed for ${pageName}:`, error);
+        logger.warn(`❌ [PageComponentResolver] Strategy ${strategy.name} failed for ${pageName}:`, error);
         
         // Continue to next strategy instead of failing immediately
         continue;
@@ -184,15 +186,15 @@ class PageComponentResolver {
     const moduleDir = pathSegments[0];
     const modularPath = `../modules/${moduleDir}/pages/${nav.page}.tsx`;
     
-    console.log(`🔍 [PageComponentResolver] Trying modular path strategy: ${modularPath}`);
-    console.log(`🔍 [PageComponentResolver] Navigation info:`, { path: nav.path, page: nav.page, moduleDir });
+    logger.info(`🔍 [PageComponentResolver] Trying modular path strategy: ${modularPath}`);
+    logger.info(`🔍 [PageComponentResolver] Navigation info:`, { path: nav.path, page: nav.page, moduleDir });
     
     try {
       const module = await import(/* @vite-ignore */ modularPath);
-      console.log(`✅ [PageComponentResolver] Successfully loaded module from: ${modularPath}`);
+      logger.info(`✅ [PageComponentResolver] Successfully loaded module from: ${modularPath}`);
       return module.default;
     } catch (error) {
-      console.warn(`❌ [PageComponentResolver] Failed to load from ${modularPath}:`, error);
+      logger.warn(`❌ [PageComponentResolver] Failed to load from ${modularPath}:`, error);
       
       // Try with different file extensions or paths
       const alternativePaths = [
@@ -203,12 +205,12 @@ class PageComponentResolver {
 
       for (const altPath of alternativePaths) {
         try {
-          console.log(`🔍 [PageComponentResolver] Trying alternative path: ${altPath}`);
+          logger.info(`🔍 [PageComponentResolver] Trying alternative path: ${altPath}`);
           const module = await import(/* @vite-ignore */ altPath);
-          console.log(`✅ [PageComponentResolver] Successfully loaded module from alternative path: ${altPath}`);
+          logger.info(`✅ [PageComponentResolver] Successfully loaded module from alternative path: ${altPath}`);
           return module.default;
         } catch (altError) {
-          console.warn(`❌ [PageComponentResolver] Failed to load from ${altPath}:`, altError);
+          logger.warn(`❌ [PageComponentResolver] Failed to load from ${altPath}:`, altError);
           continue;
         }
       }
@@ -293,7 +295,7 @@ class PageComponentResolver {
         return (module as any).default;
       }
     } catch (error) {
-      console.warn('Dynamic import strategy failed:', error);
+      logger.warn('Dynamic import strategy failed:', error);
     }
 
     return null;

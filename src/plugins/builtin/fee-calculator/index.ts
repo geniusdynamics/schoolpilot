@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Fee Calculator POC Plugin
  * 
@@ -216,10 +218,10 @@ class FeeCalculator implements FeeCalculatorAPI {
     try {
       if (typeof spFeesCalculate === 'function') {
         this.wasmReady = true;
-        console.log('[FeeCalculator] WASM engine loaded');
+        logger.info('[FeeCalculator] WASM engine loaded');
       }
     } catch (_error) {
-      console.warn('[FeeCalculator] WASM not available, using JavaScript fallback');
+      logger.warn('[FeeCalculator] WASM not available, using JavaScript fallback');
       this.wasmReady = false;
     }
   }
@@ -243,13 +245,13 @@ class FeeCalculator implements FeeCalculatorAPI {
     return result;
   }
   
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   private async calculateWithWasm(_input: FeeCalculationInput): Promise<FeeCalculationResult> {
     try {
       const result = spFeesCalculate(JSON.stringify(_input));
       return JSON.parse(result);
     } catch (error) {
-      console.error('[FeeCalculator] WASM calculation failed, falling back:', error);
+      logger.error('[FeeCalculator] WASM calculation failed, falling back:', error);
       return this.calculateWithJS(_input);
     }
   }
@@ -470,7 +472,7 @@ let feeCalculator: FeeCalculator | null = null;
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[FeeCalculator Plugin] Activating...');
+    logger.info('[FeeCalculator Plugin] Activating...');
     
     const useWasm = context.api.getSetting('useWasm') ?? true;
     const settings = {
@@ -486,21 +488,21 @@ const module: PluginModule = {
     
     // Register hooks
     context.api.addHook('fees.beforeCalculate', (input: FeeCalculationInput) => {
-      console.log(`[FeeCalculator] Calculating fees for student ${input.profile.studentId}`);
+      logger.info(`[FeeCalculator] Calculating fees for student ${input.profile.studentId}`);
       return input;
     }, 10);
     
     context.api.addHook('fees.afterCalculate', (result: FeeCalculationResult) => {
-      console.log(`[FeeCalculator] Total fees: ${result.grandTotal}`);
+      logger.info(`[FeeCalculator] Total fees: ${result.grandTotal}`);
       return result;
     }, 10);
     
-    console.log('[FeeCalculator Plugin] Activated successfully');
+    logger.info('[FeeCalculator Plugin] Activated successfully');
   },
   
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deactivate(_context: PluginContext) {
-    console.log('[FeeCalculator Plugin] Deactivated');
+    logger.info('[FeeCalculator Plugin] Deactivated');
     feeCalculator = null;
   },
   

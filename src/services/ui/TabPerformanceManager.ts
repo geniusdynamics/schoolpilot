@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * TabPerformanceManager - Performance optimization for SchoolPilot3 tabs
  * Handles content caching, lazy loading, memory management, and performance monitoring
@@ -73,37 +75,54 @@ export class TabPerformanceManager {
   private performanceMetrics: TabPerformanceMetrics;
   private animationFrameId: number | null = null;
   private switchingInProgress = false;
-  
+
+  /**
+   * Safe high-resolution timestamp that falls back to Date.now() when the
+   * Performance API is unavailable
+   */
+  private nowMs(): number {
+    return typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? performance.now()
+      : Date.now();
+  }
+
   constructor(config: TabPerformanceConfig) {
+    // Merge section-by-section so each manager owns its own nested config
+    // objects (a shallow spread would share references with the caller's
+    // config object, e.g. defaultTabPerformanceConfig, and let one manager's
+    // updateConfig mutate the defaults for every other manager)
     this.config = {
       tabMemory: {
         maxActiveTabs: 10,
         inactiveTabTimeout: 30 * 60 * 1000, // 30 minutes
         memoryThreshold: 100 * 1024 * 1024, // 100MB
         virtualizeContent: true,
-        enableGarbageCollection: true
+        enableGarbageCollection: true,
+        ...config?.tabMemory
       },
       rendering: {
         lazyLoadTabs: true,
         preloadAdjacent: true,
         memoizeTabContent: true,
         debounceTabSwitch: 100,
-        enableVirtualization: true
+        enableVirtualization: true,
+        ...config?.rendering
       },
       animations: {
         respectReducedMotion: true,
         tabSwitchDuration: 250,
         useGPUAcceleration: true,
-        animationFrameOptimization: true
+        animationFrameOptimization: true,
+        ...config?.animations
       },
       monitoring: {
         enablePerformanceLogging: process.env.NODE_ENV === 'development',
         trackMemoryUsage: true,
         measureTabSwitchTime: true,
         alertSlowOperations: true,
-        slowOperationThreshold: 500 // 500ms
-      },
-      ...config
+        slowOperationThreshold: 500, // 500ms
+        ...config?.monitoring
+      }
     };
     
     this.performanceMetrics = {
@@ -133,7 +152,7 @@ export class TabPerformanceManager {
    */
   loadTabContent(tabInfo: TabContentInfo, forceReload = false): React.ReactNode {
     const { id, isActive } = tabInfo;
-    const startTime = performance.now();
+    const startTime = this.nowMs();
     
     try {
       // Check cache first
@@ -142,14 +161,14 @@ export class TabPerformanceManager {
         cached.lastAccessed = Date.now();
         cached.isActive = isActive;
         
-        this.logPerformance('Content cache hit', id, performance.now() - startTime);
+        this.logPerformance('Content cache hit', id, this.nowMs() - startTime);
         return cached.content;
       }
       
       // For inactive tabs, only load if configured or if it's being preloaded
       if (!isActive && this.config.rendering.lazyLoadTabs) {
         const placeholder = this.createTabContentPlaceholder(tabInfo);
-        this.logPerformance('Lazy loading placeholder', id, performance.now() - startTime);
+        this.logPerformance('Lazy loading placeholder', id, this.nowMs() - startTime);
         return placeholder;
       }
       
@@ -161,14 +180,14 @@ export class TabPerformanceManager {
       }
       
       // Track content load time
-      const loadTime = performance.now() - startTime;
+      const loadTime = this.nowMs() - startTime;
       this.performanceMetrics.contentLoadTimes.set(id, loadTime);
       
       this.logPerformance('Content loaded and cached', id, loadTime);
       return content;
       
     } catch (error) {
-      console.error(`❌ [TabPerformanceManager] Error loading content for tab ${id}:`, error);
+      logger.error(`❌ [TabPerformanceManager] Error loading content for tab ${id}:`, error);
       return this.createErrorContent(tabInfo, error);
     }
   }
@@ -178,12 +197,12 @@ export class TabPerformanceManager {
    */
   async switchTab(fromTabId: string | null, toTabId: string, tabInfo: TabContentInfo): Promise<void> {
     if (this.switchingInProgress) {
-      console.warn('⚠️ [TabPerformanceManager] Tab switch already in progress, ignoring');
+      logger.warn('⚠️ [TabPerformanceManager] Tab switch already in progress, ignoring');
       return;
     }
     
     this.switchingInProgress = true;
-    const startTime = performance.now();
+    const startTime = this.nowMs();
     
     try {
       // Debounce rapid tab switching
@@ -206,14 +225,14 @@ export class TabPerformanceManager {
       await this.performMemoryCleanup();
       
       // Record performance metrics
-      const switchTime = performance.now() - startTime;
+      const switchTime = this.nowMs() - startTime;
       this.performanceMetrics.tabSwitchTimes.set(toTabId, switchTime);
       this.updateAverageSwitchTime();
       
       // Alert if operation is slow
       if (this.config.monitoring.alertSlowOperations && 
           switchTime > this.config.monitoring.slowOperationThreshold) {
-        console.warn(`🐌 [TabPerformanceManager] Slow tab switch detected: ${switchTime}ms for tab ${toTabId}`);
+        logger.warn(`🐌 [TabPerformanceManager] Slow tab switch detected: ${switchTime}ms for tab ${toTabId}`);
       }
       
       this.logPerformance('Tab switch completed', toTabId, switchTime);
@@ -227,14 +246,14 @@ export class TabPerformanceManager {
    * Memory management and inactive tab cleanup
    */
   async performMemoryCleanup(): Promise<void> {
-    const startTime = performance.now();
+    const startTime = this.nowMs();
     
     try {
       // Check memory threshold
       const totalMemoryUsage = this.getTotalMemoryUsage();
       
       if (totalMemoryUsage > this.config.tabMemory.memoryThreshold) {
-        console.log(`🧹 [TabPerformanceManager] Memory threshold exceeded (${totalMemoryUsage} bytes), performing cleanup`);
+        logger.info(`🧹 [TabPerformanceManager] Memory threshold exceeded (${totalMemoryUsage} bytes), performing cleanup`);
         
         // Find inactive tabs to cleanup
         const inactiveTabs = Array.from(this.contentCache.entries())
@@ -254,13 +273,13 @@ export class TabPerformanceManager {
           (window as any).gc();
         }
         
-        console.log(`✅ [TabPerformanceManager] Cleaned up ${tabsToClean} inactive tabs`);
+        logger.info(`✅ [TabPerformanceManager] Cleaned up ${tabsToClean} inactive tabs`);
       }
       
-      this.logPerformance('Memory cleanup completed', 'system', performance.now() - startTime);
+      this.logPerformance('Memory cleanup completed', 'system', this.nowMs() - startTime);
       
     } catch (error) {
-      console.error('❌ [TabPerformanceManager] Error during memory cleanup:', error);
+      logger.error('❌ [TabPerformanceManager] Error during memory cleanup:', error);
     }
   }
   
@@ -278,7 +297,7 @@ export class TabPerformanceManager {
     const timer = setTimeout(() => {
       this.unloadTabContent(tabId);
       this.inactiveTabTimers.delete(tabId);
-      console.log(`🗑️ [TabPerformanceManager] Cleaned up inactive tab: ${tabId}`);
+      logger.info(`🗑️ [TabPerformanceManager] Cleaned up inactive tab: ${tabId}`);
     }, this.config.tabMemory.inactiveTabTimeout);
     
     this.inactiveTabTimers.set(tabId, timer);
@@ -289,7 +308,7 @@ export class TabPerformanceManager {
    */
   private preloadAdjacentTabs(currentTabId: string): void {
     // This would be implemented based on the tab order in the actual tab store
-    console.log(`🔄 [TabPerformanceManager] Preloading adjacent tabs for: ${currentTabId}`);
+    logger.info(`🔄 [TabPerformanceManager] Preloading adjacent tabs for: ${currentTabId}`);
   }
   
   /**
@@ -365,17 +384,17 @@ export class TabPerformanceManager {
    */
   private createTabContentPlaceholder(tabInfo: TabContentInfo): React.ReactNode {
     return React.createElement('div', {
-      className: 'flex items-center justify-center h-full bg-gray-50',
+      className: 'flex items-center justify-center h-full bg-surface-muted',
       children: React.createElement('div', {
         className: 'text-center',
         children: [
           React.createElement('div', {
             key: 'spinner',
-            className: 'animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4'
+            className: 'animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4'
           }),
           React.createElement('p', {
             key: 'text',
-            className: 'text-gray-600',
+            className: 'text-surface-muted-fg',
             children: `Loading ${tabInfo.title}...`
           })
         ]
@@ -491,7 +510,7 @@ export class TabPerformanceManager {
    * Start memory monitoring
    */
   private startMemoryMonitoring(): void {
-    if ('memory' in performance) {
+    if (typeof performance !== 'undefined' && 'memory' in performance) {
       setInterval(() => {
         const memory = (performance as any).memory;
         const usage = memory.usedJSHeapSize;
@@ -502,7 +521,7 @@ export class TabPerformanceManager {
         
         // Alert if memory usage is high
         if (usage > this.config.tabMemory.memoryThreshold * 0.8) {
-          console.warn(`⚠️ [TabPerformanceManager] High memory usage detected: ${(usage / 1024 / 1024).toFixed(2)}MB`);
+          logger.warn(`⚠️ [TabPerformanceManager] High memory usage detected: ${(usage / 1024 / 1024).toFixed(2)}MB`);
         }
       }, 10000); // Check every 10 seconds
     }
@@ -517,7 +536,7 @@ export class TabPerformanceManager {
     if (mediaQuery.matches) {
       this.config.animations.tabSwitchDuration = 0;
       this.config.animations.useGPUAcceleration = false;
-      console.log('🎯 [TabPerformanceManager] Reduced motion preference detected');
+      logger.info('🎯 [TabPerformanceManager] Reduced motion preference detected');
     }
   }
   
@@ -526,7 +545,7 @@ export class TabPerformanceManager {
    */
   private logPerformance(operation: string, tabId: string, duration: number): void {
     if (this.config.monitoring.enablePerformanceLogging) {
-      console.log(`⚡ [TabPerformanceManager] ${operation} for ${tabId}: ${duration.toFixed(2)}ms`);
+      logger.info(`⚡ [TabPerformanceManager] ${operation} for ${tabId}: ${duration.toFixed(2)}ms`);
     }
   }
   
@@ -550,7 +569,7 @@ export class TabPerformanceManager {
    */
   updateConfig(updates: Partial<TabPerformanceConfig>): void {
     this.config = { ...this.config, ...updates };
-    console.log('🔧 [TabPerformanceManager] Configuration updated:', updates);
+    logger.info('🔧 [TabPerformanceManager] Configuration updated:', updates);
   }
   
   /**
@@ -565,7 +584,7 @@ export class TabPerformanceManager {
     this.inactiveTabTimers.clear();
     
     this.updateMetrics();
-    console.log('🧹 [TabPerformanceManager] All cached content cleared');
+    logger.info('🧹 [TabPerformanceManager] All cached content cleared');
   }
   
   /**
@@ -579,7 +598,7 @@ export class TabPerformanceManager {
       this.animationFrameId = null;
     }
     
-    console.log('🧹 [TabPerformanceManager] Cleanup completed');
+    logger.info('🧹 [TabPerformanceManager] Cleanup completed');
   }
 }
 

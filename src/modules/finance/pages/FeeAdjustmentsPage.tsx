@@ -1,14 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { FeeAdjustment, FeeAdjustmentType } from '@/modules/finance';
-import { Student } from '@/modules/administration';
-import { SchoolPeriod, StudentStatus } from '@/core/types';
+import { Student, SchoolPeriod, StudentStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -16,12 +12,13 @@ import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/compone
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'student_name' | 'school_period_name' | 'adjustment_type'> & {
     adjustment_type: FeeAdjustmentType;
 };
 
-const FeeAdjustmentsPage: React.FC = () => {
+export const FeeAdjustmentsPageContent: React.FC = () => {
   const appData = useAppData();
   const feeAdjustments = appData.feeAdjustments || [];
   const students = appData.students || [];
@@ -45,7 +42,10 @@ const FeeAdjustmentsPage: React.FC = () => {
   };
   const [formData, setFormData] = useState<FeeAdjustmentFormData>(initialFormData);
 
-  const activeStudents = useMemo(() => students.filter(s => s.status === StudentStatus.ACTIVE), [students]);
+  const activeStudents = useMemo(
+    () => (appData.students || []).filter(s => s.status === StudentStatus.ACTIVE),
+    [appData.students]
+  );
 
   const openModal = (adjustment?: FeeAdjustment) => {
     setEditingAdjustment(adjustment || null);
@@ -82,31 +82,32 @@ const FeeAdjustmentsPage: React.FC = () => {
   
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || formData.amount === undefined || !formData.adjustment_type) {
-      showToast("Student, School Period, Adjustment Type, and Amount are required.", "error");
+      showToast({ message: "Student, School Period, Adjustment Type, and Amount are required.", variant: "error" });
       return;
     }
     
     try {
       if (editingAdjustment) {
         await updateFeeAdjustment(editingAdjustment.id, formData);
-        showToast("Fee adjustment updated successfully", "success");
+        showToast({ message: "Fee adjustment updated successfully", variant: "success" });
       } else {
         await addFeeAdjustment(formData);
-        showToast("Fee adjustment added successfully", "success");
+        showToast({ message: "Fee adjustment added successfully", variant: "success" });
       }
       closeModal();
-    } catch (error) {
-      showToast("Failed to save fee adjustment", "error");
+    } catch {
+      showToast({ message: "Failed to save fee adjustment", variant: "error" });
     }
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this fee adjustment?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee adjustment?' }))) {
       try {
         await deleteFeeAdjustment(id);
-        showToast("Fee adjustment deleted successfully", "success");
-      } catch (error) {
-        showToast("Failed to delete fee adjustment", "error");
+        showToast({ message: "Fee adjustment deleted successfully", variant: "success" });
+      } catch {
+        showToast({ message: "Failed to delete fee adjustment", variant: "error" });
       }
     }
   };
@@ -118,7 +119,7 @@ const FeeAdjustmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'school_period_name', 
@@ -126,7 +127,7 @@ const FeeAdjustmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'adjustment_type', 
@@ -134,7 +135,7 @@ const FeeAdjustmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-purple-600 font-medium">{value}</span>
+      render: (value) => <span className="text-purple-600 font-medium">{value}</span>
     },
     { 
       key: 'amount', 
@@ -142,7 +143,7 @@ const FeeAdjustmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.amount?.toFixed(2) || '0.00'}`}</span>
+      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.amount?.toFixed?.(2) ?? '0.00'}`}</span>
     },
     { 
       key: 'reason', 
@@ -150,7 +151,7 @@ const FeeAdjustmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="text-gray-700">{value}</span>
+      render: (value) => <span className="text-surface-foreground">{value}</span>
     },
     { 
       key: 'applied_invoice_id', 
@@ -158,7 +159,7 @@ const FeeAdjustmentsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="font-mono text-sm">{value || 'N/A'}</span>
+      render: (value) => <span className="font-mono text-sm">{value || 'N/A'}</span>
     },
     {
       key: 'id',
@@ -178,7 +179,10 @@ const FeeAdjustmentsPage: React.FC = () => {
   
   const isLoadingData = loading.feeAdjustments || loading.students || loading.schoolPeriods;
 
-  if (isLoadingData && !isModalOpen) {
+  // NOTE: feeAdjustments/students are coerced to arrays above, so a truthiness
+  // check here could never pass; compare lengths so the first-load spinner
+  // actually renders while the collections are still empty.
+  if (isLoadingData && !isModalOpen && feeAdjustments.length === 0 && students.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" /> <span className="ml-2">Loading Fee Adjustments...</span>
@@ -200,7 +204,7 @@ const FeeAdjustmentsPage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <DocumentDuplicateIcon className="w-12 h-12 text-gray-400" />,
+            icon: <DocumentDuplicateIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Fee Adjustments Found",
             description: "Create your first fee adjustment to manage student fee exemptions, discounts, or penalties.",
             action: {
@@ -219,25 +223,25 @@ const FeeAdjustmentsPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.feeAdjustments}>
-              {loading.feeAdjustments ? <Spinner size="sm"/> : (editingAdjustment ? 'Save Changes' : 'Add Adjustment')}
+            <Button onClick={handleSubmit} loading={loading.feeAdjustments}>
+              {editingAdjustment ? 'Save Changes' : 'Add Adjustment'}
             </Button>
           </>
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select name="student_id" label="Student" value={formData.student_id || ''} onChange={handleInputChange} required>
+          <Select name="student_id" label="Student" value={formData.student_id != null ? String(formData.student_id) : ''} onChange={handleInputChange} required>
             <option value="">Select Student</option>
             {activeStudents.map((student: Student) => (
-              <option key={student.id} value={student.id}>
+              <option key={student.id} value={String(student.id)}>
                 {student.first_name} {student.last_name} ({student.admission_no})
               </option>
             ))}
           </Select>
-          <Select name="school_period_id" label="School Period" value={formData.school_period_id || ''} onChange={handleInputChange} required>
+          <Select name="school_period_id" label="School Period" value={formData.school_period_id != null ? String(formData.school_period_id) : ''} onChange={handleInputChange} required>
             <option value="">Select School Period</option>
             {schoolPeriods.map((period: SchoolPeriod) => (
-              <option key={period.id} value={period.id}>{period.name}</option>
+              <option key={String(period.id)} value={String(period.id)}>{period.name}</option>
             ))}
           </Select>
           <Select name="adjustment_type" label="Adjustment Type" value={formData.adjustment_type} onChange={handleInputChange} required>
@@ -253,5 +257,11 @@ const FeeAdjustmentsPage: React.FC = () => {
     </div>
   );
 };
+
+const FeeAdjustmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeeAdjustmentsPageContent />
+  </div>
+);
 
 export default FeeAdjustmentsPage;

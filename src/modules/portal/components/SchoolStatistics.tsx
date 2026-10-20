@@ -42,7 +42,7 @@ export const SchoolStatistics: React.FC<SchoolStatisticsProps> = ({
       showMoreOptions={true}
     >
       {/* Table Header */}
-      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-2">
+      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-surface-muted-fg uppercase tracking-wider mb-2 px-2">
         <div className="col-span-4 flex items-center gap-1">
           <UserGroupIcon className="w-3.5 h-3.5" />
           {t('portal.statistics.yearGroup')}
@@ -66,28 +66,28 @@ export const SchoolStatistics: React.FC<SchoolStatisticsProps> = ({
         {stats.map((stat) => (
           <div
             key={stat.yearGroup}
-            className="grid grid-cols-12 gap-2 items-center p-2.5 rounded-lg hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+            className="grid grid-cols-12 gap-2 items-center p-2.5 rounded-lg hover:bg-surface-muted transition-colors border-b border-gray-50 last:border-0"
           >
             {/* Year Group */}
             <div className="col-span-4 flex items-center gap-2">
               <div className="w-5 h-5 rounded bg-purple-100 text-purple-600 flex items-center justify-center">
                 <span className="text-xs font-bold">Y</span>
               </div>
-              <span className="text-sm font-medium text-gray-900">{stat.yearGroup}</span>
+              <span className="text-sm font-medium text-surface-foreground">{stat.yearGroup}</span>
             </div>
 
             {/* Male */}
-            <div className="col-span-2 text-center text-sm text-gray-700">
+            <div className="col-span-2 text-center text-sm text-surface-foreground">
               {stat.male}
             </div>
 
             {/* Female */}
-            <div className="col-span-2 text-center text-sm text-gray-700">
+            <div className="col-span-2 text-center text-sm text-surface-foreground">
               {stat.female}
             </div>
 
             {/* Total */}
-            <div className="col-span-2 text-center text-sm font-semibold text-gray-900">
+            <div className="col-span-2 text-center text-sm font-semibold text-surface-foreground">
               {stat.total}
             </div>
           </div>
@@ -95,15 +95,15 @@ export const SchoolStatistics: React.FC<SchoolStatisticsProps> = ({
       </div>
 
       {/* Totals Row */}
-      <div className="grid grid-cols-12 gap-2 items-center p-2.5 mt-2 bg-gray-50 rounded-lg font-medium">
-        <div className="col-span-4 text-sm text-gray-700">{t('portal.statistics.totalLabel')}</div>
-        <div className="col-span-2 text-center text-sm text-gray-700">{totalMale}</div>
-        <div className="col-span-2 text-center text-sm text-gray-700">{totalFemale}</div>
-        <div className="col-span-2 text-center text-sm text-gray-900">{totalStudents}</div>
+      <div className="grid grid-cols-12 gap-2 items-center p-2.5 mt-2 bg-surface-muted rounded-lg font-medium">
+        <div className="col-span-4 text-sm text-surface-foreground">{t('portal.statistics.totalLabel')}</div>
+        <div className="col-span-2 text-center text-sm text-surface-foreground">{totalMale}</div>
+        <div className="col-span-2 text-center text-sm text-surface-foreground">{totalFemale}</div>
+        <div className="col-span-2 text-center text-sm text-surface-foreground">{totalStudents}</div>
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 text-xs text-gray-500">
+      <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 text-xs text-surface-muted-fg">
         <span>{studentManagerName}</span>
         <span>{schoolManagerName}</span>
       </div>

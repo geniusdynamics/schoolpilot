@@ -41,6 +41,9 @@ declare module '@/core/types' {
     academicYears: AcademicYear[];
     schoolPeriods: SchoolPeriod[];
     academicYearStructures: AcademicYearStructure[];
+    addAcademicYearStructure: (data: any) => Promise<any>;
+    updateAcademicYearStructure: (id: string, data: any) => Promise<any>;
+    deleteAcademicYearStructure: (id: string) => Promise<void>;
     academicPeriodDefinitions: AcademicPeriodDefinition[];
     timetablePeriodDefs: TimetablePeriodDef[];
     // Administration-specific entities
@@ -57,25 +60,33 @@ declare module '@/core/types' {
     studentBioData: any[];
     studentIDCards: any[];
     transferCertificateStudents: any[];
+    studentClassHistory: any[];
   }
 
   export interface AppDataContextType {
     // Student CRUD
-    addStudent: (data: Omit<Student, 'id'>) => Promise<Student>;
-    updateStudent: (id: string, data: Partial<Student>) => Promise<Student>;
+    addStudent: (
+      data: Omit<Student, 'id' | 'created_at' | 'updated_at'>,
+      guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+    ) => Promise<Student>;
+    updateStudent: (
+      id: string,
+      data: Partial<Student>,
+      guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+    ) => Promise<Student>;
     deleteStudent: (id: string) => Promise<void>;
     // Staff CRUD
     addStaff: (data: Omit<Staff, 'id'>) => Promise<Staff>;
     updateStaff: (id: string, data: Partial<Staff>) => Promise<Staff>;
     deleteStaff: (id: string) => Promise<void>;
     // Class CRUD
-    addClass: (data: Omit<Class, 'id'>) => Promise<Class>;
-    updateClass: (data: Class) => Promise<Class>;
-    deleteClass: (id: number) => Promise<void>;
+    addClass: (data: Omit<Class, 'id' | 'created_at' | 'updated_at'>) => Promise<Class>;
+    updateClass: (id: string, data: Partial<Class>) => Promise<Class>;
+    deleteClass: (id: string) => Promise<void>;
     // Class Stream CRUD
-    addClassStream: (classId: number, data: Omit<ClassStream, 'id' | 'class_id'>) => Promise<ClassStream>;
-    updateClassStream: (data: ClassStream) => Promise<ClassStream>;
-    deleteClassStream: (id: number) => Promise<void>;
+    addClassStream: (data: Omit<ClassStream, 'id' | 'created_at' | 'updated_at'>) => Promise<ClassStream>;
+    updateClassStream: (id: string, data: Partial<ClassStream>) => Promise<ClassStream>;
+    deleteClassStream: (id: string) => Promise<void>;
     // Department CRUD
     addDepartment: (data: Omit<Department, 'id'>) => Promise<Department>;
     updateDepartment: (id: string, data: Partial<Department>) => Promise<Department>;
@@ -84,6 +95,17 @@ declare module '@/core/types' {
     addAcademicYear: (data: any) => Promise<any>;
     updateAcademicYear: (id: string, data: any) => Promise<any>;
     deleteAcademicYear: (id: string) => Promise<void>;
+    // Academic Period Definition CRUD
+    addAcademicPeriodDefinition: (data: any) => Promise<any>;
+    updateAcademicPeriodDefinition: (id: string, data: any) => Promise<any>;
+    deleteAcademicPeriodDefinition: (id: string) => Promise<void>;
+    academicPeriodDefinitions: any[];
+    // Staff CRUD
+    addStaffMember: (data: any) => Promise<any>;
+    updateStaffMember: (id: string, data: any) => Promise<any>;
+    deleteStaffMember: (id: string) => Promise<void>;
+    departments: any[];
+    designations: any[];
     // Partner CRUD
     addPartner: (data: any) => Promise<void>;
     updatePartner: (data: any) => Promise<void>;
@@ -120,5 +142,10 @@ declare module '@/core/types' {
     saveStudentAttendance: (records: any[]) => Promise<void>;
     getStudentAttendanceByFilters: (date: string, classStreamId: number, periodId: number) => any[];
     getTimetablePeriodDefs: () => TimetablePeriodDef[];
+    // Student Class History (student_class_history)
+    addStudentClassHistory: (data: any) => Promise<any>;
+    updateStudentClassHistory: (id: string, data: any) => Promise<any>;
+    deleteStudentClassHistory: (id: string) => Promise<boolean>;
+    getStudentClassHistory: (studentId: string) => any[];
   }
 }

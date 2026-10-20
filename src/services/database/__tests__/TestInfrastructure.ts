@@ -1,7 +1,7 @@
 // ABOUTME: Database testing infrastructure and utilities
 // ABOUTME: Provides test environments, fixtures, and utilities for database testing
 import { UnifiedDatabaseManager } from '../UnifiedDatabaseManager';
-import { DatabaseProviderFactory } from '../DatabaseProviderFactory';
+
 import { IDatabaseProvider, DatabaseConfig } from '../interfaces';
 
 export interface TestEnvironment {

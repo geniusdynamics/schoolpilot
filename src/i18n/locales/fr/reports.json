@@ -11,5 +11,41 @@
   "custom": "Rapports personnalisés",
   "schedule": "Programmer un rapport",
   "download": "Télécharger",
-  "print": "Imprimer"
+  "print": "Imprimer",
+  "feeCollection": {
+    "alertSelectPeriod": "Alert Select Period",
+    "title": "Fee Collection",
+    "description": "Description",
+    "schoolPeriod": "School Period",
+    "optionAllPeriods": "Option All Periods",
+    "classOptional": "Class Optional",
+    "optionAllClasses": "Option All Classes",
+    "generateSummary": "Generate Summary",
+    "loadingData": "Loading Data",
+    "generatingSummary": "Generating Summary",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noData": "No Data",
+    "selectFiltersMessage": "Select Filters Message"
+  },
+  "tableHeaders": {
+    "votehead": "Votehead",
+    "expectedAmountKES": "Expected Amount KES",
+    "paidAmountKES": "Paid Amount KES",
+    "arrearsKES": "Arrears KES",
+    "admNo": "Adm No",
+    "studentName": "Student Name",
+    "totalMarks": "Total Marks",
+    "meanGrade": "Mean Grade",
+    "rank": "Rank"
+  },
+  "validation": {
+    "selectGLAccount": "Select GLAccount"
+  },
+  "messages": {
+    "noDataToExport": "No Data To Export",
+    "csvExportToBeDeveloped": "Csv Export To Be Developed",
+    "printToBeDeveloped": "Print To Be Developed",
+    "exportToBeDeveloped": "Export To Be Developed"
+  }
 }

@@ -1,9 +1,15 @@
-import React from 'react';
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PrimarySidebar from '../PrimarySidebar';
 import SecondarySidebar from '../SecondarySidebar';
+import { FullWidthProvider } from '../../contexts/FullWidthContext';
+
+// SecondarySidebar calls useFullWidth(); this file imports RTL's render
+// directly (bypassing the global provider wrapper), so wrap renders here.
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<FullWidthProvider>{ui}</FullWidthProvider>, options);
 
 vi.mock('../../hooks/useDynamicNavigation', () => ({
   useDynamicNavigation: () => ({

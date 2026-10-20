@@ -1,0 +1,139 @@
+{
+  "title": "Inventory",
+  "items": "Items",
+  "categories": "Categories",
+  "stock": "Stock Management",
+  "suppliers": "Suppliers",
+  "orders": "Purchase Orders",
+  "receiving": "Receiving",
+  "tracking": "Asset Tracking",
+  "maintenance": "Maintenance",
+  "disposal": "Disposal",
+  "reports": "Inventory Reports",
+  "audit": "Stock Audit",
+  "alerts": "Low Stock Alerts",
+  "valuation": "Inventory Valuation",
+  "stationery": {
+    "title": "Stationery Supply Management",
+    "description": "Department-wise allocation and consumable tracking for stationery items",
+    "items": "Stationery Items",
+    "departments": "Departments",
+    "allocation": "Department Allocation",
+    "consumables": "Consumable Tracking",
+    "lowStock": "Low Stock Alerts",
+    "reorderLevel": "Reorder Level",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "allocated": "Allocated",
+    "consumed": "Consumed",
+    "remaining": "Remaining",
+    "addItem": "Add Item",
+    "allocate": "Allocate to Department",
+    "recordConsumption": "Record Consumption"
+  },
+  "reorderAlerts": {
+    "reorderPoint": "Reorder Point",
+    "standard": "Standard",
+    "reorderRequired": "Reorder Required",
+    "lowStock": "Low Stock",
+    "title": "Reorder Alerts",
+    "checkAll": "Check All",
+    "settings": {
+      "title": "Settings",
+      "description": "Description",
+      "autoMonitoring": "Auto Monitoring",
+      "lastCheck": "Last Check"
+    },
+    "summary": {
+      "itemsBelowReorder": "Items Below Reorder",
+      "totalMonitored": "Total Monitored",
+      "activeAlerts": "Active Alerts",
+      "lastCheck": "Last Check"
+    },
+    "activeAlerts": "Active Alerts",
+    "noAlerts": {
+      "title": "No Alerts",
+      "description": "Description"
+    },
+    "tabs": {
+      "all": "All",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "table": {
+      "priority": "Priority",
+      "item": "Item",
+      "currentStock": "Current Stock",
+      "suggestedOrder": "Suggested Order",
+      "alertType": "Alert Type",
+      "actions": "Actions"
+    },
+    "detail": {
+      "description": "Description",
+      "currentStock": "Current Stock",
+      "reorderPoint": "Reorder Point",
+      "suggestedOrder": "Suggested Order",
+      "priority": "Priority"
+    },
+    "dismissAlert": "Dismiss Alert",
+    "createOrder": "Create Order"
+  },
+  "common": {
+    "refresh": "Refresh",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "close": "Close"
+  },
+  "validation": {
+    "categoryNameRequired": "Category Name Required",
+    "itemNameUnitTypeRequired": "Item Name Unit Type Required",
+    "warehouseNameIsRequired": "Warehouse Name Is Required"
+  },
+  "inventory": {
+    "itemCategoriesPage": {
+      "title": "Item Categories Page",
+      "addCategory": "Add Category",
+      "description": "Description",
+      "editItemCategoryTitle": "Edit Item Category",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "categoryName": "Category Name"
+    },
+    "items": {
+      "management": {
+        "title": "Management"
+      },
+      "addItem": "Add Item",
+      "maintain": {
+        "list": "List"
+      },
+      "editItem": "Edit Item",
+      "addNewItem": "Add New Item",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "name": "Items",
+      "category": "Category",
+      "selectCategory": "Select Category",
+      "unitOfMeasure": "Unit Of Measure",
+      "e": {
+        "g": {
+          ",Piece,Kg,Litre,Box": ",Piece,Kg,Litre,Box"
+        }
+      },
+      "itemType": "Item Type",
+      "currentPriceKES": "Current Price KES",
+      "description": "Description"
+    }
+  },
+  "warehouses": {
+    "title": "Warehouses",
+    "addWarehouse": "Add Warehouse",
+    "description": "Description",
+    "editWarehouse": "Edit Warehouse",
+    "addNewWarehouse": "Add New Warehouse",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "warehouseName": "Warehouse Name"
+  }
+}

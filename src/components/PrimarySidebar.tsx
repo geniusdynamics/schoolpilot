@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
-import { useRBAC } from '@/hooks/useRBAC';
-import { useAuth } from '@/contexts/AuthContext';
+import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useRBAC } from '../hooks/useRBAC';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { i18nReady } from '../i18n/i18n';
-import { useFullWidth } from '@/contexts/FullWidthContext';
-import TopOverflowMenu from './TopOverflowMenu';
+import { logger } from '@/utils/logging';
 
 // Error boundary for PrimarySidebar
 class PrimarySidebarErrorBoundary extends React.Component<
@@ -22,7 +21,7 @@ class PrimarySidebarErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🔥 [PrimarySidebar] Error caught by boundary:', error, errorInfo);
+    logger.error('🔥 [PrimarySidebar] Error caught by boundary:', error, errorInfo);
   }
 
   render() {
@@ -39,8 +38,13 @@ class PrimarySidebarErrorBoundary extends React.Component<
 
 // Enhanced module-specific styling with badge/label support
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
-  // Dashboard is not a module — it's a static page via logo/overflow menu
   const colorSchemes = {
+    dashboard: {
+      base: 'bg-primary-500/20 border-primary-400/30 hover:bg-primary-500/30',
+      selected: 'bg-primary-500/40 border-primary-300/50 shadow-primary-500/30',
+      iconColor: 'text-primary-400',
+      badgeColor: 'bg-primary-500 text-white border-primary-400/50'
+    },
     administration: {
       base: 'bg-purple-500/20 border-purple-400/30 hover:bg-purple-500/30',
       selected: 'bg-purple-500/40 border-purple-300/50 shadow-purple-500/30',
@@ -91,8 +95,8 @@ const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
     },
     settings: {
       base: 'bg-gray-500/20 border-gray-400/30 hover:bg-gray-500/30',
-      selected: 'bg-gray-500/40 border-gray-300/50 shadow-gray-500/30',
-      iconColor: 'text-gray-400',
+      selected: 'bg-gray-500/40 border-gray-300/50 dark:border-slate-700/50 shadow-gray-500/30',
+      iconColor: 'text-surface-muted-fg',
       badgeColor: 'bg-gray-500 text-white border-gray-400/50'
     }
   };
@@ -140,25 +144,24 @@ const handleModuleClick = (moduleId: string, onModuleSelect: (key: string) => vo
   try {
     onModuleSelect(moduleId);
   } catch (error) {
-    console.error('🔥 [PrimarySidebar] Error selecting module:', error);
+    logger.error('🔥 [PrimarySidebar] Error selecting module:', error);
   }
 };
 
-
 // Main component with fixed hook order
-const PrimarySidebarContent: React.FC<{
-  selectedModuleKey: string;
-  onModuleSelect: (key: string) => void;
-}> = ({ selectedModuleKey, onModuleSelect }) => {
+const PrimarySidebarContent: React.FC<{ 
+  selectedModuleKey: string; 
+  onModuleSelect: (key: string) => void; 
+  collapsed?: boolean;
+}> = ({ selectedModuleKey, onModuleSelect, collapsed }) => {
   // CRITICAL: All hooks MUST be called in the exact same order every render
   // No conditional hooks, no early returns before all hooks are called
-
+  
   // 1. Custom hooks (always called first)
   const { navigationItems = [], isLoading = true } = useDynamicNavigation(true) || {};
   const { accessibleModules = [] } = useRBAC() || {};
   const { user = null } = useAuth() || {};
   const { t, i18n } = useTranslation('navigation', { useSuspense: false });
-  const { isFullWidth } = useFullWidth();
   
   // 2. State hooks (always called in same order)
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
@@ -248,23 +251,23 @@ const PrimarySidebarContent: React.FC<{
         const translated = t(`${moduleId}.title`, { defaultValue: fallbackName });
         displayName = translated || fallbackName;
       } catch (error) {
-        console.warn('Translation error for:', moduleId, error);
+        logger.warn('Translation error for:', moduleId, error);
         displayName = fallbackName;
       }
     }
     
     const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(moduleId, isSelected);
     
-    // Badge visibility logic (original)
+    // Badge visibility logic (simplified)
     const badgeVisible = isSelected || (isHovered && isMouseNearSidebar) || (windowWidth < 1024 && isHovered);
     const badgeClasses = badgeVisible 
       ? 'opacity-100 translate-y-0 scale-100' 
       : 'opacity-0 translate-y-1 scale-95';
     
-    // Border color logic
+    // Border color logic (simplified)
     const getBorderColor = () => {
       const colorMap: Record<string, string> = {
-        'bg-blue': 'border-t-blue-500',
+        'bg-blue': 'border-t-primary-500',
         'bg-purple': 'border-t-purple-500',
         'bg-green': 'border-t-green-500',
         'bg-yellow': 'border-t-yellow-500',
@@ -282,7 +285,7 @@ const PrimarySidebarContent: React.FC<{
       }
       return 'border-t-gray-500';
     };
-    
+
     return (
       <div
         key={itemName}
@@ -297,7 +300,7 @@ const PrimarySidebarContent: React.FC<{
           backdrop-blur-md border
           shadow-lg shadow-black/20
           transition-all duration-500 ease-out
-          pointer-events-none z-[60]
+          pointer-events-none z-30
           max-w-[120px] sm:max-w-none truncate
           ${badgeColor}
           ${badgeClasses}
@@ -376,104 +379,72 @@ const PrimarySidebarContent: React.FC<{
     return `
       fixed top-0 left-0 z-50
       flex flex-col items-center
-      w-16 sm:w-20 h-screen
+      h-screen
       bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95
       lg:backdrop-blur-xl md:backdrop-blur-sm
       border-r border-white/10
       shadow-2xl shadow-black/20
-      transition-all duration-500 ease-out
+      pt-4 pb-4 sm:pt-4 sm:pb-6
+      transition-all duration-300 ease-out
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
-      ${isFullWidth ? '-translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'}
+      ${collapsed ? 'w-0 overflow-hidden opacity-0' : 'w-16 sm:w-20'}
     `;
-  }, [isMouseNearSidebar, isFullWidth]);
-
-  // Top overflow menu stays visible - aligned with header (48px height, vertically centered)
-  const topMenuClassName = useMemo(() => {
-    return `
-      fixed top-0 left-0 z-[60]
-      w-16 sm:w-20 h-12
-      flex items-center justify-center
-      px-2
-      transition-all duration-500 ease-out
-      ${isFullWidth ? 'translate-x-0 opacity-100' : 'translate-x-0 opacity-100'}
-    `;
-  }, [isFullWidth]);
+  }, [isMouseNearSidebar, collapsed]);
 
   // Loading state (no early return before all hooks)
   if (isLoading || !isClient) {
     return (
-      <>
-        {/* Top Overflow Menu - always visible */}
-        <div className={topMenuClassName}>
-          <TopOverflowMenu
-            currentModule={selectedModuleKey}
-            onModuleSelect={onModuleSelect}
-          />
+      <aside className={sidebarClassName}>
+        <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl" />
+          ))}
         </div>
-        <aside className={sidebarClassName}>
-          <div className="h-16 flex-shrink-0" />
-          <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl" />
-            ))}
-          </div>
-        </aside>
-      </>
+      </aside>
     );
   }
 
   return (
-    <>
-      {/* Top Overflow Menu - always visible at top, outside sliding sidebar */}
-      <div className={topMenuClassName}>
-        <TopOverflowMenu
-          currentModule={selectedModuleKey}
-          onModuleSelect={onModuleSelect}
-        />
-      </div>
-
-      {/* Main Sidebar - slides out in full-width mode */}
-      <aside className={sidebarClassName}>
-        {/* Spacer for TopOverflowMenu - matches h-12 header height + breathing room for hover */}
-        <div className="h-16 flex-shrink-0" />
-
-        {/* Content container - responsive spacing and scrolling */}
-        <div className="flex flex-col gap-2 sm:gap-3 w-full items-center overflow-y-auto overflow-x-hidden custom-scrollbar flex-1">
+    <aside className={sidebarClassName}>
+      {/* Content container - hidden when collapsed (fullwidth mode); pt-8 pushes first icon below floating TopOverflowMenu */}
+      {!collapsed && (
+        <div className="flex flex-col gap-2 sm:gap-3 w-full items-center overflow-y-auto overflow-x-hidden custom-scrollbar flex-1 pt-8">
           {Array.isArray(mainModules) && mainModules.length > 0
             ? mainModules.map((module, index) => renderModuleItem(module, index))
             : <div className="text-white/50 text-xs text-center p-4">Loading modules...</div>
           }
         </div>
+      )}
 
-        {/* Custom scrollbar styles */}
-        <style>{`
-          .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-          }
-        `}</style>
-      </aside>
-    </>
+      {/* Custom scrollbar styles */}
+      <style>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(255, 255, 255, 0.2);
+          border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(255, 255, 255, 0.3);
+        }
+      `}</style>
+    </aside>
   );
 };
 
 // Main component with error boundary
-const PrimarySidebar: React.FC<{
-  selectedModuleKey: string;
-  onModuleSelect: (key: string) => void;
+const PrimarySidebar: React.FC<{ 
+  selectedModuleKey: string; 
+  onModuleSelect: (key: string) => void; 
+  collapsed?: boolean;
 }> = (props) => {
   return (
     <PrimarySidebarErrorBoundary>

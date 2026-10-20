@@ -1,23 +1,5 @@
 import React from 'react';
-import {
-  CogIcon,
-  AcademicCapIcon,
-  CalendarDaysIcon,
-  UserGroupIcon,
-  UsersIcon,
-  PuzzlePieceIcon,
-  BriefcaseIcon,
-  BuildingOffice2Icon,
-  ListBulletIcon,
-  PlusIcon,
-  BellIcon,
-  ClipboardDocumentListIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ChartPieIcon,
-  ArrowRightIcon,
-  ClockIcon,
-} from '@/components/ui/icons';
+import { CogIcon, AcademicCapIcon, CalendarDaysIcon, UserGroupIcon, UsersIcon, BriefcaseIcon, BuildingOffice2Icon, ListBulletIcon, PlusIcon, ClipboardDocumentListIcon, CheckCircleIcon, ArrowRightIcon, ClockIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import DonutChart from '@/components/ui/DonutChart';
@@ -254,35 +236,35 @@ const AdministrationDashboardPage: React.FC = () => {
       {/* Additional Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Academic Structure Summary */}
-        <Card title="Academic Structure" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Academic Structure" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Academic Years</span>
-              <span className="font-semibold text-gray-900">{academicYears.length}</span>
+              <span className="text-sm text-surface-muted-fg">Academic Years</span>
+              <span className="font-semibold text-surface-foreground">{academicYears.length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Year Structures</span>
-              <span className="font-semibold text-gray-900">{academicYearStructures.length}</span>
+              <span className="text-sm text-surface-muted-fg">Year Structures</span>
+              <span className="font-semibold text-surface-foreground">{academicYearStructures.length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">School Periods</span>
-              <span className="font-semibold text-gray-900">{schoolPeriods.length}</span>
+              <span className="text-sm text-surface-muted-fg">School Periods</span>
+              <span className="font-semibold text-surface-foreground">{schoolPeriods.length}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Total Classes</span>
+              <span className="text-sm text-surface-muted-fg">Total Classes</span>
               <span className="font-semibold text-emerald-600">{classes.length}</span>
             </div>
           </div>
         </Card>
 
         {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
                 <div className={`
                   flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0
-                  ${activity.type === 'student' ? 'bg-blue-100 text-blue-600' :
+                  ${activity.type === 'student' ? 'bg-primary-100 text-primary-600' :
                     activity.type === 'staff' ? 'bg-emerald-100 text-emerald-600' :
                     activity.type === 'academic' ? 'bg-amber-100 text-amber-600' :
                     'bg-violet-100 text-violet-600'}
@@ -293,8 +275,8 @@ const AdministrationDashboardPage: React.FC = () => {
                    <CheckCircleIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {activity.time}
                   </p>
@@ -305,12 +287,12 @@ const AdministrationDashboardPage: React.FC = () => {
         </Card>
 
         {/* Quick Stats */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-blue-50 p-3 text-center">
-                <p className="text-2xl font-bold text-blue-700">{students.filter((s: any) => s.gender?.toLowerCase() === 'male').length}</p>
-                <p className="text-xs text-blue-600">Male Students</p>
+              <div className="rounded-lg bg-primary-50 p-3 text-center">
+                <p className="text-2xl font-bold text-primary-700">{students.filter((s: any) => s.gender?.toLowerCase() === 'male').length}</p>
+                <p className="text-xs text-primary-600">Male Students</p>
               </div>
               <div className="rounded-lg bg-pink-50 p-3 text-center">
                 <p className="text-2xl font-bold text-pink-700">{students.filter((s: any) => s.gender?.toLowerCase() === 'female').length}</p>
@@ -326,8 +308,8 @@ const AdministrationDashboardPage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/administration/students'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              onClick={() => window.location.hash = '#/administration/students'}
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               View Full Report <ArrowRightIcon className="h-4 w-4" />
             </button>

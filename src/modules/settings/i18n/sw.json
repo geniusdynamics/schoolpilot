@@ -135,5 +135,32 @@
     "states": "Hali",
     "stateName": "Jina la Hali",
     "order": "Mpangilio"
+  },
+  "systemManagement": {
+    "storage": {
+      "title": "Hifadhi ya kivinjari",
+      "modeLabel": "Hali ya hifadhi",
+      "persistedLabel": "Hifadhi ya kudumu imeruhusiwa",
+      "mode": {
+        "opfs": "Ya kudumu (OPFS)",
+        "memory": "Ya muda (kumbukumbu pekee)",
+        "unavailable": "Haipatikani",
+        "uninitialised": "Haijafunguliwa bado"
+      },
+      "persisted": {
+        "yes": "Ndiyo",
+        "no": "Hapana",
+        "unknown": "Haijulikani"
+      }
+    }
+  },
+  "schoolProfile": {
+    "setupWizard": {
+      "title": "Mchawi wa usanidi",
+      "description": "Sanidi wasifu wa shule, mwaka wa masomo, madarasa, masomo na msimamizi hatua kwa hatua.",
+      "rerunDescription": "Usanidi umekamilika. Endesha mchawi tena kukagua wasifu wa shule, mwaka, madarasa na masomo; rekodi zilizopo husasishwa, hazirudiwi.",
+      "runButton": "Endesha mchawi wa usanidi",
+      "rerunButton": "Endesha tena mchawi wa usanidi"
+    }
   }
 }

@@ -20,14 +20,13 @@ import {
   PaperAirplaneIcon,
   CalendarDaysIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan, PlanStatus } from '../../data/types';
+import { useLessonPlansData, WeeklyPlan, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<PlanStatus, string> = {
-  [PlanStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [PlanStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [PlanStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [PlanStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [PlanStatus.APPROVED]: 'bg-green-100 text-green-800',
   [PlanStatus.REJECTED]: 'bg-red-100 text-red-800',
 };
@@ -80,7 +79,7 @@ const WeeklyPlansPage: React.FC = () => {
           (plan.teacherName || '').toLowerCase().includes(search) ||
           (plan.subjectName || '').toLowerCase().includes(search) ||
           (plan.classStreamName || '').toLowerCase().includes(search) ||
-          plan.id.toLowerCase().includes(search)
+          (plan.id?.toLowerCase() ?? '').includes(search)
         );
       }
       return true;
@@ -129,11 +128,11 @@ const WeeklyPlansPage: React.FC = () => {
       subjectName: plan.subjectName || '',
       classStreamId: String(plan.classStreamId),
       classStreamName: plan.classStreamName || '',
-      weekStartDate: plan.weekStartDate,
-      weekEndDate: plan.weekEndDate,
-      overallObjectives: plan.overallObjectives,
-      teachingAids: plan.teachingAids,
-      references: plan.references,
+      weekStartDate: plan.weekStartDate || '',
+      weekEndDate: plan.weekEndDate || '',
+      overallObjectives: plan.overallObjectives || '',
+      teachingAids: plan.teachingAids || '',
+      references: (plan.references || []).join('\n'),
     });
     setEditModalOpen(true);
   };
@@ -144,15 +143,15 @@ const WeeklyPlansPage: React.FC = () => {
       await createWeeklyPlan({
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         weekStartDate: formData.weekStartDate,
         weekEndDate: formData.weekEndDate,
         overallObjectives: formData.overallObjectives,
         teachingAids: formData.teachingAids,
-        references: formData.references,
+        references: formData.references.split('\n').map(r => r.trim()).filter(Boolean),
       });
       showToast({
         type: 'success',
@@ -175,15 +174,15 @@ const WeeklyPlansPage: React.FC = () => {
       await updateWeeklyPlan(editingPlan.id, {
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         weekStartDate: formData.weekStartDate,
         weekEndDate: formData.weekEndDate,
         overallObjectives: formData.overallObjectives,
         teachingAids: formData.teachingAids,
-        references: formData.references,
+        references: formData.references.split('\n').map(r => r.trim()).filter(Boolean),
       });
       showToast({
         type: 'success',
@@ -229,7 +228,7 @@ const WeeklyPlansPage: React.FC = () => {
 
   const handleSubmitForApproval = async (plan: WeeklyPlan) => {
     try {
-      await submitPlan(plan.id, plan.teacherName || 'Teacher');
+      await submitPlan(plan.id);
       showToast({
         type: 'success',
         message: 'Plan submitted for approval.',
@@ -256,8 +255,8 @@ const WeeklyPlansPage: React.FC = () => {
       sortable: true,
       width: 200,
       render: (_, item) => {
-        const start = new Date(item.weekStartDate).toLocaleDateString();
-        const end = new Date(item.weekEndDate).toLocaleDateString();
+        const start = item.weekStartDate ? new Date(item.weekStartDate).toLocaleDateString() : 'N/A';
+        const end = item.weekEndDate ? new Date(item.weekEndDate).toLocaleDateString() : 'N/A';
         return <span className="text-sm">{start} - {end}</span>;
       },
     },
@@ -299,7 +298,7 @@ const WeeklyPlansPage: React.FC = () => {
       sortable: false,
       width: 250,
       render: (value) => (
-        <span className="text-sm text-gray-600 line-clamp-2">{value}</span>
+        <span className="text-sm text-surface-muted-fg line-clamp-2">{value}</span>
       ),
     },
     {
@@ -446,7 +445,7 @@ const WeeklyPlansPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 placeholder="Search by teacher, subject, or class..."
                 value={filters.searchQuery}
@@ -487,11 +486,11 @@ const WeeklyPlansPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <CalendarDaysIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by creating a new weekly plan.
               </p>
               <div className="mt-6">

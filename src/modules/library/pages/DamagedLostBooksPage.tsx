@@ -7,16 +7,14 @@ import { useBookData } from '../data/useBookData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormField from '@/components/ui/forms/FormField';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { ExclamationTriangleIcon, EditIcon, CheckIcon, XMarkIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 interface StatusUpdateData {
   damaged_status: boolean;
@@ -25,8 +23,8 @@ interface StatusUpdateData {
   notes: string;
 }
 
-const DamagedLostBooksPage: React.FC = () => {
-  const { t } = useTranslation();
+export const DamagedLostBooksPageContent: React.FC = () => {
+
   const { 
     data: books, 
     isLoading: booksLoading, 
@@ -180,7 +178,7 @@ const DamagedLostBooksPage: React.FC = () => {
           {book.damaged_status ? (
             <CheckIcon className="w-4 h-4 text-orange-500" />
           ) : (
-            <XMarkIcon className="w-4 h-4 text-gray-400" />
+            <XMarkIcon className="w-4 h-4 text-surface-muted-fg" />
           )}
           <span className="ml-1">{book.damaged_status ? 'Yes' : 'No'}</span>
         </div>
@@ -194,7 +192,7 @@ const DamagedLostBooksPage: React.FC = () => {
           {book.lost_status ? (
             <CheckIcon className="w-4 h-4 text-red-500" />
           ) : (
-            <XMarkIcon className="w-4 h-4 text-gray-400" />
+            <XMarkIcon className="w-4 h-4 text-surface-muted-fg" />
           )}
           <span className="ml-1">{book.lost_status ? 'Yes' : 'No'}</span>
         </div>
@@ -267,12 +265,12 @@ const DamagedLostBooksPage: React.FC = () => {
           </div>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage books with damaged or lost status. Filter by condition type and update book statuses.
         </p>
         
         <div className="mb-4 grid grid-cols-4 gap-4 text-sm">
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-surface-muted p-3 rounded">
             <div className="font-medium">Total Issues</div>
             <div className="text-lg">{filteredBooks.length}</div>
           </div>
@@ -304,9 +302,9 @@ const DamagedLostBooksPage: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-12">
-              <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No damaged or lost books found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No damaged or lost books found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 {filterType === 'all' 
                   ? 'All books are in good condition.' 
                   : `No books match the selected filter: ${filterType}.`
@@ -327,10 +325,10 @@ const DamagedLostBooksPage: React.FC = () => {
         {editingBook && (
           <>
             <FormSection columns={1}>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900">{editingBook.title}</h4>
-                <p className="text-sm text-gray-600">Accession No: {editingBook.accession_no}</p>
-                <p className="text-sm text-gray-600">Current Status: {editingBook.status}</p>
+              <div className="bg-surface-muted p-4 rounded-lg">
+                <h4 className="font-medium text-surface-foreground">{editingBook.title}</h4>
+                <p className="text-sm text-surface-muted-fg">Accession No: {editingBook.accession_no}</p>
+                <p className="text-sm text-surface-muted-fg">Current Status: {editingBook.status}</p>
               </div>
             </FormSection>
             <FormSection columns={2}>
@@ -341,11 +339,11 @@ const DamagedLostBooksPage: React.FC = () => {
                       type="checkbox"
                       checked={statusUpdateData.damaged_status}
                       onChange={(e) => handleInputChange('damaged_status', e.target.checked)}
-                      className="rounded border-gray-300"
+                      className="rounded border-surface-border"
                     />
                     <span className="text-sm font-medium">Damaged</span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-surface-muted-fg mt-1">
                     Book has physical damage but is still readable
                   </p>
                 </div>
@@ -357,11 +355,11 @@ const DamagedLostBooksPage: React.FC = () => {
                       type="checkbox"
                       checked={statusUpdateData.lost_status}
                       onChange={(e) => handleInputChange('lost_status', e.target.checked)}
-                      className="rounded border-gray-300"
+                      className="rounded border-surface-border"
                     />
                     <span className="text-sm font-medium">Lost</span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-surface-muted-fg mt-1">
                     Book cannot be located
                   </p>
                 </div>
@@ -387,11 +385,11 @@ const DamagedLostBooksPage: React.FC = () => {
                 />
               </FormField>
             </FormSection>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800">
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+              <p className="text-sm text-primary-800">
                 <strong>Note:</strong> The book status will be automatically updated based on the flags you select:
               </p>
-              <ul className="text-xs text-blue-700 mt-1 ml-4 list-disc">
+              <ul className="text-xs text-primary-700 mt-1 ml-4 list-disc">
                 <li>Lost flag → Status: Lost</li>
                 <li>Damaged flag only → Status: Damaged</li>
                 <li>Both flags → Status: Lost (takes precedence)</li>
@@ -410,5 +408,10 @@ const DamagedLostBooksPage: React.FC = () => {
     </div>
   );
 };
+const DamagedLostBooksPage: React.FC = () => (
+  <div className="space-y-6">
+    <DamagedLostBooksPageContent />
+  </div>
+);
 
 export default DamagedLostBooksPage;

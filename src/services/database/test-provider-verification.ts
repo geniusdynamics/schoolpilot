@@ -3,13 +3,9 @@
 
 import { PouchDBProvider } from './PouchDBProvider';
 import { DatabaseProviderFactory } from './DatabaseProviderFactory';
-import { getDatabaseManager, getDatabaseIntegrationHelper } from './ProviderSelector';
-import { 
-  DatabaseConfig, 
-  CollectionSchema,
-  IDatabaseProvider,
-  ICollection
-} from './interfaces';
+import { getDatabaseManager } from './ProviderSelector';
+
+import { DatabaseConfig, CollectionSchema, IDatabaseProvider } from './interfaces';
 
 // Colors for console output
 const green = '\x1b[32m';

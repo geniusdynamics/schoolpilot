@@ -17,6 +17,7 @@ import { libraryCollections } from '@/modules/library/data/collections';
 import { nutritionCollections } from '@/modules/nutrition/data/collections';
 import { housesCollections } from '@/modules/administration/data/houses/collections';
 import { pickupCollections } from '@/modules/administration/data/pickup/collections';
+import { portalCollections } from '@/modules/portal/data/collections';
 
 // Re-export module types for convenience
 export * from './types';
@@ -48,6 +49,8 @@ const schoolDetailsSchema: DatabaseSchema = createDatabaseSchema({
     school_type: { type: 'string', enum: ['Public', 'Private', 'International'] },
     head_teacher_name: { type: 'string', maxLength: 200 },
     school_code: { type: 'string', maxLength: 50 },
+    /** Set when the setup wizard is finished (ISO date-time); empty until then. */
+    setup_completed_at: { type: 'string', format: 'date-time' },
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' }
   },
@@ -306,6 +309,10 @@ const staffSchema: DatabaseSchema = createDatabaseSchema({
     user_id: { type: 'ref', ref: 'users', maxLength: 100 },
     phone: { type: 'string', maxLength: 50 },
     email: { type: 'string', format: 'email', maxLength: 255 },
+    gender: { type: 'string', maxLength: 20 },
+    national_id: { type: 'string', maxLength: 50 },
+    employer_number: { type: 'string', maxLength: 50 },
+    employment_type: { type: 'string', maxLength: 50 },
     department_id: { type: 'ref', ref: 'departments', maxLength: 100 },
     designation_id: { type: 'ref', ref: 'designations', maxLength: 100 },
     hod_of_department_id: { type: 'ref', ref: 'departments', maxLength: 100 },
@@ -387,7 +394,7 @@ const classSchema: DatabaseSchema = createDatabaseSchema({
   properties: {
     id: { type: 'string', maxLength: 100 },
     name: { type: 'string', maxLength: 200 },
-    streams: { type: 'array', default: [], items: { type: 'object', properties: classStreamItemProperties } }
+    streams: { type: 'array', items: { type: 'object', properties: classStreamItemProperties } }
   },
   primaryKey: 'id',
   required: ['id', 'name']
@@ -464,8 +471,12 @@ const userRoleSchema: DatabaseSchema = createDatabaseSchema({
   required: ['id', 'user_id', 'role_id', 'created_at', 'updated_at']
 });
 
+// housesCollections is typed Record<string, ...>, so its keys are listed here for the CollectionName union.
+// collectionRegistry.test.ts asserts this list matches the houses module.
+export const HOUSES_COLLECTION_NAMES = ['houses', 'point_categories', 'point_transactions'] as const;
+
 // --- Master Collections Definition (Provider-agnostic) ---
-export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> = {
+const registeredCollections = {
   // Core Collections (24 total)
   app_settings: { schema: appSettingsSchema },
   school_details: { schema: schoolDetailsSchema },
@@ -518,7 +529,18 @@ export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> =
   // New Module Collections
   ...housesCollections,
   ...pickupCollections,
-};
+  ...portalCollections,
+} satisfies Record<string, { schema: DatabaseSchema }>;
+
+// Drops index-signature keys (from Record-typed module maps) so only literal collection names remain.
+type LiteralKeys<T> = keyof { [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K] };
+
+/** Every registered collection name. useDatabaseCollection will require it once P0-B05 lands. */
+export type CollectionName =
+  | Extract<LiteralKeys<typeof registeredCollections>, string>
+  | (typeof HOUSES_COLLECTION_NAMES)[number];
+
+export const collectionsDefinition: Record<string, { schema: DatabaseSchema }> = registeredCollections;
 
 // ID Generation utilities (moved from rxdbService.ts)
 export const generateId = (): string => crypto.randomUUID();

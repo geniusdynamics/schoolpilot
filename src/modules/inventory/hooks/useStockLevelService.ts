@@ -11,7 +11,10 @@ import {
   type StockLevelServiceDependencies,
   type StockLevelRecord,
 } from '../services/StockLevelService';
-import type { StockTransactionType, StockTransaction, StockLevel } from '../data/types';
+import type { StockTransactionType } from '../data/types';
+
+/** A stored stock level row; item and warehouse ids are strings (UUIDs) and are never coerced. */
+type StoredStockLevel = StockLevelRecord & { compositeId?: string };
 
 /**
  * Hook that provides StockLevelService methods connected to the database.
@@ -25,14 +28,17 @@ export function useStockLevelService() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const stockLevelsCollection = useDatabaseCollection<StockLevel>('stock_levels');
-  const stockTransactionsCollection = useDatabaseCollection<StockTransaction>('stock_transactions');
+  const {
+    data: stockLevels,
+    insert: insertLevel,
+    update: updateLevel,
+    refresh: refreshLevels,
+  } = useDatabaseCollection<StoredStockLevel>('stock_levels');
 
   const createService = useCallback((): StockLevelService => {
     const deps: StockLevelServiceDependencies = {
       findStockLevel: async (itemId: string, warehouseId: string): Promise<StockLevelRecord | null> => {
-        const levels = stockLevelsCollection.data;
-        const existing = levels.find(
+        const existing = stockLevels.find(
           sl => String(sl.item_id) === itemId && String(sl.warehouse_id) === warehouseId
         );
         if (!existing) return null;
@@ -47,24 +53,21 @@ export function useStockLevelService() {
         };
       },
       insertStockLevel: async (record) => {
-        const result = await stockLevelsCollection.insert({
+        const result = await insertLevel({
           ...record,
-          item_id: record.item_id,
-          warehouse_id: Number(record.warehouse_id),
+          item_id: String(record.item_id),
+          warehouse_id: String(record.warehouse_id),
           quantity: record.quantity,
-        } as any);
-        return result as StockLevelRecord | null;
+        });
+        return result;
       },
       updateStockLevel: async (id: string, changes: { quantity: number }) => {
-        const result = await stockLevelsCollection.update(id, {
-          quantity: changes.quantity,
-        });
-        return result as StockLevelRecord | null;
+        return updateLevel(id, { quantity: changes.quantity });
       },
       generateId: () => databaseService.generateId(),
     };
     return new StockLevelService(deps);
-  }, [stockLevelsCollection.data, stockLevelsCollection.insert, stockLevelsCollection.update]);
+  }, [stockLevels, insertLevel, updateLevel]);
 
   const processTransaction = useCallback(async (
     transaction: {
@@ -96,7 +99,7 @@ export function useStockLevelService() {
       };
       const result = await service.onStockTransaction(txRecord);
       // Refresh the collection to reflect changes
-      await stockLevelsCollection.refresh();
+      await refreshLevels();
       return result;
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -105,7 +108,7 @@ export function useStockLevelService() {
     } finally {
       setIsProcessing(false);
     }
-  }, [createService, stockLevelsCollection.refresh]);
+  }, [createService, refreshLevels]);
 
   const processTransactions = useCallback(async (
     transactions: Array<{
@@ -137,7 +140,7 @@ export function useStockLevelService() {
       }));
       const results = await service.onStockTransactions(txRecords);
       // Refresh the collection to reflect changes
-      await stockLevelsCollection.refresh();
+      await refreshLevels();
       return results;
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -146,7 +149,7 @@ export function useStockLevelService() {
     } finally {
       setIsProcessing(false);
     }
-  }, [createService, stockLevelsCollection.refresh]);
+  }, [createService, refreshLevels]);
 
   const getStockLevel = useCallback(async (itemId: string, warehouseId: string): Promise<StockLevelRecord | null> => {
     try {
@@ -160,8 +163,7 @@ export function useStockLevelService() {
   }, [createService]);
 
   const getStockLevelsForItem = useCallback(async (itemId: string): Promise<StockLevelRecord[]> => {
-    const levels = stockLevelsCollection.data;
-    return levels
+    return stockLevels
       .filter(sl => String(sl.item_id) === itemId)
       .map(sl => ({
         id: String(sl.id),
@@ -172,7 +174,7 @@ export function useStockLevelService() {
         warehouse_name: sl.warehouse_name ?? null,
         category_name: sl.category_name ?? null,
       }));
-  }, [stockLevelsCollection.data]);
+  }, [stockLevels]);
 
   return {
     processTransaction,

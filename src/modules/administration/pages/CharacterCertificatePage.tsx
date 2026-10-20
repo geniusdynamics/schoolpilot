@@ -4,7 +4,6 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 interface Student {
   id: string;
@@ -20,8 +19,8 @@ interface Student {
   address: string;
 }
 
-const CharacterCertificatePage: React.FC = () => {
-  const { t } = useTranslation('administration');
+export const CharacterCertificateContent: React.FC = () => {
+
   const { loading } = useAppData();
 
   const [selectedClass, setSelectedClass] = useState('');
@@ -80,8 +79,8 @@ const CharacterCertificatePage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.student_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -98,7 +97,7 @@ const CharacterCertificatePage: React.FC = () => {
     window.print();
   };
 
-  if (loading && mockStudents.length === 0) {
+  if (loading?.all && mockStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -110,7 +109,7 @@ const CharacterCertificatePage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Character Certificate (C.C.)</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">Character Certificate (C.C.)</h1>
       </div>
       
       {!selectedStudent ? (
@@ -131,11 +130,11 @@ const CharacterCertificatePage: React.FC = () => {
           {/* Filters */}
           <div className="mb-6 flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+              <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
               <select
                 value={selectedClass}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               >
                 <option value="">All Classes</option>
                 {classes.map(cls => (
@@ -144,13 +143,13 @@ const CharacterCertificatePage: React.FC = () => {
               </select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
               <input
                 type="text"
                 placeholder="Student name, ID..."
                 value={searchTerm}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-surface-border rounded-md px-3 py-2"
               />
             </div>
           </div>
@@ -160,13 +159,13 @@ const CharacterCertificatePage: React.FC = () => {
             {mockStudents.map(student => (
               <div
                 key={student.id}
-                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="p-4 border border-surface-border rounded-lg hover:bg-surface-muted cursor-pointer"
                 onClick={() => generateCertificate(student)}
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-semibold text-gray-800">{student.name}</h4>
-                    <p className="text-sm text-gray-600">{student.student_id} | {student.class_name} - {student.section}</p>
+                    <h4 className="font-semibold text-surface-foreground">{student.name}</h4>
+                    <p className="text-sm text-surface-muted-fg">{student.student_id} | {student.class_name} - {student.section}</p>
                   </div>
                   <Button size="sm" variant="secondary">
                     Generate C.C.
@@ -195,24 +194,24 @@ const CharacterCertificatePage: React.FC = () => {
           </div>
 
           {/* Certificate Preview */}
-          <div className="border-2 border-gray-300 p-8 bg-white" style={{ minHeight: '800px' }}>
+          <div className="border-2 border-surface-border p-8 bg-surface-card" style={{ minHeight: '800px' }}>
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">CHARACTER CERTIFICATE</h1>
-              <p className="text-gray-600">School Name Here</p>
-              <p className="text-sm text-gray-500">Address Line 1, City, Country</p>
+              <h1 className="text-3xl font-bold text-surface-foreground mb-2">CHARACTER CERTIFICATE</h1>
+              <p className="text-surface-muted-fg">School Name Here</p>
+              <p className="text-sm text-surface-muted-fg">Address Line 1, City, Country</p>
             </div>
 
-            <div className="mb-6 p-4 bg-gray-50 border border-gray-200">
-              <p className="text-sm text-gray-700">
+            <div className="mb-6 p-4 bg-surface-muted border border-surface-border">
+              <p className="text-sm text-surface-foreground">
                 <strong>Certificate No:</strong> CC-{new Date().getFullYear()}-{selectedStudent.student_id}
               </p>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-surface-foreground">
                 <strong>Date:</strong> {new Date().toLocaleDateString()}
               </p>
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-surface-foreground leading-relaxed">
                 This is to certify that <strong>{selectedStudent.name}</strong>, son/daughter of 
                 <strong> {selectedStudent.father_name}</strong> and <strong>{selectedStudent.mother_name}</strong>, 
                 is a student of this institution studying in <strong>{selectedStudent.class_name} - {selectedStudent.section}</strong>.
@@ -220,7 +219,7 @@ const CharacterCertificatePage: React.FC = () => {
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-surface-foreground leading-relaxed">
                 <strong>Student Details:</strong>
               </p>
               <table className="w-full mt-2 border-collapse">
@@ -254,7 +253,7 @@ const CharacterCertificatePage: React.FC = () => {
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-surface-foreground leading-relaxed">
                 To the best of my knowledge, the student bears a good moral character and has maintained 
                 satisfactory conduct throughout his/her stay in this institution. He/She has been regular 
                 in attendance and has shown satisfactory progress in studies.
@@ -262,7 +261,7 @@ const CharacterCertificatePage: React.FC = () => {
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-surface-foreground leading-relaxed">
                 I have no hesitation in recommending this student for any course of study or employment 
                 that he/she may wish to pursue.
               </p>
@@ -271,16 +270,16 @@ const CharacterCertificatePage: React.FC = () => {
             <div className="mt-12 flex justify-between">
               <div className="text-center">
                 <div className="h-16 border-b border-gray-400 mb-2"></div>
-                <p className="text-sm text-gray-600">Class Teacher</p>
+                <p className="text-sm text-surface-muted-fg">Class Teacher</p>
               </div>
               <div className="text-center">
                 <div className="h-16 border-b border-gray-400 mb-2"></div>
-                <p className="text-sm text-gray-600">Principal</p>
+                <p className="text-sm text-surface-muted-fg">Principal</p>
               </div>
             </div>
 
             <div className="mt-8 text-center">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-surface-muted-fg">
                 This is a computer-generated document and does not require a physical signature.
               </p>
             </div>
@@ -290,5 +289,11 @@ const CharacterCertificatePage: React.FC = () => {
     </div>
   );
 };
+
+const CharacterCertificatePage: React.FC = () => (
+  <div className="space-y-6">
+    <CharacterCertificateContent />
+  </div>
+);
 
 export default CharacterCertificatePage;

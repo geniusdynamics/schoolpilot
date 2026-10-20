@@ -2,11 +2,7 @@
 // ABOUTME: Replaces sp_fin_applyPayment_Priority and sp_fin_applyPayment_Weighted stored procedures
 // ABOUTME: Provides two strategies: priority (FIFO) and weighted (proportional)
 
-import {
-  type StudentPayment,
-  type InvoicePaymentApplication,
-  InvoiceStatus,
-} from '../data/types';
+import { type StudentPayment, type InvoicePaymentApplication } from '../data/types';
 import {
   InvoiceStatusService,
   type InvoiceStatusServiceDependencies,

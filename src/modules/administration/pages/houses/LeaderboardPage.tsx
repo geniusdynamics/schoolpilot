@@ -9,7 +9,7 @@ import type { HouseLeaderboardEntry } from '../../data/houses/types';
 
 const rankColors: Record<number, string> = {
   1: 'text-yellow-500',
-  2: 'text-gray-400',
+  2: 'text-surface-muted-fg',
   3: 'text-amber-600',
 };
 
@@ -50,7 +50,7 @@ const LeaderboardPage: React.FC = () => {
             <span className="text-2xl">{rankIcons[value]}</span>
           )}
           {!rankIcons[value] && (
-            <span className={`text-lg font-bold ${rankColors[value] || 'text-gray-600'}`}>
+            <span className={`text-lg font-bold ${rankColors[value] || 'text-surface-muted-fg'}`}>
               #{value}
             </span>
           )}
@@ -83,7 +83,7 @@ const LeaderboardPage: React.FC = () => {
       render: (value: number, item) => (
         <div>
           <span className="text-xl font-bold text-indigo-600">{value}</span>
-          <p className="text-xs text-gray-500">total points</p>
+          <p className="text-xs text-surface-muted-fg">total points</p>
         </div>
       ),
     },
@@ -156,8 +156,8 @@ const LeaderboardPage: React.FC = () => {
                     style={{ backgroundColor: entry.color }}
                   />
                   <div>
-                    <h3 className="font-bold text-lg text-gray-900">{entry.houseName}</h3>
-                    <p className="text-xs text-gray-500">{entry.memberCount} members</p>
+                    <h3 className="font-bold text-lg text-surface-foreground">{entry.houseName}</h3>
+                    <p className="text-xs text-surface-muted-fg">{entry.memberCount} members</p>
                   </div>
                 </div>
 
@@ -165,7 +165,7 @@ const LeaderboardPage: React.FC = () => {
                   <span className="text-3xl font-bold text-indigo-600">
                     {entry.totalPoints.toLocaleString()}
                   </span>
-                  <p className="text-xs text-gray-500 mt-1">Total Points</p>
+                  <p className="text-xs text-surface-muted-fg mt-1">Total Points</p>
                 </div>
 
                 {/* Progress Bar */}
@@ -179,7 +179,7 @@ const LeaderboardPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-surface-muted-fg">
                   <span className="text-green-600 font-medium">+{entry.meritPoints} merits</span>
                   <span className="text-red-600 font-medium">-{entry.demeritPoints} demerits</span>
                 </div>
@@ -206,19 +206,19 @@ const LeaderboardPage: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card variant="compact" className="text-center">
             <p className="text-2xl font-bold text-indigo-600">{stats.houseCount}</p>
-            <p className="text-xs text-gray-500 mt-1">Houses</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Houses</p>
           </Card>
           <Card variant="compact" className="text-center">
             <p className="text-2xl font-bold text-green-600">{stats.totalMembers}</p>
-            <p className="text-xs text-gray-500 mt-1">Total Members</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Total Members</p>
           </Card>
           <Card variant="compact" className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.totalPoints.toLocaleString()}</p>
-            <p className="text-xs text-gray-500 mt-1">Total Points</p>
+            <p className="text-2xl font-bold text-primary-600">{stats.totalPoints.toLocaleString()}</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Total Points</p>
           </Card>
           <Card variant="compact" className="text-center">
             <p className="text-2xl font-bold text-purple-600">{stats.avgPoints}</p>
-            <p className="text-xs text-gray-500 mt-1">Avg Points/Member</p>
+            <p className="text-xs text-surface-muted-fg mt-1">Avg Points/Member</p>
           </Card>
         </div>
       )}
@@ -237,13 +237,14 @@ const LeaderboardPage: React.FC = () => {
           data={leaderboard}
           sortable
           filterable={false}
+          keyField="houseId"
           emptyState={
             <div className="text-center py-12">
-              <StarIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <StarIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 No houses have been set up yet.
               </p>
             </div>

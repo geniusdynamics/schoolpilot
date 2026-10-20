@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * TabAccessibilityManager - Comprehensive accessibility support for SchoolPilot3 tabs
  * Implements WCAG 2.1 AA compliance for tab navigation and interaction
@@ -372,24 +374,24 @@ export class TabAccessibilityManager {
     // Focus indicator
     baseClasses.push(
       `focus:ring-${focusIndicatorWidth}`,
-      'focus:ring-blue-500',
+      'focus:ring-primary-500',
       'focus:ring-offset-2'
     );
     
     // Active state
     if (isActive) {
       baseClasses.push(
-        'bg-white',
+        'bg-surface-card',
         'border-b-2',
-        'border-blue-500',
-        'text-blue-700',
+        'border-primary-500',
+        'text-primary-700',
         'font-medium'
       );
     } else {
       baseClasses.push(
-        'text-gray-600',
-        'hover:text-gray-800',
-        'hover:bg-gray-50'
+        'text-surface-muted-fg',
+        'hover:text-surface-foreground',
+        'hover:bg-surface-muted'
       );
     }
     
@@ -426,13 +428,13 @@ export class TabAccessibilityManager {
     
     if (mediaQuery.matches) {
       this.config.reducedMotion.disableAnimations = true;
-      console.log('🎯 [TabAccessibilityManager] Reduced motion preference detected');
+      logger.info('🎯 [TabAccessibilityManager] Reduced motion preference detected');
     }
     
     // Listen for changes
     mediaQuery.addEventListener('change', (e) => {
       this.config.reducedMotion.disableAnimations = e.matches;
-      console.log('🎯 [TabAccessibilityManager] Reduced motion preference changed:', e.matches);
+      logger.info('🎯 [TabAccessibilityManager] Reduced motion preference changed:', e.matches);
     });
   }
   
@@ -444,13 +446,13 @@ export class TabAccessibilityManager {
     
     if (mediaQuery.matches) {
       this.config.tabVisuals.highContrastMode = true;
-      console.log('🎯 [TabAccessibilityManager] High contrast mode detected');
+      logger.info('🎯 [TabAccessibilityManager] High contrast mode detected');
     }
     
     // Listen for changes
     mediaQuery.addEventListener('change', (e) => {
       this.config.tabVisuals.highContrastMode = e.matches;
-      console.log('🎯 [TabAccessibilityManager] High contrast mode changed:', e.matches);
+      logger.info('🎯 [TabAccessibilityManager] High contrast mode changed:', e.matches);
     });
   }
   
@@ -501,7 +503,7 @@ export class TabAccessibilityManager {
    */
   updateConfig(updates: Partial<TabAccessibilityConfig>): void {
     this.config = { ...this.config, ...updates };
-    console.log('🎯 [TabAccessibilityManager] Configuration updated:', updates);
+    logger.info('🎯 [TabAccessibilityManager] Configuration updated:', updates);
   }
   
   /**

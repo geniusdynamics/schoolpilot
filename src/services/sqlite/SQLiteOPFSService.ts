@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: SQLite OPFS Service for persistent development database
 // ABOUTME: Replaces mock data with SQLite storage using Origin Private File System
 
@@ -97,7 +99,7 @@ export class SQLiteCollection<T extends { id?: string }> implements ICollection<
         }
       }
       
-      console.log(`[SQLiteCollection] Table '${this.name}' created successfully`);
+      logger.info(`[SQLiteCollection] Table '${this.name}' created successfully`);
     } catch (error) {
       throw new CollectionError(
         `Failed to create table for collection '${this.name}': ${error.message}`,
@@ -519,13 +521,13 @@ export class SQLiteCollection<T extends { id?: string }> implements ICollection<
   subscribe(query?: QueryOptions): any {
     // SQLite doesn't support reactive queries natively
     // This is a placeholder that would need to be implemented with polling or other mechanisms
-    console.warn(`Reactive queries not supported in SQLite collection ${this.name}`);
+    logger.warn(`Reactive queries not supported in SQLite collection ${this.name}`);
     return null;
   }
 
   subscribeToChanges(): any {
     // SQLite doesn't support change notifications natively
-    console.warn(`Change notifications not supported in SQLite collection ${this.name}`);
+    logger.warn(`Change notifications not supported in SQLite collection ${this.name}`);
     return null;
   }
 
@@ -703,25 +705,25 @@ export class SQLiteOPFSService {
         printErr: console.error,
       });
       
-      console.log('[SQLiteOPFS] SQLite version:', sqlite3.version.libVersion);
+      logger.info('[SQLiteOPFS] SQLite version:', sqlite3.version.libVersion);
       
       // Try to use OPFS for persistent storage
       let dbFilename = dbName;
       if ('opfs' in sqlite3) {
         // Use OPFS if available
         dbFilename = `file:${dbName}?vfs=opfs`;
-        console.log('[SQLiteOPFS] Using OPFS for database storage');
+        logger.info('[SQLiteOPFS] Using OPFS for database storage');
       } else {
-        console.log('[SQLiteOPFS] OPFS not available, using regular file storage');
+        logger.info('[SQLiteOPFS] OPFS not available, using regular file storage');
       }
       
       // Open database
       this.db = new sqlite3.oo1.DB(dbFilename, 'c');
       
       this.initialized = true;
-      console.log('[SQLiteOPFS] Service initialized successfully');
+      logger.info('[SQLiteOPFS] Service initialized successfully');
     } catch (error) {
-      console.error('[SQLiteOPFS] Failed to initialize:', error);
+      logger.error('[SQLiteOPFS] Failed to initialize:', error);
       throw new DatabaseError(
         `Failed to initialize SQLite OPFS service: ${error.message}`,
         'INITIALIZATION_ERROR'
@@ -745,7 +747,7 @@ export class SQLiteOPFSService {
       const collection = new SQLiteCollection<T>(this, 'schoolpilot_dev', name, schema);
       this.collections.set(name, collection);
       
-      console.log(`[SQLiteOPFS] Collection '${name}' created successfully`);
+      logger.info(`[SQLiteOPFS] Collection '${name}' created successfully`);
       return collection;
     } catch (error) {
       throw new DatabaseError(
@@ -785,7 +787,7 @@ export class SQLiteOPFSService {
         try {
           await collection.destroy();
         } catch (error) {
-          console.error(`Failed to destroy collection '${name}':`, error);
+          logger.error(`Failed to destroy collection '${name}':`, error);
         }
       }
       
@@ -797,7 +799,7 @@ export class SQLiteOPFSService {
         this.db = null;
       }
       
-      console.log('[SQLiteOPFS] Service destroyed successfully');
+      logger.info('[SQLiteOPFS] Service destroyed successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to destroy SQLite OPFS service: ${error.message}`,
@@ -856,7 +858,7 @@ export class SQLiteOPFSService {
         }
       }
       
-      console.log('[SQLiteOPFS] Backup restored successfully');
+      logger.info('[SQLiteOPFS] Backup restored successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to restore backup: ${error.message}`,

@@ -1,12 +1,12 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Role-Based Access Control (RBAC) Service
 // ABOUTME: Provides granular permission management for the modular architecture
 
 import { ModuleDefinition } from './types';
 // RXDB removed - Phase 4: SchoolDatabase type no longer available
 // Use IDatabaseProvider interface instead
-import type { IDatabaseProvider } from '../services/database/interfaces';
 // RXDB removed - Phase 4: Using unified database service
-import { databaseService } from '@/services/database/databaseService';
 import type { RbacRole } from './types';
 import { isDemo } from '../config/unifiedConfig';
 
@@ -77,7 +77,7 @@ export class RBACService {
   public async loadFromDb(): Promise<void> {
     // TODO: Implement using unified database service
     // This method is kept for API compatibility
-    console.log('[RBAC] loadFromDb called - database integration pending');
+    logger.info('[RBAC] loadFromDb called - database integration pending');
   }
 
   // Add/update/delete Permission
@@ -296,7 +296,7 @@ export class RBACService {
   public initializeSuperAdminRole() {
     if (isDemo()) {
       const allPermissionIds = Array.from(this.permissions.keys());
-      console.log('[RBAC DEBUG] All available permissions:', allPermissionIds);
+      logger.info('[RBAC DEBUG] All available permissions:', allPermissionIds);
       
       const superAdminRole: RbacRole = {
         id: SYSTEM_ROLES.SUPER_ADMIN,
@@ -319,12 +319,12 @@ export class RBACService {
           permissions: modulePermissions,
         };
         
-        console.log(`[RBAC DEBUG] Module ${moduleId} permissions:`, modulePermissions);
+        logger.info(`[RBAC DEBUG] Module ${moduleId} permissions:`, modulePermissions);
       }
 
       this.roles.set(SYSTEM_ROLES.SUPER_ADMIN, superAdminRole);
-      console.log('[RBAC DEBUG] Initialized Super Admin role:', superAdminRole);
-      console.log('[RBAC DEBUG] Super Admin module access:', superAdminRole.moduleAccess);
+      logger.info('[RBAC DEBUG] Initialized Super Admin role:', superAdminRole);
+      logger.info('[RBAC DEBUG] Super Admin module access:', superAdminRole.moduleAccess);
     }
   }
 

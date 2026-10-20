@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for payrollitemtype data management
 // ABOUTME: Provides CRUD operations for payrollitemtype without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockPayrollItemTypes } from './mockData';
 import { PayrollItemType } from './types';
+import { useState } from 'react';
 
 export const usePayrollItemTypeData = () => {
   const [data, setData] = useState<PayrollItemType[]>(initialMockPayrollItemTypes);

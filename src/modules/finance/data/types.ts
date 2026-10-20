@@ -50,9 +50,10 @@ export enum InvoiceStatus {
   VOIDED = 'Voided' 
 }
 
-export enum CustomerInvoiceStatus { 
+export enum CustomerInvoiceStatus {
   DRAFT = 'Draft', 
   SENT = 'Sent', 
+  DUE = 'Due', 
   PAID = 'Paid', 
   PARTIALLY_PAID = 'Partially Paid', 
   OVERDUE = 'Overdue', 
@@ -162,6 +163,8 @@ export interface FeeTemplate {
   school_period_name?: string | null;
   student_category_name?: string | null;
   items?: FeeTemplateItem[];
+  /** Class (level) ids the template applies to; empty or missing means every level. */
+  applicable_level_ids?: string[] | null;
 }
 
 export interface ExpenseClaim {

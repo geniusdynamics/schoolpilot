@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useRBAC } from '@/hooks/useRBAC';
 import { moduleConfigService } from '@/services/module/moduleConfigService';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import { ModuleDefinition } from '@/core/types';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 interface ModuleStatus {
   id: string;
@@ -29,9 +31,10 @@ interface ModuleStatus {
   lastModified?: Date;
 }
 
-const ModuleManagementPage: React.FC = () => {
+export const ModuleManagementContent: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { hasPermission, userRoles, isSuperAdmin } = useRBAC();
+  const confirm = useConfirm();
   
   // State management
   const [modules, setModules] = useState<ModuleStatus[]>([]);
@@ -51,7 +54,7 @@ const ModuleManagementPage: React.FC = () => {
   const canViewPermissions = hasPermission('permissions.view') || isSuperAdmin;
 
   // Debug logging
-  console.log('[ModuleManagement DEBUG] Permission checks:', {
+  logger.info('[ModuleManagement DEBUG] Permission checks:', {
     canViewModules,
     canManageModules,
     canConfigureModules,
@@ -62,23 +65,13 @@ const ModuleManagementPage: React.FC = () => {
     hasModulesView: hasPermission('modules.view')
   });
 
-  useEffect(() => {
-    if (canViewModules) {
-      loadModules();
-    }
-  }, [canViewModules]);
-
-  const loadModules = async () => {
+  const loadModules = useCallback(async () => {
     try {
       setLoading(true);
       
       // Get all available modules from registry with safe access
-      const availableModules = moduleRegistry?.getAllMetadata?.() || [];
+      const availableModules = moduleRegistry?.getEnabledModules?.() || [];
       const enabledModuleIds = moduleConfigService?.getEnabledModules?.() || [];
-
-      console.log('[ModuleManagement DEBUG] Available modules:', availableModules);
-      console.log('[ModuleManagement DEBUG] Enabled module IDs:', enabledModuleIds);
-      console.log('[ModuleManagement DEBUG] Registry size:', moduleRegistry?.size || 0);
       
       // Filter out any undefined or invalid modules with comprehensive checks
       const validModules = availableModules.filter((module: ModuleDefinition) => 
@@ -128,16 +121,22 @@ const ModuleManagementPage: React.FC = () => {
 
       setModules(moduleStatuses);
     } catch (error) {
-      console.error('Failed to load modules:', error);
+      logger.error('Failed to load modules:', error);
       setModules([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (canViewModules) {
+      loadModules();
+    }
+  }, [canViewModules, loadModules]);
 
   const handleToggleModule = async (moduleId: string, enable: boolean) => {
     if (!canManageModules) {
-      alert(t('common:errors.insufficientPermissions'));
+      toast.showError(t('common:errors.insufficientPermissions'));
       return;
     }
 
@@ -153,7 +152,7 @@ const ModuleManagementPage: React.FC = () => {
           );
           
           if (missingDeps.length > 0) {
-            alert(t('moduleManagement.dependencyError', { 
+            toast.showError(t('moduleManagement.dependencyError', { 
               dependencies: missingDeps.join(', ') 
             }));
             return;
@@ -168,11 +167,15 @@ const ModuleManagementPage: React.FC = () => {
         );
         
         if (dependentModules.length > 0) {
-          const confirm = window.confirm(t('moduleManagement.disableDependencyWarning', {
-            dependents: dependentModules.map(m => m.name).join(', ')
-          }));
+          const confirmed = await confirm({
+            title: 'Disable module',
+            message: t('moduleManagement.disableDependencyWarning', {
+              dependents: dependentModules.map(m => m.name).join(', ')
+            }),
+            variant: 'warning'
+          });
           
-          if (!confirm) return;
+          if (!confirmed) return;
         }
         
         moduleConfigService.disableModule(moduleId);
@@ -182,8 +185,8 @@ const ModuleManagementPage: React.FC = () => {
       await loadModules();
       
     } catch (error) {
-      console.error('Failed to toggle module:', error);
-      alert(t('moduleManagement.toggleError'));
+      logger.error('Failed to toggle module:', error);
+      toast.showError(t('moduleManagement.toggleError'));
     } finally {
       setProcessingModule(null);
     }
@@ -191,7 +194,7 @@ const ModuleManagementPage: React.FC = () => {
 
   const handleConfigureModule = (module: ModuleStatus) => {
     if (!canConfigureModules) {
-      alert(t('common:errors.insufficientPermissions'));
+      toast.showError(t('common:errors.insufficientPermissions'));
       return;
     }
     
@@ -199,9 +202,10 @@ const ModuleManagementPage: React.FC = () => {
     setShowConfigModal(true);
   };
 
+  const toast = useToast();
   const handleViewPermissions = (module: ModuleStatus) => {
     if (!canViewPermissions) {
-      alert(t('common:errors.insufficientPermissions'));
+      toast.showError(t('common:errors.insufficientPermissions'));
       return;
     }
     
@@ -217,8 +221,8 @@ const ModuleManagementPage: React.FC = () => {
   // Filter and search modules
   const filteredModules = modules.filter(module => {
     const matchesCategory = filterCategory === 'all' || module.category === filterCategory;
-    const matchesSearch = module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         module.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (module.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+                         (module.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -233,8 +237,8 @@ const ModuleManagementPage: React.FC = () => {
       filterable: true,
       render: (value: any, row: ModuleStatus) => (
         <div>
-          <div className="font-medium text-gray-900">{row.name}</div>
-          <div className="text-sm text-gray-500">{row.description}</div>
+          <div className="font-medium text-surface-foreground">{row.name}</div>
+          <div className="text-sm text-surface-muted-fg">{row.description}</div>
         </div>
       )
     },
@@ -254,7 +258,7 @@ const ModuleManagementPage: React.FC = () => {
       filterable: true,
       width: 120,
       render: (value: any, row: ModuleStatus) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
           {row.category}
         </span>
       )
@@ -272,13 +276,13 @@ const ModuleManagementPage: React.FC = () => {
               {t('moduleManagement.status.enabled')}
             </span>
           ) : (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-accent text-surface-foreground">
               <XMarkIcon className="w-3 h-3 mr-1" />
               {t('moduleManagement.status.disabled')}
             </span>
           )}
           {row.isActive && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
               {t('moduleManagement.status.active')}
             </span>
           )}
@@ -292,7 +296,7 @@ const ModuleManagementPage: React.FC = () => {
       width: 120,
       align: 'center',
       render: (value: any, row: ModuleStatus) => (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-surface-muted-fg">
           {Array.isArray(row.features) ? row.features.length : 0} {t('moduleManagement.featuresCount')}
         </div>
       )
@@ -370,8 +374,8 @@ const ModuleManagementPage: React.FC = () => {
     return (
       <div className="text-center py-8">
         <ExclamationTriangleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-gray-700">{t('common:errors.accessDenied')}</h2>
-        <p className="text-gray-500">{t('common:errors.insufficientPermissions')}</p>
+        <h2 className="text-xl font-semibold text-surface-foreground">{t('common:errors.accessDenied')}</h2>
+        <p className="text-surface-muted-fg">{t('common:errors.insufficientPermissions')}</p>
       </div>
     );
   }
@@ -382,8 +386,8 @@ const ModuleManagementPage: React.FC = () => {
       <Card title={t('moduleManagement.title')}>
         <div className="text-center py-8">
           <CogIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">{t('moduleManagement.header')}</h2>
-          <p className="text-gray-500">{t('moduleManagement.description')}</p>
+          <h2 className="text-xl font-semibold text-surface-foreground">{t('moduleManagement.header')}</h2>
+          <p className="text-surface-muted-fg">{t('moduleManagement.description')}</p>
         </div>
       </Card>
 
@@ -391,7 +395,7 @@ const ModuleManagementPage: React.FC = () => {
       <Card title={t('moduleManagement.filtersTitle')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-surface-foreground mb-2">
               {t('moduleManagement.searchLabel')}
             </label>
             <Input
@@ -402,7 +406,7 @@ const ModuleManagementPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-surface-foreground mb-2">
               {t('moduleManagement.categoryLabel')}
             </label>
             <Select
@@ -422,7 +426,7 @@ const ModuleManagementPage: React.FC = () => {
       {/* Module Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card title={t('moduleManagement.stats.total')}>
-          <div className="text-3xl font-bold text-gray-900">{modules.length}</div>
+          <div className="text-3xl font-bold text-surface-foreground">{modules.length}</div>
         </Card>
         <Card title={t('moduleManagement.stats.enabled')}>
           <div className="text-3xl font-bold text-green-600">
@@ -430,7 +434,7 @@ const ModuleManagementPage: React.FC = () => {
           </div>
         </Card>
         <Card title={t('moduleManagement.stats.active')}>
-          <div className="text-3xl font-bold text-blue-600">
+          <div className="text-3xl font-bold text-primary-600">
             {modules.filter(m => m.isActive).length}
           </div>
         </Card>
@@ -449,15 +453,11 @@ const ModuleManagementPage: React.FC = () => {
           loading={loading}
           sortable={true}
           filterable={true}
-          emptyState={
-            <div className="text-center py-12">
-              <CogIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No modules found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {t('moduleManagement.noModulesFound')}
-              </p>
-            </div>
-          }
+          emptyState={{
+            icon: <CogIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No modules found',
+            description: t('moduleManagement.noModulesFound'),
+          }}
           className="mt-4"
         />
       </Card>
@@ -471,19 +471,19 @@ const ModuleManagementPage: React.FC = () => {
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('moduleManagement.moduleId')}
               </label>
               <Input type="text" value={selectedModule.id} disabled />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('moduleManagement.moduleVersion')}
               </label>
               <Input type="text" value={selectedModule.version} disabled />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-surface-foreground mb-2">
                 {t('moduleManagement.moduleFeatures')}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -514,16 +514,16 @@ const ModuleManagementPage: React.FC = () => {
           title={t('moduleManagement.modulePermissions', { name: selectedModule.name })}
         >
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-surface-muted-fg">
               {t('moduleManagement.permissionsDescription')}
             </p>
             <div className="space-y-2">
               {selectedModule.requiredPermissions?.map(permission => (
                 <div 
                   key={permission}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between p-3 border border-surface-border rounded-lg"
                 >
-                  <span className="font-medium text-gray-900">{permission}</span>
+                  <span className="font-medium text-surface-foreground">{permission}</span>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                     {t('moduleManagement.required')}
                   </span>
@@ -547,7 +547,7 @@ const ModuleManagementPage: React.FC = () => {
           title={t('moduleManagement.moduleDependencies', { name: selectedModule.name })}
         >
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-surface-muted-fg">
               {t('moduleManagement.dependenciesDescription')}
             </p>
             <div className="space-y-2">
@@ -556,12 +556,12 @@ const ModuleManagementPage: React.FC = () => {
                 return (
                   <div 
                     key={dependency}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                    className="flex items-center justify-between p-3 border border-surface-border rounded-lg"
                   >
                     <div>
-                      <span className="font-medium text-gray-900">{dependency}</span>
+                      <span className="font-medium text-surface-foreground">{dependency}</span>
                       {depModule && (
-                        <div className="text-sm text-gray-500">{depModule.name}</div>
+                        <div className="text-sm text-surface-muted-fg">{depModule.name}</div>
                       )}
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -585,6 +585,10 @@ const ModuleManagementPage: React.FC = () => {
       )}
     </div>
   );
+};
+
+const ModuleManagementPage: React.FC = () => {
+  return <ModuleManagementContent />;
 };
 
 export default ModuleManagementPage;

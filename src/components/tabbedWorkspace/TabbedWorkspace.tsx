@@ -1,6 +1,9 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
-import { DragDropContext } from 'react-beautiful-dnd';
-import { Settings, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import {
+  ArrowPathIcon,
+  Cog6ToothIcon,
+  ExclamationCircleIcon,
+} from '@heroicons/react/24/outline';
 import { TabWorkspaceErrorBoundary } from './TabWorkspaceErrorBoundary';
 import { TabBar } from './TabBar';
 import { ActionBar } from './ActionBar';
@@ -8,13 +11,13 @@ import { BreadcrumbNavigation } from '../BreadcrumbNavigation';
 import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry } from '../../services/ui/actionRegistry';
 import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
-import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
+import type { BreadcrumbItem } from '../../types/hierarchical';
 import { resolveTabContent } from './resolveTabContent';
 import DynamicPageComponent from '../DynamicPageComponent';
 import { isEqual } from 'lodash';
+import { logger } from '@/utils/logging';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
-  className = '',
   showActionBar = true,
   showSettings = true,
   onTabContentRender,
@@ -41,7 +44,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   // Remove excessive console logging to prevent performance issues
   // Only log in development mode with a flag
   if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TABS) {
-    console.log('TabbedWorkspace: Rendering');
+    logger.info('TabbedWorkspace: Rendering');
   }
   const {
     tabs,
@@ -58,10 +61,11 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     validateTabAccess,
     initializeStore,
     initialize,
-    clearCorruptedData
+    clearCorruptedData,
+    clearTabState
   } = useTabStore();
 
-  const { registerAction, getActionsByContext } = useActionRegistry();
+  const { registerAction } = useActionRegistry();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
@@ -71,6 +75,11 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const onTabChangeRef = useRef(onTabChange);
   const prevActiveTabIdRef = useRef<string | null>(null);
   const permissionsHashRef = useRef<string>('');
+  const tabsRef = useRef(tabs);
+
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
   
   // Memoize store configuration to prevent unnecessary reinitializations
   const storeConfig = useMemo(() => ({
@@ -111,7 +120,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     const initializeWorkspace = async () => {
       if (!isMounted) return;
       if (isInitializedRef.current) {
-        console.log('⏭️ [TabbedWorkspace] Already initialized, skipping');
+        logger.info('⏭️ [TabbedWorkspace] Already initialized, skipping');
         return;
       }
       
@@ -137,7 +146,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
           registerAction({
             id: 'workspace.refresh',
             label: 'Refresh Workspace',
-            icon: RefreshCw,
+            icon: ArrowPathIcon,
             category: 'workspace',
             context: ['workspace'],
             permissions: ['workspace.refresh'],
@@ -154,8 +163,8 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
           registerAction({
             id: 'workspace.settings',
-            label: 'Workspace Settings',
-            icon: Settings,
+            label: 'Workspace Cog6ToothIcon',
+            icon: Cog6ToothIcon,
             category: 'workspace',
             context: ['workspace'],
             permissions: ['workspace.settings'],
@@ -169,7 +178,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize workspace';
-        console.error('TabbedWorkspace: Initialization failed:', err);
+        logger.error('TabbedWorkspace: Initialization failed:', err);
         if (isMounted) {
           setError(errorMessage);
           onError?.(errorMessage);
@@ -191,13 +200,13 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       isInitializedRef.current = false;
       
       // Clear any stored tab states
-      tabs.forEach(tab => {
+      tabsRef.current.forEach(tab => {
         if (tab.state) {
           clearTabState(tab.id);
         }
       });
     };
-  }, [storeConfig, registerAction, initialize, initializeStore, onError]); // Include stable dependencies
+  }, [storeConfig, registerAction, initialize, initializeStore, onError, clearCorruptedData, clearTabState]);
 
   // Handle user role changes with primitive comparison
   useEffect(() => {
@@ -274,18 +283,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, [activeTabId, tabs, enableHierarchicalMode, handleTabChange, generateBreadcrumbs]);
 
-  // Handle drag and drop for tab reordering
-  const handleDragEnd = useCallback((result: any) => {
-    if (!result.destination) return;
-    
-    const sourceIndex = result.source.index;
-    const destinationIndex = result.destination.index;
-    
-    if (sourceIndex !== destinationIndex) {
-      reorderTabs(sourceIndex, destinationIndex);
-    }
-  }, [reorderTabs]);
-
   // Memoized tab creation handler
   const handleTabCreate = useCallback((tabData?: Partial<Tab>) => {
     try {
@@ -344,7 +341,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const renderTabContent = useCallback(() => {
     if (!activeTabId) {
       return (
-        <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-500">
+        <div className="flex-1 flex items-center justify-center bg-surface-muted text-surface-muted-fg">
           <div className="text-center px-4">
             <div className="text-4xl mb-4">📋</div>
             <p className="text-lg font-medium mb-2">No tabs open</p>
@@ -359,7 +356,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       return (
         <div className="flex-1 flex items-center justify-center bg-red-50 text-red-600">
           <div className="text-center px-4">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Tab not found</p>
             <p className="text-sm">The requested tab could not be loaded</p>
           </div>
@@ -372,7 +369,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       return (
         <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-700">
           <div className="text-center px-4">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Access Denied</p>
             <p className="text-sm">You don't have permission to view this tab</p>
           </div>
@@ -392,9 +389,9 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     // Default content rendering based on tab type with responsive design
       // For route-based tabs, we render the actual route content
       return (
-        <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-white">
+        <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-surface-card">
           <div className="w-full">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-surface-foreground mb-3 sm:mb-4">{activeTab.title}</h1>
             {/* For route-based tabs, we render the actual route content */}
             {activeTab.content.type === 'component' && activeTab.content.component === 'DynamicPageComponent' ? (
               <DynamicPageComponent path={activeTab.path} />
@@ -406,11 +403,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       );
   }, [activeTabId, tabs, validateTabAccess, onTabContentRender]);
   
-  // Memoize the active tab to prevent unnecessary lookups
-  const activeTab = useMemo(() => {
-    return tabs.find(tab => tab.id === activeTabId);
-  }, [activeTabId, tabs]);
-
   // Memoize filtered and sorted tabs for better performance
   const sortedTabs = useMemo(() => {
     // Sort pinned tabs first, then by last accessed time
@@ -421,10 +413,10 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
   // Memoize module style calculations
   const moduleStyles = useMemo(() => {
-    const baseStyles = 'flex flex-col h-full bg-gray-50 w-full tabbed-workspace-mobile';
-    const themeStyles = theme === 'dark' ? 'dark:bg-gray-900' : '';
+    const baseStyles = 'flex flex-col h-full bg-surface-muted w-full tabbed-workspace-mobile';
+    const themeStyles = `theme-${theme}`;
     const modeStyles = enableHierarchicalMode ? 'hierarchical-mode' : 'legacy-mode';
-    return `${baseStyles} ${themeStyles} ${modeStyles}`.trim();
+    return `${baseStyles} ${themeStyles} ${modeStyles}`;
   }, [theme, enableHierarchicalMode]);
 
   // Memoize action bar props to prevent unnecessary re-renders
@@ -478,10 +470,10 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50">
+      <div className="flex items-center justify-center h-64 bg-surface-muted">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-600" />
-          <p className="text-gray-600">Loading workspace...</p>
+          <ArrowPathIcon className="w-8 h-8 animate-spin mx-auto mb-4 text-green-600" />
+          <p className="text-surface-muted-fg">Loading workspace...</p>
         </div>
       </div>
     );
@@ -491,7 +483,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     return (
       <div className="flex items-center justify-center h-64 bg-red-50">
         <div className="text-center">
-          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-600" />
+          <ExclamationCircleIcon className="w-8 h-8 mx-auto mb-4 text-red-600" />
           <p className="text-red-800 font-medium mb-2">Workspace Error</p>
           <p className="text-red-600 text-sm">{error}</p>
           <button
@@ -507,19 +499,18 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
   // Remove excessive console logging
   if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TABS) {
-    console.log('TabbedWorkspace: Rendering JSX with tabs:', tabs.length);
+    logger.info('TabbedWorkspace: Rendering JSX with tabs:', tabs.length);
   }
   
   return (
-    <TabWorkspaceErrorBoundary onError={(error, errorInfo) => onError?.(error.message)}>
-      <DragDropContext onDragEnd={handleDragEnd}>
-      <div className={moduleStyles}>
+    <TabWorkspaceErrorBoundary onError={(error) => onError?.(error.message)}>
+      <div className={moduleStyles} data-testid="tabbed-workspace">
         {/* Breadcrumb Navigation */}
         {enableHierarchicalMode && showBreadcrumbs && breadcrumbs.length > 0 && (
           <BreadcrumbNavigation
             items={breadcrumbs}
             onItemClick={handleBreadcrumbClick}
-            className="border-b border-gray-200 bg-white flex-shrink-0"
+            className="border-b border-surface-border bg-surface-card flex-shrink-0"
           />
         )}
         
@@ -540,7 +531,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
           {renderTabContent()}
         </div>
       </div>
-    </DragDropContext>
     </TabWorkspaceErrorBoundary>
    );
 };

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { ArrowsRightLeftIcon, PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
@@ -14,6 +14,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { useAuth } from '@/contexts/AuthContext';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { useToastHelpers } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 
 type WorkflowFormData = Omit<Partial<Workflow>, 'id' | 'created_at' | 'updated_at' | 'states'>;
 type WorkflowStateFormData = Omit<Partial<WorkflowState>, 'id' | 'workflow_id'>;
@@ -23,7 +24,7 @@ interface ValidationErrors {
   sequence_order?: string;
 }
 
-const SettingsWorkflowsPage: React.FC = () => {
+export const SettingsWorkflowsContent: React.FC = () => {
   const { t } = useTranslation('settings');
   const { workflows, loading: appDataLoading, refreshCollection } = useAppData();
   const { user } = useAuth();
@@ -81,8 +82,8 @@ const SettingsWorkflowsPage: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Access Denied</h2>
+          <p className="text-surface-muted-fg mb-4">
             You don't have permission to view workflow settings.
           </p>
           <button
@@ -219,7 +220,7 @@ const SettingsWorkflowsPage: React.FC = () => {
           created_at: timestamp,
           updated_at: timestamp,
           states: []
-        } as Workflow);
+        });
         toast.showSuccess(t('workflows.createSuccess') || 'Workflow created successfully');
       }
       
@@ -227,7 +228,7 @@ const SettingsWorkflowsPage: React.FC = () => {
       await refreshCollection('workflows');
       closeWorkflowModal();
     } catch (error) {
-      console.error('Error saving workflow:', error);
+      logger.error('Error saving workflow:', error);
       toast.showError(t('workflows.saveError') || 'Failed to save workflow. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -255,52 +256,29 @@ const SettingsWorkflowsPage: React.FC = () => {
         // Update existing state
         await statesCollection.update(editingState.id.toString(), {
           name: stateFormData.name!.trim(),
-          sequence_order: stateFormData.sequence_order!
+          sequence_order: stateFormData.sequence_order!,
+          updated_at: timestamp
         });
         toast.showSuccess(t('workflows.stateUpdateSuccess') || 'Workflow state updated successfully');
       } else {
         // Create new state
         const newStateId = Date.now();
-        const newState: WorkflowState = {
+        await statesCollection.insert({
           id: newStateId,
           workflow_id: currentWorkflowForStates.id,
           name: stateFormData.name!.trim(),
           sequence_order: stateFormData.sequence_order!,
           created_at: timestamp,
           updated_at: timestamp
-        };
-        await statesCollection.insert(newState);
-        
-        // Update the workflow's states array
-        const updatedStates = [...(currentWorkflowForStates.states || []), newState];
-        await workflowsCollection.update(currentWorkflowForStates.id.toString(), {
-          states: updatedStates,
-          updated_at: timestamp
         });
-        
         toast.showSuccess(t('workflows.stateCreateSuccess') || 'Workflow state created successfully');
       }
       
       // Refresh the workflows collection to get updated states
       await refreshCollection('workflows');
-      
-      // Update current workflow view to show new state
-      if (!editingState && currentWorkflowForStates) {
-        setCurrentWorkflowForStates({
-          ...currentWorkflowForStates,
-          states: [...(currentWorkflowForStates.states || []), {
-            id: Date.now(),
-            workflow_id: currentWorkflowForStates.id,
-            name: stateFormData.name!.trim(),
-            sequence_order: stateFormData.sequence_order!,
-            created_at: timestamp,
-            updated_at: timestamp
-          }]
-        });
-      }
       closeStateModal();
     } catch (error) {
-      console.error('Error saving workflow state:', error);
+      logger.error('Error saving workflow state:', error);
       toast.showError(t('workflows.stateSaveError') || 'Failed to save workflow state. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -349,7 +327,7 @@ const SettingsWorkflowsPage: React.FC = () => {
           
           toast.showSuccess(t('workflows.deleteSuccess') || 'Workflow deleted successfully');
         } catch (error) {
-          console.error('Error deleting workflow:', error);
+          logger.error('Error deleting workflow:', error);
           toast.showError(t('workflows.deleteError') || 'Failed to delete workflow. Please try again.');
         } finally {
           setIsDeletingWorkflow(null);
@@ -385,7 +363,7 @@ const SettingsWorkflowsPage: React.FC = () => {
           
           toast.showSuccess(t('workflows.stateDeleteSuccess') || 'Workflow state deleted successfully');
         } catch (error) {
-          console.error('Error deleting workflow state:', error);
+          logger.error('Error deleting workflow state:', error);
           toast.showError(t('workflows.stateDeleteError') || 'Failed to delete workflow state. Please try again.');
         } finally {
           setIsDeletingState(null);
@@ -403,16 +381,17 @@ const SettingsWorkflowsPage: React.FC = () => {
 
   // Table columns
   const workflowColumns = [
-    { header: t('tableHeaders.id'), accessor: 'id' as keyof Workflow },
-    { header: t('tableHeaders.workflowName'), accessor: 'name' as keyof Workflow },
-    { 
-      header: t('tableHeaders.states'), 
-      accessor: ((item: Workflow) => item.states?.length || 0) as (item: Workflow) => React.ReactNode 
+    { header: t('tableHeaders.id'), key: 'id' as keyof Workflow },
+    { header: t('tableHeaders.workflowName'), key: 'name' as keyof Workflow },
+    {
+      header: t('tableHeaders.states'),
+      key: 'states_count',
+      render: (_v: any, item: Workflow) => item.states?.length || 0
     },
     {
       header: t('tableHeaders.actions'), 
-      accessor: 'id' as keyof Workflow,
-      render: (item: Workflow) => (
+      key: 'id' as keyof Workflow,
+      render: (value: any, item: Workflow) => (
         <div className="space-x-1">
           {canUpdateWorkflows && (
             <Button 
@@ -452,13 +431,13 @@ const SettingsWorkflowsPage: React.FC = () => {
   ];
 
   const stateColumns = [
-    { header: t('tableHeaders.id'), accessor: 'id' as keyof WorkflowState },
-    { header: t('tableHeaders.stateName'), accessor: 'name' as keyof WorkflowState },
-    { header: t('tableHeaders.order'), accessor: 'sequence_order' as keyof WorkflowState },
+    { header: t('tableHeaders.id'), key: 'id' as keyof WorkflowState },
+    { header: t('tableHeaders.stateName'), key: 'name' as keyof WorkflowState },
+    { header: t('tableHeaders.order'), key: 'sequence_order' as keyof WorkflowState },
     {
       header: t('tableHeaders.actions'), 
-      accessor: 'id' as keyof WorkflowState,
-      render: (item: WorkflowState) => (
+      key: 'id' as keyof WorkflowState,
+      render: (value: any, item: WorkflowState) => (
         <div className="space-x-1">
           {canManageWorkflowStates && (
             <>
@@ -502,16 +481,16 @@ const SettingsWorkflowsPage: React.FC = () => {
           </Button>
         ) : null}
       >
-        <p className="text-sm text-gray-600 mb-4">{t('workflows.description')}</p>
+        <p className="text-sm text-surface-muted-fg mb-4">{t('workflows.description')}</p>
         {appDataLoading.workflows ? (
           <div className="flex justify-center py-8">
             <Spinner />
           </div>
         ) : (
-          <Table 
+          <DataGrid 
             columns={workflowColumns} 
             data={(workflows || [])} 
-            emptyStateMessage={t('workflows.noWorkflowsMessage') || 'No workflows found. Create one to get started.'}
+            emptyState={t('workflows.noWorkflowsMessage') || 'No workflows found. Create one to get started.'}
           />
         )}
       </Card>
@@ -540,10 +519,10 @@ const SettingsWorkflowsPage: React.FC = () => {
               {t('workflows.backToWorkflows') || 'Back to Workflows'}
             </Button>
           </div>
-          <Table 
+          <DataGrid 
             columns={stateColumns} 
             data={(currentWorkflowForStates.states || [])} 
-            emptyStateMessage={t('workflows.noStatesMessage') || 'No states defined for this workflow. Add one to get started.'}
+            emptyState={t('workflows.noStatesMessage') || 'No states defined for this workflow. Add one to get started.'}
           />
         </Card>
       )}
@@ -560,14 +539,12 @@ const SettingsWorkflowsPage: React.FC = () => {
             <FormField label={t('workflows.nameLabel') || 'Name'} required>
               <Input
                 name="name"
-                label={t('workflows.nameLabel') || 'Workflow Name'}
                 value={workflowFormData.name || ''}
                 onChange={handleWorkflowInputChange}
                 required
                 error={workflowErrors.name}
                 disabled={isSubmitting}
                 placeholder={t('workflows.namePlaceholder') || 'Enter workflow name'}
-                floatingLabel={false}
               />
             </FormField>
           </FormSection>
@@ -581,9 +558,9 @@ const SettingsWorkflowsPage: React.FC = () => {
             </Button>
             <Button
               onClick={handleWorkflowSubmit}
-              disabled={isSubmitting}
+              loading={isSubmitting}
             >
-              {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
+              {t('common:save')}
             </Button>
           </FormActions>
         </DialogForm>
@@ -604,20 +581,17 @@ const SettingsWorkflowsPage: React.FC = () => {
             <FormField label={t('workflows.stateNameLabel') || 'State Name'} required>
               <Input
                 name="name"
-                label={t('workflows.stateNameLabel') || 'State Name'}
                 value={stateFormData.name || ''}
                 onChange={handleStateInputChange}
                 required
                 error={stateErrors.name}
                 disabled={isSubmitting}
                 placeholder={t('workflows.stateNamePlaceholder') || 'Enter state name'}
-                floatingLabel={false}
               />
             </FormField>
             <FormField label={t('workflows.sequenceOrderLabel') || 'Sequence Order'} required>
               <Input
                 name="sequence_order"
-                label={t('workflows.sequenceOrderLabel') || 'Sequence Order'}
                 type="number"
                 value={stateFormData.sequence_order?.toString() || ''}
                 onChange={handleStateInputChange}
@@ -626,7 +600,6 @@ const SettingsWorkflowsPage: React.FC = () => {
                 disabled={isSubmitting}
                 min={0}
                 max={9999}
-                floatingLabel={false}
               />
             </FormField>
           </FormSection>
@@ -640,9 +613,9 @@ const SettingsWorkflowsPage: React.FC = () => {
             </Button>
             <Button
               onClick={handleStateSubmit}
-              disabled={isSubmitting}
+              loading={isSubmitting}
             >
-              {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
+              {t('common:save')}
             </Button>
           </FormActions>
         </DialogForm>
@@ -656,7 +629,7 @@ const SettingsWorkflowsPage: React.FC = () => {
         size="sm"
       >
         <FormSection>
-          <p className="text-gray-600">{deleteModalConfig.message}</p>
+          <p className="text-surface-muted-fg">{deleteModalConfig.message}</p>
         </FormSection>
         <FormActions>
           <Button
@@ -669,14 +642,18 @@ const SettingsWorkflowsPage: React.FC = () => {
           <Button
             variant="danger"
             onClick={deleteModalConfig.onConfirm}
-            disabled={deleteModalConfig.isDeleting}
+            loading={deleteModalConfig.isDeleting}
           >
-            {deleteModalConfig.isDeleting ? <Spinner size="sm" /> : t('common:delete')}
+            {t('common:delete')}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
+};
+
+const SettingsWorkflowsPage: React.FC = () => {
+  return <SettingsWorkflowsContent />;
 };
 
 export default SettingsWorkflowsPage;

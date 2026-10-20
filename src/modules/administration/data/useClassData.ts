@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for class data management
 // ABOUTME: Provides CRUD operations for class without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockClasses } from './mockData';
 import { Class } from '@/core/types';
+import { useState } from 'react';
 
 export const useClassData = () => {
   const [data, setData] = useState<Class[]>(initialMockClasses);

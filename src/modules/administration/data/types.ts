@@ -1,263 +1,13 @@
-// ABOUTME: Administration module types - single source of truth for all administration entities
-// ABOUTME: Consolidated from core/types/administration.ts
+// ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Administration module.
+// ABOUTME: It ensures all administration-related data structures are managed in one place.
 
-// Core administration types (moved from core/types/administration.ts)
-export interface AcademicYearStructure {
-  id: string;
-  name: string;
-}
+// Re-export shared domain entities consumed by administration data provider/pages.
+// These live in core/types (used by 3+ modules); re-exported here so `import * as types from './types'` resolves them.
+export type { Class, ClassStream, Student, Staff, AcademicYear, SchoolPeriod, StudentGuardianRelationship, ExamResultSummary, AcademicYearStructure, AcademicPeriodDefinition, StudentAttendance, TimetablePeriodDef } from '@/core/types';
 
-export interface AcademicPeriodDefinition {
-  id: string;
-  structure_id: string;
-  name: string;
-  sequence_order: number;
-  structure_name?: string | null;
-}
-
-export interface AcademicYear {
-  id: number;
-  name: string;
-  structure_id: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
-  updated_at: string;
-  structure_name?: string | null;
-}
-
-export interface SchoolPeriod {
-  id: number;
-  academic_year_id: number;
-  period_definition_id: string;
-  financial_year_id: number;
-  start_date: string;
-  end_date: string;
-  mid_break_start?: string | null;
-  mid_break_end?: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  name?: string | null;
-  academic_year_name?: string | null;
-  period_definition_name?: string | null;
-  financial_year_name?: string | null;
-}
-
-export interface ExamResultSummary {
-  exam_name?: string | null;
-  english?: string | null;
-  kiswahili?: string | null;
-  mathematics?: string | null;
-  science?: string | null;
-  social_studies_religious_education?: string | null;
-  total_marks?: number | null;
-}
-
-export interface ParentsGuardian {
-  id: string;
-  user_id?: string | null;
-  name: string;
-  phone: string;
-  email?: string | null;
-  relationship_type?: string | null;
-  location?: string | null;
-  address?: string | null;
-  photo_path?: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
-}
-
-export interface StudentGuardianRelationship {
-  student_id: string;
-  guardian_id: string;
-  relationship_type: string;
-  is_primary_contact: boolean;
-}
-
-export interface Student {
-  id: string;
-  admission_no: string;
-  upi_no?: string | null;
-  first_name: string;
-  middle_name?: string | null;
-  last_name: string;
-  gender: any; // Will import from core enums
-  date_of_birth?: string | null;
-  photo_path?: string | null;
-  current_class_stream_id?: number | null;
-  student_category_id?: number | null;
-  dormitory_id?: number | null;
-  admission_date?: string | null;
-  status: any; // Will import from core enums
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
-  current_class_name?: string | null;
-  current_class_stream_name?: string | null;
-  student_category_name?: string | null;
-  dormitory_name?: string | null;
-  primary_guardian?: ParentsGuardian | null;
-  exam_result_summary?: ExamResultSummary | null;
-  address?: string | null;
-  remarks?: string | null;
-  religion?: string | null;
-  county?: string | null;
-  district?: string | null;
-  student_type?: string | null;
-  primary_school?: string | null;
-  marks_attained_primary?: string | null;
-  class_admitted?: string | null;
-  stream_admitted?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  display_name?: string | null;
-  user_id?: string | null;
-}
-
-export interface Staff {
-  id: string;
-  user_id?: string | null;
-  staff_no: string;
-  first_name: string;
-  last_name: string;
-  phone?: string | null;
-  department_id?: string | null;
-  designation_id?: number | null;
-  hod_of_department_id?: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
-  department_name?: string | null;
-  designation_title?: string | null;
-  hod_of_department_name?: string | null;
-  user_username?: string | null;
-  email?: string | null;
-  display_name?: string | null;
-}
-
-export interface Class {
-  id: number;
-  name: string;
-  streams?: ClassStream[];
-}
-
-export interface ClassStream {
-  id: number;
-  class_id: number;
-  name: string;
-  class_teacher_id?: string | null;
-  class_name?: string | null;
-  class_teacher_name?: string | null;
-}
-
-export interface Department {
-  id: string;
-  name: string;
-  is_academic: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Designation {
-  id: number;
-  title: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface StudentCategory {
-  id: number;
-  name: string;
-}
-
-export interface Dormitory {
-  id: number;
-  name: string;
-  master_id?: string | null;
-  master_name?: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface StudentHealthRecord {
-  id: string;
-  student_id: string;
-  blood_type?: string | null;
-  allergies?: string | null;
-  medical_conditions?: string | null;
-  emergency_contact_override?: string | null;
-  created_at: string;
-  updated_at: string;
-  student_name?: string | null;
-}
-
-export interface TimetablePeriodDef {
-  id: number;
-  period_name: string;
-  start_time: string;
-  end_time: string;
-}
-
-export interface StudentAttendance {
-  id: string | number;
-  student_id: string;
-  period_id: number;
-  date: string;
-  status: any; // Will import from core enums
-  reason_for_absence?: string;
-  created_at?: string;
-  updated_at?: string;
-  student_name?: string;
-  period_name?: string;
-}
-
-// Module-specific enums
-export enum PartnerType {
-    SPONSOR = 'Sponsor',
-    BOARD_MEMBER = 'Board Member',
-    SERVICE_PROVIDER = 'Service Provider',
-    GOVERNMENT_AGENCY = 'Government Agency',
-    NGO = 'NGO',
-    OTHER = 'Other'
-}
-
-export enum ClubType {
-    CLUB = 'Club',
-    SOCIETY = 'Society',
-    SPORTS_TEAM = 'Sports Team'
-}
-
-export enum AttendanceStatus {
-    PRESENT = 'Present',
-    ABSENT = 'Absent',
-    LATE = 'Late',
-    EXCUSED = 'Excused'
-}
-
-export enum TemplateType {
-    SMS = 'SMS',
-    EMAIL = 'Email',
-    PUSH_NOTIFICATION = 'Push Notification'
-}
-
-export enum CampaignAudienceType {
-    ALL_STUDENTS = 'All Students',
-    ALL_PARENTS = 'All Parents',
-    ALL_STAFF = 'All Staff',
-    STUDENTS_OF_CLASS = 'Students of Class',
-    PARENTS_OF_CLASS = 'Parents of Class'
-}
-
-export enum CampaignStatus {
-    DRAFT = 'Draft',
-    SCHEDULED = 'Scheduled',
-    APPROVED = 'Approved',
-    SENT = 'Sent',
-    CANCELLED = 'Cancelled'
-}
+// Shared administration enums (single definition in @/core/types/enums; re-exported for module consumers)
+import { PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignAudienceType, CampaignStatus } from '@/core/types/enums';
+export { PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignAudienceType, CampaignStatus };
 
 export interface AdminPartnerType {
   id: string;
@@ -467,7 +217,7 @@ export interface AdminApplicationType {
   academic_year_name?: string;
 }
 
-export interface AdminPreNAsMarksType {
+export interface AdminEntryMarksType {
   id: string;
   student_id?: string;
   application_id?: string;
@@ -673,6 +423,80 @@ export interface AdminBulkImportType {
   
   // Denormalized
   started_by_name?: string;
+}
+
+// MOVED FROM core/types.ts (module-specific):
+export interface WorkflowState {
+  id: number;
+  workflow_id: number;
+  name: string;
+  sequence_order: number;
+}
+
+export interface Workflow {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  states?: WorkflowState[];
+}
+
+export interface ParentsGuardian {
+  id: string;
+  user_id?: string | null;
+  name: string;
+  phone: string;
+  email?: string | null;
+  relationship_type?: string | null;
+  location?: string | null;
+  address?: string | null;
+  photo_path?: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface StudentHealthRecord {
+  id: string;
+  student_id: string;
+  blood_type?: string | null;
+  allergies?: string | null;
+  medical_conditions?: string | null;
+  emergency_contact_override?: string | null;
+  created_at: string;
+  updated_at: string;
+  // Denormalized
+  student_name?: string | null;
+}
+
+export interface Dormitory {
+  id: number;
+  name: string;
+  master_id?: string | null;
+  // Denormalized
+  master_name?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentCategory {
+  id: number;
+  name: string;
+}
+
+export interface Designation {
+  id: number;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  is_academic: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // === STUDENT DATA IMPORT TYPES ===
@@ -984,55 +808,10 @@ export interface VisitorLog {
   updated_at: string;
 }
 
-// === STUDENT CLASS HISTORY TYPES ===
-// Mirrors adm_student_class_history from Akademico DB
-
-export interface StudentClassHistoryEntry {
-  id: string;
-  student_id: string;
-  class_stream_id: string;
-  academic_year_id: string;
-  start_date: string;
-  end_date?: string | null;
-  created_at: string;
-}
-
-// === NEW TYPES FOR ADMINISTRATION PAGES (from inline mock data migration) ===
-
-export interface AttendanceReport {
-  id: string;
-  student_id: string;
-  student_name: string;
-  admission_no: string;
-  class_id: string;
-  class_name: string;
-  month: string;
-  year: number;
-  total_days: number;
-  present_days: number;
-  absent_days: number;
-  late_days: number;
-  percentage: number;
-}
-
-export type TriggerType = 'Attendance' | 'Fees Due' | 'Exam Results' | 'Announcements' | 'Birthday';
-export type RecipientType = 'Student' | 'Staff' | 'Parent' | 'All';
-
-export interface AutoSMSSetting {
-  id: string;
-  trigger_type: TriggerType;
-  trigger_name: string;
-  recipient_type: RecipientType;
-  template_id: string;
-  template_name: string;
-  is_enabled: boolean;
-  send_time?: string;
-  conditions?: string;
-  created_at: string;
-  updated_at: string;
-}
+// === ADMINISTRATION PAGE ENTITY TYPES (backed by real collections) ===
 
 export type PassType = 'Early Departure' | 'Medical Emergency' | 'Personal' | 'Other';
+
 export type PassStatus = 'Pending' | 'Approved' | 'Rejected' | 'Issued' | 'Returned';
 
 export interface GatePass {
@@ -1054,57 +833,25 @@ export interface GatePass {
   created_at: string;
 }
 
-// Source: BulkAssignRollNumbersPage.tsx
-export interface StudentRollNumber {
-  id: string;
-  student_id: string;
-  student_name: string;
-  admission_no: string;
-  class_id: string;
-  class_name: string;
-  section: string;
-  roll_number: string;
-}
-
-// Source: DynamicAttendancePage.tsx
-export type DynamicAttendanceStatus = 'Present' | 'Absent' | 'Late';
-
-export interface SessionAttendance {
-  id: string;
-  student_id: string;
-  student_name: string;
-  admission_no: string;
-  class_id: string;
-  class_name: string;
-  session_id: string;
-  session_name: string;
-  check_in_time?: string;
-  check_out_time?: string;
-  status: DynamicAttendanceStatus;
-  notes?: string;
-}
-
-// Source: ScholarshipTrackingPage.tsx
 export type ScholarshipStatus = 'Active' | 'Inactive' | 'Pending';
 
 export interface ScholarshipRecord {
   id: string;
   student_id: string;
-  student_name: string;
-  admission_no: string;
-  class_id: string;
-  class_name: string;
+  student_name?: string;
+  admission_no?: string;
+  class_id?: string;
+  class_name?: string;
   scholarship_type: string;
   amount: number;
   academic_year: string;
   status: ScholarshipStatus;
   start_date: string;
   end_date: string;
-  criteria: string;
+  criteria?: string;
   notes?: string;
 }
 
-// Source: SMSReportsPage.tsx
 export type SMSStatus = 'Sent' | 'Delivered' | 'Failed' | 'Pending';
 
 export interface SMSReport {
@@ -1114,18 +861,34 @@ export interface SMSReport {
   recipient_type: 'Student' | 'Staff' | 'Parent';
   phone: string;
   message: string;
-  template: string;
+  template?: string;
   sent_date: string;
-  sent_time: string;
+  sent_time?: string;
   status: SMSStatus;
   delivery_date?: string;
   error_message?: string;
-  sender: string;
+  sender?: string;
 }
 
-// Source: StaffWalletPage.tsx
+export type TriggerType = 'Attendance' | 'Fees Due' | 'Exam Results' | 'Announcements' | 'Birthday';
+
+export type RecipientType = 'Student' | 'Staff' | 'Parent' | 'All';
+
+export interface AutoSMSSetting {
+  id: string;
+  trigger_type: TriggerType;
+  trigger_name: string;
+  recipient_type: RecipientType;
+  template_id: string;
+  template_name: string;
+  is_enabled: boolean;
+  send_time?: string;
+  conditions?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type WalletTransactionType = 'Advance' | 'Loan' | 'Deduction' | 'Repayment';
-export type WalletTransactionStatus = 'Pending' | 'Approved' | 'Rejected' | 'Completed';
 
 export interface WalletTransaction {
   id: string;
@@ -1136,12 +899,11 @@ export interface WalletTransaction {
   transaction_type: WalletTransactionType;
   amount: number;
   date: string;
-  description: string;
-  status: WalletTransactionStatus;
+  description?: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
   balance: number;
 }
 
-// Source: StaffAttendancePage.tsx
 export type StaffAttendanceStatus = 'Present' | 'Absent' | 'Late' | 'On Leave';
 
 export interface StaffAttendanceRecord {
@@ -1158,7 +920,76 @@ export interface StaffAttendanceRecord {
   notes?: string;
 }
 
-// Source: StaffIDCardsPage.tsx
+export type DynamicAttendanceStatus = 'Present' | 'Absent' | 'Late';
+
+export interface SessionAttendance {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  session_id: string;
+  session_name: string;
+  date?: string;
+  check_in_time?: string;
+  check_out_time?: string;
+  status: DynamicAttendanceStatus;
+  notes?: string;
+}
+
+export interface StudentRollNumber {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+}
+
+export interface AttendanceReport {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  month: string;
+  year: number;
+  total_days: number;
+  present_days: number;
+  absent_days: number;
+  late_days: number;
+  percentage: number;
+}
+
+export interface AlumniEngagement {
+  id: string;
+  alumni_name: string;
+  graduation_year: string;
+  activity_type: string;
+  activity_date: string;
+  description: string;
+  amount?: number;
+}
+
+export type AlumniEventStatus = 'Upcoming' | 'Completed' | 'Cancelled';
+
+export interface AlumniEvent {
+  id: string;
+  event_name: string;
+  event_date: string;
+  location: string;
+  event_type: string;
+  expected_attendees: number;
+  status: AlumniEventStatus;
+  description: string;
+}
+
+// === REPORT / VIEW ENTITY TYPES ===
+
 export interface StaffIDCard {
   id: string;
   staff_id: string;
@@ -1168,27 +999,42 @@ export interface StaffIDCard {
   designation: string;
   photo_url?: string;
   joining_date: string;
-  phone: string;
-  email: string;
-  address: string;
+  phone?: string;
+  email?: string;
+  address?: string;
 }
 
-// Source: StudentBioDataPage.tsx
-export interface MedicalCondition {
+export interface StudentIDCard {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  photo_url?: string;
+  dob: string;
+  blood_group?: string;
+  emergency_contact?: string;
+  academic_year: string;
+}
+
+export interface StudentMedicalCondition {
   id: string;
   condition: string;
   diagnosis_date: string;
-  severity: 'Mild' | 'Moderate' | 'Severe';
-  treatment: string;
-  notes: string;
+  severity: string;
+  treatment?: string;
+  notes?: string;
 }
 
-export interface EmergencyContact {
+export interface StudentEmergencyContact {
   id: string;
   name: string;
   relationship: string;
   phone: string;
-  address: string;
+  address?: string;
   is_primary: boolean;
 }
 
@@ -1197,8 +1043,8 @@ export interface StudentDocument {
   document_type: string;
   document_number: string;
   issue_date: string;
-  expiry_date?: string;
   issuing_authority: string;
+  expiry_date?: string;
 }
 
 export interface StudentBioData {
@@ -1229,31 +1075,13 @@ export interface StudentBioData {
   guardian_name?: string;
   guardian_phone?: string;
   guardian_relationship?: string;
-  medical_conditions: MedicalCondition[];
-  emergency_contacts: EmergencyContact[];
+  medical_conditions: StudentMedicalCondition[];
+  emergency_contacts: StudentEmergencyContact[];
   documents: StudentDocument[];
   allergies: string[];
   created_at: string;
 }
 
-// Source: StudentIDCardsPage.tsx
-export interface StudentIDCard {
-  id: string;
-  student_id: string;
-  student_name: string;
-  admission_no: string;
-  class_id: string;
-  class_name: string;
-  section: string;
-  roll_number: string;
-  photo_url?: string;
-  dob: string;
-  blood_group: string;
-  emergency_contact: string;
-  academic_year: string;
-}
-
-// Source: TransferCertificatePage.tsx
 export interface TransferCertificateStudent {
   id: string;
   student_id: string;
@@ -1267,3 +1095,4 @@ export interface TransferCertificateStudent {
   date_of_birth: string;
   address: string;
 }
+

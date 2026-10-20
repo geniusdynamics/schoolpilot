@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /// <reference types="react" />
 // ABOUTME: Simplified data context that integrates with UnifiedDatabaseManager
 // ABOUTME: Provides consistent data access, loading states, error handling, and toast notifications
@@ -5,7 +7,14 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getCurrentUnifiedConfig, updateAppConfig } from '../config/unifiedConfig';
 import { UnifiedDatabaseManager } from '../services/database/UnifiedDatabaseManager';
-import type { AppDataContextType, AppDataLoadingStates } from '../core/types';
+import {
+  StorageUnavailableError,
+  STORAGE_OPEN_TIMEOUT_MS,
+  getSQLiteStorageStatus,
+  subscribeSQLiteStorageStatus
+} from '../services/database/SQLiteWASMProvider';
+import { StorageUnavailableScreen } from '../components/StorageUnavailableScreen';
+import type { AppDataContextType, AppDataLoadingStates, SchoolDetails } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
 import { NetworkStateManager, NetworkState } from '../services/data/NetworkStateManager';
 import { getDataModeManager } from '../services/data/dataModeManager';
@@ -14,12 +23,13 @@ import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
 import { moduleRegistry } from '../core/moduleRegistry';
 import {
   createAppDataLoadingState,
-  normalizeAppDataCollections
+  normalizeAppDataCollections,
+  type AppDataCollectionKey
 } from './appData/appDataCollections';
-import { BackupRestoreProvider, useBackupRestoreContext } from './appData/BackupRestoreContext';
-import { DataGenerationProvider, useDataGenerationContext } from './appData/DataGenerationContext';
-import { PaginationProvider, usePaginationContext } from './appData/PaginationContext';
-import { ValidationProvider, useValidationContext } from './appData/ValidationContext';
+import { usePaginationContext } from './appData/PaginationContext';
+import { useValidationContext } from './appData/ValidationContext';
+import { useBackupRestoreContext } from './appData/BackupRestoreContext';
+import { useDataGenerationContext } from './appData/DataGenerationContext';
 import {
   SystemDataProvider,
   AdministrationDataProvider,
@@ -98,74 +108,91 @@ export interface DataSourceConfig {
 
 export { createAppDataLoadingState, normalizeAppDataCollections } from './appData/appDataCollections';
 
-// Enhanced context type with database management and sync capabilities
-export interface EnhancedAppDataContextType extends AppDataContextType {
+// Data collections the provider normalizes from the database, typed by their augmented domain types.
+type AppDataCollectionValues = Pick<
+  AppDataContextType,
+  Extract<AppDataCollectionKey, keyof AppDataContextType>
+>;
+
+// Exact signature of a member shared with AppDataContextType, without copying it.
+type AppDataMember<K extends keyof AppDataContextType> = AppDataContextType[K];
+
+// Enhanced context type with database management and sync capabilities.
+// Every required member is provided by AppDataProvider; optional members are not
+// implemented there yet and consumers must handle their absence.
+export interface EnhancedAppDataContextType extends AppDataCollectionValues {
+  // Core data not modelled as a collection key
+  schoolDetails: SchoolDetails | null;
+
   // Database status
   isDatabaseModeActive: boolean;
   isOnline: boolean;
   appVersion: string;
   deploymentMode: string;
   providerType: string | null;
-  
+
   // Network state (from NetworkStateManager)
   backendAvailable: boolean;
   connectionQuality: 'excellent' | 'good' | 'poor' | 'offline';
   networkState: NetworkState | null;
-  
+
+  // Loading / error
+  loading: AppDataLoadingStates;
+  isLoading: boolean;
+  error: Error | null;
+  initializationError: Error | null;
+  rawInitialData: Record<string, any[]> | null;
+
   // Sync status
   syncStatus: SyncStatus;
-  
+
   // Database operations
   refreshData: () => Promise<void>;
-  backupData: () => Promise<any>;
-  restoreData: (backup: any) => Promise<void>;
-  clearAllData: () => Promise<void>;
-  
-  // Sync operations
-  forceSync: () => Promise<void>;
-  pauseSync: () => void;
-  resumeSync: () => void;
-  cancelSync: () => void;
-  
-  // Sync settings
-  getSyncSettings: () => SyncSettings;
-  updateSyncSettings: (settings: Partial<SyncSettings>) => void;
-  
-  // Collection statistics
   getCollectionStats: () => Promise<Array<{
     name: string;
     count: number;
     status: string;
     health: 'healthy' | 'warning' | 'error';
   }>>;
-  
+  backupData: () => Promise<any>;
+  restoreData: (backup: any) => Promise<void>;
+  clearAllData: () => Promise<void>;
+  getCollectionPage: <T = any>(collectionName: string, options: PaginationOptions) => Promise<PaginationResult<T>>;
+
+  // Sync operations
+  forceSync: () => Promise<void>;
+  pauseSync: () => void;
+  resumeSync: () => void;
+  cancelSync: () => void;
+
+  // Sync settings
+  getSyncSettings: () => SyncSettings;
+  updateSyncSettings: (settings: Partial<SyncSettings>) => void;
+
   // Enhanced data refresh (Task 4.4.1)
   refreshCollection: (collectionName: string) => Promise<void>;
   refreshDataWithProgress: (onProgress?: (progress: number) => void) => Promise<void>;
-  
-  // Pagination (Task 4.4.2)
-  getCollectionPage: <T = any>(collectionName: string, options: PaginationOptions) => Promise<PaginationResult<T>>;
-  
+
   // Memory management (Task 4.4.3)
   cleanupOldData: (daysOld?: number) => Promise<void>;
-  
+
   // Provider capabilities (Task 4.4.4)
   getProviderCapabilities: () => ProviderCapabilities;
-  
+
   // Data mode tracking (Task 4.4.5)
   currentDataMode: DataMode;
   dataSourceDescription: string;
-  
+
   // Data validation (Task 4.4.6)
   validateData: () => Promise<{
     isValid: boolean;
     issues: Array<{ severity: 'error' | 'warning' | 'info'; message: string; collection?: string }>;
   }>;
-  
+
   // Data strategy (Task 4.4.8)
   getDataSourceConfig: () => DataSourceConfig;
   updateDataStrategy: (strategy: DataStrategy) => void;
-  
+
   // Data generation (Task 5)
   generateData: (options?: {
     modules?: string[];
@@ -174,12 +201,99 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
     includeTestData?: boolean;
     clearExisting?: boolean;
   }) => Promise<{ success: boolean; stats?: any; error?: string }>;
-  
+
   seedDatabase: (seedConfig?: {
     dataMode?: 'demo' | 'development' | 'production';
     modules?: string[];
     volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }) => Promise<{ success: boolean; message: string; stats?: any }>;
+
+  // Sync/conflict surface consumed by settings & feature UIs
+  pendingSyncCount: number;
+  conflicts?: any[];
+  resolveConflict?: (conflictId: any, resolution: any) => Promise<void>;
+  resolveAllConflicts?: (strategy?: string) => Promise<void>;
+  dataSource: string;
+
+  // Domain arrays not covered by module augmentations
+  academic_years?: any[];
+  exams?: any[];
+  feeStructures?: any[];
+  payments?: any[];
+  invoices?: any[];
+  workflows?: any[];
+  modules?: any[];
+  auditLogs?: any[];
+  vendors?: any[];
+  schoolProfile?: any;
+  student_clearances?: any[];
+  student_clearance_requests?: any[];
+
+  // Domain CRUD provided by AppDataProvider, typed exactly as the module augmentation
+  addStudent: AppDataMember<'addStudent'>;
+  updateStudent: AppDataMember<'updateStudent'>;
+  deleteStudent: AppDataMember<'deleteStudent'>;
+  addStaff: AppDataMember<'addStaff'>;
+  updateStaff: AppDataMember<'updateStaff'>;
+  deleteStaff: AppDataMember<'deleteStaff'>;
+  addClass: AppDataMember<'addClass'>;
+  updateClass: AppDataMember<'updateClass'>;
+  deleteClass: AppDataMember<'deleteClass'>;
+  addClassStream: AppDataMember<'addClassStream'>;
+  updateClassStream: AppDataMember<'updateClassStream'>;
+  deleteClassStream: AppDataMember<'deleteClassStream'>;
+  addDepartment: AppDataMember<'addDepartment'>;
+  updateDepartment: AppDataMember<'updateDepartment'>;
+  deleteDepartment: AppDataMember<'deleteDepartment'>;
+  addAcademicYear: AppDataMember<'addAcademicYear'>;
+  updateAcademicYear: AppDataMember<'updateAcademicYear'>;
+  deleteAcademicYear: AppDataMember<'deleteAcademicYear'>;
+  addAcademicYearStructure: AppDataMember<'addAcademicYearStructure'>;
+  updateAcademicYearStructure: AppDataMember<'updateAcademicYearStructure'>;
+  deleteAcademicYearStructure: AppDataMember<'deleteAcademicYearStructure'>;
+  addAcademicPeriodDefinition: AppDataMember<'addAcademicPeriodDefinition'>;
+  updateAcademicPeriodDefinition: AppDataMember<'updateAcademicPeriodDefinition'>;
+  deleteAcademicPeriodDefinition: AppDataMember<'deleteAcademicPeriodDefinition'>;
+  saveStudentAttendance: AppDataMember<'saveStudentAttendance'>;
+  getStudentAttendanceByFilters: AppDataMember<'getStudentAttendanceByFilters'>;
+  addExamSession: AppDataMember<'addExamSession'>;
+  updateExamSession: AppDataMember<'updateExamSession'>;
+  deleteExamSession: AppDataMember<'deleteExamSession'>;
+  addExamPaperSetting: AppDataMember<'addExamPaperSetting'>;
+  updateExamPaperSetting: AppDataMember<'updateExamPaperSetting'>;
+  deleteExamPaperSetting: AppDataMember<'deleteExamPaperSetting'>;
+  saveStudentExamResult: AppDataMember<'saveStudentExamResult'>;
+  getTimetablePeriodDefs: AppDataMember<'getTimetablePeriodDefs'>;
+  getTimetableEntries: AppDataMember<'getTimetableEntries'>;
+  addTimetableEntry: AppDataMember<'addTimetableEntry'>;
+  updateTimetableEntry: AppDataMember<'updateTimetableEntry'>;
+  deleteTimetableEntry: AppDataMember<'deleteTimetableEntry'>;
+  addBank: AppDataMember<'addBank'>;
+  updateBank: AppDataMember<'updateBank'>;
+  deleteBank: AppDataMember<'deleteBank'>;
+  addChartOfAccount: AppDataMember<'addChartOfAccount'>;
+  updateChartOfAccount: AppDataMember<'updateChartOfAccount'>;
+  deleteChartOfAccount: AppDataMember<'deleteChartOfAccount'>;
+  addFeeTemplate: AppDataMember<'addFeeTemplate'>;
+  updateFeeTemplate: AppDataMember<'updateFeeTemplate'>;
+  deleteFeeTemplate: AppDataMember<'deleteFeeTemplate'>;
+  recordStudentPayment: AppDataMember<'recordStudentPayment'>;
+  addFeeAdjustment: (item: any) => Promise<any>;
+  updateFeeAdjustment: (id: string, data: any) => Promise<any>;
+  deleteFeeAdjustment: (id: string) => Promise<void>;
+
+  // System roles provided by AppDataProvider
+  addRole: (role: any) => Promise<any>;
+  updateRole: (id: string, data: Partial<any>) => Promise<any>;
+  deleteRole: (id: string) => Promise<void>;
+
+  // Data strategy hooks consumed by legacy CRUD factories (not wired by the provider yet)
+  dataStrategy?: any;
+  dataStrategyManager?: any;
+
+  // Legacy compatibility
+  refresh: () => Promise<void>;
+  isRxDBModeActive: boolean;
 }
 
 // Create the context with a default undefined value
@@ -196,27 +310,54 @@ export const hasAppDataContextContract = (
   );
 };
 
-// Simplified provider component that uses UnifiedDatabaseManager
-const AppDataValueProvider: React.FC<{
-  children: ReactNode;
-  coreValue: Partial<AppDataContextType>;
-}> = ({ children, coreValue }) => {
+/** Database init budget: longer than the storage worker's open timeout so a slow OPFS open can finish. */
+export const APP_DATA_INIT_TIMEOUT_MS = STORAGE_OPEN_TIMEOUT_MS + 15000;
 
-  const { getCollectionPage } = usePaginationContext();
-  const { validateData } = useValidationContext();
-
-  const value = useMemo(() => ({
-    ...coreValue,
-    validateData
-  }), [
-    coreValue,
-    validateData
-  ]) as AppDataContextType;
-
-  return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
+/** Coerces numeric ids and *_id references to strings in place (handles legacy data). */
+const normalizeDocIds = (docs: any[]): any[] => {
+  for (const doc of docs) {
+    if (!doc || typeof doc !== 'object') continue;
+    if (doc.id != null) doc.id = String(doc.id);
+    for (const k of Object.keys(doc)) {
+      if (k.endsWith('_id') && typeof doc[k] === 'number') doc[k] = String(doc[k]);
+    }
+  }
+  return docs;
 };
 
+/**
+ * Derives display labels for class streams when denormalized fields were not
+ * persisted (class_name/class_teacher_name are display-only columns that
+ * schema-driven providers may drop). Every combobox label benefits.
+ */
+const deriveStreamLabels = (loadedData: Record<string, any[]>): void => {
+  const streams = loadedData['class_streams'];
+  const classList = loadedData['classes'];
+  const staffList = loadedData['staff'];
+  if (!Array.isArray(streams) || streams.length === 0) return;
+  const classNameById = new Map(((classList || []) as any[]).map((c) => [String(c.id), c.name]));
+  const staffNameById = new Map(
+    ((staffList || []) as any[]).map((s) => [String(s.id), [s.first_name, s.last_name].filter(Boolean).join(' ')])
+  );
+  for (const stream of streams as any[]) {
+    if (!stream.class_name && stream.class_id != null) {
+      stream.class_name = classNameById.get(String(stream.class_id)) || undefined;
+    }
+    if (!stream.class_teacher_name && stream.class_teacher_id != null) {
+      stream.class_teacher_name = staffNameById.get(String(stream.class_teacher_id)) || undefined;
+    }
+  }
+};
+
+/** Change events arriving within this window are coalesced into one read per collection. */
+export const LIVE_REFRESH_DEBOUNCE_MS = 30;
+
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { getCollectionPage } = usePaginationContext();
+  const { validateData } = useValidationContext();
+  const { backupData, restoreData, clearAllData } = useBackupRestoreContext();
+  const { generateData, seedDatabase } = useDataGenerationContext();
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -251,7 +392,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         };
       }
     } catch (err) {
-      console.warn('Failed to load sync settings:', err);
+      logger.warn('Failed to load sync settings:', err);
     }
     return {
       autoSync: unifiedSync.enabled,
@@ -273,7 +414,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return stored as DataStrategy;
       }
     } catch (err) {
-      console.warn('Failed to load data strategy:', err);
+      logger.warn('Failed to load data strategy:', err);
     }
     return 'offline-first';
   });
@@ -300,13 +441,21 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const initializeDatabase = async () => {
       try {
-        console.log('ðŸš€ [AppDataContext] Starting database initialization...');
+        logger.info('🚀 [AppDataContext] Starting database initialization...');
         setIsLoading(true);
         setIsInitialized(false);
 
         const initPromise = dbManager.initialize();
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database initialization timeout')), 15000);
+          setTimeout(() => {
+            // A SQLite store that never finished opening has no persistent storage.
+            const status = getSQLiteStorageStatus();
+            const opening = dbManager.getProviderType() === 'sqlite-wasm' &&
+              (status.mode === 'uninitialised' || status.mode === 'unavailable');
+            reject(opening
+              ? new StorageUnavailableError('Persistent storage did not open in time (it may be locked by another tab)')
+              : new Error('Database initialization timeout'));
+          }, APP_DATA_INIT_TIMEOUT_MS);
         });
 
         await Promise.race([initPromise, timeoutPromise]);
@@ -326,7 +475,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         // Warn if running with mock provider (should not happen in normal operation)
         const providerType = dbManager.getProviderType();
         if (providerType === 'mock' || providerType === 'MockProvider') {
-          console.warn('⚠️ [AppDataContext] Running with mock provider - data will not persist!');
+          logger.warn('⚠️ [AppDataContext] Running with mock provider - data will not persist!');
         }
 
         const loadPromise = loadAllCollections();
@@ -339,11 +488,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (mounted) {
           setIsInitialized(true);
           setIsLoading(false);
-          console.log('âœ… [AppDataContext] Database initialized successfully');
+          logger.info('✅ [AppDataContext] Database initialized successfully');
           toast.showSuccess('Database initialized successfully');
         }
       } catch (err) {
-        console.warn('âš ï¸ [AppDataContext] Database init failed/timed out, continuing without DB:', err);
+        logger.warn('⚠️ [AppDataContext] Database init failed/timed out, continuing without DB:', err);
         if (mounted) {
           setIsInitialized(false);
           setIsLoading(false);
@@ -357,7 +506,23 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       mounted = false;
     };
+    // Initialisation runs once per data mode; loadAllCollections is read when it runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.dataMode, dbManager, toast]);
+
+  // A write that fails to persist makes storage unavailable: block the app.
+  useEffect(() => {
+    const check = () => {
+      const status = getSQLiteStorageStatus();
+      if (status.mode === 'unavailable') {
+        setError((current) => current instanceof StorageUnavailableError
+          ? current
+          : new StorageUnavailableError(status.error || 'Persistent storage is unavailable'));
+      }
+    };
+    check();
+    return subscribeSQLiteStorageStatus(check);
+  }, []);
 
   // Store sync settings in ref to avoid dependency
   const syncSettingsRef = useRef(syncSettings);
@@ -381,14 +546,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       return;
     }
 
-    console.log(`ðŸ”„ [AppDataContext] Setting up automatic sync (interval: ${syncSettingsRef.current.syncInterval}ms)`);
+    logger.info(`🔄 [AppDataContext] Setting up automatic sync (interval: ${syncSettingsRef.current.syncInterval}ms)`);
 
     // Set up interval for automatic sync
     syncIntervalRef.current = setInterval(() => {
       if (isOnline && networkState?.backendAvailable && syncStatus.state !== 'paused' && !isSyncingRef.current && performSyncRef.current) {
-        console.log('ðŸ”„ [AppDataContext] Automatic sync triggered');
+        logger.info('🔄 [AppDataContext] Automatic sync triggered');
         performSyncRef.current().catch(err => {
-          console.error('Automatic sync failed:', err);
+          logger.error('Automatic sync failed:', err);
         });
       }
     }, syncSettingsRef.current.syncInterval);
@@ -401,7 +566,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
   }, [isInitialized, isOnline, networkState?.backendAvailable, syncStatus.state, dbManager]);
 
-  // Load data from all collections
+  // Load data from all collections + Phase 2 orphan repair (students with missing class_stream_id → reassign)
   const loadAllCollections = useCallback(async () => {
     try {
       const collections = dbManager.getAllCollections();
@@ -414,14 +579,78 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
             loadedData[name] = docs;
           }
         } catch (err) {
-          console.warn(`Failed to load collection ${name}:`, err);
+          logger.warn(`Failed to load collection ${name}:`, err);
           loadedData[name] = [];
         }
       }
 
+      // Phase 2: ID normalization – coerce numeric ids to strings in-memory (handles legacy data)
+      for (const docs of Object.values(loadedData)) {
+        normalizeDocIds(docs);
+      }
+
+      // Orphan repair: students referencing missing class_stream
+      const streams = loadedData['class_streams'] || [];
+      const streamIds = new Set(streams.map((s: any) => String(s.id)));
+      const fallbackStreamId = streams[0] ? String(streams[0].id) : null;
+      const students = loadedData['students'];
+      if (Array.isArray(students) && streamIds.size > 0) {
+        let repaired = 0;
+        let droppedOptional = 0;
+        for (const s of students as any[]) {
+          const raw = s.current_class_stream_id ?? s.class_stream_id;
+          if (raw == null || raw === '') {
+            if (fallbackStreamId) {
+              logger.warn(`[AppDataContext] Student ${s.id} missing class_stream_id → reassigning to ${fallbackStreamId}`);
+              s.current_class_stream_id = fallbackStreamId;
+              repaired++;
+            }
+          } else if (!streamIds.has(String(raw))) {
+            logger.warn(`[AppDataContext] Student ${s.id} orphan class_stream_id=${raw} → reassigning to ${fallbackStreamId}`);
+            if (fallbackStreamId) {
+              s.current_class_stream_id = fallbackStreamId;
+              repaired++;
+            }
+          }
+        }
+        // Drop orphans in dependent tables that reference missing students (soft repair: log warnings)
+        const studentIds = new Set((students as any[]).map((s: any) => String(s.id)));
+        const orphanChecks: Array<[string, string]> = [
+          ['certificate_requests', 'student_id'],
+          ['gate_passes', 'student_id'],
+          ['visitor_logs', 'student_id'],
+          ['disciplinary_cases', 'student_id'],
+          ['disciplinary_records', 'student_id'],
+          ['student_health_records', 'student_id'],
+          ['student_attendance', 'student_id'],
+        ];
+        for (const [coll, fk] of orphanChecks) {
+          const docs = loadedData[coll];
+          if (!Array.isArray(docs)) continue;
+          const before = docs.length;
+          const filtered = (docs as any[]).filter((d: any) => {
+            const fkVal = d[fk];
+            if (fkVal == null) return true; // optional FK
+            return studentIds.has(String(fkVal));
+          });
+          if (filtered.length < before) {
+            logger.warn(`[AppDataContext] Dropping ${before - filtered.length} orphan(s) in ${coll} (missing ${fk})`);
+            loadedData[coll] = filtered;
+            droppedOptional++;
+          }
+        }
+        if (repaired > 0 || droppedOptional > 0) {
+          logger.info(`[AppDataContext] Orphan repair: ${repaired} students reassigned, ${droppedOptional} collections pruned`);
+        }
+      } else if (Array.isArray(students) && fallbackStreamId == null) {
+        logger.warn('[AppDataContext] No class_streams available – cannot repair student orphans');
+      }
+
+      deriveStreamLabels(loadedData);
+
       setData(loadedData);
     } catch (err) {
-      console.error('Failed to load collections:', err);
+      logger.error('Failed to load collections:', err);
     }
   }, [dbManager]);
 
@@ -429,7 +658,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const dataModeManager = getDataModeManager();
     const refreshFromEvent = () => {
       loadAllCollections().catch((err) => {
-        console.error('Failed to refresh collections after data mode change:', err);
+        logger.error('Failed to refresh collections after data mode change:', err);
       });
     };
 
@@ -444,6 +673,62 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
   }, [loadAllCollections]);
 
+  // Live shared lookups (SO-26): any write through any hook emits a collection change
+  // event; re-read only the affected collections so every picker stays current.
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    let disposed = false;
+    const pending = new Set<string>();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const flush = async () => {
+      timer = null;
+      const names = Array.from(pending);
+      pending.clear();
+      const fresh: Record<string, any[]> = {};
+      for (const name of names) {
+        const collection = dbManager.getCollection<any>(name);
+        if (!collection || typeof collection.find !== 'function') continue;
+        try {
+          fresh[name] = normalizeDocIds(await collection.find({}));
+        } catch (err) {
+          logger.warn(`[AppDataContext] Live refresh of ${name} failed:`, err);
+        }
+      }
+      if (disposed || Object.keys(fresh).length === 0) return;
+      setData((prev) => {
+        const next = { ...prev, ...fresh };
+        if ('class_streams' in fresh || 'classes' in fresh || 'staff' in fresh) {
+          if (!('class_streams' in fresh) && Array.isArray(next.class_streams)) {
+            next.class_streams = next.class_streams.map((stream) => ({ ...stream }));
+          }
+          deriveStreamLabels(next);
+        }
+        return next;
+      });
+    };
+
+    const subscriptions: Array<{ unsubscribe: () => void }> = [];
+    for (const [name, collection] of dbManager.getAllCollections()) {
+      if (!collection || typeof collection.subscribeToChanges !== 'function') continue;
+      try {
+        subscriptions.push(collection.subscribeToChanges().subscribe(() => {
+          pending.add(name);
+          if (!timer) timer = setTimeout(() => { void flush(); }, LIVE_REFRESH_DEBOUNCE_MS);
+        }));
+      } catch (err) {
+        logger.warn(`[AppDataContext] Could not watch ${name} for changes:`, err);
+      }
+    }
+
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+      subscriptions.forEach((subscription) => subscription.unsubscribe());
+    };
+  }, [isInitialized, dbManager]);
+
   // Refresh all data
   const refreshData = useCallback(async () => {
     try {
@@ -456,20 +741,19 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [loadAllCollections, toast]); // Added toast to dependencies
 
-
   // Get collection statistics
   const getCollectionStats = useCallback(async () => {
     try {
       return await dbManager.getCollectionStatistics();
     } catch (err) {
-      console.error('Failed to get collection stats:', err);
+      logger.error('Failed to get collection stats:', err);
       return [];
     }
   }, [dbManager]);
 
   // Perform sync operation
   const performSync = useCallback(async () => {
-    console.log('ðŸ”„ [DEBUG] performSync called with:', { 
+    logger.info('🔄 [DEBUG] performSync called with:', { 
       isOnline, 
       backendAvailable: networkState?.backendAvailable, 
       syncState: syncStatus.state 
@@ -478,22 +762,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Only sync if provider supports it (backend-api or pouchdb)
     const providerType = dbManager.getProviderType();
     if (providerType !== 'backend-api' && providerType !== 'pouchdb') {
-      console.log('â„¹ï¸ [AppDataContext] Sync not supported for provider:', providerType);
+      logger.info('ℹ️ [AppDataContext] Sync not supported for provider:', providerType);
       return;
     }
 
     if (!isOnline || !networkState?.backendAvailable) {
-      console.log('â„¹ï¸ [AppDataContext] Skipping sync - offline or backend unavailable');
+      logger.info('ℹ️ [AppDataContext] Skipping sync - offline or backend unavailable');
       return;
     }
 
     if (isSyncingRef.current) {
-      console.log('â„¹ï¸ [AppDataContext] Sync already in progress');
+      logger.info('ℹ️ [AppDataContext] Sync already in progress');
       return;
     }
 
     if (syncStatus.state === 'paused') {
-      console.log('â„¹ï¸ [AppDataContext] Sync is paused');
+      logger.info('ℹ️ [AppDataContext] Sync is paused');
       return;
     }
 
@@ -506,7 +790,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         lastError: null
       }));
 
-      console.log('ðŸ”„ [AppDataContext] Starting sync...');
+      logger.info('🔄 [AppDataContext] Starting sync...');
       
       // Get the current provider and check if it has sync capability
       const provider = dbManager.getCurrentProvider();
@@ -524,14 +808,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           lastError: null
         }));
         
-        console.log('âœ… [AppDataContext] Sync completed successfully');
+        logger.info('✅ [AppDataContext] Sync completed successfully');
         toast.showSuccess('Data synchronized successfully');
       } else {
-        console.warn('âš ï¸ [AppDataContext] Provider does not support sync');
+        logger.warn('⚠️ [AppDataContext] Provider does not support sync');
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.error('âŒ [AppDataContext] Sync failed:', error);
+      logger.error('❌ [AppDataContext] Sync failed:', error);
       
       setSyncStatus(prev => ({
         ...prev,
@@ -558,16 +842,19 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Subscribe to NetworkStateManager
+    // Subscribe to NetworkStateManager — only sync on actual reconnection (offline→online)
+    let wasOnline = navigator.onLine;
     const unsubscribe = networkManager.subscribe((state) => {
+      const wasOnlinePrev = wasOnline;
+      wasOnline = state.isOnline;
       setNetworkState(state);
       setIsOnline(state.isOnline);
       
-      // Trigger sync on network reconnection if auto-sync is enabled
-      if (state.isOnline && syncSettingsRef.current.autoSync && !isSyncingRef.current && performSyncRef.current) {
-        console.log('ðŸ”„ [AppDataContext] Network reconnected, triggering sync...');
+      // Only trigger sync on transition from offline to online
+      if (!wasOnlinePrev && state.isOnline && syncSettingsRef.current.autoSync && !isSyncingRef.current && performSyncRef.current) {
+        logger.info('🔄 [AppDataContext] Network reconnected, triggering sync...');
         performSyncRef.current().catch(err => {
-          console.error('Auto-sync on reconnection failed:', err);
+          logger.error('Auto-sync on reconnection failed:', err);
         });
       }
     });
@@ -581,27 +868,27 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Force sync
   const forceSync = useCallback(async () => {
-    console.log('ðŸ”„ [AppDataContext] Force sync requested');
+    logger.info('🔄 [AppDataContext] Force sync requested');
     await performSync();
   }, [performSync]);
 
   // Pause sync
   const pauseSync = useCallback(() => {
-    console.log('â¸ï¸ [AppDataContext] Sync paused');
+    logger.info('⏸️ [AppDataContext] Sync paused');
     setSyncStatus(prev => ({ ...prev, state: 'paused' }));
     toast.showInfo('Automatic sync paused');
   }, [toast]);
 
   // Resume sync
   const resumeSync = useCallback(() => {
-    console.log('â–¶ï¸ [AppDataContext] Sync resumed');
+    logger.info('▶️ [AppDataContext] Sync resumed');
     setSyncStatus(prev => ({ ...prev, state: 'idle' }));
     toast.showInfo('Automatic sync resumed');
     
     // Trigger immediate sync if online
     if (isOnline && networkState?.backendAvailable) {
       performSync().catch(err => {
-        console.error('Sync on resume failed:', err);
+        logger.error('Sync on resume failed:', err);
       });
     }
   }, [isOnline, networkState, performSync, toast]);
@@ -609,7 +896,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Cancel sync
   const cancelSync = useCallback(() => {
     if (isSyncingRef.current) {
-      console.log('ðŸ›‘ [AppDataContext] Sync cancelled');
+      logger.info('🛑 [AppDataContext] Sync cancelled');
       isSyncingRef.current = false;
       setSyncStatus(prev => ({ ...prev, state: 'idle', progress: 0 }));
       toast.showWarning('Sync cancelled');
@@ -629,7 +916,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       try {
         localStorage.setItem('sync-settings', JSON.stringify(updated));
       } catch (err) {
-        console.warn('Failed to save sync settings:', err);
+        logger.warn('Failed to save sync settings:', err);
       }
 
       const currentConfig = getCurrentUnifiedConfig();
@@ -674,7 +961,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
 
-      console.log(`ðŸ”„ [AppDataContext] Refreshing collection: ${collectionName}`);
+      logger.info(`🔄 [AppDataContext] Refreshing collection: ${collectionName}`);
       
       if (typeof collection.find === 'function') {
         const docs = await collection.find({});
@@ -684,7 +971,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : `Failed to refresh ${collectionName}`;
-      console.error(`Failed to refresh collection ${collectionName}:`, err);
+      logger.error(`Failed to refresh collection ${collectionName}:`, err);
       toast.showError(errorMessage);
       throw err;
     }
@@ -706,7 +993,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
             loadedData[name] = docs;
           }
         } catch (err) {
-          console.warn(`Failed to load collection ${name}:`, err);
+          logger.warn(`Failed to load collection ${name}:`, err);
           loadedData[name] = [];
         }
 
@@ -726,12 +1013,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dbManager, toast]);
 
-  const { getCollectionPage } = usePaginationContext();
+  usePaginationContext();
 
   // Task 4.4.3: Memory management - Cleanup old data
   const cleanupOldData = useCallback(async (daysOld: number = 30) => {
     try {
-      console.log(`ðŸ—‘ï¸ [AppDataContext] Cleaning up data older than ${daysOld} days...`);
+      logger.info(`🗑️ [AppDataContext] Cleaning up data older than ${daysOld} days...`);
       toast.showInfo(`Cleaning up data older than ${daysOld} days...`);
 
       const cutoffDate = new Date();
@@ -760,21 +1047,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
             }
           }
         } catch (err) {
-          console.warn(`Failed to cleanup collection ${name}:`, err);
+          logger.warn(`Failed to cleanup collection ${name}:`, err);
         }
       }
 
-      console.log(`âœ… [AppDataContext] Cleaned up ${totalCleaned} old records`);
+      logger.info(`✅ [AppDataContext] Cleaned up ${totalCleaned} old records`);
       toast.showSuccess(`Cleaned up ${totalCleaned} old records`);
       
       // Refresh data after cleanup
       await loadAllCollections();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to cleanup old data';
-      console.error('Cleanup failed:', err);
+      logger.error('Cleanup failed:', err);
       toast.showError(errorMessage);
       throw err;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
 
   // Task 4.4.4: Provider capability detection
@@ -847,7 +1135,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return `Hybrid mode - Local ${providerType} with limited connectivity`;
   }, [dbManager, currentDataMode]);
 
-  const { validateData } = useValidationContext();
+  useValidationContext();
 
   // Task 4.4.8: Data strategy configuration
   const getDataSourceConfig = useCallback((): DataSourceConfig => {
@@ -870,14 +1158,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     try {
       localStorage.setItem('data-strategy', newStrategy);
     } catch (err) {
-      console.warn('Failed to save data strategy:', err);
+      logger.warn('Failed to save data strategy:', err);
     }
 
     toast.showSuccess(`Data strategy updated to: ${newStrategy}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.environment]); // Removed toast to prevent re-render loop
 
   // ========== Task 5: Migrate Mock Data System to Database ==========
-
 
 
   const getTimetablePeriodDefs = useCallback(() => {
@@ -1080,14 +1368,47 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         student_exam_result_id: existingResult?.id || resultData.id || '',
         subject_name: mark.subject_name || paper?.subject_name || null,
         subject_paper_name: mark.subject_paper_name || paper?.subject_paper_name || null,
-        marks_out_of: mark.marks_out_of ?? paper?.marks_out_of ?? null
+        marks_out_of: mark.marks_out_of ?? paper?.marks_out_of ?? null,
+        weight_percentage: mark.weight_percentage ?? paper?.weight_percentage ?? null
       };
     });
+
+    const totalMarks = (() => {
+      if (marks.length === 0) return 0;
+      let weightedSum = 0;
+      let totalWeight = 0;
+      for (const mark of marks) {
+        if (mark.score == null) continue;
+        const marksOutOf = mark.marks_out_of;
+        if (!marksOutOf || marksOutOf <= 0) {
+          weightedSum += Number(mark.score);
+          totalWeight += 1;
+          continue;
+        }
+        const normalizedScore = (Number(mark.score) / marksOutOf) * 100;
+        const weightPct = mark.weight_percentage;
+        if (weightPct != null && weightPct > 0) {
+          weightedSum += normalizedScore * (weightPct / 100);
+          totalWeight += weightPct / 100;
+        } else {
+          weightedSum += normalizedScore;
+          totalWeight += 1;
+        }
+      }
+      // If all papers have weight_percentage, rescale to a 0-100 weighted average
+      if (totalWeight > 0) {
+        return Number((weightedSum / totalWeight).toFixed(2));
+      }
+      return 0;
+    })();
+
     const nextResult = {
       ...existingResult,
       ...resultData,
       id: existingResult?.id || resultData.id || `exam-result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       marks,
+      total_marks: totalMarks,
+      mean_grade: resultData.mean_grade ?? (totalMarks > 0 ? totalMarks.toFixed(1) : null),
       student_name: resultData.student_name || (student ? `${student.first_name || ''} ${student.last_name || ''}`.trim() : null),
       admission_no: resultData.admission_no || student?.admission_no || null,
       class_name: resultData.class_name || classStream?.class_name || student?.current_class_name || null,
@@ -1167,6 +1488,29 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     throw new Error('timetable_entries collection not available');
   }, [dbManager, loadAllCollections]);
 
+  /**
+   * Applies a partial update and returns the stored document, so provider mutators
+   * keep the `(id, patch) => entity` contract callers rely on.
+   */
+  const updateCollectionDocument = useCallback(async (
+    collectionName: string,
+    id: string,
+    patch: Record<string, any>
+  ): Promise<any> => {
+    const collection = dbManager.getCollection<any>(collectionName);
+    if (!collection?.update) {
+      throw new Error(`${collectionName} collection not available`);
+    }
+
+    const result = await collection.update(id, patch);
+    await loadAllCollections();
+    const updated = result.doc ?? await collection.findById(id);
+    if (!updated) {
+      throw new Error(`Updated ${collectionName} document ${id} not found`);
+    }
+    return updated;
+  }, [dbManager, loadAllCollections]);
+
   // ===== FINANCE CRUD OPERATIONS =====
   
   // Banks
@@ -1182,14 +1526,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateBank = useCallback(async (bankId: string, bankData: any) => {
-    const collection = dbManager.getCollection('banks');
-    if (collection?.update) {
-      const result = await collection.update(bankId, { ...bankData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Banks collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('banks', bankId, { ...bankData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteBank = useCallback(async (bankId: string) => {
     const collection = dbManager.getCollection('banks');
@@ -1271,6 +1609,31 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     throw new Error('Student payments collection not available');
   }, [dbManager, loadAllCollections]);
 
+  // Fee Adjustments
+  const addFeeAdjustment = useCallback(async (adjustmentData: any) => {
+    const collection = dbManager.getCollection<any>('fee_adjustments');
+    if (!collection) {
+      throw new Error('Fee adjustments collection not available');
+    }
+    const newAdjustment = { ...adjustmentData, id: adjustmentData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newAdjustment);
+    await loadAllCollections();
+    return newAdjustment;
+  }, [dbManager, loadAllCollections]);
+
+  const updateFeeAdjustment = useCallback(async (adjustmentId: string, adjustmentData: any) => {
+    return updateCollectionDocument('fee_adjustments', adjustmentId, { ...adjustmentData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteFeeAdjustment = useCallback(async (adjustmentId: string) => {
+    const collection = dbManager.getCollection('fee_adjustments');
+    if (!collection?.remove) {
+      throw new Error('Fee adjustments collection not available');
+    }
+    await collection.remove(adjustmentId);
+    await loadAllCollections();
+  }, [dbManager, loadAllCollections]);
+
   // ===== ADMINISTRATION CRUD OPERATIONS =====
 
   // Students
@@ -1286,14 +1649,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateStudent = useCallback(async (studentId: string, studentData: any) => {
-    const collection = dbManager.getCollection('students');
-    if (collection?.update) {
-      const result = await collection.update(studentId, { ...studentData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Students collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('students', studentId, { ...studentData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteStudent = useCallback(async (studentId: string) => {
     const collection = dbManager.getCollection('students');
@@ -1316,14 +1673,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateStaff = useCallback(async (staffId: string, staffData: any) => {
-    const collection = dbManager.getCollection('staff');
-    if (collection?.update) {
-      const result = await collection.update(staffId, { ...staffData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Staff collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('staff', staffId, { ...staffData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteStaff = useCallback(async (staffId: string) => {
     const collection = dbManager.getCollection('staff');
@@ -1346,14 +1697,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateClass = useCallback(async (classId: string, classData: any) => {
-    const collection = dbManager.getCollection('classes');
-    if (collection?.update) {
-      const result = await collection.update(classId, { ...classData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Classes collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('classes', classId, { ...classData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteClass = useCallback(async (classId: string) => {
     const collection = dbManager.getCollection('classes');
@@ -1376,14 +1721,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateClassStream = useCallback(async (streamId: string, streamData: any) => {
-    const collection = dbManager.getCollection('class_streams');
-    if (collection?.update) {
-      const result = await collection.update(streamId, { ...streamData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Class streams collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('class_streams', streamId, { ...streamData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteClassStream = useCallback(async (streamId: string) => {
     const collection = dbManager.getCollection('class_streams');
@@ -1406,14 +1745,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dbManager, loadAllCollections]);
 
   const updateDepartment = useCallback(async (deptId: string, deptData: any) => {
-    const collection = dbManager.getCollection('departments');
-    if (collection?.update) {
-      const result = await collection.update(deptId, { ...deptData, updated_at: new Date().toISOString() });
-      await loadAllCollections();
-      return result;
-    }
-    throw new Error('Departments collection not available');
-  }, [dbManager, loadAllCollections]);
+    return updateCollectionDocument('departments', deptId, { ...deptData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
 
   const deleteDepartment = useCallback(async (deptId: string) => {
     const collection = dbManager.getCollection('departments');
@@ -1421,6 +1754,32 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       await collection.remove(deptId);
       await loadAllCollections();
     }
+  }, [dbManager, loadAllCollections]);
+
+  // Roles
+  const addRole = useCallback(async (roleData: any) => {
+    const collection = dbManager.getCollection<any>('roles');
+    if (!collection) {
+      throw new Error('Roles collection not available');
+    }
+    const newRole = { ...roleData, id: roleData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newRole);
+    await loadAllCollections();
+    return newRole;
+  }, [dbManager, loadAllCollections]);
+
+  const updateRole = useCallback(async (roleId: string, roleData: any) => {
+    return updateCollectionDocument('roles', roleId, { ...roleData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteRole = useCallback(async (roleId: string) => {
+    const collection = dbManager.getCollection<any>('roles');
+    if (collection?.remove) {
+      await collection.remove(roleId);
+      await loadAllCollections();
+      return;
+    }
+    throw new Error('Roles collection not available');
   }, [dbManager, loadAllCollections]);
 
   // Academic Years
@@ -1453,10 +1812,60 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dbManager, loadAllCollections]);
 
+  // Academic Year Structures
+  const addAcademicYearStructure = useCallback(async (structureData: any) => {
+    const collection = dbManager.getCollection<any>('academic_year_structures');
+    if (!collection) {
+      throw new Error('Academic year structures collection not available');
+    }
+    const newStructure = { ...structureData, id: structureData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newStructure);
+    await loadAllCollections();
+    return newStructure;
+  }, [dbManager, loadAllCollections]);
+
+  const updateAcademicYearStructure = useCallback(async (structureId: string, structureData: any) => {
+    return updateCollectionDocument('academic_year_structures', structureId, { ...structureData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteAcademicYearStructure = useCallback(async (structureId: string) => {
+    const collection = dbManager.getCollection('academic_year_structures');
+    if (!collection?.remove) {
+      throw new Error('Academic year structures collection not available');
+    }
+    await collection.remove(structureId);
+    await loadAllCollections();
+  }, [dbManager, loadAllCollections]);
+
+  // Academic Period Definitions
+  const addAcademicPeriodDefinition = useCallback(async (definitionData: any) => {
+    const collection = dbManager.getCollection<any>('academic_period_definitions');
+    if (!collection) {
+      throw new Error('Academic period definitions collection not available');
+    }
+    const newDefinition = { ...definitionData, id: definitionData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await collection.insert(newDefinition);
+    await loadAllCollections();
+    return newDefinition;
+  }, [dbManager, loadAllCollections]);
+
+  const updateAcademicPeriodDefinition = useCallback(async (definitionId: string, definitionData: any) => {
+    return updateCollectionDocument('academic_period_definitions', definitionId, { ...definitionData, updated_at: new Date().toISOString() });
+  }, [updateCollectionDocument]);
+
+  const deleteAcademicPeriodDefinition = useCallback(async (definitionId: string) => {
+    const collection = dbManager.getCollection('academic_period_definitions');
+    if (!collection?.remove) {
+      throw new Error('Academic period definitions collection not available');
+    }
+    await collection.remove(definitionId);
+    await loadAllCollections();
+  }, [dbManager, loadAllCollections]);
+
   // Listen for data changed events from decoupled providers
   useEffect(() => {
     const handleDataChanged = () => {
-      console.log('ðŸ”„ [AppDataContext] Received appDataChanged event, reloading collections...');
+      logger.info('🔄 [AppDataContext] Received appDataChanged event, reloading collections...');
       loadAllCollections();
     };
     window.addEventListener('appDataChanged', handleDataChanged);
@@ -1466,7 +1875,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [loadAllCollections]);
 
   // Create context value
-  const contextValue = useMemo(() => {
+  const contextValue = useMemo((): EnhancedAppDataContextType => {
     const normalizedData = normalizeAppDataCollections(data);
     const loadingState = createAppDataLoadingState(isLoading);
 
@@ -1475,9 +1884,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       ...normalizedData,
       
       // Status flags
-      isInitialized,
       loading: loadingState,
       error,
+      initializationError: error,
+      isLoading,
+      rawInitialData: data,
       isDatabaseModeActive: isInitialized && !isLoading && !error,
       isOnline,
       appVersion: '1.0.0',
@@ -1491,10 +1902,15 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       // Sync status
       syncStatus,
+      pendingSyncCount: syncStatus.pendingOperations,
       
       // Database operations
       refreshData,
       getCollectionStats,
+      backupData,
+      restoreData,
+      clearAllData,
+      getCollectionPage,
       
       // Sync operations
       forceSync,
@@ -1521,14 +1937,18 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Data mode tracking (Task 4.4.5)
       currentDataMode,
       dataSourceDescription,
+      dataSource: dbManager.getProviderType() || 'unknown',
       
       // Data validation (Task 4.4.6)
+      validateData,
       
       // Data strategy (Task 4.4.8)
       getDataSourceConfig,
       updateDataStrategy,
       
       // Data generation (Task 5)
+      generateData,
+      seedDatabase,
 
       saveStudentAttendance,
       getStudentAttendanceByFilters,
@@ -1566,15 +1986,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       addClassStream, updateClassStream, deleteClassStream,
       // Departments
       addDepartment, updateDepartment, deleteDepartment,
+      // Roles
+      addRole, updateRole, deleteRole,
       // Academic Years
       addAcademicYear, updateAcademicYear, deleteAcademicYear,
+      // Academic structures and period definitions
+      addAcademicYearStructure, updateAcademicYearStructure, deleteAcademicYearStructure,
+      addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition,
+      // Fee adjustments
+      addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment,
       
       // Legacy compatibility
       refresh: refreshData,
       isRxDBModeActive: isInitialized,
       schoolDetails: normalizedData.schoolDetails?.[0] || null,
       users: normalizedData.users || [],
-    } as any as EnhancedAppDataContextType;
+    };
   }, [
     data,
     isInitialized,
@@ -1586,6 +2013,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     syncStatus,
     refreshData,
     getCollectionStats,
+    backupData,
+    restoreData,
+    clearAllData,
+    getCollectionPage,
+    validateData,
+    generateData,
+    seedDatabase,
     forceSync,
     pauseSync,
     resumeSync,
@@ -1625,9 +2059,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     addClass, updateClass, deleteClass,
     addClassStream, updateClassStream, deleteClassStream,
     addDepartment, updateDepartment, deleteDepartment,
+    addRole, updateRole, deleteRole,
     addAcademicYear, updateAcademicYear, deleteAcademicYear,
-    config.environment,
-    loadAllCollections
+    addAcademicYearStructure, updateAcademicYearStructure, deleteAcademicYearStructure,
+    addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition,
+    addFeeAdjustment, updateFeeAdjustment, deleteFeeAdjustment
   ]); // Removed toast from dependencies to prevent re-render loop
 
   // Sync shared entities to SharedDataStore for non-React access
@@ -1659,10 +2095,15 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading application data...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <span className="ml-2 text-surface-muted-fg">Loading application data...</span>
       </div>
     );
+  }
+
+  // Without persistent storage nothing may be written: block the app.
+  if (error instanceof StorageUnavailableError) {
+    return <StorageUnavailableScreen error={error} />;
   }
 
   // Error state with recovery options
@@ -1670,8 +2111,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-50">
         <div className="text-center p-6 max-w-md">
-          <div className="text-red-600 text-xl mb-2">âš ï¸ Application Error</div>
-          <div className="text-gray-700 mb-4">
+          <div className="text-red-600 text-xl mb-2">⚠️ Application Error</div>
+          <div className="text-surface-foreground mb-4">
             {error.message || 'We\'re experiencing technical difficulties. Please try again later.'}
           </div>
           <div className="space-x-2">
@@ -1694,7 +2135,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }
 
   return (
-    <AppDataValueProvider coreValue={contextValue}>
+    <AppDataContext.Provider value={contextValue}>
       <SystemDataProvider>
         {moduleRegistry.isEnabled('administration') && (
           <AdministrationDataProvider>
@@ -1736,10 +2177,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       {/* Offline indicator */}
       {!isOnline && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 z-50">
-          ðŸ“¡ Offline Mode - Changes will sync when connection is restored
+          📡 Offline Mode - Changes will sync when connection is restored
         </div>
       )}
-    </AppDataValueProvider>
+    </AppDataContext.Provider>
   );
 };
 

@@ -1,12 +1,17 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Error boundary component specifically for handling React Hook errors
 // ABOUTME: Provides fallback UI and error recovery for hook order violations and module loading issues
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import * as React from 'react';
 import { AlertTriangleIcon, RefreshCwIcon } from "./ui/icons";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Human-readable component name used in logs and the fallback message. */
+  componentName?: string;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
@@ -61,7 +66,7 @@ class HookErrorBoundary extends Component<Props, State> {
     }
 
     // Log the error for debugging
-    console.error('Hook Error Boundary caught an error:', error, errorInfo);
+    logger.error(`[HookErrorBoundary] Error in ${this.props.componentName || 'component'}:`, error, errorInfo);
 
     // Auto-retry for hook errors (they might be transient due to module loading)
     if (this.state.retryCount < this.maxRetries) {
@@ -104,30 +109,32 @@ class HookErrorBoundary extends Component<Props, State> {
 
       // Default fallback UI for hook errors
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-surface-muted px-4">
+          <div className="max-w-md w-full bg-surface-card rounded-lg shadow-lg p-6 text-center">
             <div className="flex justify-center mb-4">
               <AlertTriangleIcon className="h-12 w-12 text-amber-500" />
             </div>
             
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Component Loading Error
+            <h2 className="text-xl font-semibold text-surface-foreground mb-2">
+              {this.props.componentName
+                ? `An error occurred in the ${this.props.componentName} component.`
+                : 'Component Loading Error'}
             </h2>
             
-            <p className="text-gray-600 mb-4">
+            <p className="text-surface-muted-fg mb-4">
               A temporary error occurred while loading the component. This is usually 
               caused by modules still initializing.
             </p>
             
             {this.state.retryCount < this.maxRetries && (
-              <p className="text-sm text-blue-600 mb-4">
+              <p className="text-sm text-primary-600 mb-4">
                 Automatically retrying... (Attempt {this.state.retryCount + 1}/{this.maxRetries})
               </p>
             )}
             
             <button
               onClick={this.handleManualRetry}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
             >
               <RefreshCwIcon className="h-4 w-4 mr-2" />
               Retry Now
@@ -135,10 +142,10 @@ class HookErrorBoundary extends Component<Props, State> {
             
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4 text-left">
-                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+                <summary className="cursor-pointer text-sm text-surface-muted-fg hover:text-surface-foreground">
                   Error Details (Development)
                 </summary>
-                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto max-h-32">
+                <pre className="mt-2 text-xs bg-surface-accent p-2 rounded overflow-auto max-h-32">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>
@@ -152,5 +159,45 @@ class HookErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+// Named export for `import { HookErrorBoundary } from ...` call sites
+export { HookErrorBoundary };
+
+// Higher-order component for wrapping components with an error boundary
+export const withHookErrorBoundary = <P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  componentName?: string,
+  fallback?: ReactNode
+) => {
+  const WithErrorBoundary = (props: P) => (
+    <HookErrorBoundary
+      componentName={componentName || WrappedComponent.displayName || WrappedComponent.name}
+      fallback={fallback}
+    >
+      <WrappedComponent {...props} />
+    </HookErrorBoundary>
+  );
+
+  WithErrorBoundary.displayName = `withHookErrorBoundary(${componentName || WrappedComponent.displayName || WrappedComponent.name})`;
+
+  return WithErrorBoundary;
+};
+
+// Hook for handling errors in functional components
+export const useErrorHandler = () => {
+  const handleError = React.useCallback((error: Error, context?: string) => {
+    logger.error(`[useErrorHandler] ${context || 'Component'} error:`, {
+      error: error.message,
+      stack: error.stack
+    });
+
+    // In development, throw so error boundaries can pick it up
+    if (process.env.NODE_ENV === 'development') {
+      throw error;
+    }
+  }, []);
+
+  return { handleError };
+};
 
 export default HookErrorBoundary;

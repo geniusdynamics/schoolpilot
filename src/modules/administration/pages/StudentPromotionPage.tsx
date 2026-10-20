@@ -1,654 +1,299 @@
-// ABOUTME: Student Promotion Page - UI for promoting students to new classes
-// ABOUTME: Supports both single student and bulk promotion modes
+// ABOUTME: Student Promotion (SO-16): move a class stream's learners to the next class as preview -> confirm -> commit, with undo
+// ABOUTME: Rendered at /administration/students/promotion and as the "Promotion" tab of Student Bulk Operations
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
-import DialogForm from '@/components/ui/forms/DialogForm';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { useAppData } from '@/hooks/useAppData';
-import { useStudentPromotion } from '../hooks/useStudentPromotion';
-import type { StudentClassHistoryEntry } from '../data/types';
-import { 
-  AcademicCapIcon, 
-  UserGroupIcon, 
-  ArrowUpIcon, 
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  CalendarIcon,
-  DocumentTextIcon
-} from '@/components/ui/icons';
+import { logger } from '@/utils/logging';
+import {
+  useStudentPromotion,
+  previewPromotion,
+  type PromotionPreviewRow,
+  type PromotionRun,
+  type PromotionStudentLike,
+} from '../hooks/useStudentPromotion';
+import { AcademicCapIcon, ArrowUpIcon, ArrowPathIcon, CheckCircleIcon } from '@/components/ui/icons';
 
-type PromotionMode = 'single' | 'bulk';
+interface NamedRecord {
+  id: string | number;
+  name?: string | null;
+  class_name?: string | null;
+  class_id?: string | number | null;
+}
 
-const StudentPromotionPage: React.FC = () => {
+const selectClassName =
+  'w-full border border-surface-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500';
+
+const today = () => new Date().toISOString().split('T')[0];
+
+export const StudentPromotionContent: React.FC = () => {
   const { t } = useTranslation('administration');
-  const { showToast } = useToast();
-  
-  const { students, classStreams, academicYears, loading: appLoading } = useAppData();
-  const { 
-    promoteStudent, 
-    promoteStudents, 
-    getStudentClassHistory,
-    service 
-  } = useStudentPromotion();
-  
-  // Current academic year (default to most recent)
-  const currentAcademicYearId = useMemo(() => {
-    if (academicYears && academicYears.length > 0) {
-      return String(academicYears[0].id);
-    }
-    return '';
-  }, [academicYears]);
-  
-  // Mode state
-  const [mode, setMode] = useState<PromotionMode>('single');
-  
-  // Single promotion state
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [targetClassStreamId, setTargetClassStreamId] = useState<string>('');
-  const [promotionDate, setPromotionDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+  const toast = useToast();
+  const confirm = useConfirm();
+  const appData = useAppData();
+  const { ready, commit, undo } = useStudentPromotion();
+
+  const students = useMemo(() => (appData.students || []) as PromotionStudentLike[], [appData.students]);
+  const classes = useMemo(() => (appData.classes || []) as NamedRecord[], [appData.classes]);
+  const classStreams = useMemo(() => (appData.classStreams || []) as NamedRecord[], [appData.classStreams]);
+  const academicYears = useMemo(() => (appData.academicYears || []) as NamedRecord[], [appData.academicYears]);
+
+  const [sourceId, setSourceId] = useState('');
+  const [targetId, setTargetId] = useState('');
+  const [academicYearId, setAcademicYearId] = useState('');
+  const [promotionDate, setPromotionDate] = useState(today());
+  const [preview, setPreview] = useState<PromotionPreviewRow[] | null>(null);
+  const [excluded, setExcluded] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [lastRun, setLastRun] = useState<PromotionRun | null>(null);
+
+  const effectiveYearId = academicYearId || (academicYears[0] ? String(academicYears[0].id) : '');
+
+  const streamLabel = useCallback(
+    (id: string | null) => {
+      if (!id) return t('promotion.unassigned', 'Not assigned');
+      const stream = classStreams.find(s => String(s.id) === id);
+      if (!stream) return id;
+      const cls = classes.find(c => String(c.id) === String(stream.class_id ?? ''));
+      const className = cls?.name || stream.class_name || '';
+      return className ? `${className} · ${stream.name ?? ''}` : String(stream.name ?? id);
+    },
+    [classStreams, classes, t]
   );
-  const [promotionNotes, setPromotionNotes] = useState<string>('');
-  
-  // Bulk promotion state
-  const [sourceClassStreamId, setSourceClassStreamId] = useState<string>('');
-  const [targetClassStreamIdBulk, setTargetClassStreamIdBulk] = useState<string>('');
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  
-  // History state
-  const [studentHistory, setStudentHistory] = useState<StudentClassHistoryEntry[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  
-  // Confirmation dialog
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [isPromoting, setIsPromoting] = useState(false);
-  
-  // Load student history when a student is selected
-  useEffect(() => {
-    if (selectedStudentId) {
-      setHistoryLoading(true);
-      getStudentClassHistory(selectedStudentId)
-        .then(history => {
-          setStudentHistory(history);
-        })
-        .catch(err => {
-          console.error('Error loading student history:', err);
-          setStudentHistory([]);
-        })
-        .finally(() => {
-          setHistoryLoading(false);
-        });
-    } else {
-      setStudentHistory([]);
-    }
-  }, [selectedStudentId, getStudentClassHistory]);
-  
-  // Get students in source class for bulk mode
-  const studentsInSourceClass = useMemo(() => {
-    if (!sourceClassStreamId || !students) return [];
-    return students.filter(s => 
-      s.current_class_stream_id === parseInt(sourceClassStreamId)
-    );
-  }, [sourceClassStreamId, students]);
-  
-  // Handle single student promotion
-  const handleSinglePromotion = useCallback(async () => {
-    if (!selectedStudentId || !targetClassStreamId || !promotionDate) {
-      showToast({
-        variant: 'warning',
-        title: t('validation'),
-        message: t('fillAllRequiredFields')
-      });
+
+  const sortedStreams = useMemo(
+    () => [...classStreams].sort((a, b) => streamLabel(String(a.id)).localeCompare(streamLabel(String(b.id)))),
+    [classStreams, streamLabel]
+  );
+
+  const resetPreview = () => {
+    setPreview(null);
+    setExcluded([]);
+  };
+
+  const handlePreview = () => {
+    if (!sourceId || !targetId) {
+      toast.showWarning(t('promotion.chooseClasses', 'Choose the current class and the class to promote to.'));
       return;
     }
-    
-    setShowConfirmDialog(true);
-  }, [selectedStudentId, targetClassStreamId, promotionDate, showToast, t]);
-  
-  // Execute single promotion
-  const executeSinglePromotion = useCallback(async () => {
-    if (!selectedStudentId || !targetClassStreamId) return;
-    
-    setIsPromoting(true);
+    setPreview(previewPromotion(students, sourceId, targetId));
+    setExcluded([]);
+  };
+
+  const selectedRows = useMemo(
+    () => (preview || []).filter(r => r.eligible && !excluded.includes(r.studentId)),
+    [preview, excluded]
+  );
+
+  const handleCommit = async () => {
+    if (selectedRows.length === 0) return;
+    const ok = await confirm({
+      title: t('promotion.confirmTitle', 'Confirm promotion'),
+      message: t('promotion.confirmMessage', {
+        defaultValue: 'Move {{count}} learners from {{from}} to {{to}}? You can undo this afterwards.',
+        count: selectedRows.length,
+        from: streamLabel(sourceId),
+        to: streamLabel(targetId),
+      }),
+      confirmLabel: t('promotion.commit', 'Promote'),
+      variant: 'warning',
+    });
+    if (!ok) return;
+
+    setBusy(true);
     try {
-      // Find student for identifying data
-      const student = students?.find(s => s.id === selectedStudentId);
-      const identifyingData = student 
-        ? { admission_no: student.admission_no, first_name: student.first_name, last_name: student.last_name }
-        : { id: selectedStudentId };
-      
-      const result = await promoteStudent({
-        studentId: selectedStudentId,
-        newClassStreamId: targetClassStreamId,
-        academicYearId: currentAcademicYearId,
-        promotionDate,
-        notes: promotionNotes || undefined
-      });
-      
-      if (result.success) {
-        showToast({
-          variant: 'success',
-          title: t('promotionSuccess'),
-          message: t('studentPromotedSuccessfully')
-        });
-        // Reset form
-        setSelectedStudentId('');
-        setTargetClassStreamId('');
-        setPromotionDate(new Date().toISOString().split('T')[0]);
-        setPromotionNotes('');
-        setStudentHistory([]);
+      const run = await commit(selectedRows, { academicYearId: effectiveYearId, promotionDate });
+      setLastRun(run);
+      resetPreview();
+      if (run.failures.length > 0) {
+        toast.showWarning(t('promotion.partial', {
+          defaultValue: '{{done}} learners promoted, {{failed}} could not be promoted.',
+          done: run.entries.length,
+          failed: run.failures.length,
+        }));
       } else {
-        showToast({
-          variant: 'error',
-          title: t('promotionFailed'),
-          message: result.error || t('promotionError')
-        });
+        toast.showSuccess(t('promotion.done', { defaultValue: '{{count}} learners promoted.', count: run.entries.length }));
       }
-    } catch (err) {
-      showToast({
-        variant: 'error',
-        title: t('promotionFailed'),
-        message: t('promotionError')
-      });
+    } catch (error) {
+      logger.error('[StudentPromotion] Commit failed:', error);
+      toast.showError(t('promotion.failed', 'Promotion failed.'));
     } finally {
-      setIsPromoting(false);
-      setShowConfirmDialog(false);
+      setBusy(false);
     }
-  }, [selectedStudentId, targetClassStreamId, promotionDate, promotionNotes, promoteStudent, currentAcademicYearId, students, showToast, t]);
-  
-  // Handle bulk promotion
-  const handleBulkPromotion = useCallback(async () => {
-    if (!selectedStudentIds.length || !targetClassStreamIdBulk) {
-      showToast({
-        variant: 'warning',
-        title: t('validation'),
-        message: t('selectStudentsToPromote')
-      });
-      return;
-    }
-    
-    setShowConfirmDialog(true);
-  }, [selectedStudentIds, targetClassStreamIdBulk, showToast, t]);
-  
-  // Execute bulk promotion
-  const executeBulkPromotion = useCallback(async () => {
-    if (!selectedStudentIds.length || !targetClassStreamIdBulk) return;
-    
-    setIsPromoting(true);
+  };
+
+  const handleUndo = async () => {
+    if (!lastRun) return;
+    setBusy(true);
     try {
-      const paramsList = selectedStudentIds.map(studentId => ({
-        studentId,
-        newClassStreamId: targetClassStreamIdBulk,
-        academicYearId: currentAcademicYearId,
-        promotionDate,
-        notes: promotionNotes || undefined
-      }));
-      
-      const results = await promoteStudents(paramsList);
-      
-      const successCount = results.filter(r => r.success).length;
-      const failCount = results.length - successCount;
-      
-      if (successCount > 0) {
-        showToast({
-          variant: failCount > 0 ? 'warning' : 'success',
-          title: t('bulkPromotionComplete'),
-          message: `${successCount} ${t('studentsPromoted')}${failCount > 0 ? `, ${failCount} ${t('failed')}` : ''}`
-        });
+      const result = await undo(lastRun);
+      setLastRun(null);
+      if (result.failures.length > 0) {
+        toast.showWarning(t('promotion.undoPartial', {
+          defaultValue: '{{done}} learners restored, {{failed}} were moved since and were left as they are.',
+          done: result.restored,
+          failed: result.failures.length,
+        }));
       } else {
-        showToast({
-          variant: 'error',
-          title: t('bulkPromotionFailed'),
-          message: t('noStudentsPromoted')
-        });
+        toast.showSuccess(t('promotion.undone', { defaultValue: '{{count}} learners returned to their previous class.', count: result.restored }));
       }
-      
-      // Reset form
-      setSourceClassStreamId('');
-      setTargetClassStreamIdBulk('');
-      setSelectedStudentIds([]);
-      setPromotionNotes('');
-    } catch (err) {
-      showToast({
-        variant: 'error',
-        title: t('bulkPromotionFailed'),
-        message: t('promotionError')
-      });
+    } catch (error) {
+      logger.error('[StudentPromotion] Undo failed:', error);
+      toast.showError(t('promotion.undoFailed', 'Undo failed.'));
     } finally {
-      setIsPromoting(false);
-      setShowConfirmDialog(false);
+      setBusy(false);
     }
-  }, [selectedStudentIds, targetClassStreamIdBulk, promotionDate, promotionNotes, promoteStudents, currentAcademicYearId, showToast, t]);
-  
-  // Toggle student selection in bulk mode
-  const toggleStudentSelection = useCallback((studentId: string) => {
-    setSelectedStudentIds(prev => 
-      prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
-    );
-  }, []);
-  
-  // Select all students in bulk mode
-  const selectAllStudents = useCallback(() => {
-    if (studentsInSourceClass) {
-      setSelectedStudentIds(studentsInSourceClass.map(s => s.id));
-    }
-  }, [studentsInSourceClass]);
-  
-  // Deselect all students
-  const deselectAllStudents = useCallback(() => {
-    setSelectedStudentIds([]);
-  }, []);
-  
-  // Get current class for selected student
-  const selectedStudent = useMemo(() => {
-    if (!selectedStudentId || !students) return null;
-    return students.find(s => s.id === selectedStudentId);
-  }, [selectedStudentId, students]);
-  
-  // Prepare confirmation message
-  const confirmMessage = useMemo(() => {
-    if (mode === 'single') {
-      const student = students?.find(s => s.id === selectedStudentId);
-      const targetStream = classStreams?.find(cs => cs.id === parseInt(targetClassStreamId));
-      return `${t('confirmPromote')} ${student?.first_name} ${student?.last_name} ${t('toClass')} ${targetStream?.class_name || ''} - ${targetStream?.name || ''}?`;
-    } else {
-      return `${t('confirmBulkPromote')} ${selectedStudentIds.length} ${t('studentsToNewClass')}?`;
-    }
-  }, [mode, selectedStudentId, targetClassStreamId, selectedStudentIds, students, classStreams, t]);
-  
-  if (appLoading) {
+  };
+
+  if (appData.loading.all) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
+      <div className="p-6 flex justify-center items-center min-h-[200px]">
         <Spinner />
       </div>
     );
   }
-  
+
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <AcademicCapIcon className="w-6 h-6" />
-            {t('studentPromotion')}
-          </h1>
-          
-          {/* Mode Toggle */}
-          <div className="flex rounded-lg overflow-hidden border border-gray-300">
-            <button
-              onClick={() => setMode('single')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                mode === 'single'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {t('singleStudent')}
-            </button>
-            <button
-              onClick={() => setMode('bulk')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                mode === 'bulk'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {t('bulkPromotion')}
-            </button>
+    <Card>
+      <div className="space-y-6">
+        <h2 className="text-lg font-semibold text-surface-foreground flex items-center gap-2">
+          <AcademicCapIcon className="w-5 h-5" />
+          {t('promotion.title', 'Promote a class')}
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label htmlFor="promotion-source" className="block text-sm font-medium text-surface-foreground mb-1">
+              {t('promotion.source', 'Current class')}
+            </label>
+            <select id="promotion-source" className={selectClassName} value={sourceId}
+              onChange={e => { setSourceId(e.target.value); resetPreview(); }}>
+              <option value="">{t('promotion.selectClass', '-- Select a class --')}</option>
+              {sortedStreams.map(s => (
+                <option key={String(s.id)} value={String(s.id)}>{streamLabel(String(s.id))}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="promotion-target" className="block text-sm font-medium text-surface-foreground mb-1">
+              {t('promotion.target', 'Promote to')}
+            </label>
+            <select id="promotion-target" className={selectClassName} value={targetId}
+              onChange={e => { setTargetId(e.target.value); resetPreview(); }}>
+              <option value="">{t('promotion.selectClass', '-- Select a class --')}</option>
+              {sortedStreams.filter(s => String(s.id) !== sourceId).map(s => (
+                <option key={String(s.id)} value={String(s.id)}>{streamLabel(String(s.id))}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="promotion-year" className="block text-sm font-medium text-surface-foreground mb-1">
+              {t('promotion.academicYear', 'Academic year')}
+            </label>
+            <select id="promotion-year" className={selectClassName} value={effectiveYearId}
+              onChange={e => setAcademicYearId(e.target.value)}>
+              {academicYears.map(y => (
+                <option key={String(y.id)} value={String(y.id)}>{y.name || String(y.id)}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="promotion-date" className="block text-sm font-medium text-surface-foreground mb-1">
+              {t('promotion.date', 'Promotion date')}
+            </label>
+            <Input id="promotion-date" type="date" value={promotionDate} onChange={e => setPromotionDate(e.target.value)} />
           </div>
         </div>
-        
-        {/* Single Student Mode */}
-        {mode === 'single' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('selectStudent')} <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  value={selectedStudentId}
-                  onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="w-full"
-                >
-                  <option value="">{t('selectStudent')}</option>
-                  {(students || []).map(student => (
-                    <option key={student.id} value={student.id}>
-                      {student.admission_no} - {student.first_name} {student.last_name}
-                      {student.current_class_stream_name ? ` (${student.current_class_stream_name})` : ''}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('currentClass')}
-                </label>
-                <Input
-                  value={selectedStudent?.current_class_stream_name || t('notAssigned')}
-                  disabled
-                  className="bg-gray-50"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('targetClass')} <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  value={targetClassStreamId}
-                  onChange={(e) => setTargetClassStreamId(e.target.value)}
-                  className="w-full"
-                >
-                  <option value="">{t('selectTargetClass')}</option>
-                  {(classStreams || []).map(cs => (
-                    <option key={cs.id} value={cs.id}>
-                      {cs.class_name} - {cs.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('promotionDate')} <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="date"
-                  value={promotionDate}
-                  onChange={(e) => setPromotionDate(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('notes')}
-              </label>
-              <Input
-                value={promotionNotes}
-                onChange={(e) => setPromotionNotes(e.target.value)}
-                placeholder={t('notesPlaceholder')}
-                className="w-full"
-              />
-            </div>
-            
-            {/* Student Class History */}
-            {selectedStudentId && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <DocumentTextIcon className="w-5 h-5" />
-                  {t('classHistory')}
-                </h3>
-                
-                {historyLoading ? (
-                  <Spinner />
-                ) : studentHistory.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('date')}
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('class')}
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('stream')}
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('academicYear')}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {studentHistory.map((entry, index) => (
-                          <tr key={index} className={index === 0 ? 'bg-blue-50' : ''}>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {entry.promotionDate}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {entry.className || '-'}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {entry.streamName || '-'}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {entry.academicYearName || '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic">{t('noHistory')}</p>
-                )}
+
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={handlePreview} disabled={!sourceId || !targetId}>
+            {t('promotion.preview', 'Preview')}
+          </Button>
+        </div>
+
+        {preview && (
+          <div className="space-y-3">
+            {preview.length === 0 ? (
+              <p className="text-surface-muted-fg italic">{t('promotion.empty', 'No learners are in this class.')}</p>
+            ) : (
+              <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-surface-border">
+                  <thead className="bg-surface-muted sticky top-0">
+                    <tr className="text-left text-xs font-medium text-surface-muted-fg uppercase">
+                      <th className="px-4 py-2"><span className="sr-only">{t('promotion.include', 'Include')}</span></th>
+                      <th className="px-4 py-2">{t('promotion.learner', 'Learner')}</th>
+                      <th className="px-4 py-2">{t('promotion.from', 'From')}</th>
+                      <th className="px-4 py-2">{t('promotion.to', 'To')}</th>
+                      <th className="px-4 py-2">{t('promotion.note', 'Note')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-surface-card divide-y divide-surface-border text-sm text-surface-foreground">
+                    {preview.map(row => (
+                      <tr key={row.studentId}>
+                        <td className="px-4 py-2">
+                          <input
+                            type="checkbox"
+                            aria-label={row.studentName}
+                            disabled={!row.eligible}
+                            checked={row.eligible && !excluded.includes(row.studentId)}
+                            onChange={() => setExcluded(prev => prev.includes(row.studentId)
+                              ? prev.filter(id => id !== row.studentId)
+                              : [...prev, row.studentId])}
+                          />
+                        </td>
+                        <td className="px-4 py-2">{row.admissionNo ? `${row.admissionNo} · ` : ''}{row.studentName}</td>
+                        <td className="px-4 py-2">{streamLabel(row.fromClassStreamId)}</td>
+                        <td className="px-4 py-2">{streamLabel(row.toClassStreamId)}</td>
+                        <td className="px-4 py-2 text-surface-muted-fg">{row.reason || ''}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
-            
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end">
               <Button
-                onClick={handleSinglePromotion}
-                disabled={!selectedStudentId || !targetClassStreamId}
+                onClick={handleCommit}
+                disabled={!ready || busy || selectedRows.length === 0}
+                isLoading={busy}
                 leftIcon={<ArrowUpIcon className="w-4 h-4" />}
               >
-                {t('promoteStudent')}
+                {t('promotion.commitCount', { defaultValue: 'Promote {{count}} learners', count: selectedRows.length })}
               </Button>
             </div>
           </div>
         )}
-        
-        {/* Bulk Promotion Mode */}
-        {mode === 'bulk' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('sourceClass')} <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  value={sourceClassStreamId}
-                  onChange={(e) => {
-                    setSourceClassStreamId(e.target.value);
-                    setSelectedStudentIds([]);
-                  }}
-                  className="w-full"
-                >
-                  <option value="">{t('selectSourceClass')}</option>
-                  {(classStreams || []).map(cs => (
-                    <option key={cs.id} value={cs.id}>
-                      {cs.class_name} - {cs.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('targetClass')} <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  value={targetClassStreamIdBulk}
-                  onChange={(e) => setTargetClassStreamIdBulk(e.target.value)}
-                  className="w-full"
-                >
-                  <option value="">{t('selectTargetClass')}</option>
-                  {(classStreams || []).filter(cs => cs.id !== parseInt(sourceClassStreamId)).map(cs => (
-                    <option key={cs.id} value={cs.id}>
-                      {cs.class_name} - {cs.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('promotionDate')} <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="date"
-                  value={promotionDate}
-                  onChange={(e) => setPromotionDate(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('notes')}
-              </label>
-              <Input
-                value={promotionNotes}
-                onChange={(e) => setPromotionNotes(e.target.value)}
-                placeholder={t('notesPlaceholder')}
-                className="w-full"
-              />
-            </div>
-            
-            {/* Student List */}
-            {sourceClassStreamId && (
-              <div className="mt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <UserGroupIcon className="w-5 h-5" />
-                    {t('studentsInClass')} ({studentsInSourceClass.length})
-                  </h3>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={selectAllStudents}>
-                      {t('selectAll')}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={deselectAllStudents}>
-                      {t('deselectAll')}
-                    </Button>
-                  </div>
-                </div>
-                
-                {studentsInSourceClass.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 sticky top-0">
-                        <tr>
-                          <th className="px-4 py-2 text-left">
-                            <input
-                              type="checkbox"
-                              checked={selectedStudentIds.length === studentsInSourceClass.length && studentsInSourceClass.length > 0}
-                              onChange={(e) => e.target.checked ? selectAllStudents() : deselectAllStudents()}
-                              className="rounded border-gray-300"
-                            />
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('admissionNo')}
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('name')}
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                            {t('status')}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {studentsInSourceClass.map(student => (
-                          <tr 
-                            key={student.id} 
-                            className={selectedStudentIds.includes(student.id) ? 'bg-blue-50' : ''}
-                          >
-                            <td className="px-4 py-2">
-                              <input
-                                type="checkbox"
-                                checked={selectedStudentIds.includes(student.id)}
-                                onChange={() => toggleStudentSelection(student.id)}
-                                className="rounded border-gray-300"
-                              />
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {student.admission_no}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {student.first_name} {student.last_name}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {student.status}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic">{t('noStudentsInClass')}</p>
-                )}
-                
-                <div className="mt-2 text-sm text-gray-500">
-                  {t('selected')}: {selectedStudentIds.length} {t('students')}
-                </div>
-              </div>
-            )}
-            
-            <div className="flex justify-end pt-4">
-              <Button
-                onClick={handleBulkPromotion}
-                disabled={selectedStudentIds.length === 0 || !targetClassStreamIdBulk}
-                leftIcon={<ArrowUpIcon className="w-4 h-4" />}
-              >
-                {t('promoteSelected')} ({selectedStudentIds.length})
-              </Button>
-            </div>
+
+        {lastRun && lastRun.entries.length > 0 && (
+          <div className="flex items-center justify-between gap-4 p-4 rounded-lg bg-surface-muted" role="status">
+            <span className="flex items-center gap-2 text-sm text-surface-foreground">
+              <CheckCircleIcon className="w-5 h-5" />
+              {t('promotion.committed', {
+                defaultValue: '{{count}} learners moved to {{to}}.',
+                count: lastRun.entries.length,
+                to: streamLabel(lastRun.entries[0].newClassStreamId),
+              })}
+            </span>
+            <Button variant="outline" onClick={handleUndo} disabled={busy} leftIcon={<ArrowPathIcon className="w-4 h-4" />}>
+              {t('promotion.undo', 'Undo')}
+            </Button>
           </div>
         )}
-      </Card>
-      
-      {/* Confirmation Dialog */}
-      <DialogForm
-        isOpen={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        title={t('confirmPromotion')}
-        size="md"
-        content={
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg">
-              <ExclamationTriangleIcon className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-yellow-800">{confirmMessage}</p>
-            </div>
-            <p className="text-sm text-gray-600">
-              {t('promotionWarning')}
-            </p>
-          </div>
-        }
-        footer={
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
-              disabled={isPromoting}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              onClick={mode === 'single' ? executeSinglePromotion : executeBulkPromotion}
-              isLoading={isPromoting}
-              leftIcon={<CheckCircleIcon className="w-4 h-4" />}
-            >
-              {t('confirm')}
-            </Button>
-          </div>
-        }
-      />
-    </div>
+      </div>
+    </Card>
   );
 };
+
+const StudentPromotionPage: React.FC = () => (
+  <div className="p-6">
+    <StudentPromotionContent />
+  </div>
+);
 
 export default StudentPromotionPage;

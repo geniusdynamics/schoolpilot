@@ -84,7 +84,7 @@ const PickupLogsPage: React.FC = () => {
         const search = filters.searchQuery.toLowerCase();
         return (
           (log.studentName || '').toLowerCase().includes(search) ||
-          log.authorizedPersonName.toLowerCase().includes(search) ||
+          (log.authorizedPersonName?.toLowerCase() ?? '').includes(search) ||
           (log.verifiedByName || '').toLowerCase().includes(search) ||
           (log.notes || '').toLowerCase().includes(search)
         );
@@ -251,11 +251,11 @@ const PickupLogsPage: React.FC = () => {
         const label = t(`pickupLog.method.${value}`, value);
         const colors: Record<string, string> = {
           qr_scan: 'bg-purple-100 text-purple-800',
-          code_entry: 'bg-blue-100 text-blue-800',
-          manual: 'bg-gray-100 text-gray-800',
+          code_entry: 'bg-primary-100 text-primary-800',
+          manual: 'bg-surface-accent text-surface-foreground',
         };
         return (
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[value] || 'bg-gray-100'}`}>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[value] || 'bg-surface-accent'}`}>
             {String(label)}
           </span>
         );
@@ -273,7 +273,7 @@ const PickupLogsPage: React.FC = () => {
       header: 'Notes',
       width: 200,
       render: (value) => (
-        <span className="text-sm text-gray-600 truncate max-w-[200px] block" title={value || ''}>
+        <span className="text-sm text-surface-muted-fg truncate max-w-[200px] block" title={value || ''}>
           {value || '-'}
         </span>
       ),
@@ -315,7 +315,7 @@ const PickupLogsPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input label="Search"
                 placeholder="Search logs..."
                 value={filters.searchQuery || ''}
@@ -328,7 +328,7 @@ const PickupLogsPage: React.FC = () => {
           {showFilters && (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+                <label className="block text-sm font-medium text-surface-foreground mb-1">Date From</label>
                 <Input label="Date From"
                   type="date"
                   value={filters.dateFrom || ''}
@@ -336,7 +336,7 @@ const PickupLogsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+                <label className="block text-sm font-medium text-surface-foreground mb-1">Date To</label>
                 <Input label="Date From"
                   type="date"
                   value={filters.dateTo || ''}
@@ -359,9 +359,9 @@ const PickupLogsPage: React.FC = () => {
                     type="checkbox"
                     checked={!!filters.flaggedOnly}
                     onChange={(e) => handleFilterChange('flaggedOnly', e.target.checked)}
-                    className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    className="h-4 w-4 text-red-600 border-surface-border rounded focus:ring-red-500"
                   />
-                  <span className="text-sm text-gray-700">Flagged Only</span>
+                  <span className="text-sm text-surface-foreground">Flagged Only</span>
                 </label>
                 <Button variant="ghost" onClick={clearFilters}>
                   Clear
@@ -390,11 +390,11 @@ const PickupLogsPage: React.FC = () => {
             }}
             emptyState={
               <div className="text-center py-12">
-                <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                   No pickup logs found
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   Pickup logs will appear here when students are released.
                 </p>
               </div>
@@ -456,7 +456,7 @@ const PickupLogsPage: React.FC = () => {
               </Select>
             </FormField>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-foreground mb-1">
                 {t('pickupLog.fields.pickupDate')}
               </label>
               <Input label="Date From"
@@ -466,7 +466,7 @@ const PickupLogsPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-foreground mb-1">
                 {t('pickupLog.fields.pickupTime')}
               </label>
               <Input label="Date From"
@@ -481,7 +481,7 @@ const PickupLogsPage: React.FC = () => {
                 onChange={(e) => handleLogFormChange('notes', e.target.value)}
                 placeholder="Any notes about this pickup..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-surface-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </FormField>
           </FormSection>

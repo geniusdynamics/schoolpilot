@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Generates comprehensive clubs and societies data including leadership, members, activities, and financial records
 // ABOUTME: Creates realistic club management system with detailed relationships between clubs, members, activities, and events
 
@@ -99,7 +101,7 @@ export class ClubsGenerator extends BaseGenerator {
       {
         name: 'Academic',
         description: 'Clubs focused on academic excellence and subject-specific activities',
-        color: '#3B82F6'
+        color: '#6366f1'
       },
       {
         name: 'Sports',
@@ -172,7 +174,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubs(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} comprehensive club records...`);
+    logger.info(`Generating ${count} comprehensive club records...`);
     
     const clubsData = [
       // Academic Clubs
@@ -262,7 +264,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubMembers(): Promise<any[]> {
     const results: any[] = [];
     
-    console.log('Generating club membership records...');
+    logger.info('Generating club membership records...');
     
     for (const club of this.clubs) {
       const memberCount = this.randomInt(10, Math.min(club.max_members, 50));
@@ -297,7 +299,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubLeadership(): Promise<any[]> {
     const results: any[] = [];
     
-    console.log('Generating club leadership positions...');
+    logger.info('Generating club leadership positions...');
     
     const positions = ['President', 'Vice President', 'Secretary', 'Treasurer', 'Organizing Secretary'];
     
@@ -332,7 +334,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubActivities(): Promise<any[]> {
     const results: any[] = [];
     
-    console.log('Generating club activities...');
+    logger.info('Generating club activities...');
     
     const activityTypes = [
       'Weekly Meeting', 'Training Session', 'Workshop', 'Seminar', 'Competition',
@@ -375,7 +377,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubEvents(): Promise<any[]> {
     const results: any[] = [];
     
-    console.log('Generating club events...');
+    logger.info('Generating club events...');
     
     const eventTypes = [
       'Annual General Meeting', 'Awards Ceremony', 'Competition', 'Exhibition',
@@ -421,7 +423,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubBudgets(): Promise<any[]> {
     const results: any[] = [];
     
-    console.log('Generating club budget records...');
+    logger.info('Generating club budget records...');
     
     for (const club of this.clubs) {
       for (const academicYear of this.academicYears) {
@@ -465,7 +467,7 @@ export class ClubsGenerator extends BaseGenerator {
   private async generateClubAchievements(): Promise<any[]> {
     const results: any[] = [];
     
-    console.log('Generating club achievements...');
+    logger.info('Generating club achievements...');
     
     const achievementTypes = [
       'Competition Winner', 'Best Club Award', 'Community Service Recognition',
@@ -598,8 +600,8 @@ export class ClubsGenerator extends BaseGenerator {
   }
 
   public async initialize(): Promise<void> {
-    console.log('Initializing ClubsGenerator...');
+    logger.info('Initializing ClubsGenerator...');
     await this.generateSupportingData();
-    console.log('ClubsGenerator initialization complete.');
+    logger.info('ClubsGenerator initialization complete.');
   }
 }

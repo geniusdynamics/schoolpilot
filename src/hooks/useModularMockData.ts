@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides modular mock data using module-specific hooks for live data.
 // ABOUTME: It aggregates data from all module hooks and provides a unified interface for the app context.
 // DEBUG: This file has been partially restored to test the ACADEMICS module hooks.
@@ -60,7 +62,7 @@ for (const mod of Object.values(mockDataModules)) {
 const createLoadingStates = (isLoading: boolean): AppDataLoadingStates => createAppDataLoadingState(isLoading);
 
 export const useModularMockData = (): AppDataContextType => {
-  console.log('🔧 [useModularMockData] DEBUG: Running with ACADEMICS hooks enabled.');
+  logger.info('🔧 [useModularMockData] DEBUG: Running with ACADEMICS hooks enabled.');
 
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates(true));
 
@@ -392,9 +394,9 @@ export const useModularMockData = (): AppDataContextType => {
     return () => clearTimeout(timer);
   }, []);
 
-  const emptyFunc = async () => { console.warn("Called a no-op function from debug mock data."); };
+  const emptyFunc = async () => { logger.warn("Called a no-op function from debug mock data."); };
   const emptyGetFunc = async () => {
-    console.warn("Called a no-op function from debug mock data.");
+    logger.warn("Called a no-op function from debug mock data.");
     return null;
   };
 

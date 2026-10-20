@@ -10,7 +10,8 @@ export type CardVariant = 'default' | 'elevated' | 'outlined' | 'filled' | 'inte
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
 
 interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
-  title?: string;
+  title?: React.ReactNode;
+  subtitle?: string; // Optional secondary line rendered under the title
   children: ReactNode;
   className?: string;
   actions?: ReactNode; // For buttons or links in the header
@@ -30,6 +31,7 @@ interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(({
   title,
+  subtitle,
   children,
   className = '',
   actions,
@@ -75,21 +77,21 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
 
   // Get variant-specific styles
   const getVariantStyles = (): string => {
-    const baseStyles = 'bg-white border transition-all duration-300 ease-in-out';
+    const baseStyles = 'bg-surface-card border transition-all duration-300 ease-in-out';
     
     switch (variant) {
       case 'elevated':
-        return `${baseStyles} border-gray-200 shadow-lg hover:shadow-xl`;
+        return `${baseStyles} border-surface-border shadow-lg hover:shadow-xl`;
       case 'outlined':
-        return `${baseStyles} border-gray-300 shadow-none hover:shadow-md`;
+        return `${baseStyles} border-surface-border shadow-none hover:shadow-md`;
       case 'filled':
-        return `${baseStyles} border-gray-100 bg-gray-50 shadow-sm hover:shadow-md`;
+        return `${baseStyles} border-gray-100 bg-surface-muted shadow-sm hover:shadow-md`;
       case 'interactive':
-        return `${baseStyles} border-gray-200 shadow-md hover:shadow-lg hover:-translate-y-1 cursor-pointer`;
+        return `${baseStyles} border-surface-border shadow-md hover:shadow-lg hover:-translate-y-1 cursor-pointer`;
       case 'compact':
-        return `${baseStyles} border-gray-200 shadow-sm hover:shadow-md`;
+        return `${baseStyles} border-surface-border shadow-sm hover:shadow-md`;
       default:
-        return `${baseStyles} border-gray-200 shadow-lg`;
+        return `${baseStyles} border-surface-border shadow-lg`;
     }
   };
 
@@ -127,7 +129,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   const getInteractiveStyles = (): string => {
     if (!isInteractive) return '';
     
-    const baseInteractive = 'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2';
+    const baseInteractive = 'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
     
     if (disabled) {
       return `${baseInteractive} opacity-50 cursor-not-allowed`;
@@ -156,8 +158,8 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
 
   // Loading overlay
   const LoadingOverlay = () => (
-    <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="absolute inset-0 bg-surface-card bg-opacity-75 flex items-center justify-center z-10">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
     </div>
   );
 
@@ -177,22 +179,31 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
       {loading && <LoadingOverlay />}
       
       {/* Header Section */}
-      {(title || actions || icon) && (
+      {(title || subtitle || actions || icon) && (
         <div className={`
-          border-b border-gray-200 flex justify-between items-center
+          border-b border-surface-border flex justify-between items-center
           ${sizeStyles.header}
           ${headerClassName}
         `}>
           <div className="flex items-center min-w-0 flex-1">
             {icon && (
-              <span className="mr-3 text-blue-600 flex-shrink-0 group-hover:text-blue-700 transition-colors duration-200">
+              <span className="mr-3 text-primary-600 flex-shrink-0 group-hover:text-primary-700 transition-colors duration-200">
                 {icon}
               </span>
             )}
-            {title && (
-              <h3 className="text-base leading-5 font-semibold text-gray-900 truncate group-hover:text-gray-800 transition-colors duration-200">
-                {title}
-              </h3>
+            {(title || subtitle) && (
+              <div className="min-w-0">
+                {title && (
+                  <h3 className="text-base leading-5 font-semibold text-surface-foreground truncate group-hover:text-surface-foreground transition-colors duration-200">
+                    {title}
+                  </h3>
+                )}
+                {subtitle && (
+                  <p className="mt-0.5 text-sm text-surface-muted-fg truncate">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
             )}
           </div>
           {actions && (
@@ -225,13 +236,13 @@ export const CardHeader: React.FC<{ children: ReactNode; className?: string }> =
 );
 
 export const CardTitle: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <h3 className={`text-base font-semibold text-gray-900 ${className}`}>
+  <h3 className={`text-base font-semibold text-surface-foreground ${className}`}>
     {children}
   </h3>
 );
 
 export const CardDescription: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <p className={`text-sm text-gray-600 mt-1 ${className}`}>
+  <p className={`text-sm text-surface-muted-fg mt-1 ${className}`}>
     {children}
   </p>
 );

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: System domain hook — SchoolDetails, Roles, Users, AppSettings, RBAC, Audit, Workflows
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -19,8 +21,8 @@ export function useSystemData() {
   const schoolDetailsDoc = useDatabaseDocument<allTypes.SchoolDetails>('school_details');
   const usersCollection = useDatabaseCollection<allTypes.User>('users');
   const rolesCollection = useDatabaseCollection<allTypes.Role>('roles');
-  const campaignsCollection = useDatabaseCollection<any>('campaigns');
-  const templatesCommCollection = useDatabaseCollection<any>('template_comms');
+  const campaignsCollection = useDatabaseCollection<any>('message_campaigns');
+  const templatesCommCollection = useDatabaseCollection<any>('communication_templates');
   const auditLogsCollection = useDatabaseCollection<allTypes.AuditLog>('audit_logs');
   const workflowsCollection = useDatabaseCollection<any>('workflows');
   const workflowStatesCollection = useDatabaseCollection<any>('workflow_states');
@@ -52,7 +54,7 @@ export function useSystemData() {
 
   useEffect(() => {
     databaseService.initializeDatabase().catch((err) => {
-      console.error('[useSystemData] Failed to initialize database:', err);
+      logger.error('[useSystemData] Failed to initialize database:', err);
     });
   }, []);
 
@@ -70,9 +72,9 @@ export function useSystemData() {
         workflowsCollection.refresh(),
         workflowStatesCollection.refresh(),
       ]);
-      console.log('Database seeded with mock data successfully');
+      logger.info('Database seeded with mock data successfully');
     } catch (error) {
-      console.error('Failed to seed database:', error);
+      logger.error('Failed to seed database:', error);
     }
   }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 
@@ -89,9 +91,9 @@ export function useSystemData() {
         workflowsCollection.refresh(),
         workflowStatesCollection.refresh(),
       ]);
-      console.log('Database cleared successfully');
+      logger.info('Database cleared successfully');
     } catch (error) {
-      console.error('Failed to clear database:', error);
+      logger.error('Failed to clear database:', error);
     }
   }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 

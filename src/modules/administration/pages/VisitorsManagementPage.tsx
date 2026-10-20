@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,10 +12,8 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { VisitorType, VisitorStatus } from '../data/types';
 import type { VisitorLog } from '../data/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const VisitorsManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -57,9 +56,10 @@ const VisitorsManagementPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.visitor_name || !formData.phone || !formData.purpose) {
-      alert('Please fill in all required fields');
+      toast.showWarning('Please fill in all required fields');
       return;
     }
 
@@ -77,8 +77,8 @@ const VisitorsManagementPage: React.FC = () => {
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error checking in visitor:', error);
-      alert('Failed to check in visitor');
+      logger.error('Error checking in visitor:', error);
+      toast.showError('Failed to check in visitor');
     }
   };
 
@@ -93,7 +93,7 @@ const VisitorsManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error checking out visitor:', error);
+      logger.error('Error checking out visitor:', error);
     }
   };
 
@@ -106,7 +106,7 @@ const VisitorsManagementPage: React.FC = () => {
       });
       setVisitors((result?.docs || []) as VisitorLog[]);
     } catch (error) {
-      console.error('Error loading visitors:', error);
+      logger.error('Error loading visitors:', error);
     } finally {
       setLoading(false);
     }
@@ -180,17 +180,17 @@ const VisitorsManagementPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="text-2xl font-bold text-blue-700">{stats.total}</div>
-          <div className="text-sm text-blue-600">Total Visitors</div>
+        <Card className="bg-primary-50 border-primary-200">
+          <div className="text-2xl font-bold text-primary-700">{stats.total}</div>
+          <div className="text-sm text-primary-600">Total Visitors</div>
         </Card>
         <Card className="bg-green-50 border-green-200">
           <div className="text-2xl font-bold text-green-700">{stats.checkedIn}</div>
           <div className="text-sm text-green-600">Currently In</div>
         </Card>
-        <Card className="bg-gray-50 border-gray-200">
-          <div className="text-2xl font-bold text-gray-700">{stats.checkedOut}</div>
-          <div className="text-sm text-gray-600">Checked Out</div>
+        <Card className="bg-surface-muted border-surface-border">
+          <div className="text-2xl font-bold text-surface-foreground">{stats.checkedOut}</div>
+          <div className="text-sm text-surface-muted-fg">Checked Out</div>
         </Card>
         <Card className="bg-purple-50 border-purple-200">
           <div className="text-2xl font-bold text-purple-700">{stats.today}</div>
@@ -215,15 +215,15 @@ const VisitorsManagementPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-8">
-              <CheckCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No visitor logs found.</p>
+              <CheckCircleIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No visitor logs found.</p>
             </div>
           }
         />
       </Card>
 
       {selectedVisitor && (
-        <DialogForm
+        <Modal
           isOpen={!!selectedVisitor}
           onClose={() => setSelectedVisitor(null)}
           title="Visitor Details"
@@ -231,52 +231,52 @@ const VisitorsManagementPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Name</label>
+                <label className="text-sm font-medium text-surface-foreground">Name</label>
                 <p className="mt-1">{selectedVisitor.visitor_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Type</label>
+                <label className="text-sm font-medium text-surface-foreground">Type</label>
                 <div className="mt-1"><Badge variant="neutral">{selectedVisitor.visitor_type}</Badge></div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Phone</label>
+                <label className="text-sm font-medium text-surface-foreground">Phone</label>
                 <p className="mt-1">{selectedVisitor.phone}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Email</label>
+                <label className="text-sm font-medium text-surface-foreground">Email</label>
                 <p className="mt-1">{selectedVisitor.email || '-'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">ID Type</label>
+                <label className="text-sm font-medium text-surface-foreground">ID Type</label>
                 <p className="mt-1">{selectedVisitor.id_type || '-'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">ID Number</label>
+                <label className="text-sm font-medium text-surface-foreground">ID Number</label>
                 <p className="mt-1">{selectedVisitor.id_number || '-'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-surface-foreground">Status</label>
                 <div className="mt-1">{getStatusBadge(selectedVisitor.status)}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Person to Meet</label>
+                <label className="text-sm font-medium text-surface-foreground">Person to Meet</label>
                 <p className="mt-1">{selectedVisitor.person_to_meet || '-'}</p>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Purpose</label>
+              <label className="text-sm font-medium text-surface-foreground">Purpose</label>
               <p className="mt-1">{selectedVisitor.purpose}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Check In</label>
+                <label className="text-sm font-medium text-surface-foreground">Check In</label>
                 <p className="mt-1">{new Date(selectedVisitor.check_in_time).toLocaleString()}</p>
               </div>
               {selectedVisitor.check_out_time && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Check Out</label>
+                  <label className="text-sm font-medium text-surface-foreground">Check Out</label>
                   <p className="mt-1">{new Date(selectedVisitor.check_out_time).toLocaleString()}</p>
                 </div>
               )}
@@ -284,100 +284,88 @@ const VisitorsManagementPage: React.FC = () => {
 
             {selectedVisitor.remarks && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Remarks</label>
+                <label className="text-sm font-medium text-surface-foreground">Remarks</label>
                 <p className="mt-1">{selectedVisitor.remarks}</p>
               </div>
             )}
           </div>
-        </DialogForm>
+        </Modal>
       )}
 
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={t('visitors.checkIn')}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button onClick={handleSubmit}>Check In Visitor</Button>
+          </>
+        }
       >
-        <FormSection title="Visitor Information">
-          <FormField label="Visitor Name" required>
+        <div className="space-y-4">
+          <Input
+            label="Visitor Name"
+            value={formData.visitor_name}
+            onChange={(value) => handleInputChange('visitor_name', value)}
+            required
+          />
+          <Select
+            label="Visitor Type"
+            value={formData.visitor_type}
+            onChange={(value) => handleInputChange('visitor_type', value)}
+            options={Object.values(VisitorType).map(t => ({ label: t, value: t }))}
+            required
+          />
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              value={formData.visitor_name}
-              onChange={(value) => handleInputChange('visitor_name', value)}
-              required
-            />
-          </FormField>
-          <FormField label="Visitor Type" required>
-            <Select
-              value={formData.visitor_type}
-              onChange={(value) => handleInputChange('visitor_type', value)}
-              options={Object.values(VisitorType).map(t => ({ label: t, value: t }))}
-              required
-            />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Contact Details" columns={2}>
-          <FormField label="Phone" required>
-            <Input
+              label="Phone"
               value={formData.phone}
               onChange={(value) => handleInputChange('phone', value)}
               required
             />
-          </FormField>
-          <FormField label="Email">
             <Input
+              label="Email"
               value={formData.email}
               onChange={(value) => handleInputChange('email', value)}
             />
-          </FormField>
-          <FormField label="ID Type">
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <Input
+              label="ID Type"
               value={formData.id_type}
               onChange={(value) => handleInputChange('id_type', value)}
             />
-          </FormField>
-          <FormField label="ID Number">
             <Input
+              label="ID Number"
               value={formData.id_number}
               onChange={(value) => handleInputChange('id_number', value)}
             />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Visit Details">
-          <FormField label="Purpose of Visit" required>
-            <Textarea
-              value={formData.purpose}
-              onChange={(value) => handleInputChange('purpose', value)}
-              required
-              rows={3}
-            />
-          </FormField>
-          <FormField label="Person to Meet">
-            <Input
-              value={formData.person_to_meet}
-              onChange={(value) => handleInputChange('person_to_meet', value)}
-            />
-          </FormField>
-          <FormField label="Remarks">
-            <Textarea
-              value={formData.remarks}
-              onChange={(value) => handleInputChange('remarks', value)}
-              rows={2}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit">Check In Visitor</Button>
-        </FormActions>
-      </DialogForm>
+          </div>
+          <Textarea
+            label="Purpose of Visit"
+            value={formData.purpose}
+            onChange={(value) => handleInputChange('purpose', value)}
+            required
+            rows={3}
+          />
+          <Input
+            label="Person to Meet"
+            value={formData.person_to_meet}
+            onChange={(value) => handleInputChange('person_to_meet', value)}
+          />
+          <Textarea
+            label="Remarks"
+            value={formData.remarks}
+            onChange={(value) => handleInputChange('remarks', value)}
+            rows={2}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
 
 export default VisitorsManagementPage;
+
+export const VisitorsManagementContent = VisitorsManagementPage;

@@ -3,6 +3,8 @@
     "reports": {
       "title": "Rapports",
       "description": "Générer et consulter divers rapports et analyses",
+      "dashboard": "Tableau de Bord des Rapports",
+      "overview": "Tous les Rapports",
       "accountLedger": "Grand Livre Comptable",
       "examResultsHorizontal": "Relevé de Notes Horizontal",
       "feeCollectionSummary": "Résumé de la Collecte des Frais",
@@ -10,7 +12,6 @@
       "studentMasterlist": "Liste Principale des Étudiants",
       "studentVoteheadStatement": "Relevé de Compte par Poste Budgétaire",
       "teacherAssignments": "Affectation des Enseignants",
-      "dashboard": "Tableau de Bord des Rapports",
       "classLists": "Listes de Classes",
       "overdueBooks": "Livres en Retard",
       "inventoryStatus": "État des Stocks"

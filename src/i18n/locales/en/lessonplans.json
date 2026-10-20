@@ -1,0 +1,23 @@
+{
+  "lessonNote": {
+    "plural": "Lesson Notes",
+    "actions": {
+      "create": "Create",
+      "edit": "Edit"
+    }
+  },
+  "common": {
+    "noData": "No data available",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "weeklyPlan": {
+    "actions": {
+      "submit": "Submit",
+      "create": "Create",
+      "edit": "Edit"
+    },
+    "plural": "Weekly Plans"
+  }
+}

@@ -1,5 +1,7 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Sync state management context for handling data synchronization
-// ABOUTME: Provides sync status, controls, and queue management functionality
+// ABOUTME: Provides sync status, controls, queue status and the history of completed sync runs
 
 import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react';
 import { useNetwork } from './NetworkContext';
@@ -18,18 +20,43 @@ export interface SyncStatus {
   lastSyncTime: Date | null;
 }
 
+export interface SyncQueueItem {
+  id: string;
+  operation: {
+    entity: string;
+    type: 'create' | 'update' | 'delete';
+    data: any;
+  };
+  priority: 'critical' | 'high' | 'normal' | 'low';
+  status: 'pending' | 'processing' | 'completed' | 'error' | 'paused';
+  timestamp: Date;
+  retryCount: number;
+  maxRetries: number;
+  error?: string;
+  estimatedDuration?: number;
+}
+
 export interface QueueStatus {
   api: {
     pending: number;
     processing: boolean;
     byPriority: Record<string, number>;
+    completed: number;
   };
   sync: {
     pending: number;
     processing: boolean;
     byPriority: Record<string, number>;
     errors: number;
+    items: SyncQueueItem[];
   };
+}
+
+export interface SyncHistoryEntry {
+  id: string;
+  startedAt: Date;
+  completedAt: Date;
+  status: 'success' | 'error';
 }
 
 export interface OfflineCapability {
@@ -54,6 +81,7 @@ export interface SyncContextType {
   getQueueStatus: () => QueueStatus;
   clearQueue: () => void;
   clearSyncQueue: () => void;
+  getSyncHistory: () => SyncHistoryEntry[];
   
   // Sync settings
   getSyncSettings: () => SyncSettings;
@@ -83,53 +111,63 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     batchSize: 20
   });
 
+  const [syncHistory, setSyncHistory] = useState<SyncHistoryEntry[]>([]);
+
   // Sync controls
   const forceSync = useCallback(async () => {
     if (!isOnline) {
-      console.warn('Cannot sync while offline');
+      logger.warn('Cannot sync while offline');
       return;
     }
-    console.log('Force sync triggered');
+    logger.info('Force sync triggered');
+    const startedAt = new Date();
     setSyncStatus(prev => ({ ...prev, state: 'syncing', progress: 0 }));
     // Simulate sync process
     setTimeout(() => {
+      const completedAt = new Date();
       setSyncStatus(prev => ({ 
         ...prev, 
         state: 'idle', 
         progress: 100, 
-        lastSyncTime: new Date() 
+        lastSyncTime: completedAt 
       }));
+      setSyncHistory(prev => [
+        ...prev,
+        { id: `sync-${startedAt.getTime()}-${prev.length}`, startedAt, completedAt, status: 'success' },
+      ]);
     }, 2000);
   }, [isOnline]);
 
   const pauseSync = useCallback(() => {
-    console.log('Sync paused');
+    logger.info('Sync paused');
     setSyncStatus(prev => ({ ...prev, state: 'paused' }));
   }, []);
 
   const resumeSync = useCallback(() => {
-    console.log('Sync resumed');
+    logger.info('Sync resumed');
     setSyncStatus(prev => ({ ...prev, state: 'idle' }));
   }, []);
 
   const clearQueue = useCallback(() => {
-    console.log('Queue cleared');
+    logger.info('Queue cleared');
   }, []);
 
   const clearSyncQueue = useCallback(() => {
-    console.log('Sync queue cleared');
+    logger.info('Sync queue cleared');
   }, []);
 
   const getQueueStatus = useCallback((): QueueStatus => ({
-    api: { pending: 0, processing: false, byPriority: {} },
-    sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
+    api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
+    sync: { pending: 0, processing: false, byPriority: {}, errors: 0, items: [] }
   }), []);
+
+  const getSyncHistory = useCallback(() => syncHistory, [syncHistory]);
 
   const getSyncSettings = useCallback(() => syncSettings, [syncSettings]);
 
   const updateSyncSettings = useCallback((settings: Partial<SyncSettings>) => {
     setSyncSettings(prev => ({ ...prev, ...settings }));
-    console.log('Sync settings updated:', settings);
+    logger.info('Sync settings updated:', settings);
   }, []);
 
   // Offline capabilities
@@ -160,6 +198,7 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getQueueStatus,
     clearQueue,
     clearSyncQueue,
+    getSyncHistory,
     
     // Sync settings
     getSyncSettings,
@@ -176,6 +215,7 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getQueueStatus,
     clearQueue,
     clearSyncQueue,
+    getSyncHistory,
     getSyncSettings,
     updateSyncSettings,
     offlineCapabilities,

@@ -1,16 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  AcademicCapIcon,
-  ChartBarIcon,
-  UsersIcon,
-  BookOpenIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  MagnifyingGlassIcon,
-} from '@/components/ui/icons';
+import { AcademicCapIcon, ChartBarIcon, UsersIcon, BookOpenIcon, CheckCircleIcon, ArrowUpIcon, MagnifyingGlassIcon } from '@/components/ui/icons';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -85,9 +75,9 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
   // Apply filters
   const filteredRows = useMemo(() => {
     return teacherRows.filter((row) => {
-      if (subjectFilter && !row.subjects.toLowerCase().includes(subjectFilter.toLowerCase())) return false;
-      if (classFilter && !row.classes.toLowerCase().includes(classFilter.toLowerCase())) return false;
-      if (searchTerm && !row.teacherName.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (subjectFilter && !(row.subjects?.toLowerCase() ?? '').includes(subjectFilter.toLowerCase())) return false;
+      if (classFilter && !(row.classes?.toLowerCase() ?? '').includes(classFilter.toLowerCase())) return false;
+      if (searchTerm && !(row.teacherName?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())) return false;
       return true;
     });
   }, [teacherRows, subjectFilter, classFilter, searchTerm]);
@@ -117,7 +107,7 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
       key: 'total-teachers',
       label: t('common.totalTeachers') || 'Total Teachers',
       value: stats.totalTeachers,
-      icon: <UsersIcon className="h-6 w-6 text-blue-700" />,
+      icon: <UsersIcon className="h-6 w-6 text-primary-700" />,
     },
     {
       key: 'avg-pass-rate',
@@ -154,10 +144,10 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
       sortable: true,
       render: (value: string) => (
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-semibold">
+          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-semibold">
             {value.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
           </div>
-          <span className="font-medium text-gray-900">{value}</span>
+          <span className="font-medium text-surface-foreground">{value}</span>
         </div>
       ),
     },
@@ -236,23 +226,23 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
       metrics={metrics}
     >
       {/* Filters */}
-      <Card title="Filters" className="border-slate-200 bg-white shadow-sm">
+      <Card title="Filters" className="border-slate-200 bg-surface-card shadow-sm">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="relative flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Search Teacher</label>
+            <label className="block text-xs font-medium text-surface-muted-fg mb-1">Search Teacher</label>
             <div className="relative">
-              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <MagnifyingGlassIcon className="h-4 w-4 text-surface-muted-fg absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search by name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-9 pr-3 py-2 border border-surface-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
           </div>
           <div className="min-w-[180px]">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Subject</label>
+            <label className="block text-xs font-medium text-surface-muted-fg mb-1">Subject</label>
             <Select
               value={subjectFilter}
               onChange={(val) => setSubjectFilter(val as string)}
@@ -260,7 +250,7 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
             />
           </div>
           <div className="min-w-[180px]">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Class</label>
+            <label className="block text-xs font-medium text-surface-muted-fg mb-1">Class</label>
             <Select
               value={classFilter}
               onChange={(val) => setClassFilter(val as string)}
@@ -283,7 +273,7 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
       {/* Teacher Performance Table */}
       <Card
         title="Teacher Performance"
-        className="border-slate-200 bg-white shadow-sm"
+        className="border-slate-200 bg-surface-card shadow-sm"
       >
         <DataGrid
           columns={columns}
@@ -297,20 +287,20 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
       {/* Top Performing Teachers */}
       <Card
         title="Top Performing Teachers"
-        className="border-slate-200 bg-white shadow-sm"
+        className="border-slate-200 bg-surface-card shadow-sm"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {topTeachers.map((teacher, idx) => (
             <div
               key={teacher.teacherId}
-              className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-lg border border-surface-border hover:border-primary-300 hover:bg-primary-50 transition-colors"
             >
               <div className="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
                 #{idx + 1}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">{teacher.teacherName}</p>
-                <p className="text-xs text-gray-500 truncate">{teacher.subjects}</p>
+                <p className="text-sm font-semibold text-surface-foreground truncate">{teacher.teacherName}</p>
+                <p className="text-xs text-surface-muted-fg truncate">{teacher.subjects}</p>
               </div>
               <div className="flex items-center gap-1 text-emerald-700">
                 <ArrowUpIcon className="h-4 w-4" />
@@ -324,4 +314,5 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
   );
 };
 
+export const AnalyticsTeacherDashboardPageContent = AnalyticsTeacherDashboardPage;
 export default AnalyticsTeacherDashboardPage;

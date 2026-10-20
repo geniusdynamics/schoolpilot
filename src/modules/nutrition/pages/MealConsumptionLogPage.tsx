@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { MealConsumptionLog, Menu, Student, MealType, StudentStatus } from '@/types';
+import React, { useState, useMemo } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -7,17 +7,19 @@ import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import { ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useNutrition } from '../hooks/useNutrition';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { MealType, StudentStatus } from '@/core/types';
+import type { MealConsumptionLog } from '@/core/types';
 
-const MealConsumptionLogPage: React.FC = () => {
-  const { 
-    mealConsumptionLogs, 
-    menus,
-    students,
-    loading, 
-    addMealConsumptionLog 
-  } = useAppData();
+export const MealConsumptionLogPageContent: React.FC = () => {
+  // Students are cross-domain read data; menus and logging come from the nutrition module.
+  const { students: appStudents } = useAppData();
+  const students = useMemo(() => appStudents || [], [appStudents]);
+  const { menus, addMealConsumptionLog } = useNutrition();
+  const logsCollection = useDatabaseCollection<MealConsumptionLog>('meal_consumption_logs');
+  const mealConsumptionLogs = logsCollection.data;
   
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedMealType, setSelectedMealType] = useState<MealType | undefined>(MealType.LUNCH);
@@ -42,14 +44,16 @@ const MealConsumptionLogPage: React.FC = () => {
     setLogMessage(null);
     try {
       // The addMealConsumptionLog mock function needs to handle the logic for checking plans/wallet
+      const student = students.find(s => String(s.id) === selectedStudentId);
+      // The module hook stamps consumption_time and works out the charge from the meal plan / wallet.
       const result = await addMealConsumptionLog({
         student_id: selectedStudentId,
-        menu_id: selectedMenu.id,
-        // consumption_time is set by the mock fn
-        // charged_amount is determined by mock fn
-      });
-      // The actual result might have more details (e.g., amount charged)
-      setLogMessage({type: 'success', text: `Meal logged successfully for ${students.find(s=>s.id === selectedStudentId)?.first_name}.` + (result.charged_amount ? ` Amount charged: KES ${result.charged_amount.toFixed(2)}.` : ' Included in meal plan.') });
+        menu_id: String(selectedMenu.id),
+        student_name: student ? [student.first_name, student.last_name].filter(Boolean).join(' ') : undefined,
+      } as Omit<MealConsumptionLog, 'id'>);
+      await logsCollection.refresh();
+      const charged = (result as MealConsumptionLog | null)?.charged_amount;
+      setLogMessage({type: 'success', text: `Meal logged successfully for ${student?.first_name}.` + (charged ? ` Amount charged: KES ${charged.toFixed(2)}.` : ' Included in meal plan.') });
       setSelectedStudentId(undefined); // Clear student selection after logging
     } catch (error: any) {
       setLogMessage({type: 'error', text: error.message || "Failed to log meal consumption."});
@@ -63,7 +67,6 @@ const MealConsumptionLogPage: React.FC = () => {
       .sort((a, b) => new Date(b.consumption_time).getTime() - new Date(a.consumption_time).getTime())
       .slice(0, 20), // Show latest 20 logs
   [mealConsumptionLogs]);
-
 
   const logColumns: DataGridColumn<MealConsumptionLog>[] = [
     { 
@@ -99,21 +102,13 @@ const MealConsumptionLogPage: React.FC = () => {
     },
   ];
 
-  if ((loading.mealConsumptionLogs || loading.menus || loading.students)) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Meal Consumption Data...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Log Meal Consumption">
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Select a student and the meal they are consuming. The system will check their meal plan or deduct from their wallet if applicable.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Input 
                 name="consumption_date" 
                 label="Consumption Date" 
@@ -176,11 +171,11 @@ const MealConsumptionLogPage: React.FC = () => {
         <DataGrid 
           columns={logColumns} 
           data={recentLogs || []} 
-          isLoading={loading.mealConsumptionLogs}
+          isLoading={logsCollection.loading}
           sortable
           filterable
           emptyState={{
-            icon: <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400" />,
+            icon: <ClipboardDocumentListIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No meal consumption logs",
             description: "No meal consumption logs recorded yet. Start logging student meals to track consumption.",
             action: undefined
@@ -190,5 +185,10 @@ const MealConsumptionLogPage: React.FC = () => {
     </div>
   );
 };
+const MealConsumptionLogPage: React.FC = () => (
+  <div className="space-y-6">
+    <MealConsumptionLogPageContent />
+  </div>
+);
 
 export default MealConsumptionLogPage;

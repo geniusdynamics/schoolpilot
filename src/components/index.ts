@@ -8,25 +8,21 @@
 // ============================================================================
 
 // --- Layout Components ---
-export { Layout } from './Layout';
-export { LayoutNew } from './LayoutNew';
-export { Header } from './Header';
-export { PrimarySidebar } from './PrimarySidebar';
-export { SecondarySidebar } from './SecondarySidebar';
-export { Sidebar } from './Sidebar';
-export { PageHeader, PageContainer } from './layout';
+export { default as Layout } from './Layout';
+export { default as Header } from './Header';
+export { default as PrimarySidebar } from './PrimarySidebar';
+export { default as SecondarySidebar } from './SecondarySidebar';
+export { default as Sidebar } from './Sidebar';
+export { PageHeader, PageContainer } from './layout/index';
 
 // --- Navigation Components ---
-export { EnhancedNavigation } from './EnhancedNavigation';
+export { default as EnhancedNavigation } from './EnhancedNavigation';
 export { BreadcrumbNavigation } from './BreadcrumbNavigation';
-export { TopOverflowMenu } from './TopOverflowMenu';
+export { default as TopOverflowMenu } from './TopOverflowMenu';
 
 // --- Error Boundaries ---
 export {
   ErrorBoundary,
-  ApplicationErrorBoundary,
-  ModuleErrorBoundary,
-  DatabaseErrorBoundary,
   DatabaseInitializationFallback,
   DatabaseToastProvider,
   useDatabaseToast,
@@ -34,8 +30,7 @@ export {
   withHookErrorBoundary,
   useErrorHandler,
   PageErrorBoundary,
-  NavigationErrorBoundary,
-} from './ErrorBoundary';
+} from './ErrorBoundary/index';
 
 // --- Tabbed Workspace ---
 export {
@@ -117,6 +112,7 @@ export { SyncManagementPanel } from './SyncManagementPanel';
 export { DatabaseMonitoringDashboard } from './DatabaseMonitoringDashboard';
 export { ConflictResolutionInterface } from './ConflictResolutionInterface';
 export { GlobalNotifications } from './GlobalNotifications';
+export { MigrationScreen, useMigrationStatus } from './MigrationScreen';
 
 // --- Module System ---
 export { ModuleDashboardPlaceholder } from './ModuleDashboardPlaceholder';
@@ -137,5 +133,3 @@ export { ErrorTrackingTest } from './ErrorTrackingTest';
 // These exports are kept for backward compatibility but will be removed in a future version
 // Please import from '@/components/settings' instead
 export { default as FeatureSettingsLegacy } from './FeatureSettings';
-export { default as DataModeSwitchLegacy } from './DataModeSwitch';
-export { DataModeSwitch } from './DataModeSwitch';

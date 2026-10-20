@@ -1,16 +1,9 @@
 import React, { useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import {
-  ChartBarIcon,
-  UsersIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  DocumentTextIcon,
-} from '@/components/ui/icons';
+import { ChartBarIcon, CheckCircleIcon, ClockIcon, DocumentTextIcon } from '@/components/ui/icons';
 import { useAssignmentsData } from '../../data/useAssignmentsData';
 import { AssignmentStatus, SubmissionStatus } from '../../data/types';
-import type { Assignment } from '../../data/types';
 import { useTranslation } from 'react-i18next';
 
 interface AssignmentPerformance {
@@ -36,7 +29,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
     const totalAssignments = assignments.length;
     const totalSubmissions = submissions.length;
     const submittedCount = submissions.filter(
-      s => s.status !== SubmissionStatus.NOT_SUBMITTED
+      s => s.status !== SubmissionStatus.PENDING_REVIEW
     ).length;
     const gradedCount = submissions.filter(
       s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED
@@ -98,7 +91,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
       { label: '0-20%', min: 0, max: 20, count: 0, color: 'bg-red-500' },
       { label: '21-40%', min: 21, max: 40, count: 0, color: 'bg-orange-500' },
       { label: '41-60%', min: 41, max: 60, count: 0, color: 'bg-yellow-500' },
-      { label: '61-80%', min: 61, max: 80, count: 0, color: 'bg-blue-500' },
+      { label: '61-80%', min: 61, max: 80, count: 0, color: 'bg-primary-500' },
       { label: '81-100%', min: 81, max: 100, count: 0, color: 'bg-green-500' },
     ];
 
@@ -116,7 +109,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
       const assignmentSubs = submissions.filter(s => s.assignmentId === assignment.id);
       const total = assignmentSubs.length;
       const submitted = assignmentSubs.filter(
-        s => s.status !== SubmissionStatus.NOT_SUBMITTED
+        s => s.status !== SubmissionStatus.PENDING_REVIEW
       ).length;
       const graded = assignmentSubs.filter(
         s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED
@@ -153,9 +146,9 @@ const AssignmentAnalyticsPage: React.FC = () => {
       width: 250,
       render: (value, item) => (
         <div>
-          <span className="font-medium text-gray-900">{value}</span>
+          <span className="font-medium text-surface-foreground">{value}</span>
           {item.subjectName && (
-            <p className="text-xs text-gray-500">{item.subjectName}</p>
+            <p className="text-xs text-surface-muted-fg">{item.subjectName}</p>
           )}
         </div>
       ),
@@ -180,7 +173,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
       sortable: true,
       width: 100,
       render: (value, item) => (
-        <span className="text-sm text-blue-600">{value} ({item.submissionRate}%)</span>
+        <span className="text-sm text-primary-600">{value} ({item.submissionRate}%)</span>
       ),
     },
     {
@@ -211,15 +204,14 @@ const AssignmentAnalyticsPage: React.FC = () => {
   ];
 
   const statusColors: Record<AssignmentStatus, string> = {
-    [AssignmentStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-    [AssignmentStatus.PUBLISHED]: 'bg-blue-100 text-blue-800',
-    [AssignmentStatus.CLOSED]: 'bg-orange-100 text-orange-800',
-    [AssignmentStatus.GRADED]: 'bg-green-100 text-green-800',
+    [AssignmentStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+    [AssignmentStatus.PUBLISHED]: 'bg-primary-100 text-primary-800',
+    [AssignmentStatus.ARCHIVED]: 'bg-orange-100 text-orange-800',
   };
 
   const submissionStatusColors: Record<SubmissionStatus, string> = {
-    [SubmissionStatus.NOT_SUBMITTED]: 'bg-gray-100 text-gray-800',
-    [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+    [SubmissionStatus.PENDING_REVIEW]: 'bg-surface-accent text-surface-foreground',
+    [SubmissionStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
     [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
     [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
     [SubmissionStatus.RETURNED]: 'bg-purple-100 text-purple-800',
@@ -229,20 +221,20 @@ const AssignmentAnalyticsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('analytics.title')}</h1>
-        <p className="text-sm text-gray-500 mt-1">Overview of assignment performance and submission analytics</p>
+        <h1 className="text-2xl font-bold text-surface-foreground">{t('analytics.title')}</h1>
+        <p className="text-sm text-surface-muted-fg mt-1">Overview of assignment performance and submission analytics</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card variant="compact">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <DocumentTextIcon className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-primary-100 rounded-lg">
+              <DocumentTextIcon className="w-6 h-6 text-primary-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{overallStats.totalAssignments}</p>
-              <p className="text-xs text-gray-500">{t('assignment.plural')}</p>
+              <p className="text-2xl font-bold text-surface-foreground">{overallStats.totalAssignments}</p>
+              <p className="text-xs text-surface-muted-fg">{t('assignment.plural')}</p>
             </div>
           </div>
         </Card>
@@ -252,8 +244,8 @@ const AssignmentAnalyticsPage: React.FC = () => {
               <CheckCircleIcon className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{overallStats.submissionRate}%</p>
-              <p className="text-xs text-gray-500">{t('analytics.submissionRate')}</p>
+              <p className="text-2xl font-bold text-surface-foreground">{overallStats.submissionRate}%</p>
+              <p className="text-xs text-surface-muted-fg">{t('analytics.submissionRate')}</p>
             </div>
           </div>
         </Card>
@@ -263,8 +255,8 @@ const AssignmentAnalyticsPage: React.FC = () => {
               <ClockIcon className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{overallStats.gradingRate}%</p>
-              <p className="text-xs text-gray-500">Grading Rate</p>
+              <p className="text-2xl font-bold text-surface-foreground">{overallStats.gradingRate}%</p>
+              <p className="text-xs text-surface-muted-fg">Grading Rate</p>
             </div>
           </div>
         </Card>
@@ -274,8 +266,8 @@ const AssignmentAnalyticsPage: React.FC = () => {
               <ChartBarIcon className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{overallStats.avgScore}</p>
-              <p className="text-xs text-gray-500">{t('analytics.averageScore')}</p>
+              <p className="text-2xl font-bold text-surface-foreground">{overallStats.avgScore}</p>
+              <p className="text-xs text-surface-muted-fg">{t('analytics.averageScore')}</p>
             </div>
           </div>
         </Card>
@@ -297,7 +289,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
                     let cumulativePercent = 0;
                     const colors: Record<string, string> = {
                       NOT_SUBMITTED: '#9CA3AF',
-                      SUBMITTED: '#3B82F6',
+                      SUBMITTED: '#6366f1',
                       LATE: '#F97316',
                       GRADED: '#22C55E',
                       RETURNED: '#A855F7',
@@ -326,7 +318,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
                   })()}
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-lg font-bold text-surface-foreground">
                     {Object.values(submissionsByStatus).reduce((a, b) => a + b, 0)}
                   </span>
                 </div>
@@ -338,7 +330,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
                 .map(([status, count]) => (
                   <div key={status} className="flex items-center space-x-2">
                     <span className={`w-3 h-3 rounded-full ${submissionStatusColors[status as SubmissionStatus]?.split(' ')[0] || 'bg-gray-300'}`}></span>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-surface-muted-fg">
                       {t(`submission.status.${status}`)}: {count}
                     </span>
                   </div>
@@ -353,8 +345,8 @@ const AssignmentAnalyticsPage: React.FC = () => {
             {scoreDistribution.map((range) => (
               <div key={range.label}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-gray-600">{range.label}</span>
-                  <span className="text-sm font-medium text-gray-900">{range.count}</span>
+                  <span className="text-sm text-surface-muted-fg">{range.label}</span>
+                  <span className="text-sm font-medium text-surface-foreground">{range.count}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
@@ -384,13 +376,13 @@ const AssignmentAnalyticsPage: React.FC = () => {
             const height = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
             const barColors: Record<string, string> = {
               DRAFT: 'bg-gray-400',
-              PUBLISHED: 'bg-blue-500',
+              PUBLISHED: 'bg-primary-500',
               CLOSED: 'bg-orange-500',
               GRADED: 'bg-green-500',
             };
             return (
               <div key={status} className="flex-1 flex flex-col items-center space-y-2">
-                <span className="text-sm font-medium text-gray-900">{count}</span>
+                <span className="text-sm font-medium text-surface-foreground">{count}</span>
                 <div className="w-full flex items-end justify-center" style={{ height: '100px' }}>
                   <div
                     className={`w-16 ${barColors[status] || 'bg-gray-300'} rounded-t-md transition-all duration-300`}
@@ -419,11 +411,11 @@ const AssignmentAnalyticsPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <ChartBarIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 No assignments to analyze yet.
               </p>
             </div>

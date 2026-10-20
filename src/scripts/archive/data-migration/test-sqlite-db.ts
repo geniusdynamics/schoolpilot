@@ -5,7 +5,6 @@
 import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
 import { convertRxDBSchema } from '@/services/database/ProviderSelector';
 // RXDB removed - Phase 2: Using provider-agnostic collections
-import { collectionsDefinition } from '@/services/database/collections';
 
 async function testSQLiteDatabase() {
   console.log('=== TESTING SQLITE DATABASE ===');

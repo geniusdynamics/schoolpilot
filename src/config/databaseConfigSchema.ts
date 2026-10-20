@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Database configuration schema validation and repair utilities
 // ABOUTME: Provides comprehensive validation, error reporting, and configuration repair tools
 
@@ -401,7 +403,7 @@ export class DatabaseConfigValidator {
           throw new Error(`Migration validation failed for ${migration.fromVersion} → ${migration.toVersion}`);
         }
       } catch (error) {
-        console.error(`Migration failed: ${migration.fromVersion} → ${migration.toVersion}`, error);
+        logger.error(`Migration failed: ${migration.fromVersion} → ${migration.toVersion}`, error);
         break; // Stop applying further migrations
       }
     }

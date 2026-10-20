@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Factory hook for generating standardized CRUD operations
 // ABOUTME: Works with UnifiedDatabaseManager for real database persistence
 // ABOUTME: Supports optimistic updates, validation, and error handling
@@ -12,9 +14,8 @@ import type {
   CrudActionType,
   OptimisticUpdate,
   QueryFilter,
-  generateId,
-  getTimestamp,
 } from '@/core/types/crud';
+import { generateId, getTimestamp } from '@/core/types/crud';
 
 export function useCrudFactory<T extends BaseEntity>(
   options: UseCrudOptions<T>
@@ -24,6 +25,7 @@ export function useCrudFactory<T extends BaseEntity>(
     entityName,
     initialData = [],
     enableOptimisticUpdates = true,
+    confirmBeforeDelete = true,
     onError,
     onSuccess,
   } = options;
@@ -65,7 +67,7 @@ export function useCrudFactory<T extends BaseEntity>(
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : `Failed to load ${entityName}s`;
       setError(errorMessage);
-      console.error(`Error refreshing ${entityName}s:`, err);
+      logger.error(`Error refreshing ${entityName}s:`, err);
     } finally {
       setLoading(false);
     }
@@ -267,8 +269,8 @@ export function useCrudFactory<T extends BaseEntity>(
 
   // DELETE operation
   const remove = useCallback(async (id: string): Promise<void> => {
-    // Confirmation dialog
-    if (typeof window !== 'undefined') {
+    // Confirmation dialog (callers using ConfirmDialog set confirmBeforeDelete: false)
+    if (confirmBeforeDelete && typeof window !== 'undefined') {
       const confirmed = window.confirm(`Are you sure you want to delete this ${entityName}?`);
       if (!confirmed) return;
     }
@@ -323,7 +325,7 @@ export function useCrudFactory<T extends BaseEntity>(
     } finally {
       setLoading(false);
     }
-  }, [items, selectedItem, getCollection, entityName, toast, enableOptimisticUpdates, applyOptimisticUpdate, commitOptimisticUpdate, rollbackOptimisticUpdate, onSuccess, onError]);
+  }, [items, selectedItem, getCollection, entityName, toast, enableOptimisticUpdates, confirmBeforeDelete, applyOptimisticUpdate, commitOptimisticUpdate, rollbackOptimisticUpdate, onSuccess, onError]);
 
   // READ operations
   const findById = useCallback((id: string): T | undefined => {
@@ -401,7 +403,7 @@ export function useCrudFactory<T extends BaseEntity>(
   }, [update, entityName, toast, onError]);
 
   const removeMany = useCallback(async (ids: string[]): Promise<void> => {
-    if (typeof window !== 'undefined') {
+    if (confirmBeforeDelete && typeof window !== 'undefined') {
       const confirmed = window.confirm(`Are you sure you want to delete ${ids.length} ${entityName}s?`);
       if (!confirmed) return;
     }
@@ -424,7 +426,7 @@ export function useCrudFactory<T extends BaseEntity>(
     } finally {
       setLoading(false);
     }
-  }, [remove, entityName, toast, onError]);
+  }, [remove, entityName, toast, confirmBeforeDelete, onError]);
 
   return {
     // State

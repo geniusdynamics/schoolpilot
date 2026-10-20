@@ -11,12 +11,13 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/components/ui/icons';
 import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndSocietyData';
 import { useAppData } from '@/hooks/useAppData'; // For staff data only
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
     type: ClubType; // Make type required for the form
@@ -49,9 +50,10 @@ const ClubsPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value === '' && name === 'patron_id' ? undefined : value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.type) {
-      alert(t('validation.clubNameAndTypeAreRequired'));
+      toast.showWarning(t('validation.clubNameAndTypeAreRequired'));
       return;
     }
     const payload = {
@@ -68,8 +70,9 @@ const ClubsPage: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this club/society?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this club/society?' }))) {
       deleteClubAndSociety(id);
     }
   };
@@ -130,7 +133,7 @@ const ClubsPage: React.FC = () => {
           Add Club/Society
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage school clubs, societies, and sports teams. Assign patrons from the staff list.
         </p>
         <DataGrid 
@@ -138,13 +141,11 @@ const ClubsPage: React.FC = () => {
           data={clubsAndSocieties}
           sortable
           filterable
-          emptyState={
-            <div className="text-center py-12">
-              <ClubsIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No clubs or societies found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first club or society.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <ClubsIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No clubs or societies found',
+            description: 'Get started by creating your first club or society.',
+          }}
         />
       </Card>
 
@@ -206,3 +207,5 @@ const ClubsPage: React.FC = () => {
 };
 
 export default ClubsPage;
+
+export const ClubsContent = ClubsPage;

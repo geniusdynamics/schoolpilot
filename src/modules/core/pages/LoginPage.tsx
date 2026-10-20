@@ -1,5 +1,7 @@
-// ABOUTME: Login page for user authentication
-// ABOUTME: Supports both demo mode (predefined users) and production mode
+import { logger } from '@/utils/logging';
+
+// ABOUTME: Login page for user authentication; lists demo accounts only for demo databases
+// ABOUTME: In live mode shows storage errors explicitly and offers "Create administrator" when no user exists
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -10,6 +12,90 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import { LockClosedIcon, UserCircleIcon, EyeIcon, EyeSlashIcon } from '@/components/ui/icons';
+import { MIN_ADMIN_PASSWORD_LENGTH, type LoginState } from '@/services/auth/authService';
+
+// Loaded lazily so the page only touches live storage when it is not a demo database.
+let authServiceModule: Promise<typeof import('@/services/auth/authService')> | null = null;
+const loadAuthService = async () => {
+  authServiceModule ??= import('@/services/auth/authService');
+  return (await authServiceModule).authService;
+};
+
+interface CreateAdministratorFormProps {
+  onCreated: () => void;
+}
+
+const CreateAdministratorForm: React.FC<CreateAdministratorFormProps> = ({ onCreated }) => {
+  const { t } = useTranslation('common');
+  const [form, setForm] = useState({ username: '', displayName: '', password: '', confirm: '' });
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const change = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+    setError('');
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.password.length < MIN_ADMIN_PASSWORD_LENGTH) {
+      setError(t('auth.createAdministrator.passwordTooShort', 'The password must be at least 10 characters.'));
+      return;
+    }
+    if (form.password !== form.confirm) {
+      setError(t('auth.createAdministrator.passwordMismatch', 'The passwords do not match.'));
+      return;
+    }
+    setBusy(true);
+    try {
+      const service = await loadAuthService();
+      const result = await service.createInitialAdministrator({
+        username: form.username,
+        displayName: form.displayName,
+        password: form.password,
+      });
+      if (result.success) onCreated();
+      else setError(result.message);
+    } catch (err) {
+      logger.error('Create administrator failed:', err);
+      setError(t('auth.createAdministrator.failed', 'Could not create the administrator.'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4" data-testid="create-administrator-form">
+      <div className="text-center mb-2">
+        <h2 className="text-2xl font-semibold text-surface-foreground mb-2">
+          {t('auth.createAdministrator.title', 'Create administrator')}
+        </h2>
+        <p className="text-surface-muted-fg">
+          {t('auth.createAdministrator.intro', 'No accounts exist yet. Create the administrator who will manage this school.')}
+        </p>
+      </div>
+      {([
+        ['admin-username', 'username', t('auth.createAdministrator.username', 'Username'), 'text'],
+        ['admin-display-name', 'displayName', t('auth.createAdministrator.displayName', 'Display name'), 'text'],
+        ['admin-password', 'password', t('auth.createAdministrator.password', 'Password'), 'password'],
+        ['admin-confirm', 'confirm', t('auth.createAdministrator.confirmPassword', 'Confirm password'), 'password'],
+      ] as const).map(([id, field, label, type]) => (
+        <div key={id}>
+          <label htmlFor={id} className="block text-sm font-medium text-surface-foreground mb-1">{label}</label>
+          <Input id={id} type={type} value={form[field]} onChange={change(field)} required disabled={busy} />
+        </div>
+      ))}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+      <Button type="submit" className="w-full" disabled={busy}>
+        {t('auth.createAdministrator.submit', 'Create administrator')}
+      </Button>
+    </form>
+  );
+};
 
 const LoginPage: React.FC = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -17,11 +103,36 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loginState, setLoginState] = useState<LoginState | null>(null);
 
-  const { login, isDemoMode, isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('common');
+
+  // authService.getLoginState() is authoritative; AuthContext.isDemoMode may be stale (e.g. after logout).
+  useEffect(() => {
+    let cancelled = false;
+    loadAuthService()
+      .then(service => service.getLoginState())
+      .then(state => { if (!cancelled) setLoginState(state); })
+      .catch(err => {
+        logger.error('Could not determine login state:', err);
+        if (!cancelled) setLoginState({ mode: 'live', status: 'storage-unavailable' });
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Demo accounts are offered only for demo databases, never because something failed.
+  const showDemoAccounts = loginState?.mode === 'demo';
+  const needsAdministrator = loginState?.status === 'needs-administrator';
+  const storageUnavailable = loginState?.status === 'storage-unavailable';
+
+  const handleAdministratorCreated = () => {
+    setLoginState({ mode: 'live', status: 'ready' });
+    setError('');
+    setSuccess(t('auth.createAdministrator.created', 'Administrator created. Sign in with your new account.'));
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -60,10 +171,13 @@ const LoginPage: React.FC = () => {
         // Redirect to intended page or dashboard
         const redirectPath = getSafeRedirectPath();
         setTimeout(() => navigate(redirectPath, { replace: true }), 1000);
+      } else if (result.reason === 'no-administrator') {
+        setLoginState({ mode: 'live', status: 'needs-administrator' });
       } else {
         setError(result.message);
       }
     } catch (error) {
+      logger.error('Login error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -90,7 +204,7 @@ const LoginPage: React.FC = () => {
         setError(result.message);
       }
     } catch (error) {
-      console.error('Demo login error:', error);
+      logger.error('Demo login error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -103,31 +217,43 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" data-testid="login-page">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-indigo-100 flex items-center justify-center p-4" data-testid="login-page">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
             <LockClosedIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">SchoolPilot</h1>
-          <p className="text-gray-600">SchoolPilot</p>
+          <h1 className="text-3xl font-bold text-surface-foreground mb-2">SchoolPilot</h1>
+          <p className="text-surface-muted-fg">SchoolPilot</p>
         </div>
 
         {/* Login Form */}
         <Card className="p-8">
+          {storageUnavailable && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert">
+              <p className="text-sm text-red-700">
+                {t('auth.login.storageUnavailable', 'The school database is not available on this device. Sign-in is disabled until storage is working.')}
+              </p>
+            </div>
+          )}
+
+          {needsAdministrator ? (
+            <CreateAdministratorForm onCreated={handleAdministratorCreated} />
+          ) : (
+          <>
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Sign In</h2>
-            <p className="text-gray-600">
-              {isDemoMode ? 'Demo Mode - Use any of the demo accounts below' : 'Enter your credentials'}
+            <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Sign In</h2>
+            <p className="text-surface-muted-fg">
+              {showDemoAccounts ? 'Demo Mode - Use any of the demo accounts below' : 'Enter your credentials'}
             </p>
           </div>
 
           {/* Demo Mode Notice */}
-          {isDemoMode && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">Demo Mode Active</h3>
-              <p className="text-sm text-blue-700 mb-3">
+          {showDemoAccounts && (
+            <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+              <h3 className="font-medium text-primary-900 mb-2">Demo Mode Active</h3>
+              <p className="text-sm text-primary-700 mb-3">
                 You can use any of these demo accounts to test different user roles:
               </p>
               <div className="space-y-2">
@@ -136,10 +262,10 @@ const LoginPage: React.FC = () => {
                     key={demoUser.username}
                     onClick={() => handleDemoLogin(demoUser)}
                     disabled={isLoading}
-                    className="w-full text-left p-2 text-sm bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors disabled:opacity-50"
+                    className="w-full text-left p-2 text-sm bg-surface-card border border-primary-200 rounded hover:bg-primary-50 transition-colors disabled:opacity-50"
                   >
                     <span className="font-medium">{demoUser.username}</span>
-                    <span className="text-gray-500 ml-2">({demoUser.role})</span>
+                    <span className="text-surface-muted-fg ml-2">({demoUser.role})</span>
                   </button>
                 ))}
               </div>
@@ -150,12 +276,12 @@ const LoginPage: React.FC = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-surface-foreground mb-1">
                 Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserCircleIcon className="h-5 w-5 text-gray-400" />
+                  <UserCircleIcon className="h-5 w-5 text-surface-muted-fg" />
                 </div>
                 <Input
                   id="username"
@@ -172,12 +298,12 @@ const LoginPage: React.FC = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-surface-foreground mb-1">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                  <LockClosedIcon className="h-5 w-5 text-surface-muted-fg" />
                 </div>
                 <Input
                   id="password"
@@ -196,9 +322,9 @@ const LoginPage: React.FC = () => {
                   disabled={isLoading}
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                    <EyeSlashIcon className="h-5 w-5 text-surface-muted-fg" />
                   ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                    <EyeIcon className="h-5 w-5 text-surface-muted-fg" />
                   )}
                 </button>
               </div>
@@ -235,18 +361,20 @@ const LoginPage: React.FC = () => {
           </form>
 
           {/* Demo Mode Info */}
-          {isDemoMode && (
-            <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-xs text-gray-600 text-center">
+          {showDemoAccounts && (
+            <div className="mt-6 p-3 bg-surface-muted border border-surface-border rounded-lg">
+              <p className="text-xs text-surface-muted-fg text-center">
                 <strong>Demo Mode:</strong> All passwords are accepted. In production, proper password validation will be enforced.
               </p>
             </div>
+          )}
+          </>
           )}
         </Card>
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-surface-muted-fg">
             © 2024 SchoolPilot. All rights reserved.
           </p>
         </div>

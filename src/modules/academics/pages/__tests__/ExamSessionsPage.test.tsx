@@ -1,13 +1,18 @@
 // ABOUTME: This test file covers ExamSessionsPage session and nested paper-setting CRUD interactions.
-// ABOUTME: It verifies the page uses AppDataContext mutations instead of the removed placeholder TODO handlers.
+// ABOUTME: It verifies the page uses the academics module context mutations and writes ids as strings (P0-F04).
 
-import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import ExamSessionsPage from '../ExamSessionsPage';
-import { AppDataContext } from '@/contexts/AppDataContext';
+import { AcademicDataContext } from '@/modules/academics/data/AcademicDataContext';
+import { ToastProvider } from '@/hooks/useToast';
 import { ExamSessionStatus } from '@/modules/academics/data/types';
+
+// This file imports RTL's render directly (bypassing the global provider
+// wrapper in setup.ts); the page calls useToast(), so wrap every render here.
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<ToastProvider>{ui}</ToastProvider>, options);
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -69,9 +74,9 @@ const baseContextValue = {
 };
 
 const renderPage = (contextOverrides: Record<string, unknown> = {}) => render(
-  <AppDataContext.Provider value={{ ...baseContextValue, ...contextOverrides } as any}>
+  <AcademicDataContext.Provider value={{ ...baseContextValue, ...contextOverrides } as any}>
     <ExamSessionsPage />
-  </AppDataContext.Provider>
+  </AcademicDataContext.Provider>
 );
 
 describe('ExamSessionsPage', () => {
@@ -85,7 +90,7 @@ describe('ExamSessionsPage', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add Exam Session' }));
-    fireEvent.change(screen.getByLabelText('Exam Session Name'), { target: { value: 'End Term' } });
+    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'End Term' } });
     fireEvent.change(document.querySelector('select[name="school_period_id"]') as HTMLSelectElement, { target: { value: '2' } });
     fireEvent.change(document.querySelector('select[name="status"]') as HTMLSelectElement, { target: { value: ExamSessionStatus.MARKS_ENTRY_OPEN } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Session' }));
@@ -93,7 +98,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockAddExamSession).toHaveBeenCalledWith({
         name: 'End Term',
-        school_period_id: 2,
+        school_period_id: '2',
         status: ExamSessionStatus.MARKS_ENTRY_OPEN
       });
     });
@@ -103,13 +108,13 @@ describe('ExamSessionsPage', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    fireEvent.change(screen.getByLabelText('Exam Session Name'), { target: { value: 'Updated Mid Term' } });
+    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'Updated Mid Term' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
 
     await waitFor(() => {
       expect(mockUpdateExamSession).toHaveBeenCalledWith('session-1', {
         name: 'Updated Mid Term',
-        school_period_id: 1,
+        school_period_id: '1',
         status: ExamSessionStatus.PLANNING
       });
     });
@@ -127,7 +132,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockAddExamPaperSetting).toHaveBeenCalledWith({
         exam_session_id: 'session-1',
-        subject_paper_id: 2,
+        subject_paper_id: '2',
         marks_out_of: 80,
         weight_percentage: 40
       });
@@ -140,7 +145,7 @@ describe('ExamSessionsPage', () => {
     await waitFor(() => {
       expect(mockUpdateExamPaperSetting).toHaveBeenCalledWith('setting-1', {
         exam_session_id: 'session-1',
-        subject_paper_id: 1,
+        subject_paper_id: '1',
         marks_out_of: 90,
         weight_percentage: 50
       });

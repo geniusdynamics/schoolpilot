@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides the main Exam Scheduling Page component
 // ABOUTME: with calendar view, schedule listing, and management functionality
 
@@ -7,12 +9,13 @@ import { examScheduleManager } from '../services/ExamScheduleManager';
 import ExamSchedulingUI from '@/modules/academics/components/ExamSchedulingUI';
 import SchedulingCalendar from '@/components/SchedulingCalendar';
 import { useAppData } from '@/hooks/useAppData';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface ExamSchedulingPageProps {
   examSessionId?: string;
 }
 
-const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }) => {
+export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ examSessionId }) => {
   const { classStreams = [] } = useAppData();
   const [schedules, setSchedules] = useState<ExamSchedule[]>([]);
   const [filteredSchedules, setFilteredSchedules] = useState<ExamSchedule[]>([]);
@@ -39,14 +42,14 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
       let allSchedules;
       
       if (examSessionId) {
-        allSchedules = await scheduleManager.getByExamSession(parseInt(examSessionId));
+        allSchedules = await scheduleManager.getSchedulesByExam(examSessionId);
       } else {
         allSchedules = await scheduleManager.getAllExamSchedules();
       }
       
       setSchedules(allSchedules);
     } catch (error) {
-      console.error('Error loading schedules:', error);
+      logger.error('Error loading schedules:', error);
     } finally {
       setLoading(false);
     }
@@ -56,14 +59,14 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
     let filtered = [...schedules];
 
     if (filterClassStream) {
-      filtered = filtered.filter(s => 
-        s.class_stream_id.toString() === filterClassStream
+      filtered = filtered.filter(s => s && 
+        s.class_stream_id?.toString() === filterClassStream
       );
     }
 
     if (filterRoom) {
-      filtered = filtered.filter(s => 
-        s.room_number.toLowerCase().includes(filterRoom.toLowerCase())
+      filtered = filtered.filter(s => s && 
+        s.room_number?.toLowerCase().includes(filterRoom.toLowerCase())
       );
     }
 
@@ -72,13 +75,19 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
 
   const handleCreateSchedule = async (schedule: ExamSchedule) => {
     try {
-      const newSchedule = await scheduleManager.createExamSchedule(schedule);
+      const newSchedule = await scheduleManager.createExamSchedule({
+        exam_id: schedule.exam_id ?? schedule.exam_session_id ?? '',
+        period_id: schedule.period_id,
+        class_stream_id: schedule.class_stream_id,
+        invigilator_id: schedule.invigilator_id ?? schedule.invigilator ?? '',
+        room_number: schedule.room_number ?? schedule.room ?? '',
+      });
       if (newSchedule) {
         setSchedules(prev => [...prev, newSchedule]);
         setShowCreateModal(false);
       }
     } catch (error) {
-      console.error('Error creating schedule:', error);
+      logger.error('Error creating schedule:', error);
     }
   };
 
@@ -92,12 +101,13 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
         setEditingSchedule(null);
       }
     } catch (error) {
-      console.error('Error updating schedule:', error);
+      logger.error('Error updating schedule:', error);
     }
   };
 
+  const confirm = useConfirm();
   const handleDeleteSchedule = async (scheduleId: string) => {
-    if (!window.confirm('Are you sure you want to delete this schedule?')) {
+    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this schedule?' }))) {
       return;
     }
 
@@ -107,7 +117,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
         setSchedules(prev => prev.filter(s => s.id !== scheduleId));
       }
     } catch (error) {
-      console.error('Error deleting schedule:', error);
+      logger.error('Error deleting schedule:', error);
     }
   };
 
@@ -124,8 +134,21 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
   const renderCalendarView = () => (
     <div className="calendar-view">
       <SchedulingCalendar
-        schedules={filteredSchedules}
-        onScheduleClick={setEditingSchedule}
+        schedules={filteredSchedules.map(s => ({
+          id: s.id,
+          examId: s.exam_id ?? s.exam_session_id ?? '',
+          examName: s.subject_name ?? '',
+          date: s.date ?? '',
+          startTime: s.start_time ?? '',
+          endTime: s.end_time ?? '',
+          roomNumber: s.room_number ?? s.room ?? '',
+          invigilator: s.invigilator_id ?? s.invigilator ?? '',
+          classStream: String(s.class_stream_id ?? ''),
+          status: 'scheduled' as const,
+        }))}
+        onSelectSchedule={(sc) => setEditingSchedule(filteredSchedules.find(f => f.id === sc.id) ?? null)}
+        onAddSchedule={() => setShowCreateModal(true)}
+        onDeleteSchedule={handleDeleteSchedule}
       />
     </div>
   );
@@ -150,7 +173,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
                 <p><strong>Status:</strong> 
                   <span 
                     className="status-badge" 
-                    style={{ backgroundColor: getStatusColor(schedule.status) }}
+                    style={{ backgroundColor: getStatusColor(schedule.status || '') }}
                   >
                     {schedule.status}
                   </span>
@@ -201,8 +224,8 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
           >
             <option value="">All Classes</option>
             {classStreams.map(stream => (
-              <option key={stream.id} value={stream.id.toString()}>
-                {stream.class_name} {stream.stream_name}
+              <option key={stream?.id ?? ''} value={stream?.id?.toString() ?? ''}>
+                {stream.class_name} {stream.name}
               </option>
             ))}
           </select>
@@ -261,7 +284,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .exam-scheduling-page {
           padding: 20px;
           max-width: 1200px;
@@ -436,5 +459,10 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
   );
 };
 
-export default ExamSchedulingPage;
+const ExamSchedulingPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamSchedulingPageContent />
+  </div>
+);
 
+export default ExamSchedulingPage;

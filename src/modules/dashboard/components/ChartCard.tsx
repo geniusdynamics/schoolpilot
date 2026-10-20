@@ -31,20 +31,20 @@ const ChartCard: React.FC<ChartCardProps> = ({
 }) => {
   return (
     <Card
-      className={`border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}
-      headerClassName={`bg-gray-50/50 border-b border-gray-100 ${headerClassName}`}
+      className={`border-surface-border shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}
+      headerClassName={`bg-gray-50/50 dark:bg-slate-800/50 border-b border-gray-100 ${headerClassName}`}
       bodyClassName={`p-4 ${bodyClassName}`}
       title={
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="text-blue-600">
+            <span className="text-primary-600">
               {icon}
             </span>
           )}
           <div>
-            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-base font-semibold text-surface-foreground">{title}</h3>
             {subtitle && (
-              <p className="text-xs text-gray-500 font-normal">{subtitle}</p>
+              <p className="text-xs text-surface-muted-fg font-normal">{subtitle}</p>
             )}
           </div>
         </div>
@@ -56,7 +56,7 @@ const ChartCard: React.FC<ChartCardProps> = ({
               onClick={onRefresh}
               disabled={loading}
               className={`
-                p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50
+                p-1.5 rounded-lg text-surface-muted-fg hover:text-primary-600 hover:bg-primary-50
                 transition-all duration-200
                 ${loading ? 'animate-spin' : ''}
               `}

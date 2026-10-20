@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: HR domain hook — PayrollPeriods, PayrollItemTypes, Payslips,
 // ABOUTME: StaffSalarySettings, LeaveRequests
 // ABOUTME: Uses real database-backed hooks for persistent data
@@ -44,7 +46,7 @@ export function useHRData() {
       const db = await databaseService.getDatabase();
       const result = await db.staff_members?.update(staffId, { salary_settings: salaryData });
       return result?.doc || null;
-    } catch (error) { console.error('Error updating staff salary setting:', error); throw error; }
+    } catch (error) { logger.error('Error updating staff salary setting:', error); throw error; }
   }, []);
 
   // ── Payslip Generation ────────────────────────────────────────────────────────

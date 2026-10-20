@@ -28,7 +28,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
         {Array.from({ length: rows }).map((_, rowIndex) => (
           <div key={`row-${rowIndex}`} className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
             {Array.from({ length: columns }).map((_, colIndex) => (
-              <div key={`cell-${rowIndex}-${colIndex}`} className="h-4 bg-gray-100 rounded"></div>
+              <div key={`cell-${rowIndex}-${colIndex}`} className="h-4 bg-surface-accent rounded"></div>
             ))}
           </div>
         ))}

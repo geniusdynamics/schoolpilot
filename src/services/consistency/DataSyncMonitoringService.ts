@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Service for monitoring data synchronization and handling conflicts
 // ABOUTME: Provides sync status tracking, conflict resolution, and queue management
 
-import { DataStrategyManager, SyncQueueItem } from './DataStrategyManager';
+import { DataStrategyManager } from './DataStrategyManager';
 import { NetworkStateManager, NetworkState } from '../data/NetworkStateManager';
 import { globalDataConsistencyService } from './DataConsistencyService';
 
@@ -417,7 +419,7 @@ export class DataSyncMonitoringService {
       try {
         callback(status);
       } catch (error) {
-        console.error('Error in sync status subscriber:', error);
+        logger.error('Error in sync status subscriber:', error);
       }
     });
   }

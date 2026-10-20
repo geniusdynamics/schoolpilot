@@ -1,4 +1,5 @@
-// src/modules/academics/pages/EducationSystemsPage.tsx
+// ABOUTME: Education systems page — lists curriculum configurations and opens the editor to add, edit or clone one.
+// ABOUTME: CRUD goes through the academics module context with update(id, patch).
 
 import React, { useState } from 'react';
 import { EducationSystemConfiguration } from '../data/types';
@@ -6,17 +7,18 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PlusIcon, EditIcon, CopyIcon, EyeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import EducationSystemConfigPage from './EducationSystemConfigPage';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
+import { useAcademicDataContext } from '../data/AcademicDataContext';
+import { EducationSystemConfigPageContent } from './EducationSystemConfigPage';
 
-const EducationSystemsPage: React.FC = () => {
-  const { 
-    educationSystemConfigurations = [], 
-    loading = false, 
+export const EducationSystemsPageContent: React.FC = () => {
+  const {
+    educationSystemConfigurations = [],
     addEducationSystemConfiguration,
     updateEducationSystemConfiguration,
-    deleteEducationSystemConfiguration 
-  } = useAppData();
+  } = useAcademicDataContext();
+  const toast = useToast();
 
   const [showConfigPage, setShowConfigPage] = useState(false);
   const [editingSystem, setEditingSystem] = useState<EducationSystemConfiguration | null>(null);
@@ -43,12 +45,12 @@ const EducationSystemsPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="flex space-x-1">
           <Button 
             size="sm" 
             variant="ghost" 
-            onClick={() => handlePreview(item)}
+            onClick={handlePreview}
             leftIcon={<EyeIcon className="w-4 h-4" />}
           >
             Preview
@@ -91,22 +93,29 @@ const EducationSystemsPage: React.FC = () => {
     await addEducationSystemConfiguration(clonedSystem);
   };
 
-  const handlePreview = (system: EducationSystemConfiguration) => {
-    // Navigate to preview page
+  const handlePreview = () => {
+    // Navigate to preview page (not built yet)
   };
 
   if (showConfigPage) {
     return (
-      <EducationSystemConfigPage
+      <EducationSystemConfigPageContent
         editingSystem={editingSystem}
-        onSave={async (system) => {
-          if (editingSystem) {
-            await updateEducationSystemConfiguration({ ...editingSystem, ...system });
-          } else {
-            await addEducationSystemConfiguration(system);
+        onSave={async (system: EducationSystemConfiguration) => {
+          try {
+            if (editingSystem?.id) {
+              const patch: Partial<EducationSystemConfiguration> = { ...system };
+              delete patch.id;
+              await updateEducationSystemConfiguration(editingSystem.id, patch);
+            } else {
+              await addEducationSystemConfiguration(system);
+            }
+            setShowConfigPage(false);
+            setEditingSystem(null);
+          } catch (error) {
+            logger.error('Failed to save education system:', error);
+            toast.showError('Failed to save education system.');
           }
-          setShowConfigPage(false);
-          setEditingSystem(null);
         }}
         onCancel={() => {
           setShowConfigPage(false);
@@ -129,7 +138,7 @@ const EducationSystemsPage: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Configure education systems to support different curricula, grading schemes, and assessment methods.
         </p>
         <DataGrid columns={columns} data={educationSystemConfigurations} />
@@ -137,6 +146,10 @@ const EducationSystemsPage: React.FC = () => {
     </div>
   );
 };
+const EducationSystemsPage: React.FC = () => (
+  <div className="space-y-6">
+    <EducationSystemsPageContent />
+  </div>
+);
 
 export default EducationSystemsPage;
-

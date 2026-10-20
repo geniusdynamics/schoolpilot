@@ -1,8 +1,21 @@
 // ABOUTME: Barrel exports for administration pages
 
+// Hub pages (consolidated navigation entries)
+export { default as SchoolConfigurationPage } from './SchoolConfigurationPage';
+export { default as SchoolOrganizationPage } from './SchoolOrganizationPage';
+export { default as StudentLifePage } from './StudentLifePage';
+export { default as AcademicCalendarPage } from './AcademicCalendarPage';
+export { default as StudentAttendancePage } from './StudentAttendancePage';
+export { default as CommunicationPage } from './CommunicationPage';
+export { default as SecurityPage } from './SecurityPage';
+export { default as CertificatesPage } from './CertificatesPage';
+export { default as StudentBulkOperationsPage } from './StudentBulkOperationsPage';
+export { default as StaffOperationsPage } from './StaffOperationsPage';
+export { default as StudentDirectoryPage } from './StudentDirectoryPage';
+export { default as StaffDirectoryPage } from './StaffDirectoryPage';
+
 export { default as AdministrationDashboardPage } from './AdministrationDashboardPage';
-export { default as ApplicationsPage } from './ApplicationsPage';
-export { default as PreNAsMarksPage } from './PreNAsMarksPage';
+export { default as EntryMarksPage } from './EntryMarksPage';
 export { default as StudentsListPage } from './StudentsListPage';
 export { default as AddStudentPage } from './AddStudentPage';
 export { default as StudentDetailPage } from './StudentDetailPage';
@@ -23,9 +36,9 @@ export { default as ClubsPage } from './ClubsPage';
 export { default as CustomersPage } from './CustomersPage';
 export { default as ClassesPage } from './ClassesPage';
 export { default as StudentHealthRecordsPage } from './StudentHealthRecordsPage';
-export { default as StudentAttendancePage } from './StudentAttendancePage';
 export { default as CommunicationTemplatesPage } from './CommunicationTemplatesPage';
 export { default as MessageCampaignsPage } from './MessageCampaignsPage';
+export { default as SMSCategoriesPage } from './SMSCategoriesPage';
 export { default as AcademicStructurePage } from './AcademicStructurePage';
 export { default as AcademicYearsPage } from './AcademicYearsPage';
 export { default as AcademicPeriodDefinitionsPage } from './AcademicPeriodDefinitionsPage';
@@ -48,6 +61,10 @@ export { default as StaffWalletPage } from './StaffWalletPage';
 export { default as StudentBioDataPage } from './StudentBioDataPage';
 export { default as StudentIDCardsPage } from './StudentIDCardsPage';
 export { default as TransferCertificatePage } from './TransferCertificatePage';
+export { default as BulkStreamCreationPage } from './BulkStreamCreationPage';
+export { default as TransferredStudentsPage } from './TransferredStudentsPage';
+export { default as AlumniManagementPage } from './AlumniManagementPage';
+export { default as AlumniDirectoryPage } from './AlumniDirectoryPage';
 
 // Houses sub-feature pages (merged from houses module)
 export { default as HousesPage } from './houses/HousesPage';

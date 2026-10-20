@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Password Hashing Utility
  * 
@@ -121,7 +123,7 @@ export async function verifyPassword(
     
     return result === 0;
   } catch (error) {
-    console.error('Password verification error:', error);
+    logger.error('Password verification error:', error);
     return false;
   }
 }

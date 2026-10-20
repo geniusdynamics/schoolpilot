@@ -1,5 +1,9 @@
+// ABOUTME: Fixed assets register with add/edit/delete dialog.
+// ABOUTME: Assets and items come from the useInventory module hook; staff come from the app-wide snapshot.
+
 import React, { useState, useMemo } from 'react';
-import { FixedAsset, ItemInv, Staff, ItemTypeInv, DepreciationMethod } from '@/types';
+import { useTranslation } from 'react-i18next';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -7,27 +11,25 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { useInventory } from '../hooks/useInventory';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { DepreciationMethod, ItemTypeInv } from '@/core/types';
+import type { FixedAsset } from '@/core/types';
 
 type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updated_at' | 'item_name' | 'assigned_to_staff_name' | 'depreciation_method'> & {
     depreciation_method?: DepreciationMethod;
 };
 
-const FixedAssetsPage: React.FC = () => {
-  const { 
-    fixedAssets, 
-    itemsInv,
-    staff,
-    loading, 
-    addFixedAsset, 
-    updateFixedAsset, 
-    deleteFixedAsset 
-  } = useAppData(); // Updated
+export const FixedAssetsPageContent: React.FC = () => {
+  const { staff } = useAppData();
+  const { fixedAssets, items: itemsInv, addFixedAsset, updateFixedAsset, deleteFixedAsset } = useInventory();
+  const { t } = useTranslation('inventory');
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<FixedAsset | null>(null);
@@ -46,7 +48,7 @@ const FixedAssetsPage: React.FC = () => {
   const [formData, setFormData] = useState<FixedAssetFormData>(initialFormData);
 
   const fixedAssetItems = useMemo(() => itemsInv.filter(item => item.item_type === ItemTypeInv.FIXED_ASSET), [itemsInv]);
-  const activeStaff = useMemo(() => staff.filter(s => s.is_active), [staff]);
+  const activeStaff = useMemo(() => (staff ?? []).filter(s => s.is_active), [staff]);
 
   const openModal = (asset?: FixedAsset) => {
     setEditingAsset(asset || null);
@@ -102,7 +104,7 @@ const FixedAssetsPage: React.FC = () => {
     };
 
     if (editingAsset) {
-      await updateFixedAsset({ ...editingAsset, ...payload });
+      await updateFixedAsset(editingAsset.id, payload);
     } else {
       await addFixedAsset(payload);
     }
@@ -110,7 +112,7 @@ const FixedAssetsPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this fixed asset record?')) {
+    if (await confirm({ title: 'Delete fixed asset', message: 'Are you sure you want to delete this fixed asset record?', variant: 'danger' })) {
       await deleteFixedAsset(id);
     }
   };
@@ -180,13 +182,6 @@ const FixedAssetsPage: React.FC = () => {
     },
   ];
 
-  if ((loading.fixedAssets || loading.itemsInv || loading.staff) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Fixed Assets...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -195,7 +190,7 @@ const FixedAssetsPage: React.FC = () => {
           Add Fixed Asset
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Track fixed assets, including asset tags, purchase details, depreciation, and assignment to staff.
         </p>
         <DataGrid 
@@ -204,7 +199,7 @@ const FixedAssetsPage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <CubeIcon className="w-8 h-8 text-gray-400" />,
+            icon: <CubeIcon className="w-8 h-8 text-surface-muted-fg" />,
             title: "No fixed assets found",
             description: "Start by adding your first fixed asset."
           }}
@@ -259,13 +254,18 @@ const FixedAssetsPage: React.FC = () => {
 
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button variant="primary" type="submit" disabled={loading.fixedAssets}>
-            {loading.fixedAssets ? <Spinner size="sm"/> : (editingAsset ? 'Save Changes' : 'Add Asset')}
+          <Button variant="primary" type="submit">
+            {editingAsset ? 'Save Changes' : 'Add Asset'}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+const FixedAssetsPage: React.FC = () => (
+  <div className="space-y-6">
+    <FixedAssetsPageContent />
+  </div>
+);
 
 export default FixedAssetsPage;

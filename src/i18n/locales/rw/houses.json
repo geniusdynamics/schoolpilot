@@ -1,0 +1,83 @@
+{
+  "transactions": {
+    "fields": {
+      "awardedAt": "Awarded At",
+      "student": "Student",
+      "house": "House",
+      "category": "Category",
+      "type": "Type",
+      "points": "Points",
+      "reason": "Reason",
+      "status": "Status",
+      "eventName": "Event Name"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "award": "Award",
+    "title": "Transactions"
+  },
+  "common": {
+    "actions": "Actions",
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "noData": "No data available",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "create": "Create"
+  },
+  "categories": {
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "defaultPoints": "Default Points",
+      "description": "Description",
+      "requiresApproval": "Requires Approval",
+      "evidenceRequired": "Evidence Required",
+      "maxDailyAwards": "Max Daily Awards",
+      "isActive": "Is Active"
+    },
+    "types": {
+      "merit": "Merit",
+      "demerit": "Demerit"
+    },
+    "title": "Categories",
+    "create": "Create",
+    "edit": "Edit"
+  },
+  "houses": {
+    "fields": {
+      "name": "Name",
+      "motto": "Motto",
+      "patronTeacher": "Patron Teacher",
+      "captain": "Captain",
+      "memberCount": "Member Count",
+      "totalPoints": "Total Points",
+      "color": "Color",
+      "viceCaptain": "Vice Captain",
+      "description": "Description"
+    },
+    "title": "Houses",
+    "create": "Create",
+    "messages": {
+      "createSuccess": "Create Success",
+      "deleteConfirm": "Delete Confirm"
+    },
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "description": "Description",
+  "leaderboard": {
+    "rank": "Rank",
+    "house": "House",
+    "totalPoints": "Total Points",
+    "merits": "Merits",
+    "demerits": "Demerits",
+    "members": "Members",
+    "title": "Leaderboard"
+  }
+}

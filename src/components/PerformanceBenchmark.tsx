@@ -127,7 +127,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
     switch (status) {
       case 'improved': return 'text-green-600';
       case 'degraded': return 'text-red-600';
-      default: return 'text-gray-600';
+      default: return 'text-surface-muted-fg';
     }
   };
 
@@ -135,7 +135,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
     switch (status) {
       case 'improved': return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
       case 'degraded': return <ExclamationTriangleIcon className="h-4 w-4 text-red-600" />;
-      default: return <ClockIcon className="h-4 w-4 text-gray-600" />;
+      default: return <ClockIcon className="h-4 w-4 text-surface-muted-fg" />;
     }
   };
 
@@ -145,7 +145,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
         <h3 className="text-lg font-medium">Performance Baselines</h3>
         <button
           onClick={() => setShowCreateBaseline(true)}
-          className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="flex items-center px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
         >
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Baseline
@@ -153,7 +153,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
       </div>
 
       {showCreateBaseline && (
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-surface-muted p-4 rounded-lg">
           <h4 className="font-medium mb-3">Create New Baseline</h4>
           <div className="space-y-3">
             <input
@@ -161,26 +161,26 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
               placeholder="Baseline name"
               value={newBaselineName}
               onChange={(e) => setNewBaselineName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
             <textarea
               placeholder="Description (optional)"
               value={newBaselineDescription}
               onChange={(e) => setNewBaselineDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               rows={2}
             />
             <div className="flex space-x-2">
               <button
                 onClick={handleCreateBaseline}
                 disabled={!newBaselineName.trim() || isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Creating...' : 'Create'}
               </button>
               <button
                 onClick={() => setShowCreateBaseline(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 text-surface-foreground rounded-md hover:bg-gray-400"
               >
                 Cancel
               </button>
@@ -191,34 +191,34 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
 
       <div className="space-y-2">
         {baselines.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No baselines created yet</p>
+          <p className="text-surface-muted-fg text-center py-8">No baselines created yet</p>
         ) : (
           baselines.map((baseline) => (
-            <div key={baseline.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div key={baseline.id} className="bg-surface-card border border-surface-border rounded-lg p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <h4 className="font-medium">{baseline.name}</h4>
                   {baseline.metadata.description && (
-                    <p className="text-sm text-gray-600 mt-1">{baseline.metadata.description}</p>
+                    <p className="text-sm text-surface-muted-fg mt-1">{baseline.metadata.description}</p>
                   )}
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-surface-muted-fg mt-2">
                     Created: {formatTimestamp(baseline.timestamp)}
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
                     <div>
-                      <span className="text-gray-500">Startup:</span>
+                      <span className="text-surface-muted-fg">Startup:</span>
                       <span className="ml-1 font-medium">{formatMetric(baseline.metrics.startupTime)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Memory:</span>
+                      <span className="text-surface-muted-fg">Memory:</span>
                       <span className="ml-1 font-medium">{formatMetric(baseline.metrics.memoryUsage, 'MB')}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Modules:</span>
+                      <span className="text-surface-muted-fg">Modules:</span>
                       <span className="ml-1 font-medium">{formatMetric(baseline.metrics.moduleLoadingTime)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Interactions:</span>
+                      <span className="text-surface-muted-fg">Interactions:</span>
                       <span className="ml-1 font-medium">{formatMetric(baseline.metrics.interactionResponseTime)}</span>
                     </div>
                   </div>
@@ -252,7 +252,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
       </div>
 
       {showRunBenchmark && (
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-surface-muted p-4 rounded-lg">
           <h4 className="font-medium mb-3">Run New Benchmark</h4>
           <div className="space-y-3">
             <input
@@ -260,12 +260,12 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
               placeholder="Benchmark name (optional)"
               value={newBenchmarkName}
               onChange={(e) => setNewBenchmarkName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
             <select
               value={selectedBaseline}
               onChange={(e) => setSelectedBaseline(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">Select baseline (optional)</option>
               {baselines.map((baseline) => (
@@ -284,7 +284,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
               </button>
               <button
                 onClick={() => setShowRunBenchmark(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 text-surface-foreground rounded-md hover:bg-gray-400"
               >
                 Cancel
               </button>
@@ -295,31 +295,31 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
 
       <div className="space-y-2">
         {benchmarks.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No benchmarks run yet</p>
+          <p className="text-surface-muted-fg text-center py-8">No benchmarks run yet</p>
         ) : (
           benchmarks.map((benchmark) => (
-            <div key={benchmark.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div key={benchmark.id} className="bg-surface-card border border-surface-border rounded-lg p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <h4 className="font-medium">{benchmark.name}</h4>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-surface-muted-fg mt-1">
                     Run: {formatTimestamp(benchmark.timestamp)}
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
                     <div>
-                      <span className="text-gray-500">Startup:</span>
+                      <span className="text-surface-muted-fg">Startup:</span>
                       <span className="ml-1 font-medium">{formatMetric(benchmark.metrics.startupTime)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Memory:</span>
+                      <span className="text-surface-muted-fg">Memory:</span>
                       <span className="ml-1 font-medium">{formatMetric(benchmark.metrics.memoryUsage, 'MB')}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Modules:</span>
+                      <span className="text-surface-muted-fg">Modules:</span>
                       <span className="ml-1 font-medium">{formatMetric(benchmark.metrics.moduleLoadingTime)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Interactions:</span>
+                      <span className="text-surface-muted-fg">Interactions:</span>
                       <span className="ml-1 font-medium">{formatMetric(benchmark.metrics.interactionResponseTime)}</span>
                     </div>
                   </div>
@@ -345,13 +345,13 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-surface-foreground mb-2">
             Baseline
           </label>
           <select
             value={selectedBaseline}
             onChange={(e) => setSelectedBaseline(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Select baseline</option>
             {baselines.map((baseline) => (
@@ -363,13 +363,13 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-surface-foreground mb-2">
             Benchmark
           </label>
           <select
             value={selectedBenchmark}
             onChange={(e) => setSelectedBenchmark(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Select benchmark</option>
             {benchmarks.map((benchmark) => (
@@ -391,7 +391,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
       </button>
 
       {lastComparison && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-surface-card border border-surface-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-medium">Comparison Results</h4>
             <div className="flex items-center space-x-2">
@@ -399,13 +399,13 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
               <span className={`font-medium ${getStatusColor(lastComparison.overall)}`}>
                 {lastComparison.overall.charAt(0).toUpperCase() + lastComparison.overall.slice(1)}
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-surface-muted-fg">
                 Score: {lastComparison.score}/100
               </span>
             </div>
           </div>
 
-          <p className="text-gray-600 mb-4">{lastComparison.summary}</p>
+          <p className="text-surface-muted-fg mb-4">{lastComparison.summary}</p>
 
           <div className="space-y-3">
             <h5 className="font-medium">Metric Changes</h5>
@@ -419,7 +419,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
                   <span className={`text-sm ${getStatusColor(metric.status)}`}>
                     {metric.changePercent > 0 ? '+' : ''}{metric.changePercent.toFixed(1)}%
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-surface-muted-fg">
                     ({formatMetric(metric.baseline)} → {formatMetric(metric.current)})
                   </span>
                 </div>
@@ -432,12 +432,12 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
               <h5 className="font-medium mb-3">Recommendations</h5>
               <div className="space-y-3">
                 {lastComparison.recommendations.map((rec) => (
-                  <div key={rec.id} className="bg-blue-50 p-4 rounded-lg">
+                  <div key={rec.id} className="bg-primary-50 p-4 rounded-lg">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h6 className="font-medium text-blue-900">{rec.title}</h6>
-                        <p className="text-sm text-blue-700 mt-1">{rec.description}</p>
-                        <p className="text-xs text-blue-600 mt-2">
+                        <h6 className="font-medium text-primary-900">{rec.title}</h6>
+                        <p className="text-sm text-primary-700 mt-1">{rec.description}</p>
+                        <p className="text-xs text-primary-600 mt-2">
                           Expected improvement: {rec.expectedImprovement.improvement}
                         </p>
                       </div>
@@ -445,7 +445,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
                         rec.priority === 'critical' ? 'bg-red-100 text-red-800' :
                         rec.priority === 'high' ? 'bg-orange-100 text-orange-800' :
                         rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                        'bg-surface-accent text-surface-foreground'
                       }`}>
                         {rec.priority}
                       </span>
@@ -474,7 +474,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
       </div>
 
       {/* Automatic regression status */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-surface-card border border-surface-border rounded-lg p-4">
         <h4 className="font-medium mb-2">Automatic Monitoring</h4>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -491,14 +491,14 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
                 regressionStatus.severity === 'critical' ? 'bg-red-100 text-red-800' :
                 regressionStatus.severity === 'high' ? 'bg-orange-100 text-orange-800' :
                 regressionStatus.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-gray-100 text-gray-800'
+                'bg-surface-accent text-surface-foreground'
               }`}>
                 {regressionStatus.severity}
               </span>
             )}
           </div>
           {regressionStatus.lastCheck && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-surface-muted-fg">
               Last check: {formatTimestamp(regressionStatus.lastCheck)}
             </span>
           )}
@@ -511,10 +511,10 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
   );
 
   return (
-    <div className={`bg-gray-50 rounded-lg p-6 ${className}`}>
+    <div className={`bg-surface-muted rounded-lg p-6 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Performance Benchmarking</h2>
+        <h2 className="text-xl font-bold text-surface-foreground">Performance Benchmarking</h2>
         <div className="flex space-x-2">
           <button
             onClick={handleExport}
@@ -564,7 +564,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
       )}
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
+      <div className="flex space-x-1 mb-6 bg-surface-accent rounded-lg p-1">
         {[
           { key: 'baselines', label: 'Baselines' },
           { key: 'benchmarks', label: 'Benchmarks' },
@@ -576,8 +576,8 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
             onClick={() => setActiveTab(tab.key as any)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'bg-surface-card text-primary-600 shadow-sm'
+                : 'text-surface-muted-fg hover:text-surface-foreground'
             }`}
           >
             {tab.label}

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Tab State Deriver
  * 
@@ -63,9 +65,15 @@ export class TabStateDeriver {
     // Resolve title
     let title = options?.title || this.resolveTitle(module, entity, entityId, view);
     
-    // Clean up translation keys from title if they leak through
+    // Clean up translation keys from title if they leak through. i18next returns
+    // the raw key (never throws) when a key is missing, so guard against every
+    // known key namespace bleeding into a tab title.
     if (title.startsWith('navigation:')) {
       title = this.capitalize(title.replace('navigation:', '').split('.')[1] || title);
+    } else if (title.startsWith('entities.')) {
+      title = this.capitalize(title.replace('entities.', ''));
+    } else if (title.startsWith('tabs.')) {
+      title = this.capitalize(title.replace('tabs.', ''));
     }
 
     // Resolve subtitle if viewing specific entity
@@ -128,19 +136,17 @@ export class TabStateDeriver {
   }
 
   /**
-   * Generate a deterministic tab ID
+   * Generate a deterministic tab ID — no Date.now() for list/dashboard so reload
+   * restores same ID and dedup via isSameEntity works.
    */
   generateTabId(module: string, entity?: string, entityId?: string): string {
     if (entityId) {
-      // Specific entity - deterministic ID
       return `tab-${module}-${entity}-${entityId}`;
     }
     if (entity) {
-      // List view - include timestamp for uniqueness
-      return `tab-${module}-${entity}-${Date.now()}`;
+      return `tab-${module}-${entity}-list`;
     }
-    // Module dashboard
-    return `tab-${module}-${Date.now()}`;
+    return `tab-${module}-dashboard`;
   }
 
   /**
@@ -167,7 +173,7 @@ export class TabStateDeriver {
         params: urlObj.searchParams
       };
     } catch (error) {
-      console.error('Error parsing URL:', url, error);
+      logger.error('Error parsing URL:', url, error);
       return {
         pathname: '/dashboard',
         module: 'dashboard',
@@ -177,17 +183,23 @@ export class TabStateDeriver {
   }
 
   /**
-   * Check if two URLs refer to the same entity
+   * Check if two URLs refer to the same entity — for list views also checks
+   * search params so `/students?page=1` vs `?page=2` are considered distinct.
    */
   isSameEntity(url1: string, url2: string): boolean {
     const p1 = this.parseURL(url1);
     const p2 = this.parseURL(url2);
-
-    return (
-      p1.module === p2.module &&
-      p1.entity === p2.entity &&
-      p1.entityId === p2.entityId
-    );
+    const sameBase = p1.module === p2.module && p1.entity === p2.entity && p1.entityId === p2.entityId;
+    if (!sameBase) return false;
+    // For list views (no entityId), differentiate by query string
+    if (!p1.entityId && !p2.entityId) {
+      try {
+        const u1 = new URL(url1, window.location.origin);
+        const u2 = new URL(url2, window.location.origin);
+        return u1.search === u2.search;
+      } catch { return true; }
+    }
+    return true;
   }
 
   /**
@@ -286,10 +298,11 @@ export class TabStateDeriver {
   private getModuleName(module: string): string {
     const key = MODULE_NAMES[module];
     if (key) {
-      try {
-        return this.t(key);
-      } catch {
-        // Translation not available, use fallback
+      const translated = this.t(key);
+      // i18next returns the raw key on a miss instead of throwing, so treat an
+      // unresolved key as "not translated" and fall back to a clean label.
+      if (translated && translated !== key) {
+        return translated;
       }
     }
     return this.capitalize(module);
@@ -300,10 +313,11 @@ export class TabStateDeriver {
 
     const key = ENTITY_NAMES[entity];
     if (key) {
-      try {
-        return this.t(key);
-      } catch {
-        // Translation not available, use fallback
+      const translated = this.t(key);
+      // i18next returns the raw key on a miss instead of throwing, so treat an
+      // unresolved key as "not translated" and fall back to a clean label.
+      if (translated && translated !== key) {
+        return translated;
       }
     }
     return this.capitalize(entity);

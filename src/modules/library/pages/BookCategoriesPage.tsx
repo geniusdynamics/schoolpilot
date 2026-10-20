@@ -1,23 +1,28 @@
+// ABOUTME: Library book categories page - lists categories and lets staff add, rename or delete them.
+// ABOUTME: Reads and writes the book_categories collection through the library module hook.
+
 import React, { useState } from 'react';
-import { BookCategory } from '@/types';
+import { useLibraryData, type LibraryBookCategory as BookCategory } from '../data/useLibraryData';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import FormSection from '@/components/ui/forms/FormSection';
 import Input from '@/components/ui/Input';
-import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 
-const BookCategoriesPage: React.FC = () => {
-  const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useAppData(); // Updated
+export const BookCategoriesPageContent: React.FC = () => {
+  const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useLibraryData();
   const { t } = useTranslation('library');
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BookCategory | null>(null);
@@ -49,15 +54,15 @@ const BookCategoriesPage: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingCategory) {
-      await updateBookCategory({ ...editingCategory, ...payload });
+      await updateBookCategory(editingCategory.id, payload);
     } else {
       await addBookCategory(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this book category? This may affect existing books.')) {
+  const handleDelete = async (id: string) => {
+    if (await confirm({ title: 'Delete book category', message: 'Are you sure you want to delete this book category? This may affect existing books.', variant: 'danger' })) {
       await deleteBookCategory(id);
     }
   };
@@ -67,7 +72,7 @@ const BookCategoriesPage: React.FC = () => {
     { header: 'Category Name', key: 'name' as keyof BookCategory },
     {
       header: 'Actions',
-      key: 'id' as keyof BookCategory,
+      key: 'actions',
       render: (value: any, item: BookCategory) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
@@ -92,10 +97,10 @@ const BookCategoriesPage: React.FC = () => {
           {t('bookCategories.addCategory')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('bookCategories.defineCategories')}
         </p>
-        <Table columns={columns} data={bookCategories} isLoading={loading.bookCategories && isModalOpen} />
+        <DataGrid columns={columns} data={bookCategories} loading={loading.bookCategories && isModalOpen} />
       </Card>
 
       <DialogForm 
@@ -115,13 +120,18 @@ const BookCategoriesPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>{t('bookCategories.cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={loading.bookCategories}>
-            {loading.bookCategories ? <Spinner size="sm"/> : (editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory'))}
+          <Button onClick={handleSubmit} loading={loading.bookCategories}>
+            {editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory')}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+const BookCategoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <BookCategoriesPageContent />
+  </div>
+);
 
 export default BookCategoriesPage;

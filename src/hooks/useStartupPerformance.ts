@@ -1,1 +1,222 @@
-// ABOUTME: React hook for database startup performance monitoring\n// ABOUTME: Provides startup metrics, progressive loading states, and optimization controls\n\nimport { useState, useEffect, useCallback } from 'react';\nimport {\n  DatabaseStartupOptimizer,\n  StartupMetrics,\n  ProgressiveLoadingState,\n  StartupOptimizationConfig,\n  databaseStartupOptimizer,\n} from '@/services/database/StartupOptimizer';\n\nexport interface StartupPerformanceState {\n  latestMetrics: StartupMetrics | null;\n  allMetrics: StartupMetrics[];\n  progressiveLoadingStates: Map<string, ProgressiveLoadingState>;\n  loadingStatistics: {\n    preloadedCollections: number;\n    lazyLoadedCollections: number;\n    progressivelyLoadingCollections: number;\n    completedProgressiveLoading: number;\n    totalCollectionsTracked: number;\n  };\n  performanceSummary: {\n    averageStartupTime: number;\n    fastestStartup: number;\n    slowestStartup: number;\n    recentTrend: 'improving' | 'degrading' | 'stable';\n    recommendations: string[];\n  };\n  configuration: StartupOptimizationConfig;\n  isOptimizing: boolean;\n}\n\nexport interface StartupPerformanceActions {\n  updateConfiguration: (config: Partial<StartupOptimizationConfig>) => void;\n  resetTracking: () => void;\n  refreshMetrics: () => void;\n  isCollectionLoaded: (collectionName: string) => boolean;\n  getProgressiveLoadingState: (collectionName: string) => ProgressiveLoadingState | null;\n}\n\n/**\n * Hook for database startup performance monitoring\n */\nexport const useStartupPerformance = (): StartupPerformanceState & StartupPerformanceActions => {\n  const [state, setState] = useState<StartupPerformanceState>(() => ({\n    latestMetrics: databaseStartupOptimizer.getLatestStartupMetrics(),\n    allMetrics: databaseStartupOptimizer.getStartupMetrics(),\n    progressiveLoadingStates: databaseStartupOptimizer.getProgressiveLoadingStates(),\n    loadingStatistics: databaseStartupOptimizer.getLoadingStatistics(),\n    performanceSummary: databaseStartupOptimizer.getStartupPerformanceSummary(),\n    configuration: databaseStartupOptimizer.getConfiguration(),\n    isOptimizing: false, // This would need to be tracked in the optimizer\n  }));\n\n  // Update state when startup metrics change\n  const updateState = useCallback(() => {\n    setState(prevState => ({\n      ...prevState,\n      latestMetrics: databaseStartupOptimizer.getLatestStartupMetrics(),\n      allMetrics: databaseStartupOptimizer.getStartupMetrics(),\n      progressiveLoadingStates: databaseStartupOptimizer.getProgressiveLoadingStates(),\n      loadingStatistics: databaseStartupOptimizer.getLoadingStatistics(),\n      performanceSummary: databaseStartupOptimizer.getStartupPerformanceSummary(),\n      configuration: databaseStartupOptimizer.getConfiguration(),\n    }));\n  }, []);\n\n  // Set up startup metrics listener\n  useEffect(() => {\n    const handleStartupMetrics = (metrics: StartupMetrics) => {\n      updateState();\n    };\n\n    databaseStartupOptimizer.addStartupListener(handleStartupMetrics);\n\n    // Initial update\n    updateState();\n\n    return () => {\n      databaseStartupOptimizer.removeStartupListener(handleStartupMetrics);\n    };\n  }, [updateState]);\n\n  // Actions\n  const updateConfiguration = useCallback((config: Partial<StartupOptimizationConfig>) => {\n    databaseStartupOptimizer.updateConfiguration(config);\n    updateState();\n  }, [updateState]);\n\n  const resetTracking = useCallback(() => {\n    databaseStartupOptimizer.reset();\n    updateState();\n  }, [updateState]);\n\n  const refreshMetrics = useCallback(() => {\n    updateState();\n  }, [updateState]);\n\n  const isCollectionLoaded = useCallback((collectionName: string) => {\n    return databaseStartupOptimizer.isCollectionLoaded(collectionName);\n  }, []);\n\n  const getProgressiveLoadingState = useCallback((collectionName: string) => {\n    return databaseStartupOptimizer.getProgressiveLoadingState(collectionName);\n  }, []);\n\n  return {\n    ...state,\n    updateConfiguration,\n    resetTracking,\n    refreshMetrics,\n    isCollectionLoaded,\n    getProgressiveLoadingState,\n  };\n};\n\n/**\n * Hook for simplified startup metrics\n */\nexport const useStartupMetrics = () => {\n  const [metrics, setMetrics] = useState<StartupMetrics | null>(\n    databaseStartupOptimizer.getLatestStartupMetrics()\n  );\n\n  useEffect(() => {\n    const handleStartupMetrics = (newMetrics: StartupMetrics) => {\n      setMetrics(newMetrics);\n    };\n\n    databaseStartupOptimizer.addStartupListener(handleStartupMetrics);\n\n    return () => {\n      databaseStartupOptimizer.removeStartupListener(handleStartupMetrics);\n    };\n  }, []);\n\n  return metrics;\n};\n\n/**\n * Hook for progressive loading states\n */\nexport const useProgressiveLoading = () => {\n  const [loadingStates, setLoadingStates] = useState<Map<string, ProgressiveLoadingState>>(\n    databaseStartupOptimizer.getProgressiveLoadingStates()\n  );\n\n  useEffect(() => {\n    const updateLoadingStates = () => {\n      setLoadingStates(databaseStartupOptimizer.getProgressiveLoadingStates());\n    };\n\n    // Update loading states every 2 seconds during active loading\n    const interval = setInterval(updateLoadingStates, 2000);\n\n    return () => {\n      clearInterval(interval);\n    };\n  }, []);\n\n  const getLoadingProgress = useCallback((collectionName: string): number => {\n    const state = loadingStates.get(collectionName);\n    if (!state || state.totalRecords === 0) return 0;\n    return (state.loadedRecords / state.totalRecords) * 100;\n  }, [loadingStates]);\n\n  const isLoadingComplete = useCallback((collectionName: string): boolean => {\n    const state = loadingStates.get(collectionName);\n    return state ? state.isComplete : false;\n  }, [loadingStates]);\n\n  const getLoadingStats = useCallback(() => {\n    const states = Array.from(loadingStates.values());\n    return {\n      totalCollections: states.length,\n      completedCollections: states.filter(s => s.isComplete).length,\n      activelyLoading: states.filter(s => !s.isComplete).length,\n      totalRecords: states.reduce((sum, s) => sum + s.totalRecords, 0),\n      loadedRecords: states.reduce((sum, s) => sum + s.loadedRecords, 0),\n    };\n  }, [loadingStates]);\n\n  return {\n    loadingStates,\n    getLoadingProgress,\n    isLoadingComplete,\n    getLoadingStats,\n  };\n};\n\n/**\n * Hook for startup performance recommendations\n */\nexport const useStartupRecommendations = () => {\n  const [recommendations, setRecommendations] = useState<string[]>(\n    databaseStartupOptimizer.getStartupPerformanceSummary().recommendations\n  );\n\n  useEffect(() => {\n    const updateRecommendations = () => {\n      const summary = databaseStartupOptimizer.getStartupPerformanceSummary();\n      setRecommendations(summary.recommendations);\n    };\n\n    const handleStartupMetrics = () => {\n      updateRecommendations();\n    };\n\n    databaseStartupOptimizer.addStartupListener(handleStartupMetrics);\n\n    // Update recommendations every 30 seconds\n    const interval = setInterval(updateRecommendations, 30000);\n\n    return () => {\n      databaseStartupOptimizer.removeStartupListener(handleStartupMetrics);\n      clearInterval(interval);\n    };\n  }, []);\n\n  return recommendations;\n};\n"
+﻿// ABOUTME: React hook for database startup performance monitoring
+// ABOUTME: Provides startup metrics, progressive loading states, and optimization controls
+
+import { useState, useEffect, useCallback } from 'react';
+import {
+  StartupMetrics,
+  ProgressiveLoadingState,
+  StartupOptimizationConfig,
+  databaseStartupOptimizer,
+} from '@/services/database/StartupOptimizer';
+
+export interface StartupPerformanceState {
+  latestMetrics: StartupMetrics | null;
+  allMetrics: StartupMetrics[];
+  progressiveLoadingStates: Map<string, ProgressiveLoadingState>;
+  loadingStatistics: {
+    preloadedCollections: number;
+    lazyLoadedCollections: number;
+    progressivelyLoadingCollections: number;
+    completedProgressiveLoading: number;
+    totalCollectionsTracked: number;
+  };
+  performanceSummary: {
+    averageStartupTime: number;
+    fastestStartup: number;
+    slowestStartup: number;
+    recentTrend: 'improving' | 'degrading' | 'stable';
+    recommendations: string[];
+  };
+  configuration: StartupOptimizationConfig;
+  isOptimizing: boolean;
+}
+
+export interface StartupPerformanceActions {
+  updateConfiguration: (config: Partial<StartupOptimizationConfig>) => void;
+  resetTracking: () => void;
+  refreshMetrics: () => void;
+  isCollectionLoaded: (collectionName: string) => boolean;
+  getProgressiveLoadingState: (collectionName: string) => ProgressiveLoadingState | null;
+}
+
+/**
+ * Hook for database startup performance monitoring
+ */
+export const useStartupPerformance = (): StartupPerformanceState & StartupPerformanceActions => {
+  const [state, setState] = useState<StartupPerformanceState>(() => ({
+    latestMetrics: databaseStartupOptimizer.getLatestStartupMetrics(),
+    allMetrics: databaseStartupOptimizer.getStartupMetrics(),
+    progressiveLoadingStates: databaseStartupOptimizer.getProgressiveLoadingStates(),
+    loadingStatistics: databaseStartupOptimizer.getLoadingStatistics(),
+    performanceSummary: databaseStartupOptimizer.getStartupPerformanceSummary(),
+    configuration: databaseStartupOptimizer.getConfiguration(),
+    isOptimizing: false, // This would need to be tracked in the optimizer
+  }));
+
+  // Update state when startup metrics change
+  const updateState = useCallback(() => {
+    setState(prevState => ({
+      ...prevState,
+      latestMetrics: databaseStartupOptimizer.getLatestStartupMetrics(),
+      allMetrics: databaseStartupOptimizer.getStartupMetrics(),
+      progressiveLoadingStates: databaseStartupOptimizer.getProgressiveLoadingStates(),
+      loadingStatistics: databaseStartupOptimizer.getLoadingStatistics(),
+      performanceSummary: databaseStartupOptimizer.getStartupPerformanceSummary(),
+      configuration: databaseStartupOptimizer.getConfiguration(),
+    }));
+  }, []);
+
+  // Set up startup metrics listener
+  useEffect(() => {
+    const handleStartupMetrics = (_metrics: StartupMetrics) => {
+      updateState();
+    };
+
+    databaseStartupOptimizer.addStartupListener(handleStartupMetrics);
+
+    // Initial update
+    updateState();
+
+    return () => {
+      databaseStartupOptimizer.removeStartupListener(handleStartupMetrics);
+    };
+  }, [updateState]);
+
+  // Actions
+  const updateConfiguration = useCallback((config: Partial<StartupOptimizationConfig>) => {
+    databaseStartupOptimizer.updateConfiguration(config);
+    updateState();
+  }, [updateState]);
+
+  const resetTracking = useCallback(() => {
+    databaseStartupOptimizer.reset();
+    updateState();
+  }, [updateState]);
+
+  const refreshMetrics = useCallback(() => {
+    updateState();
+  }, [updateState]);
+
+  const isCollectionLoaded = useCallback((collectionName: string) => {
+    return databaseStartupOptimizer.isCollectionLoaded(collectionName);
+  }, []);
+
+  const getProgressiveLoadingState = useCallback((collectionName: string) => {
+    return databaseStartupOptimizer.getProgressiveLoadingState(collectionName);
+  }, []);
+
+  return {
+    ...state,
+    updateConfiguration,
+    resetTracking,
+    refreshMetrics,
+    isCollectionLoaded,
+    getProgressiveLoadingState,
+  };
+};
+
+/**
+ * Hook for simplified startup metrics
+ */
+export const useStartupMetrics = () => {
+  const [metrics, setMetrics] = useState<StartupMetrics | null>(
+    databaseStartupOptimizer.getLatestStartupMetrics()
+  );
+
+  useEffect(() => {
+    const handleStartupMetrics = (newMetrics: StartupMetrics) => {
+      setMetrics(newMetrics);
+    };
+
+    databaseStartupOptimizer.addStartupListener(handleStartupMetrics);
+
+    return () => {
+      databaseStartupOptimizer.removeStartupListener(handleStartupMetrics);
+    };
+  }, []);
+
+  return metrics;
+};
+
+/**
+ * Hook for progressive loading states
+ */
+export const useProgressiveLoading = () => {
+  const [loadingStates, setLoadingStates] = useState<Map<string, ProgressiveLoadingState>>(
+    databaseStartupOptimizer.getProgressiveLoadingStates()
+  );
+
+  useEffect(() => {
+    const updateLoadingStates = () => {
+      setLoadingStates(databaseStartupOptimizer.getProgressiveLoadingStates());
+    };
+
+    // Update loading states every 2 seconds during active loading
+    const interval = setInterval(updateLoadingStates, 2000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  const getLoadingProgress = useCallback((collectionName: string): number => {
+    const state = loadingStates.get(collectionName);
+    if (!state || state.totalRecords === 0) return 0;
+    return (state.loadedRecords / state.totalRecords) * 100;
+  }, [loadingStates]);
+
+  const isLoadingComplete = useCallback((collectionName: string): boolean => {
+    const state = loadingStates.get(collectionName);
+    return state ? state.isComplete : false;
+  }, [loadingStates]);
+
+  const getLoadingStats = useCallback(() => {
+    const states = Array.from(loadingStates.values());
+    return {
+      totalCollections: states.length,
+      completedCollections: states.filter(s => s.isComplete).length,
+      activelyLoading: states.filter(s => !s.isComplete).length,
+      totalRecords: states.reduce((sum, s) => sum + s.totalRecords, 0),
+      loadedRecords: states.reduce((sum, s) => sum + s.loadedRecords, 0),
+    };
+  }, [loadingStates]);
+
+  return {
+    loadingStates,
+    getLoadingProgress,
+    isLoadingComplete,
+    getLoadingStats,
+  };
+};
+
+/**
+ * Hook for startup performance recommendations
+ */
+export const useStartupRecommendations = () => {
+  const [recommendations, setRecommendations] = useState<string[]>(
+    databaseStartupOptimizer.getStartupPerformanceSummary().recommendations
+  );
+
+  useEffect(() => {
+    const updateRecommendations = () => {
+      const summary = databaseStartupOptimizer.getStartupPerformanceSummary();
+      setRecommendations(summary.recommendations);
+    };
+
+    const handleStartupMetrics = () => {
+      updateRecommendations();
+    };
+
+    databaseStartupOptimizer.addStartupListener(handleStartupMetrics);
+
+    // Update recommendations every 30 seconds
+    const interval = setInterval(updateRecommendations, 30000);
+
+    return () => {
+      databaseStartupOptimizer.removeStartupListener(handleStartupMetrics);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return recommendations;
+};

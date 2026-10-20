@@ -1,9 +1,11 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: LiveStore provider for multi-machine synchronization and peer-to-peer data sharing
 // ABOUTME: Provides real-time sync, peer discovery, conflict resolution, and distributed database capabilities
 
 import { LiveStore } from '@livestore/livestore';
 import { WebAdapter } from '@livestore/adapter-web';
-import { Observable, BehaviorSubject, Subject, fromEvent } from 'rxjs';
+import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { map, filter, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   IDatabaseProvider,
@@ -128,7 +130,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
 
     // Listen for peer connection events
     this.liveStore.on('peer:connected', (peer: any) => {
-      console.log(`[LiveStoreCollection] Peer connected: ${peer.id}`);
+      logger.info(`[LiveStoreCollection] Peer connected: ${peer.id}`);
       
       const peerInfo: PeerInfo = {
         id: peer.id,
@@ -146,14 +148,14 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
     });
 
     this.liveStore.on('peer:disconnected', (peer: any) => {
-      console.log(`[LiveStoreCollection] Peer disconnected: ${peer.id}`);
+      logger.info(`[LiveStoreCollection] Peer disconnected: ${peer.id}`);
       
       this.connectedPeers.delete(peer.id);
       this.syncStatus.connectedPeers = this.connectedPeers.size;
     });
 
     this.liveStore.on('peer:error', (error: any) => {
-      console.error(`[LiveStoreCollection] Peer error:`, error);
+      logger.error(`[LiveStoreCollection] Peer error:`, error);
       this.syncStatus.errors.push(`Peer error: ${error.message}`);
     });
   }
@@ -165,23 +167,23 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
 
     // Monitor sync status
     this.liveStore.on('sync:start', () => {
-      console.log(`[LiveStoreCollection] Sync started for ${this.name}`);
+      logger.info(`[LiveStoreCollection] Sync started for ${this.name}`);
       this.syncStatus.isActive = true;
     });
 
     this.liveStore.on('sync:complete', () => {
-      console.log(`[LiveStoreCollection] Sync completed for ${this.name}`);
+      logger.info(`[LiveStoreCollection] Sync completed for ${this.name}`);
       this.syncStatus.isActive = false;
       this.syncStatus.lastSync = new Date();
     });
 
     this.liveStore.on('sync:conflict', (conflict: any) => {
-      console.warn(`[LiveStoreCollection] Sync conflict detected in ${this.name}:`, conflict);
+      logger.warn(`[LiveStoreCollection] Sync conflict detected in ${this.name}:`, conflict);
       this.handleSyncConflict(conflict);
     });
 
     this.liveStore.on('sync:error', (error: any) => {
-      console.error(`[LiveStoreCollection] Sync error in ${this.name}:`, error);
+      logger.error(`[LiveStoreCollection] Sync error in ${this.name}:`, error);
       this.syncStatus.errors.push(`Sync error: ${error.message}`);
       this.syncStatus.isActive = false;
     });
@@ -196,7 +198,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
 
   private async syncWithPeer(peerId: string): Promise<void> {
     try {
-      console.log(`[LiveStoreCollection] Syncing ${this.name} with peer ${peerId}`);
+      logger.info(`[LiveStoreCollection] Syncing ${this.name} with peer ${peerId}`);
       
       const peer = this.connectedPeers.get(peerId);
       if (peer) {
@@ -210,9 +212,9 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
         peer.lastSeen = new Date();
       }
       
-      console.log(`[LiveStoreCollection] Sync completed with peer ${peerId}`);
+      logger.info(`[LiveStoreCollection] Sync completed with peer ${peerId}`);
     } catch (error: any) {
-      console.error(`[LiveStoreCollection] Failed to sync with peer ${peerId}:`, error);
+      logger.error(`[LiveStoreCollection] Failed to sync with peer ${peerId}:`, error);
       
       const peer = this.connectedPeers.get(peerId);
       if (peer) {
@@ -228,7 +230,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
       return;
     }
 
-    console.log(`[LiveStoreCollection] Syncing ${this.name} with ${this.connectedPeers.size} peers`);
+    logger.info(`[LiveStoreCollection] Syncing ${this.name} with ${this.connectedPeers.size} peers`);
     
     const syncPromises = Array.from(this.connectedPeers.keys()).map(peerId => 
       this.syncWithPeer(peerId)
@@ -236,9 +238,9 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
     
     try {
       await Promise.allSettled(syncPromises);
-      console.log(`[LiveStoreCollection] Bulk sync completed for ${this.name}`);
+      logger.info(`[LiveStoreCollection] Bulk sync completed for ${this.name}`);
     } catch (error: any) {
-      console.error(`[LiveStoreCollection] Bulk sync failed for ${this.name}:`, error);
+      logger.error(`[LiveStoreCollection] Bulk sync failed for ${this.name}:`, error);
     }
   }
 
@@ -255,12 +257,12 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
     switch (this.liveStoreConfig.sync?.conflictResolution) {
       case 'client-wins':
         // Keep local version
-        console.log(`[LiveStoreCollection] Conflict resolved (client wins) for ${this.name}`);
+        logger.info(`[LiveStoreCollection] Conflict resolved (client wins) for ${this.name}`);
         break;
         
       case 'server-wins':
         // Accept remote version
-        console.log(`[LiveStoreCollection] Conflict resolved (server wins) for ${this.name}`);
+        logger.info(`[LiveStoreCollection] Conflict resolved (server wins) for ${this.name}`);
         this.liveStore.put(this.collectionName, remote);
         break;
         
@@ -271,16 +273,16 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
         
         if (remoteTime > localTime) {
           this.liveStore.put(this.collectionName, remote);
-          console.log(`[LiveStoreCollection] Conflict resolved (remote newer) for ${this.name}`);
+          logger.info(`[LiveStoreCollection] Conflict resolved (remote newer) for ${this.name}`);
         } else {
-          console.log(`[LiveStoreCollection] Conflict resolved (local newer) for ${this.name}`);
+          logger.info(`[LiveStoreCollection] Conflict resolved (local newer) for ${this.name}`);
         }
         break;
         
       case 'manual':
       default:
         // Manual resolution required
-        console.warn(`[LiveStoreCollection] Manual conflict resolution required for ${this.name}`);
+        logger.warn(`[LiveStoreCollection] Manual conflict resolution required for ${this.name}`);
         break;
     }
   }
@@ -290,7 +292,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
       const docs = await this.find();
       this.dataSubject.next(docs);
     } catch (error: any) {
-      console.error(`Failed to load initial data for ${this.name}:`, error);
+      logger.error(`Failed to load initial data for ${this.name}:`, error);
     }
   }
 
@@ -299,7 +301,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
       const docs = await this.find();
       this.dataSubject.next(docs);
     } catch (error: any) {
-      console.error(`Failed to refresh data subject for ${this.name}:`, error);
+      logger.error(`Failed to refresh data subject for ${this.name}:`, error);
     }
   }
 
@@ -668,7 +670,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
   async compact(): Promise<void> {
     try {
       // LiveStore handles compaction automatically
-      console.log(`[LiveStoreCollection] Compaction requested for ${this.name} (handled automatically)`);
+      logger.info(`[LiveStoreCollection] Compaction requested for ${this.name} (handled automatically)`);
     } catch (error: any) {
       throw new CollectionError(
         `Failed to compact ${this.name}: ${error?.message || String(error)}`,
@@ -679,7 +681,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
 
   async destroy(): Promise<void> {
     try {
-      console.log(`[LiveStoreCollection] Destroying collection ${this.name}...`);
+      logger.info(`[LiveStoreCollection] Destroying collection ${this.name}...`);
       
       this.isDestroyed = true;
       
@@ -688,7 +690,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
         try {
           await this.liveStore.disconnect(peerId);
         } catch (error: any) {
-          console.error(`Failed to disconnect from peer ${peerId}:`, error);
+          logger.error(`Failed to disconnect from peer ${peerId}:`, error);
         }
       }
       
@@ -699,9 +701,9 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
       this.changeSubject.complete();
       this.dataSubject.complete();
       
-      console.log(`[LiveStoreCollection] Collection ${this.name} destroyed successfully`);
+      logger.info(`[LiveStoreCollection] Collection ${this.name} destroyed successfully`);
     } catch (error: any) {
-      console.error(`[LiveStoreCollection] Failed to destroy ${this.name}:`, error);
+      logger.error(`[LiveStoreCollection] Failed to destroy ${this.name}:`, error);
       throw new CollectionError(
         `Failed to destroy: ${error instanceof Error ? error.message : String(error)}`,
         this.name
@@ -767,7 +769,7 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
     this.conflictQueue.splice(conflictIndex, 1);
     this.syncStatus.conflicts = this.conflictQueue.length;
 
-    console.log(`[LiveStoreCollection] Conflict resolved for ${this.name}`);
+    logger.info(`[LiveStoreCollection] Conflict resolved for ${this.name}`);
   }
 
   /**
@@ -776,9 +778,9 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
   async connectToPeer(peerId: string): Promise<void> {
     try {
       await this.liveStore.connect(peerId);
-      console.log(`[LiveStoreCollection] Connected to peer ${peerId}`);
+      logger.info(`[LiveStoreCollection] Connected to peer ${peerId}`);
     } catch (error: any) {
-      console.error(`[LiveStoreCollection] Failed to connect to peer ${peerId}:`, error);
+      logger.error(`[LiveStoreCollection] Failed to connect to peer ${peerId}:`, error);
       throw new CollectionError(`Failed to connect to peer: ${error.message}`, this.name);
     }
   }
@@ -791,9 +793,9 @@ export class LiveStoreCollection<T extends { id?: string }> implements ICollecti
       await this.liveStore.disconnect(peerId);
       this.connectedPeers.delete(peerId);
       this.syncStatus.connectedPeers = this.connectedPeers.size;
-      console.log(`[LiveStoreCollection] Disconnected from peer ${peerId}`);
+      logger.info(`[LiveStoreCollection] Disconnected from peer ${peerId}`);
     } catch (error: any) {
-      console.error(`[LiveStoreCollection] Failed to disconnect from peer ${peerId}:`, error);
+      logger.error(`[LiveStoreCollection] Failed to disconnect from peer ${peerId}:`, error);
       throw new CollectionError(`Failed to disconnect from peer: ${error.message}`, this.name);
     }
   }
@@ -869,7 +871,7 @@ export class LiveStoreProvider implements IDatabaseProvider {
       this.setupGlobalEventListeners();
       
       this.isInitialized = true;
-      console.log('[LiveStoreProvider] Provider initialized successfully with multi-machine sync');
+      logger.info('[LiveStoreProvider] Provider initialized successfully with multi-machine sync');
     } catch (error: any) {
       throw new DatabaseError(
         `Failed to initialize LiveStore provider: ${error instanceof Error ? error.message : String(error)}`,
@@ -883,19 +885,19 @@ export class LiveStoreProvider implements IDatabaseProvider {
     if (!this.liveStore) return;
 
     this.liveStore.on('peer:discovered', (peer: any) => {
-      console.log(`[LiveStoreProvider] Peer discovered: ${peer.id}`);
+      logger.info(`[LiveStoreProvider] Peer discovered: ${peer.id}`);
     });
 
     this.liveStore.on('sync:global:start', () => {
-      console.log('[LiveStoreProvider] Global sync started');
+      logger.info('[LiveStoreProvider] Global sync started');
     });
 
     this.liveStore.on('sync:global:complete', () => {
-      console.log('[LiveStoreProvider] Global sync completed');
+      logger.info('[LiveStoreProvider] Global sync completed');
     });
 
     this.liveStore.on('error', (error: any) => {
-      console.error('[LiveStoreProvider] Global error:', error);
+      logger.error('[LiveStoreProvider] Global error:', error);
     });
   }
 
@@ -905,7 +907,7 @@ export class LiveStoreProvider implements IDatabaseProvider {
         throw new DatabaseError('Provider not initialized', 'NOT_INITIALIZED', this.name);
       }
       
-      console.log(`[LiveStoreProvider] Creating collection: ${name}`);
+      logger.info(`[LiveStoreProvider] Creating collection: ${name}`);
       
       // Register schema with LiveStore
       await this.liveStore.addCollection(name, {
@@ -924,7 +926,7 @@ export class LiveStoreProvider implements IDatabaseProvider {
       
       this.collections.set(name, collection);
       
-      console.log(`[LiveStoreProvider] Collection '${name}' created successfully with multi-machine sync`);
+      logger.info(`[LiveStoreProvider] Collection '${name}' created successfully with multi-machine sync`);
       return collection;
     } catch (error: any) {
       throw new DatabaseError(
@@ -946,14 +948,14 @@ export class LiveStoreProvider implements IDatabaseProvider {
 
   async destroy(): Promise<void> {
     try {
-      console.log('[LiveStoreProvider] Destroying provider...');
+      logger.info('[LiveStoreProvider] Destroying provider...');
       
       // Destroy all collections
       for (const [name, collection] of this.collections) {
         try {
           await collection.destroy();
         } catch (error: any) {
-          console.error(`Failed to destroy collection '${name}':`, error);
+          logger.error(`Failed to destroy collection '${name}':`, error);
         }
       }
       
@@ -964,7 +966,7 @@ export class LiveStoreProvider implements IDatabaseProvider {
       
       this.collections.clear();
       this.isInitialized = false;
-      console.log('[LiveStoreProvider] Provider destroyed successfully');
+      logger.info('[LiveStoreProvider] Provider destroyed successfully');
     } catch (error: any) {
       throw new DatabaseError(
         `Failed to destroy LiveStore provider: ${error?.message || String(error)}`,
@@ -1059,7 +1061,7 @@ export class LiveStoreProvider implements IDatabaseProvider {
         }
       }
       
-      console.log('[LiveStoreProvider] Backup restored successfully');
+      logger.info('[LiveStoreProvider] Backup restored successfully');
     } catch (error: any) {
       throw new DatabaseError(
         `Failed to restore backup: ${error?.message || String(error)}`,
@@ -1117,7 +1119,7 @@ export class LiveStoreProvider implements IDatabaseProvider {
   async syncAllCollections(): Promise<{ [collectionName: string]: { success: boolean; error?: string } }> {
     const results: { [collectionName: string]: { success: boolean; error?: string } } = {};
     
-    console.log('[LiveStoreProvider] Syncing all collections with all peers...');
+    logger.info('[LiveStoreProvider] Syncing all collections with all peers...');
     
     for (const [name, collection] of this.collections) {
       try {
@@ -1126,13 +1128,13 @@ export class LiveStoreProvider implements IDatabaseProvider {
           await liveStoreCollection.forceSyncAllPeers();
         }
         results[name] = { success: true };
-        console.log(`[LiveStoreProvider] Successfully synced collection: ${name}`);
+        logger.info(`[LiveStoreProvider] Successfully synced collection: ${name}`);
       } catch (error: any) {
         results[name] = {
           success: false,
           error: error instanceof Error ? error.message : String(error)
         };
-        console.error(`[LiveStoreProvider] Failed to sync collection ${name}:`, error);
+        logger.error(`[LiveStoreProvider] Failed to sync collection ${name}:`, error);
       }
     }
     
@@ -1144,6 +1146,6 @@ export class LiveStoreProvider implements IDatabaseProvider {
    */
   configureLiveStore(config: Partial<LiveStoreConfig>): void {
     this.liveStoreConfig = { ...this.liveStoreConfig, ...config };
-    console.log('[LiveStoreProvider] LiveStore configuration updated:', this.liveStoreConfig);
+    logger.info('[LiveStoreProvider] LiveStore configuration updated:', this.liveStoreConfig);
   }
 }

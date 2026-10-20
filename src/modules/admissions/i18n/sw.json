@@ -32,5 +32,11 @@
       "reviewQueue": "Foleni ya Ukaguzi",
       "exportReport": "Hamisha Ripoti"
     }
+  },
+  "applicationForm": {
+    "validation": {
+      "requiredFields": "Tafadhali jaza sehemu zote zinazohitajika (zilizowekwa alama *) kabla ya kuendelea.",
+      "incompleteApplication": "Baadhi ya sehemu zinazohitajika hazijajazwa. Rudi nyuma ukamilishe sehemu zote zinazohitajika kabla ya kuwasilisha."
+    }
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
+import { useTranslation } from 'react-i18next';
+import { TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -8,19 +9,21 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, PencilIcon, TrashIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { useTemplateCommData } from '../data/useTemplateCommData'; // Use module-specific hook
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { useTemplateCommData, type TemplateCommRecord as TemplateComm } from '../data/useTemplateCommData';
+
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updated_at' | 'type'> & {
     type: TemplateType; // Make type required
 };
 
 const CommunicationTemplatesPage: React.FC = () => {
+  const { t } = useTranslation('common');
   const {
     data: templateComms,
     create: addTemplateComm,
@@ -62,13 +65,14 @@ const CommunicationTemplatesPage: React.FC = () => {
     }
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.type || !formData.body_template) {
-      alert(t('validation.templateNameTypeAndBodyAreRequired'));
+      toast.showWarning(t('validation.templateNameTypeAndBodyAreRequired'));
       return;
     }
     if ((formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION) && !formData.subject) {
-        alert(t('validation.subjectIsRequiredForEmailAndPushNotificationTemplates'));
+        toast.showWarning(t('validation.subjectIsRequiredForEmailAndPushNotificationTemplates'));
         return;
     }
 
@@ -80,15 +84,16 @@ const CommunicationTemplatesPage: React.FC = () => {
     };
 
     if (editingTemplate) {
-      await updateTemplateComm({ ...editingTemplate, ...payload });
+      await updateTemplateComm(String(editingTemplate.id), payload);
     } else {
       await addTemplateComm(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this communication template?')) {
+  const confirm = useConfirm();
+  const handleDelete = async (id: string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this communication template?' }))) {
       await deleteTemplateComm(id);
     }
   };
@@ -172,7 +177,7 @@ const CommunicationTemplatesPage: React.FC = () => {
           Add Template
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Create and manage templates for SMS, Email, and Push Notifications. Use placeholders like {"{{student_name}}"}, {"{{parent_name}}"}, {"{{balance}}"} in the body/subject.
         </p>
         <DataGrid
@@ -183,9 +188,9 @@ const CommunicationTemplatesPage: React.FC = () => {
           selectable={false}
           emptyState={
             <div className="text-center py-12">
-              <EnvelopeIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No templates found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <EnvelopeIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No templates found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by creating your first communication template.
               </p>
               <div className="mt-6">
@@ -252,7 +257,7 @@ const CommunicationTemplatesPage: React.FC = () => {
             />
           </FormField>
         </FormSection>
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-surface-muted-fg">
           Available placeholders (examples): {"{{student_name}}"}, {"{{parent_name}}"}, {"{{first_name}}"}, {"{{last_name}}"}, {"{{admission_no}}"}, {"{{class_name}}"}, {"{{balance}}"}, {"{{due_date}}"}, {"{{event_name}}"}, {"{{school_name}}."}
         </div>
         <FormActions>
@@ -267,3 +272,5 @@ const CommunicationTemplatesPage: React.FC = () => {
 };
 
 export default CommunicationTemplatesPage;
+
+export const CommunicationTemplatesContent = CommunicationTemplatesPage;

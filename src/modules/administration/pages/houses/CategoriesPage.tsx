@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -15,6 +15,8 @@ import { useHousesData } from '../../data/houses/useHousesData';
 import { useTranslation } from 'react-i18next';
 import type { PointCategory } from '../../data/houses/types';
 import { TransactionType } from '../../data/houses/types';
+import { logger } from '@/utils/logging';
+
 
 interface CategoryFormData {
   name: string;
@@ -116,7 +118,7 @@ const CategoriesPage: React.FC = () => {
       }
       closeModal();
     } catch (error) {
-      console.error('Failed to save category:', error);
+      logger.error('Failed to save category:', error);
     } finally {
       setSubmitting(false);
     }
@@ -132,7 +134,7 @@ const CategoriesPage: React.FC = () => {
       try {
         await deleteCategory(categoryToDelete.id);
       } catch (error) {
-        console.error('Failed to delete category:', error);
+        logger.error('Failed to delete category:', error);
       }
     }
     setIsDeleteModalOpen(false);
@@ -150,7 +152,7 @@ const CategoriesPage: React.FC = () => {
         <div>
           <span className="font-medium">{value}</span>
           {!item.isActive && (
-            <span className="ml-2 px-1.5 py-0.5 text-xs bg-gray-100 text-gray-500 rounded">
+            <span className="ml-2 px-1.5 py-0.5 text-xs bg-surface-accent text-surface-muted-fg rounded">
               Inactive
             </span>
           )}
@@ -265,11 +267,11 @@ const CategoriesPage: React.FC = () => {
             filterable
             emptyState={
               <div className="text-center py-12">
-                <ListBulletIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                <ListBulletIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+                <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                   {t('common.noData')}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-surface-muted-fg">
                   Get started by creating a point category.
                 </p>
                 <div className="mt-6">
@@ -351,9 +353,9 @@ const CategoriesPage: React.FC = () => {
                 name="requiresApproval"
                 checked={formData.requiresApproval}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
               />
-              <label className="ml-2 text-sm text-gray-700">
+              <label className="ml-2 text-sm text-surface-foreground">
                 Require approval before points are applied
               </label>
             </div>
@@ -365,9 +367,9 @@ const CategoriesPage: React.FC = () => {
                 name="evidenceRequired"
                 checked={formData.evidenceRequired}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
               />
-              <label className="ml-2 text-sm text-gray-700">
+              <label className="ml-2 text-sm text-surface-foreground">
                 Evidence attachment required
               </label>
             </div>
@@ -379,9 +381,9 @@ const CategoriesPage: React.FC = () => {
                 name="isActive"
                 checked={formData.isActive}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
               />
-              <label className="ml-2 text-sm text-gray-700">
+              <label className="ml-2 text-sm text-surface-foreground">
                 Category is active and available for use
               </label>
             </div>
@@ -404,7 +406,7 @@ const CategoriesPage: React.FC = () => {
         title={t('common.delete')}
         size="sm"
       >
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-surface-muted-fg">
           Are you sure you want to delete the category
           {categoryToDelete && (
             <span className="font-semibold"> "{categoryToDelete.name}"</span>

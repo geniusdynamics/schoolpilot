@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { useToastHelpers } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
+
 
 export interface BackupRestoreContextType {
   backupData: () => Promise<any>;
@@ -25,7 +27,7 @@ export const BackupRestoreProvider: React.FC<{
       return backup;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Backup failed';
-      console.error('Backup failed:', err);
+      logger.error('Backup failed:', err);
       toast.showError(errorMessage);
       throw err;
     }
@@ -49,7 +51,7 @@ export const BackupRestoreProvider: React.FC<{
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Restore failed';
-      console.error('Restore failed:', err);
+      logger.error('Restore failed:', err);
       toast.showError(errorMessage);
       throw err;
     }
@@ -68,7 +70,7 @@ export const BackupRestoreProvider: React.FC<{
       toast.showSuccess('All data cleared successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to clear data';
-      console.error('Clear data failed:', err);
+      logger.error('Clear data failed:', err);
       toast.showError(errorMessage);
       throw err;
     }

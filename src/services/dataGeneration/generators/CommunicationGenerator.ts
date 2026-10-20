@@ -1,8 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file generates comprehensive communication data including SMS/email templates and logs
 // ABOUTME: Handles communication management for school messaging and notification systems
 
 import { BaseGenerator } from './BaseGenerator';
-import { DataGenerationConfig } from '../types';
 
 export class CommunicationGenerator extends BaseGenerator {
   async generateData(): Promise<any[]> {
@@ -737,12 +738,12 @@ export class CommunicationGenerator extends BaseGenerator {
   }
   
   private async initialize(): Promise<void> {
-    console.log('Initializing CommunicationGenerator...');
+    logger.info('Initializing CommunicationGenerator...');
   }
   
   private logProgress(current: number, total: number, type: string): void {
     if (current % 25 === 0 || current === total) {
-      console.log(`Generated ${current}/${total} ${type}s`);
+      logger.info(`Generated ${current}/${total} ${type}s`);
     }
   }
 }

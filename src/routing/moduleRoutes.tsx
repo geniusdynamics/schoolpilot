@@ -6,33 +6,28 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { moduleRegistry } from '../core/moduleRegistry';
-import { moduleLoader } from '../core/moduleLoader';
+
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
-import { getStoredRouteFromSession } from '../hooks/useRoutePersistence';
 import { logger } from '../utils/logging';
 import Spinner from '../components/ui/Spinner';
 import ProtectedRoute from '../components/ProtectedRoute';
-import {
-  LoginPage,
-  DashboardPage,
-  ErrorTrackingTest,
-  SettingsPage,
-  UnifiedSettingsPage,
-  FeatureSettingsPage,
-  DataLayerSettingsPage,
-  AuditLogPage,
-  ROUTE_PATHS,
-} from './routeConfig';
+import { LoginPage, DashboardPage, ErrorTrackingTest, ROUTE_PATHS } from './routeConfig';
+
+// Settings hub pages — explicitly imported to prevent routing order bugs
+import ConfigurationPage from '../modules/settings/pages/ConfigurationPage';
+import SystemManagementPage from '../modules/settings/pages/SystemManagementPage';
+import SchoolOperationsPage from '../modules/settings/pages/SchoolOperationsPage';
 import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
 import { ModuleRouteLoader } from './ModuleRouteLoader';
+import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from './redirectMap';
 
 /** Standard loading spinner fallback for full-page Suspense boundaries */
 const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
   <div className="flex items-center justify-center h-screen">
     <div className="text-center">
       <Spinner size="lg" />
-      {label && <p className="mt-4 text-gray-600">{label}</p>}
+      {label && <p className="mt-4 text-surface-muted-fg">{label}</p>}
     </div>
   </div>
 );
@@ -41,22 +36,40 @@ const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
 const generateDeprecatedRouteRedirects = (): React.ReactElement[] => {
   const deprecatedRoutes: React.ReactElement[] = [];
   const enabledModuleIds = moduleRegistry.getEnabledModules();
+  const coveredPaths = new Set<string>();
 
   enabledModuleIds.forEach(moduleId => {
-    if (!moduleId) return; // Skip undefined/null entries
+    if (!moduleId) return;
     const metadata = moduleRegistry.getMetadata(moduleId);
     if (metadata?.navigation) {
       metadata.navigation.forEach((navItem: any) => {
         if (navItem?.deprecated && navItem?.path) {
-          deprecatedRoutes.push(
-            <Route
-              key={navItem.path}
-              path={navItem.path}
-              element={<Navigate to={ROUTE_PATHS.SETTINGS_DATA_MANAGEMENT} replace />}
-            />
-          );
+          const redirectTo = navItem.redirectTo || getRedirectForRoute(navItem.path);
+          if (redirectTo) {
+            coveredPaths.add(navItem.path);
+            deprecatedRoutes.push(
+              <Route
+                key={navItem.path}
+                path={navItem.path}
+                element={<Navigate to={redirectTo} replace />}
+              />
+            );
+          }
         }
       });
+    }
+  });
+
+  // Also register cross-module redirects from redirectMap
+  Object.entries(DEPRECATED_ROUTE_REDIRECTS).forEach(([path, redirectTo]) => {
+    if (!coveredPaths.has(path)) {
+      deprecatedRoutes.push(
+        <Route
+          key={path}
+          path={path}
+          element={<Navigate to={redirectTo} replace />}
+        />
+      );
     }
   });
 
@@ -92,7 +105,6 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
     }
   }, [modulesInitialized, navigationItems.length]);
 
-  const initialRoute = getStoredRouteFromSession();
   // Always start on dashboard — tab sync engine handles restoring other tabs
   const startupRoute = ROUTE_PATHS.DASHBOARD;
 
@@ -132,57 +144,48 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         }
       />
 
-      {/* Explicit Settings Routes — order matters to prevent routing bugs */}
+      {/* Explicit Settings Hub Routes — order matters to prevent routing bugs */}
       <Route
-        path={ROUTE_PATHS.SETTINGS}
+        path="/settings/configuration"
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <SettingsPage />
+              <ConfigurationPage />
             </Suspense>
           </ProtectedRoute>
         }
       />
       <Route
-        path={ROUTE_PATHS.SETTINGS_UNIFIED}
+        path="/settings/system"
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <UnifiedSettingsPage />
+              <SystemManagementPage />
             </Suspense>
           </ProtectedRoute>
         }
       />
       <Route
-        path={ROUTE_PATHS.SETTINGS_FEATURES}
+        path="/settings/school"
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <FeatureSettingsPage />
+              <SchoolOperationsPage />
             </Suspense>
           </ProtectedRoute>
         }
       />
-      <Route
-        path={ROUTE_PATHS.SETTINGS_DATA_LAYER}
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <DataLayerSettingsPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTE_PATHS.SETTINGS_AUDIT_LOG}
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <AuditLogPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
+
+      {/* Legacy Settings Routes — redirect to hub pages */}
+      <Route path={ROUTE_PATHS.SETTINGS} element={<Navigate to="/settings/configuration?tab=settings" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_UNIFIED} element={<Navigate to="/settings/configuration?tab=unified" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_FEATURES} element={<Navigate to="/settings/configuration?tab=features" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_DATA_LAYER} element={<Navigate to="/settings/system?tab=data-layer" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_AUDIT_LOG} element={<Navigate to="/settings/school?tab=audit" replace />} />
+
+      {/* Portal: /portal → /portal/dashboard — the portal's "hub" page has been
+          removed; the dashboard is now an independent page at /portal/dashboard. */}
+      <Route path="/portal" element={<Navigate to="/portal/dashboard" replace />} />
 
       {/* Dynamic Deprecated Routes -> Redirect to Data Management */}
       {generateDeprecatedRouteRedirects()}
@@ -223,7 +226,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         if (!metadata || moduleId === 'dashboard') return [];
 
         // Get routes from module metadata (provided by module definition)
-        const routes = metadata.provides?.routes || [];
+        const routes = (metadata as any).routes || [];
 
         return routes.map(route => {
           if (!route || !route.path || typeof route.path !== 'string') return null;
@@ -265,7 +268,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
       {navigationItems
         .filter(item => item && (!item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))))
         .flatMap(module => {
-          return (module.children || []).filter(nav => nav && nav.path).map(nav => {
+          return (module.children || []).filter(nav => nav && nav.path && !nav.deprecated).map(nav => {
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) return null;
 
@@ -289,8 +292,28 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
           });
         })}
 
-      {/* Catch-all route - redirect to dashboard for unknown paths */}
-      <Route path="*" element={<Navigate to={ROUTE_PATHS.DASHBOARD} replace />} />
+      {/* Loading gate — don't mask missing routes before modules ready */}
+      {!modulesInitialized && (
+        <Route path="*" element={<PageSpinner label="Loading application..." />} />
+      )}
+      {/* Catch-all — only active after modules loaded; show 404 instead of silent redirect */}
+      {modulesInitialized && (
+        <Route
+          path="*"
+          element={
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center p-8">
+              <h1 className="text-3xl font-bold text-surface-foreground">Page not found</h1>
+              <p className="text-surface-muted-fg mt-2">The page you requested does not exist.</p>
+              <button
+                onClick={() => (window.location.hash = '#/dashboard')}
+                className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          }
+        />
+      )}
     </Routes>
   );
 };

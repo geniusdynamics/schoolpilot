@@ -11,17 +11,24 @@
     "lint:all": "npm run lint && npm run lint:file-size && npm run lint:modules",
     "lint:modules": "tsx scripts/detect-cross-module-imports.ts",
     "lint:modules:json": "tsx scripts/detect-cross-module-imports.ts --json",
+    "validate-routes": "tsx scripts/validate-routes.ts",
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:gp1": "playwright test tests/e2e/gp1-lite.spec.ts",
     "test:ui": "vitest --ui",
-    "check-translations": "node scripts/translation-completeness-check.js",
-    "analyze-translations": "node scripts/analyze-translation-usage.js",
-    "fix-translation-keys": "node scripts/fix-translation-keys.js",
-    "fix-hardcoded-strings": "node scripts/fix-hardcoded-strings.js",
-    "analyze-translation-issues": "node scripts/analyze-translation-issues.js",
-    "fix-translation-namespaces": "node scripts/fix-translation-namespaces.js",
+    "integrity:check": "node scripts/prd/integrity-check.mjs",
+    "check-translations": "node scripts/translation-completeness-check.cjs",
+    "analyze-translations": "node scripts/analyze-translation-usage.cjs",
+    "fix-translation-keys": "node scripts/fix-translation-keys.cjs",
+    "fix-hardcoded-strings": "node scripts/fix-hardcoded-strings.cjs",
+    "analyze-translation-issues": "node scripts/analyze-translation-issues.cjs",
+    "fix-translation-namespaces": "node scripts/fix-translation-namespaces.cjs",
+    "install-hooks": "node scripts/install-git-hooks.cjs",
+    "install-hooks:ps1": "powershell scripts/install-git-hooks.ps1",
+    "install-hooks:sh": "bash scripts/install-git-hooks.sh",
     "enable-performance-widget": "node scripts/enable-performance-widget.cjs",
     "verify-mcp-servers": "node scripts/verify-mcp-servers.mjs",
     "test-sqlite-implementation": "node scripts/test-sqlite-implementation.mjs",
@@ -61,14 +68,15 @@
     "test:generators:performance": "tsx scripts/test/test-all-generators.ts --config=performance --performance --export-csv",
     "setup:self-hosted": "node scripts/setup-self-hosted.cjs",
     "setup:self-hosted:linux": "node scripts/setup-self-hosted.cjs && echo '📋 Now configure your firewall and start the server'",
-    "setup:self-hosted:windows": "node scripts/setup-self-hosted.cjs && echo '📋 Now configure Windows Firewall and start the server'"
+    "setup:self-hosted:windows": "node scripts/setup-self-hosted.cjs && echo '📋 Now configure Windows Firewall and start the server'",
+    "seed:validate": "tsx scripts/seed-validate.ts",
+    "check:ratchet": "node scripts/check-type-ratchet.cjs",
+    "secret:scan": "node scripts/prd/secret-scan.mjs"
   },
   "dependencies": {
     "@effect/rpc": "^0.69.0",
-    "@emotion/cache": "^11.14.0",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
     "@faker-js/faker": "^10.0.0",
+    "@fontsource-variable/inter": "^5.3.0",
     "@heroicons/react": "^2.2.0",
     "@livestore/adapter-web": "^0.3.1",
     "@livestore/devtools-vite": "^0.3.1",
@@ -77,11 +85,6 @@
     "@livestore/react": "^0.3.1",
     "@livestore/sync-cf": "^0.3.1",
     "@livestore/wa-sqlite": "^1.0.5-dev.2",
-    "@mui/icons-material": "^5.18.0",
-    "@mui/material": "^5.14.20",
-    "@mui/system": "^7.2.0",
-    "@mui/x-data-grid": "^8.9.2",
-    "@mui/x-date-pickers": "^8.9.2",
     "@sentry/react": "^10.3.0",
     "@sqlite.org/sqlite-wasm": "^3.50.4-build1",
     "@types/pouchdb": "^6.4.2",
@@ -103,9 +106,7 @@
     "i18next": "23.11.5",
     "i18next-browser-languagedetector": "8.0.0",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.294.0",
     "mysql2": "^3.9.1",
-    "notistack": "^3.0.2",
     "pg": "^8.11.3",
     "postcss": "^8.4.38",
     "pouchdb": "^9.0.0",
@@ -127,9 +128,16 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^3.4.4",
     "uuid": "^9.0.1",
+    "zod": "3.25.76",
     "zustand": "^5.0.7"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
   "devDependencies": {
+    "@eslint/js": "^9.35.0",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
     "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1",
     "@playwright/test": "^1.54.2",
@@ -145,6 +153,7 @@
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "fast-check": "3.23.2",
     "firecrawl-mcp": "^1.12.0",
     "globals": "^16.3.0",
     "happy-dom": "^18.0.1",
@@ -156,5 +165,14 @@
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@livestore/react": {
+      "react": "^19.0.0"
+    },
+    "react-beautiful-dnd": {
+      "react": "^16.8.5 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+      "react-dom": "^16.8.5 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+    }
   }
 }

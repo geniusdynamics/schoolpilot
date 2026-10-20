@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Stable ActionProvider implementation without infinite loops
 // ABOUTME: Rewritten to avoid Zustand store cascading updates and context loops
 
@@ -199,7 +201,7 @@ export const StableActionProvider: React.FC<StableActionProviderProps> = ({
   const executeAction = useCallback(async (actionId: string, customContext?: Partial<StableActionContext>) => {
     const action = actions[actionId];
     if (!action) {
-      console.error(`Action not found: ${actionId}`);
+      logger.error(`Action not found: ${actionId}`);
       return;
     }
 
@@ -210,7 +212,7 @@ export const StableActionProvider: React.FC<StableActionProviderProps> = ({
         await action.onClick(context);
       }
     } catch (error) {
-      console.error(`Error executing action ${actionId}:`, error);
+      logger.error(`Error executing action ${actionId}:`, error);
     }
   }, [actions, currentContext]);
 

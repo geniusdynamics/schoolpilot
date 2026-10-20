@@ -3,15 +3,17 @@ import { AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, PuzzlePieceIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 
@@ -46,24 +48,26 @@ const AcademicStructurePage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert(t('validation.structureNameRequired'));
+      toast.showWarning(t('validation.structureNameRequired'));
       return;
     }
     const payload = { name: formData.name! };
 
     if (editingStructure) {
-      await updateAcademicYearStructure({ ...editingStructure, ...payload });
+      await updateAcademicYearStructure(String(editingStructure.id), payload);
     } else {
       await addAcademicYearStructure(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => { 
-    if (window.confirm('Are you sure you want to delete this academic structure? This might affect related period definitions and academic years.')) {
-      await deleteAcademicYearStructure(id);
+  const confirm = useConfirm();
+  const handleDelete = async (id: number | string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this academic structure? This might affect related period definitions and academic years.' }))) {
+      await deleteAcademicYearStructure(String(id));
     }
   };
 
@@ -74,7 +78,7 @@ const AcademicStructurePage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 80,
-      render: (value, item) => item.id
+      render: (_value, item) => item.id
     },
     { 
       key: 'name',
@@ -82,7 +86,7 @@ const AcademicStructurePage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 300,
-      render: (value, item) => item.name
+      render: (_value, item) => item.name
     },
     {
       key: 'actions',
@@ -91,7 +95,7 @@ const AcademicStructurePage: React.FC = () => {
       filterable: false,
       width: 200,
       sticky: 'right',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -115,7 +119,7 @@ const AcademicStructurePage: React.FC = () => {
           Add Structure
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define the overall structure of an academic year (e.g., "Standard 3-Term System", "Semester System"). 
           Academic Period Definitions will be linked to these structures.
         </p>
@@ -125,13 +129,11 @@ const AcademicStructurePage: React.FC = () => {
           loading={loading.academicYearStructures && isModalOpen}
           sortable
           filterable
-          emptyState={
-            <div className="text-center py-12">
-              <PuzzlePieceIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No academic structures found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first academic year structure.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <PuzzlePieceIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No academic structures found',
+            description: 'Get started by creating your first academic year structure.',
+          }}
         />
       </Card>
 
@@ -149,8 +151,8 @@ const AcademicStructurePage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.academicYearStructures}>
-            {loading.academicYearStructures ? <Spinner size="sm"/> : (editingStructure ? 'Save Changes' : 'Add Structure')}
+          <Button onClick={handleSubmit} loading={loading.academicYearStructures}>
+            {editingStructure ? 'Save Changes' : 'Add Structure'}
           </Button>
         </FormActions>
       </DialogForm>
@@ -159,3 +161,5 @@ const AcademicStructurePage: React.FC = () => {
 };
 
 export default AcademicStructurePage;
+
+export const AcademicStructureContent = AcademicStructurePage;

@@ -1,11 +1,15 @@
 // ABOUTME: Tests for Finance domain data hook - CRUD operations for Chart of Accounts, Banks, Fee Templates, etc.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useFinanceData } from '../useFinanceData';
+import { act } from '@testing-library/react';
+import { useFinanceData } from '@/modules/finance/data/useFinanceData';
 import { databaseService } from '@/services/database/databaseService';
 
-// Mock the database service
+// Mock the database service.
+// `useFinanceData` reads/writes through `useDatabaseCollection`, which resolves the
+// database via `databaseService.getDatabase()`, fetches each collection with
+// `db.getCollection(name)`, and surfaces the collection's InsertResult/UpdateResult
+// (`{ id, doc, ok }`) from insert/update calls — so mocks follow those shapes.
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
     getDatabase: vi.fn(),
@@ -13,85 +17,52 @@ vi.mock('@/services/database/databaseService', () => ({
   },
 }));
 
-describe('useFinanceData', () => {
-  const mockDb = {
-    chart_of_accounts: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    banks: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    suppliers: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    fee_templates: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    expense_claims: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    expense_categories: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    customer_invoices: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    supplier_invoices: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    student_opening_balances: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    fee_adjustments: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    transport_routes: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    student_transport_assignments: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    student_payments: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    general_payments: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-    financial_years: {
-      insert: vi.fn(),
-      update: vi.fn(),
-      remove: vi.fn(),
-    },
-  };
+type MockCollection = {
+  find: ReturnType<typeof vi.fn>;
+  insert: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
+  remove: ReturnType<typeof vi.fn>;
+};
 
+// Every collection useDatabaseCollection mounts for useFinanceData
+const COLLECTION_NAMES = [
+  'chart_of_accounts',
+  'banks',
+  'suppliers',
+  'fee_templates',
+  'fee_template_items',
+  'expense_categories',
+  'expense_claims',
+  'supplier_invoices',
+  'customer_invoices',
+  'student_opening_balances',
+  'fee_adjustments',
+  'transport_routes',
+  'student_transport_assignments',
+  'student_invoices',
+  'student_invoice_items',
+  'student_payments',
+  'invoice_payment_applications',
+  'general_payments',
+  'general_ledger_entries',
+  'financial_years',
+] as const;
+
+const mockCollections = {} as Record<(typeof COLLECTION_NAMES)[number], MockCollection>;
+for (const name of COLLECTION_NAMES) {
+  mockCollections[name] = {
+    find: vi.fn(async () => []),
+    insert: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+  };
+}
+
+const mockDb = {
+  getCollection: vi.fn((name: string) => mockCollections[name as keyof typeof mockCollections] ?? null),
+};
+
+describe('useFinanceData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (databaseService.getDatabase as any).mockResolvedValue(mockDb);
@@ -100,9 +71,9 @@ describe('useFinanceData', () => {
   describe('Chart of Accounts CRUD Operations', () => {
     it('should add a chart of account successfully', async () => {
       const mockAccount = { id: 'mock-id-123', name: 'Tuition Fees', account_code: '1001', account_type: 'income' };
-      mockDb.chart_of_accounts.insert.mockResolvedValue({ doc: mockAccount });
+      mockCollections.chart_of_accounts.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockAccount, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedAccount: any;
       await act(async () => {
@@ -113,41 +84,41 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.chart_of_accounts.insert).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockCollections.chart_of_accounts.insert).toHaveBeenCalledWith(expect.objectContaining({
         name: 'Tuition Fees',
         account_code: '1001',
         account_type: 'income',
         id: 'mock-id-123',
       }));
-      expect(addedAccount).toEqual(mockAccount);
+      expect(addedAccount).toEqual({ id: 'mock-id-123', doc: mockAccount, ok: true });
     });
 
     it('should update a chart of account successfully', async () => {
       const mockAccount = { id: 'account-1', name: 'Updated Tuition Fees' };
-      mockDb.chart_of_accounts.update.mockResolvedValue({ doc: mockAccount });
+      mockCollections.chart_of_accounts.update.mockResolvedValue({ id: 'account-1', doc: mockAccount, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedAccount: any;
       await act(async () => {
         updatedAccount = await result.current.updateChartOfAccount('account-1', { name: 'Updated Tuition Fees' });
       });
 
-      expect(mockDb.chart_of_accounts.update).toHaveBeenCalledWith('account-1', { name: 'Updated Tuition Fees' });
-      expect(updatedAccount).toEqual(mockAccount);
+      expect(mockCollections.chart_of_accounts.update).toHaveBeenCalledWith('account-1', { name: 'Updated Tuition Fees' });
+      expect(updatedAccount).toEqual({ id: 'account-1', doc: mockAccount, ok: true });
     });
 
     it('should delete a chart of account successfully', async () => {
-      mockDb.chart_of_accounts.remove.mockResolvedValue(undefined);
+      mockCollections.chart_of_accounts.remove.mockResolvedValue({ id: 'account-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteChartOfAccount('account-1');
       });
 
-      expect(mockDb.chart_of_accounts.remove).toHaveBeenCalledWith('account-1');
+      expect(mockCollections.chart_of_accounts.remove).toHaveBeenCalledWith('account-1');
       expect(deleteResult).toBe(true);
     });
   });
@@ -155,45 +126,45 @@ describe('useFinanceData', () => {
   describe('Bank CRUD Operations', () => {
     it('should add a bank successfully', async () => {
       const mockBank = { id: 'mock-id-123', name: 'Equity Bank', account_number: '1234567890' };
-      mockDb.banks.insert.mockResolvedValue({ doc: mockBank });
+      mockCollections.banks.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockBank, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedBank: any;
       await act(async () => {
         addedBank = await result.current.addBank({ name: 'Equity Bank', account_number: '1234567890' } as any);
       });
 
-      expect(mockDb.banks.insert).toHaveBeenCalled();
-      expect(addedBank).toEqual(mockBank);
+      expect(mockCollections.banks.insert).toHaveBeenCalled();
+      expect(addedBank).toEqual({ id: 'mock-id-123', doc: mockBank, ok: true });
     });
 
     it('should update a bank successfully', async () => {
       const mockBank = { id: 'bank-1', name: 'Updated Bank Name' };
-      mockDb.banks.update.mockResolvedValue({ doc: mockBank });
+      mockCollections.banks.update.mockResolvedValue({ id: 'bank-1', doc: mockBank, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedBank: any;
       await act(async () => {
         updatedBank = await result.current.updateBank('bank-1', { name: 'Updated Bank Name' });
       });
 
-      expect(mockDb.banks.update).toHaveBeenCalledWith('bank-1', { name: 'Updated Bank Name' });
-      expect(updatedBank).toEqual(mockBank);
+      expect(mockCollections.banks.update).toHaveBeenCalledWith('bank-1', { name: 'Updated Bank Name' });
+      expect(updatedBank).toEqual({ id: 'bank-1', doc: mockBank, ok: true });
     });
 
     it('should delete a bank successfully', async () => {
-      mockDb.banks.remove.mockResolvedValue(undefined);
+      mockCollections.banks.remove.mockResolvedValue({ id: 'bank-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteBank('bank-1');
       });
 
-      expect(mockDb.banks.remove).toHaveBeenCalledWith('bank-1');
+      expect(mockCollections.banks.remove).toHaveBeenCalledWith('bank-1');
       expect(deleteResult).toBe(true);
     });
   });
@@ -201,9 +172,9 @@ describe('useFinanceData', () => {
   describe('Supplier CRUD Operations', () => {
     it('should add a supplier successfully', async () => {
       const mockSupplier = { id: 'mock-id-123', name: 'Stationery Supplier', contact_person: 'John Doe' };
-      mockDb.suppliers.insert.mockResolvedValue({ doc: mockSupplier });
+      mockCollections.suppliers.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockSupplier, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedSupplier: any;
       await act(async () => {
@@ -213,68 +184,68 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.suppliers.insert).toHaveBeenCalled();
-      expect(addedSupplier).toEqual(mockSupplier);
+      expect(mockCollections.suppliers.insert).toHaveBeenCalled();
+      expect(addedSupplier).toEqual({ id: 'mock-id-123', doc: mockSupplier, ok: true });
     });
 
     it('should update a supplier successfully', async () => {
       const mockSupplier = { id: 'supplier-1', name: 'Updated Supplier' };
-      mockDb.suppliers.update.mockResolvedValue({ doc: mockSupplier });
+      mockCollections.suppliers.update.mockResolvedValue({ id: 'supplier-1', doc: mockSupplier, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedSupplier: any;
       await act(async () => {
         updatedSupplier = await result.current.updateSupplier('supplier-1', { name: 'Updated Supplier' });
       });
 
-      expect(mockDb.suppliers.update).toHaveBeenCalledWith('supplier-1', { name: 'Updated Supplier' });
-      expect(updatedSupplier).toEqual(mockSupplier);
+      expect(mockCollections.suppliers.update).toHaveBeenCalledWith('supplier-1', { name: 'Updated Supplier' });
+      expect(updatedSupplier).toEqual({ id: 'supplier-1', doc: mockSupplier, ok: true });
     });
   });
 
   describe('Fee Template CRUD Operations', () => {
     it('should add a fee template successfully', async () => {
       const mockTemplate = { id: 'mock-id-123', name: 'Term 1 Fees', amount: 50000 };
-      mockDb.fee_templates.insert.mockResolvedValue({ doc: mockTemplate });
+      mockCollections.fee_templates.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockTemplate, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedTemplate: any;
       await act(async () => {
         addedTemplate = await result.current.addFeeTemplate({ name: 'Term 1 Fees', amount: 50000 } as any);
       });
 
-      expect(mockDb.fee_templates.insert).toHaveBeenCalled();
-      expect(addedTemplate).toEqual(mockTemplate);
+      expect(mockCollections.fee_templates.insert).toHaveBeenCalled();
+      expect(addedTemplate).toEqual({ id: 'mock-id-123', doc: mockTemplate, ok: true });
     });
 
     it('should update a fee template successfully', async () => {
       const mockTemplate = { id: 'template-1', name: 'Updated Term 1 Fees', amount: 55000 };
-      mockDb.fee_templates.update.mockResolvedValue({ doc: mockTemplate });
+      mockCollections.fee_templates.update.mockResolvedValue({ id: 'template-1', doc: mockTemplate, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedTemplate: any;
       await act(async () => {
         updatedTemplate = await result.current.updateFeeTemplate('template-1', { amount: 55000 });
       });
 
-      expect(mockDb.fee_templates.update).toHaveBeenCalledWith('template-1', { amount: 55000 });
-      expect(updatedTemplate).toEqual(mockTemplate);
+      expect(mockCollections.fee_templates.update).toHaveBeenCalledWith('template-1', { amount: 55000 });
+      expect(updatedTemplate).toEqual({ id: 'template-1', doc: mockTemplate, ok: true });
     });
 
     it('should delete a fee template successfully', async () => {
-      mockDb.fee_templates.remove.mockResolvedValue(undefined);
+      mockCollections.fee_templates.remove.mockResolvedValue({ id: 'template-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteFeeTemplate('template-1');
       });
 
-      expect(mockDb.fee_templates.remove).toHaveBeenCalledWith('template-1');
+      expect(mockCollections.fee_templates.remove).toHaveBeenCalledWith('template-1');
       expect(deleteResult).toBe(true);
     });
   });
@@ -282,9 +253,9 @@ describe('useFinanceData', () => {
   describe('Expense Claim CRUD Operations', () => {
     it('should add an expense claim successfully', async () => {
       const mockClaim = { id: 'mock-id-123', description: 'Office Supplies', amount: 5000, status: 'pending' };
-      mockDb.expense_claims.insert.mockResolvedValue({ doc: mockClaim });
+      mockCollections.expense_claims.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockClaim, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedClaim: any;
       await act(async () => {
@@ -295,36 +266,36 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.expense_claims.insert).toHaveBeenCalled();
-      expect(addedClaim).toEqual(mockClaim);
+      expect(mockCollections.expense_claims.insert).toHaveBeenCalled();
+      expect(addedClaim).toEqual({ id: 'mock-id-123', doc: mockClaim, ok: true });
     });
 
     it('should update an expense claim successfully', async () => {
       const mockClaim = { id: 'claim-1', status: 'approved' };
-      mockDb.expense_claims.update.mockResolvedValue({ doc: mockClaim });
+      mockCollections.expense_claims.update.mockResolvedValue({ id: 'claim-1', doc: mockClaim, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedClaim: any;
       await act(async () => {
         updatedClaim = await result.current.updateExpenseClaim('claim-1', { status: 'approved' });
       });
 
-      expect(mockDb.expense_claims.update).toHaveBeenCalledWith('claim-1', { status: 'approved' });
-      expect(updatedClaim).toEqual(mockClaim);
+      expect(mockCollections.expense_claims.update).toHaveBeenCalledWith('claim-1', { status: 'approved' });
+      expect(updatedClaim).toEqual({ id: 'claim-1', doc: mockClaim, ok: true });
     });
 
     it('should delete an expense claim successfully', async () => {
-      mockDb.expense_claims.remove.mockResolvedValue(undefined);
+      mockCollections.expense_claims.remove.mockResolvedValue({ id: 'claim-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteExpenseClaim('claim-1');
       });
 
-      expect(mockDb.expense_claims.remove).toHaveBeenCalledWith('claim-1');
+      expect(mockCollections.expense_claims.remove).toHaveBeenCalledWith('claim-1');
       expect(deleteResult).toBe(true);
     });
   });
@@ -332,41 +303,41 @@ describe('useFinanceData', () => {
   describe('Expense Category CRUD Operations', () => {
     it('should add an expense category successfully', async () => {
       const mockCategory = { id: 'mock-id-123', name: 'Office Expenses', code: 'OE' };
-      mockDb.expense_categories.insert.mockResolvedValue({ doc: mockCategory });
+      mockCollections.expense_categories.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockCategory, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedCategory: any;
       await act(async () => {
         addedCategory = await result.current.addExpenseCategory({ name: 'Office Expenses', code: 'OE' } as any);
       });
 
-      expect(mockDb.expense_categories.insert).toHaveBeenCalled();
-      expect(addedCategory).toEqual(mockCategory);
+      expect(mockCollections.expense_categories.insert).toHaveBeenCalled();
+      expect(addedCategory).toEqual({ id: 'mock-id-123', doc: mockCategory, ok: true });
     });
 
     it('should update an expense category successfully', async () => {
       const mockCategory = { id: 'category-1', name: 'Updated Category' };
-      mockDb.expense_categories.update.mockResolvedValue({ doc: mockCategory });
+      mockCollections.expense_categories.update.mockResolvedValue({ id: 'category-1', doc: mockCategory, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedCategory: any;
       await act(async () => {
         updatedCategory = await result.current.updateExpenseCategory('category-1', { name: 'Updated Category' });
       });
 
-      expect(mockDb.expense_categories.update).toHaveBeenCalledWith('category-1', { name: 'Updated Category' });
-      expect(updatedCategory).toEqual(mockCategory);
+      expect(mockCollections.expense_categories.update).toHaveBeenCalledWith('category-1', { name: 'Updated Category' });
+      expect(updatedCategory).toEqual({ id: 'category-1', doc: mockCategory, ok: true });
     });
   });
 
   describe('Customer Invoice CRUD Operations', () => {
     it('should add a customer invoice successfully', async () => {
       const mockInvoice = { id: 'mock-id-123', invoice_number: 'INV001', amount: 10000, status: 'unpaid' };
-      mockDb.customer_invoices.insert.mockResolvedValue({ doc: mockInvoice });
+      mockCollections.customer_invoices.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockInvoice, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedInvoice: any;
       await act(async () => {
@@ -377,32 +348,32 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.customer_invoices.insert).toHaveBeenCalled();
-      expect(addedInvoice).toEqual(mockInvoice);
+      expect(mockCollections.customer_invoices.insert).toHaveBeenCalled();
+      expect(addedInvoice).toEqual({ id: 'mock-id-123', doc: mockInvoice, ok: true });
     });
 
     it('should update a customer invoice successfully', async () => {
       const mockInvoice = { id: 'invoice-1', status: 'paid' };
-      mockDb.customer_invoices.update.mockResolvedValue({ doc: mockInvoice });
+      mockCollections.customer_invoices.update.mockResolvedValue({ id: 'invoice-1', doc: mockInvoice, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedInvoice: any;
       await act(async () => {
         updatedInvoice = await result.current.updateCustomerInvoice('invoice-1', { status: 'paid' });
       });
 
-      expect(mockDb.customer_invoices.update).toHaveBeenCalledWith('invoice-1', { status: 'paid' });
-      expect(updatedInvoice).toEqual(mockInvoice);
+      expect(mockCollections.customer_invoices.update).toHaveBeenCalledWith('invoice-1', { status: 'paid' });
+      expect(updatedInvoice).toEqual({ id: 'invoice-1', doc: mockInvoice, ok: true });
     });
   });
 
   describe('Fee Adjustment CRUD Operations', () => {
     it('should add a fee adjustment successfully', async () => {
       const mockAdjustment = { id: 'mock-id-123', student_id: 'student-1', amount: -2000, reason: 'Scholarship' };
-      mockDb.fee_adjustments.insert.mockResolvedValue({ doc: mockAdjustment });
+      mockCollections.fee_adjustments.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockAdjustment, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedAdjustment: any;
       await act(async () => {
@@ -413,36 +384,36 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.fee_adjustments.insert).toHaveBeenCalled();
-      expect(addedAdjustment).toEqual(mockAdjustment);
+      expect(mockCollections.fee_adjustments.insert).toHaveBeenCalled();
+      expect(addedAdjustment).toEqual({ id: 'mock-id-123', doc: mockAdjustment, ok: true });
     });
 
     it('should update a fee adjustment successfully', async () => {
       const mockAdjustment = { id: 'adjustment-1', amount: -3000 };
-      mockDb.fee_adjustments.update.mockResolvedValue({ doc: mockAdjustment });
+      mockCollections.fee_adjustments.update.mockResolvedValue({ id: 'adjustment-1', doc: mockAdjustment, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedAdjustment: any;
       await act(async () => {
         updatedAdjustment = await result.current.updateFeeAdjustment('adjustment-1', { amount: -3000 });
       });
 
-      expect(mockDb.fee_adjustments.update).toHaveBeenCalledWith('adjustment-1', { amount: -3000 });
-      expect(updatedAdjustment).toEqual(mockAdjustment);
+      expect(mockCollections.fee_adjustments.update).toHaveBeenCalledWith('adjustment-1', { amount: -3000 });
+      expect(updatedAdjustment).toEqual({ id: 'adjustment-1', doc: mockAdjustment, ok: true });
     });
 
     it('should delete a fee adjustment successfully', async () => {
-      mockDb.fee_adjustments.remove.mockResolvedValue(undefined);
+      mockCollections.fee_adjustments.remove.mockResolvedValue({ id: 'adjustment-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteFeeAdjustment('adjustment-1');
       });
 
-      expect(mockDb.fee_adjustments.remove).toHaveBeenCalledWith('adjustment-1');
+      expect(mockCollections.fee_adjustments.remove).toHaveBeenCalledWith('adjustment-1');
       expect(deleteResult).toBe(true);
     });
   });
@@ -450,9 +421,9 @@ describe('useFinanceData', () => {
   describe('Transport Route CRUD Operations', () => {
     it('should add a transport route successfully', async () => {
       const mockRoute = { id: 'mock-id-123', name: 'Route A', pickup_point: 'Main Gate', fee: 5000 };
-      mockDb.transport_routes.insert.mockResolvedValue({ doc: mockRoute });
+      mockCollections.transport_routes.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockRoute, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedRoute: any;
       await act(async () => {
@@ -463,32 +434,32 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.transport_routes.insert).toHaveBeenCalled();
-      expect(addedRoute).toEqual(mockRoute);
+      expect(mockCollections.transport_routes.insert).toHaveBeenCalled();
+      expect(addedRoute).toEqual({ id: 'mock-id-123', doc: mockRoute, ok: true });
     });
 
     it('should update a transport route successfully', async () => {
       const mockRoute = { id: 'route-1', fee: 6000 };
-      mockDb.transport_routes.update.mockResolvedValue({ doc: mockRoute });
+      mockCollections.transport_routes.update.mockResolvedValue({ id: 'route-1', doc: mockRoute, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedRoute: any;
       await act(async () => {
         updatedRoute = await result.current.updateTransportRoute('route-1', { fee: 6000 });
       });
 
-      expect(mockDb.transport_routes.update).toHaveBeenCalledWith('route-1', { fee: 6000 });
-      expect(updatedRoute).toEqual(mockRoute);
+      expect(mockCollections.transport_routes.update).toHaveBeenCalledWith('route-1', { fee: 6000 });
+      expect(updatedRoute).toEqual({ id: 'route-1', doc: mockRoute, ok: true });
     });
   });
 
   describe('Student Payment CRUD Operations', () => {
     it('should add a student payment successfully', async () => {
       const mockPayment = { id: 'mock-id-123', student_id: 'student-1', amount: 25000, payment_method: 'cash' };
-      mockDb.student_payments.insert.mockResolvedValue({ doc: mockPayment });
+      mockCollections.student_payments.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockPayment, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedPayment: any;
       await act(async () => {
@@ -499,61 +470,61 @@ describe('useFinanceData', () => {
         } as any);
       });
 
-      expect(mockDb.student_payments.insert).toHaveBeenCalled();
-      expect(addedPayment).toEqual(mockPayment);
+      expect(mockCollections.student_payments.insert).toHaveBeenCalled();
+      expect(addedPayment).toEqual({ id: 'mock-id-123', doc: mockPayment, ok: true });
     });
 
     it('should update a student payment successfully', async () => {
       const mockPayment = { id: 'payment-1', amount: 30000 };
-      mockDb.student_payments.update.mockResolvedValue({ doc: mockPayment });
+      mockCollections.student_payments.update.mockResolvedValue({ id: 'payment-1', doc: mockPayment, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedPayment: any;
       await act(async () => {
         updatedPayment = await result.current.updateStudentPayment('payment-1', { amount: 30000 });
       });
 
-      expect(mockDb.student_payments.update).toHaveBeenCalledWith('payment-1', { amount: 30000 });
-      expect(updatedPayment).toEqual(mockPayment);
+      expect(mockCollections.student_payments.update).toHaveBeenCalledWith('payment-1', { amount: 30000 });
+      expect(updatedPayment).toEqual({ id: 'payment-1', doc: mockPayment, ok: true });
     });
 
     it('should delete a student payment successfully', async () => {
-      mockDb.student_payments.remove.mockResolvedValue(undefined);
+      mockCollections.student_payments.remove.mockResolvedValue({ id: 'payment-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteStudentPayment('payment-1');
       });
 
-      expect(mockDb.student_payments.remove).toHaveBeenCalledWith('payment-1');
+      expect(mockCollections.student_payments.remove).toHaveBeenCalledWith('payment-1');
       expect(deleteResult).toBe(true);
     });
 
     it('should apply payment to invoices successfully', async () => {
       const mockPayment = { id: 'payment-1', applied_to_invoices: ['inv-1', 'inv-2'] };
-      mockDb.student_payments.update.mockResolvedValue({ doc: mockPayment });
+      mockCollections.student_payments.update.mockResolvedValue({ id: 'payment-1', doc: mockPayment, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let appliedPayment: any;
       await act(async () => {
         appliedPayment = await result.current.applyPaymentToInvoices('payment-1', ['inv-1', 'inv-2']);
       });
 
-      expect(mockDb.student_payments.update).toHaveBeenCalledWith('payment-1', { applied_to_invoices: ['inv-1', 'inv-2'] });
-      expect(appliedPayment).toEqual(mockPayment);
+      expect(mockCollections.student_payments.update).toHaveBeenCalledWith('payment-1', { applied_to_invoices: ['inv-1', 'inv-2'] });
+      expect(appliedPayment).toEqual({ id: 'payment-1', doc: mockPayment, ok: true });
     });
   });
 
   describe('Financial Year CRUD Operations', () => {
     it('should add a financial year successfully', async () => {
       const mockYear = { id: 'mock-id-123', name: 'FY 2024', start_date: '2024-01-01', end_date: '2024-12-31' };
-      mockDb.financial_years.insert.mockResolvedValue({ doc: mockYear });
+      mockCollections.financial_years.insert.mockResolvedValue({ id: 'mock-id-123', doc: mockYear, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let addedYear: any;
       await act(async () => {
@@ -564,43 +535,48 @@ describe('useFinanceData', () => {
         });
       });
 
-      expect(mockDb.financial_years.insert).toHaveBeenCalled();
-      expect(addedYear).toEqual(mockYear);
+      expect(mockCollections.financial_years.insert).toHaveBeenCalled();
+      expect(addedYear).toEqual({ id: 'mock-id-123', doc: mockYear, ok: true });
     });
 
     it('should update a financial year successfully', async () => {
       const mockYear = { id: 'year-1', name: 'Updated FY 2024' };
-      mockDb.financial_years.update.mockResolvedValue({ doc: mockYear });
+      mockCollections.financial_years.update.mockResolvedValue({ id: 'year-1', doc: mockYear, ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let updatedYear: any;
       await act(async () => {
         updatedYear = await result.current.updateFinancialYear('year-1', { name: 'Updated FY 2024' });
       });
 
-      expect(mockDb.financial_years.update).toHaveBeenCalledWith('year-1', { name: 'Updated FY 2024' });
-      expect(updatedYear).toEqual(mockYear);
+      expect(mockCollections.financial_years.update).toHaveBeenCalledWith('year-1', { name: 'Updated FY 2024' });
+      expect(updatedYear).toEqual({ id: 'year-1', doc: mockYear, ok: true });
     });
 
     it('should delete a financial year successfully', async () => {
-      mockDb.financial_years.remove.mockResolvedValue(undefined);
+      mockCollections.financial_years.remove.mockResolvedValue({ id: 'year-1', ok: true });
 
-      const { result } = renderHook(() => useFinanceData({}));
+      const { result } = renderHook(() => useFinanceData());
 
       let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteFinancialYear('year-1');
       });
 
-      expect(mockDb.financial_years.remove).toHaveBeenCalledWith('year-1');
+      expect(mockCollections.financial_years.remove).toHaveBeenCalledWith('year-1');
       expect(deleteResult).toBe(true);
     });
   });
 
   describe('Initial Data State', () => {
-    it('should return empty arrays for all data properties initially', () => {
-      const { result } = renderHook(() => useFinanceData({}));
+    it('should return empty arrays for all data properties initially', async () => {
+      const { result } = renderHook(() => useFinanceData());
+
+      // Collections load asynchronously from the (mocked) database
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(result.current.chartOfAccounts).toEqual([]);
       expect(result.current.banks).toEqual([]);

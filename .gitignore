@@ -7,9 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Environment files — never commit secrets; .env.example is the tracked template
+.env
+.env.*
+!.env.example
+
 node_modules
 dist
 dist-ssr
+coverage
 *.local
 
 # Editor directories and files
@@ -41,6 +47,18 @@ docs/AkademicoNotes/
 # Specify AI Assistant
 .specify/
 
+# Qoder / ZCode assistant dirs
+.qoder/
+.zcode/
+
+# One-off root fix/temp scripts (kept out of the repo root)
+/fix*.cjs
+/_*.py
+/temp_*
+
+# Dev QA captures
+/screenshots/
+
 # Windows NUL device (appears as file on Windows)
 nul
 
@@ -51,3 +69,17 @@ typecheck.*.log
 patch-*.txt
 files.txt
 full_file_list.txt
+
+.ratchet-tsc.log
+
+.ratchet-tsc.log
+
+# PRD gate reports (scripts/prd/gate.mjs)
+.prd-gate/
+
+# Sub-agent git worktrees (PRD waves)
+.claude/worktrees/
+
+# Playwright artifacts
+test-results/
+playwright-report/

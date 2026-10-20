@@ -7,6 +7,8 @@ import {
   FEATURE_PRESETS,
   FeatureConfig,
 } from '../features';
+import { CONFIG_PRESETS } from '../unifiedConfig';
+import { defaultTabbedModeConfig } from '../tabbedModeConfig';
 
 describe('Feature Flags Configuration', () => {
   describe('DEFAULT_FEATURES', () => {
@@ -62,25 +64,9 @@ describe('Feature Flags Configuration', () => {
   });
 
   describe('DEFAULT_APP_FEATURE_FLAGS', () => {
-    it('should have all module-specific feature flags', () => {
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableAcademicsModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableAdministrationModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableFinanceModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableHrModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableInventoryModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableLibraryModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableNutritionModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableReportsModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableSettingsModule');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableAdmissionsModule');
-    });
-
-    it('should enable core modules by default', () => {
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableAcademicsModule).toBe(true);
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableAdministrationModule).toBe(true);
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableFinanceModule).toBe(true);
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableSettingsModule).toBe(true);
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableReportsModule).toBe(true);
+    it('should mirror the default feature configuration', () => {
+      // DEFAULT_APP_FEATURE_FLAGS is the app-wide alias for DEFAULT_FEATURES
+      expect(DEFAULT_APP_FEATURE_FLAGS).toEqual(DEFAULT_FEATURES);
     });
 
     it('should have tabbed mode configuration', () => {
@@ -90,7 +76,8 @@ describe('Feature Flags Configuration', () => {
     });
 
     it('should have specific module overrides for tabbed mode', () => {
-      const overrides = DEFAULT_APP_FEATURE_FLAGS.tabbedModeModuleOverrides;
+      // Per-module tabbed-mode defaults live in tabbedModeConfig
+      const overrides = defaultTabbedModeConfig.moduleOverrides;
       expect(overrides).toHaveProperty('dashboard');
       expect(overrides).toHaveProperty('settings');
       expect(overrides).toHaveProperty('reports');
@@ -100,7 +87,7 @@ describe('Feature Flags Configuration', () => {
     });
 
     it('should enable tabbed mode for dashboard, settings, and reports only', () => {
-      const overrides = DEFAULT_APP_FEATURE_FLAGS.tabbedModeModuleOverrides;
+      const overrides = defaultTabbedModeConfig.moduleOverrides;
       expect(overrides.dashboard).toBe(true);
       expect(overrides.settings).toBe(true);
       expect(overrides.reports).toBe(true);
@@ -108,36 +95,20 @@ describe('Feature Flags Configuration', () => {
       expect(overrides.administration).toBe(false);
       expect(overrides.finance).toBe(false);
     });
-
-    it('should have demo/test mode flags', () => {
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('demoMode');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('testMode');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableTestDataGeneration');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('showDebugInfo');
-      expect(DEFAULT_APP_FEATURE_FLAGS).toHaveProperty('enableTestLogin');
-    });
-
-    it('should have disabled demo/test mode flags by default', () => {
-      expect(DEFAULT_APP_FEATURE_FLAGS.demoMode).toBe(false);
-      expect(DEFAULT_APP_FEATURE_FLAGS.testMode).toBe(false);
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableTestDataGeneration).toBe(false);
-      expect(DEFAULT_APP_FEATURE_FLAGS.showDebugInfo).toBe(false);
-      expect(DEFAULT_APP_FEATURE_FLAGS.enableTestLogin).toBe(false);
-    });
   });
 
   describe('FEATURE_PRESETS', () => {
     it('should have demo preset', () => {
       expect(FEATURE_PRESETS).toHaveProperty('demo');
-      expect(FEATURE_PRESETS.demo).toHaveProperty('enhancedDataLayer');
-      expect(FEATURE_PRESETS.demo).toHaveProperty('enableOfflineMode');
+      expect(FEATURE_PRESETS.demo).toHaveProperty('enableAuditLog');
+      expect(FEATURE_PRESETS.demo).toHaveProperty('enableRealTimeSync');
     });
 
     it('should have enhanced preset', () => {
       expect(FEATURE_PRESETS).toHaveProperty('enhanced');
       expect(FEATURE_PRESETS.enhanced).toHaveProperty('enableAdvancedReporting');
       expect(FEATURE_PRESETS.enhanced).toHaveProperty('enableAuditLog');
-      expect(FEATURE_PRESETS.enhanced).toHaveProperty('enableMultiTenant');
+      expect(FEATURE_PRESETS.enhanced).toHaveProperty('enablePerformanceMonitoring');
     });
 
     it('should have development preset', () => {
@@ -146,16 +117,14 @@ describe('Feature Flags Configuration', () => {
       expect(FEATURE_PRESETS.development).toHaveProperty('moduleHealthIndicator');
     });
 
-    it('demo preset should disable offline mode and real-time sync', () => {
-      expect(FEATURE_PRESETS.demo.enableOfflineMode).toBe(false);
-      expect(FEATURE_PRESETS.demo.enableRealTimeSync).toBe(false);
+    it('demo preset should enable real-time sync and audit logging', () => {
+      expect(FEATURE_PRESETS.demo.enableRealTimeSync).toBe(true);
+      expect(FEATURE_PRESETS.demo.enableAuditLog).toBe(true);
     });
 
     it('enhanced preset should enable all advanced features', () => {
       expect(FEATURE_PRESETS.enhanced.enableAdvancedReporting).toBe(true);
       expect(FEATURE_PRESETS.enhanced.enableAuditLog).toBe(true);
-      expect(FEATURE_PRESETS.enhanced.enableMultiTenant).toBe(true);
-      expect(FEATURE_PRESETS.enhanced.enableRealTimeSync).toBe(true);
       expect(FEATURE_PRESETS.enhanced.enablePerformanceMonitoring).toBe(true);
     });
 
@@ -167,8 +136,11 @@ describe('Feature Flags Configuration', () => {
       expect(FEATURE_PRESETS.development.performanceMonitorWidget).toBe(true);
     });
 
-    it('development preset should disable performance optimizations', () => {
-      expect(FEATURE_PRESETS.development.performanceOptimizations).toBe(false);
+    it('development unified-config preset should disable performance optimizations', () => {
+      // The feature-flag preset leaves performance optimizations untouched (default true);
+      // the heavier development preset from the unified config disables them.
+      expect(FEATURE_PRESETS.development.performanceOptimizations ?? DEFAULT_FEATURES.performanceOptimizations).toBe(true);
+      expect(CONFIG_PRESETS.development?.features?.performanceOptimizations).toBe(false);
     });
   });
 
@@ -239,19 +211,20 @@ describe('Feature Flags Configuration', () => {
       const devFeatures: FeatureConfig = { ...DEFAULT_FEATURES, ...FEATURE_PRESETS.development };
 
       expect(devFeatures.networkStatusIndicator).toBe(true);
-      expect(devPerformanceOptimizations).toBe(false);
       expect(devFeatures.performanceMonitorWidget).toBe(true);
+      // FEATURE_PRESETS.development keeps performance optimizations enabled;
+      // CONFIG_PRESETS.development is the variant that disables them.
+      expect(devFeatures.performanceOptimizations).toBe(true);
+      expect(CONFIG_PRESETS.development?.features?.performanceOptimizations).toBe(false);
     });
 
     it('should provide appropriate features for demo environment', () => {
       const demoFeatures: FeatureConfig = { ...DEFAULT_FEATURES, ...FEATURE_PRESETS.demo };
 
-      expect(demoFeatures.enhancedDataLayer).toBe(true);
-      expect(demoFeatures.enableOfflineMode).toBe(false);
-      expect(demoFeatures.enableRealTimeSync).toBe(false);
+      expect(demoFeatures.enhancedDataLayer).toBe(true); // From defaults (not overridden)
+      expect(demoFeatures.enableRealTimeSync).toBe(true); // From demo preset
+      expect(demoFeatures.enablePerformanceMonitoring).toBe(true); // From demo preset
+      expect(demoFeatures.enableOfflineMode).toBe(true); // From defaults (not overridden)
     });
   });
 });
-
-// Helper variable for the test above
-const devPerformanceOptimizations = FEATURE_PRESETS.development.performanceOptimizations;

@@ -3,7 +3,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UnifiedDatabaseManager } from '../UnifiedDatabaseManager';
-import { SQLiteWASMCollection } from '../SQLiteWASMProvider';
 
 // Mock dependencies
 vi.mock('../../../config/unifiedConfig', async (importOriginal) => {
@@ -17,7 +16,6 @@ vi.mock('../../../config/unifiedConfig', async (importOriginal) => {
 });
 
 // Mock the environment variables
-const originalEnv = import.meta.env;
 
 describe('Self-Hosting Configuration Tests', () => {
   describe('UnifiedDatabaseManager Provider Selection', () => {

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Generic REST API Integration Plugin
  * 
@@ -12,14 +14,14 @@ import manifest from './plugin.json';
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[Generic REST Plugin] Activating...');
+    logger.info('[Generic REST Plugin] Activating...');
     
     try {
       const settings = context.settings || {};
       
       // Check if configured
       if (!settings.baseUrl || !settings.entityEndpoints) {
-        console.log('[Generic REST Plugin] No configuration found - plugin enabled but not configured');
+        logger.info('[Generic REST Plugin] No configuration found - plugin enabled but not configured');
         
         context.api.showNotification(
           'Generic REST plugin enabled. Please configure your API settings.',
@@ -78,14 +80,14 @@ const module: PluginModule = {
         configSchema: manifest.settings,
       });
       
-      console.log('[Generic REST Plugin] Activated successfully');
+      logger.info('[Generic REST Plugin] Activated successfully');
       
       context.api.showNotification(
         'Generic REST API integration activated',
         'success'
       );
     } catch (error) {
-      console.error('[Generic REST Plugin] Activation failed:', error);
+      logger.error('[Generic REST Plugin] Activation failed:', error);
       context.api.showNotification(
         `Generic REST activation failed: ${error instanceof Error ? error.message : String(error)}`,
         'error'
@@ -95,7 +97,7 @@ const module: PluginModule = {
   },
   
   async deactivate(context: PluginContext) {
-    console.log('[Generic REST Plugin] Deactivating...');
+    logger.info('[Generic REST Plugin] Deactivating...');
     
     try {
       const registry = BackendProviderRegistry.getInstance();
@@ -106,7 +108,7 @@ const module: PluginModule = {
         'info'
       );
     } catch (error) {
-      console.error('[Generic REST Plugin] Deactivation failed:', error);
+      logger.error('[Generic REST Plugin] Deactivation failed:', error);
     }
   },
 };

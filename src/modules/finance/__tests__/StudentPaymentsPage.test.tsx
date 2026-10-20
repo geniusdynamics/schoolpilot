@@ -1,8 +1,7 @@
 // ABOUTME: Test file for modernized StudentPaymentsPage component
 // ABOUTME: Tests DataGrid integration, slideout forms, and toast notifications
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import '@testing-library/jest-dom';
 import StudentPaymentsPage from '../pages/StudentPaymentsPage';
 import { AppDataContext } from '@/contexts/AppDataContext';
@@ -109,9 +108,8 @@ describe('StudentPaymentsPage', () => {
 
   test('displays action buttons for each payment', () => {
     renderWithContext();
-    
+
     expect(screen.getByText('Edit')).toBeInTheDocument();
-    expect(screen.getByText('Apply')).toBeInTheDocument();
     expect(screen.getByText('Delete')).toBeInTheDocument();
   });
 

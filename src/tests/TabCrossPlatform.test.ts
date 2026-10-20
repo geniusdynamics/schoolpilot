@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Cross-platform testing for adaptive tab behavior
  * Tests web, desktop (Tauri), and mobile platform-specific adaptations
  */

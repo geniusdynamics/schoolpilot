@@ -1,20 +1,23 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { DataGrid } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
+import Select from '@/components/ui/Select';
 import { TicketIcon, PlusIcon, CheckIcon, XMarkIcon, PrinterIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { initialMockGatePasses } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { GatePass, PassType, PassStatus } from '../data/types';
+import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
-const GatePassPage: React.FC = () => {
+export const GatePassContent: React.FC = () => {
   const { t } = useTranslation('administration');
-  const { loading } = useAppData();
+  const gatePassesCollection = useDatabaseCollection<GatePass>('gate_passes');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -34,9 +37,9 @@ const GatePassPage: React.FC = () => {
   };
   const [formData, setFormData] = useState(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockGatePasses: GatePass[] = useMemo(() => {
-    let filtered = initialMockGatePasses;
+  // Live gate passes from the database
+  const passes: GatePass[] = useMemo(() => {
+    let filtered = gatePassesCollection.data;
 
     if (selectedStatus) {
       filtered = filtered.filter(p => p.status === selectedStatus);
@@ -47,14 +50,14 @@ const GatePassPage: React.FC = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(p => 
-        p.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.student_id.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(p =>
+        (p.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (p.student_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
     return filtered;
-  }, [selectedStatus, selectedType, searchTerm]);
+  }, [gatePassesCollection.data, selectedStatus, selectedType, searchTerm]);
 
   const openModal = () => {
     setFormData(initialFormData);
@@ -71,40 +74,83 @@ const GatePassPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.student_name || !formData.pass_type || !formData.reason) {
-      alert('Student name, pass type, and reason are required.');
+      toast.showWarning('Student name, pass type, and reason are required.');
       return;
     }
-    console.log('Creating gate pass:', formData);
-    closeModal();
+    logger.info('Creating gate pass:', formData);
+    void gatePassesCollection.insert({
+      student_id: formData.student_id || '',
+      student_name: formData.student_name || '',
+      class_name: formData.class_name || '',
+      section: formData.section || '',
+      pass_type: formData.pass_type,
+      reason: formData.reason,
+      departure_time: formData.departure_time || '',
+      return_time: formData.return_time,
+      authorized_by: formData.authorized_by || '',
+      status: 'Pending',
+      created_at: new Date().toISOString()
+    } as Omit<GatePass, 'id'> & { id?: string }).then(() => {
+      toast.showSuccess('Gate pass request created.');
+      closeModal();
+    }).catch((err: unknown) => {
+      logger.error('Failed to create gate pass:', err);
+      toast.showError('Failed to create gate pass.');
+    });
   };
 
   const approvePass = (pass: GatePass) => {
-    console.log('Approving pass:', pass.id);
+    logger.info('Approving pass:', pass.id);
+    void gatePassesCollection.update(pass.id, {
+      status: 'Approved',
+      approved_by: 'Principal',
+      approved_at: new Date().toISOString()
+    }).catch((err: unknown) => {
+      logger.error('Failed to approve gate pass:', err);
+      toast.showError('Failed to approve gate pass.');
+    });
   };
 
   const rejectPass = (pass: GatePass) => {
     if (confirm('Are you sure you want to reject this gate pass?')) {
-      console.log('Rejecting pass:', pass.id);
+      logger.info('Rejecting pass:', pass.id);
+      void gatePassesCollection.update(pass.id, {
+        status: 'Rejected',
+        approved_by: 'Principal',
+        approved_at: new Date().toISOString()
+      }).catch((err: unknown) => {
+        logger.error('Failed to reject gate pass:', err);
+        toast.showError('Failed to reject gate pass.');
+      });
     }
   };
 
   const issuePass = (pass: GatePass) => {
-    console.log('Issuing pass:', pass.id);
+    logger.info('Issuing pass:', pass.id);
+    void gatePassesCollection.update(pass.id, {
+      status: 'Issued',
+      issued_by: 'Security Office',
+      issued_at: new Date().toISOString()
+    }).catch((err: unknown) => {
+      logger.error('Failed to issue gate pass:', err);
+      toast.showError('Failed to issue gate pass.');
+    });
   };
 
   const printPass = (pass: GatePass) => {
-    console.log('Printing pass:', pass.id);
+    logger.info('Printing pass:', pass.id);
   };
 
   const getStatusBadge = (status: PassStatus) => {
     const styles = {
       'Pending': 'bg-yellow-100 text-yellow-800',
-      'Approved': 'bg-blue-100 text-blue-800',
+      'Approved': 'bg-primary-100 text-primary-800',
       'Rejected': 'bg-red-100 text-red-800',
       'Issued': 'bg-green-100 text-green-800',
-      'Returned': 'bg-gray-100 text-gray-800'
+      'Returned': 'bg-surface-accent text-surface-foreground'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
@@ -117,8 +163,8 @@ const GatePassPage: React.FC = () => {
     const styles = {
       'Early Departure': 'bg-purple-100 text-purple-800',
       'Medical Emergency': 'bg-red-100 text-red-800',
-      'Personal': 'bg-blue-100 text-blue-800',
-      'Other': 'bg-gray-100 text-gray-800'
+      'Personal': 'bg-primary-100 text-primary-800',
+      'Other': 'bg-surface-accent text-surface-foreground'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type]}`}>
@@ -132,14 +178,14 @@ const GatePassPage: React.FC = () => {
 
   const totals = useMemo(() => {
     return {
-      total: mockGatePasses.length,
-      pending: mockGatePasses.filter(p => p.status === 'Pending').length,
-      approved: mockGatePasses.filter(p => p.status === 'Approved').length,
-      issued: mockGatePasses.filter(p => p.status === 'Issued').length
+      total: passes.length,
+      pending: passes.filter(p => p.status === 'Pending').length,
+      approved: passes.filter(p => p.status === 'Approved').length,
+      issued: passes.filter(p => p.status === 'Issued').length
     };
-  }, [mockGatePasses]);
+  }, [passes]);
 
-  if (loading && mockGatePasses.length === 0) {
+  if (gatePassesCollection.loading && passes.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -151,7 +197,7 @@ const GatePassPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">{t('gatePass.title', 'Student Gate Pass Issuance')}</h1>
+        <h1 className="text-2xl font-bold text-surface-foreground">{t('gatePass.title', 'Student Gate Pass Issuance')}</h1>
         <Button onClick={openModal} variant="primary">
           <PlusIcon className="w-4 h-4 mr-2" />
           {t('gatePass.newPass', 'New Gate Pass')}
@@ -172,17 +218,17 @@ const GatePassPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <TicketIcon className="w-5 h-5" />
               <span className="text-sm font-medium">{t('gatePass.totalPasses', 'Total Passes')}</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <TicketIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">{t('gatePass.pending', 'Pending')}</span>
             </div>
@@ -190,17 +236,17 @@ const GatePassPage: React.FC = () => {
               {totals.pending}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <TicketIcon className="w-5 h-5 text-blue-600" />
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
+              <TicketIcon className="w-5 h-5 text-primary-600" />
               <span className="text-sm font-medium">{t('gatePass.approved', 'Approved')}</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
+            <p className="text-2xl font-bold text-primary-600 mt-2">
               {totals.approved}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <TicketIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">{t('gatePass.issued', 'Issued')}</span>
             </div>
@@ -213,45 +259,45 @@ const GatePassPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('gatePass.status', 'Status')}</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">{t('gatePass.status', 'Status')}</label>
+            <Select
               value={selectedStatus}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">{t('gatePass.allStatuses', 'All Statuses')}</option>
               {passStatuses.map(status => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('gatePass.passType', 'Pass Type')}</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">{t('gatePass.passType', 'Pass Type')}</label>
+            <Select
               value={selectedType}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedType(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">{t('gatePass.allTypes', 'All Types')}</option>
               {passTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.search', 'Search')}</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">{t('common.search', 'Search')}</label>
             <input
               type="text"
               placeholder={t('gatePass.searchPlaceholder', 'Student name, ID...')}
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockGatePasses}
+          data={passes}
           columns={[
             {
               key: 'student_name',
@@ -260,7 +306,7 @@ const GatePassPage: React.FC = () => {
               render: (_, record) => (
                 <div>
                   <p className="font-semibold">{record.student_name}</p>
-                  <p className="text-xs text-gray-500">{record.student_id}</p>
+                  <p className="text-xs text-surface-muted-fg">{record.student_id}</p>
                 </div>
               )
             },
@@ -343,7 +389,7 @@ const GatePassPage: React.FC = () => {
               value={formData.student_name}
               onChange={handleInputChange}
               placeholder="Student name"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -354,7 +400,7 @@ const GatePassPage: React.FC = () => {
               value={formData.student_id}
               onChange={handleInputChange}
               placeholder="Student ID"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -365,7 +411,7 @@ const GatePassPage: React.FC = () => {
               value={formData.class_name}
               onChange={handleInputChange}
               placeholder="Class"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -376,21 +422,21 @@ const GatePassPage: React.FC = () => {
               value={formData.section}
               onChange={handleInputChange}
               placeholder="Section"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Pass Type" required>
-            <select
+            <Select
               name="pass_type"
               value={formData.pass_type}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {passTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Reason" required>
@@ -400,7 +446,7 @@ const GatePassPage: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Reason for gate pass"
               rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -410,7 +456,7 @@ const GatePassPage: React.FC = () => {
               name="departure_time"
               value={formData.departure_time}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -420,7 +466,7 @@ const GatePassPage: React.FC = () => {
               name="return_time"
               value={formData.return_time}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
@@ -431,7 +477,7 @@ const GatePassPage: React.FC = () => {
               value={formData.authorized_by}
               onChange={handleInputChange}
               placeholder="Parent/Guardian name"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>
@@ -448,5 +494,11 @@ const GatePassPage: React.FC = () => {
     </div>
   );
 };
+
+const GatePassPage: React.FC = () => (
+  <div className="space-y-6">
+    <GatePassContent />
+  </div>
+);
 
 export default GatePassPage;

@@ -32,5 +32,11 @@
       "reviewQueue": "File d'Attente d'Évaluation",
       "exportReport": "Exporter le Rapport"
     }
+  },
+  "applicationForm": {
+    "validation": {
+      "requiredFields": "Veuillez remplir tous les champs obligatoires (marqués *) avant de continuer.",
+      "incompleteApplication": "Certains champs obligatoires sont manquants. Revenez en arrière et complétez tous les champs obligatoires avant de soumettre."
+    }
   }
 }

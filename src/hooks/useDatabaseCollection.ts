@@ -1,9 +1,12 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Reusable hook for loading, subscribing to, and mutating a database collection
 // ABOUTME: Provides the foundation for all module data hooks to work with real database state
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import type { ICollection } from '@/services/database/interfaces';
+import type { CollectionName } from '@/services/database/collections';
 
 export interface UseDatabaseCollectionOptions {
   loadOnMount?: boolean;
@@ -22,7 +25,7 @@ export interface UseDatabaseCollectionResult<T> {
 }
 
 export function useDatabaseCollection<T>(
-  collectionName: string,
+  collectionName: CollectionName,
   options: UseDatabaseCollectionOptions = {}
 ): UseDatabaseCollectionResult<T> {
   const { loadOnMount = true, subscribeToChanges = true } = options;
@@ -33,6 +36,25 @@ export function useDatabaseCollection<T>(
   const [collection, setCollection] = useState<ICollection<T> | null>(null);
   const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
   const isMountedRef = useRef(true);
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Safety timeout: prevent infinite loading (e.g., when DB never responds)
+  useEffect(() => {
+    if (loading) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current && loading) {
+          logger.warn(`[useDatabaseCollection] Loading timeout for '${collectionName}' — falling back to empty data`);
+          setLoading(false);
+        }
+      }, 15000); // 15 second timeout
+    }
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [loading, collectionName]);
 
   const refresh = useCallback(async () => {
     if (!isMountedRef.current) return;
@@ -45,7 +67,7 @@ export function useDatabaseCollection<T>(
       const coll = db.getCollection(collectionName) as ICollection<T> | null;
 
       if (!coll) {
-        console.warn(`[useDatabaseCollection] Collection '${collectionName}' not found`);
+        logger.warn(`[useDatabaseCollection] Collection '${collectionName}' not found`);
         if (isMountedRef.current) {
           setCollection(null);
           setData([]);
@@ -64,13 +86,13 @@ export function useDatabaseCollection<T>(
           setData(docs || []);
         }
       } else {
-        console.warn(`[useDatabaseCollection] Collection '${collectionName}' does not support find()`);
+        logger.warn(`[useDatabaseCollection] Collection '${collectionName}' does not support find()`);
         if (isMountedRef.current) {
           setData([]);
         }
       }
     } catch (err) {
-      console.error(`[useDatabaseCollection] Error loading collection '${collectionName}':`, err);
+      logger.error(`[useDatabaseCollection] Error loading collection '${collectionName}':`, err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err : new Error(String(err)));
         setData([]);
@@ -96,22 +118,28 @@ export function useDatabaseCollection<T>(
 
         // Try different subscription methods
         if (typeof (collection as any).subscribeToChanges === 'function') {
-          const sub = (collection as any).subscribeToChanges(() => {
-            if (isMountedRef.current) {
-              refresh();
-            }
-          });
-          subscriptionRef.current = sub;
+          const observable = (collection as any).subscribeToChanges();
+          if (observable && typeof observable.subscribe === 'function') {
+            const sub = observable.subscribe(() => {
+              if (isMountedRef.current) {
+                refresh();
+              }
+            });
+            subscriptionRef.current = sub;
+          }
         } else if (typeof (collection as any).subscribe === 'function') {
-          const sub = (collection as any).subscribe(() => {
-            if (isMountedRef.current) {
-              refresh();
-            }
-          });
-          subscriptionRef.current = sub;
+          const observable = (collection as any).subscribe();
+          if (observable && typeof observable.subscribe === 'function') {
+            const sub = observable.subscribe(() => {
+              if (isMountedRef.current) {
+                refresh();
+              }
+            });
+            subscriptionRef.current = sub;
+          }
         }
       } catch (err) {
-        console.warn(`[useDatabaseCollection] Subscription not available for '${collectionName}':`, err);
+        logger.warn(`[useDatabaseCollection] Subscription not available for '${collectionName}':`, err);
       }
     };
 
@@ -157,7 +185,7 @@ export function useDatabaseCollection<T>(
         await refresh();
         return result || docWithId;
       } catch (err) {
-        console.error(`[useDatabaseCollection] Error inserting into '${collectionName}':`, err);
+        logger.error(`[useDatabaseCollection] Error inserting into '${collectionName}':`, err);
         throw err;
       }
     },
@@ -182,7 +210,7 @@ export function useDatabaseCollection<T>(
         await refresh();
         return result || null;
       } catch (err) {
-        console.error(`[useDatabaseCollection] Error updating '${collectionName}' document ${id}:`, err);
+        logger.error(`[useDatabaseCollection] Error updating '${collectionName}' document ${id}:`, err);
         throw err;
       }
     },
@@ -207,7 +235,7 @@ export function useDatabaseCollection<T>(
         await refresh();
         return true;
       } catch (err) {
-        console.error(`[useDatabaseCollection] Error removing '${collectionName}' document ${id}:`, err);
+        logger.error(`[useDatabaseCollection] Error removing '${collectionName}' document ${id}:`, err);
         throw err;
       }
     },

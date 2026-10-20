@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Frappe Integration Plugin
  * 
@@ -12,7 +14,7 @@ import manifest from './plugin.json';
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[Frappe Plugin] Activating...');
+    logger.info('[Frappe Plugin] Activating...');
     
     try {
       // Get settings with defaults
@@ -20,7 +22,7 @@ const module: PluginModule = {
       
       // Check if this is first activation (no settings configured)
       if (!settings.siteUrl || !settings.apiKey || !settings.apiSecret) {
-        console.log('[Frappe Plugin] No configuration found - plugin enabled but not configured');
+        logger.info('[Frappe Plugin] No configuration found - plugin enabled but not configured');
         
         // Show notification to configure
         context.api.showNotification(
@@ -83,7 +85,7 @@ const module: PluginModule = {
         configSchema: manifest.settings,
       });
       
-      console.log('[Frappe Plugin] Provider registered successfully');
+      logger.info('[Frappe Plugin] Provider registered successfully');
       
       // Register hooks
       context.api.addHook('backend.provider.register', () => {
@@ -93,21 +95,21 @@ const module: PluginModule = {
       // Real-time update hook
       if (config.frappe.enableSocketIO) {
         context.api.addHook('realtime.document.update', async (doctype: string, docname: string) => {
-          console.log(`[Frappe Plugin] Real-time update: ${doctype} ${docname}`);
+          logger.info(`[Frappe Plugin] Real-time update: ${doctype} ${docname}`);
           // Trigger re-fetch in components using the SDK hooks
         });
       }
       
       // Sync hooks
       context.api.addHook('sync.before', async (entity: string) => {
-        console.log(`[Frappe Plugin] Starting sync for ${entity}`);
+        logger.info(`[Frappe Plugin] Starting sync for ${entity}`);
       });
       
       context.api.addHook('sync.after', async (entity: string, result: any) => {
-        console.log(`[Frappe Plugin] Sync completed for ${entity}:`, result);
+        logger.info(`[Frappe Plugin] Sync completed for ${entity}:`, result);
       });
       
-      console.log('[Frappe Plugin] Activated successfully');
+      logger.info('[Frappe Plugin] Activated successfully');
       
       // Show success notification
       context.api.showNotification(
@@ -115,7 +117,7 @@ const module: PluginModule = {
         'success'
       );
     } catch (error) {
-      console.error('[Frappe Plugin] Activation failed:', error);
+      logger.error('[Frappe Plugin] Activation failed:', error);
       context.api.showNotification(
         `Frappe activation failed: ${error instanceof Error ? error.message : String(error)}`,
         'error'
@@ -125,7 +127,7 @@ const module: PluginModule = {
   },
   
   async deactivate(context: PluginContext) {
-    console.log('[Frappe Plugin] Deactivating...');
+    logger.info('[Frappe Plugin] Deactivating...');
     
     try {
       const registry = BackendProviderRegistry.getInstance();
@@ -133,14 +135,14 @@ const module: PluginModule = {
       // Unregister provider
       await registry.unregister('frappe');
       
-      console.log('[Frappe Plugin] Deactivated successfully');
+      logger.info('[Frappe Plugin] Deactivated successfully');
       
       context.api.showNotification(
         'Frappe integration deactivated',
         'info'
       );
     } catch (error) {
-      console.error('[Frappe Plugin] Deactivation failed:', error);
+      logger.error('[Frappe Plugin] Deactivation failed:', error);
     }
   },
 };

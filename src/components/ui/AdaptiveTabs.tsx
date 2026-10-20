@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * AdaptiveTabs - Unified Tab Component for SchoolPilot3
  * Provides platform-aware tabbed interface for web, desktop, and mobile
@@ -5,7 +7,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { X, Plus, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  EllipsisHorizontalIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { cn } from '@/utils/cn';
 import { usePlatformInfo, getPlatformConfig } from '@/utils/platformDetection';
 import { getIcon } from '@/utils/iconMap';
@@ -143,25 +149,25 @@ const TabButton: React.FC<TabButtonProps> = ({
     // Base styles
     'relative inline-flex items-center justify-center',
     'font-medium transition-all duration-200',
-    'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
     
     // Platform-specific sizing
     isMobile ? 'min-h-[44px] px-4 py-3 text-base' : 'min-h-[36px] px-3 py-2 text-sm',
     
     // Variant-specific styles
     variant === 'workspace' && [
-      'border-b-2 border-transparent hover:border-gray-300',
-      isActive ? 'border-blue-500 text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-gray-800'
+      'border-b-2 border-transparent hover:border-surface-border',
+      isActive ? 'border-primary-500 text-primary-600 bg-primary-50' : 'text-surface-muted-fg hover:text-surface-foreground'
     ],
     
     variant === 'page' && [
       'rounded-t-lg border border-b-0',
-      isActive ? 'border-gray-300 bg-white text-gray-900' : 'border-transparent bg-gray-100 text-gray-600 hover:bg-gray-200'
+      isActive ? 'border-surface-border bg-surface-card text-surface-foreground' : 'border-transparent bg-surface-accent text-surface-muted-fg hover:bg-gray-200'
     ],
     
     variant === 'form' && [
       'rounded-lg mx-1',
-      isActive ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+      isActive ? 'bg-primary-600 text-white' : 'bg-gray-200 text-surface-muted-fg hover:bg-gray-300'
     ],
     
     // Touch-friendly spacing for mobile
@@ -219,7 +225,7 @@ const TabButton: React.FC<TabButtonProps> = ({
           )}
           aria-label={`Close ${tab.title} tab`}
         >
-          <X className="w-3 h-3" />
+          <XMarkIcon className="w-3 h-3" />
         </button>
       )}
     </button>
@@ -252,7 +258,7 @@ const ActionBar: React.FC<ActionBarProps> = ({
     try {
       await action.onClick();
     } catch (error) {
-      console.error('Action execution failed:', error);
+      logger.error('Action execution failed:', error);
     }
   }, []);
   
@@ -278,14 +284,14 @@ const ActionBar: React.FC<ActionBarProps> = ({
             title={action.tooltip || action.label}
             className={cn(
               "inline-flex items-center justify-center rounded-md font-medium transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
               buttonSizeClasses[size],
               
               // Variant styles
-              action.variant === 'primary' && "bg-blue-600 text-white hover:bg-blue-700",
+              action.variant === 'primary' && "bg-primary-600 text-white hover:bg-primary-700",
               action.variant === 'danger' && "bg-red-600 text-white hover:bg-red-700",
-              action.variant === 'ghost' && "text-gray-600 hover:bg-gray-100",
-              (!action.variant || action.variant === 'secondary') && "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50",
+              action.variant === 'ghost' && "text-surface-muted-fg hover:bg-surface-accent",
+              (!action.variant || action.variant === 'secondary') && "bg-surface-card border border-surface-border text-surface-foreground hover:bg-surface-muted",
               
               // Disabled state
               (action.disabled || action.loading) && "opacity-50 cursor-not-allowed"
@@ -319,14 +325,14 @@ const ActionBar: React.FC<ActionBarProps> = ({
             className={cn(
               "inline-flex items-center justify-center rounded-md",
               buttonSizeClasses[size],
-              "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              "bg-surface-card border border-surface-border text-surface-foreground hover:bg-surface-muted"
             )}
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <EllipsisHorizontalIcon className="w-4 h-4" />
           </button>
           
           {showOverflow && (
-            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
+            <div className="absolute right-0 top-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-lg z-50 min-w-[200px]">
               <div className="p-2 space-y-1">
                 {overflowActions.map((action) => {
                   const IconComponent = typeof action.icon === 'string' ? getIcon(action.icon) : action.icon;
@@ -340,7 +346,7 @@ const ActionBar: React.FC<ActionBarProps> = ({
                         setShowOverflow(false);
                       }}
                       disabled={action.disabled || action.loading}
-                      className="w-full flex items-center px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-md disabled:opacity-50"
+                      className="w-full flex items-center px-3 py-2 text-left text-sm text-surface-foreground hover:bg-surface-accent rounded-md disabled:opacity-50"
                     >
                       {IconComponent && <IconComponent className="w-4 h-4 mr-3" />}
                       <span>{action.label}</span>
@@ -455,9 +461,9 @@ export const AdaptiveTabs: React.FC<AdaptiveTabsProps> = ({
       <div className={cn(
         "flex items-center",
         scrollable && "overflow-x-auto scrollbar-hide",
-        variant === 'workspace' && "border-b border-gray-200",
-        variant === 'page' && "border-b border-gray-200 bg-gray-50",
-        variant === 'form' && "bg-gray-100 rounded-lg p-1"
+        variant === 'workspace' && "border-b border-surface-border",
+        variant === 'page' && "border-b border-surface-border bg-surface-muted",
+        variant === 'form' && "bg-surface-accent rounded-lg p-1"
       )}>
         {tabs.map((tab, index) => (
           <TabButton
@@ -476,12 +482,12 @@ export const AdaptiveTabs: React.FC<AdaptiveTabsProps> = ({
             type="button"
             onClick={onTabAdd}
             className={cn(
-              "ml-2 p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100",
-              "focus:outline-none focus:ring-2 focus:ring-blue-500"
+              "ml-2 p-2 rounded-md text-surface-muted-fg hover:text-surface-foreground hover:bg-surface-accent",
+              "focus:outline-none focus:ring-2 focus:ring-primary-500"
             )}
             aria-label="Add new tab"
           >
-            <Plus className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -556,7 +562,7 @@ export const AdaptiveTabs: React.FC<AdaptiveTabsProps> = ({
         
         {/* Action Bar */}
         {showActionBar && actions.length > 0 && (
-          <div className="flex-shrink-0 px-4 py-2 bg-white border-b border-gray-200">
+          <div className="flex-shrink-0 px-4 py-2 bg-surface-card border-b border-surface-border">
             <ActionBar 
               actions={actions} 
               maxVisible={maxVisibleActions}

@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ChevronLeft, ChevronRight, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
 import { useTabStore } from '@/stores/tabStore';
 import { Tab as TabComponent } from './Tab';
 import { cn } from '@/utils/cn';
@@ -268,7 +273,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
     if (tabStyle === 'modern') {
       return cn(
         baseClasses,
-        'bg-gradient-to-r from-gray-50 to-white border-b border-gray-200',
+        'bg-gradient-to-r from-gray-50 to-white border-b border-surface-border',
         'min-h-[52px] max-h-[52px] shadow-sm backdrop-blur-sm',
         className
       );
@@ -277,16 +282,17 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
     // Legacy styling
     return cn(
       baseClasses,
-      'bg-white border-b border-green-200 shadow-sm',
+      'bg-surface-card border-b border-green-200 shadow-sm',
       'min-h-[48px] max-h-[48px]',
       className
     );
   };
 
   return (
-    <div 
+    <div
       ref={tabBarRef}
       className={getTabBarStyling()}
+      data-testid="tab-bar"
     >
       {/* Left scroll button */}
       {showLeftScroll && (
@@ -295,12 +301,12 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
           className={cn(
             'flex-shrink-0 p-2 transition-colors',
             tabStyle === 'modern'
-              ? 'hover:bg-gray-100 border-r border-gray-200 text-gray-600 hover:text-gray-700'
+              ? 'hover:bg-surface-accent border-r border-surface-border text-surface-muted-fg hover:text-surface-foreground'
               : 'hover:bg-green-50 border-r border-green-200 text-green-600 hover:text-green-700'
           )}
           aria-label="Scroll tabs left"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeftIcon className="w-4 h-4" />
         </button>
       )}
 
@@ -353,7 +359,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
                           enableHierarchicalMode={enableHierarchicalMode}
                           className={cn(
                             tabStyle === 'modern' 
-                              ? 'border-r border-gray-200 last:border-r-0' 
+                              ? 'border-r border-surface-border last:border-r-0' 
                               : 'border-r border-green-200 last:border-r-0'
                           )}
                         />
@@ -375,12 +381,12 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
           className={cn(
             'flex-shrink-0 p-2 transition-colors',
             tabStyle === 'modern'
-              ? 'hover:bg-gray-100 border-l border-gray-200 text-gray-600 hover:text-gray-700'
+              ? 'hover:bg-surface-accent border-l border-surface-border text-surface-muted-fg hover:text-surface-foreground'
               : 'hover:bg-green-50 border-l border-green-200 text-green-600 hover:text-green-700'
           )}
           aria-label="Scroll tabs right"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRightIcon className="w-4 h-4" />
         </button>
       )}
 
@@ -393,12 +399,12 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
             className={cn(
               'p-2 transition-colors relative',
               tabStyle === 'modern'
-                ? 'hover:bg-gray-100 border-l border-gray-200 text-gray-600 hover:text-gray-700'
+                ? 'hover:bg-surface-accent border-l border-surface-border text-surface-muted-fg hover:text-surface-foreground'
                 : 'hover:bg-green-50 border-l border-green-200 text-green-600 hover:text-green-700'
             )}
             aria-label={`${hiddenTabs.length} more tabs`}
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <EllipsisHorizontalIcon className="w-4 h-4" />
             {hiddenTabs.length > 0 && (
               <span className={cn(
                 'absolute -top-1 -right-1 bg-green-500 text-white text-xs',
@@ -413,7 +419,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
           {/* Overflow dropdown */}
           {showOverflowDropdown && (
             <div className={cn(
-              'absolute top-full right-0 mt-1 bg-white border border-green-200',
+              'absolute top-full right-0 mt-1 bg-surface-card border border-green-200',
               'rounded-lg shadow-lg z-50 min-w-[200px] max-w-[300px]',
               'max-h-[300px] overflow-y-auto'
             )}>
@@ -458,15 +464,16 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
       {showAddButton && (
         <button
           onClick={handleAddTab}
+          data-testid="add-tab-button"
           className={cn(
             'flex-shrink-0 p-2 transition-colors',
             tabStyle === 'modern'
-              ? 'hover:bg-gray-100 border-l border-gray-200 text-gray-600 hover:text-gray-700'
+              ? 'hover:bg-surface-accent border-l border-surface-border text-surface-muted-fg hover:text-surface-foreground'
               : 'hover:bg-green-50 border-l border-green-200 text-green-600 hover:text-green-700'
           )}
           aria-label="Add new tab"
         >
-          <Plus className="w-4 h-4" />
+          <PlusIcon className="w-4 h-4" />
         </button>
       )}
     </div>

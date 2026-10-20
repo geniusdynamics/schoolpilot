@@ -2,7 +2,7 @@
 // ABOUTME: Base AppData interfaces — extensible via TypeScript declaration merging
 // ABOUTME: Modules augment AppDataType and AppDataContextType in their own appDataAugmentation.ts files
 
-import type { SchoolDetails, Role, User, AuditLog, Workflow, Permission, UserRole } from './common';
+import type { SchoolDetails, Role, User, Permission, UserRole } from './common';
 
 // ── Base AppDataType (before module augmentation) ───────────────────────────
 /**

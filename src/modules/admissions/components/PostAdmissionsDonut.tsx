@@ -26,7 +26,7 @@ const PostAdmissionsDonut: React.FC<PostAdmissionsDonutProps> = ({
   return (
     <div className="w-full h-[280px]">
       {title && (
-        <h3 className="text-center text-sm font-semibold text-gray-600 mb-2">
+        <h3 className="text-center text-sm font-semibold text-surface-muted-fg mb-2">
           {title}
         </h3>
       )}

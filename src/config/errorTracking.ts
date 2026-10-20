@@ -1,11 +1,22 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Error tracking configuration for Bugsink integration
 // ABOUTME: Configures Sentry SDK to work with self-hosted Bugsink instance
 
 import * as Sentry from '@sentry/react';
-import React from 'react';
 
 // Bugsink DSN - compatible with Sentry SDK
-const BUGSINK_DSN = import.meta.env.VITE_BUGSINK_DSN || 'https://4382808f1c524c2f8c5bff602772ef50@app1.genius2.mrmarkuz.ddnss.eu/2';
+// Reads exclusively from VITE_BUGSINK_DSN environment variable. No hardcoded fallback.
+const BUGSINK_DSN: string | undefined = import.meta.env.VITE_BUGSINK_DSN;
+
+// Warn at module load time if the DSN environment variable is not set
+if (!BUGSINK_DSN) {
+  logger.warn(
+    '[Bugsink] VITE_BUGSINK_DSN environment variable is not set. ' +
+    'Error tracking will be disabled. ' +
+    'Set VITE_BUGSINK_DSN in your .env file to enable.'
+  );
+}
 
 // Environment detection
 const isDevelopment = import.meta.env.DEV;
@@ -14,25 +25,25 @@ const isProduction = import.meta.env.PROD;
 // Error tracking configuration
 export const errorTrackingConfig: Sentry.BrowserOptions = {
   dsn: BUGSINK_DSN,
-  
+
   // Environment settings
   environment: isDevelopment ? 'development' : 'production',
-  
+
   // Since Bugsink is self-hosted, we can safely send PII for better debugging
   sendDefaultPii: true,
-  
+
   // Sample rate for error tracking (100% for self-hosted)
   sampleRate: 1.0,
-  
+
   // Disable traces as Bugsink doesn't support them
   tracesSampleRate: 0,
-  
+
   // Suppress verbose debug logging to prevent console flooding
   debug: false,
-  
+
   // Release information
   release: import.meta.env.VITE_APP_VERSION || '1.0.0',
-  
+
   // Integration configuration
   integrations: [
     // Basic browser integration for error capture
@@ -42,7 +53,7 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
       enableInp: false,
     }),
   ],
-  
+
   // Error filtering
   beforeSend(event, hint) {
     // Filter out development-only errors in production
@@ -51,24 +62,24 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
       if (event.exception?.values?.[0]?.value?.includes('React DevTools')) {
         return null;
       }
-      
+
       // Skip extension-related errors
       if (event.exception?.values?.[0]?.value?.includes('extension')) {
         return null;
       }
     }
-    
+
     // Log errors in development for debugging
     if (isDevelopment) {
-      console.group('🐛 Error captured by Bugsink:');
-      console.error('Error:', hint.originalException || event.exception);
-      console.log('Event:', event);
+      console.group('🛡 Error captured by Bugsink:');
+      logger.error('Error:', hint.originalException || event.exception);
+      logger.info('Event:', event);
       console.groupEnd();
     }
-    
+
     return event;
   },
-  
+
   // Additional context
   initialScope: {
     tags: {
@@ -107,7 +118,7 @@ const createSilentTransport = (options: any) => {
 // Initialize error tracking
 export const initializeErrorTracking = (): void => {
   if (!BUGSINK_DSN) {
-    console.warn('⚠️ Bugsink DSN not configured - error tracking disabled');
+    logger.warn('⚠️ Bugsink DSN not configured - error tracking disabled');
     return;
   }
 
@@ -116,7 +127,7 @@ export const initializeErrorTracking = (): void => {
     const dsnUrl = new URL(BUGSINK_DSN);
     fetch(`${dsnUrl.protocol}//${dsnUrl.host}`, { mode: 'no-cors', cache: 'no-store' })
       .catch(() => {
-        console.warn('⚠️ Bugsink endpoint unreachable - error tracking will fail silently');
+        logger.warn('⚠️ Bugsink endpoint unreachable - error tracking will fail silently');
       });
   }
 
@@ -130,7 +141,7 @@ export const initializeErrorTracking = (): void => {
         return transaction;
       },
     });
-    
+
     // Set user context if available
     const userInfo = localStorage.getItem('user');
     if (userInfo) {
@@ -145,11 +156,10 @@ export const initializeErrorTracking = (): void => {
         // Ignore JSON parse errors
       }
     }
-    
-    console.log('✅ Bugsink error tracking initialized successfully');
-    console.log('🔗 Bugsink DSN:', BUGSINK_DSN.replace(/\/\/[^@]+@/, '//***@')); // Hide sensitive parts
+
+    logger.info('✅ Bugsink error tracking initialized successfully');
   } catch (error) {
-    console.error('❌ Failed to initialize error tracking:', error);
+    logger.error('❌ Failed to initialize error tracking:', error);
   }
 };
 

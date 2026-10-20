@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Frappe Backend Provider
  * 
@@ -66,7 +68,7 @@ export class FrappeProvider implements IBackendProvider {
       this.authToken = await this.authenticate(config.auth);
     }
     
-    console.log('[FrappeProvider] Initialized successfully');
+    logger.info('[FrappeProvider] Initialized successfully');
   }
   
   async disconnect(): Promise<void> {
@@ -190,7 +192,7 @@ export class FrappeProvider implements IBackendProvider {
       
       return doc as Record;
     } catch (error) {
-      console.error(`Error reading ${entity} ${id}:`, error);
+      logger.error(`Error reading ${entity} ${id}:`, error);
       return null;
     }
   }

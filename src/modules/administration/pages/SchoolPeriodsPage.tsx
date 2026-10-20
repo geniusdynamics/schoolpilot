@@ -1,253 +1,216 @@
-// ABOUTME: Manages school period records and links them to academic years, period definitions, and financial years.
-// ABOUTME: Provides a modal form with typed field parsing for select and date inputs.
+// ABOUTME: Manages school periods (terms) stored in the database and links them to academic years, period definitions, and financial years.
+// ABOUTME: Seeds a default financial year when none exist; term rules (inside the year, no overlap, one current term) live in useSchoolPeriodData.
 
-import React, { useState, useMemo } from 'react';
-import { SchoolPeriod, AcademicYear, AcademicPeriodDefinition, FinancialYear } from '@/types';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/ui/icons';
-import { useSchoolPeriodData } from '../data/useSchoolPeriodData';
+import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
+import { useSchoolPeriodData, type SchoolPeriodRecord } from '../data/useSchoolPeriodData';
 import { useAcademicYearData } from '../data/useAcademicYearData';
 import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import { ensureFinancialYear, useFinancialYearData } from '@/modules/finance/data/useFinancialYearData';
+import { logger } from '@/utils/logging';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { formatDate } from '@/utils/format';
 
-type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'updated_at' | 'name' | 'academic_year_name' | 'period_definition_name' | 'financial_year_name' > & {
-    period_definition_id?: string;
-};
+const asText = (value: unknown): string => (value === undefined || value === null ? '' : String(value));
 
-const SchoolPeriodsPage: React.FC = () => {
+export const SchoolPeriodsContent: React.FC = () => {
   const { t } = useTranslation();
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { data: academicYears } = useAcademicYearData();
   const { data: academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
-  const { financialYears } = useAppData();
-  
+  const {
+    financialYears,
+    currentFinancialYear,
+    loading: financialYearsLoading,
+    error: financialYearsError,
+    refresh: refreshFinancialYears,
+  } = useFinancialYearData();
+
+  // A term needs a financial year. On a fresh school there is none, so seed the default
+  // (idempotent) once the collection has loaded empty, then reload so the picker shows it.
+  const financialYearSeedAttempted = useRef(false);
+  useEffect(() => {
+    if (financialYearsLoading || financialYearsError || financialYears.length > 0) return;
+    if (financialYearSeedAttempted.current) return;
+    financialYearSeedAttempted.current = true;
+    ensureFinancialYear()
+      .then((seeded) => (seeded ? refreshFinancialYears() : undefined))
+      .catch((err) => logger.error('[SchoolPeriodsPage] Could not seed a default financial year:', err));
+  }, [financialYearsLoading, financialYearsError, financialYears.length, refreshFinancialYears]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPeriod, setEditingPeriod] = useState<SchoolPeriod | null>(null);
-  
-  const initialFormData: SchoolPeriodFormData = { 
-    academic_year_id: undefined, 
-    period_definition_id: undefined,
-    financial_year_id: undefined,
-    start_date: '', 
-    end_date: '',
-    is_active: false,
-  };
-  const [formData, setFormData] = useState<SchoolPeriodFormData>(initialFormData);
+  const [editingPeriod, setEditingPeriod] = useState<SchoolPeriodRecord | null>(null);
 
   const academicYearOptions = useMemo(
-    () => [
-      { value: '', label: 'Select Academic Year' },
-      ...(academicYears || []).map((academicYear: AcademicYear) => ({
-        value: academicYear.id.toString(),
-        label: academicYear.name,
-      })),
-    ],
+    () => academicYears.map((academicYear) => ({
+      value: academicYear.id,
+      label: academicYear.name,
+    })),
     [academicYears]
   );
 
   const periodDefinitionOptions = useMemo(
-    () => [
-      { value: '', label: 'Select Period Definition' },
-      ...(academicPeriodDefinitions || []).map((periodDefinition: AcademicPeriodDefinition) => ({
-        value: periodDefinition.id,
-        label: `${periodDefinition.name} (${periodDefinition.structure_name})`,
-      })),
-    ],
+    () => academicPeriodDefinitions.map((periodDefinition) => ({
+      value: periodDefinition.id,
+      label: periodDefinition.structure_name ? `${periodDefinition.name} (${periodDefinition.structure_name})` : periodDefinition.name,
+    })),
     [academicPeriodDefinitions]
   );
 
   const financialYearOptions = useMemo(
-    () => [
-      { value: '', label: 'Select Financial Year' },
-      ...(financialYears || []).map((financialYear: FinancialYear) => ({
-        value: financialYear.id.toString(),
-        label: financialYear.name,
-      })),
-    ],
+    () => financialYears.map((financialYear) => ({
+      value: financialYear.id,
+      label: financialYear.name,
+    })),
     [financialYears]
   );
 
-  const openModal = (period?: SchoolPeriod) => {
+  const openModal = (period?: SchoolPeriodRecord) => {
     setEditingPeriod(period || null);
-    setFormData(period ? 
-      { 
-        academic_year_id: period.academic_year_id,
-        period_definition_id: period.period_definition_id,
-        financial_year_id: period.financial_year_id,
-        start_date: period.start_date, 
-        end_date: period.end_date,
-        mid_break_start: period.mid_break_start,
-        mid_break_end: period.mid_break_end,
-        is_active: period.is_active,
-      } : 
-      initialFormData
-    );
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingPeriod(null);
-    setFormData(initialFormData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    let processedValue: string | number | boolean | undefined = value;
+  const handleSave = async (values: Record<string, unknown>) => {
+    const academicYearId = asText(values.academic_year_id);
+    const periodDefinitionId = asText(values.period_definition_id);
+    const financialYearId = asText(values.financial_year_id);
+    const academicYearName = academicYears.find((year) => year.id === academicYearId)?.name ?? '';
+    const periodDefinitionName = academicPeriodDefinitions.find((definition) => definition.id === periodDefinitionId)?.name ?? '';
+    const financialYearName = financialYears.find((year) => year.id === financialYearId)?.name ?? '';
 
-    if (type === 'checkbox' && 'checked' in e.target) {
-        processedValue = (e.target as HTMLInputElement).checked;
-    } else if (name === 'academic_year_id' || name === 'financial_year_id') {
-        processedValue = value ? parseInt(value, 10) : undefined;
-        if(Number.isNaN(processedValue as number)) processedValue = undefined;
-    } else if (name === 'period_definition_id') {
-        processedValue = value || undefined;
-    }
-    
-    setFormData(prev => ({ ...prev, [name]: processedValue }));
-  };
-
-  const handleSelectChange = (
-    name: 'academic_year_id' | 'period_definition_id' | 'financial_year_id',
-    value: string
-  ) => {
-    let processedValue: string | number | undefined = value;
-
-    if (name === 'academic_year_id' || name === 'financial_year_id') {
-      processedValue = value ? parseInt(value, 10) : undefined;
-      if (Number.isNaN(processedValue as number)) {
-        processedValue = undefined;
-      }
-    } else {
-      processedValue = value || undefined;
-    }
-
-    setFormData(prev => ({ ...prev, [name]: processedValue }));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.academic_year_id || !formData.period_definition_id || !formData.financial_year_id || !formData.start_date || !formData.end_date) {
-      alert(t('validation.academicYearPeriodDefinitionFinancialYearStartDateAndEndDateAreRequired'));
-      return;
-    }
-     if (new Date(formData.start_date) >= new Date(formData.end_date)) {
-        alert(t('validation.endDateAfterStartDate'));
-        return;
-    }
-    if(formData.mid_break_start && formData.mid_break_end && new Date(formData.mid_break_start) >= new Date(formData.mid_break_end)){
-        alert(t('validation.midbreakEndDateMustBeAfterMidbreakStartDate'));
-        return;
-    }
-
-    const payload = {
-        academic_year_id: Number(formData.academic_year_id!),
-        period_definition_id: String(formData.period_definition_id!),
-        financial_year_id: Number(formData.financial_year_id!),
-        start_date: formData.start_date!,
-        end_date: formData.end_date!,
-        mid_break_start: formData.mid_break_start || undefined,
-        mid_break_end: formData.mid_break_end || undefined,
-        is_active: formData.is_active || false,
+    const input = {
+      academic_year_id: academicYearId,
+      period_definition_id: periodDefinitionId,
+      financial_year_id: financialYearId,
+      start_date: asText(values.start_date),
+      end_date: asText(values.end_date),
+      mid_break_start: asText(values.mid_break_start) || null,
+      mid_break_end: asText(values.mid_break_end) || null,
+      is_active: Boolean(values.is_active),
+      academic_year_name: academicYearName,
+      period_definition_name: periodDefinitionName,
+      financial_year_name: financialYearName,
+      name: [periodDefinitionName, academicYearName].filter(Boolean).join(' - '),
     };
 
     if (editingPeriod) {
-      await updateSchoolPeriod({ ...editingPeriod, ...payload });
+      await updateSchoolPeriod(editingPeriod.id, input);
     } else {
-      await addSchoolPeriod(payload);
+      await addSchoolPeriod(input);
     }
-    closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this school period?')) {
+  // Stable per open/edit target: EntityForm resets its values whenever initialData changes identity.
+  const currentFinancialYearId = currentFinancialYear?.id ?? '';
+  const formInitialData = useMemo(() => (editingPeriod ? {
+    academic_year_id: asText(editingPeriod.academic_year_id),
+    period_definition_id: asText(editingPeriod.period_definition_id),
+    financial_year_id: asText(editingPeriod.financial_year_id),
+    start_date: editingPeriod.start_date?.slice(0, 10) ?? '',
+    end_date: editingPeriod.end_date?.slice(0, 10) ?? '',
+    mid_break_start: editingPeriod.mid_break_start?.slice(0, 10) ?? '',
+    mid_break_end: editingPeriod.mid_break_end?.slice(0, 10) ?? '',
+    is_active: editingPeriod.is_active ?? false,
+  } : { financial_year_id: currentFinancialYearId, is_active: false }), [editingPeriod, currentFinancialYearId]);
+
+  const confirm = useConfirm();
+  const handleDelete = async (id: string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this school period?' }))) {
       await deleteSchoolPeriod(id);
     }
   };
 
-  const columns: DataGridColumn<SchoolPeriod>[] = [
-    { 
-      key: 'id',
-      header: 'ID', 
-      sortable: true,
-      filterable: true,
-      width: 80,
-      render: (value, item) => item.id
+  const fields: EntityFieldConfig[] = useMemo(() => [
+    { name: 'academic_year_id', label: t('schoolPeriods.academicYear', 'Academic Year'), type: 'select', required: true, options: academicYearOptions },
+    { name: 'period_definition_id', label: t('schoolPeriods.periodDefinition', 'Period Definition'), type: 'select', required: true, options: periodDefinitionOptions },
+    { name: 'financial_year_id', label: t('schoolPeriods.financialYear', 'Financial Year'), type: 'select', required: true, options: financialYearOptions },
+    { name: 'start_date', label: t('schoolPeriods.startDate', 'Start Date'), type: 'date', required: true },
+    {
+      name: 'end_date',
+      label: t('schoolPeriods.endDate', 'End Date'),
+      type: 'date',
+      required: true,
+      validate: (value, all) =>
+        value && all.start_date && new Date(value) <= new Date(all.start_date)
+          ? t('validation.endDateAfterStartDate')
+          : null,
     },
-    { 
+    { name: 'mid_break_start', label: t('schoolPeriods.midBreakStart', 'Mid-Break Start (Optional)'), type: 'date' },
+    {
+      name: 'mid_break_end',
+      label: t('schoolPeriods.midBreakEnd', 'Mid-Break End (Optional)'),
+      type: 'date',
+      validate: (value, all) =>
+        value && all.mid_break_start && new Date(value) <= new Date(all.mid_break_start)
+          ? t('validation.midbreakEndDateMustBeAfterMidbreakStartDate')
+          : null,
+    },
+    { name: 'is_active', label: t('schoolPeriods.setActive', 'Set as Active School Period'), type: 'checkbox' },
+  ], [t, academicYearOptions, periodDefinitionOptions, financialYearOptions]);
+
+  const columns: DataGridColumn<SchoolPeriodRecord>[] = [
+    {
       key: 'name',
-      header: 'Name', 
+      header: 'Name',
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value, item) => item.name
+      render: (_value, item) => item.name || '—'
     },
-    { 
+    {
       key: 'academic_year_name',
-      header: 'Academic Year', 
+      header: 'Academic Year',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.academic_year_name
+      render: (_value, item) => item.academic_year_name || '—'
     },
-    { 
+    {
       key: 'period_definition_name',
-      header: 'Period Definition', 
+      header: 'Period Definition',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.period_definition_name
+      render: (_value, item) => item.period_definition_name || '—'
     },
-    { 
+    {
       key: 'financial_year_name',
-      header: 'Financial Year', 
+      header: 'Financial Year',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.financial_year_name
+      render: (_value, item) => item.financial_year_name || '—'
     },
-    { 
+    {
       key: 'start_date',
-      header: 'Start Date', 
+      header: 'Start Date',
       sortable: true,
-      filterable: true,
-      width: 120,
-      render: (value, item) => new Date(item.start_date).toLocaleDateString()
+      render: (_value, item) => formatDate(item.start_date)
     },
-    { 
+    {
       key: 'end_date',
-      header: 'End Date', 
+      header: 'End Date',
       sortable: true,
-      filterable: true,
-      width: 120,
-      render: (value, item) => new Date(item.end_date).toLocaleDateString()
+      render: (_value, item) => formatDate(item.end_date)
     },
-    { 
+    {
       key: 'is_active',
-      header: 'Active', 
-      sortable: true,
-      filterable: true,
-      width: 80,
-      render: (value, item) => item.is_active ? 'Yes' : 'No'
+      header: 'Active',
+      render: (_value, item) => item.is_active ? 'Yes' : 'No'
     },
     {
       key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
-      width: 200,
       sticky: 'right',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -256,7 +219,6 @@ const SchoolPeriodsPage: React.FC = () => {
     },
   ];
 
-
   return (
     <div className="space-y-6">
       <Card title="School Periods (Terms/Semesters)" actions={
@@ -264,96 +226,39 @@ const SchoolPeriodsPage: React.FC = () => {
           Add School Period
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           Define specific school terms or semesters within an academic year. Link them to financial years and academic period definitions (e.g., "Term 1").
         </p>
-        <DataGrid 
-          columns={columns} 
-          data={schoolPeriods || []} 
-          loading={false}
-          sortable={true}
-          filterable={true}
-          emptyState={
-            <div className="text-center py-8">
-              <CalendarDaysIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No school periods found. Create your first period to get started.</p>
-            </div>
-          }
+        <DataGrid
+          columns={columns}
+          data={schoolPeriods || []}
+          sortable
+          filterable
+          pagination
+          emptyState={{
+            icon: <span className="text-3xl">🗓️</span>,
+            title: 'No school periods found',
+            description: 'Create your first period to get started.',
+          }}
         />
       </Card>
 
-      <DialogForm
+      <EntityForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingPeriod ? 'Edit School Period' : 'Add New School Period'}
-        size="xl"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-      >
-        <FormSection title="Period Configuration" columns={2}>
-          <FormField label="Academic Year" required>
-            <Select
-              name="academic_year_id"
-              value={formData.academic_year_id?.toString() || ''}
-              onChange={(value) => handleSelectChange('academic_year_id', typeof value === 'string' ? value : '')}
-              options={academicYearOptions}
-              required
-            />
-          </FormField>
-          <FormField label="Period Definition" required>
-            <Select
-              name="period_definition_id"
-              value={formData.period_definition_id || ''}
-              onChange={(value) => handleSelectChange('period_definition_id', typeof value === 'string' ? value : '')}
-              options={periodDefinitionOptions}
-              required
-            />
-          </FormField>
-          <FormField label="Financial Year" required>
-            <Select
-              name="financial_year_id"
-              value={formData.financial_year_id?.toString() || ''}
-              onChange={(value) => handleSelectChange('financial_year_id', typeof value === 'string' ? value : '')}
-              options={financialYearOptions}
-              required
-            />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Dates" columns={2}>
-          <FormField label="Start Date" required>
-            <Input name="start_date" type="date" value={formData.start_date || ''} onChange={handleInputChange} required />
-          </FormField>
-          <FormField label="End Date" required>
-            <Input name="end_date" type="date" value={formData.end_date || ''} onChange={handleInputChange} required />
-          </FormField>
-          <FormField label="Mid-Break Start Date (Optional)">
-            <Input name="mid_break_start" type="date" value={formData.mid_break_start || ''} onChange={handleInputChange} />
-          </FormField>
-          <FormField label="Mid-Break End Date (Optional)">
-            <Input name="mid_break_end" type="date" value={formData.mid_break_end || ''} onChange={handleInputChange} />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Status">
-          <div className="flex items-center">
-            <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              checked={formData.is_active || false} onChange={handleInputChange} />
-            <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Set as Active School Period</label>
-          </div>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit">
-            {editingPeriod ? 'Save Changes' : 'Add Period'}
-          </Button>
-        </FormActions>
-      </DialogForm>
+        initialData={formInitialData}
+        fields={fields}
+        onSubmit={handleSave}
+      />
     </div>
   );
 };
+
+const SchoolPeriodsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SchoolPeriodsContent />
+  </div>
+);
 
 export default SchoolPeriodsPage;

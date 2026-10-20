@@ -1,9 +1,15 @@
-import { EventEmitter } from 'events';
+﻿﻿﻿﻿import { EventEmitter } from 'events';
+
+import { logger } from '@/utils/logging';
 
 /**
  * Settings Registry
  * Central registry for all module settings.
  * Each module registers its settings here.
+ *
+ * ABOUTME: Legacy config — the canonical source is now src/config/.
+ * This file is preserved for existing consumers only; new code
+ * should import from '@/config/'.
  */
 
 export interface SettingDefinition {
@@ -142,7 +148,7 @@ export class SettingsRegistry extends EventEmitter {
         }
       }
     } catch (error) {
-      console.error('Failed to load settings from storage:', error);
+      logger.error('Failed to load settings from storage:', error);
     }
 
     this.loaded = true;

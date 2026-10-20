@@ -72,7 +72,7 @@ export function useVirtualList<T>(options: VirtualListOptions<T>): {
   }, [items, itemHeight]);
 
   // Calculate range of visible items
-  const { virtualItems, startIndex, endIndex } = useMemo(() => {
+  const { virtualItems } = useMemo(() => {
     const getItemHeight = typeof itemHeight === 'number' 
       ? () => itemHeight 
       : itemHeight;

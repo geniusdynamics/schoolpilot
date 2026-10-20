@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Data Service Factory for dual database architecture
 // ABOUTME: Creates appropriate data service based on environment and configuration
 
@@ -20,7 +22,7 @@ export class DataServiceFactory {
   // Method to set user database configuration
   static setUserDatabaseConfig(config: UserDatabaseConfig) {
     userDatabaseConfig = config;
-    console.log(`[DataServiceFactory] User database config set: ${config.provider} for ${config.environment}`);
+    logger.info(`[DataServiceFactory] User database config set: ${config.provider} for ${config.environment}`);
   }
 
   // Method to get current user database configuration
@@ -31,12 +33,12 @@ export class DataServiceFactory {
   // Method to reset to default configuration
   static resetToDefaultConfig() {
     userDatabaseConfig = null;
-    console.log('[DataServiceFactory] Reset to default configuration');
+    logger.info('[DataServiceFactory] Reset to default configuration');
   }
 
   static async createDataService(environment: 'development' | 'production' | 'demo' = 'development') {
     try {
-      console.log(`[DataServiceFactory] Creating data service for environment: ${environment}`);
+      logger.info(`[DataServiceFactory] Creating data service for environment: ${environment}`);
       
       // Determine provider based on user configuration or environment defaults
       let providerType: ProviderType;
@@ -46,7 +48,7 @@ export class DataServiceFactory {
       // Check if user has set a custom configuration
       if (userDatabaseConfig && userDatabaseConfig.environment === environment) {
         providerType = userDatabaseConfig.provider;
-        console.log(`[DataServiceFactory] Using user-configured provider: ${providerType}`);
+        logger.info(`[DataServiceFactory] Using user-configured provider: ${providerType}`);
       } else {
         // Use default configuration based on environment
         switch (environment) {
@@ -61,7 +63,7 @@ export class DataServiceFactory {
             providerType = DATA_LAYER_CONFIG.demo.provider as ProviderType;
             break;
         }
-        console.log(`[DataServiceFactory] Using default provider: ${providerType} for ${environment}`);
+        logger.info(`[DataServiceFactory] Using default provider: ${providerType} for ${environment}`);
       }
 
       switch (environment) {
@@ -104,7 +106,7 @@ export class DataServiceFactory {
             storageQuota: liveStoreConfig.performance.cacheSize * 1024 * 1024
           };
           
-          console.log(`[DataServiceFactory] Production LiveStore config:`, {
+          logger.info(`[DataServiceFactory] Production LiveStore config:`, {
             syncEnabled: liveStoreConfig.sync.enabled,
             cacheSize: liveStoreConfig.performance.cacheSize,
             opfsStorage: liveStoreConfig.database.opfsStorage
@@ -142,10 +144,10 @@ export class DataServiceFactory {
       const factory = getDatabaseProviderFactory();
       const provider = await factory.createProvider(config, requirements);
       
-      console.log(`[DataServiceFactory] Created data service with provider: ${provider.name} for environment: ${environment}`);
+      logger.info(`[DataServiceFactory] Created data service with provider: ${provider.name} for environment: ${environment}`);
       return provider;
     } catch (error) {
-      console.error('[DataServiceFactory] Failed to create data service:', error);
+      logger.error('[DataServiceFactory] Failed to create data service:', error);
       throw error;
     }
   }
@@ -153,7 +155,7 @@ export class DataServiceFactory {
   private static createMockDataService() {
     // Placeholder for mock data service
     // This will be replaced with SQLite implementation
-    console.log('[DataServiceFactory] Using mock data service for demo mode');
+    logger.info('[DataServiceFactory] Using mock data service for demo mode');
     return null;
   }
 }

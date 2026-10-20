@@ -2,19 +2,24 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormActions from '@/components/ui/forms/FormActions';
-import { CheckCircleIcon, XCircleIcon, UserIcon, CalendarIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { initialMockCrossCheckRecords } from '../data/mockData';
-import type { CrossCheckRecord } from '../data/types';
 
-const VerifyMarksCrossCheckPage: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, subjects, classes, teachers, loading } = useAppData();
+import Spinner from '@/components/ui/Spinner';
+import Button from '@/components/ui/Button';
+import FormField from '@/components/ui/forms/FormField';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import type { CrossCheckRecord } from '../data/types';
+import { logger } from '@/utils/logging';
+import { CalendarIcon, CheckCircleIcon, ExclamationTriangleIcon, UserIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
+
+export const VerifyMarksCrossCheckPageContent: React.FC = () => {
+  const { loading } = useAppData();
+  const toast = useToast();
+
+  const crossCheckCollection = useDatabaseCollection<CrossCheckRecord>('marks_cross_check_records');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<CrossCheckRecord | null>(null);
@@ -23,15 +28,15 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from marks_cross_check_records
   const mockRecords: CrossCheckRecord[] = useMemo(() => {
-    let filtered = initialMockCrossCheckRecords;
+    let filtered = crossCheckCollection.data;
 
     if (searchTerm) {
       filtered = filtered.filter(record => 
-        record.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.admission_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.subject_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (record.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -40,7 +45,7 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, statusFilter]);
+  }, [crossCheckCollection.data, searchTerm, statusFilter]);
 
   const openVerifyModal = (record: CrossCheckRecord) => {
     setSelectedRecord(record);
@@ -56,14 +61,27 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
     setNotes('');
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!selectedRecord) return;
-    // In production, this would save the verification
-    console.log('Verifying marks:', {
-      recordId: selectedRecord.id,
-      verifiedMarks,
-      notes
-    });
+    const difference = verifiedMarks - selectedRecord.primary_marks;
+    try {
+      await crossCheckCollection.update(selectedRecord.id, {
+        verified_marks: verifiedMarks,
+        marks_difference: difference,
+        status: difference === 0 ? 'Verified' : 'Discrepancy',
+        verified_at: new Date().toISOString(),
+        notes
+      });
+      toast.showSuccess('Marks verification saved.');
+      logger.info('Verifying marks:', {
+        recordId: selectedRecord.id,
+        verifiedMarks,
+        notes
+      });
+    } catch (err) {
+      logger.error('Failed to save verification:', err);
+      toast.showError('Failed to save verification.');
+    }
     closeModal();
   };
 
@@ -72,7 +90,7 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
       'Pending': 'bg-yellow-100 text-yellow-800',
       'Verified': 'bg-green-100 text-green-800',
       'Discrepancy': 'bg-red-100 text-red-800',
-      'Resolved': 'bg-blue-100 text-blue-800'
+      'Resolved': 'bg-primary-100 text-primary-800'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
@@ -160,7 +178,7 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
     };
   }, [mockRecords]);
 
-  if (loading && mockRecords.length === 0) {
+  if ((loading?.all || crossCheckCollection.loading) && mockRecords.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -194,17 +212,17 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Records</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Verified</span>
             </div>
@@ -212,8 +230,8 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
               {totals.verified}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Discrepancies</span>
             </div>
@@ -221,8 +239,8 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
               {totals.discrepancies}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Pending</span>
             </div>
@@ -235,11 +253,11 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
             <select
               value={statusFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Statuses</option>
               {statusOptions.map(s => (
@@ -248,13 +266,13 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Student, admission, subject..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -262,8 +280,6 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
         <DataGrid
           data={mockRecords}
           columns={columns}
-          searchable={false}
-          exportable={true}
           onRowClick={(record) => openVerifyModal(record as CrossCheckRecord)}
         />
       </Card>
@@ -276,30 +292,30 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
       >
         {selectedRecord && (
           <>
-            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="mb-4 p-4 bg-surface-muted border border-surface-border rounded-lg">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Admission No:</span>
+                  <span className="text-surface-muted-fg">Admission No:</span>
                   <span className="ml-2 font-semibold">{selectedRecord.admission_no}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Class:</span>
+                  <span className="text-surface-muted-fg">Class:</span>
                   <span className="ml-2 font-semibold">{selectedRecord.class_name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Subject:</span>
+                  <span className="text-surface-muted-fg">Subject:</span>
                   <span className="ml-2 font-semibold">{selectedRecord.subject_name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Primary Teacher:</span>
+                  <span className="text-surface-muted-fg">Primary Teacher:</span>
                   <span className="ml-2 font-semibold">{selectedRecord.primary_teacher_name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Primary Marks:</span>
+                  <span className="text-surface-muted-fg">Primary Marks:</span>
                   <span className="ml-2 font-semibold">{selectedRecord.primary_marks}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Current Status:</span>
+                  <span className="text-surface-muted-fg">Current Status:</span>
                   <span className="ml-2">{getStatusBadge(selectedRecord.status)}</span>
                 </div>
               </div>
@@ -313,7 +329,7 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
                   max={100}
                   value={verifiedMarks}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVerifiedMarks(parseInt(e.target.value) || 0)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-surface-border rounded-md px-3 py-2"
                 />
               </FormField>
 
@@ -323,7 +339,7 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
                   placeholder="Add verification notes..."
                   rows={3}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-surface-border rounded-md px-3 py-2"
                 />
               </FormField>
 
@@ -340,16 +356,21 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
               )}
             </FormSection>
 
-            <FormActions
-              onCancel={closeModal}
-              onSubmit={handleVerify}
-              submitLabel="Verify Marks"
-            />
+            <FormActions>
+              <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+              <Button onClick={handleVerify}>Verify Marks</Button>
+            </FormActions>
           </>
         )}
       </DialogForm>
     </div>
   );
 };
+
+const VerifyMarksCrossCheckPage: React.FC = () => (
+  <div className="space-y-6">
+    <VerifyMarksCrossCheckPageContent />
+  </div>
+);
 
 export default VerifyMarksCrossCheckPage;

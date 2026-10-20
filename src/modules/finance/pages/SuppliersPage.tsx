@@ -1,24 +1,26 @@
-import React, { useState, useMemo } from 'react';
+// ABOUTME: Suppliers page: lists, creates, edits and deletes suppliers through useFinance()
+// ABOUTME: Edits call updateSupplier(id, patch) with the supplier's string id
+
+import React, { useState } from 'react';
 import { Supplier } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
 import { useFinance } from '@/modules/finance/hooks/useFinance';
-import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
+type SupplierInput = Parameters<ReturnType<typeof useFinance>['addSupplier']>[0];
 
-const SuppliersPage: React.FC = () => {
+export const SuppliersPageContent: React.FC = () => {
   const { 
-    suppliers, 
-    loading, 
+    suppliers,
     addSupplier, 
     updateSupplier, 
     deleteSupplier 
@@ -55,30 +57,32 @@ const SuppliersPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Supplier name is required.");
+      toast.showWarning("Supplier name is required.");
       return;
     }
-    const payload: Omit<Supplier, 'id' | 'created_at' | 'updated_at'> = {
+    const payload = {
       name: formData.name!,
       phone: formData.phone || undefined,
       email: formData.email || undefined,
       address: formData.address || undefined,
       contract_expiry_date: formData.contract_expiry_date || undefined,
-    };
+    } as SupplierInput;
 
     if (editingSupplier) {
-      await updateSupplier({ ...editingSupplier, ...payload });
+      await updateSupplier(String(editingSupplier.id), payload);
     } else {
       await addSupplier(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this supplier? This may affect related purchase orders or supplier invoices.')) {
-      await deleteSupplier(id);
+  const confirm = useConfirm();
+  const handleDelete = async (id: Supplier['id']) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this supplier? This may affect related purchase orders or supplier invoices.' }))) {
+      await deleteSupplier(String(id));
     }
   };
 
@@ -89,7 +93,7 @@ const SuppliersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { 
       key: 'name', 
@@ -97,7 +101,7 @@ const SuppliersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'phone', 
@@ -105,7 +109,7 @@ const SuppliersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="text-blue-600">{row.phone || '-'}</span>
+      render: (_value, row) => <span className="text-primary-600">{row.phone || '-'}</span>
     },
     { 
       key: 'email', 
@@ -113,7 +117,7 @@ const SuppliersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, row) => <span className="text-purple-600">{row.email || '-'}</span>
+      render: (_value, row) => <span className="text-purple-600">{row.email || '-'}</span>
     },
     { 
       key: 'address', 
@@ -121,7 +125,7 @@ const SuppliersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="text-gray-700">{row.address || '-'}</span>
+      render: (_value, row) => <span className="text-surface-foreground">{row.address || '-'}</span>
     },
     { 
       key: 'contract_expiry_date', 
@@ -129,7 +133,7 @@ const SuppliersPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="text-orange-600">{row.contract_expiry_date ? new Date(row.contract_expiry_date).toLocaleDateString() : '-'}</span>
+      render: (_value, row) => <span className="text-orange-600">{row.contract_expiry_date ? formatDate(row.contract_expiry_date) : '-'}</span>
     },
     {
       key: 'id',
@@ -138,7 +142,7 @@ const SuppliersPage: React.FC = () => {
       filterable: false,
       width: 150,
       sticky: 'right',
-      render: (value, row) => (
+      render: (_value, row) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -147,16 +151,6 @@ const SuppliersPage: React.FC = () => {
     },
   ];
 
-  const pageIsLoading = loading.suppliers || loading.all;
-
-  if (pageIsLoading && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Suppliers...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Supplier Management" actions={
@@ -164,17 +158,16 @@ const SuppliersPage: React.FC = () => {
           Add Supplier
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Maintain a database of school suppliers for inventory, services, and other procurement needs.
         </p>
         <DataGrid 
             columns={columns} 
-            data={suppliers} 
-            isLoading={loading.suppliers && !isModalOpen}
+            data={suppliers || []}
             sortable
             filterable
             emptyState={{
-              icon: <BuildingStorefrontIcon className="w-12 h-12 text-gray-400" />,
+              icon: <BuildingStorefrontIcon className="w-12 h-12 text-surface-muted-fg" />,
               title: "No suppliers found",
               description: "Start building your supplier database by adding your first supplier. Track contact information, contracts, and manage procurement relationships.",
               action: {
@@ -193,8 +186,8 @@ const SuppliersPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.suppliers}>
-              {loading.suppliers && isModalOpen ? <Spinner size="sm"/> : (editingSupplier ? 'Save Changes' : 'Add Supplier')}
+            <Button onClick={handleSubmit}>
+              {editingSupplier ? 'Save Changes' : 'Add Supplier'}
             </Button>
           </>
         }
@@ -237,5 +230,10 @@ const SuppliersPage: React.FC = () => {
     </div>
   );
 };
+const SuppliersPage: React.FC = () => (
+  <div className="space-y-6">
+    <SuppliersPageContent />
+  </div>
+);
 
 export default SuppliersPage;

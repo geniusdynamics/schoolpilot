@@ -1,19 +1,5 @@
 import React from 'react';
-import {
-  CurrencyDollarIcon,
-  TicketIcon,
-  PlusIcon,
-  ReceiptRefundIcon,
-  BanknotesIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  CreditCardIcon,
-  BuildingOfficeIcon,
-  ChartBarIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  ExclamationCircleIcon,
-} from '@/components/ui/icons';
+import { CurrencyDollarIcon, TicketIcon, ReceiptRefundIcon, BanknotesIcon, ArrowUpIcon, ArrowDownIcon, CreditCardIcon, BuildingOfficeIcon, ArrowRightIcon, ClockIcon, ExclamationCircleIcon } from '@/components/ui/icons';
 import BarChart from '@/components/ui/BarChart';
 import DonutChart from '@/components/ui/DonutChart';
 import Card from '@/components/ui/Card';
@@ -27,8 +13,9 @@ import ModuleDashboardShell, {
   DashboardQuickAction,
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
+import { formatKES } from '@/utils/format';
 
-const FinanceDashboardPage: React.FC = () => {
+export const FinanceDashboardPageContent: React.FC = () => {
   const {
     loading,
     feeTemplates,
@@ -117,7 +104,7 @@ const FinanceDashboardPage: React.FC = () => {
     {
       key: 'income',
       label: 'Total Income',
-      value: `Ksh ${totalIncome.toLocaleString()}`,
+      value: formatKES(totalIncome),
       icon: <ArrowUpIcon className="h-6 w-6" />,
       trend: 'up',
       trendValue: '+8.5%',
@@ -128,7 +115,7 @@ const FinanceDashboardPage: React.FC = () => {
     {
       key: 'expenses',
       label: 'Total Expenses',
-      value: `Ksh ${totalExpenses.toLocaleString()}`,
+      value: formatKES(totalExpenses),
       icon: <ArrowDownIcon className="h-6 w-6" />,
       trend: 'up',
       trendValue: '+3.2%',
@@ -139,7 +126,7 @@ const FinanceDashboardPage: React.FC = () => {
     {
       key: 'net',
       label: 'Net Position',
-      value: `Ksh ${netPosition.toLocaleString()}`,
+      value: formatKES(netPosition),
       icon: <BanknotesIcon className="h-6 w-6" />,
       trend: netPosition >= 0 ? 'up' : 'down',
       trendValue: netPosition >= 0 ? '+5.2%' : '-2.1%',
@@ -150,7 +137,7 @@ const FinanceDashboardPage: React.FC = () => {
     {
       key: 'outstanding',
       label: 'Outstanding',
-      value: `Ksh ${totalOutstanding.toLocaleString()}`,
+      value: formatKES(totalOutstanding),
       icon: <ExclamationCircleIcon className="h-6 w-6" />,
       trend: outstandingInvoices.length > 10 ? 'up' : 'down',
       trendValue: `${outstandingInvoices.length} invoices`,
@@ -268,7 +255,7 @@ const FinanceDashboardPage: React.FC = () => {
     {
       id: 'net-position',
       title: 'Financial Health',
-      message: netPosition < 0 ? `Net position negative by Ksh ${Math.abs(netPosition).toLocaleString()}.` : `Net position positive at Ksh ${netPosition.toLocaleString()}.`,
+      message: netPosition < 0 ? `Net position negative by ${formatKES(Math.abs(netPosition))}.` : `Net position positive at Ksh ${netPosition.toLocaleString()}.`,
       severity: netPosition < 0 ? 'high' : 'normal',
     },
   ];
@@ -297,24 +284,24 @@ const FinanceDashboardPage: React.FC = () => {
       {/* Additional Financial Info Panels */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Fee Template Summary */}
-        <Card title="Fee Structure" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Fee Structure" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Active Templates</span>
-              <span className="font-semibold text-gray-900">{feeTemplates.length}</span>
+              <span className="text-sm text-surface-muted-fg">Active Templates</span>
+              <span className="font-semibold text-surface-foreground">{feeTemplates.length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Total Invoices</span>
-              <span className="font-semibold text-gray-900">{(studentInvoices || []).length}</span>
+              <span className="text-sm text-surface-muted-fg">Total Invoices</span>
+              <span className="font-semibold text-surface-foreground">{(studentInvoices || []).length}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">Paid Invoices</span>
+              <span className="text-sm text-surface-muted-fg">Paid Invoices</span>
               <span className="font-semibold text-emerald-600">
                 {(studentInvoices || []).filter((i: any) => String(i.status).toLowerCase() === 'paid').length}
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600">Collection Rate</span>
+              <span className="text-sm text-surface-muted-fg">Collection Rate</span>
               <span className="font-semibold text-violet-600">
                 {(studentInvoices || []).length > 0
                   ? `${Math.round(((studentInvoices || []).filter((i: any) => String(i.status).toLowerCase() === 'paid').length / (studentInvoices || []).length) * 100)}%`
@@ -325,7 +312,7 @@ const FinanceDashboardPage: React.FC = () => {
         </Card>
 
         {/* Recent Transactions */}
-        <Card title="Recent Transactions" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Recent Transactions" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-3">
             {recentTransactions.map((tx, index) => (
               <div key={index} className="flex items-start gap-3 py-2">
@@ -336,14 +323,14 @@ const FinanceDashboardPage: React.FC = () => {
                   {tx.type === 'income' ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{tx.description}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-sm font-medium text-surface-foreground truncate">{tx.description}</p>
+                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
                     <ClockIcon className="h-3 w-3" />
                     {tx.time}
                   </p>
                 </div>
                 <span className={`text-sm font-semibold ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {tx.type === 'income' ? '+' : '-'}Ksh {tx.amount.toLocaleString()}
+                  {tx.type === 'income' ? '+' : ''}{formatKES(tx.amount)}
                 </span>
               </div>
             ))}
@@ -351,7 +338,7 @@ const FinanceDashboardPage: React.FC = () => {
         </Card>
 
         {/* Quick Financial Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-white shadow-sm">
+        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-emerald-50 p-3 text-center">
@@ -373,17 +360,17 @@ const FinanceDashboardPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            <div className="rounded-lg bg-blue-50 p-3">
+            <div className="rounded-lg bg-primary-50 p-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-700">Students with Balance</span>
-                <span className="font-bold text-blue-700">
+                <span className="text-sm text-primary-700">Students with Balance</span>
+                <span className="font-bold text-primary-700">
                   {new Set(outstandingInvoices.map((i: any) => i.student_id)).size}
                 </span>
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/finance/fee-collection-summary'}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+              onClick={() => window.location.hash = '#/finance/fee-collection-summary'}
+              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
             >
               View Collection Report <ArrowRightIcon className="h-4 w-4" />
             </button>
@@ -393,5 +380,10 @@ const FinanceDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const FinanceDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <FinanceDashboardPageContent />
+  </div>
+);
 
 export default FinanceDashboardPage;

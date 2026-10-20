@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * HybridProvider - Composes BackendAPIProvider with local cache for offline-first architecture
  *
@@ -9,25 +11,9 @@
  */
 
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import {
-  IDatabaseProvider,
-  ICollection,
-  DatabaseConfig,
-  CollectionSchema,
-  QueryOptions,
-  InsertResult,
-  UpdateResult,
-  DeleteResult,
-  BulkResult,
-  CollectionChangeEvent,
-  ProviderStatus,
-  CollectionStats,
-  IndexDefinition,
-  DatabaseError,
-  ITransaction,
-} from './interfaces';
+import { IDatabaseProvider, ICollection, DatabaseConfig, CollectionSchema, QueryOptions, InsertResult, UpdateResult, DeleteResult, BulkResult, CollectionChangeEvent, ProviderStatus, CollectionStats, IndexDefinition, DatabaseError } from './interfaces';
 import { BackendAPIProvider, BackendAPIConfig } from './BackendAPIProvider';
-import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } from './DatabaseProviderFactory';
+import { DatabaseProviderFactory, getDatabaseProviderFactory } from './DatabaseProviderFactory';
 import { OfflineQueue } from './sync/OfflineQueue';
 import { SyncManager, SyncCacheProvider, SyncBackendProvider } from './sync/SyncManager';
 import { NetworkMonitor } from './sync/NetworkMonitor';
@@ -75,7 +61,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         await this.backendCollection.insert(doc);
       } catch (error) {
-        console.warn(`[HybridCollection] Backend insert failed for ${this.name}, queuing:`, error);
+        logger.warn(`[HybridCollection] Backend insert failed for ${this.name}, queuing:`, error);
         if (this.offlineQueue) {
           await this.offlineQueue.enqueue({
             operation: 'create',
@@ -103,7 +89,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         await this.backendCollection.insertMany(docs);
       } catch (error) {
-        console.warn(`[HybridCollection] Backend insertMany failed for ${this.name}, queuing:`, error);
+        logger.warn(`[HybridCollection] Backend insertMany failed for ${this.name}, queuing:`, error);
         if (this.offlineQueue) {
           for (const doc of cacheResult.docs) {
             await this.offlineQueue.enqueue({
@@ -134,7 +120,7 @@ class HybridCollection<T> implements ICollection<T> {
         const result = await this.cacheCollection.findOne(idOrQuery);
         if (result !== null) return result;
       } catch (error) {
-        console.warn(`[HybridCollection] Cache findOne failed for ${this.name}, falling back:`, error);
+        logger.warn(`[HybridCollection] Cache findOne failed for ${this.name}, falling back:`, error);
       }
     }
 
@@ -152,7 +138,7 @@ class HybridCollection<T> implements ICollection<T> {
         const result = await this.cacheCollection.findById(id);
         if (result !== null) return result;
       } catch (error) {
-        console.warn(`[HybridCollection] Cache findById failed for ${this.name}, falling back:`, error);
+        logger.warn(`[HybridCollection] Cache findById failed for ${this.name}, falling back:`, error);
       }
     }
 
@@ -168,7 +154,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         return await this.cacheCollection.find(query);
       } catch (error) {
-        console.warn(`[HybridCollection] Cache find failed for ${this.name}, falling back:`, error);
+        logger.warn(`[HybridCollection] Cache find failed for ${this.name}, falling back:`, error);
       }
     }
 
@@ -186,7 +172,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         await this.backendCollection.update(id, update);
       } catch (error) {
-        console.warn(`[HybridCollection] Backend update failed for ${this.name}, queuing:`, error);
+        logger.warn(`[HybridCollection] Backend update failed for ${this.name}, queuing:`, error);
         if (this.offlineQueue) {
           await this.offlineQueue.enqueue({
             operation: 'update',
@@ -213,7 +199,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         await this.backendCollection.updateMany(query, update);
       } catch (error) {
-        console.warn(`[HybridCollection] Backend updateMany failed for ${this.name}:`, error);
+        logger.warn(`[HybridCollection] Backend updateMany failed for ${this.name}:`, error);
       }
     }
 
@@ -227,7 +213,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         await this.backendCollection.remove(id);
       } catch (error) {
-        console.warn(`[HybridCollection] Backend remove failed for ${this.name}, queuing:`, error);
+        logger.warn(`[HybridCollection] Backend remove failed for ${this.name}, queuing:`, error);
         if (this.offlineQueue) {
           await this.offlineQueue.enqueue({
             operation: 'delete',
@@ -254,7 +240,7 @@ class HybridCollection<T> implements ICollection<T> {
       try {
         await this.backendCollection.removeMany(query);
       } catch (error) {
-        console.warn(`[HybridCollection] Backend removeMany failed for ${this.name}:`, error);
+        logger.warn(`[HybridCollection] Backend removeMany failed for ${this.name}:`, error);
       }
     }
 
@@ -273,7 +259,7 @@ class HybridCollection<T> implements ICollection<T> {
     try {
       return await this.cacheCollection.count(query);
     } catch (error) {
-      console.warn(`[HybridCollection] Cache count failed for ${this.name}, falling back:`, error);
+      logger.warn(`[HybridCollection] Cache count failed for ${this.name}, falling back:`, error);
       if (this.backendCollection) {
         return await this.backendCollection.count(query);
       }
@@ -285,7 +271,7 @@ class HybridCollection<T> implements ICollection<T> {
     try {
       return await this.cacheCollection.exists(id);
     } catch (error) {
-      console.warn(`[HybridCollection] Cache exists failed for ${this.name}, falling back:`, error);
+      logger.warn(`[HybridCollection] Cache exists failed for ${this.name}, falling back:`, error);
       if (this.backendCollection) {
         return await this.backendCollection.exists(id);
       }
@@ -347,16 +333,16 @@ export class HybridProvider implements IDatabaseProvider {
       const hybridConfig = config as HybridProviderConfig;
       this.config = hybridConfig;
 
-      console.log('[HybridProvider] Initializing HybridProvider...');
+      logger.info('[HybridProvider] Initializing HybridProvider...');
 
       // Initialize backend provider
       this.backendProvider = new BackendAPIProvider();
       await this.backendProvider.initialize(hybridConfig.backendConfig);
-      console.log('[HybridProvider] Backend provider initialized');
+      logger.info('[HybridProvider] Backend provider initialized');
 
       // Initialize cache provider
       const cacheProviderType = hybridConfig.cacheProviderType || 'sqlite-wasm';
-      console.log(`[HybridProvider] Initializing cache provider: ${cacheProviderType}`);
+      logger.info(`[HybridProvider] Initializing cache provider: ${cacheProviderType}`);
 
       const cacheConfig: DatabaseConfig = {
         name: `${hybridConfig.name}_cache`,
@@ -373,12 +359,12 @@ export class HybridProvider implements IDatabaseProvider {
         performanceLevel: 'high',
         storageQuota: 200 * 1024 * 1024, // 200MB
       });
-      console.log(`[HybridProvider] Cache provider initialized: ${this.cacheProvider.name}`);
+      logger.info(`[HybridProvider] Cache provider initialized: ${this.cacheProvider.name}`);
 
       // Initialize offline queue if enabled
       if (hybridConfig.enableOfflineQueue !== false) {
         this.offlineQueue = await OfflineQueue.getInstance();
-        console.log('[HybridProvider] Offline queue initialized');
+        logger.info('[HybridProvider] Offline queue initialized');
       }
 
       // Initialize sync manager if both providers are available
@@ -419,11 +405,11 @@ export class HybridProvider implements IDatabaseProvider {
           batchSize: hybridConfig.backendConfig.batchSize || 100,
         });
 
-        console.log('[HybridProvider] Sync manager initialized');
+        logger.info('[HybridProvider] Sync manager initialized');
       }
 
       this.isInitialized = true;
-      console.log('[HybridProvider] HybridProvider initialized successfully');
+      logger.info('[HybridProvider] HybridProvider initialized successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize Hybrid provider: ${error instanceof Error ? error.message : String(error)}`,
@@ -447,7 +433,7 @@ export class HybridProvider implements IDatabaseProvider {
       try {
         backendCollection = await this.backendProvider!.createCollection<T>(name, schema);
       } catch (error) {
-        console.warn(`[HybridProvider] Failed to create backend collection ${name}, using cache only:`, error);
+        logger.warn(`[HybridProvider] Failed to create backend collection ${name}, using cache only:`, error);
       }
 
       // Wrap in HybridCollection
@@ -463,7 +449,7 @@ export class HybridProvider implements IDatabaseProvider {
       );
 
       this.collections.set(name, hybridCollection);
-      console.log(`[HybridProvider] Created hybrid collection: ${name}`);
+      logger.info(`[HybridProvider] Created hybrid collection: ${name}`);
 
       return hybridCollection;
     } catch (error) {
@@ -553,7 +539,7 @@ export class HybridProvider implements IDatabaseProvider {
     this.collections.clear();
     this.isInitialized = false;
 
-    console.log('[HybridProvider] Destroyed');
+    logger.info('[HybridProvider] Destroyed');
   }
 
   /**
@@ -599,7 +585,7 @@ export class HybridProvider implements IDatabaseProvider {
    */
   async processOfflineQueue(): Promise<void> {
     if (!this.offlineQueue) {
-      console.log('[HybridProvider] Offline queue not initialized');
+      logger.info('[HybridProvider] Offline queue not initialized');
       return;
     }
     await this.offlineQueue.process();

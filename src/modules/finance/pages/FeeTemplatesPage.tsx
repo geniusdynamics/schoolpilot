@@ -1,28 +1,66 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { FeeTemplate, FeeTemplateItem, ChartOfAccount, ExpenseCategory, AccountType } from '@/modules/finance';
-import { SchoolPeriod, StudentCategory } from '@/core/types';
+// ABOUTME: Fee templates page: manage templates per school period/category and their fee items (voteheads).
+// ABOUTME: Persists through updateFeeTemplate(id, patch); fee items carry stable UUIDs and string foreign keys; templates store applicable level (class) ids.
+
+import React, { useState, useMemo } from 'react';
+
+import { SchoolPeriod, StudentCategory, Class } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
+import EntityForm from "@/components/ui/forms/EntityForm";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import Checkbox from '@/components/ui/Checkbox';
 import { PlusIcon, EditIcon, DeleteIcon, TicketIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { AccountType } from '@/core/types';
+import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
-type FeeTemplateFormData = Omit<Partial<FeeTemplate>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'student_category_name' | 'items'>;
-type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;
+/** A fee item as stored on a template: ids are opaque strings matching the fee_templates schema. */
+type StoredFeeItem = Omit<FeeTemplateItem, 'fee_template_id' | 'revenue_account_id' | 'linked_expense_category_id'> & {
+  fee_template_id: string;
+  revenue_account_id: string;
+  linked_expense_category_id?: string;
+};
 
-const FeeTemplatesPage: React.FC = () => {
+interface FeeItemFormData {
+  description: string;
+  amount?: number;
+  revenue_account_id?: string;
+  linked_expense_category_id?: string;
+}
+
+interface TemplateItemsContext {
+  id: string;
+  name: string;
+  items: StoredFeeItem[];
+}
+
+const optionalId = (value: unknown): string | undefined =>
+  value === undefined || value === null || value === '' ? undefined : String(value);
+
+/** Normalises a template's items to string ids, giving any item without an id a stable UUID. */
+const toStoredItems = (template: FeeTemplate): StoredFeeItem[] =>
+  (template.items || []).map((item) => ({
+    ...item,
+    id: item.id ? String(item.id) : crypto.randomUUID(),
+    fee_template_id: String(template.id),
+    revenue_account_id: optionalId(item.revenue_account_id) ?? '',
+    linked_expense_category_id: optionalId(item.linked_expense_category_id),
+  }));
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
+export const FeeTemplatesContent: React.FC = () => {
   const { 
     feeTemplates, 
     schoolPeriods,
     studentCategories,
+    classes,
     chartOfAccounts,
     expenseCategories,
     loading, 
@@ -35,41 +73,45 @@ const FeeTemplatesPage: React.FC = () => {
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   
   const [editingTemplate, setEditingTemplate] = useState<FeeTemplate | null>(null);
-  const [editingItem, setEditingItem] = useState<FeeTemplateItem | null>(null);
-  const [currentTemplateForItems, setCurrentTemplateForItems] = useState<FeeTemplate | null>(null);
+  const [editingItem, setEditingItem] = useState<StoredFeeItem | null>(null);
+  const [currentTemplateForItems, setCurrentTemplateForItems] = useState<TemplateItemsContext | null>(null);
 
-  const initialTemplateFormData: FeeTemplateFormData = { name: '', school_period_id: undefined, student_category_id: undefined };
   const initialItemFormData: FeeItemFormData = { description: '', amount: 0, revenue_account_id: undefined, linked_expense_category_id: undefined };
-
-  const [templateFormData, setTemplateFormData] = useState<FeeTemplateFormData>(initialTemplateFormData);
   const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
+  const [templateInitialValues, setTemplateInitialValues] = useState<Record<string, any>>({ name: '', school_period_id: undefined, student_category_id: undefined });
+  /** Class (level) ids selected for the template being edited; empty means every level. */
+  const [templateLevelIds, setTemplateLevelIds] = useState<string[]>([]);
+  const levelOptions = useMemo(() => (classes || []).map((cls: Class) => ({ id: String(cls.id), name: String(cls.name ?? '') })), [classes]);
+  const toggleTemplateLevel = (levelId: string, checked: boolean) =>
+    setTemplateLevelIds(prev => (checked ? (prev.includes(levelId) ? prev : [...prev, levelId]) : prev.filter(id => id !== levelId)));
 
   const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Template Modal
   const openTemplateModal = (template?: FeeTemplate) => {
     setEditingTemplate(template || null);
-    setTemplateFormData(template ? 
-      { name: template.name, school_period_id: template.school_period_id, student_category_id: template.student_category_id } : 
-      initialTemplateFormData
+    setTemplateInitialValues(template ?
+      { name: template.name, school_period_id: optionalId(template.school_period_id), student_category_id: optionalId(template.student_category_id) } :
+      { name: '', school_period_id: undefined, student_category_id: undefined }
     );
+    setTemplateLevelIds((template?.applicable_level_ids || []).map(String));
     setIsTemplateModalOpen(true);
   };
   const closeTemplateModal = () => {
     setIsTemplateModalOpen(false);
     setEditingTemplate(null);
-    setTemplateFormData(initialTemplateFormData);
   };
 
   // Item Modal
-  const openItemModal = (template: FeeTemplate, item?: FeeTemplateItem) => {
-    setCurrentTemplateForItems(template);
-    setEditingItem(item || null);
-    setItemFormData(item ? 
-      { description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id, linked_expense_category_id: item.linked_expense_category_id } : 
-      initialItemFormData
-    );
+  const openItemModal = (template: FeeTemplate) => {
+    setCurrentTemplateForItems({ id: String(template.id), name: template.name, items: toStoredItems(template) });
+    setEditingItem(null);
+    setItemFormData(initialItemFormData);
     setIsItemModalOpen(true);
+  };
+  const startEditingItem = (item: StoredFeeItem) => {
+    setEditingItem(item);
+    setItemFormData({ description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id, linked_expense_category_id: item.linked_expense_category_id });
   };
   const closeItemModal = () => {
     setIsItemModalOpen(false);
@@ -78,93 +120,67 @@ const FeeTemplatesPage: React.FC = () => {
     setItemFormData(initialItemFormData);
   };
 
-  const handleTemplateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setTemplateFormData(prev => ({ ...prev, [name]: value ? (name.endsWith('_id') ? parseInt(value) : value) : undefined }));
-  };
-
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setItemFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value ? parseInt(value) : undefined) : (name === 'amount' ? parseFloat(value) : value) }));
-  };
-  
-  const handleTemplateSubmit = async () => {
-    if (!templateFormData.name || !templateFormData.school_period_id) {
-      alert("Template name and school period are required.");
-      return;
-    }
-    const payload: Omit<FeeTemplate, 'id' | 'created_at' | 'updated_at' | 'items' | 'school_period_name' | 'student_category_name'> = {
-      name: templateFormData.name!,
-      school_period_id: Number(templateFormData.school_period_id!),
-      student_category_id: templateFormData.student_category_id ? Number(templateFormData.student_category_id) : undefined,
-    };
-
-    if (editingTemplate) {
-      await updateFeeTemplate({ ...editingTemplate, ...payload, items: editingTemplate.items || [] });
-    } else {
-      await addFeeTemplate({ ...payload, items: [] });
-    }
-    closeTemplateModal();
+    setItemFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value || undefined) : (name === 'amount' ? parseFloat(value) : value) }));
   };
 
+  const toast = useToast();
   const handleItemSubmit = async () => {
     if (!currentTemplateForItems || !itemFormData.description || itemFormData.amount === undefined || !itemFormData.revenue_account_id) {
-      alert("Description, Amount, and Revenue Account are required for an item.");
+      toast.showWarning("Description, Amount, and Revenue Account are required for an item.");
       return;
     }
 
-    let updatedItems: FeeTemplateItem[];
-    const now = new Date().toISOString(); 
+    const revenueAccountId = itemFormData.revenue_account_id;
+    const expenseCategoryId = itemFormData.linked_expense_category_id;
+    const itemFields = {
+      description: itemFormData.description,
+      amount: Number(itemFormData.amount),
+      revenue_account_id: revenueAccountId,
+      linked_expense_category_id: expenseCategoryId,
+      revenue_account_name: revenueAccounts.find(ra => String(ra.id) === revenueAccountId)?.name,
+      linked_expense_category_name: expenseCategoryId ? expenseCategories.find(ec => String(ec.id) === expenseCategoryId)?.name : undefined,
+    };
 
-    if (editingItem) {
-      updatedItems = (currentTemplateForItems.items || []).map(i => 
-        i.id === editingItem.id ? 
-        { 
-            ...editingItem, 
-            description: itemFormData.description!, 
-            amount: Number(itemFormData.amount!), 
-            revenue_account_id: Number(itemFormData.revenue_account_id!),
-            linked_expense_category_id: itemFormData.linked_expense_category_id ? Number(itemFormData.linked_expense_category_id) : undefined,
-            revenue_account_name: revenueAccounts.find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
-            linked_expense_category_name: expenseCategories.find(ec => ec.id === Number(itemFormData.linked_expense_category_id))?.name,
-        } : i
-      );
-    } else {
-      const newItem: FeeTemplateItem = { 
-        id: `FTI_${Date.now()}`, 
-        fee_template_id: currentTemplateForItems.id,
-        description: itemFormData.description!,
-        amount: Number(itemFormData.amount!),
-        revenue_account_id: Number(itemFormData.revenue_account_id!),
-        linked_expense_category_id: itemFormData.linked_expense_category_id ? Number(itemFormData.linked_expense_category_id) : undefined,
-        revenue_account_name: revenueAccounts.find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
-        linked_expense_category_name: expenseCategories.find(ec => ec.id === Number(itemFormData.linked_expense_category_id))?.name,
-      };
-      updatedItems = [...(currentTemplateForItems.items || []), newItem];
+    const updatedItems: StoredFeeItem[] = editingItem
+      ? currentTemplateForItems.items.map(i => (i.id === editingItem.id ? { ...i, ...itemFields } : i))
+      : [...currentTemplateForItems.items, { ...itemFields, id: crypto.randomUUID(), fee_template_id: currentTemplateForItems.id }];
+
+    try {
+      await updateFeeTemplate(currentTemplateForItems.id, { items: updatedItems });
+    } catch (error) {
+      toast.showError(`Failed to save fee item: ${errorMessage(error)}`);
+      return;
     }
-    
-    const updatedTemplate = { ...currentTemplateForItems, items: updatedItems, updated_at: now };
-    await updateFeeTemplate(updatedTemplate);
-    
-    setCurrentTemplateForItems(updatedTemplate); 
-    
-    setEditingItem(null); 
-    setItemFormData(initialItemFormData); 
+
+    setCurrentTemplateForItems({ ...currentTemplateForItems, items: updatedItems });
+    setEditingItem(null);
+    setItemFormData(initialItemFormData);
   };
-  
+
+  const confirm = useConfirm();
   const handleDeleteTemplate = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this fee template? All its items will also be deleted.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template? All its items will also be deleted.' }))) {
       await deleteFeeTemplate(id);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
     if (!currentTemplateForItems) return;
-    if (window.confirm('Are you sure you want to delete this fee template item?')) {
-      const updatedItems = (currentTemplateForItems.items || []).filter(i => i.id !== itemId);
-      const updatedTemplate = { ...currentTemplateForItems, items: updatedItems, updated_at: new Date().toISOString() };
-      await updateFeeTemplate(updatedTemplate);
-      setCurrentTemplateForItems(updatedTemplate); 
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template item?' }))) {
+      const updatedItems = currentTemplateForItems.items.filter(i => i.id !== itemId);
+      try {
+        await updateFeeTemplate(currentTemplateForItems.id, { items: updatedItems });
+      } catch (error) {
+        toast.showError(`Failed to delete fee item: ${errorMessage(error)}`);
+        return;
+      }
+      setCurrentTemplateForItems({ ...currentTemplateForItems, items: updatedItems });
+      if (editingItem?.id === itemId) {
+        setEditingItem(null);
+        setItemFormData(initialItemFormData);
+      }
     }
   };
 
@@ -175,7 +191,7 @@ const FeeTemplatesPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 80,
-      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { 
       key: 'name', 
@@ -183,7 +199,7 @@ const FeeTemplatesPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'school_period_name', 
@@ -191,7 +207,7 @@ const FeeTemplatesPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'student_category_name', 
@@ -199,7 +215,7 @@ const FeeTemplatesPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-purple-600">{value || 'All Categories'}</span>
+      render: (value) => <span className="text-purple-600">{value || 'All Categories'}</span>
     },
     { 
       key: 'items_count', 
@@ -226,14 +242,14 @@ const FeeTemplatesPage: React.FC = () => {
     },
   ];
 
-  const itemColumns: DataGridColumn<FeeTemplateItem>[] = [
+  const itemColumns: DataGridColumn<StoredFeeItem>[] = [
     { 
       key: 'description', 
       header: 'Description', 
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => <span className="font-medium">{value}</span>
+      render: (value) => <span className="font-medium">{value}</span>
     },
     { 
       key: 'amount', 
@@ -249,7 +265,7 @@ const FeeTemplatesPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, row) => <span className="text-blue-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{value}</span>
     },
     { 
       key: 'linked_expense_category_name', 
@@ -257,7 +273,7 @@ const FeeTemplatesPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, row) => <span className="text-purple-600">{value || 'None'}</span>
+      render: (value) => <span className="text-purple-600">{value || 'None'}</span>
     },
     {
       key: 'id',
@@ -268,7 +284,7 @@ const FeeTemplatesPage: React.FC = () => {
       sticky: 'right',
       render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openItemModal(currentTemplateForItems!, row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="ghost" onClick={() => startEditingItem(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteItem(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
         </div>
       ),
@@ -292,7 +308,7 @@ const FeeTemplatesPage: React.FC = () => {
           Add Fee Template
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Create and manage fee templates for different school periods and student categories. Define template items (voteheads) and amounts.
         </p>
         <DataGrid 
@@ -302,7 +318,7 @@ const FeeTemplatesPage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <TicketIcon className="w-12 h-12 text-gray-400" />,
+            icon: <TicketIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: "No Fee Templates Found",
             description: "Create your first fee template to define fees for different school periods and student categories.",
             action: {
@@ -313,47 +329,62 @@ const FeeTemplatesPage: React.FC = () => {
         />
       </Card>
 
-      <DialogForm isOpen={isTemplateModalOpen} onClose={closeTemplateModal} title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeTemplateModal}>Cancel</Button>
-            <Button onClick={handleTemplateSubmit} disabled={loading.feeTemplates}>
-              {loading.feeTemplates ? <Spinner size="sm"/> : (editingTemplate ? 'Save Changes' : 'Add Template')}
-            </Button>
-          </>
-        }
+      <EntityForm
+        isOpen={isTemplateModalOpen}
+        onClose={closeTemplateModal}
+        title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'}
+        initialData={templateInitialValues}
+        submitLabel={editingTemplate ? 'Save Changes' : 'Add Template'}
+        cancelLabel="Cancel"
+        onSubmit={async (values) => {
+          const schoolPeriodId = optionalId(values.school_period_id);
+          const studentCategoryId = optionalId(values.student_category_id);
+          const payload = {
+            name: String(values.name ?? ''),
+            school_period_id: schoolPeriodId,
+            student_category_id: studentCategoryId ?? null,
+            school_period_name: (schoolPeriods || []).find((period: SchoolPeriod) => String(period.id) === schoolPeriodId)?.name ?? null,
+            student_category_name: studentCategoryId ? (studentCategories || []).find((category: StudentCategory) => String(category.id) === studentCategoryId)?.name ?? null : null,
+            // Keep the class order stable regardless of click order; keep stored ids that are not in the
+            // loaded class list (classes not loaded yet, or a retired class) so a save never wipes them.
+            applicable_level_ids: [
+              ...levelOptions.filter(level => templateLevelIds.includes(level.id)).map(level => level.id),
+              ...templateLevelIds.filter(id => !levelOptions.some(level => level.id === id)),
+            ],
+          };
+
+          if (editingTemplate) {
+            await updateFeeTemplate(String(editingTemplate.id), payload);
+          } else {
+            await addFeeTemplate({ ...payload, items: [] });
+          }
+        }}
+        fields={[
+          { name: 'name', label: 'Template Name', required: true },
+          { name: 'school_period_id', label: 'School Period', type: 'select', required: true, placeholder: 'Select School Period', options: (schoolPeriods || []).map((period: SchoolPeriod) => ({ value: period.id, label: period.name })) },
+          { name: 'student_category_id', label: 'Student Category (Optional)', type: 'select', placeholder: 'All Categories', options: (studentCategories || []).map((category: StudentCategory) => ({ value: category.id, label: String(category.name ?? '') })) },
+        ]}
       >
-        <Input 
-          name="name" 
-          label="Template Name" 
-          value={templateFormData.name || ''} 
-          onChange={handleTemplateInputChange} 
-          required 
-        />
-        <Select 
-          name="school_period_id" 
-          label="School Period" 
-          value={templateFormData.school_period_id || ''} 
-          onChange={handleTemplateInputChange}
-          required
-        >
-          <option value="">Select School Period</option>
-          {(schoolPeriods || []).map((period: SchoolPeriod) => (
-            <option key={period.id} value={period.id}>{period.name}</option>
-          ))}
-        </Select>
-        <Select 
-          name="student_category_id" 
-          label="Student Category (Optional)" 
-          value={templateFormData.student_category_id || ''} 
-          onChange={handleTemplateInputChange}
-        >
-          <option value="">All Categories</option>
-          {(studentCategories || []).map((category: StudentCategory) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
-          ))}
-        </Select>
-      </DialogForm>
+        <fieldset className="mt-4">
+          <legend className="text-sm font-medium text-surface-foreground">Applicable Levels (Optional)</legend>
+          <p className="text-xs text-surface-muted-fg mb-2">Leave all unticked to apply the template to every level.</p>
+          {levelOptions.length === 0 ? (
+            <p className="text-sm text-surface-muted-fg">No classes defined yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {levelOptions.map(level => (
+                <Checkbox
+                  key={level.id}
+                  checked={templateLevelIds.includes(level.id)}
+                  onChange={(checked) => toggleTemplateLevel(level.id, checked)}
+                >
+                  {level.name}
+                </Checkbox>
+              ))}
+            </div>
+          )}
+        </fieldset>
+      </EntityForm>
 
       <DialogForm 
         isOpen={isItemModalOpen} 
@@ -378,13 +409,13 @@ const FeeTemplatesPage: React.FC = () => {
                 </Select>
               </div>
               <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" disabled={loading.feeTemplates}>
-                  {loading.feeTemplates ? <Spinner size="sm"/> : (editingItem ? 'Update Item' : 'Add Item')}
+                <Button onClick={handleItemSubmit} size="sm" loading={loading.feeTemplates}>
+                  {editingItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
             </Card>
             
-            <h4 className="text-md font-semibold text-gray-700 mt-6">Existing Items for this Template</h4>
+            <h4 className="text-md font-semibold text-surface-foreground mt-6">Existing Items for this Template</h4>
             <DataGrid 
               columns={itemColumns} 
               data={(currentTemplateForItems.items || [])} 
@@ -392,7 +423,7 @@ const FeeTemplatesPage: React.FC = () => {
               sortable
               filterable
               emptyState={{
-                icon: <ListBulletIcon className="w-12 h-12 text-gray-400" />,
+                icon: <ListBulletIcon className="w-12 h-12 text-surface-muted-fg" />,
                 title: "No Items Defined",
                 description: "No items have been defined for this fee template yet. Add items to specify the fee components."
               }}
@@ -403,5 +434,11 @@ const FeeTemplatesPage: React.FC = () => {
     </div>
   );
 };
+
+const FeeTemplatesPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeeTemplatesContent />
+  </div>
+);
 
 export default FeeTemplatesPage;

@@ -2,39 +2,37 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import { BookOpenIcon, CalendarIcon, ArrowDownIcon, ArrowUpIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { DayBookEntry } from '../data/types';
+import { formatDate } from '@/utils/format';
 
-const DayBookPage: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { dayBookEntries, generalLedgerEntries, chartOfAccounts, loading } = useAppData();
+export const DayBookPageContent: React.FC = () => {
+
+  const { dayBookEntries, chartOfAccounts, loading } = useAppData() as any;
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const mockDayBookEntries: DayBookEntry[] = useMemo(() => {
-    let filtered = (dayBookEntries || []).map((e: DayBookEntry) => ({ ...e, transaction_date: selectedDate }));
+    const filtered = ((dayBookEntries as DayBookEntry[] | undefined) || []).map((e: DayBookEntry) => ({ ...e, transaction_date: (e as any).transaction_date || selectedDate }));
 
     if (searchTerm) {
       return filtered.filter(entry =>
-        entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.reference_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.account_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (entry.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (entry.reference_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (entry.account_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
     return filtered;
-  }, [selectedDate, searchTerm]);
+  }, [dayBookEntries, selectedDate, searchTerm]);
 
   // Calculate totals
   const totals = useMemo(() => {
     return mockDayBookEntries.reduce((acc, entry) => ({
-      debit: acc.debit + entry.debit,
-      credit: acc.credit + entry.credit
+      debit: acc.debit + (entry.debit ?? 0),
+      credit: acc.credit + (entry.credit ?? 0)
     }), { debit: 0, credit: 0 });
   }, [mockDayBookEntries]);
 
@@ -43,7 +41,7 @@ const DayBookPage: React.FC = () => {
       key: 'transaction_date',
       header: 'Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'reference_no',
@@ -67,16 +65,16 @@ const DayBookPage: React.FC = () => {
       key: 'debit',
       header: 'Debit',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-red-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-red-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
       key: 'credit',
       header: 'Credit',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-green-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-green-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
@@ -87,7 +85,7 @@ const DayBookPage: React.FC = () => {
     }
   ];
 
-  if (loading && mockDayBookEntries.length === 0) {
+  if (loading?.all && mockDayBookEntries.length === 0 && !dayBookEntries) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -101,17 +99,17 @@ const DayBookPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center gap-2">
-            <BookOpenIcon className="w-6 h-6 text-blue-600" />
+            <BookOpenIcon className="w-6 h-6 text-primary-600" />
             <span>Day Book</span>
           </div>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <BookOpenIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <BookOpenIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">Daily Transaction Log</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">Daily Transaction Log</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 The Day Book records all daily financial transactions with debit and credit entries.
                 Use this to track all money in and out on a daily basis for reconciliation purposes.
               </p>
@@ -122,7 +120,7 @@ const DayBookPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Select Date</label>
             <Input
               type="date"
               value={selectedDate}
@@ -131,7 +129,7 @@ const DayBookPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Search by description, reference, or account..."
@@ -144,40 +142,40 @@ const DayBookPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowUpIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Debits</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.debit.toLocaleString()}
+              KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowDownIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Credits</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.credit.toLocaleString()}
+              KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Transactions</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {mockDayBookEntries.length}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <BookOpenIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Net Position</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.credit > totals.debit ? 'text-green-600' : 'text-red-600'}`}>
-              KES {(totals.credit - totals.debit).toLocaleString()}
+              KES {((totals.credit ?? 0) - (totals.debit ?? 0))?.toLocaleString?.() ?? '0'}
             </p>
           </div>
         </div>
@@ -193,5 +191,10 @@ const DayBookPage: React.FC = () => {
     </div>
   );
 };
+const DayBookPage: React.FC = () => (
+  <div className="space-y-6">
+    <DayBookPageContent />
+  </div>
+);
 
 export default DayBookPage;

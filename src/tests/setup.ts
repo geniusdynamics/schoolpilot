@@ -1,10 +1,13 @@
 // ABOUTME: Test setup configuration for data validation and consistency tests
 // ABOUTME: Initializes test environment and mocks for validation system testing
 
+import React from 'react';
 import { beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { cleanup, configure } from '@testing-library/react';
+import { cleanup, configure, render, renderHook, screen, fireEvent, waitFor, within, act as domAct } from '@testing-library/react';
 import { act } from 'react';
+import * as UseToastModule from '@/hooks/useToast';
+import * as FullWidthModule from '@/contexts/FullWidthContext';
 
 declare global {
   // Jest compatibility alias for legacy tests while running under Vitest.
@@ -13,6 +16,61 @@ declare global {
 }
 
 globalThis.jest = vi;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Global provider wrapper
+//
+// Many hooks/components in the app call `useToast()` / `useFullWidth()` which
+// throw when their provider is missing. In production App.tsx mounts
+// ToastProvider around the whole tree. Tests that render app code without
+// explicit providers therefore fail with "must be used within a ...Provider".
+//
+// We auto-wrap the *global* `render` / `renderHook` helpers (the ones tests use
+// without importing) with the minimum providers needed. Files that import
+// `render` directly from '@testing-library/react' still get the bare version —
+// that is the escape hatch for tests asserting provider-less behavior (e.g.
+// "throws when used outside ToastProvider").
+//
+// The wrapper degrades gracefully: if a future change removes one of these
+// providers from the app, the wrapper simply skips it instead of crashing.
+// ─────────────────────────────────────────────────────────────────────────────
+const ToastProviderForTests = UseToastModule.ToastProvider;
+const FullWidthProviderForTests = FullWidthModule.FullWidthProvider;
+
+export const TestProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  let content: React.ReactNode = children;
+  if (FullWidthProviderForTests) {
+    content = React.createElement(FullWidthProviderForTests, null, content);
+  }
+  if (ToastProviderForTests) {
+    content = React.createElement(ToastProviderForTests, null, content);
+  }
+  return React.createElement(React.Fragment, null, content);
+};
+
+const withTestProviders = (ui: React.ReactElement, options?: Parameters<typeof render>[1]) =>
+  options?.wrapper
+    ? render(ui, options)
+    : render(ui, { ...options, wrapper: TestProviders });
+
+const renderHookWithProviders = (callback: Parameters<typeof renderHook>[0], options?: Parameters<typeof renderHook>[1]) =>
+  options?.wrapper
+    ? renderHook(callback, options)
+    : renderHook(callback, { ...options, wrapper: TestProviders });
+
+// Expose React Testing Library helpers as globals (vitest `globals: true`).
+// The suite was authored against a harness that provides these globally; this
+// restores that contract so tests compile and run without per-file imports.
+globalThis.render = withTestProviders as typeof render;
+globalThis.renderHook = renderHookWithProviders as typeof renderHook;
+globalThis.cleanup = cleanup;
+// `screen` collides with the DOM lib's built-in `Screen` global type, which cannot be
+// re-typed; assign at runtime (overriding window.screen) via cast so tests get RTL's screen.
+(globalThis as unknown as { screen: typeof screen }).screen = screen;
+globalThis.fireEvent = fireEvent;
+globalThis.waitFor = waitFor;
+globalThis.within = within;
+globalThis.domAct = domAct;
 
 // Configure React Testing Library for React 19
 configure({ 
@@ -23,30 +81,75 @@ configure({
 });
 
 // Global act function for React 19 compatibility
-global.act = act;
+globalThis.act = act;
 
-// Set up matchMedia mock immediately before any other imports
+// Set up matchMedia mock immediately before any other imports.
+// NOTE: deliberately a plain function, NOT `vi.fn()`. Test files call
+// `vi.restoreAllMocks()` in afterEach/afterAll hooks which would reset a
+// `vi.fn()` mock's implementation back to `undefined`, breaking every
+// subsequent `window.matchMedia(...).matches` access for the rest of the
+// worker run (see Toast component theme detection).
+const matchMediaMock = (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: vi.fn(), // deprecated
+  removeListener: vi.fn(), // deprecated
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+});
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => {
-    const mockMediaQueryList = {
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(), // deprecated
-      removeListener: vi.fn(), // deprecated
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    };
-    return mockMediaQueryList;
-  }),
+  value: vi.fn(matchMediaMock),
 });
 
 // Ensure matchMedia is available globally
 if (typeof global !== 'undefined') {
   global.matchMedia = window.matchMedia;
 }
+
+// Mock localStorage for tests
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
+    removeItem: vi.fn((key: string) => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; }),
+    get length() { return Object.keys(store).length; },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+  configurable: true,
+});
+
+// Mock indexedDB for tests
+const indexedDBMock = {
+  open: vi.fn().mockReturnValue({
+    result: null,
+    error: null,
+    onerror: null,
+    onsuccess: null,
+    onupgradeneeded: null,
+  }),
+  deleteDatabase: vi.fn(),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  cmp: vi.fn((_a: unknown, _b: unknown) => 0),
+   
+  databases: vi.fn(async () => []),
+};
+
+Object.defineProperty(window, 'indexedDB', {
+  value: indexedDBMock,
+  writable: true,
+  configurable: true,
+});
 
 // Mock console methods to reduce noise in tests
 beforeAll(() => {
@@ -75,9 +178,12 @@ beforeEach(() => {
   }
 });
 
-// Mock Date.now for consistent test results
+// NOTE: Do NOT use `vi.setSystemTime()` here. It permanently mocks the date in
+// the worker, which makes any test file that calls `vi.useFakeTimers()` throw
+// ("setSystemTime was called already and date was mocked") — and an unhandled
+// beforeEach error there can cascade. The `mockDate` constant below is still
+// used for deterministic fixture timestamps via the createMock* helpers.
 const mockDate = new Date('2024-01-01T00:00:00.000Z');
-vi.setSystemTime(mockDate);
 
 // Mock navigator.onLine for network state tests
 Object.defineProperty(navigator, 'onLine', {

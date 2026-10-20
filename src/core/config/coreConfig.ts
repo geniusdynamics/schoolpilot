@@ -1,6 +1,10 @@
 /**
  * Core Configuration
  * Centralized configuration for core system settings.
+ *
+ * ABOUTME: Legacy config — the canonical source is now src/config/.
+ * New code should import from '@/config/' instead of this file.
+ * This file is preserved for existing consumers only.
  */
 
 export interface CoreConfig {

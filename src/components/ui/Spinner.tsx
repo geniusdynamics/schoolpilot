@@ -3,7 +3,7 @@ import React from 'react';
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  color?: string; // Tailwind color class e.g., 'text-blue-500'
+  color?: string; // Tailwind color class e.g., 'text-primary-500'
   className?: string;
 }
 

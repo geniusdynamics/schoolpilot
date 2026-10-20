@@ -19,15 +19,15 @@ import {
   EyeIcon,
   ExclamationTriangleIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan } from '../../data/types';
+import { useLessonPlansData, PlanStatus, WeeklyPlan } from '../../data/lessonplans/useLessonPlansData';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '@/utils/format';
 
 const statusColors: Record<PlanStatus, string> = {
-  [PlanStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-  [PlanStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
+  [PlanStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
+  [PlanStatus.SUBMITTED]: 'bg-primary-100 text-primary-800',
   [PlanStatus.APPROVED]: 'bg-green-100 text-green-800',
   [PlanStatus.REJECTED]: 'bg-red-100 text-red-800',
 };
@@ -143,7 +143,7 @@ const ApprovalPage: React.FC = () => {
     navigate(`/lessonplans/weekly/${plan.id}`);
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -152,7 +152,7 @@ const ApprovalPage: React.FC = () => {
     });
   };
 
-  const formatDateTime = (dateStr: string) => {
+  const formatDateTime = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -167,7 +167,7 @@ const ApprovalPage: React.FC = () => {
     {
       label: 'Pending Approval',
       value: submittedPlans.length,
-      color: 'bg-blue-100 text-blue-800',
+      color: 'bg-primary-100 text-primary-800',
       icon: <ClockIcon className="w-6 h-6" />,
     },
     {
@@ -185,7 +185,7 @@ const ApprovalPage: React.FC = () => {
     {
       label: 'Total Plans',
       value: weeklyPlans.length,
-      color: 'bg-gray-100 text-gray-800',
+      color: 'bg-surface-accent text-surface-foreground',
       icon: <ChartBarIcon className="w-6 h-6" />,
     },
   ];
@@ -346,7 +346,7 @@ const ApprovalPage: React.FC = () => {
       sortable: false,
       width: 250,
       render: (value) => (
-        <span className="text-sm text-gray-600 line-clamp-2">{value || 'N/A'}</span>
+        <span className="text-sm text-surface-muted-fg line-clamp-2">{value || 'N/A'}</span>
       ),
     },
     {
@@ -379,10 +379,10 @@ const ApprovalPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-surface-foreground">
           {t('approval.title', 'Approval Queue')}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-surface-muted-fg mt-1">
           Review and approve weekly lesson plans submitted by teachers.
         </p>
       </div>
@@ -396,8 +396,8 @@ const ApprovalPage: React.FC = () => {
                 {stat.icon}
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-500">{stat.label}</p>
+                <p className="text-2xl font-bold text-surface-foreground">{stat.value}</p>
+                <p className="text-sm text-surface-muted-fg">{stat.label}</p>
               </div>
             </div>
           </Card>
@@ -405,15 +405,15 @@ const ApprovalPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+      <div className="flex space-x-1 bg-surface-accent p-1 rounded-lg w-fit">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
               activeTab === tab.id
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-surface-card text-surface-foreground shadow-sm'
+                : 'text-surface-muted-fg hover:text-surface-foreground'
             }`}
           >
             {tab.label}
@@ -428,12 +428,12 @@ const ApprovalPage: React.FC = () => {
           subtitle={`${submittedPlans.length} plan(s) waiting for approval`}
         >
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading plans...</div>
+            <div className="p-8 text-center text-surface-muted-fg">Loading plans...</div>
           ) : submittedPlans.length === 0 ? (
             <div className="text-center py-12">
               <CheckCircleIcon className="mx-auto h-12 w-12 text-green-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">All caught up!</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">All caught up!</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 No plans are pending review at this time.
               </p>
             </div>
@@ -455,9 +455,9 @@ const ApprovalPage: React.FC = () => {
         >
           {approvedPlans.length === 0 ? (
             <div className="text-center py-12">
-              <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No approved plans yet</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <ChartBarIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No approved plans yet</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Approved plans will appear here.
               </p>
             </div>
@@ -480,8 +480,8 @@ const ApprovalPage: React.FC = () => {
           {rejectedPlans.length === 0 ? (
             <div className="text-center py-12">
               <CheckCircleIcon className="mx-auto h-12 w-12 text-green-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No rejected plans</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No rejected plans</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Great! No plans have been rejected.
               </p>
             </div>
@@ -510,7 +510,7 @@ const ApprovalPage: React.FC = () => {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[viewingPlan.status]}`}>
                     {statusLabels[viewingPlan.status]}
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-surface-muted-fg">
                     Submitted: {formatDateTime(viewingPlan.submittedAt || '')}
                   </span>
                 </div>
@@ -539,23 +539,23 @@ const ApprovalPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center space-x-2">
-                  <BookOpenIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">Subject:</span>
+                  <BookOpenIcon className="w-4 h-4 text-surface-muted-fg" />
+                  <span className="text-surface-muted-fg">Subject:</span>
                   <span className="font-medium">{viewingPlan.subjectName || 'N/A'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <UserCircleIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">Teacher:</span>
+                  <UserCircleIcon className="w-4 h-4 text-surface-muted-fg" />
+                  <span className="text-surface-muted-fg">Teacher:</span>
                   <span className="font-medium">{viewingPlan.teacherName || 'N/A'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">Class:</span>
+                  <CalendarDaysIcon className="w-4 h-4 text-surface-muted-fg" />
+                  <span className="text-surface-muted-fg">Class:</span>
                   <span className="font-medium">{viewingPlan.classStreamName || 'N/A'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ClockIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">Week:</span>
+                  <ClockIcon className="w-4 h-4 text-surface-muted-fg" />
+                  <span className="text-surface-muted-fg">Week:</span>
                   <span className="font-medium">
                     {formatDate(viewingPlan.weekStartDate)} - {formatDate(viewingPlan.weekEndDate)}
                   </span>
@@ -563,35 +563,35 @@ const ApprovalPage: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-1">Overall Objectives</h4>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">{viewingPlan.overallObjectives}</p>
+                <h4 className="text-sm font-semibold text-surface-foreground mb-1">Overall Objectives</h4>
+                <p className="text-sm text-surface-muted-fg whitespace-pre-wrap">{viewingPlan.overallObjectives}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-1">Teaching Aids</h4>
-                <p className="text-sm text-gray-600">{viewingPlan.teachingAids || 'Not specified'}</p>
+                <h4 className="text-sm font-semibold text-surface-foreground mb-1">Teaching Aids</h4>
+                <p className="text-sm text-surface-muted-fg">{viewingPlan.teachingAids || 'Not specified'}</p>
               </div>
 
               {viewingPlan.dayPlans && viewingPlan.dayPlans.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Day Plans ({viewingPlan.dayPlans.length})</h4>
+                  <h4 className="text-sm font-semibold text-surface-foreground mb-2">Day Plans ({viewingPlan.dayPlans.length})</h4>
                   <div className="space-y-2">
                     {viewingPlan.dayPlans.slice(0, 3).map((day) => (
-                      <div key={day.id} className="bg-gray-50 rounded-lg p-3">
+                      <div key={day.id} className="bg-surface-muted rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium text-sm">{day.dayOfWeek}</span>
-                          <span className="text-xs text-gray-500">{formatDate(day.date)}</span>
+                          <span className="text-xs text-surface-muted-fg">{formatDate(day.date)}</span>
                         </div>
-                        <p className="text-sm text-gray-600">{day.topics}</p>
+                        <p className="text-sm text-surface-muted-fg">{day.topics}</p>
                         {day.periodPlans && day.periodPlans.length > 0 && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-surface-muted-fg mt-1">
                             {day.periodPlans.length} period(s) planned
                           </p>
                         )}
                       </div>
                     ))}
                     {viewingPlan.dayPlans.length > 3 && (
-                      <p className="text-xs text-gray-500 text-center">
+                      <p className="text-xs text-surface-muted-fg text-center">
                         +{viewingPlan.dayPlans.length - 3} more day(s) - view full details
                       </p>
                     )}
@@ -600,7 +600,7 @@ const ApprovalPage: React.FC = () => {
               )}
 
               {viewingPlan.submittedByName && (
-                <div className="flex items-center space-x-2 text-sm text-gray-500 pt-3 border-t">
+                <div className="flex items-center space-x-2 text-sm text-surface-muted-fg pt-3 border-t">
                   <UsersIcon className="w-4 h-4" />
                   <span>Submitted by: {viewingPlan.submittedByName}</span>
                 </div>
@@ -634,12 +634,12 @@ const ApprovalPage: React.FC = () => {
       >
         <FormSection>
           {planToReject && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div className="mb-4 p-3 bg-surface-muted rounded-lg">
               <p className="text-sm font-medium">{planToReject.id}</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-surface-muted-fg">
                 {planToReject.subjectName} - {planToReject.classStreamName}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-surface-muted-fg">
                 Teacher: {planToReject.teacherName}
               </p>
             </div>

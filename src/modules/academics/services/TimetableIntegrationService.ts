@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides the TimetableIntegrationService for integrating exam schedules
 // ABOUTME: with the school timetable system and checking for timetable conflicts
 
@@ -79,7 +81,7 @@ export class TimetableIntegrationService {
         warnings
       };
     } catch (error) {
-      console.error('Error checking timetable conflicts:', error);
+      logger.error('Error checking timetable conflicts:', error);
       const err = error as Error;
       return {
         canSchedule: false,
@@ -115,7 +117,7 @@ export class TimetableIntegrationService {
 
       return conflicts;
     } catch (error) {
-      console.error('Error checking room availability:', error);
+      logger.error('Error checking room availability:', error);
       return ['Error checking room availability'];
     }
   }
@@ -143,7 +145,7 @@ export class TimetableIntegrationService {
 
       return conflicts;
     } catch (error) {
-      console.error('Error checking class stream availability:', error);
+      logger.error('Error checking class stream availability:', error);
       return ['Error checking class stream availability'];
     }
   }
@@ -175,7 +177,7 @@ export class TimetableIntegrationService {
 
       return suggestedSlots;
     } catch (error) {
-      console.error('Error generating suggested slots:', error);
+      logger.error('Error generating suggested slots:', error);
       return [];
     }
   }
@@ -218,7 +220,7 @@ export class TimetableIntegrationService {
 
       return { success: true, slotId };
     } catch (error) {
-      console.error('Error reserving timetable slot:', error);
+      logger.error('Error reserving timetable slot:', error);
       const err = error as Error;
       return { success: false, error: err.message };
     }
@@ -242,7 +244,7 @@ export class TimetableIntegrationService {
 
       return true;
     } catch (error) {
-      console.error('Error releasing timetable slot:', error);
+      logger.error('Error releasing timetable slot:', error);
       return false;
     }
   }
@@ -258,7 +260,7 @@ export class TimetableIntegrationService {
 
       return slots;
     } catch (error) {
-      console.error('Error getting timetable conflicts:', error);
+      logger.error('Error getting timetable conflicts:', error);
       return [];
     }
   }

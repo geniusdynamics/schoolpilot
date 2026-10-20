@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: SQLite OPFS adapter for browser-based SQLite with Origin Private File System
 // ABOUTME: Provides high-performance local storage with WASM SQLite
 
@@ -33,9 +35,9 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
       this.db.exec('PRAGMA temp_store = MEMORY');
 
       this.initialized = true;
-      console.log('SQLite OPFS adapter initialized successfully');
+      logger.info('SQLite OPFS adapter initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize SQLite OPFS adapter:', error);
+      logger.error('Failed to initialize SQLite OPFS adapter:', error);
       throw error;
     }
   }
@@ -50,23 +52,24 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
       // Create table with schema
       this.db.exec(schema);
       
-      console.log(`Created table: ${tableName}`);
+      logger.info(`Created table: ${tableName}`);
     } catch (error) {
-      console.error(`Failed to create schema for ${tableName}:`, error);
+      logger.error(`Failed to create schema for ${tableName}:`, error);
       throw error;
     }
   }
 
-  async insertBatch(tableName: string, data: any[]): Promise<void> {
+  async insertBatch(tableName: string, data: any[] | any): Promise<void> {
     this.validateInitialization();
-    
-    if (!data.length) return;
+
+    const rows = Array.isArray(data) ? data : [data];
+    if (!rows.length) return;
 
     try {
       // Begin transaction for better performance
       this.db.exec('BEGIN TRANSACTION');
 
-      const columns = Object.keys(data[0]);
+      const columns = Object.keys(rows[0]);
       const placeholders = this.generatePlaceholders(columns.length);
       const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
       
@@ -80,10 +83,10 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
       stmt.finalize();
       this.db.exec('COMMIT');
       
-      console.log(`Inserted ${data.length} records into ${tableName}`);
+      logger.info(`Inserted ${rows.length} records into ${tableName}`);
     } catch (error) {
       this.db.exec('ROLLBACK');
-      console.error(`Failed to insert batch into ${tableName}:`, error);
+      logger.error(`Failed to insert batch into ${tableName}:`, error);
       throw error;
     }
   }
@@ -101,7 +104,7 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
         return [];
       }
     } catch (error) {
-      console.error('Query execution failed:', error);
+      logger.error('Query execution failed:', error);
       throw error;
     }
   }
@@ -112,9 +115,9 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
         this.db.close();
         this.db = null;
         this.initialized = false;
-        console.log('SQLite OPFS adapter cleaned up');
+        logger.info('SQLite OPFS adapter cleaned up');
       } catch (error) {
-        console.error('Error during cleanup:', error);
+        logger.error('Error during cleanup:', error);
       }
     }
   }
@@ -134,12 +137,12 @@ export class SQLiteOPFSAdapter extends BaseStorageAdapter {
   async vacuum(): Promise<void> {
     this.validateInitialization();
     this.db.exec('VACUUM');
-    console.log('Database vacuumed');
+    logger.info('Database vacuumed');
   }
 
   async analyze(): Promise<void> {
     this.validateInitialization();
     this.db.exec('ANALYZE');
-    console.log('Database analyzed');
+    logger.info('Database analyzed');
   }
 }

@@ -1,10 +1,10 @@
 // ABOUTME: Comprehensive tests for Toast component functionality and accessibility
 // ABOUTME: Tests variants, auto-dismiss, progress indicators, and screen reader support
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Toast from '@/components/ui/feedback/Toast';
+import { screen } from '@testing-library/react';
 
 describe('Toast Component', () => {
   const mockOnDismiss = vi.fn();
@@ -55,7 +55,7 @@ describe('Toast Component', () => {
     );
 
     let alert = screen.getByRole('alert');
-    expect(alert).toHaveClass('bg-green-50', 'border-green-200', 'text-green-800');
+    expect(alert).toHaveClass('bg-green-50/95', 'border-green-200', 'text-green-800');
 
     rerender(
       <Toast
@@ -67,7 +67,7 @@ describe('Toast Component', () => {
     );
 
     alert = screen.getByRole('alert');
-    expect(alert).toHaveClass('bg-red-50', 'border-red-200', 'text-red-800');
+    expect(alert).toHaveClass('bg-red-50/95', 'border-red-200', 'text-red-800');
 
     rerender(
       <Toast
@@ -79,7 +79,7 @@ describe('Toast Component', () => {
     );
 
     alert = screen.getByRole('alert');
-    expect(alert).toHaveClass('bg-yellow-50', 'border-yellow-200', 'text-yellow-800');
+    expect(alert).toHaveClass('bg-yellow-50/95', 'border-yellow-200', 'text-yellow-800');
   });
 
   it('displays correct icons for each variant', () => {

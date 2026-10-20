@@ -1,5 +1,8 @@
+// ABOUTME: Library Resources (Books) page - catalogue of physical and digital books with search and filters.
+// ABOUTME: Uses useBookData/useBookCategoryData for CRUD and renders the catalogue in a DataGrid.
+
 import React, { useState, useEffect } from 'react';
-import { LibBookType, LibBookStatusEnum, LibBookCategoryType, LibBookAvailabilityStatusEnum } from '../data/types';
+
 import { useBookData } from '../data/useBookData';
 import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
@@ -11,10 +14,11 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon, MagnifyingGlassIcon as SearchIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { LibBookStatusEnum, LibBookAvailabilityStatusEnum } from '../data/types';
+import type { LibBookType } from '../data/types';
 
 // Simple Checkbox component
 const Checkbox: React.FC<{
@@ -56,9 +60,10 @@ interface BookFormData {
   lost_status?: boolean;
 }
 
-const BooksPage: React.FC = () => {
-  const { data: books, create: addBook, update: updateBook, remove: deleteBook, search, isLoading: booksLoading, error: booksError } = useBookData();
-  const { data: bookCategories, isLoading: categoriesLoading, error: categoriesError } = useBookCategoryData();
+export const BooksPageContent: React.FC = () => {
+  const { data: books, create: addBook, update: updateBook, remove: deleteBook, search, isLoading: booksLoading } = useBookData();
+  const { data: bookCategories, isLoading: categoriesLoading } = useBookCategoryData();
+  const confirm = useConfirm();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const initialFormData: Partial<LibBookType> = {
@@ -139,7 +144,7 @@ const BooksPage: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
+    const { name, value, checked, type } = e.target as HTMLInputElement;
     let processedValue: string | number | boolean | undefined = value;
 
     if (name === 'category_id') {
@@ -148,7 +153,7 @@ const BooksPage: React.FC = () => {
       processedValue = parseFloat(value) || 0;
     } else if (name === 'publication_year') {
       processedValue = parseInt(value) || undefined;
-    } else if (name === 'is_digital') {
+    } else if (type === 'checkbox') {
       processedValue = checked;
     }
     setFormData(prev => ({ ...prev, [name]: processedValue }));
@@ -237,7 +242,7 @@ const BooksPage: React.FC = () => {
     };
 
     if (editingBook) {
-      await updateBook({ ...editingBook, ...payload });
+      await updateBook(editingBook.id, payload);
     } else {
       await addBook(payload);
     }
@@ -245,7 +250,7 @@ const BooksPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this book? This may affect existing loans and fines.')) {
+    if (await confirm({ title: 'Delete book', message: 'Are you sure you want to delete this book? This may affect existing loans and fines.', variant: 'danger' })) {
       await deleteBook(id);
     }
   };
@@ -280,17 +285,17 @@ const BooksPage: React.FC = () => {
       {
         key: 'publication_year',
         header: 'Pub. Year',
-        render: (book) => book.publication_year || 'N/A',
+        render: (_, book) => book.publication_year || 'N/A',
       },
       {
         key: 'is_digital',
         header: 'Digital',
-        render: (book) => (book.is_digital ? 'Yes' : 'No'),
+        render: (_, book) => (book.is_digital ? 'Yes' : 'No'),
       },
       {
         key: 'digital_access_url',
         header: 'Digital Access URL',
-        render: (book) =>
+        render: (_, book) =>
           book.digital_access_url ? (
             <a href={book.digital_access_url} target="_blank" rel="noopener noreferrer">
               Link
@@ -302,27 +307,27 @@ const BooksPage: React.FC = () => {
       {
         key: 'digital_format',
         header: 'Digital Format',
-        render: (book) => book.digital_format || 'N/A',
+        render: (_, book) => book.digital_format || 'N/A',
       },
       {
         key: 'availability_status',
         header: 'Availability',
-        render: (book) => book.availability_status || 'N/A',
+        render: (_, book) => book.availability_status || 'N/A',
       },
       {
         key: 'damaged_status',
         header: 'Damaged',
-        render: (book) => (book.damaged_status ? 'Yes' : 'No'),
+        render: (_, book) => (book.damaged_status ? 'Yes' : 'No'),
       },
       {
         key: 'lost_status',
         header: 'Lost',
-        render: (book) => (book.lost_status ? 'Yes' : 'No'),
+        render: (_, book) => (book.lost_status ? 'Yes' : 'No'),
       },
       {
         key: 'status',
         header: 'Status',
-        render: (book) => <span className={`status-${book.status.toLowerCase()}`}>{book.status}</span>,
+        render: (_, book) => <span className={`status-${book.status?.toLowerCase() ?? ''}`}>{book.status}</span>,
       },
     {
       key: 'actions',
@@ -378,7 +383,7 @@ const BooksPage: React.FC = () => {
           </Button>
         </div>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Manage all books in the library catalog.
         </p>
         
@@ -408,9 +413,9 @@ const BooksPage: React.FC = () => {
 
         {/* Advanced Search Panel */}
         {showAdvancedSearch && (
-          <Card className="mb-4 bg-gray-50">
+          <Card className="mb-4 bg-surface-muted">
             <div className="p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Advanced Search Filters</h3>
+              <h3 className="text-sm font-medium text-surface-foreground mb-3">Advanced Search Filters</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Input
                   name="author"
@@ -482,9 +487,9 @@ const BooksPage: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-12">
-              <BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No books found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <BookOpenIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No books found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by adding your first book to the library catalog.
               </p>
               <div className="mt-6">
@@ -568,13 +573,18 @@ const BooksPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={booksLoading}>
-            {booksLoading ? <Spinner size="sm"/> : (editingBook ? 'Save Changes' : 'Add Book')}
+          <Button onClick={handleSubmit} loading={booksLoading}>
+            {editingBook ? 'Save Changes' : 'Add Book'}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+const BooksPage: React.FC = () => (
+  <div className="space-y-6">
+    <BooksPageContent />
+  </div>
+);
 
 export default BooksPage;

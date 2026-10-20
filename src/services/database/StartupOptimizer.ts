@@ -1,8 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Database startup performance optimizer
 // ABOUTME: Implements lazy loading, progressive data loading, and startup monitoring
 
 import { IDatabaseProvider, ICollection } from './interfaces';
-import { getCurrentUnifiedConfig } from '@/config/unifiedConfig';
 
 export interface StartupMetrics {
   totalStartupTime: number;
@@ -95,14 +96,14 @@ export class DatabaseStartupOptimizer {
    */
   public async startOptimization(provider: IDatabaseProvider): Promise<void> {
     if (this.isOptimizing) {
-      console.warn('⚠️ [StartupOptimizer] Optimization already in progress');
+      logger.warn('⚠️ [StartupOptimizer] Optimization already in progress');
       return;
     }
 
     this.isOptimizing = true;
     this.startupStartTime = Date.now();
     
-    console.log('🚀 [StartupOptimizer] Starting database startup optimization');
+    logger.info('🚀 [StartupOptimizer] Starting database startup optimization');
 
     try {
       const metrics: Partial<StartupMetrics> = {
@@ -141,10 +142,10 @@ export class DatabaseStartupOptimizer {
         this.startProgressiveLoading(provider);
       }
 
-      console.log(`✅ [StartupOptimizer] Startup optimization completed in ${metrics.totalStartupTime}ms`);
+      logger.info(`✅ [StartupOptimizer] Startup optimization completed in ${metrics.totalStartupTime}ms`);
 
     } catch (error) {
-      console.error('❌ [StartupOptimizer] Startup optimization failed:', error);
+      logger.error('❌ [StartupOptimizer] Startup optimization failed:', error);
       throw error;
     } finally {
       this.isOptimizing = false;
@@ -155,7 +156,7 @@ export class DatabaseStartupOptimizer {
    * Optimize schema loading
    */
   private async optimizeSchemaLoading(provider: IDatabaseProvider): Promise<void> {
-    console.log('📋 [StartupOptimizer] Optimizing schema loading');
+    logger.info('📋 [StartupOptimizer] Optimizing schema loading');
     await new Promise(resolve => setTimeout(resolve, 10)); // Simulate schema loading
   }
 
@@ -163,7 +164,7 @@ export class DatabaseStartupOptimizer {
    * Optimize initial data loading
    */
   private async optimizeInitialDataLoading(provider: IDatabaseProvider): Promise<void> {
-    console.log('📊 [StartupOptimizer] Optimizing initial data loading');
+    logger.info('📊 [StartupOptimizer] Optimizing initial data loading');
 
     if (!this.config.enableLazyLoading) {
       return;
@@ -176,10 +177,10 @@ export class DatabaseStartupOptimizer {
         if (collection) {
           await collection.find({ limit: 10 });
           this.preloadedCollections.add(collectionName);
-          console.log(`📦 [StartupOptimizer] Preloaded critical collection: ${collectionName}`);
+          logger.info(`📦 [StartupOptimizer] Preloaded critical collection: ${collectionName}`);
         }
       } catch (error) {
-        console.warn(`⚠️ [StartupOptimizer] Failed to preload collection ${collectionName}:`, error);
+        logger.warn(`⚠️ [StartupOptimizer] Failed to preload collection ${collectionName}:`, error);
       }
     }
   }
@@ -188,7 +189,7 @@ export class DatabaseStartupOptimizer {
    * Optimize cache warmup
    */
   private async optimizeCacheWarmup(provider: IDatabaseProvider): Promise<void> {
-    console.log('🔥 [StartupOptimizer] Optimizing cache warmup');
+    logger.info('🔥 [StartupOptimizer] Optimizing cache warmup');
 
     for (const collectionName of this.preloadedCollections) {
       try {
@@ -198,7 +199,7 @@ export class DatabaseStartupOptimizer {
           await collection.find({ limit: 1 });
         }
       } catch (error) {
-        console.warn(`⚠️ [StartupOptimizer] Cache warmup failed for ${collectionName}:`, error);
+        logger.warn(`⚠️ [StartupOptimizer] Cache warmup failed for ${collectionName}:`, error);
       }
     }
   }
@@ -207,7 +208,7 @@ export class DatabaseStartupOptimizer {
    * Start progressive loading for non-critical collections
    */
   private async startProgressiveLoading(provider: IDatabaseProvider): Promise<void> {
-    console.log('⏳ [StartupOptimizer] Starting progressive loading');
+    logger.info('⏳ [StartupOptimizer] Starting progressive loading');
 
     const allCollections = [
       'students', 'staff', 'classes', 'subjects', 'exams', 'grades',
@@ -242,7 +243,7 @@ export class DatabaseStartupOptimizer {
         return;
       }
 
-      console.log(`📦 [StartupOptimizer] Starting progressive loading for ${collectionName}`);
+      logger.info(`📦 [StartupOptimizer] Starting progressive loading for ${collectionName}`);
 
       const startTime = new Date();
       const totalRecords = await collection.count();
@@ -281,10 +282,10 @@ export class DatabaseStartupOptimizer {
       state.isComplete = true;
       this.lazyLoadedCollections.add(collectionName);
       
-      console.log(`✅ [StartupOptimizer] Progressive loading completed for ${collectionName}: ${state.loadedRecords} records`);
+      logger.info(`✅ [StartupOptimizer] Progressive loading completed for ${collectionName}: ${state.loadedRecords} records`);
 
     } catch (error) {
-      console.error(`❌ [StartupOptimizer] Progressive loading failed for ${collectionName}:`, error);
+      logger.error(`❌ [StartupOptimizer] Progressive loading failed for ${collectionName}:`, error);
     }
   }
 
@@ -302,7 +303,7 @@ export class DatabaseStartupOptimizer {
     }
 
     if (this.config.enableLazyLoading && !this.lazyLoadedCollections.has(collectionName)) {
-      console.log(`🔄 [StartupOptimizer] Lazy loading collection: ${collectionName}`);
+      logger.info(`🔄 [StartupOptimizer] Lazy loading collection: ${collectionName}`);
       this.lazyLoadedCollections.add(collectionName);
       this.loadCollectionProgressively(provider, collectionName);
     }
@@ -328,12 +329,12 @@ export class DatabaseStartupOptimizer {
       try {
         listener(metrics);
       } catch (error) {
-        console.error('❌ [StartupOptimizer] Listener error:', error);
+        logger.error('❌ [StartupOptimizer] Listener error:', error);
       }
     });
 
     if (metrics.totalStartupTime > this.config.maxInitialLoadTime) {
-      console.warn(`⚠️ [StartupOptimizer] Slow startup detected: ${metrics.totalStartupTime}ms (threshold: ${this.config.maxInitialLoadTime}ms)`);
+      logger.warn(`⚠️ [StartupOptimizer] Slow startup detected: ${metrics.totalStartupTime}ms (threshold: ${this.config.maxInitialLoadTime}ms)`);
     }
   }
 
@@ -460,7 +461,7 @@ export class DatabaseStartupOptimizer {
 
   public updateConfiguration(newConfig: Partial<StartupOptimizationConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    console.log('🔧 [StartupOptimizer] Configuration updated:', this.config);
+    logger.info('🔧 [StartupOptimizer] Configuration updated:', this.config);
   }
 
   public getConfiguration(): StartupOptimizationConfig {
@@ -473,7 +474,7 @@ export class DatabaseStartupOptimizer {
     this.lazyLoadedCollections.clear();
     this.preloadedCollections.clear();
     this.isOptimizing = false;
-    console.log('🔄 [StartupOptimizer] Reset all tracking data');
+    logger.info('🔄 [StartupOptimizer] Reset all tracking data');
   }
 
   public destroy(): void {

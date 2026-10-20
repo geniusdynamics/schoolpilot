@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schoolpilot.local/schema/dr01/entity.schema.json",
+  "title": "DR-01 learner and enrolment",
+  "definitions": {
+    "learner": {
+      "type": "object",
+      "additionalProperties": false,
+      "x-storage": {
+        "table": "learner",
+        "primaryKey": "id",
+        "indexes": ["institution_id", "status", "house_id"],
+        "unique": [["institution_id", "admission_number"]],
+        "refs": { "institution_id": "institution", "house_id": "house" },
+        "encrypted": ["attributes"]
+      },
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "institution_id": { "type": "string", "format": "uuid" },
+        "admission_number": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "given_name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "middle_names": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+        },
+        "family_name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "gender": { "type": "string", "enum": ["female", "male", "other", "not_stated"] },
+        "date_of_birth": { "type": "string", "format": "date" },
+        "status": {
+          "type": "string",
+          "enum": [
+            "applicant",
+            "enrolled",
+            "suspended",
+            "withdrawn",
+            "transferred_out",
+            "graduated",
+            "deceased"
+          ]
+        },
+        "residence_status": { "type": "string", "enum": ["day", "boarder", "weekly_boarder"] },
+        "house_id": { "type": "string", "format": "uuid" },
+        "special_needs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+        },
+        "attributes": { "type": "object", "additionalProperties": true },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "deleted_at": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "institution_id",
+        "admission_number",
+        "given_name",
+        "family_name",
+        "gender",
+        "status",
+        "residence_status",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "enrolment": {
+      "type": "object",
+      "additionalProperties": false,
+      "x-storage": {
+        "table": "enrolment",
+        "primaryKey": "id",
+        "indexes": ["learner_id", "academic_year_id", "class_group_id", "level_id", "status"],
+        "unique": [],
+        "refs": {
+          "learner_id": "learner",
+          "academic_year_id": "academic_year",
+          "programme_id": "programme",
+          "level_id": "level",
+          "class_group_id": "class_group",
+          "pathway_id": "pathway",
+          "sponsorship_id": "sponsorship"
+        },
+        "encrypted": []
+      },
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "learner_id": { "type": "string", "format": "uuid" },
+        "academic_year_id": { "type": "string", "format": "uuid" },
+        "programme_id": { "type": "string", "format": "uuid" },
+        "level_id": { "type": "string", "format": "uuid" },
+        "class_group_id": { "type": "string", "format": "uuid" },
+        "pathway_id": { "type": "string", "format": "uuid" },
+        "status": { "type": "string", "enum": ["active", "repeating", "left", "completed"] },
+        "start_date": { "type": "string", "format": "date" },
+        "end_date": { "type": "string", "format": "date" },
+        "entry_reason": {
+          "type": "string",
+          "enum": ["new_admission", "promoted", "repeated", "transferred_in", "re_admitted"]
+        },
+        "exit_reason": {
+          "type": "string",
+          "enum": ["promoted", "graduated", "transferred_out", "withdrawn", "expelled", "deceased"]
+        },
+        "fee_category_ids": {
+          "type": "array",
+          "items": { "type": "string", "format": "uuid" }
+        },
+        "sponsorship_id": { "type": "string", "format": "uuid" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "learner_id",
+        "academic_year_id",
+        "programme_id",
+        "level_id",
+        "class_group_id",
+        "status",
+        "start_date",
+        "entry_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "enum": ["left", "completed"] } },
+            "required": ["status"]
+          },
+          "then": { "required": ["exit_reason"] }
+        }
+      ]
+    }
+  }
+}

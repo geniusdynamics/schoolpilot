@@ -4,6 +4,7 @@
 import React, { Suspense } from 'react';
 import { UnifiedConfigProvider } from './contexts/UnifiedConfigContext';
 import { ToastProvider } from './hooks/useToast';
+import { ConfirmProvider } from './components/ui/ConfirmDialog';
 import { OnboardingGate } from './components/OnboardingGate';
 import Spinner from './components/ui/Spinner';
 import { AppInner } from './routing';
@@ -18,6 +19,7 @@ import { AppInner } from './routing';
  * Provider hierarchy (outermost → innermost):
  *   UnifiedConfigProvider  — unified app config (theme, features, environment)
  *   ToastProvider          — global toast notifications
+ *   ConfirmProvider        — imperative confirmation dialogs (replaces window.confirm)
  *   Suspense               — i18n translation loading boundary
  *   OnboardingGate         — blocks render until onboarding is complete
  *   AppInner               — module init, AppProviders, AppContent, routing
@@ -26,20 +28,22 @@ const App: React.FC = () => {
   return (
     <UnifiedConfigProvider>
       <ToastProvider>
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-screen">
-              <div className="text-center">
-                <Spinner size="lg" />
-                <p className="mt-4 text-gray-600">Loading translations...</p>
+        <ConfirmProvider>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-surface-muted-fg">Loading translations...</p>
+                </div>
               </div>
-            </div>
-          }
-        >
-          <OnboardingGate>
-            <AppInner />
-          </OnboardingGate>
-        </Suspense>
+            }
+          >
+            <OnboardingGate>
+              <AppInner />
+            </OnboardingGate>
+          </Suspense>
+        </ConfirmProvider>
       </ToastProvider>
     </UnifiedConfigProvider>
   );

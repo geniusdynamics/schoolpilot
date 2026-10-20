@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logging';
+
 import {
   checkReorderRequirements,
   ReorderAlert,
@@ -48,7 +50,7 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to check reorder requirements';
       setError(errorMessage);
-      console.error('Error checking reorder requirements:', err);
+      logger.error('Error checking reorder requirements:', err);
     } finally {
       setIsLoading(false);
     }
@@ -64,11 +66,11 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
     try {
       // For now, just return current alerts since we don't have persistent storage
       // In a real implementation, this would fetch from a database or API
-      console.log('Getting active alerts (placeholder)');
+      logger.info('Getting active alerts (placeholder)');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get active alerts';
       setError(errorMessage);
-      console.error('Error getting active alerts:', err);
+      logger.error('Error getting active alerts:', err);
     } finally {
       setIsLoading(false);
     }
@@ -85,11 +87,11 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
       // In a real implementation, this would update the database
       // For now, just remove from local state
       setAlerts(prevAlerts => prevAlerts.filter(alert => alert.item_id !== itemId));
-      console.log(`Alert dismissed for item: ${itemId}`);
+      logger.info(`Alert dismissed for item: ${itemId}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to dismiss alert';
       setError(errorMessage);
-      console.error('Error dismissing alert:', err);
+      logger.error('Error dismissing alert:', err);
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +155,7 @@ export const usePeriodicReorderMonitoring = (intervalMinutes: number = 60) => {
         await reorderMonitoring.checkReorderRequirements();
         setLastAutoCheck(new Date());
       } catch (error) {
-        console.error('Auto reorder check failed:', error);
+        logger.error('Auto reorder check failed:', error);
       }
     };
 

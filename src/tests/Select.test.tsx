@@ -1,11 +1,11 @@
 // ABOUTME: Comprehensive tests for the enhanced Select component
 // ABOUTME: Tests functionality, accessibility, keyboard navigation, and edge cases
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import Select, { SelectOption } from '@/components/ui/Select';
+import { screen } from '@testing-library/react';
 
 // Mock scrollIntoView for JSDOM
 Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -355,7 +355,7 @@ describe('Select Component', () => {
       render(<Select options={mockOptions} size="lg" />);
       
       const trigger = screen.getByRole('combobox');
-      expect(trigger).toHaveClass('text-lg');
+      expect(trigger).toHaveClass('text-base');
     });
   });
 
@@ -364,14 +364,14 @@ describe('Select Component', () => {
       render(<Select options={mockOptions} variant="outlined" />);
       
       const trigger = screen.getByRole('combobox');
-      expect(trigger).toHaveClass('border', 'bg-white');
+      expect(trigger).toHaveClass('border', 'bg-surface-card');
     });
 
     it('applies filled variant styles', () => {
       render(<Select options={mockOptions} variant="filled" />);
       
       const trigger = screen.getByRole('combobox');
-      expect(trigger).toHaveClass('bg-gray-100');
+      expect(trigger).toHaveClass('bg-surface-muted');
     });
   });
 

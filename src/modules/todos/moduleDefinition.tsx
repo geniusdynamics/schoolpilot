@@ -1,8 +1,4 @@
-import { 
-  CheckCircleIcon, 
-  ListBulletIcon 
-} from '@/components/ui/icons';
-import TODOPage from './pages/TODOPage';
+import { ListBulletIcon } from '@/components/ui/icons';
 
 export const todosModule = {
   id: 'todos',

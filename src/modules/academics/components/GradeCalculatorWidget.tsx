@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // src/modules/academics/components/GradeCalculatorWidget.tsx
 
 import React, { useState, useEffect } from 'react';
@@ -59,7 +61,7 @@ const GradeCalculatorWidget: React.FC<GradeCalculatorWidgetProps> = ({
         onGradeCalculated(calculatedResult);
       }
     } catch (error) {
-      console.error('Error calculating grade:', error);
+      logger.error('Error calculating grade:', error);
       setCalculatedGrade('Error');
       setGradeDescription('Unable to calculate grade');
     }
@@ -114,20 +116,20 @@ const GradeCalculatorWidget: React.FC<GradeCalculatorWidgetProps> = ({
           />
         </div>
 
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-sm text-gray-600 mb-1">Percentage</div>
+        <div className="bg-surface-muted p-4 rounded-lg">
+          <div className="text-sm text-surface-muted-fg mb-1">Percentage</div>
           <div className="text-lg font-semibold">
             {totalMarks > 0 ? ((marks / totalMarks) * 100).toFixed(1) : 0}%
           </div>
         </div>
 
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-sm text-blue-600 mb-1">Grade</div>
-          <div className="text-xl font-bold text-blue-800">{calculatedGrade}</div>
-          <div className="text-sm text-blue-600 mt-1">{gradeDescription}</div>
+        <div className="bg-primary-50 p-4 rounded-lg">
+          <div className="text-sm text-primary-600 mb-1">Grade</div>
+          <div className="text-xl font-bold text-primary-800">{calculatedGrade}</div>
+          <div className="text-sm text-primary-600 mt-1">{gradeDescription}</div>
         </div>
 
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-surface-muted-fg">
           Using: {currentSystem.name} ({currentSystem.grading_system_type})
         </div>
       </div>

@@ -5,6 +5,34 @@
 
 import { CapabilityDetector } from '../detection/CapabilityDetector';
 
+// The global test setup installs an indexedDB stub whose `open()` returns a
+// request object that never fires `onsuccess`. CapabilityDetector runs an
+// async IndexedDB validation (`testIndexedDB`) whenever `window.indexedDB`
+// exists, and that promise never resolves under the stub — so every
+// `detectCapabilities()` call hangs until the test timeout. Install a
+// functional fake (requests complete in a microtask) for this file only.
+const originalIndexedDB = window.indexedDB;
+
+const installFunctionalIndexedDB = () => {
+  Object.defineProperty(window, 'indexedDB', {
+    configurable: true,
+    writable: true,
+    value: {
+      open: vi.fn(() => {
+        const request: Record<string, unknown> = {};
+        queueMicrotask(() => {
+          request.result = { close: vi.fn() };
+          (request.onsuccess as (() => void) | null)?.();
+        });
+        return request;
+      }),
+      deleteDatabase: vi.fn(),
+      cmp: vi.fn(() => 0),
+      databases: vi.fn(async () => []),
+    },
+  });
+};
+
 // Browser environment configurations to test
 const browserEnvironments = {
   chrome: {
@@ -83,7 +111,16 @@ const browserEnvironments = {
 
 describe('Cross-Browser Compatibility - Capability Detection', () => {
   beforeEach(() => {
+    installFunctionalIndexedDB();
     CapabilityDetector.getInstance().clearCache();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'indexedDB', {
+      configurable: true,
+      writable: true,
+      value: originalIndexedDB,
+    });
   });
 
   afterAll(() => {

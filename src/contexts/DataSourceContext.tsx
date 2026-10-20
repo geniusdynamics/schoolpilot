@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Data source management context for handling different data strategies
 // ABOUTME: Provides data source selection, configuration, and strategy management
 
@@ -84,7 +86,7 @@ export const DataSourceProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [dataStrategy]);
 
   const updateDataStrategy = useCallback((strategy: DataStrategy) => {
-    console.log(`Updating data strategy from ${dataStrategy} to ${strategy}`);
+    logger.info(`Updating data strategy from ${dataStrategy} to ${strategy}`);
     setDataStrategy(strategy);
   }, [dataStrategy]);
 

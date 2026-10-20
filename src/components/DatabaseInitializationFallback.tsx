@@ -1,7 +1,10 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Fallback UI component for database initialization failures
 // ABOUTME: Provides user-friendly interface with recovery options when database fails to initialize
 
 import React, { useState, useEffect } from 'react';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface DatabaseInitializationFallbackProps {
   error?: Error;
@@ -25,6 +28,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
   const [isRetrying, setIsRetrying] = useState(false);
   const [storageInfo, setStorageInfo] = useState<any>(null);
   const [browserInfo, setBrowserInfo] = useState<any>(null);
+  const confirm = useConfirm();
 
   useEffect(() => {
     // Collect browser and storage information
@@ -63,7 +67,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
         onLine: navigator.onLine
       });
     } catch (e) {
-      console.error('Failed to collect system info:', e instanceof Error ? e.message : String(e));
+      logger.error('Failed to collect system info:', e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -73,18 +77,20 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
       try {
         await onRetry();
       } catch (e) {
-        console.error('Retry failed:', e);
+        logger.error('Retry failed:', e);
       } finally {
         setIsRetrying(false);
       }
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (onReset) {
-      if (window.confirm(
-        'This will reset all database configuration and may result in data loss. Are you sure you want to continue?'
-      )) {
+      if (await confirm({
+        title: 'Reset database',
+        message: 'This will reset all database configuration and may result in data loss. Are you sure you want to continue?',
+        variant: 'danger'
+      })) {
         onReset();
       }
     }
@@ -100,8 +106,8 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
   const isStorageFull = storageInfo?.usagePercentage > 90;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-2xl w-full bg-white shadow-lg rounded-lg p-6">
+    <div className="min-h-screen flex items-center justify-center bg-surface-muted p-4">
+      <div className="max-w-2xl w-full bg-surface-card shadow-lg rounded-lg p-6">
         {/* Header */}
         <div className="flex items-center mb-6">
           <div className="flex-shrink-0">
@@ -110,10 +116,10 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
             </svg>
           </div>
           <div className="ml-4">
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-surface-foreground">
               Database Initialization Failed
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-surface-muted-fg mt-1">
               The application database could not be initialized. This may be due to browser compatibility or storage issues.
             </p>
           </div>
@@ -144,8 +150,8 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
 
         {/* System Information */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Browser Support</h3>
+          <div className="p-4 bg-surface-muted rounded-lg">
+            <h3 className="text-sm font-medium text-surface-foreground mb-2">Browser Support</h3>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>IndexedDB:</span>
@@ -168,8 +174,8 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Storage Information</h3>
+          <div className="p-4 bg-surface-muted rounded-lg">
+            <h3 className="text-sm font-medium text-surface-foreground mb-2">Storage Information</h3>
             <div className="space-y-1 text-sm">
               {storageInfo?.quota && (
                 <div className="flex justify-between">
@@ -189,23 +195,23 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
 
         {/* Suggested Actions */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Suggested Actions:</h3>
-          <div className="space-y-2 text-sm text-gray-700">
+          <h3 className="text-sm font-medium text-surface-foreground mb-3">Suggested Actions:</h3>
+          <div className="space-y-2 text-sm text-surface-foreground">
             <div className="flex items-start">
-              <span className="text-gray-400 mr-2 mt-0.5">1.</span>
+              <span className="text-surface-muted-fg mr-2 mt-0.5">1.</span>
               <span>Try refreshing the page or restarting your browser</span>
             </div>
             <div className="flex items-start">
-              <span className="text-gray-400 mr-2 mt-0.5">2.</span>
+              <span className="text-surface-muted-fg mr-2 mt-0.5">2.</span>
               <span>Clear your browser cache and cookies for this site</span>
             </div>
             <div className="flex items-start">
-              <span className="text-gray-400 mr-2 mt-0.5">3.</span>
+              <span className="text-surface-muted-fg mr-2 mt-0.5">3.</span>
               <span>Make sure you're using a modern browser (Chrome 90+, Firefox 88+, Safari 14+)</span>
             </div>
             {isStorageFull && (
               <div className="flex items-start">
-                <span className="text-gray-400 mr-2 mt-0.5">4.</span>
+                <span className="text-surface-muted-fg mr-2 mt-0.5">4.</span>
                 <span>Free up browser storage space by clearing data from other websites</span>
               </div>
             )}
@@ -218,7 +224,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
             <button
               onClick={handleRetry}
               disabled={isRetrying}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isRetrying ? (
                 <span className="flex items-center justify-center">
@@ -261,10 +267,10 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
         {/* Technical Details */}
         {showTechnicalDetails && error && (
           <details className="mt-6">
-            <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800 mb-2">
+            <summary className="text-sm text-surface-muted-fg cursor-pointer hover:text-surface-foreground mb-2">
               Technical Details
             </summary>
-            <div className="p-3 bg-gray-100 rounded text-xs font-mono text-gray-700 max-h-40 overflow-y-auto">
+            <div className="p-3 bg-surface-accent rounded text-xs font-mono text-surface-foreground max-h-40 overflow-y-auto">
               <div className="mb-2">
                 <strong>Error:</strong> {error.message}
               </div>
@@ -285,8 +291,8 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
         )}
 
         {/* Help Text */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="mt-6 pt-4 border-t border-surface-border">
+          <p className="text-xs text-surface-muted-fg text-center">
             If this problem persists, please contact technical support with the error details above.
           </p>
         </div>

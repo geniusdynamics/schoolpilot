@@ -1,0 +1,11 @@
+{
+  "task": "P1-B05",
+  "note": "The archived marker the query layer appends to the label of an archived row ('Grade 6 Blue (archived)'). The query layer hard-codes this English default and does not translate it: the UI localises the marker through this key and replaces it with the picker's own archivedLabel (P1-D01). The value is the suffix, leading space included, because the query layer appends it to the label. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw.",
+  "en": {
+    "common": {
+      "query": {
+        "archived": " (archived)"
+      }
+    }
+  }
+}

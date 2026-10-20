@@ -20,6 +20,8 @@ export type { TextareaProps } from './Textarea';
 export * from './forms';
 
 export { default as DatePicker } from './forms/DatePicker';
+export { default as DateField } from './forms/DateField';
+export type { DateFieldProps } from './forms/DateField';
 export type { DatePickerProps } from './forms/DatePicker';
 
 export { default as TabbedForm } from './forms/TabbedForm';
@@ -63,13 +65,21 @@ export type { TooltipProps, InfoTooltipProps, HelpTooltipProps, ValidationToolti
 // Enhanced form components
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
+export { default as Checkbox } from './Checkbox';
+export type { CheckboxProps } from './Checkbox';
+export { Radio, RadioGroup, default as RadioInput } from './Radio';
+export type { RadioProps, RadioGroupProps, RadioGroupOption } from './Radio';
+export { default as Switch } from './Switch';
+export type { SwitchProps } from './Switch';
 export { default as Modal } from './Modal';
 export { default as Card, CardHeader, CardTitle, CardDescription, CardContent } from './Card';
 export type { CardVariant, CardSize } from './Card';
-export { default as Table } from './Table';
-export { TableBody, TableCell, TableHead, TableHeader, TableRow, TableRoot } from './TableComponents';
 export { TabsRoot as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export { default as Spinner } from './Spinner';
+export { ConfirmProvider, useConfirm } from './ConfirmDialog';
+export type { ConfirmOptions } from './ConfirmDialog';
+export { default as EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
 export { default as Badge } from './Badge';
 export { Alert, AlertDescription } from './Alert';
 
@@ -87,16 +97,6 @@ export { default as TabNavigation } from './TabNavigation';
 export type { TabItem, TabNavigationProps } from './TabNavigation';
 export { default as PageHeaderWithTabs } from './PageHeaderWithTabs';
 export type { Tab as PageHeaderTab } from './PageHeaderWithTabs';
-
-// Page Tabs - reusable page-level tabs with filters (follows ClassListsPage pattern)
-export { 
-  default as PageTabs,
-  SimplePageTabs 
-} from './PageTabs';
-export type { 
-  PageTab, 
-  PageTabsProps 
-} from './PageTabs';
 
 // Filter components
 export { default as FilterBar } from './FilterBar';

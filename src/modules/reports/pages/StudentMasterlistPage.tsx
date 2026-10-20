@@ -1,20 +1,23 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
-import { UsersIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Student, Class as SchoolClass, ClassStream, StudentStatus, PersonGender } from '@/types';
-import { useTranslation } from 'react-i18next';
+import SchoolLetterhead from '@/components/SchoolLetterhead';
 
-const StudentMasterlistPage: React.FC = () => {
+import { useTranslation } from 'react-i18next';
+import { PersonGender, StudentStatus } from '@/core/types';
+import type { Student } from '@/core/types';
+
+export const StudentMasterlistPageContent: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
   const { t } = useTranslation('reports');
 
-  const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
-  const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
+  const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
   const [selectedStatus, setSelectedStatus] = useState<StudentStatus | ''>('');
   const [selectedGender, setSelectedGender] = useState<PersonGender | ''>('');
   
@@ -23,7 +26,7 @@ const StudentMasterlistPage: React.FC = () => {
 
   const availableStreams = useMemo(() => {
     if (!selectedClassId) return (classStreams || []);
-    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => String(cs.class_id) === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
@@ -31,16 +34,17 @@ const StudentMasterlistPage: React.FC = () => {
     let tempStudents = [...(students || [])];
 
     if (selectedClassId) {
-      const streamsInClass = (classStreams || []).filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
+      const streamsInClass = (classStreams || [])
+        .filter(cs => String(cs.class_id) === selectedClassId)
+        .map(cs => String(cs.id));
       if (selectedStreamId) {
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
+        tempStudents = tempStudents.filter(s => String(s.current_class_stream_id) === selectedStreamId);
       } else {
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id && (streamsInClass || []).includes(s.current_class_stream_id));
+        tempStudents = tempStudents.filter(s => s.current_class_stream_id && (streamsInClass || []).includes(String(s.current_class_stream_id)));
       }
     } else if (selectedStreamId) { 
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
+        tempStudents = tempStudents.filter(s => String(s.current_class_stream_id) === selectedStreamId);
     }
-
 
     if (selectedStatus) {
       tempStudents = tempStudents.filter(s => s.status === selectedStatus);
@@ -57,18 +61,17 @@ const StudentMasterlistPage: React.FC = () => {
     handleGenerateReport();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps 
 
-
   const columns = [
-    { header: 'Adm No', accessor: 'admission_no' as keyof Student },
-    { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` },
-    { header: 'Gender', accessor: 'gender' as keyof Student },
-    { header: 'Status', accessor: 'status' as keyof Student },
-    { header: 'Class', accessor: 'current_class_name' as keyof Student },
-    { header: 'Stream', accessor: 'current_class_stream_name' as keyof Student },
-    { header: 'Category', accessor: 'student_category_name' as keyof Student },
-    { header: 'Dormitory', accessor: 'dormitory_name' as keyof Student },
-    { header: 'Guardian Name', accessor: (item: Student) => item.primary_guardian?.name || '-' },
-    { header: 'Guardian Phone', accessor: (item: Student) => item.primary_guardian?.phone || '-' },
+    { header: 'Adm No', key: 'admission_no' as keyof Student },
+    { header: 'Student Name', key: 'student_name', render: (_v: any, item: Student) => `${item.first_name} ${item.last_name}` },
+    { header: 'Gender', key: 'gender' as keyof Student },
+    { header: 'Status', key: 'status' as keyof Student },
+    { header: 'Class', key: 'current_class_name' as keyof Student },
+    { header: 'Stream', key: 'current_class_stream_name' as keyof Student },
+    { header: 'Category', key: 'student_category_name' as keyof Student },
+    { header: 'Dormitory', key: 'dormitory_name' as keyof Student },
+    { header: 'Guardian Name', key: 'guardian_name', render: (_v: any, item: Student) => item.primary_guardian?.name || '-' },
+    { header: 'Guardian Phone', key: 'guardian_phone', render: (_v: any, item: Student) => item.primary_guardian?.phone || '-' },
   ];
 
   const isLoadingPage = loading.students || loading.classes || loading.classStreams;
@@ -82,10 +85,10 @@ const StudentMasterlistPage: React.FC = () => {
     const rows = (filteredStudents || []).map(student => {
       return columns.map(col => {
         let value;
-        if (typeof col.accessor === 'function') {
-          value = col.accessor(student);
+        if (col.render) {
+          value = col.render(student[col.key as keyof Student], student);
         } else {
-          value = student[col.accessor as keyof Student] as string | number | undefined;
+          value = student[col.key as keyof Student] as string | number | undefined;
         }
         // Handle potential commas in values by double-quoting
         const stringValue = String(value !== undefined && value !== null ? value : '-');
@@ -108,20 +111,19 @@ const StudentMasterlistPage: React.FC = () => {
     }
   };
 
-
   return (
     <div className="space-y-6">
       <Card title={t('studentMasterlistPage.title')}>
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
+          <p className="text-sm text-surface-muted-fg mb-4">
             {t('studentMasterlistPage.filterDescription')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-            <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
+            <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(e.target.value || undefined); setSelectedStreamId(undefined);}}>
                 <option value="">{t('studentMasterlistPage.allClasses')}</option>
                 {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
-            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === (classStreams || []).length}>
+            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(e.target.value || undefined)} disabled={!selectedClassId && availableStreams.length === (classStreams || []).length}>
                 <option value="">{t('studentMasterlistPage.allStreams')}</option>
                 {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
             </Select>
@@ -149,12 +151,18 @@ const StudentMasterlistPage: React.FC = () => {
                 <Button variant="secondary" size="sm" onClick={handlePrint}>{t('studentMasterlistPage.print')}</Button>
                 <Button variant="secondary" size="sm" onClick={handleExportCSV}>{t('studentMasterlistPage.exportCSV')}</Button>
             </div>
-            <Table columns={columns} data={(filteredStudents || [])} isLoading={isGenerating} emptyStateMessage={t('studentMasterlistPage.noStudentsFound')}/>
+            <SchoolLetterhead title={t('studentMasterlistPage.title')} />
+            <DataGrid columns={columns} data={(filteredStudents || [])} loading={isGenerating} emptyState={t('studentMasterlistPage.noStudentsFound')}/>
           </>
         )}
       </Card>
     </div>
   );
 };
+const StudentMasterlistPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentMasterlistPageContent />
+  </div>
+);
 
 export default StudentMasterlistPage;

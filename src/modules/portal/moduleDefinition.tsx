@@ -1,7 +1,6 @@
 // ABOUTME: Portal module definition
-// ABOUTME: Self-contained module definition for student/parent portal
+// ABOUTME: Self-contained module definition for student/parent portal with independent per-page navigation
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
 import {
   HomeIcon,
@@ -22,50 +21,52 @@ export const portalModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
+    // Independent pages — each is a standalone route, not a tab of a hub.
+    // The dashboard is decoupled from the other pages so navigating to
+    // /portal/<page> renders the actual page instead of redirecting to a
+    // tabbed hub that defaults to the dashboard.
     {
       name: 'navigation:portal.dashboard',
       path: '/portal/dashboard',
       icon: HomeIcon,
       page: 'PortalDashboardPage',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
       name: 'navigation:portal.attendance',
       path: '/portal/attendance',
       icon: CalendarDaysIcon,
       page: 'PortalAttendancePage',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
       name: 'navigation:portal.results',
       path: '/portal/results',
       icon: ChartBarIcon,
       page: 'PortalResultsPage',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
       name: 'navigation:portal.fees',
       path: '/portal/fees',
       icon: CurrencyDollarIcon,
       page: 'PortalFeesPage',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
       name: 'navigation:portal.announcements',
       path: '/portal/announcements',
       icon: MegaphoneIcon,
       page: 'PortalAnnouncementsPage',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
       name: 'navigation:portal.profile',
       path: '/portal/profile',
       icon: UserCircleIcon,
       page: 'PortalProfilePage',
+      showInModes: ['standard', 'fullwidth'],
     },
-  ],
-  routes: [
-    { path: '/portal/dashboard', page: 'PortalDashboardPage' },
-    { path: '/portal/attendance', page: 'PortalAttendancePage' },
-    { path: '/portal/results', page: 'PortalResultsPage' },
-    { path: '/portal/fees', page: 'PortalFeesPage' },
-    { path: '/portal/announcements', page: 'PortalAnnouncementsPage' },
-    { path: '/portal/profile', page: 'PortalProfilePage' },
   ],
   features: [
     'student-dashboard',

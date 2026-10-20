@@ -1,5 +1,5 @@
 // ABOUTME: React hook wrappers for finance P0 services
-// ABOUTME: Provides useInvoiceStatus, useInvoiceGeneration, usePaymentAllocation
+// ABOUTME: Provides useInvoiceStatus, useInvoiceGeneration, usePaymentAllocation, useTermBilling
 // ABOUTME: These hooks wire service classes to database access via useDatabaseCollection
 
 import { useCallback, useState } from 'react';
@@ -11,25 +11,29 @@ import {
   type InvoiceFinancialSummary,
   type InvoiceStatusServiceDependencies,
 } from '../services/InvoiceStatusService';
-import {
-  InvoiceGenerationService,
-  type InvoiceGenerationResult,
-  type InvoiceGenerationServiceDependencies,
-  type ActiveStudentRecord,
-} from '../services/InvoiceGenerationService';
+import { InvoiceGenerationService, type InvoiceGenerationResult, type InvoiceGenerationServiceDependencies } from '../services/InvoiceGenerationService';
 import {
   PaymentAllocationService,
   PaymentAllocationType,
   type PaymentAllocationResult,
   type PaymentAllocationServiceDependencies,
 } from '../services/PaymentAllocationService';
+import {
+  generateTermInvoices as runTermBilling,
+  type BillingClassStream,
+  type BillingInvoice,
+  type BillingRepository,
+  type BillingStudent,
+  type BillingTemplate,
+  type GenerateTermInvoicesParams,
+  type GenerateTermInvoicesResult,
+} from '@/domain/finance/billingService';
 import type {
   StudentInvoice,
   StudentInvoiceItem,
   InvoicePaymentApplication,
   StudentOpeningBalance,
   FeeTemplate,
-  FeeTemplateItem,
   InvoiceStatus,
   StudentPayment,
 } from '../data/types';
@@ -50,6 +54,8 @@ export function useInvoiceStatus() {
   const studentInvoicesCollection = useDatabaseCollection<StudentInvoice>('student_invoices');
   const studentInvoiceItemsCollection = useDatabaseCollection<StudentInvoiceItem>('student_invoice_items');
   const invoicePaymentApplicationsCollection = useDatabaseCollection<InvoicePaymentApplication>('invoice_payment_applications');
+  // Pulled out so hook dependency lists name the functions, not the collection objects.
+  const updateStudentInvoiceRecord = studentInvoicesCollection.update;
 
   const createService = useCallback((): InvoiceStatusService => {
     const deps: InvoiceStatusServiceDependencies = {
@@ -77,14 +83,14 @@ export function useInvoiceStatus() {
         return apps.filter(app => invoiceItemIds.includes(app.invoice_item_id));
       },
       updateStudentInvoice: async (invoiceId: string, updates: { amount_paid: number; status: InvoiceStatus }) => {
-        await studentInvoicesCollection.update(invoiceId, {
+        await updateStudentInvoiceRecord(invoiceId, {
           amount_paid: updates.amount_paid,
           status: updates.status,
         });
       },
     };
     return new InvoiceStatusService(deps);
-  }, [studentInvoicesCollection.data, studentInvoiceItemsCollection.data, invoicePaymentApplicationsCollection.data, studentInvoicesCollection.update]);
+  }, [studentInvoicesCollection.data, studentInvoiceItemsCollection.data, invoicePaymentApplicationsCollection.data, updateStudentInvoiceRecord]);
 
   const updateInvoiceStatus = useCallback(async (invoiceId: string): Promise<InvoiceStatusUpdateResult | null> => {
     setIsUpdating(true);
@@ -152,15 +158,18 @@ export function useInvoiceGeneration() {
   const studentInvoicesCollection = useDatabaseCollection<StudentInvoice>('student_invoices');
   const studentInvoiceItemsCollection = useDatabaseCollection<StudentInvoiceItem>('student_invoice_items');
   const feeTemplatesCollection = useDatabaseCollection<FeeTemplate>('fee_templates');
-  const feeTemplateItemsCollection = useDatabaseCollection<FeeTemplateItem>('fee_template_items');
   const studentOpeningBalancesCollection = useDatabaseCollection<StudentOpeningBalance>('student_opening_balances');
+  // Pulled out so hook dependency lists name the functions, not the collection objects.
+  const insertStudentInvoiceRecord = studentInvoicesCollection.insert;
+  const insertStudentInvoiceItemRecord = studentInvoiceItemsCollection.insert;
+  const updateOpeningBalanceRecord = studentOpeningBalancesCollection.update;
 
   // We also need access to active students - imported from admin module
   const createService = useCallback((): InvoiceGenerationService => {
     const deps: InvoiceGenerationServiceDependencies = {
       findActiveStudents: async () => {
         // Import dynamically to avoid circular deps; this will be called at runtime
-        const { useAdministrationData } = await import('@/modules/administration/data/useAdministrationData');
+
         // Note: In practice, this should be called from a component context
         // For now, we'll use the database service directly
         const db = await databaseService.getDatabase();
@@ -194,8 +203,9 @@ export function useInvoiceGeneration() {
         ) ?? null;
       },
       findFeeTemplateItems: async (feeTemplateId: number) => {
-        const items = feeTemplateItemsCollection.data;
-        return items.filter(item => item.fee_template_id === feeTemplateId);
+        // Template items are stored nested in fee_templates.items.
+        const template = feeTemplatesCollection.data.find(t => String(t.id) === String(feeTemplateId));
+        return (template?.items ?? []).map(item => ({ ...item, fee_template_id: feeTemplateId }));
       },
       findUnbilledOpeningBalance: async (studentId: string) => {
         const balances = studentOpeningBalancesCollection.data;
@@ -203,22 +213,22 @@ export function useInvoiceGeneration() {
       },
       generateId: () => databaseService.generateId(),
       insertStudentInvoice: async (invoice) => {
-        return await studentInvoicesCollection.insert(invoice as any);
+        return await insertStudentInvoiceRecord(invoice as any);
       },
       insertStudentInvoiceItem: async (item) => {
-        return await studentInvoiceItemsCollection.insert(item as any);
+        return await insertStudentInvoiceItemRecord(item as any);
       },
       markOpeningBalanceAsBilled: async (balanceId: string) => {
-        await studentOpeningBalancesCollection.update(balanceId, { is_billed: true });
+        await updateOpeningBalanceRecord(balanceId, { is_billed: true });
       },
     };
     return new InvoiceGenerationService(deps);
   }, [
-    studentInvoicesCollection.data, studentInvoiceItemsCollection.data,
-    feeTemplatesCollection.data, feeTemplateItemsCollection.data,
+    studentInvoicesCollection.data,
+    feeTemplatesCollection.data,
     studentOpeningBalancesCollection.data,
-    studentInvoicesCollection.insert, studentInvoiceItemsCollection.insert,
-    studentOpeningBalancesCollection.update,
+    insertStudentInvoiceRecord, insertStudentInvoiceItemRecord,
+    updateOpeningBalanceRecord,
   ]);
 
   const generateTermlyInvoices = useCallback(async (schoolPeriodId: number): Promise<InvoiceGenerationResult | null> => {
@@ -243,6 +253,73 @@ export function useInvoiceGeneration() {
   };
 }
 
+// ── useTermBilling ──────────────────────────────────────────────────────────
+
+/** Reads every row of a collection; a missing collection is an error, never an empty list to bill from. */
+async function readCollection<T>(collectionName: string): Promise<T[]> {
+  const db = await databaseService.getDatabase();
+  const collection = db.getCollection(collectionName);
+  if (!collection || typeof collection.find !== 'function') {
+    throw new Error(`Term billing cannot run: the "${collectionName}" collection is not available in the database`);
+  }
+  return ((await collection.find({})) ?? []) as T[];
+}
+
+/**
+ * The database-backed repository for the term billing service. Shared by useTermBilling and the
+ * finance data provider so there is one billing path.
+ */
+export function createBillingRepository(writes: {
+  insertStudentInvoice: (invoice: BillingInvoice) => Promise<unknown>;
+  updateStudentInvoice: (id: string, patch: Partial<BillingInvoice>) => Promise<unknown>;
+}): BillingRepository {
+  return {
+    listStudents: () => readCollection<BillingStudent>('students'),
+    listClassStreams: () => readCollection<BillingClassStream>('class_streams'),
+    listFeeTemplates: () => readCollection<BillingTemplate>('fee_templates'),
+    listStudentInvoices: () => readCollection<BillingInvoice>('student_invoices'),
+    insertStudentInvoice: writes.insertStudentInvoice,
+    updateStudentInvoice: writes.updateStudentInvoice,
+    generateId: () => databaseService.generateId(),
+  };
+}
+
+/**
+ * Hook over the term billing service (src/domain/finance/billingService.ts). Reads learners, streams,
+ * templates and invoices fresh on every run so re-runs see the invoices a previous run created.
+ *
+ * Usage:
+ *   const { generateTermInvoices, isRunning } = useTermBilling();
+ *   const preview = await generateTermInvoices({ periodId, levelIds: [form1Id], dryRun: true });
+ */
+export function useTermBilling() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const studentInvoicesCollection = useDatabaseCollection<BillingInvoice>('student_invoices');
+  const insertStudentInvoiceRecord = studentInvoicesCollection.insert;
+  const updateStudentInvoiceRecord = studentInvoicesCollection.update;
+
+  const generateTermInvoices = useCallback(async (params: GenerateTermInvoicesParams): Promise<GenerateTermInvoicesResult | null> => {
+    setIsRunning(true);
+    setError(null);
+    try {
+      const repository = createBillingRepository({
+        insertStudentInvoice: (invoice) => insertStudentInvoiceRecord(invoice),
+        updateStudentInvoice: (id, patch) => updateStudentInvoiceRecord(id, patch),
+      });
+      return await runTermBilling(repository, params);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      return null;
+    } finally {
+      setIsRunning(false);
+    }
+  }, [insertStudentInvoiceRecord, updateStudentInvoiceRecord]);
+
+  return { generateTermInvoices, isRunning, error };
+}
+
 // ── usePaymentAllocation ────────────────────────────────────────────────────
 
 /**
@@ -261,6 +338,9 @@ export function usePaymentAllocation() {
   const studentInvoicesCollection = useDatabaseCollection<StudentInvoice>('student_invoices');
   const studentInvoiceItemsCollection = useDatabaseCollection<StudentInvoiceItem>('student_invoice_items');
   const invoicePaymentApplicationsCollection = useDatabaseCollection<InvoicePaymentApplication>('invoice_payment_applications');
+  // Pulled out so hook dependency lists name the functions, not the collection objects.
+  const updateStudentInvoiceRecord = studentInvoicesCollection.update;
+  const insertPaymentApplicationRecord = invoicePaymentApplicationsCollection.insert;
 
   const createService = useCallback((): PaymentAllocationService => {
     const invoiceStatusDeps: InvoiceStatusServiceDependencies = {
@@ -288,7 +368,7 @@ export function usePaymentAllocation() {
         return apps.filter(app => invoiceItemIds.includes(app.invoice_item_id));
       },
       updateStudentInvoice: async (invoiceId: string, updates: { amount_paid: number; status: InvoiceStatus }) => {
-        await studentInvoicesCollection.update(invoiceId, {
+        await updateStudentInvoiceRecord(invoiceId, {
           amount_paid: updates.amount_paid,
           status: updates.status,
         });
@@ -344,7 +424,7 @@ export function usePaymentAllocation() {
           }));
       },
       insertPaymentApplication: async (app) => {
-        return await invoicePaymentApplicationsCollection.insert(app as any);
+        return await insertPaymentApplicationRecord(app as any);
       },
       generateId: () => databaseService.generateId(),
       invoiceStatusDeps,
@@ -353,8 +433,7 @@ export function usePaymentAllocation() {
   }, [
     studentPaymentsCollection.data, studentInvoicesCollection.data,
     studentInvoiceItemsCollection.data, invoicePaymentApplicationsCollection.data,
-    studentPaymentsCollection.insert, studentInvoicesCollection.update,
-    studentInvoiceItemsCollection.insert, invoicePaymentApplicationsCollection.insert,
+    updateStudentInvoiceRecord, insertPaymentApplicationRecord,
   ]);
 
   const applyPriority = useCallback(async (paymentId: string): Promise<PaymentAllocationResult | null> => {

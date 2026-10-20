@@ -3,7 +3,6 @@
 // ABOUTME: Simple script to connect to SQLite database and explore its contents
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
-import * as fs from 'fs';
 
 async function exploreDatabase() {
   console.log('Exploring SQLite database contents...');
@@ -50,7 +49,7 @@ async function exploreDatabase() {
         // Check if table exists
         const tableExistsStmt = db.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name=?;");
         tableExistsStmt.bind([tableName]);
-        const existsResult = tableExistsStmt.step();
+
         const existsRow = tableExistsStmt.get({});
         tableExistsStmt.finalize();
         

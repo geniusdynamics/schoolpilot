@@ -2,17 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { BookOpenIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { StudentPaymentRecord } from '../data/types';
+import { formatDate } from '@/utils/format';
 
-const StudentsPaidBookPage: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { studentPaymentRecords, students, loading } = useAppData();
+export const StudentsPaidBookPageContent: React.FC = () => {
+
+  const { studentPaymentRecords, loading } = useAppData() as any;
 
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
@@ -32,10 +31,10 @@ const StudentsPaidBookPage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(record =>
-        record.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.admission_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.receipt_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.reference_no.toLowerCase().includes(searchTerm.toLowerCase())
+        (record.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.receipt_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.reference_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -48,18 +47,18 @@ const StudentsPaidBookPage: React.FC = () => {
 
   // Calculate totals
   const totals = useMemo(() => {
-    return mockPaymentRecords.reduce((acc, record) => ({
-      total: acc.total + record.amount_paid,
+    return filteredPaymentRecords.reduce((acc, record) => ({
+      total: acc.total + (record.amount_paid ?? 0),
       count: acc.count + 1
     }), { total: 0, count: 0 });
-  }, [mockPaymentRecords]);
+  }, [filteredPaymentRecords]);
 
   const columns: DataGridColumn<StudentPaymentRecord>[] = [
     {
       key: 'transaction_date',
       header: 'Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'receipt_no',
@@ -96,7 +95,7 @@ const StudentsPaidBookPage: React.FC = () => {
       header: 'Amount Paid',
       sortable: true,
       render: (value) => (
-        <span className="font-semibold text-green-600">KES {value.toLocaleString()}</span>
+        <span className="font-semibold text-green-600">KES {value?.toLocaleString?.() ?? '-'}</span>
       )
     },
     {
@@ -118,7 +117,7 @@ const StudentsPaidBookPage: React.FC = () => {
     return classes.sort();
   }, [filteredPaymentRecords]);
 
-  if (loading && mockPaymentRecords.length === 0) {
+  if (loading?.all && filteredPaymentRecords.length === 0 && !studentPaymentRecords) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -132,17 +131,17 @@ const StudentsPaidBookPage: React.FC = () => {
       <Card 
         title={
           <div className="flex items-center gap-2">
-            <BookOpenIcon className="w-6 h-6 text-blue-600" />
+            <BookOpenIcon className="w-6 h-6 text-primary-600" />
             <span>Students Paid Book</span>
           </div>
         }
       >
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <BookOpenIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+            <BookOpenIcon className="w-5 h-5 text-primary-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">Student Payment Ledger</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-primary-800">Student Payment Ledger</h3>
+              <p className="text-sm text-primary-700 mt-1">
                 The Students Paid Book provides a comprehensive ledger view of all student payments by date range. 
                 Track payment history, analyze payment patterns, and generate payment reports for reconciliation.
               </p>
@@ -153,7 +152,7 @@ const StudentsPaidBookPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Start Date</label>
             <Input
               type="date"
               value={startDate}
@@ -162,7 +161,7 @@ const StudentsPaidBookPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">End Date</label>
             <Input
               type="date"
               value={endDate}
@@ -171,7 +170,7 @@ const StudentsPaidBookPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Class Filter</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class Filter</label>
             <Select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
@@ -183,7 +182,7 @@ const StudentsPaidBookPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Student name, admission no, receipt..."
@@ -196,31 +195,31 @@ const StudentsPaidBookPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Collected</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.total.toLocaleString()}
+              KES {totals.total?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CalendarIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Payment Records</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.count}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <BookOpenIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Average Payment</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
-              KES {totals.count > 0 ? Math.round(totals.total / totals.count).toLocaleString() : 0}
+            <p className="text-2xl font-bold text-primary-600 mt-2">
+              KES {totals.count > 0 ? Math.round(totals.total / totals.count)?.toLocaleString?.() ?? '0' : 0}
             </p>
           </div>
         </div>
@@ -236,5 +235,10 @@ const StudentsPaidBookPage: React.FC = () => {
     </div>
   );
 };
+const StudentsPaidBookPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentsPaidBookPageContent />
+  </div>
+);
 
 export default StudentsPaidBookPage;

@@ -5,7 +5,7 @@ import { CogIcon, IdentificationIcon, UserGroupIcon, CalendarDaysIcon, ShieldChe
 import { useAppData } from '@/hooks/useAppData';
 import { Link } from 'react-router-dom';
 
-const SettingsGeneralPage: React.FC = () => {
+export const SettingsGeneralContent: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { schoolDetails, users, isDatabaseModeActive } = useAppData();
 
@@ -13,9 +13,9 @@ const SettingsGeneralPage: React.FC = () => {
     <div className="space-y-6">
       <Card title={t('general.title')}>
         <div className="text-center py-8">
-          <CogIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">{t('general.appSettingsHeader')}</h2>
-          <p className="text-gray-500">{t('general.appSettingsDescription')}</p>
+          <CogIcon className="w-16 h-16 text-surface-muted-fg mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-surface-foreground">{t('general.appSettingsHeader')}</h2>
+          <p className="text-surface-muted-fg">{t('general.appSettingsDescription')}</p>
         </div>
       </Card>
 
@@ -26,40 +26,40 @@ const SettingsGeneralPage: React.FC = () => {
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('schoolProfile.nameLabel')}
                 </label>
-                <p className="text-gray-900">{schoolDetails?.name || t('schoolProfile.notConfigured')}</p>
+                <p className="text-surface-foreground">{schoolDetails?.name || t('schoolProfile.notConfigured')}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('schoolProfile.codeLabel')}
                 </label>
-                <p className="text-gray-900">{schoolDetails?.school_code || t('schoolProfile.noCode')}</p>
+                <p className="text-surface-foreground">{schoolDetails?.school_code || t('schoolProfile.noCode')}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('schoolProfile.emailLabel')}
                 </label>
-                <p className="text-gray-900">{schoolDetails?.email || '-'}</p>
+                <p className="text-surface-foreground">{schoolDetails?.email || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('schoolProfile.telephoneLabel')}
                 </label>
-                <p className="text-gray-900">{schoolDetails?.telephone || '-'}</p>
+                <p className="text-surface-foreground">{schoolDetails?.telephone || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('schoolProfile.headTeacherLabel')}
                 </label>
-                <p className="text-gray-900">{schoolDetails?.head_teacher || '-'}</p>
+                <p className="text-surface-foreground">{schoolDetails?.head_teacher || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('schoolProfile.genderLabel')}
                 </label>
-                <p className="text-gray-900">
+                <p className="text-surface-foreground">
                   {schoolDetails?.gender === 'mixed' && t('schoolProfile.genderMixed')}
                   {schoolDetails?.gender === 'boys' && t('schoolProfile.genderBoys')}
                   {schoolDetails?.gender === 'girls' && t('schoolProfile.genderGirls')}
@@ -82,17 +82,17 @@ const SettingsGeneralPage: React.FC = () => {
       {/* User Management Overview */}
       <Card title={t('userManagement.title')}>
         <div className="flex items-start space-x-4">
-          <UserGroupIcon className="w-8 h-8 text-blue-500 mt-1" />
+          <UserGroupIcon className="w-8 h-8 text-primary-500 mt-1" />
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   {t('userManagement.totalUsers')}
                 </label>
-                <p className="text-2xl font-semibold text-gray-900">{users ? users.length : 0}</p>
+                <p className="text-2xl font-semibold text-surface-foreground">{users ? users.length : 0}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   Active Users
                 </label>
                 <p className="text-2xl font-semibold text-green-600">
@@ -100,7 +100,7 @@ const SettingsGeneralPage: React.FC = () => {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-surface-foreground mb-1">
                   Inactive Users
                 </label>
                 <p className="text-2xl font-semibold text-red-600">
@@ -125,35 +125,35 @@ const SettingsGeneralPage: React.FC = () => {
         <div className="flex items-start space-x-4">
           <CalendarDaysIcon className="w-8 h-8 text-green-500 mt-1" />
           <div className="flex-1">
-            <p className="text-gray-600 mb-4">{t('academicCalendar.description')}</p>
+            <p className="text-surface-muted-fg mb-4">{t('academicCalendar.description')}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link 
                 to="/administration/academic-structures" 
-                className="block p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                className="block p-3 border border-surface-border rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
               >
-                <h4 className="font-medium text-gray-900">{t('academicCalendar.linkAcademicStructures')}</h4>
-                <p className="text-sm text-gray-500">Configure term/semester structures</p>
+                <h4 className="font-medium text-surface-foreground">{t('academicCalendar.linkAcademicStructures')}</h4>
+                <p className="text-sm text-surface-muted-fg">Configure term/semester structures</p>
               </Link>
               <Link 
                 to="/administration/academic-period-definitions" 
-                className="block p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                className="block p-3 border border-surface-border rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
               >
-                <h4 className="font-medium text-gray-900">{t('academicCalendar.linkAcademicPeriodDefinitions')}</h4>
-                <p className="text-sm text-gray-500">Define academic period types</p>
+                <h4 className="font-medium text-surface-foreground">{t('academicCalendar.linkAcademicPeriodDefinitions')}</h4>
+                <p className="text-sm text-surface-muted-fg">Define academic period types</p>
               </Link>
               <Link 
                 to="/administration/academic-years" 
-                className="block p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                className="block p-3 border border-surface-border rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
               >
-                <h4 className="font-medium text-gray-900">{t('academicCalendar.linkAcademicYears')}</h4>
-                <p className="text-sm text-gray-500">Manage academic years</p>
+                <h4 className="font-medium text-surface-foreground">{t('academicCalendar.linkAcademicYears')}</h4>
+                <p className="text-sm text-surface-muted-fg">Manage academic years</p>
               </Link>
               <Link 
                 to="/administration/school-periods" 
-                className="block p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                className="block p-3 border border-surface-border rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
               >
-                <h4 className="font-medium text-gray-900">{t('academicCalendar.linkSchoolPeriods')}</h4>
-                <p className="text-sm text-gray-500">Configure terms and semesters</p>
+                <h4 className="font-medium text-surface-foreground">{t('academicCalendar.linkSchoolPeriods')}</h4>
+                <p className="text-sm text-surface-muted-fg">Configure terms and semesters</p>
               </Link>
             </div>
           </div>
@@ -165,21 +165,21 @@ const SettingsGeneralPage: React.FC = () => {
         <div className="flex items-start space-x-4">
           <ShieldCheckIcon className="w-8 h-8 text-purple-500 mt-1" />
           <div className="flex-1">
-            <p className="text-gray-600 mb-4">{t('rolesPermissions.description')}</p>
+            <p className="text-surface-muted-fg mb-4">{t('rolesPermissions.description')}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link 
                 to="/settings/users" 
-                className="block p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                className="block p-3 border border-surface-border rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
               >
-                <h4 className="font-medium text-gray-900">{t('navigation:settings.users')}</h4>
-                <p className="text-sm text-gray-500">Manage user accounts and role assignments</p>
+                <h4 className="font-medium text-surface-foreground">{t('navigation:settings.users')}</h4>
+                <p className="text-sm text-surface-muted-fg">Manage user accounts and role assignments</p>
               </Link>
               <Link 
                 to="/settings/workflows" 
-                className="block p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                className="block p-3 border border-surface-border rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
               >
-                <h4 className="font-medium text-gray-900">{t('navigation:settings.workflows')}</h4>
-                <p className="text-sm text-gray-500">Configure approval processes</p>
+                <h4 className="font-medium text-surface-foreground">{t('navigation:settings.workflows')}</h4>
+                <p className="text-sm text-surface-muted-fg">Configure approval processes</p>
               </Link>
             </div>
           </div>
@@ -190,23 +190,27 @@ const SettingsGeneralPage: React.FC = () => {
       <Card title="System Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               Data Mode
             </label>
-            <p className="text-gray-900">
+            <p className="text-surface-foreground">
               {isDatabaseModeActive ? 'Local Database' : 'Mock Data'}
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">
               Application Version
             </label>
-            <p className="text-gray-900">SchoolPilot3 v1.0.0</p>
+            <p className="text-surface-foreground">SchoolPilot3 v1.0.0</p>
           </div>
         </div>
       </Card>
     </div>
   );
+};
+
+const SettingsGeneralPage: React.FC = () => {
+  return <SettingsGeneralContent />;
 };
 
 export default SettingsGeneralPage;

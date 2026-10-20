@@ -1,8 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: SQLite WASM + OPFS Provider for production mode with high performance and persistence
 // ABOUTME: Implements IDatabaseProvider interface with SQLite WASM and Origin Private File System storage
 
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import {
   IDatabaseProvider,
   ICollection,
@@ -33,6 +35,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   private tableName: string;
   private queryCount = 0;
   private totalQueryTime = 0;
+  /** Column names in table order — used to decode positional rows from sqlite-wasm. */
+  private columnNamesCache: string[] | null = null;
+  /** Schema property names keyed by lower-case name, so stored columns round-trip with their declared casing. */
+  private schemaKeysCache: Map<string, string> | null = null;
 
   constructor(
     private db: Database,
@@ -49,9 +55,19 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     return name.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
   }
 
+  /**
+   * Safely quote a column/identifier for SQLite so that SQL reserved keywords
+   * (e.g. the "references" property on weekly plans) can be used as columns.
+   */
+  private quoteIdentifier(name: string): string {
+    return `"${String(name).replace(/"/g, '""')}"`;
+  }
+
   private createTable(): void {
     try {
-      console.log(`[SQLiteWASMCollection] Creating table: ${this.tableName}`);
+      logger.info(`[SQLiteWASMCollection] Creating table: ${this.tableName}`);
+      // Schema (re)creation invalidates any cached column list
+      this.columnNamesCache = null;
       
       // Use schema converter to generate proper SQLite schema
       const conversionResult = SchemaConverter.convertRxDBToSQLite(this.name, this.schema);
@@ -60,6 +76,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       const createTableSQL = SchemaConverter.generateCreateTableSQL(conversionResult.sqlSchema);
       
       this.db.exec(createTableSQL);
+      // CREATE TABLE IF NOT EXISTS leaves an older table untouched: add any schema columns it lacks.
+      this.addMissingColumns(conversionResult.sqlSchema.columns);
       
       // Create indexes for performance
       const indexSQLs = SchemaConverter.generateCreateIndexSQL(this.tableName, conversionResult.indexes);
@@ -68,14 +86,55 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           this.db.exec(indexSQL);
         } catch (indexError) {
           // Index might already exist, log warning but continue
-          console.warn(`[SQLiteWASMCollection] Index creation warning for ${this.tableName}:`, indexError);
+          const detail = indexError instanceof Error ? indexError.message : String(indexError);
+          logger.warn(`[SQLiteWASMCollection] Index creation warning for ${this.tableName}: ${detail} | SQL: ${indexSQL.replace(/\s+/g, ' ')}`);
         }
       });
       
-      console.log(`[SQLiteWASMCollection] Successfully created table ${this.tableName} with ${conversionResult.indexes.length} indexes`);
+      logger.info(`[SQLiteWASMCollection] Successfully created table ${this.tableName} with ${conversionResult.indexes.length} indexes`);
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Failed to create table ${this.tableName}:`, error);
-      throw new CollectionError(`Failed to create table ${this.tableName}`, this.name);
+      const detail = error instanceof Error ? error.message : String(error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] Failed to create table ${this.tableName}: ${detail}`, error);
+      throw new CollectionError(`Failed to create table ${this.tableName}: ${detail}`, this.name);
+    }
+  }
+
+  /**
+   * Additive schema sync: for each schema column the existing table lacks, run
+   * ALTER TABLE ... ADD COLUMN as a nullable column with no default, so existing
+   * rows are never rewritten. Existing columns are never dropped, renamed or
+   * retyped. The statements go through db.exec, so they are forwarded to the
+   * storage worker like other DDL; createCollection awaits their persistence.
+   * Any failure is a StorageUnavailableError: the store cannot hold this schema.
+   */
+  private addMissingColumns(columns: Array<{ name: string; type: string }>): void {
+    let info: any[];
+    try {
+      info = this.db.exec({ sql: `PRAGMA table_info(${this.tableName})`, returnValue: 'resultRows' }) as any[];
+    } catch (error) {
+      throw toStorageUnavailableError(error, `Could not read the columns of table ${this.tableName}`);
+    }
+    // PRAGMA table_info row: [cid, name, type, notnull, dflt_value, pk]
+    const existing = new Set((info || []).map((r: any) => String(Array.isArray(r) ? r[1] : r.name ?? r[1])));
+    if (existing.size === 0) {
+      // A table that exists always has columns; an empty answer means there is nothing to compare against.
+      logger.warn(`[SQLiteWASMCollection] ${this.tableName}: no column info returned; skipping column sync`);
+      return;
+    }
+    const missing = columns.filter((column) => !existing.has(column.name));
+    for (const column of missing) {
+      const sql = `ALTER TABLE ${this.quoteIdentifier(this.tableName)} ADD COLUMN ${this.quoteIdentifier(column.name)} ${column.type}`;
+      try {
+        this.db.exec(sql);
+      } catch (error) {
+        throw toStorageUnavailableError(error, `Could not add column ${column.name} to table ${this.tableName}`);
+      } finally {
+        this.columnNamesCache = null;
+      }
+    }
+    if (missing.length > 0) {
+      logger.info(`[SQLiteWASMCollection] ${this.tableName}: added missing columns ${missing.map((c) => c.name).join(', ')}`);
     }
   }
 
@@ -84,7 +143,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       const data = await this.find();
       this.dataSubject.next(data);
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Failed to load initial data for ${this.name}:`, error);
+      logger.error(`[SQLiteWASMCollection] Failed to load initial data for ${this.name}:`, error);
     }
   }
 
@@ -100,7 +159,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       
       // Log slow queries (>100ms)
       if (queryTime > 100) {
-        console.warn(`[SQLiteWASMCollection] Slow query detected in ${this.name}: ${queryTime.toFixed(2)}ms`);
+        logger.warn(`[SQLiteWASMCollection] Slow query detected in ${this.name}: ${queryTime.toFixed(2)}ms`);
       }
       
       return result;
@@ -113,22 +172,56 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     }
   }
 
+  /**
+   * Intersect a document's keys with the table's real columns, matching
+   * case-insensitively because schema properties keep camelCase (`compositeId`)
+   * while SQLite column names are lower-cased on creation. Without the match a
+   * camelCase primary key was dropped from the INSERT and stored as NULL, so
+   * every re-seed looked like a new row.
+   *
+   * Documents may also carry extra/denormalized properties (e.g. nested
+   * `streams` arrays or display-only labels) that are not table columns;
+   * including them in an INSERT/UPDATE produced "no such column" failures that
+   * were swallowed by bulk-write error collection. Unknown keys are dropped and
+   * reported at debug.
+   */
+  private writableColumns(doc: Record<string, any>): Array<{ column: string; key: string }> {
+    const keys = Object.keys(doc);
+    const known = this.getColumnNames();
+    if (known.length === 0) return keys.map((key) => ({ column: key, key })); // schema unknown → preserve legacy behavior
+    const columnByKey = new Map(known.map((column) => [column.toLowerCase(), column]));
+    const resolved: Array<{ column: string; key: string }> = [];
+    const dropped: string[] = [];
+    for (const key of keys) {
+      const column = columnByKey.get(key.toLowerCase());
+      if (column) {
+        resolved.push({ column, key });
+      } else {
+        dropped.push(key);
+      }
+    }
+    if (dropped.length > 0) {
+      logger.debug(`[SQLiteWASMCollection] ${this.name}: ignoring non-column keys on write: ${dropped.join(', ')}`);
+    }
+    return resolved;
+  }
+
   async insert(doc: Omit<T, 'id'>): Promise<InsertResult<T>> {
     if (this.isDestroyed) {
       throw new CollectionError('Collection has been destroyed', this.name);
     }
 
-    return this.trackQueryPerformance(() => {
+    const result = this.trackQueryPerformance(() => {
       try {
         const id = (doc as any).id || this.generateId();
         const docWithId = { ...doc, id } as T;
         
-        // Convert document to SQL values
-        const columns = Object.keys(docWithId as any);
+        // Convert document to SQL values (only real table columns)
+        const columns = this.writableColumns(docWithId as any);
         const placeholders = columns.map(() => '?').join(', ');
-        const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
+        const values = columns.map(({ key }) => this.serializeValue((docWithId as any)[key]));
         
-        const sql = `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+        const sql = `INSERT INTO ${this.tableName} (${columns.map(({ column }) => this.quoteIdentifier(column)).join(', ')}) VALUES (${placeholders})`;
         
         this.db.exec({
           sql: sql,
@@ -151,10 +244,13 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           ok: true
         };
       } catch (error) {
-        console.error(`[SQLiteWASMCollection] Insert failed in ${this.name}:`, error);
+        if (error instanceof StorageUnavailableError) throw error;
+        logger.error(`[SQLiteWASMCollection] Insert failed in ${this.name}:`, error);
         throw new CollectionError(`Insert failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
     });
+    await flushPersistentWrites(this.db, this.name);
+    return result;
   }
 
   async insertMany(docs: Omit<T, 'id'>[]): Promise<BulkResult<T>> {
@@ -176,11 +272,11 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
           const docWithId = { ...doc, id } as T;
 
           // Inline synchronous insert logic for use within transaction
-          const columns = Object.keys(docWithId as any);
+          const columns = this.writableColumns(docWithId as any);
           const placeholders = columns.map(() => '?').join(', ');
-          const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
+          const values = columns.map(({ key }) => this.serializeValue((docWithId as any)[key]));
 
-          const sql = `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+          const sql = `INSERT INTO ${this.tableName} (${columns.map(({ column }) => this.quoteIdentifier(column)).join(', ')}) VALUES (${placeholders})`;
 
           this.db.exec({
             sql: sql,
@@ -211,13 +307,18 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
       // Log slow queries
       if (queryTime > 100) {
-        console.warn(`[SQLiteWASMCollection] Slow batch insert in ${this.name}: ${queryTime.toFixed(2)}ms`);
+        logger.warn(`[SQLiteWASMCollection] Slow batch insert in ${this.name}: ${queryTime.toFixed(2)}ms`);
       }
 
       // Update data subject once after all inserts
       this.updateDataSubject();
 
-      return { docs: results, errors };
+      // Surface partial-batch failures instead of silently reporting success
+      if (errors.length > 0) {
+        logger.warn(
+          `[SQLiteWASMCollection] ${this.name}: ${errors.length}/${docs.length} batch inserts failed (first: ${errors[0]?.reason})`
+        );
+      }
     } catch (error) {
       this.db.exec('ROLLBACK');
       // Track performance even on failure
@@ -226,6 +327,9 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       this.totalQueryTime += (endTime - startTime);
       throw error;
     }
+
+    await flushPersistentWrites(this.db, this.name);
+    return { docs: results, errors };
   }
 
   async findOne(query: QueryOptions | string): Promise<T | null> {
@@ -257,9 +361,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         });
         
         const rows = result as any[];
-        return rows.length > 0 ? this.deserializeDocument(rows[0]) : null;
+        return rows.length > 0 ? this.deserializeRow(rows[0]) : null;
       } catch (error) {
-        console.error(`[SQLiteWASMCollection] FindOne failed in ${this.name}:`, error);
+        if (error instanceof StorageUnavailableError) throw error;
+        logger.error(`[SQLiteWASMCollection] FindOne failed in ${this.name}:`, error);
         throw new CollectionError(`FindOne failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
     });
@@ -307,9 +412,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         });
         
         const rows = result as any[];
-        return rows.map(row => this.deserializeDocument(row));
+        return rows.map(row => this.deserializeRow(row));
       } catch (error) {
-        console.error(`[SQLiteWASMCollection] Find failed in ${this.name}:`, error);
+        if (error instanceof StorageUnavailableError) throw error;
+        logger.error(`[SQLiteWASMCollection] Find failed in ${this.name}:`, error);
         throw new CollectionError(`Find failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
     });
@@ -328,10 +434,13 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         throw new CollectionError(`Document with id ${id} not found`, this.name);
       }
       
-      // Build UPDATE SQL
-      const updateFields = Object.keys(update).filter(key => key !== 'id');
-      const setClause = updateFields.map(field => `${field} = ?`).join(', ');
-      const values = updateFields.map(field => this.serializeValue((update as any)[field]));
+      // Build UPDATE SQL (only real table columns — see writableColumns)
+      const updateFields = this.writableColumns(update as Record<string, any>).filter(({ column }) => column !== 'id');
+      if (updateFields.length === 0) {
+        return { success: true, modifiedCount: 0, document: existing as T };
+      }
+      const setClause = updateFields.map(({ column }) => `${this.quoteIdentifier(column)} = ?`).join(', ');
+      const values = updateFields.map(({ key }) => this.serializeValue((update as any)[key]));
       
       const sql = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
       values.push(id);
@@ -341,6 +450,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         bind: values
       });
       
+      await flushPersistentWrites(this.db, this.name);
+
       // Get updated document
       const updatedDoc = await this.findById(id);
       
@@ -370,7 +481,9 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       this.queryCount++;
       this.totalQueryTime += (endTime - startTime);
       
-      console.error(`[SQLiteWASMCollection] Update failed in ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      
+      logger.error(`[SQLiteWASMCollection] Update failed in ${this.name}:`, error);
       throw new CollectionError(`Update failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -397,13 +510,16 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         }
         
         this.db.exec('COMMIT');
+        await flushPersistentWrites(this.db, this.name);
         return results;
       } catch (error) {
         this.db.exec('ROLLBACK');
+        await flushPersistentWrites(this.db, this.name);
         throw error;
       }
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] UpdateMany failed in ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] UpdateMany failed in ${this.name}:`, error);
       throw new CollectionError(`UpdateMany failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -422,6 +538,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         sql: sql,
         bind: [id]
       });
+      await flushPersistentWrites(this.db, this.name);
       
       // Emit change event
       if (existing) {
@@ -441,7 +558,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         deleted: true
       };
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Remove failed in ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] Remove failed in ${this.name}:`, error);
       throw new CollectionError(`Remove failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -468,13 +586,16 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         }
         
         this.db.exec('COMMIT');
+        await flushPersistentWrites(this.db, this.name);
         return results;
       } catch (error) {
         this.db.exec('ROLLBACK');
+        await flushPersistentWrites(this.db, this.name);
         throw error;
       }
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] RemoveMany failed in ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] RemoveMany failed in ${this.name}:`, error);
       throw new CollectionError(`RemoveMany failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -520,7 +641,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         const rows = result as any[];
         return rows.length > 0 ? (rows[0][0] as number) : 0;
       } catch (error) {
-        console.error(`[SQLiteWASMCollection] Count failed in ${this.name}:`, error);
+        if (error instanceof StorageUnavailableError) throw error;
+        logger.error(`[SQLiteWASMCollection] Count failed in ${this.name}:`, error);
         throw new CollectionError(`Count failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
       }
     });
@@ -538,15 +660,17 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
     try {
       const indexName = `idx_${this.tableName}_${index.name}`;
-      const fields = index.fields.join(', ');
+      const fields = index.fields.map(field => this.quoteIdentifier(field)).join(', ');
       const unique = index.unique ? 'UNIQUE' : '';
       
       const sql = `CREATE ${unique} INDEX IF NOT EXISTS ${indexName} ON ${this.tableName} (${fields})`;
       
       this.db.exec(sql);
-      console.log(`[SQLiteWASMCollection] Created index ${indexName} on ${this.tableName}`);
+      await flushPersistentWrites(this.db, this.name);
+      logger.info(`[SQLiteWASMCollection] Created index ${indexName} on ${this.tableName}`);
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Failed to create index on ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] Failed to create index on ${this.name}:`, error);
       throw new CollectionError(`Failed to create index: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -558,14 +682,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
     try {
       const count = await this.count();
-      
-      // Get table info
-      const tableInfoResult = this.db.exec({
-        sql: `PRAGMA table_info(${this.tableName})`,
-        returnValue: 'resultRows'
-      });
-      const tableInfo = tableInfoResult as any[];
-      
+
       // Get index info
       const indexInfoResult = this.db.exec({
         sql: `PRAGMA index_list(${this.tableName})`,
@@ -581,7 +698,8 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         lastModified: new Date()
       };
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Failed to get stats for ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] Failed to get stats for ${this.name}:`, error);
       throw new CollectionError(`Failed to get stats: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -593,18 +711,27 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
     try {
       // SQLite doesn't need explicit compaction, but we can run VACUUM
-      console.log(`[SQLiteWASMCollection] Compacting collection ${this.name}...`);
+      logger.info(`[SQLiteWASMCollection] Compacting collection ${this.name}...`);
       this.db.exec('VACUUM');
-      console.log(`[SQLiteWASMCollection] Collection ${this.name} compacted successfully`);
+      await flushPersistentWrites(this.db, this.name);
+      logger.info(`[SQLiteWASMCollection] Collection ${this.name} compacted successfully`);
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Failed to compact ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] Failed to compact ${this.name}:`, error);
       throw new CollectionError(`Failed to compact: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
 
+  /** Release this collection's streams without touching its table (used on provider shutdown). */
+  close(): void {
+    this.isDestroyed = true;
+    this.changeSubject.complete();
+    this.dataSubject.complete();
+  }
+
   async destroy(): Promise<void> {
     try {
-      console.log(`[SQLiteWASMCollection] Destroying collection ${this.name}...`);
+      logger.info(`[SQLiteWASMCollection] Destroying collection ${this.name}...`);
       
       this.isDestroyed = true;
       
@@ -614,10 +741,12 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       
       // Drop table
       this.db.exec(`DROP TABLE IF EXISTS ${this.tableName}`);
+      await flushPersistentWrites(this.db, this.name);
       
-      console.log(`[SQLiteWASMCollection] Collection ${this.name} destroyed successfully`);
+      logger.info(`[SQLiteWASMCollection] Collection ${this.name} destroyed successfully`);
     } catch (error) {
-      console.error(`[SQLiteWASMCollection] Failed to destroy ${this.name}:`, error);
+      if (error instanceof StorageUnavailableError) throw error;
+      logger.error(`[SQLiteWASMCollection] Failed to destroy ${this.name}:`, error);
       throw new CollectionError(`Failed to destroy: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -640,8 +769,9 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
 
   private deserializeDocument(row: any): T {
     const doc: any = {};
-    
-    for (const [key, value] of Object.entries(row)) {
+
+    for (const [column, value] of Object.entries(row)) {
+      const key = this.documentKey(column);
       if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
         try {
           doc[key] = JSON.parse(value);
@@ -652,8 +782,75 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
         doc[key] = value;
       }
     }
-    
+
     return doc as T;
+  }
+
+  /**
+   * Schema property names keyed by their lower-case form. SQLite reports the
+   * sanitised column (`compositeid`) while the schema declares `compositeId`;
+   * reading through this map keeps documents in the shape every consumer and
+   * the seeder's primary-key check expect.
+   */
+  private schemaKeys(): Map<string, string> {
+    if (this.schemaKeysCache) return this.schemaKeysCache;
+    const keys = new Map<string, string>();
+    for (const key of Object.keys(this.schema?.properties ?? {})) {
+      keys.set(key.toLowerCase(), key);
+    }
+    this.schemaKeysCache = keys;
+    return keys;
+  }
+
+  private documentKey(column: string): string {
+    return this.schemaKeys().get(column.toLowerCase()) ?? column;
+  }
+
+  /**
+   * Column names in table order. sqlite-wasm's exec() returns rows as POSITIONAL
+   * arrays (rowMode defaults to 'array'); consumers need named fields, so rows are
+   * zipped against this list. Cached per collection; invalidated on schema change.
+   */
+  private getColumnNames(): string[] {
+    if (this.columnNamesCache) return this.columnNamesCache;
+    try {
+      const info = this.db.exec({
+        sql: `PRAGMA table_info(${this.tableName})`,
+        returnValue: 'resultRows'
+      }) as any[];
+      // PRAGMA table_info row: [cid, name, type, notnull, dflt_value, pk]
+      this.columnNamesCache = info.map((r: any) => String(Array.isArray(r) ? r[1] : r.name ?? r[1]));
+    } catch (error) {
+      logger.warn(`[SQLiteWASMCollection] Failed to read column names for ${this.tableName}:`, error);
+      this.columnNamesCache = [];
+    }
+    return this.columnNamesCache;
+  }
+
+  /**
+   * Convert a raw sqlite-wasm row (positional array, or an object keyed by column
+   * index from older code paths) into a document keyed by real column names, then
+   * deserialize JSON-encoded field values.
+   */
+  private deserializeRow(row: any): T {
+    if (row && typeof row === 'object' && !Array.isArray(row)) {
+      const keys = Object.keys(row);
+      const isPositional = keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
+      if (!isPositional) {
+        return this.deserializeDocument(row);
+      }
+      const cols = this.getColumnNames();
+      const named: any = {};
+      cols.forEach((col, i) => { named[col] = row[String(i)] ?? row[i]; });
+      return this.deserializeDocument(named);
+    }
+    if (Array.isArray(row)) {
+      const cols = this.getColumnNames();
+      const named: any = {};
+      cols.forEach((col, i) => { named[col] = row[i]; });
+      return this.deserializeDocument(named);
+    }
+    return this.deserializeDocument(row);
   }
 
   private buildWhereClause(selector: Record<string, any>): { whereClause: string; whereParams: any[] } {
@@ -661,48 +858,49 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     const params: any[] = [];
     
     for (const [field, value] of Object.entries(selector)) {
+      const quotedField = this.quoteIdentifier(field);
       if (typeof value === 'object' && value !== null) {
         // Handle operators like $gt, $lt, etc.
         for (const [operator, operatorValue] of Object.entries(value)) {
           switch (operator) {
             case '$gt':
-              conditions.push(`${field} > ?`);
+              conditions.push(`${quotedField} > ?`);
               params.push(operatorValue);
               break;
             case '$gte':
-              conditions.push(`${field} >= ?`);
+              conditions.push(`${quotedField} >= ?`);
               params.push(operatorValue);
               break;
             case '$lt':
-              conditions.push(`${field} < ?`);
+              conditions.push(`${quotedField} < ?`);
               params.push(operatorValue);
               break;
             case '$lte':
-              conditions.push(`${field} <= ?`);
+              conditions.push(`${quotedField} <= ?`);
               params.push(operatorValue);
               break;
             case '$ne':
-              conditions.push(`${field} != ?`);
+              conditions.push(`${quotedField} != ?`);
               params.push(operatorValue);
               break;
             case '$in':
               if (Array.isArray(operatorValue)) {
                 const placeholders = operatorValue.map(() => '?').join(', ');
-                conditions.push(`${field} IN (${placeholders})`);
+                conditions.push(`${quotedField} IN (${placeholders})`);
                 params.push(...operatorValue);
               }
               break;
             case '$nin':
               if (Array.isArray(operatorValue)) {
                 const placeholders = operatorValue.map(() => '?').join(', ');
-                conditions.push(`${field} NOT IN (${placeholders})`);
+                conditions.push(`${quotedField} NOT IN (${placeholders})`);
                 params.push(...operatorValue);
               }
               break;
           }
         }
       } else {
-        conditions.push(`${field} = ?`);
+        conditions.push(`${quotedField} = ?`);
         params.push(this.serializeValue(value));
       }
     }
@@ -716,10 +914,10 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     
     for (const sortItem of sort) {
       if (typeof sortItem === 'string') {
-        orderBy.push(sortItem);
+        orderBy.push(this.quoteIdentifier(sortItem));
       } else if (typeof sortItem === 'object') {
         for (const [field, direction] of Object.entries(sortItem)) {
-          orderBy.push(`${field} ${direction === 'desc' ? 'DESC' : 'ASC'}`);
+          orderBy.push(`${this.quoteIdentifier(field)} ${direction === 'desc' ? 'DESC' : 'ASC'}`);
         }
       }
     }
@@ -822,7 +1020,7 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
     this.find().then(data => {
       this.dataSubject.next(data);
     }).catch(error => {
-      console.error(`[SQLiteWASMCollection] Failed to update data subject for ${this.name}:`, error);
+      logger.error(`[SQLiteWASMCollection] Failed to update data subject for ${this.name}:`, error);
     });
   }
 
@@ -834,6 +1032,215 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Persistent storage
+//
+// The OPFS VFSes need synchronous file handles, which browsers only expose to
+// Web Workers. The durable database therefore lives in `sqliteWorker.ts` on the
+// `opfs-sahpool` VFS. The main thread keeps a working copy, deserialised from the
+// worker's snapshot at start-up, so collection reads stay synchronous; every
+// mutating statement that succeeds locally is forwarded to the worker in order,
+// and collection writes resolve only after the worker has applied them.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Raised when no persistent storage can be opened; the app must not continue writing. */
+export class StorageUnavailableError extends DatabaseError {
+  constructor(message: string, public readonly cause?: unknown) {
+    super(message, 'STORAGE_UNAVAILABLE', 'SQLiteWASM');
+    this.name = 'StorageUnavailableError';
+  }
+}
+
+/** Wrap any error as StorageUnavailableError, keeping its message and the original as `cause`. */
+export function toStorageUnavailableError(error: unknown, prefix?: string): StorageUnavailableError {
+  if (error instanceof StorageUnavailableError) return error;
+  const detail = error instanceof Error ? error.message : String(error);
+  return new StorageUnavailableError(prefix ? `${prefix}: ${detail}` : detail, error);
+}
+
+export type SQLiteStorageMode = 'uninitialised' | 'opfs-sahpool' | 'memory' | 'unavailable';
+
+export interface SQLiteStorageStatus {
+  mode: SQLiteStorageMode;
+  /** Result of navigator.storage.persist(); null when not requested or unsupported. */
+  persisted: boolean | null;
+  error?: string;
+}
+
+let storageStatus: SQLiteStorageStatus = { mode: 'uninitialised', persisted: null };
+const storageStatusListeners = new Set<() => void>();
+
+export function getSQLiteStorageStatus(): SQLiteStorageStatus {
+  return storageStatus;
+}
+
+export function subscribeSQLiteStorageStatus(listener: () => void): () => void {
+  storageStatusListeners.add(listener);
+  return () => {
+    storageStatusListeners.delete(listener);
+  };
+}
+
+export function setSQLiteStorageStatus(next: SQLiteStorageStatus): void {
+  storageStatus = next;
+  storageStatusListeners.forEach((listener) => listener());
+}
+
+/** True for statements that change the database and must reach persistent storage. */
+export function isPersistentStatement(sql: string): boolean {
+  const statement = sql.trim();
+  if (/^(SELECT|EXPLAIN|VALUES)\b/i.test(statement)) return false;
+  if (/^PRAGMA\b/i.test(statement)) {
+    // Only settings assignments matter; the persistent VFS manages its own journal.
+    return /^PRAGMA\s+\w+\s*=/i.test(statement) && !/^PRAGMA\s+journal_mode\b/i.test(statement);
+  }
+  return true;
+}
+
+/** How long the storage worker may take to open the database file. */
+export const STORAGE_OPEN_TIMEOUT_MS = 30000;
+/** How long the storage worker may take to confirm a single forwarded write. */
+export const STORAGE_WRITE_TIMEOUT_MS = 30000;
+
+/** Main-thread side of the storage worker protocol (see sqliteWorker.ts). */
+class StorageWorkerClient {
+  private nextId = 1;
+  private pending = new Map<number, { resolve: (bytes?: Uint8Array) => void; reject: (error: Error) => void }>();
+  private inFlight = new Set<Promise<unknown>>();
+  /** First persistence failure; once set the store is unavailable and every later write is refused. */
+  private failure: StorageUnavailableError | null = null;
+  private opened = false;
+
+  constructor(private worker: Worker) {
+    worker.onmessage = (event: MessageEvent) => {
+      const response = event.data;
+      const entry = this.pending.get(response?.id);
+      if (!entry) return;
+      this.pending.delete(response.id);
+      if (response.ok) entry.resolve(response.bytes);
+      else entry.reject(new Error(response.error));
+    };
+    const crashed = (kind: string) => (event: any) => {
+      const error = new StorageUnavailableError(`Storage worker ${kind}: ${event?.message || 'unknown error'}`);
+      if (this.opened) this.markFailed(error);
+      this.pending.forEach((entry) => entry.reject(error));
+      this.pending.clear();
+    };
+    worker.onerror = crashed('failed');
+    worker.onmessageerror = crashed('sent an unreadable message');
+  }
+
+  get failed(): StorageUnavailableError | null {
+    return this.failure;
+  }
+
+  private markFailed(error: unknown): void {
+    if (this.failure) return;
+    this.failure = toStorageUnavailableError(error, 'Write could not be saved to persistent storage');
+    setSQLiteStorageStatus({ mode: 'unavailable', persisted: null, error: this.failure.message });
+  }
+
+  private request(message: Record<string, unknown>, timeoutMs: number): Promise<Uint8Array | undefined> {
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new StorageUnavailableError(`Storage worker did not respond within ${timeoutMs / 1000}s`));
+      }, timeoutMs);
+      this.pending.set(id, {
+        resolve: (bytes) => { clearTimeout(timer); resolve(bytes); },
+        reject: (error) => { clearTimeout(timer); reject(error); },
+      });
+      this.worker.postMessage({ id, ...message });
+    });
+  }
+
+  async open(dbName: string): Promise<Uint8Array> {
+    const bytes = await this.request({ type: 'open', dbName }, STORAGE_OPEN_TIMEOUT_MS);
+    this.opened = true;
+    return bytes ?? new Uint8Array();
+  }
+
+  forward(sql: string, bind: unknown): void {
+    const message = bind === undefined ? { type: 'exec', sql } : { type: 'exec', sql, bind };
+    const write = this.request(message, STORAGE_WRITE_TIMEOUT_MS)
+      .catch((error: Error) => {
+        this.markFailed(error);
+        logger.error(`[SQLiteWASMProvider] Write was NOT persisted to OPFS: ${error.message} | SQL: ${sql.slice(0, 200)}`);
+      })
+      .finally(() => this.inFlight.delete(write));
+    this.inFlight.add(write);
+  }
+
+  /** Resolves once every forwarded write is persisted; rejects once any write has failed. */
+  async flush(): Promise<void> {
+    while (this.inFlight.size > 0) {
+      await Promise.all(Array.from(this.inFlight));
+    }
+    if (this.failure) throw this.failure;
+  }
+
+  async close(): Promise<void> {
+    try {
+      await this.flush();
+      await this.request({ type: 'close' }, STORAGE_WRITE_TIMEOUT_MS);
+    } finally {
+      this.terminate();
+    }
+  }
+
+  terminate(): void {
+    this.worker.terminate();
+  }
+}
+
+const writeThroughClients = new WeakMap<object, StorageWorkerClient>();
+
+/** Mirror every successful mutating statement on `db` to the storage worker. */
+function attachWriteThrough(db: Database, client: StorageWorkerClient): void {
+  const localExec = (db.exec as (...args: any[]) => any).bind(db);
+  (db as any).exec = (arg: any, ...rest: any[]) => {
+    const options = typeof arg === 'string' ? { sql: arg, ...(rest[0] || {}) } : arg;
+    const persistent = typeof options?.sql === 'string' && isPersistentStatement(options.sql);
+    if (persistent && client.failed) {
+      // The durable copy has diverged: refuse further changes. A ROLLBACK only
+      // discards local changes, so it is still applied to the working copy.
+      if (/^\s*ROLLBACK\b/i.test(options.sql)) return localExec(arg, ...rest);
+      throw client.failed;
+    }
+    const result = localExec(arg, ...rest);
+    if (persistent) {
+      client.forward(options.sql, options.bind);
+    }
+    return result;
+  };
+  writeThroughClients.set(db, client);
+}
+
+/** Wait until writes issued on `db` are durable; no-op for a temporary database. */
+async function flushPersistentWrites(db: Database, collectionName: string): Promise<void> {
+  const client = writeThroughClients.get(db);
+  if (!client) return;
+  try {
+    await client.flush();
+  } catch (error) {
+    logger.error(`[SQLiteWASMProvider] ${collectionName}: write not persisted`, error);
+    throw toStorageUnavailableError(error, 'Write could not be saved to persistent storage');
+  }
+}
+
+async function requestPersistentStorage(): Promise<boolean | null> {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.storage?.persist !== 'function') return null;
+    return await navigator.storage.persist();
+  } catch {
+    return null;
+  }
+}
+
+/** True only when VITE_DB_ALLOW_MEMORY=true opts in to a temporary database that is erased on reload. */
+export const memoryDatabaseAllowed = (): boolean => import.meta.env.VITE_DB_ALLOW_MEMORY === 'true';
+
 // SQLite WASM Provider Implementation
 export class SQLiteWASMProvider implements IDatabaseProvider {
   public readonly name = 'SQLiteWASM';
@@ -844,6 +1251,8 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   private isInitialized = false;
   private config: DatabaseConfig;
   private sqlite3: any = null;
+  private storageClient: StorageWorkerClient | null = null;
+  private initializing: Promise<void> | null = null;
 
   // Connection Pool / Query Queue
   private isExecuting = false;
@@ -893,17 +1302,29 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   }
 
   async initialize(config?: DatabaseConfig): Promise<void> {
+    // The persistent store allows a single connection: concurrent and repeated
+    // callers share the first initialisation instead of opening a second one.
+    if (this.isInitialized && this.db) {
+      if (config?.name && config.name !== this.config.name) {
+        logger.warn(`[SQLiteWASMProvider] Already initialized as '${this.config.name}'; ignoring request for '${config.name}'`);
+      }
+      return;
+    }
+    if (!this.initializing) {
+      this.initializing = this.openAndConfigure(config).finally(() => {
+        this.initializing = null;
+      });
+    }
+    return this.initializing;
+  }
+
+  private async openAndConfigure(config?: DatabaseConfig): Promise<void> {
     try {
-      console.log('[SQLiteWASMProvider] Initializing SQLite WASM + OPFS Provider for production...');
+      logger.info('[SQLiteWASMProvider] Initializing SQLite WASM + OPFS Provider for production...');
       
       // Update config if provided
       if (config) {
         this.config = { ...this.config, ...config };
-      }
-
-      // Check OPFS availability
-      if (!this.isOPFSAvailable()) {
-        throw new Error('OPFS (Origin Private File System) is not available in this environment');
       }
 
       // Initialize SQLite WASM
@@ -916,28 +1337,35 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         throw new Error('Failed to initialize SQLite WASM module');
       }
 
-      // Create database with OPFS storage
-      const dbPath = `/opfs/${this.config.name}.db`;
-      
+      // Open the persistent store. There is deliberately no silent in-memory
+      // fallback: without durable storage every reload would erase the school's
+      // data, so initialisation fails unless memory is explicitly allowed.
       try {
-        this.db = new this.sqlite3.oo1.OpfsDb(dbPath);
-        console.log(`[SQLiteWASMProvider] Created OPFS database: ${dbPath}`);
-      } catch (opfsError) {
-        console.warn('[SQLiteWASMProvider] OPFS database creation failed, falling back to memory:', opfsError);
+        this.db = await this.openPersistentDatabase();
+        setSQLiteStorageStatus({ mode: 'opfs-sahpool', persisted: await requestPersistentStorage() });
+        logger.info(`[SQLiteWASMProvider] Opened persistent database ${this.config.name}.sqlite3 (opfs-sahpool, via storage worker)`);
+      } catch (storageError) {
+        const detail = storageError instanceof Error ? storageError.message : String(storageError);
+        if (!memoryDatabaseAllowed()) {
+          setSQLiteStorageStatus({ mode: 'unavailable', persisted: null, error: detail });
+          throw storageError;
+        }
+        logger.warn(`[SQLiteWASMProvider] Persistent storage unavailable (${detail}). VITE_DB_ALLOW_MEMORY=true: using a TEMPORARY database that is erased on reload.`);
         this.db = new this.sqlite3.oo1.DB();
+        setSQLiteStorageStatus({ mode: 'memory', persisted: null, error: detail });
       }
 
       // Configure SQLCipher Encryption if a key is provided
       if (this.config.encryptionKey) {
-        console.log('[SQLiteWASMProvider] Applying SQLCipher encryption key...');
+        logger.info('[SQLiteWASMProvider] Applying SQLCipher encryption key...');
         try {
           // In a real SQLCipher-compiled WASM environment, this PRAGMA enables encryption.
           this.db.exec(`PRAGMA key = '${this.config.encryptionKey}';`);
           // Verify encryption works by attempting a basic read
           this.db.exec('SELECT count(*) FROM sqlite_master;');
-          console.log('[SQLiteWASMProvider] SQLCipher encryption successfully initialized.');
+          logger.info('[SQLiteWASMProvider] SQLCipher encryption successfully initialized.');
         } catch (encError) {
-          console.error('[SQLiteWASMProvider] Failed to initialize encryption. Ensure sqlite3 was compiled with SQLCipher support.', encError);
+          logger.error('[SQLiteWASMProvider] Failed to initialize encryption. Ensure sqlite3 was compiled with SQLCipher support.', encError);
           throw new DatabaseError('Failed to initialize database encryption', 'ENCRYPTION_ERROR', this.name);
         }
       }
@@ -950,12 +1378,92 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       await this.configureProductionSettings();
 
       this.isInitialized = true;
-      console.log('[SQLiteWASMProvider] Successfully initialized SQLite WASM + OPFS provider');
+      logger.info('[SQLiteWASMProvider] Successfully initialized SQLite WASM + OPFS provider');
 
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Initialization failed:', error);
-      throw error;
+      logger.error('[SQLiteWASMProvider] Initialization failed:', error);
+      if (memoryDatabaseAllowed()) throw error;
+      // Without an explicitly allowed temporary database, any failure to open
+      // SQLite means there is no persistent store: fail closed, never fall back.
+      const storageError = toStorageUnavailableError(error, 'SQLite database could not be opened');
+      setSQLiteStorageStatus({ mode: 'unavailable', persisted: null, error: storageError.message });
+      if (this.storageClient) {
+        this.storageClient.terminate();
+        this.storageClient = null;
+      }
+      this.db = null;
+      throw storageError;
     }
+  }
+
+  /** Spawn the Web Worker that owns the OPFS database (overridden in tests). */
+  protected createStorageWorker(): Worker {
+    if (typeof Worker === 'undefined') {
+      throw new Error('Web Workers are not supported in this environment');
+    }
+    return new Worker(new URL('./sqliteWorker.ts', import.meta.url), { type: 'module', name: 'schoolpilot-sqlite' });
+  }
+
+  /**
+   * Open the database file in the storage worker and return a main-thread
+   * working copy wired to persist every write. Throws StorageUnavailableError.
+   */
+  private async openPersistentDatabase(): Promise<Database> {
+    if (!this.isOPFSAvailable()) {
+      throw new StorageUnavailableError('OPFS (Origin Private File System) is not available in this browser');
+    }
+
+    let client: StorageWorkerClient;
+    try {
+      client = new StorageWorkerClient(this.createStorageWorker());
+    } catch (error) {
+      throw new StorageUnavailableError(`Cannot start the storage worker: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    let snapshot: Uint8Array;
+    try {
+      snapshot = await client.open(this.config.name);
+    } catch (error) {
+      client.terminate();
+      throw new StorageUnavailableError(
+        `Persistent storage (opfs-sahpool) could not be opened: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    let db: Database;
+    try {
+      db = this.createWorkingCopy(snapshot);
+    } catch (error) {
+      client.terminate();
+      throw toStorageUnavailableError(error, 'Persisted database could not be loaded');
+    }
+    attachWriteThrough(db, client);
+    this.storageClient = client;
+    return db;
+  }
+
+  /** Load the persisted database image into a main-thread SQLite connection. */
+  private createWorkingCopy(snapshot: Uint8Array): Database {
+    const db = new this.sqlite3.oo1.DB();
+    if (snapshot.byteLength > 0) {
+      const { capi, wasm } = this.sqlite3;
+      const pData = wasm.allocFromTypedArray(snapshot);
+      const rc = capi.sqlite3_deserialize(
+        db.pointer,
+        'main',
+        pData,
+        snapshot.byteLength,
+        snapshot.byteLength,
+        capi.SQLITE_DESERIALIZE_FREEONCLOSE | capi.SQLITE_DESERIALIZE_RESIZEABLE
+      );
+      db.checkRc(rc);
+    }
+    return db;
+  }
+
+  /** Where this provider's data lives and whether the browser granted durable storage. */
+  getStorageStatus(): SQLiteStorageStatus {
+    return getSQLiteStorageStatus();
   }
 
   private isOPFSAvailable(): boolean {
@@ -964,7 +1472,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
              'storage' in navigator &&
              'getDirectory' in navigator.storage &&
              typeof navigator.storage.getDirectory === 'function';
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -996,14 +1504,14 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       
       this.db.exec('PRAGMA optimize;');
 
-      console.log('[SQLiteWASMProvider] Production settings configured', {
+      logger.info('[SQLiteWASMProvider] Production settings configured', {
         walMode,
         foreignKeys,
         synchronousMode,
         cacheSize
       });
     } catch (error) {
-      console.warn('[SQLiteWASMProvider] Failed to configure production settings:', error);
+      logger.warn('[SQLiteWASMProvider] Failed to configure production settings:', error);
     }
   }
 
@@ -1013,15 +1521,17 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
     }
 
     try {
-      console.log(`[SQLiteWASMProvider] Creating collection: ${name}`);
+      logger.info(`[SQLiteWASMProvider] Creating collection: ${name}`);
       
       const collection = new SQLiteWASMCollection<T>(this.db, name, schema);
+      // CREATE TABLE / CREATE INDEX must be durable before the collection is used.
+      await flushPersistentWrites(this.db, name);
       this.collections.set(name, collection);
       
-      console.log(`[SQLiteWASMProvider] Collection '${name}' created successfully`);
+      logger.info(`[SQLiteWASMProvider] Collection '${name}' created successfully`);
       return collection;
     } catch (error) {
-      console.error(`[SQLiteWASMProvider] Failed to create collection ${name}:`, error);
+      logger.error(`[SQLiteWASMProvider] Failed to create collection ${name}:`, error);
       throw error;
     }
   }
@@ -1045,19 +1555,27 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
   async destroy(): Promise<void> {
     try {
-      console.log('[SQLiteWASMProvider] Destroying provider...');
+      logger.info('[SQLiteWASMProvider] Destroying provider...');
       
-      // Destroy all collections
+      // Release all collections. Tables are kept: shutting the provider down
+      // must never erase the persisted school data.
       for (const collection of this.collections.values()) {
         try {
-          await collection.destroy();
+          collection.close();
         } catch (error) {
-          console.error('[SQLiteWASMProvider] Error destroying collection:', error);
+          logger.error('[SQLiteWASMProvider] Error closing collection:', error);
         }
       }
-      
+
       this.collections.clear();
-      
+
+      // Flush pending writes and close the persistent store
+      if (this.storageClient) {
+        const client = this.storageClient;
+        this.storageClient = null;
+        await client.close();
+      }
+
       // Close database
       if (this.db) {
         this.db.close();
@@ -1065,9 +1583,9 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       }
       
       this.isInitialized = false;
-      console.log('[SQLiteWASMProvider] Provider destroyed successfully');
+      logger.info('[SQLiteWASMProvider] Provider destroyed successfully');
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Failed to destroy provider:', error);
+      logger.error('[SQLiteWASMProvider] Failed to destroy provider:', error);
       throw error;
     }
   }
@@ -1087,19 +1605,21 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         if (isCommitted || isRolledBack) return;
         this.db!.exec('COMMIT;');
         isCommitted = true;
-        console.log(`[SQLiteWASMProvider] Transaction ${txId} committed.`);
+        await flushPersistentWrites(this.db!, txId);
+        logger.info(`[SQLiteWASMProvider] Transaction ${txId} committed.`);
       },
       rollback: async () => {
         if (isCommitted || isRolledBack) return;
         this.db!.exec('ROLLBACK;');
         isRolledBack = true;
-        console.log(`[SQLiteWASMProvider] Transaction ${txId} rolled back.`);
+        await flushPersistentWrites(this.db!, txId);
+        logger.info(`[SQLiteWASMProvider] Transaction ${txId} rolled back.`);
       }
     };
 
     try {
       this.db.exec('BEGIN;');
-      console.log(`[SQLiteWASMProvider] Transaction ${txId} started.`);
+      logger.info(`[SQLiteWASMProvider] Transaction ${txId} started.`);
       
       const result = await callback(tx);
       
@@ -1122,7 +1642,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       return typeof WebAssembly !== 'undefined' &&
              typeof navigator !== 'undefined' &&
              this.isOPFSAvailable();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -1161,7 +1681,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
   async backup(): Promise<string> {
     try {
-      console.log('[SQLiteWASMProvider] Creating backup...');
+      logger.info('[SQLiteWASMProvider] Creating backup...');
       
       if (!this.isInitialized || !this.db) {
         throw new Error('Provider not initialized');
@@ -1183,26 +1703,26 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         try {
           const documents = await collection.find({});
           backup.data[name] = documents;
-          console.log(`[SQLiteWASMProvider] Backed up ${documents.length} documents from ${name}`);
+          logger.info(`[SQLiteWASMProvider] Backed up ${documents.length} documents from ${name}`);
         } catch (error) {
-          console.error(`[SQLiteWASMProvider] Failed to backup collection ${name}:`, error);
+          logger.error(`[SQLiteWASMProvider] Failed to backup collection ${name}:`, error);
           backup.data[name] = [];
         }
       }
 
       const backupString = JSON.stringify(backup, null, 2);
-      console.log(`[SQLiteWASMProvider] Backup created (${backupString.length} bytes)`);
+      logger.info(`[SQLiteWASMProvider] Backup created (${backupString.length} bytes)`);
       
       return backupString;
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Backup failed:', error);
+      logger.error('[SQLiteWASMProvider] Backup failed:', error);
       throw error;
     }
   }
 
   async restore(backupData: string): Promise<void> {
     try {
-      console.log('[SQLiteWASMProvider] Restoring from backup...');
+      logger.info('[SQLiteWASMProvider] Restoring from backup...');
       
       if (!this.isInitialized || !this.db) {
         throw new Error('Provider not initialized');
@@ -1214,7 +1734,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         throw new Error('Invalid backup format');
       }
 
-      console.log(`[SQLiteWASMProvider] Restoring backup from ${backup.metadata.timestamp}`);
+      logger.info(`[SQLiteWASMProvider] Restoring backup from ${backup.metadata.timestamp}`);
 
       // Use transaction for atomic restore
       this.db.exec('BEGIN TRANSACTION');
@@ -1224,7 +1744,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         for (const [collectionName, documents] of Object.entries(backup.data)) {
           const collection = this.collections.get(collectionName);
           if (!collection) {
-            console.warn(`[SQLiteWASMProvider] Collection ${collectionName} not found, skipping`);
+            logger.warn(`[SQLiteWASMProvider] Collection ${collectionName} not found, skipping`);
             continue;
           }
 
@@ -1235,21 +1755,23 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
             // Insert backup data
             if (Array.isArray(documents) && documents.length > 0) {
               await collection.insertMany(documents as any[]);
-              console.log(`[SQLiteWASMProvider] Restored ${documents.length} documents to ${collectionName}`);
+              logger.info(`[SQLiteWASMProvider] Restored ${documents.length} documents to ${collectionName}`);
             }
           } catch (error) {
-            console.error(`[SQLiteWASMProvider] Failed to restore collection ${collectionName}:`, error);
+            logger.error(`[SQLiteWASMProvider] Failed to restore collection ${collectionName}:`, error);
           }
         }
 
         this.db.exec('COMMIT');
-        console.log('[SQLiteWASMProvider] Restore completed successfully');
+        await flushPersistentWrites(this.db, 'restore');
+        logger.info('[SQLiteWASMProvider] Restore completed successfully');
       } catch (error) {
         this.db.exec('ROLLBACK');
+        await flushPersistentWrites(this.db, 'restore');
         throw error;
       }
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Restore failed:', error);
+      logger.error('[SQLiteWASMProvider] Restore failed:', error);
       throw error;
     }
   }
@@ -1278,7 +1800,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
       return { pageCount, pageSize, totalSize };
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Error getting database size:', error);
+      logger.error('[SQLiteWASMProvider] Error getting database size:', error);
       return { pageCount: 0, pageSize: 0, totalSize: 0 };
     }
   }
@@ -1311,7 +1833,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
         return (performance as any).memory.usedJSHeapSize;
       }
       return 0;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
@@ -1321,7 +1843,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
    */
   async optimize(): Promise<void> {
     try {
-      console.log('[SQLiteWASMProvider] Optimizing database performance...');
+      logger.info('[SQLiteWASMProvider] Optimizing database performance...');
       
       if (!this.db) throw new Error('Database not available');
 
@@ -1331,9 +1853,9 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       // Run PRAGMA optimize
       this.db.exec('PRAGMA optimize');
       
-      console.log('[SQLiteWASMProvider] Database optimization completed');
+      logger.info('[SQLiteWASMProvider] Database optimization completed');
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Optimization failed:', error);
+      logger.error('[SQLiteWASMProvider] Optimization failed:', error);
       throw error;
     }
   }
@@ -1353,11 +1875,11 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       const isValid = result === 'ok';
       const issues = isValid ? [] : [result || 'Unknown integrity issue'];
 
-      console.log(`[SQLiteWASMProvider] Integrity check: ${isValid ? 'PASSED' : 'FAILED'}`);
+      logger.info(`[SQLiteWASMProvider] Integrity check: ${isValid ? 'PASSED' : 'FAILED'}`);
       
       return { isValid, issues };
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Integrity check failed:', error);
+      logger.error('[SQLiteWASMProvider] Integrity check failed:', error);
       return { isValid: false, issues: [error instanceof Error ? error.message : String(error)] };
     }
   }
@@ -1385,7 +1907,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
             documentCount: stats.documentCount,
             indexCount: stats.indexCount
           });
-        } catch (error) {
+        } catch {
           collections.push({
             name,
             documentCount: 0,
@@ -1396,7 +1918,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
       return { size, performance, collections, integrity };
     } catch (error) {
-      console.error('[SQLiteWASMProvider] Failed to get database stats:', error);
+      logger.error('[SQLiteWASMProvider] Failed to get database stats:', error);
       throw error;
     }
   }

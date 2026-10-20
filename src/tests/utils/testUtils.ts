@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+
 
 // Performance monitoring utilities
 export const createPerformanceMonitor = () => {

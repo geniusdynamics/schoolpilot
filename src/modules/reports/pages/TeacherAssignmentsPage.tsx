@@ -1,19 +1,23 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
-import { UserGroupIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Staff, AcademicYear, TeacherSubjectAssignment } from '@/types';
-import { useTranslation } from 'react-i18next';
 
-const TeacherAssignmentsPage: React.FC = () => {
+import { useTranslation } from 'react-i18next';
+import type { TeacherSubjectAssignment } from '@/core/types';
+
+export const TeacherAssignmentsPageContent: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
   const { t } = useTranslation('reports');
 
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>((academicYears || [])[0]?.id);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<string | undefined>(() => {
+    const year = (academicYears || [])[0];
+    return year?.id != null ? String(year.id) : undefined;
+  });
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<TeacherSubjectAssignment[]>([]);
@@ -29,7 +33,7 @@ const TeacherAssignmentsPage: React.FC = () => {
       // This relies on teacherSubjectAssignments already having academic_year_name denormalized,
       // or academic_year_id if we had it on TeacherSubjectAssignment type directly or via allocation.
       // For now, we assume academic_year_name is present.
-      const ayName = (academicYears || []).find(ay => ay.id === selectedAcademicYearId)?.name;
+      const ayName = (academicYears || []).find(ay => String(ay.id) === selectedAcademicYearId)?.name;
       if (ayName) {
         filteredAssignments = filteredAssignments.filter(a => a.academic_year_name === ayName);
       }
@@ -47,10 +51,10 @@ const TeacherAssignmentsPage: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof TeacherSubjectAssignment },
-    { header: 'Teacher', accessor: 'teacher_name' as keyof TeacherSubjectAssignment },
-    { header: 'Class Stream', accessor: 'class_stream_name' as keyof TeacherSubjectAssignment },
-    { header: 'Subject', accessor: 'subject_name' as keyof TeacherSubjectAssignment },
+    { header: 'Academic Year', key: 'academic_year_name' as keyof TeacherSubjectAssignment },
+    { header: 'Teacher', key: 'teacher_name' as keyof TeacherSubjectAssignment },
+    { header: 'Class Stream', key: 'class_stream_name' as keyof TeacherSubjectAssignment },
+    { header: 'Subject', key: 'subject_name' as keyof TeacherSubjectAssignment },
   ];
 
   const isLoadingPage = loading.staff || loading.academicYears || loading.teacherSubjectAssignments;
@@ -58,12 +62,12 @@ const TeacherAssignmentsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('teacherAssignmentsPage.title')}>
-         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-600 mb-4">
+         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
+            <p className="text-sm text-surface-muted-fg mb-4">
                 {t('teacherAssignmentsPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}>
+                <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(e.target.value || undefined)}>
                     <option value="">{t('teacherAssignmentsPage.allYears')}</option>
                     {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
                 </Select>
@@ -87,12 +91,17 @@ const TeacherAssignmentsPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>{t('teacherAssignmentsPage.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>{t('teacherAssignmentsPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage={t('teacherAssignmentsPage.noAssignmentsFound')}/>
+                <DataGrid columns={columns} data={(reportData || [])} loading={isGenerating} emptyState={t('teacherAssignmentsPage.noAssignmentsFound')}/>
             </>
         )}
       </Card>
     </div>
   );
 };
+const TeacherAssignmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <TeacherAssignmentsPageContent />
+  </div>
+);
 
 export default TeacherAssignmentsPage;

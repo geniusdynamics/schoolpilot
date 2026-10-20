@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: This file is responsible for loading and registering translation resources.
 // ABOUTME: It centralizes how namespaces and languages are added to i18next.
 
@@ -64,6 +66,6 @@ export const loadTranslations = (i18nInstance: typeof i18next) => {
   i18nInstance.addResourceBundle('fr', 'nutrition', nutritionFr, true, true); 
   i18nInstance.addResourceBundle('fr', 'portal', portalFr, true, true);
 
-  console.log("i18n: English resources loaded for namespaces:", Object.keys(i18nInstance.services.resourceStore.data.en || {}));
-  console.log("i18n: French resources loaded for namespaces:", Object.keys(i18nInstance.services.resourceStore.data.fr || {}));
+  logger.info("i18n: English resources loaded for namespaces:", Object.keys(i18nInstance.services.resourceStore.data.en || {}));
+  logger.info("i18n: French resources loaded for namespaces:", Object.keys(i18nInstance.services.resourceStore.data.fr || {}));
 };

@@ -2,13 +2,7 @@
 // ABOUTME: Provides real-time memory metrics, alerts, and management controls
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  DatabaseMemoryManager,
-  MemoryUsageMetrics,
-  MemoryAlert,
-  MemoryThresholds,
-  databaseMemoryManager,
-} from '@/services/database/MemoryManager';
+import { MemoryUsageMetrics, MemoryAlert, MemoryThresholds, databaseMemoryManager } from '@/services/database/MemoryManager';
 
 export interface MemoryManagementState {
   metrics: MemoryUsageMetrics | null;

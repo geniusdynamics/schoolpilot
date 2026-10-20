@@ -6,7 +6,9 @@
  */
 
 import React from 'react';
-import { Download } from 'lucide-react';
+import {
+  ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline';
 import { usePWA } from '@/hooks/usePWA';
 import { Button } from '@/components/ui/Button';
 
@@ -55,7 +57,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
       onClick={handleClick}
       title="Install SchoolPilot as an app"
     >
-      <Download className="w-4 h-4 mr-2" />
+      <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
       {children || 'Install App'}
     </Button>
   );

@@ -1,3 +1,6 @@
+// ABOUTME: Inventory item categories list and add/edit/delete dialog.
+// ABOUTME: Reads and writes the 'item_categories_inv' collection through the useInventory module hook.
+
 import React, { useState } from 'react';
 import { ItemCategoryInv } from '@/types';
 import Card from '@/components/ui/Card';
@@ -9,22 +12,30 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import { useInventory } from '../hooks/useInventory';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 
 type ItemCategoryFormData = Omit<Partial<ItemCategoryInv>, 'id'>;
+/** A stored item category; ids are strings at runtime. */
+type ItemCategoryRecord = Omit<ItemCategoryInv, 'id'> & { id: string };
 
-const ItemCategoriesPage: React.FC = () => {
-  const { itemCategoriesInv, loading, addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv } = useAppData(); // Updated
+export const ItemCategoriesPageContent: React.FC = () => {
+  const {
+    itemCategories: itemCategoriesInv,
+    addItemCategory: addItemCategoryInv,
+    updateItemCategory: updateItemCategoryInv,
+    deleteItemCategory: deleteItemCategoryInv,
+  } = useInventory();
   const { t } = useTranslation('inventory');
-  
+  const confirm = useConfirm();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<ItemCategoryInv | null>(null);
+  const [editingCategory, setEditingCategory] = useState<ItemCategoryRecord | null>(null);
   const initialFormData: ItemCategoryFormData = { name: '' };
   const [formData, setFormData] = useState<ItemCategoryFormData>(initialFormData);
 
-  const openModal = (category?: ItemCategoryInv) => {
+  const openModal = (category?: ItemCategoryRecord) => {
     setEditingCategory(category || null);
     setFormData(category ? { name: category.name } : initialFormData);
     setIsModalOpen(true);
@@ -49,20 +60,20 @@ const ItemCategoriesPage: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingCategory) {
-      await updateItemCategoryInv({ ...editingCategory, ...payload });
+      await updateItemCategoryInv(editingCategory.id, payload);
     } else {
       await addItemCategoryInv(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this item category? This may affect existing items.')) {
+  const handleDelete = async (id: string) => {
+    if (await confirm({ title: 'Delete item category', message: 'Are you sure you want to delete this item category? This may affect existing items.', variant: 'danger' })) {
       await deleteItemCategoryInv(id);
     }
   };
 
-  const columns: DataGridColumn<ItemCategoryInv>[] = [
+  const columns: DataGridColumn<ItemCategoryRecord>[] = [
     {
       key: 'id',
       header: 'ID',
@@ -77,7 +88,7 @@ const ItemCategoriesPage: React.FC = () => {
       filterable: true,
       width: 300,
       render: (value) => (
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -109,13 +120,6 @@ const ItemCategoriesPage: React.FC = () => {
     }
   ];
 
-  if (loading.itemCategoriesInv && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Item Categories...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -124,7 +128,7 @@ const ItemCategoriesPage: React.FC = () => {
           {t('inventory.itemCategoriesPage.addCategory')}
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           {t('inventory.itemCategoriesPage.description')}
         </p>
         <DataGrid 
@@ -134,9 +138,9 @@ const ItemCategoriesPage: React.FC = () => {
           filterable 
           emptyState={
             <div className="text-center py-12">
-              <ListBulletIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No item categories found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first item category.</p>
+              <ListBulletIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No item categories found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">Get started by creating your first item category.</p>
               <div className="mt-6">
                 <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
                   {t('inventory.itemCategoriesPage.addCategory')}
@@ -151,8 +155,8 @@ const ItemCategoriesPage: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('inventory.itemCategoriesPage.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.itemCategoriesInv}>
-              {loading.itemCategoriesInv ? <Spinner size="sm"/> : (editingCategory ? t('inventory.itemCategoriesPage.saveChanges') : t('inventory.itemCategoriesPage.addCategory'))}
+            <Button onClick={handleSubmit}>
+              {editingCategory ? t('inventory.itemCategoriesPage.saveChanges') : t('inventory.itemCategoriesPage.addCategory')}
             </Button>
           </FormActions>
         }
@@ -171,5 +175,10 @@ const ItemCategoriesPage: React.FC = () => {
     </div>
   );
 };
+const ItemCategoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <ItemCategoriesPageContent />
+  </div>
+);
 
 export default ItemCategoriesPage;

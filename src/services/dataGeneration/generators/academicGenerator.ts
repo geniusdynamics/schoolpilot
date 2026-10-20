@@ -14,15 +14,9 @@ import type {
   TeacherSubjectAssignment,
   StudentSubjectEnrollment
 } from '@/core/types';
-import { ExamSessionStatus, PersonGender } from '@/core/types';
-import {
-  getRandomItem,
-  getRandomInt,
-  generateId,
-  FIRST_NAMES,
-  LAST_NAMES,
-  weightedRandom
-} from './dataUtils';
+import { ExamSessionStatus } from '@/core/types';
+
+import { getRandomItem, getRandomInt } from './dataUtils';
 
 // 18 subjects as per Kenya education system
 export const SUBJECT_DEFINITIONS = [
@@ -247,12 +241,11 @@ export function generateAcademicData(options: AcademicGenerationOptions): Genera
   let allocationId = 1;
 
   classStreamIds.forEach(classStreamId => {
-    // All streams get compulsory subjects + some electives
+    // All streams get compulsory subjects + some electives (compulsory always included)
     subjects.forEach(subject => {
       const def = SUBJECT_DEFINITIONS.find(d => d.name === subject.name);
       const isCompulsory = def?.compulsory;
-      // 90% of compulsory subjects, 40% of optional subjects
-      const shouldInclude = isCompulsory ? Math.random() < 0.9 : Math.random() < 0.4;
+      const shouldInclude = isCompulsory ? true : Math.random() < 0.4;
       
       if (shouldInclude) {
         classSubjectAllocations.push({
@@ -288,10 +281,18 @@ export function generateAcademicData(options: AcademicGenerationOptions): Genera
   const studentSubjectEnrollments: StudentSubjectEnrollment[] = [];
   let enrollmentId = 1;
 
-  studentIds.forEach(studentId => {
-    const classStreamId = getRandomItem(classStreamIds);
+  // Deterministic enrollment: same current_class_stream_id join - map student index to stream cyclically for reproducibility
+  const studentStreamMap = new Map<string, number>();
+  studentIds.forEach((studentId, idx) => {
+    // deterministic hash: use idx modulo, but also stable for string ids via char code sum
+    let hash = idx;
+    if (typeof studentId === 'string') {
+      for (let i = 0; i < studentId.length; i++) hash += studentId.charCodeAt(i);
+    }
+    const classStreamId = classStreamIds[hash % classStreamIds.length];
+    studentStreamMap.set(studentId, classStreamId);
     const streamAllocations = classSubjectAllocations.filter(a => a.class_stream_id === classStreamId);
-    
+
     streamAllocations.forEach(allocation => {
       studentSubjectEnrollments.push({
         id: enrollmentId++,
@@ -314,7 +315,8 @@ export function generateAcademicData(options: AcademicGenerationOptions): Genera
   const publishedExams = examSessions.filter(e => e.status === ExamSessionStatus.PUBLISHED);
 
   studentIds.forEach(studentId => {
-    const classStreamId = getRandomItem(classStreamIds);
+    // reuse deterministic mapping from enrollment to keep same current_class_stream_id
+    const classStreamId = studentStreamMap.get(studentId) ?? classStreamIds[0];
     const streamAllocations = classSubjectAllocations.filter(a => a.class_stream_id === classStreamId);
 
     publishedExams.forEach(exam => {

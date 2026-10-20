@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Error boundary specifically designed for table rendering failures
 // ABOUTME: Provides graceful fallbacks and error recovery for DataGrid components
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangleIcon, RefreshCwIcon } from "../icons";
 import Button from '../Button';
 
@@ -40,7 +42,7 @@ export class TableErrorBoundary extends Component<Props, State> {
     const { onError, tableName } = this.props;
     
     // Log error details
-    console.error(`Table rendering error in ${tableName || 'DataGrid'}:`, {
+    logger.error(`Table rendering error in ${tableName || 'DataGrid'}:`, {
       error,
       errorInfo,
       timestamp: new Date().toISOString(),

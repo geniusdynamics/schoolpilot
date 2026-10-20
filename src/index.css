@@ -1,3 +1,4 @@
+@import '@fontsource-variable/inter';
 @import './styles/design-system.css';
 
 @tailwind base;
@@ -7,11 +8,28 @@
 /* Custom base styles */
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
   }
-  
+
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-surface-muted text-surface-foreground;
+  }
+
+  /* Neutralize browser autofill tint (pale purple/blue) so entry fields stay
+     in sync with the design-system surface and remain fully legible. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-card) inset;
+    -webkit-text-fill-color: var(--color-foreground);
+    caret-color: var(--color-foreground);
+    transition: background-color 9999s ease-in-out 0s;
   }
 }
 
@@ -30,19 +48,19 @@
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200;
+    @apply bg-surface-card rounded-lg shadow-sm border border-surface-border;
   }
   
   .form-input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full px-3 py-2 border border-surface-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
   }
   
   .table-header {
-    @apply bg-gray-50 text-gray-700 font-medium;
+    @apply bg-surface-muted text-surface-foreground font-medium;
   }
   
   .table-cell {
-    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+    @apply px-6 py-4 whitespace-nowrap text-sm text-surface-foreground;
   }
 }
 
@@ -164,12 +182,12 @@
 
 /* Enhanced focus states */
 .search-input:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   transform: scale(1.02);
 }
 
-/* Smooth transitions for all interactive elements */
-* {
+/* Smooth transitions — exclude table layout to prevent grid misalignment during resize */
+*:not(table):not(thead):not(tbody):not(tr):not(th):not(td) {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;

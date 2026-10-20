@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Enhanced FeatureSettings using the new AdaptiveTabs system
  * Demonstrates migration from custom tab implementation to unified system
@@ -18,15 +20,16 @@ import {
 
 // Import the new unified components
 import AdaptiveTabs, { TabConfig, ActionConfig } from '@/components/ui/AdaptiveTabs';
-import { useSimpleActions, usePageActions } from '@/hooks/useSimpleActions';
+import { usePageActions } from '@/hooks/useSimpleActions';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { useAppData } from '@/contexts/AppDataContext';
+import { useSync } from '@/contexts/SyncContext';
 
 // Import existing sub-components (reusable)
 import SyncManagementPanel from '@/components/SyncManagementPanel';
 import PerformanceDashboard from '@/components/PerformanceDashboard';
 import { MemoryDashboard } from '@/components/MemoryDashboard';
-import TooltipDemo from '@/components/__demos__/TooltipDemo';
+import TooltipDemo from './TooltipsShowcase';
 // import NetworkStatusIndicator from '@/components/NetworkStatusIndicator'; // Component does not exist
 import ConflictResolutionComponent from '@/components/ConflictResolutionInterface';
 import Card from '@/components/ui/Card';
@@ -49,10 +52,9 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     conflicts = [],
     resolveConflict: resolveConflictFn,
     resolveAllConflicts: resolveAllConflictsFn,
-    getQueueStatus,
-    forceSync,
-    clearSyncQueue
+    forceSync
   } = useAppData() || {};
+  const { getQueueStatus, clearSyncQueue } = useSync();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -82,7 +84,7 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           // Simulate refresh delay
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-          console.error('Refresh failed:', error);
+          logger.error('Refresh failed:', error);
         } finally {
           setRefreshing(false);
         }
@@ -137,7 +139,6 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   };
 
 
-
   const getStatusBadge = (status: boolean, label: string) => (
     <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
       status 
@@ -174,23 +175,23 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           {/* System Status */}
           <Card title="System Status">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-center p-4 bg-surface-muted rounded-lg">
                 <WifiIcon className={`w-8 h-8 mx-auto mb-2 ${isOnline ? 'text-green-500' : 'text-red-500'}`} />
                 <div className="text-sm font-medium">Network</div>
-                <div className="text-xs text-gray-600">{isOnline ? 'Connected' : 'Offline'}</div>
+                <div className="text-xs text-surface-muted-fg">{isOnline ? 'Connected' : 'Offline'}</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-center p-4 bg-surface-muted rounded-lg">
                 <ServerIcon className={`w-8 h-8 mx-auto mb-2 ${backendAvailable ? 'text-green-500' : 'text-amber-500'}`} />
                 <div className="text-sm font-medium">Backend</div>
-                <div className="text-xs text-gray-600">{backendAvailable ? 'Available' : 'Unavailable'}</div>
+                <div className="text-xs text-surface-muted-fg">{backendAvailable ? 'Available' : 'Unavailable'}</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-center p-4 bg-surface-muted rounded-lg">
                 <ArrowPathIcon className={`w-8 h-8 mx-auto mb-2 ${
-                  syncStatus?.state === 'syncing' ? 'text-blue-500 animate-spin' :
+                  syncStatus?.state === 'syncing' ? 'text-primary-500 animate-spin' :
                   syncStatus?.state === 'error' ? 'text-red-500' : 'text-green-500'
                 }`} />
                 <div className="text-sm font-medium">Sync</div>
-                <div className="text-xs text-gray-600 capitalize">{syncStatus?.state || 'unknown'}</div>
+                <div className="text-xs text-surface-muted-fg capitalize">{syncStatus?.state || 'unknown'}</div>
               </div>
             </div>
           </Card>
@@ -199,20 +200,20 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           <Card title="Quick Statistics">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{pendingSyncCount || 0}</div>
-                <div className="text-sm text-gray-600">Pending Sync</div>
+                <div className="text-2xl font-bold text-primary-600">{pendingSyncCount || 0}</div>
+                <div className="text-sm text-surface-muted-fg">Pending Sync</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-amber-600">{transformedConflicts.length}</div>
-                <div className="text-sm text-gray-600">Conflicts</div>
+                <div className="text-sm text-surface-muted-fg">Conflicts</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{getQueueStatus?.()?.api?.completed || 0}</div>
-                <div className="text-sm text-gray-600">Completed</div>
+                <div className="text-sm text-surface-muted-fg">Completed</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">{getQueueStatus?.()?.sync?.errors || 0}</div>
-                <div className="text-sm text-gray-600">Errors</div>
+                <div className="text-sm text-surface-muted-fg">Errors</div>
               </div>
             </div>
           </Card>
@@ -246,7 +247,6 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                   variant="danger"
                   onClick={() => {
                     // This would switch to conflicts tab in the new system
-                    const tabsComponent = document.querySelector('[role="tablist"]');
                     const conflictsTab = document.querySelector('[data-tab-id="conflicts"]') as HTMLElement;
                     conflictsTab?.click();
                   }}
@@ -265,7 +265,7 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       icon: ArrowPathIcon,
       content: (
         <div className="p-6">
-          <SyncManagementPanel className="!shadow-none !bg-transparent border border-gray-200" />
+          <SyncManagementPanel className="!shadow-none !bg-transparent border border-surface-border" />
         </div>
       )
     },
@@ -286,8 +286,8 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 
           {/* Feature Flags */}
           <Card title="Feature Flags">
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-600">
+            <div className="mb-4 p-3 bg-surface-muted rounded-lg">
+              <div className="text-sm text-surface-muted-fg">
                 Loaded {Object.keys(config.features).length} feature flags
               </div>
             </div>
@@ -298,7 +298,7 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                     <div className="font-medium capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-surface-muted-fg">
                       {getFeatureDescription(key)}
                     </div>
                   </div>
@@ -309,7 +309,7 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                       onChange={() => handleFeatureToggle(key as keyof typeof config.features)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-card after:border-surface-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
               ))}
@@ -341,14 +341,14 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                   resolveAllConflictsFn(strategy);
                 }
               }}
-              className="!shadow-none !bg-transparent border border-gray-200"
+              className="!shadow-none !bg-transparent border border-surface-border"
             />
           ) : (
             <Card title="No Conflicts">
               <div className="text-center py-8">
                 <CheckCircleIcon className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">All Clear!</h3>
-                <p className="text-gray-600">
+                <h3 className="text-lg font-medium text-surface-foreground mb-2">All Clear!</h3>
+                <p className="text-surface-muted-fg">
                   There are no sync conflicts that need resolution.
                 </p>
               </div>
@@ -382,8 +382,8 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       {/* Header */}
       <div className="mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Feature Settings</h1>
-          <p className="text-gray-600">Manage offline capabilities, sync settings, and application features</p>
+          <h1 className="text-2xl font-bold text-surface-foreground">Feature Settings</h1>
+          <p className="text-surface-muted-fg">Manage offline capabilities, sync settings, and application features</p>
         </div>
       </div>
 
@@ -396,7 +396,7 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
         showActionBar={true}
         actions={pageActions}
         maxVisibleActions={3}
-        className="bg-white rounded-lg shadow-sm border border-gray-200"
+        className="bg-surface-card rounded-lg shadow-sm border border-surface-border"
         contentClassName="min-h-[500px]"
       />
     </div>

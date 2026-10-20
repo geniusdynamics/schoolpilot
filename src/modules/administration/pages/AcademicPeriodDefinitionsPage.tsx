@@ -1,3 +1,6 @@
+// ABOUTME: Academic Period Definitions admin page: the ordered periods (terms, semesters) of each year structure.
+// ABOUTME: Uses string structure ids and resolves structure names from the structures collection at read time.
+
 import React, { useState, useMemo } from 'react';
 import { AcademicPeriodDefinition, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
@@ -13,13 +16,21 @@ import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/compone
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | 'structure_name'>;
 
 const AcademicPeriodDefinitionsPage: React.FC = () => {
   const appData = useAppData();
-  const academicPeriodDefinitionsData = appData.academicPeriodDefinitions || [];
-  const academicYearStructures = appData.academicYearStructures || [];
+  const academicPeriodDefinitionsData = useMemo(
+    () => appData.academicPeriodDefinitions || [],
+    [appData.academicPeriodDefinitions],
+  );
+  const academicYearStructures = useMemo(
+    () => appData.academicYearStructures || [],
+    [appData.academicYearStructures],
+  );
   const loading = appData.loading || {};
   const addAcademicPeriodDefinition = appData.addAcademicPeriodDefinition;
   const updateAcademicPeriodDefinition = appData.updateAcademicPeriodDefinition;
@@ -43,7 +54,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     } else {
         const defaultStructureId = formData.structure_id || (academicYearStructures.length > 0 ? academicYearStructures[0].id : undefined);
         const defaultSequence = defaultStructureId 
-            ? (academicPeriodDefinitionsData.filter(apd => apd.structure_id === defaultStructureId).length || 0) + 1 
+            ? (academicPeriodDefinitionsData.filter(apd => String(apd.structure_id) === String(defaultStructureId)).length || 0) + 1 
             : 1;
         setFormData({...initialFormData, structure_id: defaultStructureId, sequence_order: defaultSequence });
     }
@@ -60,7 +71,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     const { name, value } = e.target;
     let processedValue: string | number | undefined = value;
     if (name === 'structure_id') { 
-        processedValue = value ? parseInt(value) : undefined; 
+        processedValue = value || undefined; 
     } else if (name === 'sequence_order') {
         processedValue = value ? parseInt(value) : undefined;
         if (Number.isNaN(processedValue as number)) processedValue = 1;
@@ -69,70 +80,60 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     setFormData(prev => {
         const newState = { ...prev, [name]: processedValue };
         if (name === 'structure_id' && processedValue) {
-            const existingForStructure = academicPeriodDefinitionsData.filter(apd => apd.structure_id === Number(processedValue));
+            const existingForStructure = academicPeriodDefinitionsData.filter(apd => String(apd.structure_id) === String(processedValue));
             newState.sequence_order = (existingForStructure.length || 0) + 1;
         }
         return newState;
     });
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.structure_id || formData.sequence_order === undefined || formData.sequence_order <= 0) {
-      alert(t('validation.nameStructureSequenceRequired'));
+      toast.showWarning(t('validation.nameStructureSequenceRequired'));
       return;
     }
     const payload = { 
         name: formData.name!, 
-        structure_id: Number(formData.structure_id!), 
+        structure_id: String(formData.structure_id!), 
         sequence_order: Number(formData.sequence_order!),
     };
 
     if (editingDefinition) {
-      await updateAcademicPeriodDefinition({ ...editingDefinition, ...payload });
+      await updateAcademicPeriodDefinition(String(editingDefinition.id), payload);
     } else {
       await addAcademicPeriodDefinition(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => { 
-    if (window.confirm('Are you sure you want to delete this period definition? This might affect related school periods.')) {
-      await deleteAcademicPeriodDefinition(id);
+  const confirm = useConfirm();
+  const handleDelete = async (id: number | string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this period definition? This might affect related school periods.' }))) {
+      await deleteAcademicPeriodDefinition(String(id));
     }
   };
 
   const columns: DataGridColumn<AcademicPeriodDefinition>[] = [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      sortable: true, 
-      filterable: true, 
-      width: 80,
-      render: (value, item) => value
+    {
+      key: 'name',
+      header: 'Definition Name',
+      sortable: true,
+      filterable: true,
+      render: (_value, item) => item.name
     },
-    { 
-      key: 'name', 
-      header: 'Definition Name', 
-      sortable: true, 
-      filterable: true, 
-      width: 200,
-      render: (value, item) => value
+    {
+      key: 'structure_name',
+      header: 'Structure',
+      sortable: true,
+      filterable: true,
+      render: (_value, item) => item.structure_name || '—'
     },
-    { 
-      key: 'structure_name', 
-      header: 'Structure', 
-      sortable: true, 
-      filterable: true, 
-      width: 180,
-      render: (value, item) => value
-    },
-    { 
-      key: 'sequence_order', 
-      header: 'Sequence Order', 
-      sortable: true, 
-      filterable: true, 
-      width: 140,
-      render: (value, item) => value
+    {
+      key: 'sequence_order',
+      header: 'Sequence Order',
+      sortable: true,
+      render: (_value, item) => item.sequence_order
     },
     {
       key: 'actions',
@@ -141,7 +142,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
       filterable: false,
       width: 160,
       sticky: 'right',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -150,10 +151,13 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     },
   ];
 
-  const sortedDefinitions = useMemo(() => 
-    [...academicPeriodDefinitionsData].sort((a,b) => String(a.structure_id ?? '').localeCompare(String(b.structure_id ?? '')) || a.sequence_order - b.sequence_order),
-    [academicPeriodDefinitionsData]
-  );
+  // Structure names are resolved from the structures collection, never trusted from the row.
+  const sortedDefinitions = useMemo(() => {
+    const structureNames = new Map(academicYearStructures.map(s => [String(s.id), s.name]));
+    return academicPeriodDefinitionsData
+      .map(apd => ({ ...apd, structure_name: structureNames.get(String(apd.structure_id)) ?? null }))
+      .sort((a,b) => String(a.structure_id ?? '').localeCompare(String(b.structure_id ?? '')) || a.sequence_order - b.sequence_order);
+  }, [academicPeriodDefinitionsData, academicYearStructures]);
 
   if ((loading.academicPeriodDefinitions || loading.academicYearStructures) && !isModalOpen) {
     return (
@@ -170,7 +174,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
           Add Definition
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Define the individual periods within an Academic Year Structure (e.g., "Term 1", "Term 2", "Semester 1"). 
           Set their sequence order within the structure.
         </p>
@@ -180,13 +184,11 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
           loading={loading.academicPeriodDefinitions && isModalOpen}
           sortable 
           filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No period definitions found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first academic period definition.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <DocumentDuplicateIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: 'No period definitions found',
+            description: 'Get started by creating your first academic period definition.',
+          }}
         />
       </Card>
 
@@ -229,8 +231,8 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.academicPeriodDefinitions}>
-            {loading.academicPeriodDefinitions ? <Spinner size="sm"/> : (editingDefinition ? 'Save Changes' : 'Add Definition')}
+          <Button onClick={handleSubmit} loading={loading.academicPeriodDefinitions}>
+            {editingDefinition ? 'Save Changes' : 'Add Definition'}
           </Button>
         </FormActions>
       </DialogForm>
@@ -239,3 +241,5 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
 };
 
 export default AcademicPeriodDefinitionsPage;
+
+export const AcademicPeriodDefinitionsContent = AcademicPeriodDefinitionsPage;

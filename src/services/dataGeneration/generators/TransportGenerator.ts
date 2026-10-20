@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: This file generates comprehensive transport data including routes, vehicles, and student assignments
 // ABOUTME: Handles transport management for school bus services and student transportation
 
@@ -691,12 +693,12 @@ export class TransportGenerator extends BaseGenerator {
   }
   
   private async initialize(): Promise<void> {
-    console.log('Initializing TransportGenerator...');
+    logger.info('Initializing TransportGenerator...');
   }
   
   private logProgress(current: number, total: number, type: string): void {
     if (current % 10 === 0 || current === total) {
-      console.log(`Generated ${current}/${total} ${type}s`);
+      logger.info(`Generated ${current}/${total} ${type}s`);
     }
   }
 }

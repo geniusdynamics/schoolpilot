@@ -1,6 +1,19 @@
 // ABOUTME: Export file for all Academic module pages
 // ABOUTME: This centralizes all page exports for easy importing
 
+// Hub pages (consolidated navigation entries)
+export { default as SubjectsHubPage } from './SubjectsHubPage';
+export { default as CurriculumAllocationsPage } from './CurriculumAllocationsPage';
+export { default as ExamSetupPage } from './ExamSetupPage';
+export { default as MarksEntryPage } from './MarksEntryPage';
+export { default as MarksVerificationPage } from './MarksVerificationPage';
+export { default as ExamAnalysisPage } from './ExamAnalysisPage';
+export { default as ResultsDistributionPage } from './ResultsDistributionPage';
+export { default as GradingSystemsPage } from './GradingSystemsPage';
+export { default as TimetablePage } from './TimetablePage';
+export { default as AssignmentsHubPage } from './AssignmentsHubPage';
+export { default as LessonPlansHubPage } from './LessonPlansHubPage';
+
 export { default as AcademicsDashboardPage } from './AcademicsDashboardPage';
 export { default as SubjectsPage } from './SubjectsPage';
 export { default as SubjectPapersManagementPage } from './SubjectPapersManagementPage';
@@ -8,7 +21,6 @@ export { default as ClassSubjectAllocationsPage } from './ClassSubjectAllocation
 export { default as TeacherSubjectAssignmentPage } from './TeacherSubjectAssignmentPage';
 export { default as StudentSubjectEnrollmentPage } from './StudentSubjectEnrollmentPage';
 export { default as ExamSessionsPage } from './ExamSessionsPage';
-export { default as ExamAnalysisPage } from './ExamAnalysisPage';
 export { default as StudentExamResultsEntryPage } from './StudentExamResultsEntryPage';
 export { default as GradingSchemesPage } from './GradingSchemesPage';
 export { default as TimetablePeriodsPage } from './TimetablePeriodsPage';

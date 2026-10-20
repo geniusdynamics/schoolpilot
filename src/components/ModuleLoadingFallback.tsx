@@ -31,7 +31,7 @@ const ModuleLoadingFallback: React.FC<ModuleLoadingFallbackProps> = ({
 
   return (
     <div className={`flex items-center justify-center ${containerClasses[size]} ${className}`}>
-      <div className="flex items-center space-x-2 text-gray-500">
+      <div className="flex items-center space-x-2 text-surface-muted-fg">
         {showSpinner && (
           <LoaderIcon className={`${sizeClasses[size]} animate-spin`} />
         )}

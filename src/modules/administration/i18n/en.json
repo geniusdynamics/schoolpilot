@@ -6,11 +6,13 @@
       "description": "Manage students, staff, academic structure, and school operations",
       "dashboard": "Dashboard",
       "applications": "Applications",
-      "preNAsMarks": "Pre-NAs Marks",
+      "entryMarks": "Entry Marks Marks",
       "students": "Students",
       "studentImport": "Student Import",
       "studentClearance": "Student Clearance",
       "disciplinaryCases": "Disciplinary Cases",
+      "certificates": "Certificates",
+      "visitors": "Visitors",
       "staff": "Staff",
       "partners": "Partners",
       "departments": "Departments",
@@ -20,6 +22,7 @@
       "clubs": "Clubs & Societies",
       "customers": "Customers",
       "classes": "Classes",
+      "bulkStreamCreation": "Bulk Stream Creation",
       "studentHealth": "Student Health",
       "studentAttendance": "Student Attendance",
       "commTemplates": "Communication Templates",
@@ -28,38 +31,15 @@
       "academicYears": "Academic Years",
       "academicPeriodDefinitions": "Academic Period Definitions",
       "schoolPeriods": "School Periods",
-      "studentMasterlist": "Student Masterlist",
-      "studentPromotion": "Student Promotion",
-      "auditLogViewer": "Audit Log Viewer",
-      "certificates": "Certificates",
-      "transferCertificate": "Transfer Certificate",
-      "characterCertificate": "Character Certificate",
-      "birthCertificate": "Birth Certificate",
-      "gatePass": "Gate Pass",
-      "studentBioData": "Student Bio Data",
-      "visitors": "Visitors",
-      "staffAttendance": "Staff Attendance",
-      "staffIDCards": "Staff ID Cards",
-      "staffWallet": "Staff Wallet",
-      "bulkStaffUpdate": "Bulk Staff Update",
-      "attendanceReports": "Attendance Reports",
-      "manualAttendance": "Manual Attendance",
-      "dynamicAttendance": "Dynamic Attendance",
-      "bulkStudentUpdate": "Bulk Student Update",
-      "studentIDCards": "Student ID Cards",
-      "bulkAssignRollNumbers": "Bulk Assign Roll Numbers",
-      "scholarshipTracking": "Scholarship Tracking",
-      "smsReports": "SMS Reports",
-      "autoSMSSettings": "Auto-SMS Settings",
-      "newsletters": "Newsletters"
-    },
-    "houses": {
-      "title": "Houses",
-      "categories": "House Categories",
-      "award": "Award Points",
-      "leaderboard": "Leaderboard",
-      "studentPoints": "Student Points",
-      "classStandings": "Class Standings"
+      "configuration": "School Configuration",
+      "academicCalendar": "Academic Calendar",
+      "communication": "Communication",
+      "security": "Security & Gate Pass",
+      "attendance": "Attendance",
+      "staffOperations": "Staff Operations",
+      "bulkOperations": "Bulk Operations",
+      "alumni": "Alumni",
+      "transferredStudents": "Transferred Students"
     }
   },
   "dashboard": {
@@ -95,7 +75,20 @@
     "deleteConfirm": "Are you sure you want to delete this student?",
     "detailsFieldset": "Student Details",
     "guardianFieldset": "Primary Parent/Guardian",
-    "examSummaryFieldset": "Exam Result Summary (e.g., KCPE)"
+    "examSummaryFieldset": "Exam Result Summary (e.g., KCPE)",
+    "detail": {
+      "editBioData": "Edit Bio Data",
+      "firstName": "First Name",
+      "middleName": "Middle Name",
+      "lastName": "Last Name",
+      "gender": "Gender",
+      "dateOfBirth": "Date of Birth",
+      "religion": "Religion",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "remarks": "Remarks/About"
+    }
   },
   "staff": {
     "title": "Staff Management",
@@ -112,7 +105,24 @@
     "hodLabel": "Head of Department (If applicable)",
     "hodOptionNone": "None",
     "activeLabel": "Is Active Staff Member",
-    "deleteConfirm": "Are you sure you want to delete this staff member?"
+    "deleteConfirm": "Are you sure you want to delete this staff member?",
+    "form": {
+      "email": "Email",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender",
+      "genderFemale": "Female",
+      "genderMale": "Male",
+      "genderOther": "Other",
+      "nationalId": "National ID / Passport No.",
+      "employerNumber": "Employer No. (e.g. TSC number)",
+      "employmentType": "Employment Type",
+      "employmentTypePlaceholder": "Select employment type",
+      "employmentPermanent": "Permanent",
+      "employmentContract": "Contract",
+      "employmentPartTime": "Part-time",
+      "employmentBoard": "Board of Management",
+      "employmentIntern": "Intern / Attachment"
+    }
   },
   "partners": {
     "title": "Partners Management",
@@ -343,6 +353,12 @@
     "deleteWorkflowStateToBeDeveloped": "Delete workflow state functionality not yet implemented",
     "attendanceSavedSuccessfully": "Attendance Saved Successfully"
   },
+  "common": {
+    "cancel": "common:cancel",
+    "save": "common:save",
+    "true": "T",
+    "active": "a"
+  },
   "admissions": {
     "title": "Admissions",
     "description": "Student admissions management and application processing",
@@ -452,8 +468,8 @@
       "specialNeeds": "Special Needs Accommodation"
     }
   },
-  "preNAsMarks": {
-    "title": "PreNAs Marks Management",
+  "entryMarks": {
+    "title": "Entry Marks Marks Management",
     "description": "Manage Previous National Assessment marks for students and applicants",
     "indexNumber": "Index Number",
     "studentName": "Student Name",
@@ -514,27 +530,144 @@
   "common": {
     "verified": "Verified",
     "unverified": "Unverified",
+    "clearFilters": "Clear Filters",
     "addMarks": "Add Marks",
-    "editMarks": "Edit Marks",
-    "edit": "Edit",
-    "delete": "Delete",
-    "verify": "Verify",
-    "unverify": "Unverify",
-    "bulkImport": "Bulk Import"
+    "updateMarks": "Update Marks",
+    "cancel": "Cancel"
   },
-  "messages": {
-    "validationError": "Please fill in all required fields",
-    "marksAdded": "Marks added successfully",
-    "marksUpdated": "Marks updated successfully",
-    "marksDeleted": "Marks deleted successfully",
-    "marksVerified": "Marks verified successfully",
-    "saveError": "Error saving marks",
-    "confirmDelete": "Are you sure you want to delete these marks?",
-    "noMarksFound": "No marks found"
+  "studentImport": {
+    "title": "Student Data Import",
+    "description": "Import student data from CSV files with validation and progress tracking",
+    "progress": "Import Progress",
+    "newImport": "New Import",
+    "history": "Import History",
+    "steps": {
+      "upload": "Upload",
+      "preview": "Preview",
+      "import": "Import",
+      "importing": "Import",
+      "results": "Results"
+    },
+    "upload": {
+      "dropZone": "Drag & drop your CSV file here",
+      "dropActive": "Drop your file here",
+      "orClick": "or click to browse files",
+      "supportedFormats": "Supported formats: CSV (Excel coming soon)",
+      "downloadTemplate": "Download CSV Template"
+    },
+    "preview": {
+      "title": "Preview Import Data",
+      "totalRecords": "Total Records",
+      "valid": "Valid",
+      "warnings": "Warnings",
+      "invalid": "Invalid",
+      "importButton": "Import {count} Valid Records"
+    },
+    "importing": {
+      "title": "Importing Students",
+      "progress": "Progress",
+      "success": "Successfully Imported",
+      "failed": "Failed",
+      "remaining": "Remaining",
+      "pleaseWait": "Please do not close this window while importing..."
+    },
+    "results": {
+      "title": "Import Results",
+      "totalRecords": "Total Records",
+      "imported": "Imported",
+      "failed": "Failed",
+      "finalStatus": "Final Status"
+    },
+    "columns": {
+      "row": "Row",
+      "admissionNumber": "Admission No",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "grade": "Grade",
+      "guardian": "Guardian",
+      "guardianPhone": "Guardian Phone",
+      "status": "Status",
+      "errors": "Errors",
+      "importStatus": "Import Status",
+      "error": "Error"
+    },
+    "validation": {
+      "admissionNumberRequired": "Admission number is required",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "dateOfBirthRequired": "Date of birth is required",
+      "genderRequired": "Valid gender is required",
+      "gradeLevelRequired": "Grade level is required",
+      "guardianNameRequired": "Guardian name is required",
+      "guardianPhoneRequired": "Guardian phone is required",
+      "invalidDateFormat": "Date of birth must be in YYYY-MM-DD format",
+      "invalidEmail": "Invalid email format",
+      "invalidPhone": "Phone number contains invalid characters",
+      "futureDate": "Date of birth cannot be in the future",
+      "unusualAge": "Unusual age detected"
+    }
   },
-  "bulkImport": {
-    "title": "Bulk Import Marks",
-    "description": "Upload a CSV or Excel file to import multiple marks records at once.",
-    "selectFile": "Select File to Upload"
+  "bulkStreams": {
+    "title": "Bulk Stream Creation",
+    "subtitle": "Add multiple streams to a class at once",
+    "addField": "Add Stream Field",
+    "selectClass": "Select Class",
+    "selectClassPlaceholder": "-- Select a class --",
+    "streamNames": "Stream Names",
+    "streamPlaceholder": "Stream {{index}} name (e.g., East, West, North)",
+    "summary": "Will create {{count}} stream(s) for \"{{className}}\"",
+    "summaryEmpty": "Select a class and enter stream names above",
+    "duplicatesHint": "Already exists or repeated, will be skipped: {{names}}",
+    "duplicatesSkipped": "Skipped existing or repeated stream names: {{names}}",
+    "badge": "{{count}} streams",
+    "create": "Create {{count}} Stream(s)",
+    "createdToast": "Created {{count}} stream(s) for {{className}}",
+    "createFailed": "One or more streams could not be created.",
+    "createdTitle": "Streams created",
+    "repair": {
+      "title": "Corrupt streams",
+      "subtitle": "These streams have no name or no class. Move their students to a valid stream, then remove them.",
+      "unnamed": "Unnamed stream",
+      "studentCount": "({{count}} student(s))",
+      "moveTo": "Move students to",
+      "chooseStream": "-- Choose a stream --",
+      "action": "Repair streams",
+      "done": "Removed {{deleted}} corrupt stream(s); moved {{reassigned}} student(s)",
+      "failed": "Repair failed. No further streams were removed."
+    }
+  },
+  "bulkOperations": {
+    "promotion": "Promotion"
+  },
+  "promotion": {
+    "title": "Promote a class",
+    "unassigned": "Not assigned",
+    "source": "Current class",
+    "target": "Promote to",
+    "academicYear": "Academic year",
+    "date": "Promotion date",
+    "selectClass": "-- Select a class --",
+    "chooseClasses": "Choose the current class and the class to promote to.",
+    "preview": "Preview",
+    "empty": "No learners are in this class.",
+    "include": "Include",
+    "learner": "Learner",
+    "from": "From",
+    "to": "To",
+    "note": "Note",
+    "commit": "Promote",
+    "commitCount": "Promote {{count}} learners",
+    "confirmTitle": "Confirm promotion",
+    "confirmMessage": "Move {{count}} learners from {{from}} to {{to}}? You can undo this afterwards.",
+    "partial": "{{done}} learners promoted, {{failed}} could not be promoted.",
+    "done": "{{count}} learners promoted.",
+    "failed": "Promotion failed.",
+    "committed": "{{count}} learners moved to {{to}}.",
+    "undo": "Undo",
+    "undoPartial": "{{done}} learners restored, {{failed}} were moved since and were left as they are.",
+    "undone": "{{count}} learners returned to their previous class.",
+    "undoFailed": "Undo failed."
   }
 }

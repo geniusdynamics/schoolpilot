@@ -30,10 +30,8 @@ import type {
   GeneralPaymentItem,
   FinancialYear,
   GeneralLedgerEntry,
-  InvoiceStatus,
-  CustomerInvoiceStatus,
-  SupplierInvoiceStatus,
 } from './types';
+import { InvoiceStatus, CustomerInvoiceStatus, SupplierInvoiceStatus } from './types';
 
 // Collection names from appDataCollections.ts
 const COLLECTIONS = {

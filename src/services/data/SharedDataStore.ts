@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * SharedDataStore - Non-React Access to Shared Entities
  * 
@@ -104,7 +106,7 @@ class SharedDataStore {
     }
     
     if (typeof import.meta.env !== 'undefined' && import.meta.env.DEV) {
-      console.log('[SharedDataStore] Initialized with entities:', Object.keys(data));
+      logger.info('[SharedDataStore] Initialized with entities:', Object.keys(data));
     }
   }
   
@@ -220,7 +222,7 @@ class SharedDataStore {
     this.emit({ type: 'reset' });
     
     if (typeof import.meta.env !== 'undefined' && import.meta.env.DEV) {
-      console.log('[SharedDataStore] Reset');
+      logger.info('[SharedDataStore] Reset');
     }
   }
   
@@ -232,7 +234,7 @@ class SharedDataStore {
       try {
         listener(event);
       } catch (err) {
-        console.error('[SharedDataStore] Listener error:', err);
+        logger.error('[SharedDataStore] Listener error:', err);
       }
     });
   }

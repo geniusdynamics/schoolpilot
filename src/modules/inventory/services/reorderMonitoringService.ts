@@ -1,4 +1,6 @@
-import { InvItemType, InvStockLevelType, InvStockAlertType } from '../data/types';
+
+import { logger } from '@/utils/logging';
+import type { InvItemType, InvStockLevelType } from '../data/types';
 
 export interface ReorderAlert {
   item_id: string;
@@ -131,8 +133,16 @@ export function checkReorderRequirements(
       last_check: new Date()
     };
   } catch (error) {
-    console.error('Error checking reorder requirements:', error);
+    logger.error('Error checking reorder requirements:', error);
     throw error;
   }
 }
+
+/**
+ * Reorder monitoring service object
+ * Provides a unified interface for reorder monitoring operations
+ */
+export const reorderMonitoringService = {
+  checkReorderRequirements,
+};
 

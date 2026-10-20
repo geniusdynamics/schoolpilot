@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Main orchestrator for universal data generation across storage types
 // ABOUTME: Coordinates adapters, relationships, and data generation workflows
 
-import { StorageType, DataGenerationConfig, IStorageAdapter, DataGenerationResult, GeneratedEntity } from './types';
+import { StorageType, DataGenerationConfig } from './types';
 import { AdapterFactory } from './adapters/AdapterFactory';
 import { RelationshipManager } from './RelationshipManager';
 import {
@@ -18,6 +20,20 @@ import {
   CommunicationGenerator,
   HealthGenerator
 } from './generators/index';
+
+interface GeneratedTableColumn {
+  name: string;
+  type: string;
+  primaryKey?: boolean;
+  unique?: boolean;
+  required?: boolean;
+  defaultValue?: string;
+}
+
+interface GeneratedTableSchema {
+  columns: GeneratedTableColumn[];
+  indexes?: Array<{ columns: string[]; unique?: boolean }>;
+}
 
 export interface UniversalDataGenerationConfig {
   storageType: 'sqlite-opfs' | 'sqlite-livestore' | 'pouchdb' | 'mock';
@@ -83,14 +99,16 @@ export class UniversalDataGenerator {
       this.adapter = await AdapterFactory.createAdapter(this.config.storageType);
       await this.adapter.initialize();
       
-      // Initialize relationship manager
-      this.relationshipManager = new RelationshipManager();
+      // Initialize relationship manager WITH the adapter so FK validation can
+      // resolve referenced rows against generated data (without it, every
+      // validateRelationships check failed and validateData was useless).
+      this.relationshipManager = new RelationshipManager(this.adapter);
       
       if (this.config.logProgress) {
-        console.log(`Universal Data Generator initialized with ${this.config.storageType} storage`);
+        logger.info(`Universal Data Generator initialized with ${this.config.storageType} storage`);
       }
     } catch (error) {
-      console.error('Failed to initialize Universal Data Generator:', error);
+      logger.error('Failed to initialize Universal Data Generator:', error);
       throw error;
     }
   }
@@ -106,7 +124,7 @@ export class UniversalDataGenerator {
 
     try {
       if (this.config.logProgress) {
-        console.log('Starting data generation process...');
+        logger.info('Starting data generation process...');
       }
       
       // Generate data for each requested module
@@ -116,7 +134,7 @@ export class UniversalDataGenerator {
           totalRecords += records.recordCount;
           tablesGenerated.push(...records.tables);
         } catch (error) {
-          console.error(`Failed to generate data for module ${module}:`, error);
+          logger.error(`Failed to generate data for module ${module}:`, error);
           throw error;
         }
       }
@@ -124,8 +142,8 @@ export class UniversalDataGenerator {
       const generationTime = Date.now() - startTime;
       
       if (this.config.logProgress) {
-        console.log(`Data generation completed in ${generationTime}ms`);
-        console.log(`Generated ${totalRecords} total records across ${tablesGenerated.length} tables`);
+        logger.info(`Data generation completed in ${generationTime}ms`);
+        logger.info(`Generated ${totalRecords} total records across ${tablesGenerated.length} tables`);
       }
       
       return {
@@ -135,7 +153,7 @@ export class UniversalDataGenerator {
         storageType: this.config.storageType
       };
     } catch (error) {
-      console.error('Data generation failed:', error);
+      logger.error('Data generation failed:', error);
       throw error;
     }
   }
@@ -164,7 +182,6 @@ export class UniversalDataGenerator {
       tables
     };
   }
-
 
 
   async validateData(): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> {
@@ -222,7 +239,7 @@ export class UniversalDataGenerator {
     this.config = null;
     this.generators = null;
     
-    console.log('Universal Data Generator cleaned up');
+    logger.info('Universal Data Generator cleaned up');
   }
 
   getGenerationStats(): {
@@ -239,7 +256,7 @@ export class UniversalDataGenerator {
     };
   }
 
-  private getTableSchemas(): Record<string, TableSchema> {
+  private getTableSchemas(): Record<string, GeneratedTableSchema> {
     // Return predefined schemas for all tables
     return {
       students: {
@@ -295,6 +312,5 @@ export class UniversalDataGenerator {
       // Add more schemas as needed
     };
   }
-
 
 }

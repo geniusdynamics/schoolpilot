@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,8 @@ import { useHousesData } from '../../data/houses/useHousesData';
 import { useTranslation } from 'react-i18next';
 import { TransactionType, TransactionStatus } from '../../data/houses/types';
 import type { PointTransaction } from '../../data/houses/types';
+import { logger } from '@/utils/logging';
+
 
 interface AwardFormData {
   studentId: string;
@@ -132,7 +134,7 @@ const AwardPointsPage: React.FC = () => {
       setFormData(initialFormData);
       setShowAwardForm(false);
     } catch (error) {
-      console.error('Failed to award points:', error);
+      logger.error('Failed to award points:', error);
     } finally {
       setSubmitting(false);
     }
@@ -142,7 +144,7 @@ const AwardPointsPage: React.FC = () => {
     try {
       await approveTransaction(transaction.id, 'CURRENT_USER');
     } catch (error) {
-      console.error('Failed to approve transaction:', error);
+      logger.error('Failed to approve transaction:', error);
     }
   };
 
@@ -150,7 +152,7 @@ const AwardPointsPage: React.FC = () => {
     try {
       await rejectTransaction(transaction.id);
     } catch (error) {
-      console.error('Failed to reject transaction:', error);
+      logger.error('Failed to reject transaction:', error);
     }
   };
 
@@ -285,7 +287,7 @@ const AwardPointsPage: React.FC = () => {
             </>
           )}
           {item.status !== TransactionStatus.PENDING && (
-            <span className="text-xs text-gray-400">-</span>
+            <span className="text-xs text-surface-muted-fg">-</span>
           )}
         </div>
       ),
@@ -394,10 +396,10 @@ const AwardPointsPage: React.FC = () => {
                 <span className="text-yellow-600 font-semibold">{pendingCount}</span>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-surface-foreground">
                   {pendingCount} pending transaction{pendingCount > 1 ? 's' : ''} awaiting approval
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-surface-muted-fg">
                   Review and approve or reject pending point awards
                 </p>
               </div>
@@ -457,10 +459,10 @@ const AwardPointsPage: React.FC = () => {
           filterable
           emptyState={
             <div className="text-center py-12">
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 No point transactions found.
               </p>
             </div>

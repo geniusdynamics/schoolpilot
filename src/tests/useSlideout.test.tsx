@@ -1,4 +1,4 @@
-// ABOUTME: Tests for useSlideout hook functionality
+﻿// ABOUTME: Tests for useSlideout hook functionality
 // ABOUTME: Tests state management, auto-save, data updates, and hook integration
 
 import { renderHook, act } from '@testing-library/react';
@@ -223,7 +223,7 @@ describe('useSlideout', () => {
       
       expect(saveResult).toBe(false);
       expect(result.current.isSaving).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith('Save failed:', expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith('[ERROR]', 'Save failed:', expect.any(Error));
       
       consoleSpy.mockRestore();
     });
@@ -244,21 +244,32 @@ describe('useSlideout', () => {
     });
 
     it('should set saving state during save', async () => {
-      const onSave = vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      // Deferred promise so we control exactly when the save resolves. Never
+      // leave an act() promise unresolved: an abandoned async act() wedges
+      // React's act queue for the remainder of the worker run.
+      let resolveSave: () => void = () => {};
+      const onSave = vi.fn().mockImplementation(
+        () => new Promise<void>(resolve => { resolveSave = resolve; })
+      );
       const { result } = renderHook(() => useSlideout({ onSave }));
-      
+
       act(() => {
         result.current.open({ name: 'John' });
       });
-      
-      const savePromise = act(async () => {
-        return result.current.save();
+
+      let savePromise: Promise<boolean | undefined> = Promise.resolve(false);
+      act(() => {
+        savePromise = result.current.save();
       });
-      
+
+      // save() sets isSaving synchronously before awaiting onSave
       expect(result.current.isSaving).toBe(true);
-      
-      await savePromise;
-      
+
+      await act(async () => {
+        resolveSave();
+        await savePromise;
+      });
+
       expect(result.current.isSaving).toBe(false);
     });
   });
@@ -389,7 +400,7 @@ describe('useSlideout', () => {
         await Promise.resolve();
       });
       
-      expect(consoleSpy).toHaveBeenCalledWith('Auto-save failed:', expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith('[ERROR]', 'Auto-save failed:', expect.any(Error));
       expect(result.current.isSaving).toBe(false);
       
       consoleSpy.mockRestore();
@@ -499,6 +510,9 @@ describe('useSlideout', () => {
 
   describe('Cleanup', () => {
     it('should clear auto-save timer on close', () => {
+      // jsdom does not implement window.confirm; the hook consults it because
+      // preventCloseOnUnsaved defaults to true and the panel has unsaved changes.
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
       const onSave = vi.fn();
       const { result } = renderHook(() => useSlideout({ 
         autoSave: true, 
@@ -518,6 +532,8 @@ describe('useSlideout', () => {
       act(() => {
         result.current.close();
       });
+      
+      confirmSpy.mockRestore();
       
       // Advance time past auto-save delay
       act(() => {

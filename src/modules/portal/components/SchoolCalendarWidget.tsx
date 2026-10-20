@@ -4,18 +4,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import PortalWidgetCard from './PortalWidgetCard';
-import {
-  PrinterIcon,
-  ArrowDownTrayIcon,
-  PlusIcon,
-  CogIcon,
-  HomeIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  TrophyIcon,
-  CalendarIcon,
-  FlagIcon,
-} from '@/components/ui/icons';
+import { PrinterIcon, ArrowDownTrayIcon, PlusIcon, CogIcon, HomeIcon, AcademicCapIcon, UsersIcon, CalendarIcon } from '@/components/ui/icons';
 
 export interface CalendarEvent {
   id: string;
@@ -66,10 +55,10 @@ const defaultEvents: CalendarEvent[] = [
 const categoryColors: Record<string, string> = {
   house: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   examination: 'bg-amber-50 text-amber-700 border-amber-200',
-  assembly: 'bg-blue-50 text-blue-700 border-blue-200',
+  assembly: 'bg-primary-50 text-primary-700 border-primary-200',
   sports: 'bg-rose-50 text-rose-700 border-rose-200',
   academic: 'bg-purple-50 text-purple-700 border-purple-200',
-  other: 'bg-gray-50 text-gray-700 border-gray-200',
+  other: 'bg-surface-muted text-surface-foreground border-surface-border',
 };
 
 // Category translation keys - actual translations resolved in component
@@ -108,7 +97,7 @@ export const SchoolCalendarWidget: React.FC<SchoolCalendarWidgetProps> = ({
       actions={actions}
     >
       {/* Table Header */}
-      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-2">
+      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-surface-muted-fg uppercase tracking-wider mb-2 px-2">
         <div className="col-span-5">{t('portal.calendar.event')}</div>
         <div className="col-span-3">{t('portal.calendar.category')}</div>
         <div className="col-span-2 text-center">{t('portal.calendar.start')}</div>
@@ -120,14 +109,14 @@ export const SchoolCalendarWidget: React.FC<SchoolCalendarWidgetProps> = ({
         {events.map((event) => (
           <div
             key={event.id}
-            className="grid grid-cols-12 gap-2 items-center p-2 rounded-lg hover:bg-gray-50 transition-colors"
+            className="grid grid-cols-12 gap-2 items-center p-2 rounded-lg hover:bg-surface-muted transition-colors"
           >
             {/* Event Title */}
             <div className="col-span-5 flex items-center gap-2 min-w-0">
               <div className="flex-shrink-0 w-6 h-6 rounded bg-rose-100 text-rose-600 flex items-center justify-center">
                 <CalendarIcon className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm text-gray-900 truncate">{event.title}</span>
+              <span className="text-sm text-surface-foreground truncate">{event.title}</span>
             </div>
 
             {/* Category */}
@@ -140,12 +129,12 @@ export const SchoolCalendarWidget: React.FC<SchoolCalendarWidgetProps> = ({
             </div>
 
             {/* Start Time */}
-            <div className="col-span-2 text-center text-sm text-gray-600">
+            <div className="col-span-2 text-center text-sm text-surface-muted-fg">
               {event.startTime}
             </div>
 
             {/* End Time */}
-            <div className="col-span-2 text-center text-sm text-gray-600">
+            <div className="col-span-2 text-center text-sm text-surface-muted-fg">
               {event.endTime}
             </div>
           </div>
@@ -153,7 +142,7 @@ export const SchoolCalendarWidget: React.FC<SchoolCalendarWidgetProps> = ({
       </div>
 
       {events.length === 0 && (
-        <div className="text-center py-6 text-gray-500">
+        <div className="text-center py-6 text-surface-muted-fg">
           <CalendarIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">{t('common.noData')}</p>
         </div>

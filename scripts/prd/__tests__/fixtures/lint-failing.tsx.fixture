@@ -1,0 +1,11 @@
+// ABOUTME: Deliberately broken TSX fed to ESLint by eslint-gate.test.ts over stdin.
+// ABOUTME: Uses a .fixture extension so gate G7 never lints it as a real changed source file.
+import { useState } from 'react';
+
+export function Broken({ show }: { show: boolean }) {
+  if (show) {
+    const [value] = useState(0);
+    return value;
+  }
+  return null;
+}

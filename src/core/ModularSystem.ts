@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Modular System Integration
  * 
@@ -314,7 +316,7 @@ export class ModularSystem extends EventEmitter {
         getStatus: () => this.getStatus(),
         getDependencyGraph: () => this.getDependencyGraph()
       };
-      console.log('[ModularSystem] Dev tools enabled. Access via window.__MODULAR_SYSTEM__');
+      logger.info('[ModularSystem] Dev tools enabled. Access via window.__MODULAR_SYSTEM__');
     }
   }
 

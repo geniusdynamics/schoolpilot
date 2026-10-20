@@ -1,0 +1,16 @@
+{
+  "title": "Mipangilio",
+  "general": "Mkuu",
+  "system": "Mfumo",
+  "school": "Shule",
+  "configuration": "Usanidi",
+  "dataManagement": "Usimamizi wa Data",
+  "database": "Hifadhidata",
+  "backup": "Hifadhi rudufu",
+  "auditLog": "Kumbukumbu ya ukaguzi",
+  "features": "Vipengele",
+  "modules": "Moduli",
+  "plugins": {
+    "confirmUninstall": "Confirm Uninstall"
+  }
+}

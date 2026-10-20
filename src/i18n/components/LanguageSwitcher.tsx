@@ -5,7 +5,9 @@
  */
 
 import React from 'react';
-import { Globe } from 'lucide-react';
+import {
+  GlobeAltIcon,
+} from '@heroicons/react/24/outline';
 import { useTranslation } from '../useTranslation';
 import {
   DropdownMenu,
@@ -13,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 
 export interface LanguageSwitcherProps {
   variant?: 'dropdown' | 'select' | 'buttons';
@@ -66,13 +68,13 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
             className={className}
             disabled={isLoading}
           >
-            <Globe className="w-4 h-4 mr-2" />
+            <GlobeAltIcon className="w-4 h-4 mr-2" />
             {showIcons && LOCALE_NAMES[locale]?.flag}
             <span className="ml-2">{LOCALE_NAMES[locale]?.name || locale}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {supportedLocales.map((loc) => (
+          {supportedLocales.map((loc: string) => (
             <DropdownMenuItem
               key={loc}
               onClick={() => handleChange(loc)}
@@ -92,7 +94,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   if (variant === 'buttons') {
     return (
       <div className={`flex gap-2 ${className}`}>
-        {supportedLocales.map((loc) => (
+        {supportedLocales.map((loc: string) => (
           <Button
             key={loc}
             variant={loc === locale ? 'default' : 'outline'}
@@ -118,7 +120,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       disabled={isLoading}
       className={`px-3 py-2 border rounded-md bg-background ${className}`}
     >
-      {supportedLocales.map((loc) => (
+      {supportedLocales.map((loc: string) => (
         <option key={loc} value={loc}>
           {showIcons ? `${LOCALE_NAMES[loc]?.flag || '🌐'} ` : ''}
           {LOCALE_NAMES[loc]?.name || loc}

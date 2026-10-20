@@ -2,12 +2,18 @@
 
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
+import { ToastProvider } from '@/hooks/useToast';
+
+// The provider under test reaches useToast internally; wrap every render here
+// because this file imports RTL's render directly (bypassing the global wrapper).
+const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
+  rtlRender(<ToastProvider>{ui}</ToastProvider>, options);
 import {
   AdministrationDataProvider,
   useAdministrationDataContext,
   AdministrationDataContext,
-} from '../AdministrationDataContext';
+} from '@/modules/administration/data/AdministrationDataContext';
 import { databaseService } from '../../../services/database/databaseService';
 
 // Mock the database service

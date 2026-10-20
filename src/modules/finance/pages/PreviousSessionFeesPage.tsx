@@ -9,14 +9,17 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { ArrowPathIcon, CurrencyDollarIcon, CalendarIcon, UserGroupIcon, CheckCircleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { PreviousSessionFee } from '../data/types';
+import { logger } from '@/utils/logging';
+import { ArrowPathIcon, CheckCircleIcon, CurrencyDollarIcon, PlusIcon, UserGroupIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 type PreviousSessionFeeFormData = Omit<Partial<PreviousSessionFee>, 'id' | 'created_at' | 'updated_at'>;
 
-const PreviousSessionFeesPage: React.FC = () => {
+export const PreviousSessionFeesPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { students, schoolPeriods, previousSessionFees, loading } = useAppData();
 
@@ -47,8 +50,8 @@ const PreviousSessionFeesPage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(record =>
-        record.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.admission_no.toLowerCase().includes(searchTerm.toLowerCase())
+        (record.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -66,9 +69,9 @@ const PreviousSessionFeesPage: React.FC = () => {
   // Calculate totals
   const totals = useMemo(() => {
     return filteredPreviousSessionFees.reduce((acc, record) => ({
-      carryOver: acc.carryOver + record.carry_over_amount,
-      paid: acc.paid + record.amount_paid,
-      remaining: acc.remaining + record.balance_remaining
+      carryOver: acc.carryOver + (record.carry_over_amount ?? 0),
+      paid: acc.paid + (record.amount_paid ?? 0),
+      remaining: acc.remaining + (record.balance_remaining ?? 0)
     }), { carryOver: 0, paid: 0, remaining: 0 });
   }, [filteredPreviousSessionFees]);
 
@@ -104,13 +107,14 @@ const PreviousSessionFeesPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.previous_session || !formData.current_session) {
-      alert('Student, previous session, and current session are required.');
+      toast.showWarning('Student, previous session, and current session are required.');
       return;
     }
     // In production, this would call addPreviousSessionFee or updatePreviousSessionFee
-    console.log('Saving previous session fee:', formData);
+    logger.info('Saving previous session fee:', formData);
     closeModal();
   };
 
@@ -119,7 +123,7 @@ const PreviousSessionFeesPage: React.FC = () => {
       'Pending': 'bg-yellow-100 text-yellow-800',
       'Partial': 'bg-orange-100 text-orange-800',
       'Paid': 'bg-green-100 text-green-800',
-      'Waived': 'bg-blue-100 text-blue-800'
+      'Waived': 'bg-primary-100 text-primary-800'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
@@ -163,13 +167,13 @@ const PreviousSessionFeesPage: React.FC = () => {
       key: 'carry_over_amount',
       header: 'Carry Over',
       sortable: true,
-      render: (value) => `KES ${value.toLocaleString()}`
+      render: (value) => `KES ${value?.toLocaleString?.() ?? '-'}`
     },
     {
       key: 'amount_paid',
       header: 'Paid',
       sortable: true,
-      render: (value) => value > 0 ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null && value > 0 ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'balance_remaining',
@@ -177,7 +181,7 @@ const PreviousSessionFeesPage: React.FC = () => {
       sortable: true,
       render: (value) => (
         <span className={`font-semibold ${value > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          KES {value.toLocaleString()}
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -203,7 +207,7 @@ const PreviousSessionFeesPage: React.FC = () => {
 
   const statusOptions = ['Pending', 'Partial', 'Paid', 'Waived'];
 
-  if (loading && mockPreviousSessionFees.length === 0) {
+  if (loading?.all && filteredPreviousSessionFees.length === 0 && !previousSessionFees) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -244,7 +248,7 @@ const PreviousSessionFeesPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Previous Session</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Previous Session</label>
             <Select
               value={selectedSession}
               onChange={(e) => setSelectedSession(e.target.value)}
@@ -256,7 +260,7 @@ const PreviousSessionFeesPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
             <Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -268,7 +272,7 @@ const PreviousSessionFeesPage: React.FC = () => {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <Input
               type="text"
               placeholder="Student name or admission no..."
@@ -281,39 +285,39 @@ const PreviousSessionFeesPage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ArrowPathIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Carry-over</span>
             </div>
             <p className="text-2xl font-bold text-purple-600 mt-2">
-              KES {totals.carryOver.toLocaleString()}
+              KES {totals.carryOver?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Paid</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.paid.toLocaleString()}
+              KES {totals.paid?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CurrencyDollarIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Outstanding</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.remaining.toLocaleString()}
+              KES {totals.remaining?.toLocaleString?.() ?? '0'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserGroupIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Records</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {filteredPreviousSessionFees.length}
             </p>
           </div>
@@ -340,7 +344,7 @@ const PreviousSessionFeesPage: React.FC = () => {
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              options={students?.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name} (${s.admission_no})` })) || []}
+              options={students?.map(s => ({ value: s.id, label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '') })) || []}
               placeholder="Select student"
             />
           </FormField>
@@ -426,7 +430,7 @@ const PreviousSessionFeesPage: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Additional notes"
               rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
         </FormSection>
@@ -440,5 +444,11 @@ const PreviousSessionFeesPage: React.FC = () => {
     </div>
   );
 };
+
+const PreviousSessionFeesPage: React.FC = () => (
+  <div className="space-y-6">
+    <PreviousSessionFeesPageContent />
+  </div>
+);
 
 export default PreviousSessionFeesPage;

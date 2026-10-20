@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Factory for creating standardized data hooks that integrate with AppDataContext
 // ABOUTME: Provides consistent CRUD operations and data synchronization capabilities
 // ABOUTME: Ensures all module data hooks follow the same pattern and interface
@@ -7,7 +9,6 @@ import { hasAppDataContextContract } from '../contexts/AppDataContext';
 import { useAppDataInternal } from './useAppData';
 import { DataOperation } from '../services/consistency/DataStrategyManager';
 import { globalDataConsistencyService } from '../services/consistency/DataConsistencyService';
-import { ValidationResult } from '../utils/dataValidation';
 import { performanceMonitor } from '../services/performance/performanceMonitor';
 import { useMemoryAwareCache } from './useMemoryManagement';
 import { DataValidationUtils } from '../utils/dataValidationUtils';
@@ -523,7 +524,7 @@ export function createDataHook<T extends EntityData>(
       const validation = DataValidationUtils.validateTableData(safeData, ['id']);
       
       if (!validation.isValid && validation.errors.length > 0) {
-        console.warn(`Data validation warnings for ${entityName}:`, validation.errors);
+        logger.warn(`Data validation warnings for ${entityName}:`, validation.errors);
       }
       
       return validation.validData;

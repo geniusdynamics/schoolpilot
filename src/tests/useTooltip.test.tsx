@@ -1,7 +1,6 @@
-// ABOUTME: Tests for useTooltip hook functionality and positioning logic
+﻿// ABOUTME: Tests for useTooltip hook functionality and positioning logic
 // ABOUTME: Covers state management, positioning calculations, and accessibility features
 
-import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import { useTooltip } from '@/hooks/useTooltip';
 

@@ -1,0 +1,4778 @@
+{
+  "version": 1,
+  "generated_from": "docs/prd (planning session 2026-10-07)",
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Stabilise",
+      "depends_on": [],
+      "lanes": {
+        "A": "Persistence, configuration, auth & onboarding",
+        "B": "Data API contracts",
+        "C": "Academic structure & admin configuration pages",
+        "D": "Students, staff, admissions, routing & settings",
+        "E": "Finance",
+        "F": "Academics, attendance, promotion & report card v0",
+        "G": "Quality, crashes, UX components & CI",
+        "H": "Other modules (inventory, library, nutrition, HR, settings)",
+        "Z": "Wave integration (i18n merge, shared files)",
+        "Q": "Quality follow-ups (flakes, tooling)"
+      },
+      "waves": {
+        "P0-W0": "Repository hygiene that touches many files — runs alone first",
+        "P0-W1": "Independent foundations and highest-impact single-file fixes",
+        "P0-W2": "Fixes that depend on W1 foundations",
+        "P0-W3": "Page migrations off useAppData() and mock hooks; wizard rebuild",
+        "P0-W4": "Contract lock-down, cleanup, end-to-end suite, phase exit",
+        "P0-W5": "Phase exit: zero missing names, golden path suite, wave integration"
+      },
+      "exit_criteria": [
+        "scripts/audit/school-ops-probe.mjs: 16/16 PASS and C16 crawl reports 0 broken pages",
+        "node scripts/audit/contract-scan.cjs: every section 0",
+        "Typecheck: missingNames (TS2304/TS2552 in src) = 0; total below 3056; .type-ratchet lowered to the real count",
+        "Full vitest suite: 0 failed files (the 4 pre-existing load failures fixed)",
+        "pnpm lint runs and passes on all files changed in P0",
+        "Golden path GP-1-lite Playwright test green on SQLite-WASM persistent storage",
+        "Phase-complete log written; gate baseline tightened"
+      ],
+      "status": "not_started",
+      "start_after": null,
+      "completed_at": null
+    },
+    {
+      "id": "P1",
+      "name": "Core model & data layer",
+      "depends_on": [
+        "P0"
+      ],
+      "lanes": {
+        "A": "Schema, ids & storage",
+        "B": "Repositories, query cache & services",
+        "C": "Data migration",
+        "D": "UI components (EntityPicker, forms, lookups)",
+        "E": "Module UI migration",
+        "Q": "Quality & test harness"
+      },
+      "waves": {
+        "P1-W1": "Decisions and id rules",
+        "P1-W2": "Entity schemas and EntityPicker",
+        "P1-W3": "Storage adapter, repository base, schema-bound forms",
+        "P1-W4": "Migration framework, permissions, domain services, live queries, repair tool, test harness",
+        "P1-W5": "Calendar migration and module UI migration (parallel by module)",
+        "P1-W6": "Class-group migration and retirement of legacy data layers",
+        "P1-W7": "Learner/enrolment migration and golden paths",
+        "P1-W8": "Assessment and finance migrations; phase exit"
+      },
+      "exit_criteria": [
+        "All modules read/write through repositories; useAppData() only for read-only legacy compatibility or removed",
+        "No mock hooks; no denormalised *_name reads in UI",
+        "Enrolment history model live; 'current class' derived",
+        "Existing installations migrate with before/after balance and count verification",
+        "Repository integration tests run on SQLite (node) and in CI"
+      ],
+      "status": "not_started",
+      "start_after": "P0-W5",
+      "completed_at": null
+    },
+    {
+      "id": "P2",
+      "name": "Curriculum & assessment engine",
+      "depends_on": [
+        "P1"
+      ],
+      "lanes": {
+        "A": "Pack format & registry",
+        "B": "Assessment & results engine",
+        "C": "Reference packs (KE CBE, KE 8-4-4, British)",
+        "D": "Report cards & documents",
+        "E": "Mark entry, observations, promotion UI",
+        "Q": "Conformance & golden paths"
+      },
+      "waves": {
+        "P2-W1": "Pack schema, engine core, PDF decision",
+        "P2-W2": "Registry, grading scales, aggregation, reference packs, report template engine",
+        "P2-W3": "Progression rules, mark entry v2, observations, results UI, conformance CI",
+        "P2-W4": "Report publishing, promotion UI, wizard on packs, analysis",
+        "P2-W5": "Golden paths; phase exit"
+      },
+      "exit_criteria": [
+        "ke-cbe, ke-844 and british packs pass all conformance vectors and are installable in the wizard",
+        "Results computed with explanation traces; ranking policy honoured",
+        "Report cards publish as immutable snapshots and print in bulk",
+        "Promotion run with preview/approve/commit/undo on the enrolment model",
+        "GP-2, GP-3, GP-4, GP-5 green"
+      ],
+      "status": "not_started",
+      "start_after": "P1-W4",
+      "completed_at": null
+    },
+    {
+      "id": "P3",
+      "name": "Finance v2",
+      "depends_on": [
+        "P1"
+      ],
+      "lanes": {
+        "A": "Money & ledger foundations",
+        "B": "Fee configuration",
+        "C": "Billing & documents",
+        "D": "Payments & integrations",
+        "E": "Statements, collections & accounting",
+        "Q": "Quality"
+      },
+      "waves": {
+        "P3-W1": "Money type and sequences",
+        "P3-W2": "Ledger, fee items, allocation engine",
+        "P3-W3": "Fee schedules, cashier, reconciliation, accounting reports",
+        "P3-W4": "Subscriptions, discounts, billing runs, M-Pesa, receipts",
+        "P3-W5": "Adjustments and statements",
+        "P3-W6": "Collections, golden paths, controls; phase exit"
+      },
+      "exit_criteria": [
+        "Bursar bills a 1,000-learner school in ≤ 2 min and every balance reconciles",
+        "M-Pesa sandbox C2B/STK flows auto-match ≥ 95 % of test payments",
+        "Statements, aging, reminders, refunds, credit notes and accounting reports correct against fixtures",
+        "GP-1 finance steps and GP-4 billing steps green"
+      ],
+      "status": "not_started",
+      "start_after": "P1-W4",
+      "completed_at": null
+    },
+    {
+      "id": "P4",
+      "name": "Multi-user, sync & security",
+      "depends_on": [
+        "P1"
+      ],
+      "lanes": {
+        "A": "Sync engine & protocol",
+        "B": "Hub/cloud server",
+        "C": "Identity & access",
+        "D": "Operations (backup, health, packaging)",
+        "Q": "Quality"
+      },
+      "waves": {
+        "P4-W1": "Sync decision spike and hub skeleton",
+        "P4-W2": "Sync protocol, server auth, backups",
+        "P4-W3": "Sequences, RBAC, SSO, packaging, health page, hardening",
+        "P4-W4": "Multi-device golden path; phase exit"
+      },
+      "exit_criteria": [
+        "Three devices edit concurrently (GP-7) with deterministic outcomes",
+        "Hub runs on Windows, Ubuntu and Raspberry Pi with one installer each",
+        "Automatic encrypted backups and a verified restore (GP-8)",
+        "Server-side permission checks mirror client checks"
+      ],
+      "status": "not_started",
+      "start_after": "P1-W4",
+      "completed_at": null
+    },
+    {
+      "id": "P5",
+      "name": "Packs & localisation",
+      "depends_on": [
+        "P2"
+      ],
+      "lanes": {
+        "A": "i18n & l10n infrastructure",
+        "B": "Locales",
+        "C": "Country & curriculum packs",
+        "D": "Payroll pack interface"
+      },
+      "waves": {
+        "P5-W1": "i18n infrastructure and locale formats (may start during P1)",
+        "P5-W2": "Calendars, Kiswahili and French, country pack format",
+        "P5-W3": "Portuguese/Arabic, Africa curriculum packs, payroll interface; phase exit"
+      },
+      "exit_criteria": [
+        "sw, fr, pt, ar (RTL) locales complete for core flows; no hard-coded curriculum terms in core",
+        "Ethiopian calendar entry/display works in date fields",
+        "Uganda, Tanzania, Rwanda, Nigeria, Ghana, South Africa, Francophone packs pass vectors with cited sources",
+        "Country packs provide identifiers, address schemas, holidays; KE payroll pack implements the interface"
+      ],
+      "status": "not_started",
+      "start_after": "P0-W5",
+      "completed_at": null
+    },
+    {
+      "id": "P6",
+      "name": "Ecosystem & open-source 1.0",
+      "depends_on": [
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "lanes": {
+        "A": "Plug-in SDK",
+        "B": "Integrations",
+        "C": "Portal",
+        "D": "Documentation",
+        "E": "Governance & release"
+      },
+      "waves": {
+        "P6-W1": "Licence, hygiene, governance, plug-in SDK",
+        "P6-W2": "Integrations, portal, documentation",
+        "P6-W3": "Pilot term",
+        "P6-W4": "Release 1.0"
+      },
+      "exit_criteria": [
+        "Plug-in SDK documented; one third-party-style plug-in built without core changes",
+        "ke-kemis and knec-registration export plug-ins; accounting export; SMS/WhatsApp providers",
+        "Guardian/learner PWA portal live",
+        "Licence chosen; repository hygiene complete; contributor docs; security policy",
+        "One full pilot term per flagship pack with sign-off; 1.0 tagged"
+      ],
+      "status": "not_started",
+      "start_after": "P2-W5",
+      "completed_at": null
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P0-G00",
+      "phase": "P0",
+      "wave": "P0-W0",
+      "lane": "G",
+      "title": "Re-encode the 99 mojibake source files as clean UTF-8 and add an encoding check",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/**/* (only files flagged by the encoding script)",
+        "scripts/prd/fix-encoding.mjs (new)",
+        ".editorconfig"
+      ],
+      "acceptance": [
+        "No double-encoded UTF-8 sequences remain in src/ (script exits 0)",
+        "Language switcher shows the US flag emoji; wizard copy shows an em dash",
+        "Diff is encoding-only (verified by the script's round-trip report)"
+      ],
+      "test": "scripts/prd/fix-encoding.mjs --check is run by the gate (G5) and in CI",
+      "reqs": [
+        "NFR-07"
+      ],
+      "findings": [
+        "P2-mojibake"
+      ],
+      "spec": "../specs/multi-curriculum-platform/06-platform-architecture.md#6-internationalisation-and-localisation",
+      "deps_install": false,
+      "status": "done",
+      "commit": "34c67f7",
+      "notes": "integration gate failed: G3 (failures only in .claude/worktrees/wf_75931219-281-6 and -7 communicationHealthHooks.test.tsx picked up by vitest, not in P0-G00 files) | integration gate G3 failed: vitest collected stale .claude/worktrees/wf_75931219-281-6/-7 communicationHealthHooks.test.tsx (not P0-G00 files); branch prd/P0-G00-fix1 approved, re-integrate after excluding .claude/worktrees",
+      "completed_at": "2026-10-07"
+    },
+    {
+      "id": "P0-G01",
+      "phase": "P0",
+      "wave": "P0-W0",
+      "lane": "G",
+      "title": "Make ESLint runnable: add @eslint/js, fix config, enable lint in the gate",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "eslint.config.js",
+        "scripts/prd/gate-baseline.json (lintRequired=true via gate baseline flow)"
+      ],
+      "acceptance": [
+        "pnpm lint loads the config without ERR_MODULE_NOT_FOUND",
+        "Gate G7 reports PASS/FAIL instead of WARN",
+        "No rule changes beyond what is needed to load"
+      ],
+      "test": "Gate G7 on a deliberately failing fixture file",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [
+        "P2-lint"
+      ],
+      "spec": "",
+      "deps_install": true,
+      "status": "done",
+      "commit": "15a50c9",
+      "notes": "not integrated: consolidation had uncommitted tasks.json (P0-G00 ledger update); branch prd/P0-G01 approved; same .claude/worktrees vitest issue expected; confirm hand edit of gate-baseline.json lintRequired=true (§2.4 exception)",
+      "completed_at": "2026-10-07"
+    },
+    {
+      "id": "P0-A01",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "A",
+      "title": "Persistent SQLite: install OPFS SAH-pool VFS (or worker OPFS), request persistent storage, fail closed",
+      "size": "L",
+      "depends_on": [],
+      "files": [
+        "src/services/database/SQLiteWASMProvider.ts",
+        "src/services/database/sqliteWorker.ts (new, if worker route)",
+        "src/components/StorageUnavailableScreen.tsx (new)"
+      ],
+      "acceptance": [
+        "Create a student, reload: student still listed (probe C01 PASS)",
+        "No in-memory fallback unless VITE_DB_ALLOW_MEMORY=true, which shows a red TEMPORARY DATA badge",
+        "navigator.storage.persist() result shown in Settings › System"
+      ],
+      "test": "Provider unit test: missing VFS → initialise() rejects; Playwright reload-persistence test",
+      "reqs": [
+        "FR-01"
+      ],
+      "findings": [
+        "SO-01"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws11-persistent-sqlite-in-the-browser",
+      "deps_install": false,
+      "status": "done",
+      "commit": "39f990e",
+      "notes": "Provider fails closed but DatabaseProviderFactory/UnifiedDatabaseManager still fall back to pouchdb/memory; screen+badge+settings status not mounted (files outside card). Branch prd/P0-A01 | Owner decision 2026-10-10: widened to provider factory, manager, bootstrap, header, SystemManagementPage; fix round prd/P0-A01-fix1",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-A02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "A",
+      "title": "Single configuration source: await initUnifiedConfig() before render; UnifiedConfigContext delegates to the manager",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/index.tsx",
+        "src/config/configManager.ts",
+        "src/config/dataModePolicies.ts",
+        "src/contexts/UnifiedConfigContext.tsx"
+      ],
+      "acceptance": [
+        "Choosing Production then reloading gives 0 students/staff/invoices (probe C03 PASS)",
+        "getAppMode() equals the persisted onboarding choice",
+        "Only one localStorage key holds dataMode"
+      ],
+      "test": "Unit: manager init reads stored config; context update persists via manager",
+      "reqs": [
+        "FR-02"
+      ],
+      "findings": [
+        "SO-03"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws12-one-configuration-source",
+      "deps_install": false,
+      "status": "done",
+      "commit": "e7fb7a1",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-B01",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "B",
+      "title": "Collection registry: define the 10 missing collections or map them, export CollectionName type, test every referenced name exists",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/services/database/collections.ts",
+        "src/modules/administration/data/collections.ts",
+        "src/modules/library/data/collections.ts",
+        "src/modules/hr/data/collections.ts",
+        "src/services/database/__tests__/collectionRegistry.test.ts (new)"
+      ],
+      "acceptance": [
+        "contract-scan undefinedCollections = 0 after the rename tasks in W2/W3 land (this task defines student_class_history, library_members, health_incident_reports, staff_salary_components, book_loans alias)",
+        "CollectionName union exported; useDatabaseCollection accepts it (string still allowed until P0-B05)"
+      ],
+      "test": "Registry test scans src for collection literals and asserts each is defined",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [
+        "SO-24"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws2--one-data-api-for-pages-so-11-so-23-so-24-so-25-so-26",
+      "deps_install": false,
+      "status": "done",
+      "commit": "e0945be",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-C01",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "C",
+      "title": "Classes page: explicit Add Class and Add Stream buttons; remove dead usePageActions registration",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/modules/administration/pages/ClassesPage.tsx",
+        "src/modules/administration/pages/__tests__/ClassesPage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "Add Class visible in the card header and creates a class (probe C05 PASS)",
+        "Add Stream visible when a class is selected; created stream has name and class_id"
+      ],
+      "test": "Component test renders buttons and calls addClass/addClassStream with correct payloads",
+      "reqs": [
+        "FR-06"
+      ],
+      "findings": [
+        "SO-05"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws3--academic-structure-so-05-so-06-so-07",
+      "deps_install": false,
+      "status": "done",
+      "commit": "4b20314",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-C02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "C",
+      "title": "Financial Years: database-backed CRUD page under Finance settings; seed one financial year at school creation",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/modules/finance/pages/FinancialYearsPage.tsx (new)",
+        "src/modules/finance/data/useFinancialYearData.ts",
+        "src/modules/finance/moduleDefinition.tsx",
+        "src/modules/finance/pages/index.ts"
+      ],
+      "acceptance": [
+        "Financial year can be created/edited/closed; exactly one current",
+        "New financial year appears immediately in the term form picker"
+      ],
+      "test": "Component + repository test for overlap validation and single-current rule",
+      "reqs": [
+        "FR-05"
+      ],
+      "findings": [
+        "SO-07"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "156e6f7",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-D01",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "D",
+      "title": "Register module routes: copy def.routes into module metadata; route-coverage test",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/core/moduleRegistration.ts",
+        "src/routing/__tests__/moduleRoutesCoverage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "/administration/students/:id, /students/add, admissions detail/review/track/form-builder, HR and library sub-routes render (probe C08 PASS)",
+        "contract-scan routesOutsideNavigation = 0"
+      ],
+      "test": "Every routes[].path of every module resolves to a non-404 element",
+      "reqs": [
+        "FR-07",
+        "FR-09"
+      ],
+      "findings": [
+        "SO-12"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "c08933c",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-D02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "D",
+      "title": "Admissions application form: pass {id,title,content,validate} steps to WizardForm; per-step validation",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/modules/admissions/pages/ApplicationFormPage.tsx",
+        "src/modules/admissions/pages/__tests__/ApplicationFormPage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "All four steps render their fields (probe C14 PASS)",
+        "Submit stores a complete application; required fields enforced"
+      ],
+      "test": "Component test walks the four steps and asserts payload",
+      "reqs": [
+        "FR-09"
+      ],
+      "findings": [
+        "SO-15"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "8382b0b",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-E01",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "E",
+      "title": "Fee templates: updateFeeTemplate(id, patch) everywhere, stable item ids, remove 999,999.99 maximums",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/modules/finance/pages/FeeTemplatesPage.tsx",
+        "src/modules/finance/data/schema.ts",
+        "src/modules/finance/pages/__tests__/FeeTemplatesPage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "Adding/editing/removing fee items persists (probe C10 PASS)",
+        "Template edit persists",
+        "Amounts > 1,000,000 accepted"
+      ],
+      "test": "Repository-backed test against SQLite node adapter or provider mock-free harness",
+      "reqs": [
+        "FR-16"
+      ],
+      "findings": [
+        "SO-08"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws5--finance-so-08-so-09-so-10-so-28",
+      "deps_install": false,
+      "status": "done",
+      "commit": "30e4136",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-E02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "E",
+      "title": "Student payments: use recordStudentPayment/useFinance(), auto receipt numbers from a sequence, visible errors",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/modules/finance/pages/StudentPaymentsPage.tsx",
+        "src/domain/sequences.ts (new)",
+        "src/domain/__tests__/sequences.test.ts (new)"
+      ],
+      "acceptance": [
+        "Recording a payment persists and reduces balance (probe C11 PASS)",
+        "Receipt numbers RCT/<year>/<seq> unique and gap-free per year",
+        "Every failure shows a message in the dialog"
+      ],
+      "test": "Sequence unit tests; page test for submit success/failure",
+      "reqs": [
+        "FR-18"
+      ],
+      "findings": [
+        "SO-10",
+        "SO-28"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b20d180",
+      "notes": "Code approved except gate-base artefact (local vs origin consolidation histories after PR #15 rebase-merge); re-gate on prd/P0-W1. Branch prd/P0-E02-retry/-fix1",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-F01",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "F",
+      "title": "Marks entry & exam selectors: string ids, no parseInt; getStudentsByClassStream compares strings",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/modules/academics/pages/StudentExamResultsEntryPage.tsx",
+        "src/utils/api.ts",
+        "src/utils/__tests__/api.test.ts (new)"
+      ],
+      "acceptance": [
+        "Selecting a stream lists its active students (probe C12 PASS)",
+        "Works for UUID stream ids"
+      ],
+      "test": "Unit test with numeric-string and UUID ids",
+      "reqs": [
+        "FR-12"
+      ],
+      "findings": [
+        "SO-13",
+        "SO-22"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "f5e713e",
+      "notes": "Gate-base artefact as E02; probe C12 unprovable without seeded exam sessions - decide accept unit evidence or defer. Branch prd/P0-F01-retry/-fix1 | Owner decision 2026-10-10: accepted on unit/component evidence; probe C12 deferred until real exam data is loaded",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-F02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "F",
+      "title": "Attendance roll-call: stream-id option values with level prefix, options from class streams, persist marks",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/modules/administration/pages/ManualAttendancePage.tsx",
+        "src/modules/administration/pages/__tests__/ManualAttendancePage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "Choosing a class lists its learners and the dropdown keeps its options (probe C13 PASS)",
+        "UI-created learners appear",
+        "Saving writes one mark per learner per date/session"
+      ],
+      "test": "Component test with mixed seeded/UI-created learners",
+      "reqs": [
+        "FR-10"
+      ],
+      "findings": [
+        "SO-14"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "22421e7",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-G02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "G",
+      "title": "Fix the 10 crashing pages (missing imports and null guards) found by the crawl",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/modules/finance/pages/AccountLedgerPage.tsx",
+        "src/modules/finance/pages/PaymentAllocationPage.tsx",
+        "src/modules/finance/pages/FeesDueReportPage.tsx",
+        "src/modules/finance/pages/TransportRoutesPage.tsx",
+        "src/modules/library/pages/BooksPage.tsx",
+        "src/modules/library/pages/FinesPage.tsx",
+        "src/modules/nutrition/pages/KitchenManagementPage.tsx",
+        "src/modules/reports/pages/analytics/AnalyticsSubjectPage.tsx",
+        "src/modules/settings/pages/AuditLogPage.tsx",
+        "src/modules/admissions/pages/ApplicationReviewPage.tsx",
+        "src/modules/academics/pages/ExamAnalysisContent.tsx (Create Exam 404)"
+      ],
+      "acceptance": [
+        "Probe C16 crawl reports 0 broken pages",
+        "Each page renders with empty and seeded data"
+      ],
+      "test": "Smoke render test per page (renders without throwing with empty providers)",
+      "reqs": [],
+      "findings": [
+        "SO-27"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b5ad0be",
+      "notes": "Verify/fix round cut off by usage limit. Branch prd/P0-G02",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-G03",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "G",
+      "title": "Hub error boundaries reset when the active tab changes",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/components/ui/PageHeaderWithTabs.tsx",
+        "src/components/PageErrorBoundary.tsx",
+        "src/components/__tests__/PageErrorBoundary.test.tsx (new)"
+      ],
+      "acceptance": [
+        "A crashing tab no longer blanks sibling tabs"
+      ],
+      "test": "Boundary test: throw in tab A, switch to tab B renders",
+      "reqs": [],
+      "findings": [
+        "SO-27"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "d61e4fc",
+      "notes": "Verify/fix round cut off by usage limit. Branch prd/P0-G03 | Owner decision 2026-10-10: widened to hub pages (SO-27); fix round prd/P0-G03-fix1",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-G04",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "G",
+      "title": "CI workflow: install, gate task (vs PR base), unit tests, build; probe nightly",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        ".github/workflows/ci.yml (new)",
+        ".github/workflows/nightly-probe.yml (new)"
+      ],
+      "acceptance": [
+        "CI runs on PRs to consolidation/main and reports gate table in the job summary",
+        "Nightly job runs the probe and uploads the report"
+      ],
+      "test": "Workflow lint (actionlint) passes",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "0ab5ce6",
+      "notes": "",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-G05",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "G",
+      "title": "Fix the 4 test files that fail to load (ModuleLoader, ModuleRegistry.integration, CapabilityDetector.property, SyncComponents.property)",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/core/__tests__/ModuleLoader.test.ts",
+        "src/core/__tests__/ModuleRegistry.integration.test.ts",
+        "src/services/database/__tests__/CapabilityDetector.property.test.ts",
+        "src/services/database/__tests__/SyncComponents.property.test.ts"
+      ],
+      "acceptance": [
+        "Full suite: 0 failed files",
+        "No test skipped or deleted to achieve it"
+      ],
+      "test": "The files themselves",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "158af75",
+      "notes": "2026-10-10: import-casing fix for ModuleLoader/ModuleRegistry tests done on prd/P0-G05 (6f969b2, 43 tests pass); property tests need fast-check 3.23.2 as a direct devDependency (package.json + pnpm-lock.yaml) - re-run with deps_install=true and those files in scope",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-A03",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "A",
+      "title": "Authentication fails closed; demo login only in demo databases; login page hides demo accounts in live mode",
+      "size": "M",
+      "depends_on": [
+        "P0-A02"
+      ],
+      "files": [
+        "src/services/auth/authService.ts",
+        "src/modules/core/pages/LoginPage.tsx",
+        "src/services/auth/__tests__/authService.failClosed.test.ts (new)"
+      ],
+      "acceptance": [
+        "Wrong password rejected in live mode (probe C04 PASS)",
+        "DB error → explicit error, never demo mode",
+        "Empty users table on fresh install → 'Create administrator' path"
+      ],
+      "test": "Unit tests for each fallback path",
+      "reqs": [
+        "FR-03"
+      ],
+      "findings": [
+        "SO-04"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws14-authentication-fails-closed",
+      "deps_install": false,
+      "status": "done",
+      "commit": "2004346",
+      "notes": "Two fix rounds + owner-approved AuthContext login fix; probe C04 PASS; independently verified (APPROVE). Widened: AuthContext.tsx, school-ops-probe.mjs",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-A04",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "A",
+      "title": "Onboarding initialises the database (with progress UI) before the production setup wizard",
+      "size": "S",
+      "depends_on": [
+        "P0-A01",
+        "P0-A02"
+      ],
+      "files": [
+        "src/components/FirstRunOnboarding.tsx",
+        "src/components/__tests__/FirstRunOnboarding.test.tsx"
+      ],
+      "acceptance": [
+        "Wizard collections resolve on first render",
+        "Initialisation failure shows the storage error screen"
+      ],
+      "test": "Component test with real provider init stubbed only at the network boundary",
+      "reqs": [
+        "FR-04"
+      ],
+      "findings": [
+        "SO-02"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "8f248fe",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-B02",
+      "phase": "P0",
+      "wave": "P0-W1",
+      "lane": "B",
+      "title": "Module providers: complete and normalise CRUD (create(data)/update(id,patch)/remove(id)); add updateSchoolDetails, generateTermInvoices hook, class history",
+      "size": "L",
+      "depends_on": [],
+      "files": [
+        "src/modules/administration/data/useAdministrationData.ts",
+        "src/modules/administration/hooks/useAdministration.ts",
+        "src/modules/finance/data/useFinanceData.ts",
+        "src/modules/finance/hooks/useFinance.ts",
+        "src/modules/academics/data/useAcademicData.ts",
+        "src/modules/*/data/appDataAugmentation.ts"
+      ],
+      "acceptance": [
+        "Every function listed by contract-scan missingAppDataFunctions exists on a module hook with the normalised signature",
+        "Renamed collection literals (timetable_period_defs, exam_paper_settings, fee_template_items) fixed"
+      ],
+      "test": "Provider contract test: each exported mutator has (id, patch) arity and persists",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [
+        "SO-11",
+        "SO-23",
+        "SO-24"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "d50d2ec",
+      "notes": "Widened per scope-widening rule to useExamResultsHorizontal.ts, useFinanceServices.ts (exam_sessions.paper_settings / fee_templates.items) and SyncContext.tsx (useSync().getSyncHistory). | Widened per scope-widening rule to useExamResultsHorizontal.ts, useFinanceServices.ts (exam_sessions.paper_settings / fee_templates.items) and SyncContext.tsx (useSync().getSyncHistory). Source changes landed in d50d2ec (concurrent handoff commit swept up the staged squash).",
+      "completed_at": "2026-10-10"
+    },
+    {
+      "id": "P0-B03",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "B",
+      "title": "Live shared lookups: AppDataContext refreshes collections on provider change events (no stale pickers)",
+      "size": "M",
+      "depends_on": [
+        "P0-B01"
+      ],
+      "files": [
+        "src/contexts/AppDataContext.tsx",
+        "src/contexts/__tests__/AppDataContext.liveRefresh.test.tsx (new)"
+      ],
+      "acceptance": [
+        "A record created via any hook appears in useAppData() consumers without reload"
+      ],
+      "test": "Insert through collection → context value updates",
+      "reqs": [],
+      "findings": [
+        "SO-26"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b56b35b",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-C03",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "C",
+      "title": "School Periods tab database-backed with validation; delete the three mock hooks it used",
+      "size": "M",
+      "depends_on": [
+        "P0-C02"
+      ],
+      "files": [
+        "src/modules/administration/pages/SchoolPeriodsPage.tsx",
+        "src/modules/administration/data/useSchoolPeriodData.ts",
+        "src/modules/administration/data/useAcademicYearData.ts",
+        "src/modules/administration/data/useAcademicPeriodDefinitionData.ts"
+      ],
+      "acceptance": [
+        "Terms persist and appear in fee/exam pickers (probe C06 PASS)",
+        "Validation: inside the year, no overlap, one current term",
+        "No Number() coercion of ids"
+      ],
+      "test": "Validation unit tests + page test",
+      "reqs": [
+        "FR-05"
+      ],
+      "findings": [
+        "SO-07",
+        "SO-25"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b758977",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-C04",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "C",
+      "title": "Bulk streams: real classes only, addClassStream({class_id,name}), duplicate guard; repair tool removes corrupt streams",
+      "size": "S",
+      "depends_on": [
+        "P0-C01"
+      ],
+      "files": [
+        "src/modules/administration/pages/BulkStreamCreationPage.tsx",
+        "src/domain/repair/repairCorruptStreams.ts (new)",
+        "src/domain/repair/__tests__/repairCorruptStreams.test.ts (new)"
+      ],
+      "acceptance": [
+        "No hard-coded Form 1–4 options",
+        "Created streams carry name and class_id",
+        "Repair offers to reassign students before deleting null streams"
+      ],
+      "test": "Page test + repair unit test",
+      "reqs": [
+        "FR-06"
+      ],
+      "findings": [
+        "SO-06"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "03b55d7",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-C05",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "C",
+      "title": "Academic years & period definitions: (id, patch) updates, string ids, date validation",
+      "size": "S",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/administration/pages/AcademicYearsPage.tsx",
+        "src/modules/administration/pages/AcademicPeriodDefinitionsPage.tsx",
+        "src/modules/administration/pages/__tests__/AcademicYearsPage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "Editing a year persists",
+        "Start < end, no overlap",
+        "Structure name resolved at read time"
+      ],
+      "test": "Page test",
+      "reqs": [
+        "FR-05"
+      ],
+      "findings": [
+        "SO-23",
+        "SO-21"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b4de32b",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-D03",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "D",
+      "title": "Student add/edit persists guardians via a guardian service; Edit pre-fills; class/stream names resolved at read time in the directory",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/administration/pages/StudentsListPage.tsx",
+        "src/domain/students/guardianService.ts (new)",
+        "src/domain/students/__tests__/guardianService.test.ts (new)",
+        "src/hooks/useLookups.ts (new)"
+      ],
+      "acceptance": [
+        "Guardian and relationship rows created (probe C07 PASS)",
+        "Directory shows class, stream and guardian for UI-created learners",
+        "safeParseInt removed"
+      ],
+      "test": "Service unit tests; page test",
+      "reqs": [
+        "FR-07"
+      ],
+      "findings": [
+        "SO-20",
+        "SO-21",
+        "SO-22"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "ea67b8e8a2e41d4b5660179707658f5994a4488a",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-D04",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "D",
+      "title": "Student detail and financial detail pages load by id from module hooks",
+      "size": "S",
+      "depends_on": [
+        "P0-D01",
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/administration/pages/StudentDetailPage.tsx",
+        "src/modules/administration/pages/StudentFinancialDetailPage.tsx"
+      ],
+      "acceptance": [
+        "Profile opens for seeded and UI-created learners",
+        "Edit button opens the bio-data editor"
+      ],
+      "test": "Page tests",
+      "reqs": [
+        "FR-07"
+      ],
+      "findings": [
+        "SO-12"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "bc06f0c",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-D05",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "D",
+      "title": "Staff CRUD through useAdministration(); add email, gender, national ID, employer number, employment type",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/administration/pages/StaffListPage.tsx",
+        "src/modules/administration/pages/BulkStaffUpdatePage.tsx"
+      ],
+      "acceptance": [
+        "Add/edit/delete staff persists (probe C09 PASS)"
+      ],
+      "test": "Page test",
+      "reqs": [
+        "FR-08"
+      ],
+      "findings": [
+        "SO-11",
+        "SO-31"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "7d2c159",
+      "notes": "Owner decision: staff columns + additive column sync; independently verified (column sync stress-tested); UUID designation fix",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-D06",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "D",
+      "title": "School profile saves to school_details; all settings pages stop using the undefined 'settings' collection",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/settings/pages/SettingsSchoolProfilePage.tsx",
+        "src/modules/settings/pages/SettingsDashboardPage.tsx",
+        "src/modules/settings/pages/SystemManagementPage.tsx",
+        "src/modules/settings/pages/PluginSettingsPage.tsx",
+        "src/modules/settings/pages/ConfigurationPage.tsx",
+        "src/modules/settings/pages/ModuleDependencyReportPage.tsx",
+        "src/modules/settings/pages/SchoolOperationsPage.tsx",
+        "src/modules/settings/pages/SettingsWorkflowsPage.tsx",
+        "src/modules/settings/pages/FeatureSettingsPage.tsx",
+        "src/components/MarketplaceDiscovery.tsx"
+      ],
+      "acceptance": [
+        "School name shows in header, receipts and reports (probe C15 PASS)"
+      ],
+      "test": "Page test",
+      "reqs": [
+        "FR-04"
+      ],
+      "findings": [
+        "SO-17"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "d21a078",
+      "notes": "Acceptance partly unmet: settings save fixed (probe C15) but header, receipts and reports do not read school_details; narrow acceptance + follow-up, or widen files. Branch prd/P0-D06-retry | Widened (standing rule): Header, SetupWizard, FeesReceiptTemplatePage, StudentMasterlistPage, StudentVoteheadStatementPage + useSchoolProfile, SchoolLetterhead; independently verified (APPROVE); probes C02, C15 PASS",
+      "completed_at": "2026-10-17"
+    },
+    {
+      "id": "P0-E03",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "E",
+      "title": "Billing service generateTermInvoices(dryRun) used by Fee Structures and Invoice Generation pages; templates gain applicable levels",
+      "size": "L",
+      "depends_on": [
+        "P0-E01",
+        "P0-B02"
+      ],
+      "files": [
+        "src/domain/finance/billingService.ts (new)",
+        "src/domain/finance/__tests__/billingService.test.ts (new)",
+        "src/modules/finance/pages/EffectFeeStructuresPage.tsx",
+        "src/modules/finance/pages/InvoiceGenerationPage.tsx",
+        "src/modules/finance/hooks/useFinanceServices.ts"
+      ],
+      "acceptance": [
+        "Billing Term 1 for Form 1 boarders creates one invoice per learner with template items",
+        "Re-running creates nothing new",
+        "Dry run returns the preview"
+      ],
+      "test": "Service unit tests (idempotency, level/category matching)",
+      "reqs": [
+        "FR-17"
+      ],
+      "findings": [
+        "SO-09"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "0492a7f",
+      "notes": "Applicable levels on fee templates need files outside lane: finance/data/schema.ts, finance/data/types.ts, FeeTemplatesPage.tsx. In-lane work gated on prd/P0-E03; widen files or add lane-E follow-up | Widened (standing rule): finance schema/types, FeeTemplatesPage, useFinanceData; 3 fix rounds; reviews found B1/B2/F1 money bugs, all fixed with tests",
+      "completed_at": "2026-10-17"
+    },
+    {
+      "id": "P0-F03",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "F",
+      "title": "Promotion reachable: route + Bulk Operations tab; history recorded; preview → commit → undo",
+      "size": "M",
+      "depends_on": [
+        "P0-B01"
+      ],
+      "files": [
+        "src/modules/administration/moduleDefinition.tsx",
+        "src/modules/administration/pages/StudentBulkOperationsPage.tsx",
+        "src/modules/administration/pages/StudentPromotionPage.tsx",
+        "src/modules/administration/hooks/useStudentPromotion.ts"
+      ],
+      "acceptance": [
+        "Promote a class to the next level with history entries",
+        "Undo restores the previous class"
+      ],
+      "test": "Service test (StudentPromotionService) with real collections",
+      "reqs": [
+        "FR-15"
+      ],
+      "findings": [
+        "SO-16"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "897f63a8be1ebea61e1e17868a8818fe5ff3a9ec",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-G06",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "G",
+      "title": "Dashboard shows live data or empty states (remove hard-coded figures, $ currency)",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/modules/dashboard/pages/DashboardPage.tsx",
+        "src/modules/dashboard/pages/__tests__/DashboardPage.test.tsx (new)"
+      ],
+      "acceptance": [
+        "Empty production school shows zeros/empty states",
+        "Currency from institution settings"
+      ],
+      "test": "Render with empty and seeded data",
+      "reqs": [],
+      "findings": [
+        "SO-29"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "f8c25bdc3c7bca9db9fed6ec734148d6ed1bc086",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-G07",
+      "phase": "P0",
+      "wave": "P0-W2",
+      "lane": "G",
+      "title": "DateField: typeable locale input, month/year selectors, min/max; used by EntityForm date fields",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/components/ui/forms/DatePicker.tsx",
+        "src/components/ui/forms/DateField.tsx",
+        "src/components/ui/forms/__tests__/DatePicker.test.tsx"
+      ],
+      "acceptance": [
+        "Typing 15/03/2014 sets the date",
+        "Year jump to 2014 in ≤ 3 interactions",
+        "Display format follows locale (dd/mm/yyyy for en-KE)",
+        "Duplicate label removed"
+      ],
+      "test": "Component tests incl. keyboard",
+      "reqs": [],
+      "findings": [
+        "SO-32"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "9262191a6d61060454a359a1e64f0802bfffc279",
+      "notes": "",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "P0-A05",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "A",
+      "title": "Setup wizard rebuilt: correct collections, idempotent steps, per-term dates, financial year, administrator creation, re-openable from Settings",
+      "size": "L",
+      "depends_on": [
+        "P0-A03",
+        "P0-A04",
+        "P0-B02",
+        "P0-C02",
+        "P0-C03"
+      ],
+      "files": [
+        "src/components/setup/SetupWizard.tsx",
+        "src/components/setup/steps/* (new)",
+        "src/tests/integration/setup-wizard.spec.tsx"
+      ],
+      "acceptance": [
+        "Walking the wizard with Back/Next twice per step creates exactly one year, three terms, N classes, M streams, subjects and the profile (probe C02 PASS)",
+        "Spec test no longer mocks useDatabaseCollection"
+      ],
+      "test": "Integration test on the real provider",
+      "reqs": [
+        "FR-04"
+      ],
+      "findings": [
+        "SO-02"
+      ],
+      "spec": "../specs/multi-curriculum-platform/01-stabilisation.md#ws13-onboarding--wizard-ordering-and-correctness",
+      "deps_install": false,
+      "status": "done",
+      "commit": "24c7ef4",
+      "notes": "",
+      "completed_at": "2026-10-17"
+    },
+    {
+      "id": "P0-C06",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "C",
+      "title": "Organisation & student-life pages to the database: departments, designations, dormitories, student categories (delete mock hooks, fix arity)",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/administration/pages/DepartmentsPage.tsx",
+        "src/modules/administration/pages/DesignationsPage.tsx",
+        "src/modules/administration/pages/DormitoriesPage.tsx",
+        "src/modules/administration/pages/StudentCategoriesPage.tsx",
+        "src/modules/administration/data/useDepartmentData.ts",
+        "src/modules/administration/data/useDesignationData.ts"
+      ],
+      "acceptance": [
+        "CRUD persists; departments appear in the staff form"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-23",
+        "SO-25"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "4c37e91",
+      "notes": "",
+      "completed_at": "2026-10-17"
+    },
+    {
+      "id": "P0-C07",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "C",
+      "title": "Partners, customers, communication templates, campaigns, health records to the database (delete mock hooks)",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/administration/pages/PartnersPage.tsx",
+        "src/modules/administration/pages/CustomersPage.tsx",
+        "src/modules/administration/pages/CommunicationTemplatesPage.tsx",
+        "src/modules/administration/pages/MessageCampaignsPage.tsx",
+        "src/modules/administration/pages/StudentHealthRecordsPage.tsx",
+        "src/modules/administration/data/usePartnerData.ts",
+        "src/modules/administration/data/useCustomerData.ts",
+        "src/modules/administration/data/useTemplateCommData.ts",
+        "src/modules/administration/data/useCampaignData.ts",
+        "src/modules/administration/data/useStudentHealthRecordData.ts"
+      ],
+      "acceptance": [
+        "CRUD persists across navigation and reload",
+        "contract-scan mockBackedHooksInUi decreases accordingly"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [
+        "SO-25"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "4954d7f",
+      "notes": "",
+      "completed_at": "2026-10-17"
+    },
+    {
+      "id": "P0-E04",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "E",
+      "title": "Finance pages part 1 to useFinance(): general receipts, opening balances, fines/adjustments, transport routes & assignments",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/finance/pages/GeneralReceiptsPage.tsx",
+        "src/modules/finance/pages/StudentOpeningBalancesPage.tsx",
+        "src/modules/finance/pages/FeesFinesPage.tsx",
+        "src/modules/finance/pages/TransportRoutesPage.tsx",
+        "src/modules/finance/pages/StudentTransportAssignmentsPage.tsx"
+      ],
+      "acceptance": [
+        "CRUD persists; no Number() on ids; toast misuse fixed"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-22",
+        "SO-23",
+        "SO-28"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "53cba39",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-E05",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "E",
+      "title": "Finance pages part 2 to useFinance(): customer & supplier invoices, banks, chart of accounts, suppliers",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/finance/pages/CustomerInvoicesPage.tsx",
+        "src/modules/finance/pages/SupplierInvoicesPage.tsx",
+        "src/modules/finance/pages/BanksPage.tsx",
+        "src/modules/finance/pages/ChartOfAccountsPage.tsx",
+        "src/modules/finance/pages/SuppliersPage.tsx"
+      ],
+      "acceptance": [
+        "CRUD persists; no Number() on ids"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-22",
+        "SO-23"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "0c24de5",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-F04",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "F",
+      "title": "Academics configuration pages to module hooks: allocations, teacher assignments, enrolments, subject papers, grading schemes, education systems, timetable, exam sessions",
+      "size": "L",
+      "depends_on": [
+        "P0-B02",
+        "P0-F01"
+      ],
+      "files": [
+        "src/modules/academics/pages/ClassSubjectAllocationsPage.tsx",
+        "src/modules/academics/pages/TeacherSubjectAssignmentPage.tsx",
+        "src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx",
+        "src/modules/academics/pages/SubjectPapersManagementPage.tsx",
+        "src/modules/academics/pages/GradingSchemesPage.tsx",
+        "src/modules/academics/pages/EducationSystemsPage.tsx",
+        "src/modules/academics/pages/TimetableEntriesPage.tsx",
+        "src/modules/academics/pages/ExamSessionsPage.tsx",
+        "src/modules/academics/pages/ExamAnalysisContent.tsx"
+      ],
+      "acceptance": [
+        "CRUD persists; pickers non-empty (Student Subject Enrollment period/stream)",
+        "No numeric id coercion"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-22",
+        "SO-23"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "02010ff",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-F05",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "F",
+      "title": "Report card v0: printable term report per learner and per class from existing results",
+      "size": "L",
+      "depends_on": [
+        "P0-F01",
+        "P0-D04",
+        "P0-D06"
+      ],
+      "files": [
+        "src/modules/academics/pages/ReportCardsPage.tsx (new)",
+        "src/modules/academics/components/reportCard/* (new)",
+        "src/modules/academics/moduleDefinition.tsx"
+      ],
+      "acceptance": [
+        "Class of 40 prints in ≤ 30 s",
+        "Shows school profile, learner, subjects, grades, comments, attendance, next term date"
+      ],
+      "test": "Render snapshot + data assembly unit test",
+      "reqs": [
+        "FR-14"
+      ],
+      "findings": [
+        "SO-18"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "5ff7222",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-H01",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "H",
+      "title": "Inventory pages to module hooks; useItemData mock removed; id coercions fixed",
+      "size": "M",
+      "depends_on": [
+        "P0-B02"
+      ],
+      "files": [
+        "src/modules/inventory/pages/*.tsx",
+        "src/modules/inventory/data/useItemData.ts",
+        "src/modules/inventory/hooks/useStockLevelService.ts"
+      ],
+      "acceptance": [
+        "contract-scan reports 0 inventory entries"
+      ],
+      "test": "Page smoke tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-22",
+        "SO-23",
+        "SO-25"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "09a28bf",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-H02",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "H",
+      "title": "Library pages to module hooks; book_loans/library_members collections resolved",
+      "size": "M",
+      "depends_on": [
+        "P0-B02",
+        "P0-G02"
+      ],
+      "files": [
+        "src/modules/library/pages/*.tsx",
+        "src/modules/library/data/useLibraryData.ts"
+      ],
+      "acceptance": [
+        "contract-scan reports 0 library entries"
+      ],
+      "test": "Page smoke tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-23",
+        "SO-24"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "caeb00b",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-H03",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "H",
+      "title": "Nutrition pages to module hooks; id coercions fixed",
+      "size": "M",
+      "depends_on": [
+        "P0-B02",
+        "P0-G02"
+      ],
+      "files": [
+        "src/modules/nutrition/pages/*.tsx"
+      ],
+      "acceptance": [
+        "contract-scan reports 0 nutrition entries"
+      ],
+      "test": "Page smoke tests",
+      "reqs": [],
+      "findings": [
+        "SO-11",
+        "SO-22",
+        "SO-23"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "ee51aec",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-H04",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "H",
+      "title": "HR salary components collection and settings role picker string ids",
+      "size": "S",
+      "depends_on": [
+        "P0-B01"
+      ],
+      "files": [
+        "src/modules/hr/pages/StaffSalarySettingsPage.tsx",
+        "src/modules/settings/pages/UnifiedSettingsPage.tsx"
+      ],
+      "acceptance": [
+        "Salary settings persist",
+        "Role assignment keeps string ids"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [
+        "SO-22",
+        "SO-24"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "f94e641",
+      "notes": "merged into prd/P0-W3 at owner request before independent review; verify before marking done",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-G08",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "G",
+      "title": "Workspace tabs mirror real routes; hub sub-tabs are URL state only; 404s never become tabs",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/services/tabs/RouteToTabMapper.ts",
+        "src/services/tabs/URLTabSyncEngine.ts",
+        "src/services/tabs/TabValidationService.ts",
+        "src/services/tabs/__tests__/*"
+      ],
+      "acceptance": [
+        "No /bulk-streams or /school-periods tabs created",
+        "Active tab always matches the router"
+      ],
+      "test": "Tab service unit tests",
+      "reqs": [],
+      "findings": [
+        "SO-30"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "feea74f",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-B05",
+      "phase": "P0",
+      "wave": "P0-W4",
+      "lane": "B",
+      "title": "Lock the contract: remove the `as any as` cast on AppDataContext, require CollectionName, contract-scan all zero",
+      "size": "M",
+      "depends_on": [
+        "P0-B02",
+        "P0-B03",
+        "P0-C06",
+        "P0-C07",
+        "P0-D03",
+        "P0-D05",
+        "P0-D06",
+        "P0-E03",
+        "P0-E04",
+        "P0-E05",
+        "P0-F04",
+        "P0-H01",
+        "P0-H02",
+        "P0-H03",
+        "P0-H04"
+      ],
+      "files": [
+        "src/contexts/AppDataContext.tsx",
+        "src/hooks/useDatabaseCollection.ts",
+        "scripts/prd/gate-baseline.json (via baseline --update)"
+      ],
+      "acceptance": [
+        "contract-scan: every section 0",
+        "Typecheck catches any future missing function"
+      ],
+      "test": "Type-level test file asserting the context value type",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [
+        "SO-11"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "beb7101",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-G09",
+      "phase": "P0",
+      "wave": "P0-W5",
+      "lane": "G",
+      "title": "Zero TS2304/TS2552 in src; lower .type-ratchet to the real count; gate missingNames baseline 0",
+      "size": "M",
+      "depends_on": [
+        "P0-B05"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "src/**/*.tsx (only files listed by tsc TS2304/TS2552)",
+        ".type-ratchet"
+      ],
+      "acceptance": [
+        "missingNames = 0",
+        ".type-ratchet ≤ measured total"
+      ],
+      "test": "Typecheck",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [
+        "SO-27"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b5d1ab4",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-G10",
+      "phase": "P0",
+      "wave": "P0-W4",
+      "lane": "G",
+      "title": "Typed toast API (success/error/warning) and remaining misuse fixed",
+      "size": "S",
+      "depends_on": [
+        "P0-E04"
+      ],
+      "files": [
+        "src/hooks/useToast.tsx",
+        "files flagged by tsc after the type change"
+      ],
+      "acceptance": [
+        "showToast('msg','error') no longer compiles",
+        "No empty toasts"
+      ],
+      "test": "Hook tests",
+      "reqs": [],
+      "findings": [
+        "SO-28"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "2a45216",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-G11",
+      "phase": "P0",
+      "wave": "P0-W4",
+      "lane": "G",
+      "title": "Demo seed repair: Kenyan calendar, financial years, terms inside years, real guardian links",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/services/database/demoDataSeed.ts",
+        "src/services/dataGeneration/generators/*"
+      ],
+      "acceptance": [
+        "Seed passes the integrity checks in P0-G12"
+      ],
+      "test": "Seed integrity test",
+      "reqs": [],
+      "findings": [
+        "SO-35"
+      ],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "eee05a3",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-G12",
+      "phase": "P0",
+      "wave": "P0-W5",
+      "lane": "G",
+      "title": "Golden path GP-1-lite Playwright suite (probe promoted to tests) + integrity check script",
+      "size": "L",
+      "depends_on": [
+        "P0-A05",
+        "P0-B05"
+      ],
+      "files": [
+        "tests/e2e/gp1-lite.spec.ts (new)",
+        "playwright.config.ts (new)",
+        "scripts/prd/integrity-check.mjs (new)",
+        "package.json (scripts only)"
+      ],
+      "acceptance": [
+        "GP-1-lite green locally and in CI",
+        "Integrity check reports 0 orphans/invalid FKs on a fresh school"
+      ],
+      "test": "The suite itself",
+      "reqs": [
+        "NFR-08"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "836e6d9",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-G13",
+      "phase": "P0",
+      "wave": "P0-W4",
+      "lane": "G",
+      "title": "Remove committed .env values; keep .env.example; document deployment config",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        ".env",
+        ".env.example",
+        "docs/guides/configuration.md (new)"
+      ],
+      "acceptance": [
+        "No DSN or secrets in the repository"
+      ],
+      "test": "Secret scan in CI",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "600f667",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P0-Z01",
+      "phase": "P0",
+      "wave": "P0-W5",
+      "lane": "Z",
+      "title": "Wave integration: merge pending i18n keys, update docs index, regenerate PROGRESS.md",
+      "size": "S",
+      "depends_on": [
+        "P0-B05"
+      ],
+      "files": [
+        "src/**/i18n/locales/*.json",
+        "src/i18n/**",
+        "docs/prd/workflow-log/pending-i18n/*"
+      ],
+      "acceptance": [
+        "No pending i18n files remain",
+        "Translation completeness check passes"
+      ],
+      "test": "scripts/translation-completeness-check.cjs",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "96c7f0f",
+      "notes": "",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "id": "P1-A01",
+      "phase": "P1",
+      "wave": "P1-W1",
+      "lane": "A",
+      "title": "DR-01: choose schema/validation approach (zod vs JSON Schema + codegen); write decision record",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "docs/prd/workflow-log/decisions/DR-01.md"
+      ],
+      "acceptance": [
+        "Decision with spike results"
+      ],
+      "test": "Spike benchmark",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "106ea8c",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-A02",
+      "phase": "P1",
+      "wave": "P1-W1",
+      "lane": "A",
+      "title": "Id module: branded Id<T>, UUIDv7 generator, ESLint rule banning numeric coercion of ids",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/domain/ids.ts",
+        "eslint-rules/no-numeric-id.js",
+        "eslint.config.js"
+      ],
+      "acceptance": [
+        "Rule flags all patterns from contract-scan"
+      ],
+      "test": "Rule tests",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "312c34e",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-A02a",
+      "phase": "P1",
+      "wave": "P1-W2",
+      "lane": "A",
+      "title": "Burn down the 44 sites `schoolpilot/no-numeric-id` flags so the rule can gate the whole tree",
+      "size": "S",
+      "depends_on": [
+        "P1-A02"
+      ],
+      "files": [
+        "src/contexts/AppDataContext.tsx",
+        "src/modules/administration/data/useAdministrationData.ts",
+        "src/modules/finance/hooks/useFeeCollectionSummary.ts",
+        "src/modules/administration/pages/AddStudentPage.tsx",
+        "src/hooks/useModularMockData.ts",
+        "src/modules/academics/data/useAcademicData.ts",
+        "src/modules/admissions/data/useAdmissionsData.ts",
+        "src/modules/settings/pages/SettingsUsersPage.tsx",
+        "src/services/database/__tests__/demoDataSeedIntegrity.test.ts",
+        "remaining files reported by `npx eslint src --rule 'schoolpilot/no-numeric-id: error'`"
+      ],
+      "acceptance": [
+        "`npx eslint src` reports 0 `schoolpilot/no-numeric-id` errors",
+        "No behaviour change; ids stay strings end to end"
+      ],
+      "test": "Rule run on src",
+      "reqs": [
+        "NFR-01"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "Opened during P1-W1 from the P1-A02 review: the rule is clean on changed files, but 44 pre-existing coercions (21 in AppDataContext) keep `pnpm lint` red and prevent a CI-wide gate.",
+      "completed_at": null
+    },
+    {
+      "id": "P1-A03",
+      "phase": "P1",
+      "wave": "P1-W2",
+      "lane": "A",
+      "title": "Entity schemas for canonical model (institution, calendar, curriculum, class groups, people, enrolment, assessment, finance docs)",
+      "size": "L",
+      "depends_on": [
+        "P1-A01"
+      ],
+      "files": [
+        "src/domain/schema/*.ts",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "acceptance": [
+        "Schemas match spec 02; generated TS types"
+      ],
+      "test": "Schema round-trip tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": true,
+      "status": "done",
+      "commit": "8002fd6",
+      "notes": "Amended at P1-W1 from DR-01: adds zod@3.25.76 as a direct dependency (deps_install true, lockfile in scope).",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-A03a",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "A",
+      "title": "Attendance and pastoral entity schemas (spec 02 §9) to unblock the AttendanceService",
+      "size": "M",
+      "depends_on": [
+        "P1-A03"
+      ],
+      "files": [
+        "src/domain/schema/attendance.ts",
+        "src/domain/schema/index.ts",
+        "src/data/adapters/sqlite/__tests__/contract.test.ts"
+      ],
+      "acceptance": [
+        "Attendance and pastoral entities modelled from spec 02 §9; canonical DDL applies them"
+      ],
+      "test": "Schema round-trip tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "notes": "Opened at P1-W3 because P1-B04 must deliver an AttendanceService and spec 02 §9 (attendance_session, attendance_mark, leave_out, conduct_incident, health_visit) was deferred from P1-A03. Owns the entity-count assertion in A04 adapter contract test (currently 63) and the A03 registry.",
+      "commit": "9022048",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-A04",
+      "phase": "P1",
+      "wave": "P1-W3",
+      "lane": "A",
+      "title": "Storage adapter for SQLite (browser worker + node for tests) with generated DDL and indexes",
+      "size": "L",
+      "depends_on": [
+        "P1-A03"
+      ],
+      "files": [
+        "src/data/adapters/sqlite/*",
+        "src/services/database/SchemaConverter.ts",
+        "src/utils/databaseAgnosticSchema.ts"
+      ],
+      "acceptance": [
+        "Same adapter code runs in browser and node"
+      ],
+      "test": "Adapter contract tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "4f34048",
+      "notes": "Amended at P1-W1 from DR-01: the converter/schema-builder files are in scope (root required bug, composite unique/FK constraints).",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-A05",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "A",
+      "title": "Migration framework: numbered migrations, pre-migration backup, progress screen, rollback",
+      "size": "M",
+      "depends_on": [
+        "P1-A04"
+      ],
+      "files": [
+        "src/data/migrations/*",
+        "src/components/MigrationScreen.tsx"
+      ],
+      "acceptance": [
+        "Interrupted migration resumes or rolls back"
+      ],
+      "test": "Migration tests on fixture DBs",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "5559e1a",
+      "notes": "",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-B01",
+      "phase": "P1",
+      "wave": "P1-W1",
+      "lane": "B",
+      "title": "DR-04: query cache choice; useQuery/useMutation/useLookup API design",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "docs/prd/workflow-log/decisions/DR-04.md",
+        "src/data/query/README.md"
+      ],
+      "acceptance": [
+        "Decision record"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "fe3ae74",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-B02",
+      "phase": "P1",
+      "wave": "P1-W3",
+      "lane": "B",
+      "title": "Repository base: get/list/create/update/remove/watch with validation, referential integrity, audit events, optimistic concurrency",
+      "size": "L",
+      "depends_on": [
+        "P1-A03",
+        "P1-B01"
+      ],
+      "files": [
+        "src/data/repository/*"
+      ],
+      "acceptance": [
+        "Invariants 02 §12 enforced"
+      ],
+      "test": "Repository integration tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "c50a9ca",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-B03",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "B",
+      "title": "Permission context and scope checks in repositories (role × scope)",
+      "size": "M",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "src/data/auth/*"
+      ],
+      "acceptance": [
+        "Teacher cannot write marks outside assigned groups"
+      ],
+      "test": "Scope tests",
+      "reqs": [
+        "FR-23"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "eff2ca2",
+      "notes": "",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-B04",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "B",
+      "title": "Domain services v1: EnrolmentService, AdmissionService, GuardianService, AttendanceService",
+      "size": "L",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "src/domain/services/*"
+      ],
+      "acceptance": [
+        "Services used by UI; no direct collection access"
+      ],
+      "test": "Service tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "bf132d5",
+      "notes": "",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-B05",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "B",
+      "title": "Live query cache + useQuery/useLookup hooks; change events from repositories",
+      "size": "M",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "src/data/query/*"
+      ],
+      "acceptance": [
+        "Any write updates all dependent views"
+      ],
+      "test": "Hook tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "b4075d2",
+      "notes": "",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-C01",
+      "phase": "P1",
+      "wave": "P1-W5",
+      "lane": "C",
+      "title": "Migration M1: institution, calendar, academic years/periods, financial years",
+      "size": "M",
+      "depends_on": [
+        "P1-A05"
+      ],
+      "files": [
+        "src/data/migrations/001-*"
+      ],
+      "acceptance": [
+        "Counts and dates verified"
+      ],
+      "test": "Fixture migration test",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-C02",
+      "phase": "P1",
+      "wave": "P1-W6",
+      "lane": "C",
+      "title": "Migration M2: classes/streams → levels + year-scoped class groups (interactive mapping)",
+      "size": "L",
+      "depends_on": [
+        "P1-C01"
+      ],
+      "files": [
+        "src/data/migrations/002-*",
+        "src/components/migration/LevelMappingStep.tsx"
+      ],
+      "acceptance": [
+        "Every learner keeps their class"
+      ],
+      "test": "Fixture migration test",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-C03",
+      "phase": "P1",
+      "wave": "P1-W7",
+      "lane": "C",
+      "title": "Migration M3: learners, guardians, identifiers, enrolments from current_class_stream_id",
+      "size": "L",
+      "depends_on": [
+        "P1-C02"
+      ],
+      "files": [
+        "src/data/migrations/003-*"
+      ],
+      "acceptance": [
+        "Guardians de-duplicated by phone",
+        "UPI to identifiers"
+      ],
+      "test": "Fixture migration test",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-C04",
+      "phase": "P1",
+      "wave": "P1-W8",
+      "lane": "C",
+      "title": "Migration M4: exam sessions/results → assessments, marks, results",
+      "size": "M",
+      "depends_on": [
+        "P1-C03"
+      ],
+      "files": [
+        "src/data/migrations/004-*"
+      ],
+      "acceptance": [
+        "Marks per learner equal before/after"
+      ],
+      "test": "Fixture migration test",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-C05",
+      "phase": "P1",
+      "wave": "P1-W8",
+      "lane": "C",
+      "title": "Migration M5: fee templates, invoices, payments, allocations → finance documents (minor units)",
+      "size": "L",
+      "depends_on": [
+        "P1-C03"
+      ],
+      "files": [
+        "src/data/migrations/005-*"
+      ],
+      "acceptance": [
+        "Balance per learner equal before/after"
+      ],
+      "test": "Fixture migration test",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-C06",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "C",
+      "title": "Integrity & repair tool (orphans, NaN FKs, null streams, duplicate ids) with consented fixes",
+      "size": "M",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "src/domain/repair/*",
+        "src/modules/settings/pages/DataIntegrityPage.tsx"
+      ],
+      "acceptance": [
+        "Report + fix on audit-era data"
+      ],
+      "test": "Repair tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "83c8f8d",
+      "notes": "",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-D01",
+      "phase": "P1",
+      "wave": "P1-W2",
+      "lane": "D",
+      "title": "EntityPicker component (07 §2) with conformance tests",
+      "size": "M",
+      "depends_on": [
+        "P1-B01"
+      ],
+      "files": [
+        "src/components/ui/EntityPicker/*"
+      ],
+      "acceptance": [
+        "UUID round trip, live update, scoped filter, empty-state CTA, archived display"
+      ],
+      "test": "Picker conformance suite",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "660151f",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-D02",
+      "phase": "P1",
+      "wave": "P1-W3",
+      "lane": "D",
+      "title": "EntityForm v2 bound to schemas; DateField/MoneyField/PhoneField/IdentifierField",
+      "size": "L",
+      "depends_on": [
+        "P1-A03",
+        "P1-D01"
+      ],
+      "files": [
+        "src/components/ui/forms/*"
+      ],
+      "acceptance": [
+        "Schema-driven validation identical in form and repository"
+      ],
+      "test": "Form tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "569c467",
+      "notes": "",
+      "completed_at": "2026-10-19"
+    },
+    {
+      "id": "P1-E01",
+      "phase": "P1",
+      "wave": "P1-W5",
+      "lane": "E",
+      "title": "Administration UI on repositories (learners, guardians, staff, class groups, calendar)",
+      "size": "L",
+      "depends_on": [
+        "P1-B04",
+        "P1-B05",
+        "P1-D02"
+      ],
+      "files": [
+        "src/modules/administration/**"
+      ],
+      "acceptance": [
+        "No useAppData() writes; pickers are EntityPicker"
+      ],
+      "test": "Page tests + GP-1",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-E02",
+      "phase": "P1",
+      "wave": "P1-W5",
+      "lane": "E",
+      "title": "Academics UI on repositories (learning areas, teaching groups, assessments, marks)",
+      "size": "L",
+      "depends_on": [
+        "P1-B04",
+        "P1-B05",
+        "P1-D02"
+      ],
+      "files": [
+        "src/modules/academics/**"
+      ],
+      "acceptance": [
+        "Same as E01"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-E03",
+      "phase": "P1",
+      "wave": "P1-W5",
+      "lane": "E",
+      "title": "Finance UI on repositories (current feature set, pre-P3)",
+      "size": "L",
+      "depends_on": [
+        "P1-B04",
+        "P1-B05",
+        "P1-D02"
+      ],
+      "files": [
+        "src/modules/finance/**"
+      ],
+      "acceptance": [
+        "Same as E01"
+      ],
+      "test": "Page tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-E04",
+      "phase": "P1",
+      "wave": "P1-W5",
+      "lane": "E",
+      "title": "Admissions UI on repositories; admit creates learner + guardians + enrolment",
+      "size": "M",
+      "depends_on": [
+        "P1-B04",
+        "P1-D02"
+      ],
+      "files": [
+        "src/modules/admissions/**"
+      ],
+      "acceptance": [
+        "GP-6 green"
+      ],
+      "test": "GP-6",
+      "reqs": [
+        "FR-09"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-E05",
+      "phase": "P1",
+      "wave": "P1-W5",
+      "lane": "E",
+      "title": "Other modules on repositories (inventory, library, nutrition, HR, reports)",
+      "size": "L",
+      "depends_on": [
+        "P1-B05"
+      ],
+      "files": [
+        "src/modules/{inventory,library,nutrition,hr,reports}/**"
+      ],
+      "acceptance": [
+        "No legacy data access"
+      ],
+      "test": "Smoke tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P1-E06",
+      "phase": "P1",
+      "wave": "P1-W6",
+      "lane": "E",
+      "title": "Retire AppDataContext writes, mock data hooks, useModularMockData; demo fixtures generated through repositories",
+      "size": "L",
+      "depends_on": [
+        "P1-E01",
+        "P1-E02",
+        "P1-E03",
+        "P1-E04",
+        "P1-E05"
+      ],
+      "files": [
+        "src/contexts/AppDataContext.tsx",
+        "src/hooks/useModularMockData.ts",
+        "src/modules/*/data/mockData.ts",
+        "fixtures/**",
+        "src/services/database/collections.ts"
+      ],
+      "acceptance": [
+        "Demo uses real code paths"
+      ],
+      "test": "Demo fixture tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "Amended at P1-W1 from DR-01: retiring the legacy registry includes src/services/database/collections.ts. createDatabaseSchema/SchemaConverter stay as the DDL backend.",
+      "completed_at": null
+    },
+    {
+      "id": "P1-Q01",
+      "phase": "P1",
+      "wave": "P1-W4",
+      "lane": "Q",
+      "title": "Repository integration test harness (node SQLite, optional Postgres via testcontainers in CI)",
+      "size": "M",
+      "depends_on": [
+        "P1-A04"
+      ],
+      "files": [
+        "src/data/__tests__/harness/*",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance": [
+        "No storage mocks in integration tests"
+      ],
+      "test": "Harness self-test",
+      "reqs": [
+        "NFR-08"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "cef1592",
+      "notes": "",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "P1-Q02",
+      "phase": "P1",
+      "wave": "P1-W7",
+      "lane": "Q",
+      "title": "GP-1 and GP-6 full golden paths in Playwright",
+      "size": "M",
+      "depends_on": [
+        "P1-E06"
+      ],
+      "files": [
+        "tests/e2e/*"
+      ],
+      "acceptance": [
+        "Green in CI"
+      ],
+      "test": "Suites",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-A01",
+      "phase": "P2",
+      "wave": "P2-W1",
+      "lane": "A",
+      "title": "Pack JSON Schema (pack, structure, learning areas, assessment, progression, reports, locales, tests)",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "packs/schema/*.json"
+      ],
+      "acceptance": [
+        "Validates spec 03 examples"
+      ],
+      "test": "Schema tests",
+      "reqs": [
+        "FR-11"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-A02",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "A",
+      "title": "Pack registry & loader: install pack@version into a programme; overrides; diff preview on upgrade",
+      "size": "L",
+      "depends_on": [
+        "P2-A01",
+        "P1-B02"
+      ],
+      "files": [
+        "src/domain/curriculum/registry/*"
+      ],
+      "acceptance": [
+        "Install/upgrade/override with audit"
+      ],
+      "test": "Registry tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-B01",
+      "phase": "P2",
+      "wave": "P2-W1",
+      "lane": "B",
+      "title": "Engine core: scheme evaluation (slots, scaling, components, missing policy, rounding) with explanation trace",
+      "size": "L",
+      "depends_on": [
+        "P1-A03"
+      ],
+      "files": [
+        "src/domain/assessment/engine/*"
+      ],
+      "acceptance": [
+        "Deterministic; trace explains each number"
+      ],
+      "test": "Property + unit tests",
+      "reqs": [
+        "FR-13"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-B02",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "B",
+      "title": "Grading scales (bands, rubric, letter, points, division, /20, GPA)",
+      "size": "M",
+      "depends_on": [
+        "P2-B01"
+      ],
+      "files": [
+        "src/domain/assessment/scales/*"
+      ],
+      "acceptance": [
+        "All spec 03 §5 kinds"
+      ],
+      "test": "Unit tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-B03",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "B",
+      "title": "Aggregation operators (sum, mean, weighted/coefficient, best_n with groups, points→lookup, divisions, count_where, rubric_profile) + ranking policies",
+      "size": "L",
+      "depends_on": [
+        "P2-B01"
+      ],
+      "files": [
+        "src/domain/assessment/aggregation/*"
+      ],
+      "acceptance": [
+        "KCSE best-7 vector, PLE division vector, moyenne vector pass"
+      ],
+      "test": "Vector tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-B04",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "B",
+      "title": "Period→annual aggregation and progression rule evaluator",
+      "size": "M",
+      "depends_on": [
+        "P2-B03"
+      ],
+      "files": [
+        "src/domain/assessment/progression/*"
+      ],
+      "acceptance": [
+        "Automatic, threshold, council, stage transition"
+      ],
+      "test": "Rule tests",
+      "reqs": [
+        "FR-15"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-C01",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "C",
+      "title": "Pack ke-cbe (PP1–G12, pathways, competencies, 4- and 8-level scales, report templates) with sources and vectors",
+      "size": "L",
+      "depends_on": [
+        "P2-A01"
+      ],
+      "files": [
+        "packs/ke-cbe/**"
+      ],
+      "acceptance": [
+        "Conformance vectors pass; verification status recorded"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-C02",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "C",
+      "title": "Pack ke-844 (Forms 1–4, KCSE subjects/papers, 12-point scale, best-7)",
+      "size": "M",
+      "depends_on": [
+        "P2-A01"
+      ],
+      "files": [
+        "packs/ke-844/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-C03",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "C",
+      "title": "Packs british: gb-national, cambridge-intl, pearson-intl (EYFS–A-Level, 9–1, A*–G, UCAS)",
+      "size": "L",
+      "depends_on": [
+        "P2-A01"
+      ],
+      "files": [
+        "packs/gb-*/**",
+        "packs/cambridge-intl/**",
+        "packs/pearson-intl/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-D01",
+      "phase": "P2",
+      "wave": "P2-W1",
+      "lane": "D",
+      "title": "DR-05: PDF rendering approach; print CSS baseline",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "docs/prd/workflow-log/decisions/DR-05.md"
+      ],
+      "acceptance": [
+        "Decision"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-D02",
+      "phase": "P2",
+      "wave": "P2-W2",
+      "lane": "D",
+      "title": "Report template engine (blocks from spec 03 §8.1), branding, locales, QR verification",
+      "size": "L",
+      "depends_on": [
+        "P2-D01",
+        "P2-A01"
+      ],
+      "files": [
+        "src/domain/reports/*",
+        "src/components/reports/*"
+      ],
+      "acceptance": [
+        "All blocks render; A4/A5"
+      ],
+      "test": "Visual regression snapshots",
+      "reqs": [
+        "FR-14"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-D03",
+      "phase": "P2",
+      "wave": "P2-W4",
+      "lane": "D",
+      "title": "Report publishing: bulk generate, review, publish snapshot, distribute (print queue, PDF, portal link, SMS link)",
+      "size": "L",
+      "depends_on": [
+        "P2-D02",
+        "P2-E03"
+      ],
+      "files": [
+        "src/modules/academics/pages/reports/*"
+      ],
+      "acceptance": [
+        "Snapshots immutable; re-issue versioned"
+      ],
+      "test": "Service + e2e",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-E01",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "E",
+      "title": "Mark entry v2: teaching-group grid, keyboard, paste, validation, status codes, autosave offline, lock/moderate workflow",
+      "size": "L",
+      "depends_on": [
+        "P2-B01"
+      ],
+      "files": [
+        "src/modules/academics/pages/marks/*"
+      ],
+      "acceptance": [
+        "Teacher scope enforced; locked cells need reason"
+      ],
+      "test": "Component + e2e",
+      "reqs": [
+        "FR-12"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-E02",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "E",
+      "title": "CBC observations capture (outcome × level × evidence), bulk with exceptions, mobile layout",
+      "size": "M",
+      "depends_on": [
+        "P2-C01"
+      ],
+      "files": [
+        "src/modules/academics/pages/observations/*"
+      ],
+      "acceptance": [
+        "Observations feed term judgement"
+      ],
+      "test": "Component tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-E03",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "E",
+      "title": "Results computation UI with explanation drill-down and moderation tools",
+      "size": "M",
+      "depends_on": [
+        "P2-B03"
+      ],
+      "files": [
+        "src/modules/academics/pages/results/*"
+      ],
+      "acceptance": [
+        "'Why this grade' view"
+      ],
+      "test": "Component tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-E04",
+      "phase": "P2",
+      "wave": "P2-W4",
+      "lane": "E",
+      "title": "Promotion run UI on enrolments (compute → review → approve → commit → undo)",
+      "size": "L",
+      "depends_on": [
+        "P2-B04"
+      ],
+      "files": [
+        "src/modules/administration/pages/promotion/*",
+        "src/domain/services/PromotionService.ts"
+      ],
+      "acceptance": [
+        "GP-5 green"
+      ],
+      "test": "GP-5",
+      "reqs": [
+        "FR-15"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-E05",
+      "phase": "P2",
+      "wave": "P2-W4",
+      "lane": "E",
+      "title": "Setup wizard & programme management driven by the pack registry (multiple programmes per school)",
+      "size": "M",
+      "depends_on": [
+        "P2-A02",
+        "P2-C01",
+        "P2-C02",
+        "P2-C03"
+      ],
+      "files": [
+        "src/components/setup/**",
+        "src/modules/academics/pages/programmes/*"
+      ],
+      "acceptance": [
+        "Transitional KE secondary set up in the wizard"
+      ],
+      "test": "GP-2 setup part",
+      "reqs": [
+        "FR-04",
+        "FR-11"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-E06",
+      "phase": "P2",
+      "wave": "P2-W4",
+      "lane": "E",
+      "title": "Analysis v2: subject/group/teacher analysis, trends, competency heat-maps respecting ranking policy",
+      "size": "M",
+      "depends_on": [
+        "P2-E03"
+      ],
+      "files": [
+        "src/modules/reports/pages/analytics/*"
+      ],
+      "acceptance": [
+        "No positions where disabled"
+      ],
+      "test": "Component tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-Q01",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "Q",
+      "title": "Conformance runner: every pack's vectors in CI",
+      "size": "S",
+      "depends_on": [
+        "P2-B03"
+      ],
+      "files": [
+        "scripts/packs/run-vectors.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance": [
+        "CI fails on any vector mismatch"
+      ],
+      "test": "Runner",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P2-Q02",
+      "phase": "P2",
+      "wave": "P2-W5",
+      "lane": "Q",
+      "title": "Golden paths GP-2, GP-3, GP-4, GP-5",
+      "size": "L",
+      "depends_on": [
+        "P2-D03",
+        "P2-E01",
+        "P2-E04",
+        "P2-E05"
+      ],
+      "files": [
+        "tests/e2e/*"
+      ],
+      "acceptance": [
+        "Green in CI"
+      ],
+      "test": "Suites",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-A01",
+      "phase": "P3",
+      "wave": "P3-W1",
+      "lane": "A",
+      "title": "Money type (minor units, currency table, largest-remainder split, formatMoney) replacing formatKES",
+      "size": "M",
+      "depends_on": [
+        "P1-A03"
+      ],
+      "files": [
+        "src/domain/money/*",
+        "src/utils/format.ts"
+      ],
+      "acceptance": [
+        "UGX 0 decimals; no float arithmetic"
+      ],
+      "test": "Property tests",
+      "reqs": [
+        "FR-16"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-A02",
+      "phase": "P3",
+      "wave": "P3-W2",
+      "lane": "A",
+      "title": "Posting engine: double-entry journal from invoices/payments/refunds/credit notes; immutable, reversal-only",
+      "size": "L",
+      "depends_on": [
+        "P3-A01"
+      ],
+      "files": [
+        "src/domain/finance/ledger/*"
+      ],
+      "acceptance": [
+        "Trial balance always balances"
+      ],
+      "test": "Ledger tests",
+      "reqs": [
+        "FR-20"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-A03",
+      "phase": "P3",
+      "wave": "P3-W1",
+      "lane": "A",
+      "title": "Named sequences (admission, invoice, receipt) with scopes, formats, device blocks for offline",
+      "size": "M",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "src/domain/sequences/*"
+      ],
+      "acceptance": [
+        "Unique, never reused"
+      ],
+      "test": "Concurrency tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-B01",
+      "phase": "P3",
+      "wave": "P3-W2",
+      "lane": "B",
+      "title": "Fee items / vote heads with GL mapping, priority, funding source (incl. capitation)",
+      "size": "M",
+      "depends_on": [
+        "P3-A01"
+      ],
+      "files": [
+        "src/domain/finance/feeItems/*",
+        "src/modules/finance/pages/feeItems/*"
+      ],
+      "acceptance": [
+        "CRUD + validation"
+      ],
+      "test": "Tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-B02",
+      "phase": "P3",
+      "wave": "P3-W3",
+      "lane": "B",
+      "title": "Fee schedule matrix editor (levels × residence × category × campus), versioning, maker-checker approval, copy with uplift",
+      "size": "L",
+      "depends_on": [
+        "P3-B01"
+      ],
+      "files": [
+        "src/domain/finance/schedules/*",
+        "src/modules/finance/pages/schedules/*"
+      ],
+      "acceptance": [
+        "Spec 05 §2.2 example reproducible"
+      ],
+      "test": "Service + component tests",
+      "reqs": [
+        "FR-16"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-B03",
+      "phase": "P3",
+      "wave": "P3-W4",
+      "lane": "B",
+      "title": "Subscriptions (transport, lunch, clubs, trips) and installment plans",
+      "size": "M",
+      "depends_on": [
+        "P3-B02"
+      ],
+      "files": [
+        "src/domain/finance/subscriptions/*",
+        "src/domain/finance/installments/*"
+      ],
+      "acceptance": [
+        "Subscriptions bill in runs"
+      ],
+      "test": "Tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-B04",
+      "phase": "P3",
+      "wave": "P3-W4",
+      "lane": "B",
+      "title": "Discounts, bursaries, sponsors with split billing and budgets",
+      "size": "L",
+      "depends_on": [
+        "P3-B02"
+      ],
+      "files": [
+        "src/domain/finance/discounts/*"
+      ],
+      "acceptance": [
+        "Sibling discount and sponsor split reproduce fixtures"
+      ],
+      "test": "Tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-C01",
+      "phase": "P3",
+      "wave": "P3-W4",
+      "lane": "C",
+      "title": "Billing runs v2: preview with reasons, post, idempotent re-run, proration on enrolment changes, ad-hoc charges, opening balances",
+      "size": "L",
+      "depends_on": [
+        "P3-B02",
+        "P3-A02",
+        "P3-A03"
+      ],
+      "files": [
+        "src/domain/finance/billing/*",
+        "src/modules/finance/pages/billing/*"
+      ],
+      "acceptance": [
+        "1,000 learners preview ≤ 30 s, post ≤ 2 min"
+      ],
+      "test": "Service + perf test",
+      "reqs": [
+        "FR-17"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-C02",
+      "phase": "P3",
+      "wave": "P3-W5",
+      "lane": "C",
+      "title": "Credit notes, refunds (maker-checker), write-offs, exit clearance",
+      "size": "M",
+      "depends_on": [
+        "P3-C01"
+      ],
+      "files": [
+        "src/domain/finance/adjustments/*"
+      ],
+      "acceptance": [
+        "Balances explainable"
+      ],
+      "test": "Tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-D01",
+      "phase": "P3",
+      "wave": "P3-W3",
+      "lane": "D",
+      "title": "Payments core: cashier screen (keyboard flow ≤ 20 s), channels, cheque states, cashier sessions/Z-report",
+      "size": "L",
+      "depends_on": [
+        "P3-A02",
+        "P3-A03"
+      ],
+      "files": [
+        "src/domain/finance/payments/*",
+        "src/modules/finance/pages/cashier/*"
+      ],
+      "acceptance": [
+        "Spec 05 §5.2 behaviour"
+      ],
+      "test": "Component + e2e",
+      "reqs": [
+        "FR-18"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-D02",
+      "phase": "P3",
+      "wave": "P3-W2",
+      "lane": "D",
+      "title": "Allocation engine (oldest-first, vote-head priority, proportional, manual, household split, credits)",
+      "size": "M",
+      "depends_on": [
+        "P3-A01"
+      ],
+      "files": [
+        "src/domain/finance/allocation/*"
+      ],
+      "acceptance": [
+        "Property tests: sum invariants"
+      ],
+      "test": "Property tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-D03",
+      "phase": "P3",
+      "wave": "P3-W4",
+      "lane": "D",
+      "title": "PaymentProvider interface + M-Pesa Daraja plug-in (C2B, STK push, B2C refunds), webhook idempotency, suspense queue",
+      "size": "L",
+      "depends_on": [
+        "P3-D01",
+        "P3-D02"
+      ],
+      "files": [
+        "src/plugins/payments/mpesa/*",
+        "src/domain/finance/payments/providers/*"
+      ],
+      "acceptance": [
+        "Sandbox flows auto-match"
+      ],
+      "test": "Contract tests with recorded sandbox payloads",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-D04",
+      "phase": "P3",
+      "wave": "P3-W3",
+      "lane": "D",
+      "title": "Bank & mobile-money statement import and reconciliation",
+      "size": "M",
+      "depends_on": [
+        "P3-D02"
+      ],
+      "files": [
+        "src/domain/finance/reconciliation/*"
+      ],
+      "acceptance": [
+        "CSV/OFX import; match/unmatch"
+      ],
+      "test": "Fixture tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-D05",
+      "phase": "P3",
+      "wave": "P3-W4",
+      "lane": "D",
+      "title": "Receipt templates (80 mm thermal, A5, A4) and e-receipts with verification link",
+      "size": "M",
+      "depends_on": [
+        "P3-D01"
+      ],
+      "files": [
+        "src/components/finance/receipts/*"
+      ],
+      "acceptance": [
+        "Prints on thermal profile"
+      ],
+      "test": "Visual snapshots",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-E01",
+      "phase": "P3",
+      "wave": "P3-W5",
+      "lane": "E",
+      "title": "Statements (learner, household, sponsor), aging buckets, clearance status",
+      "size": "M",
+      "depends_on": [
+        "P3-C01",
+        "P3-D02"
+      ],
+      "files": [
+        "src/domain/finance/statements/*",
+        "src/modules/finance/pages/statements/*"
+      ],
+      "acceptance": [
+        "Statement equals ledger"
+      ],
+      "test": "Tests",
+      "reqs": [
+        "FR-19"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-E02",
+      "phase": "P3",
+      "wave": "P3-W6",
+      "lane": "E",
+      "title": "Reminders & collections: schedules, templates, pay links, promise-to-pay",
+      "size": "M",
+      "depends_on": [
+        "P3-E01"
+      ],
+      "files": [
+        "src/domain/finance/collections/*"
+      ],
+      "acceptance": [
+        "Respects quiet hours and opt-outs"
+      ],
+      "test": "Tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-E03",
+      "phase": "P3",
+      "wave": "P3-W3",
+      "lane": "E",
+      "title": "Accounting reports: cash/bank books, trial balance, I&E, balance sheet, budget vs actual, period close, exports",
+      "size": "L",
+      "depends_on": [
+        "P3-A02"
+      ],
+      "files": [
+        "src/modules/finance/pages/accounting/*"
+      ],
+      "acceptance": [
+        "Reports tie to journal"
+      ],
+      "test": "Fixture tests",
+      "reqs": [
+        "FR-20"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-Q01",
+      "phase": "P3",
+      "wave": "P3-W6",
+      "lane": "Q",
+      "title": "Finance golden paths and 1,000-learner performance test in CI",
+      "size": "M",
+      "depends_on": [
+        "P3-C01",
+        "P3-D01",
+        "P3-E01"
+      ],
+      "files": [
+        "tests/e2e/finance-*.spec.ts",
+        "tests/perf/billing.perf.ts"
+      ],
+      "acceptance": [
+        "Green; within budgets"
+      ],
+      "test": "Suites",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P3-Q02",
+      "phase": "P3",
+      "wave": "P3-W6",
+      "lane": "Q",
+      "title": "Segregation-of-duties permissions and audit trail review",
+      "size": "S",
+      "depends_on": [
+        "P3-C02"
+      ],
+      "files": [
+        "src/data/auth/permissions/finance.ts"
+      ],
+      "acceptance": [
+        "Spec 05 §11 matrix enforced"
+      ],
+      "test": "Permission tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-A01",
+      "phase": "P4",
+      "wave": "P4-W1",
+      "lane": "A",
+      "title": "DR-02 sync engine spike (SQLite↔Postgres layer vs PouchDB↔CouchDB) with offline/merge tests",
+      "size": "L",
+      "depends_on": [],
+      "files": [
+        "docs/prd/workflow-log/decisions/DR-02.md",
+        "spikes/sync/*"
+      ],
+      "acceptance": [
+        "Decision with measured results"
+      ],
+      "test": "Spike tests",
+      "reqs": [
+        "FR-21"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-B01",
+      "phase": "P4",
+      "wave": "P4-W1",
+      "lane": "B",
+      "title": "Hub server skeleton (Node, Postgres or SQLite) evolving src/server/LANServer.ts; API for repositories",
+      "size": "L",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "server/**"
+      ],
+      "acceptance": [
+        "Runs domain services server-side unchanged"
+      ],
+      "test": "API tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-A02",
+      "phase": "P4",
+      "wave": "P4-W2",
+      "lane": "A",
+      "title": "Sync protocol: change log, HLC versions, scoped replicas, per-entity conflict policy, conflict log UI",
+      "size": "L",
+      "depends_on": [
+        "P4-A01",
+        "P4-B01"
+      ],
+      "files": [
+        "src/data/sync/*",
+        "server/sync/*"
+      ],
+      "acceptance": [
+        "Spec 06 §3.2 policies"
+      ],
+      "test": "Multi-client simulation tests",
+      "reqs": [
+        "FR-21"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-A03",
+      "phase": "P4",
+      "wave": "P4-W3",
+      "lane": "A",
+      "title": "Server-allocated sequences and device number blocks for offline receipting",
+      "size": "M",
+      "depends_on": [
+        "P4-A02"
+      ],
+      "files": [
+        "server/sequences/*",
+        "src/domain/sequences/*"
+      ],
+      "acceptance": [
+        "No duplicate receipt numbers across devices"
+      ],
+      "test": "Concurrency tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-C01",
+      "phase": "P4",
+      "wave": "P4-W2",
+      "lane": "C",
+      "title": "Server authentication: sessions, lockout, password reset, TOTP for finance/admin, guardian phone OTP",
+      "size": "L",
+      "depends_on": [
+        "P4-B01"
+      ],
+      "files": [
+        "server/auth/*",
+        "src/services/auth/*"
+      ],
+      "acceptance": [
+        "Spec 06 §5.1"
+      ],
+      "test": "Auth tests",
+      "reqs": [
+        "FR-23"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-C02",
+      "phase": "P4",
+      "wave": "P4-W3",
+      "lane": "C",
+      "title": "Server-side RBAC with scopes and maker-checker workflow engine",
+      "size": "M",
+      "depends_on": [
+        "P4-C01"
+      ],
+      "files": [
+        "server/auth/rbac/*"
+      ],
+      "acceptance": [
+        "Same decisions as client checks"
+      ],
+      "test": "Permission matrix tests",
+      "reqs": [
+        "FR-23"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-C03",
+      "phase": "P4",
+      "wave": "P4-W3",
+      "lane": "C",
+      "title": "OIDC SSO (Google Workspace, Microsoft 365) for staff",
+      "size": "M",
+      "depends_on": [
+        "P4-C01"
+      ],
+      "files": [
+        "server/auth/oidc/*"
+      ],
+      "acceptance": [
+        "Login via SSO on hub/cloud"
+      ],
+      "test": "Integration tests with mock IdP",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-D01",
+      "phase": "P4",
+      "wave": "P4-W2",
+      "lane": "D",
+      "title": "Backups: automatic encrypted daily, retention, restore to new instance, restore-drill reminder, full export",
+      "size": "M",
+      "depends_on": [
+        "P4-B01"
+      ],
+      "files": [
+        "server/backup/*",
+        "src/modules/settings/pages/BackupPage.tsx"
+      ],
+      "acceptance": [
+        "GP-8 green"
+      ],
+      "test": "GP-8",
+      "reqs": [
+        "FR-22"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-D02",
+      "phase": "P4",
+      "wave": "P4-W3",
+      "lane": "D",
+      "title": "Packaging: hub installers for Windows, Ubuntu, Raspberry Pi; LAN discovery; TLS on LAN",
+      "size": "L",
+      "depends_on": [
+        "P4-B01"
+      ],
+      "files": [
+        "packaging/**",
+        "docs/guides/deployment-*.md"
+      ],
+      "acceptance": [
+        "Fresh install to first login ≤ 15 min"
+      ],
+      "test": "Install smoke tests in CI VMs",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-D03",
+      "phase": "P4",
+      "wave": "P4-W3",
+      "lane": "D",
+      "title": "System Health page (storage persistence, last backup, sync lag, outbox, integrations) and diagnostic bundle",
+      "size": "M",
+      "depends_on": [
+        "P4-A02",
+        "P4-D01"
+      ],
+      "files": [
+        "src/modules/settings/pages/SystemHealthPage.tsx"
+      ],
+      "acceptance": [
+        "Spec 06 §11"
+      ],
+      "test": "Component tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-D04",
+      "phase": "P4",
+      "wave": "P4-W3",
+      "lane": "D",
+      "title": "Security hardening: CSP, rate limits, secret/dependency scanning, encryption at rest, restricted-data access logs",
+      "size": "M",
+      "depends_on": [
+        "P4-B01"
+      ],
+      "files": [
+        "server/security/*",
+        ".github/workflows/security.yml"
+      ],
+      "acceptance": [
+        "Threat checklist closed"
+      ],
+      "test": "Security tests",
+      "reqs": [
+        "NFR-04"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P4-Q01",
+      "phase": "P4",
+      "wave": "P4-W4",
+      "lane": "Q",
+      "title": "GP-7 multi-device golden path",
+      "size": "M",
+      "depends_on": [
+        "P4-A02",
+        "P4-A03"
+      ],
+      "files": [
+        "tests/e2e/gp7-multidevice.spec.ts"
+      ],
+      "acceptance": [
+        "Green in CI"
+      ],
+      "test": "Suite",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-A01",
+      "phase": "P5",
+      "wave": "P5-W1",
+      "lane": "A",
+      "title": "i18n infrastructure: namespaces, extraction, translation platform sync, pseudo-locale CI check",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/i18n/**",
+        "scripts/i18n/*"
+      ],
+      "acceptance": [
+        "Pseudo-locale shows no untranslated core strings"
+      ],
+      "test": "CI check",
+      "reqs": [
+        "FR-24"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-A02",
+      "phase": "P5",
+      "wave": "P5-W1",
+      "lane": "A",
+      "title": "Locale formats (dates, numbers, currency, names, addresses, phones) and RTL layout support",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/utils/locale/*",
+        "src/styles/*"
+      ],
+      "acceptance": [
+        "ar layout mirrors correctly"
+      ],
+      "test": "Visual snapshots",
+      "reqs": [
+        "FR-24"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-A03",
+      "phase": "P5",
+      "wave": "P5-W2",
+      "lane": "A",
+      "title": "Calendar abstraction with Ethiopian calendar (display + entry)",
+      "size": "M",
+      "depends_on": [
+        "P5-A02",
+        "P1-D02"
+      ],
+      "files": [
+        "src/domain/calendar/*",
+        "src/components/ui/forms/DatePicker.tsx"
+      ],
+      "acceptance": [
+        "Round-trip conversion tests"
+      ],
+      "test": "Unit tests",
+      "reqs": [
+        "FR-24"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-B01",
+      "phase": "P5",
+      "wave": "P5-W2",
+      "lane": "B",
+      "title": "Kiswahili locale (core flows + ke packs)",
+      "size": "M",
+      "depends_on": [
+        "P5-A01"
+      ],
+      "files": [
+        "src/**/locales/sw.json",
+        "packs/ke-*/locales/sw.json"
+      ],
+      "acceptance": [
+        "Native-speaker review"
+      ],
+      "test": "Completeness check",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-B02",
+      "phase": "P5",
+      "wave": "P5-W2",
+      "lane": "B",
+      "title": "French locale",
+      "size": "M",
+      "depends_on": [
+        "P5-A01"
+      ],
+      "files": [
+        "src/**/locales/fr.json"
+      ],
+      "acceptance": [
+        "Review"
+      ],
+      "test": "Completeness check",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-B03",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "B",
+      "title": "Portuguese and Arabic locales",
+      "size": "M",
+      "depends_on": [
+        "P5-A01",
+        "P5-A02"
+      ],
+      "files": [
+        "src/**/locales/{pt,ar}.json"
+      ],
+      "acceptance": [
+        "Review"
+      ],
+      "test": "Completeness check",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-C01",
+      "phase": "P5",
+      "wave": "P5-W2",
+      "lane": "C",
+      "title": "Country pack format (identifiers, address hierarchy, holidays, statutory returns) + KE country pack",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "packs/country/schema.json",
+        "packs/country/ke/**"
+      ],
+      "acceptance": [
+        "KE identifiers/address used by forms"
+      ],
+      "test": "Schema tests",
+      "reqs": [
+        "FR-25"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-C02",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "C",
+      "title": "Uganda pack (PLE divisions, new lower secondary, UACE) + UG country pack",
+      "size": "L",
+      "depends_on": [
+        "P5-C01",
+        "P2-B03",
+        "P2-A02"
+      ],
+      "files": [
+        "packs/ug-*/**",
+        "packs/country/ug/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-C03",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "C",
+      "title": "Nigeria pack (UBE/SSS, CA+exam, WAEC scale, terminal report with affective/psychomotor) + NG country pack",
+      "size": "L",
+      "depends_on": [
+        "P5-C01",
+        "P2-B03",
+        "P2-A02"
+      ],
+      "files": [
+        "packs/ng-*/**",
+        "packs/country/ng/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-C04",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "C",
+      "title": "Tanzania, Rwanda packs + country packs",
+      "size": "L",
+      "depends_on": [
+        "P5-C01",
+        "P2-B03",
+        "P2-A02"
+      ],
+      "files": [
+        "packs/tz-*/**",
+        "packs/rw-*/**",
+        "packs/country/{tz,rw}/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-C05",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "C",
+      "title": "Ghana, South Africa packs + country packs",
+      "size": "L",
+      "depends_on": [
+        "P5-C01",
+        "P2-B03",
+        "P2-A02"
+      ],
+      "files": [
+        "packs/gh-*/**",
+        "packs/za-*/**",
+        "packs/country/{gh,za}/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-C06",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "C",
+      "title": "Francophone pack family (/20, coefficients, trimestres, conseil de classe, mentions) + SN/CI/CM country packs",
+      "size": "L",
+      "depends_on": [
+        "P5-C01",
+        "P5-B02",
+        "P2-B03",
+        "P2-A02"
+      ],
+      "files": [
+        "packs/fr-africa-*/**",
+        "packs/country/{sn,ci,cm}/**"
+      ],
+      "acceptance": [
+        "Vectors pass"
+      ],
+      "test": "Vectors",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P5-D01",
+      "phase": "P5",
+      "wave": "P5-W3",
+      "lane": "D",
+      "title": "Payroll pack interface + KE payroll pack (effective-dated statutory data)",
+      "size": "L",
+      "depends_on": [
+        "P1-B02"
+      ],
+      "files": [
+        "src/domain/payroll/*",
+        "packs/payroll/ke/**"
+      ],
+      "acceptance": [
+        "Payslip fixtures match"
+      ],
+      "test": "Fixture tests",
+      "reqs": [
+        "FR-25"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-E01",
+      "phase": "P6",
+      "wave": "P6-W1",
+      "lane": "E",
+      "title": "DR-03 licence decision; LICENSE, NOTICE, pack data licence",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "LICENSE",
+        "docs/prd/workflow-log/decisions/DR-03.md"
+      ],
+      "acceptance": [
+        "Decision recorded"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-E02",
+      "phase": "P6",
+      "wave": "P6-W1",
+      "lane": "E",
+      "title": "Repository hygiene for public release (secrets, assistant config folders, dead plug-ins, duplicate pages)",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "(repo-wide cleanup list in task notes)"
+      ],
+      "acceptance": [
+        "Secret scan clean; dead code removed"
+      ],
+      "test": "CI scans",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-E03",
+      "phase": "P6",
+      "wave": "P6-W1",
+      "lane": "E",
+      "title": "Governance: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates, RFC process, pack stewardship",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "CONTRIBUTING.md",
+        "CODE_OF_CONDUCT.md",
+        "SECURITY.md",
+        ".github/ISSUE_TEMPLATE/*",
+        "docs/rfcs/README.md"
+      ],
+      "acceptance": [
+        "Spec 08 §7"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-A01",
+      "phase": "P6",
+      "wave": "P6-W1",
+      "lane": "A",
+      "title": "Plug-in SDK: manifest, permissions, UI slots, service hooks, server routes, versioning; rationalise builtin plug-ins",
+      "size": "L",
+      "depends_on": [],
+      "files": [
+        "src/plugins/sdk/*",
+        "src/plugins/builtin/*"
+      ],
+      "acceptance": [
+        "Example plug-in passes compatibility tests"
+      ],
+      "test": "SDK tests",
+      "reqs": [
+        "FR-26"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-B01",
+      "phase": "P6",
+      "wave": "P6-W2",
+      "lane": "B",
+      "title": "Kenya exports: ke-kemis and ke-knec-registration plug-ins",
+      "size": "M",
+      "depends_on": [
+        "P6-A01",
+        "P1-C03"
+      ],
+      "files": [
+        "src/plugins/ke-kemis/*",
+        "src/plugins/ke-knec/*"
+      ],
+      "acceptance": [
+        "Files validate against published formats"
+      ],
+      "test": "Fixture tests",
+      "reqs": [
+        "FR-26"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-B02",
+      "phase": "P6",
+      "wave": "P6-W2",
+      "lane": "B",
+      "title": "Messaging providers (Africa's Talking, Twilio, WhatsApp Business, SMTP) with outbox",
+      "size": "M",
+      "depends_on": [
+        "P6-A01"
+      ],
+      "files": [
+        "src/plugins/messaging/*"
+      ],
+      "acceptance": [
+        "Delivery status tracked"
+      ],
+      "test": "Contract tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-B03",
+      "phase": "P6",
+      "wave": "P6-W2",
+      "lane": "B",
+      "title": "Accounting connectors/exports (QuickBooks, Xero, Odoo, ERPNext via existing plug-in)",
+      "size": "M",
+      "depends_on": [
+        "P6-A01",
+        "P3-A02"
+      ],
+      "files": [
+        "src/plugins/accounting/*"
+      ],
+      "acceptance": [
+        "Journal export validated"
+      ],
+      "test": "Fixture tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-C01",
+      "phase": "P6",
+      "wave": "P6-W2",
+      "lane": "C",
+      "title": "Guardian & learner PWA portal (balances, pay links, reports, attendance, notices, consent)",
+      "size": "L",
+      "depends_on": [
+        "P3-E01",
+        "P2-D03"
+      ],
+      "files": [
+        "src/modules/portal/**"
+      ],
+      "acceptance": [
+        "Works on 2–3 GB Android over 3G profile"
+      ],
+      "test": "E2E on mobile viewport",
+      "reqs": [
+        "FR-27"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-D01",
+      "phase": "P6",
+      "wave": "P6-W2",
+      "lane": "D",
+      "title": "Documentation set: role guides, admin guide, deployment guides, pack authoring, SDK, data-protection guide",
+      "size": "L",
+      "depends_on": [],
+      "files": [
+        "docs/guides/**"
+      ],
+      "acceptance": [
+        "Spec 08 §8 list complete"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-E04",
+      "phase": "P6",
+      "wave": "P6-W3",
+      "lane": "E",
+      "title": "Pilot programme: one school per flagship pack for a full term; feedback triage",
+      "size": "L",
+      "depends_on": [
+        "P2-Q02",
+        "P3-Q01",
+        "P4-Q01"
+      ],
+      "files": [
+        "docs/prd/workflow-log/pilots/*"
+      ],
+      "acceptance": [
+        "Sign-off from each pilot"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P6-E05",
+      "phase": "P6",
+      "wave": "P6-W4",
+      "lane": "E",
+      "title": "Release 1.0: changelog, migration notes, stable channel, LTS policy, tag",
+      "size": "S",
+      "depends_on": [
+        "P6-E04"
+      ],
+      "files": [
+        "CHANGELOG.md",
+        "docs/releases/1.0.md"
+      ],
+      "acceptance": [
+        "All phase exits met"
+      ],
+      "test": "",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P0-Q01",
+      "phase": "P0",
+      "wave": "P0-W3",
+      "lane": "Q",
+      "title": "Stabilise PRD tooling and the smoke-test flake: resolve gate base refs, pre-warm page imports, drop unused test imports",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "scripts/prd/gate.mjs",
+        "src/tests/crawlCrashPages.smoke.test.tsx",
+        "src/modules/hr/pages/__tests__/StaffSalarySettingsPage.test.tsx",
+        "src/modules/settings/pages/__tests__/UnifiedSettingsRolePicker.test.tsx"
+      ],
+      "acceptance": [
+        "gate.mjs resolves a --base ref to a full SHA, so a caret ref cannot silently gate zero changed files on Windows",
+        "crawlCrashPages.smoke.test.tsx pre-warms its page imports, so it no longer times out under parallel fork load",
+        "typecheck reports no unused-React errors in the two P0-H04 tests"
+      ],
+      "test": "Gate with a caret base ref; smoke test under parallel forks",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "commit": "082b71b",
+      "notes": "Opened during W3 close-out per EXECUTION.md §9 (a flaky test gets a Q task) and the H03 reviewer's finding that --base <sha>^ silently gates zero files on Windows.",
+      "completed_at": "2026-10-18"
+    }
+  ]
+}

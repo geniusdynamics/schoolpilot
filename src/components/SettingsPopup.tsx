@@ -1,11 +1,13 @@
-import React, { useMemo, useCallback } from 'react';
+﻿import React, { useMemo, useCallback } from 'react';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
 import { useTabs } from '@/hooks/tabs';
 // Removed unused HookErrorHandler import
-import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
+import HookErrorBoundary from './HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
+import { logger } from '@/utils/logging';
+
 
 interface SettingsPopupProps {
   open: boolean;
@@ -40,7 +42,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
       const menu = settingsModule?.children || [];
       return menu;
     } catch (error) {
-      console.error('[SettingsPopup] Error getting settings menu:', error);
+      logger.error('[SettingsPopup] Error getting settings menu:', error);
       return [];
     }
   }, [settingsModule]);
@@ -52,13 +54,13 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
         onClose();
       }
     } catch (error) {
-      console.error('[SettingsPopup] Error in handleClose:', error);
+      logger.error('[SettingsPopup] Error in handleClose:', error);
     }
   }, [onClose]);
   
   const handleLinkClick = useCallback(async (path: string, title: string) => {
     try {
-      console.log('🚀 [SettingsPopup] Navigating to:', { path, title });
+      logger.info('🚀 [SettingsPopup] Navigating to:', { path, title });
       openTab(path, { pinned: false });
       
       // Close the popup after navigation
@@ -66,7 +68,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
         onClose();
       }
     } catch (error) {
-      console.error('[SettingsPopup] Error in handleLinkClick:', error);
+      logger.error('[SettingsPopup] Error in handleLinkClick:', error);
       // Close popup even if navigation fails
       if (onClose && typeof onClose === 'function') {
         onClose();
@@ -80,7 +82,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
   return (
       <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/30 backdrop-blur-sm">
         {/* Drawer */}
-        <div className="w-full max-w-xs h-full bg-white shadow-2xl border-l border-slate-200 p-0 relative animate-slide-in flex flex-col">
+        <div className="w-full max-w-xs h-full bg-surface-card shadow-2xl border-l border-slate-200 p-0 relative animate-slide-in flex flex-col">
         <button onClick={handleClose} className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-all" title="Close settings">
           <XIcon className="w-6 h-6" />
         </button>
@@ -94,7 +96,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
                 <li key={item.name}>
                   <button 
                     onClick={() => handleLinkClick(item.path, translateItemName(item.name))} 
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all text-left"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-primary-50 transition-all text-left"
                   >
                     {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
                     <span className="font-medium text-base">{translateItemName(item.name)}</span>

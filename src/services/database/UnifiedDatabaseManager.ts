@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Unified Database Manager that consolidates RxDB, PouchDB, and SQLite providers
 // ABOUTME: Provides deployment mode-based provider selection and comprehensive database management
 
@@ -11,6 +13,7 @@ import { UniversalDataGenerator, UniversalDataGenerationConfig, GenerationStats 
 import { StartupOptimizer } from './StartupOptimizer';
 import { seedProviderWithDemoData } from './demoDataSeed';
 import { CapabilityDetector, ProviderRecommendation } from './detection/CapabilityDetector';
+import { StorageUnavailableError, memoryDatabaseAllowed } from './SQLiteWASMProvider';
 
 export type DeploymentMode = 'development' | 'staging' | 'production';
 export type DatabaseProvider = 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'sqlite' | 'backend-api' | 'hybrid';
@@ -52,6 +55,8 @@ export class UnifiedDatabaseManager {
   private startupOptimizer: StartupOptimizer;
   private capabilityDetector: CapabilityDetector;
   private fallbackChain: DatabaseProvider[] = ['pouchdb', 'rxdb', 'backend-api', 'sqlite-wasm'];
+  /** Set when initialisation failed for lack of persistent storage; blocks store-swapping recovery. */
+  private storageUnavailable = false;
 
   private constructor() {
     this.deploymentMode = this.detectDeploymentMode();
@@ -96,22 +101,28 @@ export class UnifiedDatabaseManager {
    */
   public async initialize(): Promise<void> {
     try {
-      console.log('🚀 [UnifiedDatabaseManager] Initializing database manager...');
+      logger.info('🚀 [UnifiedDatabaseManager] Initializing database manager...');
       
       // Check available providers first
       const availableProviders = this.providerFactory.getAvailableProviderTypes();
-      console.log('📋 [UnifiedDatabaseManager] Available providers:', availableProviders);
+      logger.info('📋 [UnifiedDatabaseManager] Available providers:', availableProviders);
       
       // Select appropriate provider using both config and capability detection
       this.providerType = await this.selectProviderWithCapabilities();
-      console.log(`📊 [UnifiedDatabaseManager] Selected provider: ${this.providerType} for ${this.deploymentMode} mode`);
+      logger.info(`📊 [UnifiedDatabaseManager] Selected provider: ${this.providerType} for ${this.deploymentMode} mode`);
 
       // Validate provider availability
       const isAvailable = await this.validateProviderAvailability(this.providerType);
-      console.log(`🔍 [UnifiedDatabaseManager] Provider ${this.providerType} availability check: ${isAvailable}`);
+      logger.info(`🔍 [UnifiedDatabaseManager] Provider ${this.providerType} availability check: ${isAvailable}`);
       
-      if (!isAvailable) {
-        console.warn(`⚠️ [UnifiedDatabaseManager] Selected provider ${this.providerType} is not available, attempting fallback...`);
+      // SQLite WASM is never swapped for another store. Without persistent
+      // storage it fails closed, unless a temporary database is explicitly
+      // allowed, in which case its initialize() opens one in memory.
+      if (!isAvailable && this.providerType === 'sqlite-wasm' && !memoryDatabaseAllowed()) {
+        throw new StorageUnavailableError('Persistent SQLite storage (OPFS) is not available in this environment');
+      }
+      if (!isAvailable && this.providerType !== 'sqlite-wasm') {
+        logger.warn(`⚠️ [UnifiedDatabaseManager] Selected provider ${this.providerType} is not available, attempting fallback...`);
         
         // Try fallback providers in order of preference
         const fallbackProviders = this.fallbackChain;
@@ -120,11 +131,11 @@ export class UnifiedDatabaseManager {
         for (const fallbackProvider of fallbackProviders) {
           if (fallbackProvider !== this.providerType) {
             const fallbackAvailable = await this.validateProviderAvailability(fallbackProvider as DatabaseProvider);
-            console.log(`🔍 [UnifiedDatabaseManager] Fallback provider ${fallbackProvider} availability: ${fallbackAvailable}`);
+            logger.info(`🔍 [UnifiedDatabaseManager] Fallback provider ${fallbackProvider} availability: ${fallbackAvailable}`);
             
             if (fallbackAvailable) {
               this.providerType = fallbackProvider as DatabaseProvider;
-              console.log(`🔄 [UnifiedDatabaseManager] Falling back to ${fallbackProvider} provider`);
+              logger.info(`🔄 [UnifiedDatabaseManager] Falling back to ${fallbackProvider} provider`);
               fallbackFound = true;
               break;
             }
@@ -132,8 +143,8 @@ export class UnifiedDatabaseManager {
         }
         
         if (!fallbackFound) {
-          console.error('❌ [UnifiedDatabaseManager] No viable database providers available');
-          console.log('📋 [UnifiedDatabaseManager] Available providers were:', availableProviders);
+          logger.error('❌ [UnifiedDatabaseManager] No viable database providers available');
+          logger.info('📋 [UnifiedDatabaseManager] Available providers were:', availableProviders);
           throw new Error('Database initialization failed: No viable database providers available');
         }
       }
@@ -153,14 +164,24 @@ export class UnifiedDatabaseManager {
       this.isInitialized = true;
       await this.updateStatus();
 
-      console.log(`✅ [UnifiedDatabaseManager] Successfully initialized with ${this.collections.size} collections`);
+      logger.info(`✅ [UnifiedDatabaseManager] Successfully initialized with ${this.collections.size} collections`);
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Initialization failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Initialization failed:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.status.errors.push(`Initialization failed: ${errorMessage}`);
+
+      // Missing persistent storage must surface to the user, not be papered over.
+      if (error instanceof StorageUnavailableError) {
+        this.storageUnavailable = true;
+        throw error;
+      }
+      // Recovery switches to PouchDB; persistent SQLite must never be swapped out.
+      if (this.providerType === 'sqlite-wasm' && !memoryDatabaseAllowed()) {
+        throw error;
+      }
       
       // Attempt automatic recovery
-      console.log('🔧 [UnifiedDatabaseManager] Attempting automatic recovery...');
+      logger.info('🔧 [UnifiedDatabaseManager] Attempting automatic recovery...');
       const recoverySuccessful = await this.attemptRecovery();
       
       if (!recoverySuccessful) {
@@ -175,7 +196,7 @@ export class UnifiedDatabaseManager {
   private detectDeploymentMode(): DeploymentMode {
     const config = getCurrentUnifiedConfig();
     
-    console.log(`🔍 [UnifiedDatabaseManager] Detecting deployment mode from config:`, {
+    logger.info(`🔍 [UnifiedDatabaseManager] Detecting deployment mode from config:`, {
       environment: config.environment,
       dataMode: config.dataMode,
       nodeEnv: process.env.NODE_ENV
@@ -213,7 +234,7 @@ export class UnifiedDatabaseManager {
     }
     
     // Default to production for safety
-    console.log(`⚠️ [UnifiedDatabaseManager] Could not detect deployment mode, defaulting to production`);
+    logger.info(`⚠️ [UnifiedDatabaseManager] Could not detect deployment mode, defaulting to production`);
     return 'production';
   }
 
@@ -224,25 +245,25 @@ export class UnifiedDatabaseManager {
     const config = getCurrentUnifiedConfig();
     const dbConfig = getDatabaseConfig();
     
-    console.log(`🔍 [UnifiedDatabaseManager] Selecting provider for ${this.deploymentMode} mode`);
-    console.log(`📊 [UnifiedDatabaseManager] Database configuration:`, dbConfig);
+    logger.info(`🔍 [UnifiedDatabaseManager] Selecting provider for ${this.deploymentMode} mode`);
+    logger.info(`📊 [UnifiedDatabaseManager] Database configuration:`, dbConfig);
     
     const envProvider = import.meta.env.VITE_DB_PROVIDER;
     const envMode = import.meta.env.VITE_DB_MODE;
     
     if (envProvider) {
-      console.log(`🌍 [UnifiedDatabaseManager] Environment variable VITE_DB_PROVIDER=${envProvider} detected`);
+      logger.info(`🌍 [UnifiedDatabaseManager] Environment variable VITE_DB_PROVIDER=${envProvider} detected`);
       const validProviders = ['sqlite-wasm', 'sqlite-file', 'pouchdb', 'backend-api', 'livestore', 'rxdb', 'hybrid'];
       if (validProviders.includes(envProvider)) {
-        console.log(`✅ [UnifiedDatabaseManager] Using environment-specified provider: ${envProvider}`);
+        logger.info(`✅ [UnifiedDatabaseManager] Using environment-specified provider: ${envProvider}`);
         return envProvider as DatabaseProvider;
       } else {
-        console.warn(`⚠️ [UnifiedDatabaseManager] Invalid VITE_DB_PROVIDER value: ${envProvider}, falling back to config`);
+        logger.warn(`⚠️ [UnifiedDatabaseManager] Invalid VITE_DB_PROVIDER value: ${envProvider}, falling back to config`);
       }
     }
     
     if (envMode && !dbConfig.provider) {
-      console.log(`🌍 [UnifiedDatabaseManager] Environment variable VITE_DB_MODE=${envMode} detected`);
+      logger.info(`🌍 [UnifiedDatabaseManager] Environment variable VITE_DB_MODE=${envMode} detected`);
       if (envMode === 'demo') {
         return 'pouchdb';
       } else if (envMode === 'production') {
@@ -253,20 +274,20 @@ export class UnifiedDatabaseManager {
     // Validate database configuration first
     const validation = validateDatabaseConfig();
     if (!validation.isValid) {
-      console.warn(`⚠️ [UnifiedDatabaseManager] Database configuration validation failed:`, validation.errors);
+      logger.warn(`⚠️ [UnifiedDatabaseManager] Database configuration validation failed:`, validation.errors);
       // Continue with warnings but log them
       if (validation.warnings.length > 0) {
-        console.warn(`⚠️ [UnifiedDatabaseManager] Database configuration warnings:`, validation.warnings);
+        logger.warn(`⚠️ [UnifiedDatabaseManager] Database configuration warnings:`, validation.warnings);
       }
     }
     
     // Priority 1: Check if user has explicitly configured a provider
     if (dbConfig.provider) {
-      console.log(`🎯 [UnifiedDatabaseManager] Using configured provider: ${dbConfig.provider}`);
+      logger.info(`🎯 [UnifiedDatabaseManager] Using configured provider: ${dbConfig.provider}`);
       
       // Validate that the configured provider is allowed
       if (dbConfig.allowedProviders && !dbConfig.allowedProviders.includes(dbConfig.provider)) {
-        console.warn(`⚠️ [UnifiedDatabaseManager] Configured provider ${dbConfig.provider} not in allowed list: ${dbConfig.allowedProviders.join(', ')}`);
+        logger.warn(`⚠️ [UnifiedDatabaseManager] Configured provider ${dbConfig.provider} not in allowed list: ${dbConfig.allowedProviders.join(', ')}`);
       }
       
       switch (dbConfig.provider) {
@@ -282,13 +303,13 @@ export class UnifiedDatabaseManager {
         // case 'rxdb':
         //   return 'rxdb';
         default:
-          console.warn(`⚠️ [UnifiedDatabaseManager] Unknown provider ${dbConfig.provider}, using automatic selection`);
+          logger.warn(`⚠️ [UnifiedDatabaseManager] Unknown provider ${dbConfig.provider}, using automatic selection`);
       }
     }
 
     // Priority 2: Check data mode for provider hints
     if (config.dataMode) {
-      console.log(`📊 [UnifiedDatabaseManager] Considering data mode: ${config.dataMode}`);
+      logger.info(`📊 [UnifiedDatabaseManager] Considering data mode: ${config.dataMode}`);
       
       switch (config.dataMode) {
         case 'demo':
@@ -301,7 +322,7 @@ export class UnifiedDatabaseManager {
     }
 
     // Priority 3: Default provider selection based on deployment mode
-    console.log(`🔧 [UnifiedDatabaseManager] Using deployment mode-based selection for ${this.deploymentMode}`);
+    logger.info(`🔧 [UnifiedDatabaseManager] Using deployment mode-based selection for ${this.deploymentMode}`);
     
     switch (this.deploymentMode) {
       case 'development':
@@ -311,7 +332,7 @@ export class UnifiedDatabaseManager {
       case 'production':
         return 'sqlite-wasm'; // WASM SQLite with OPFS for production
       default:
-        console.log(`🔄 [UnifiedDatabaseManager] Fallback to PouchDB for unknown deployment mode`);
+        logger.info(`🔄 [UnifiedDatabaseManager] Fallback to PouchDB for unknown deployment mode`);
         return 'pouchdb'; // Fallback to PouchDB
     }
   }
@@ -323,15 +344,20 @@ export class UnifiedDatabaseManager {
   private async selectProviderWithCapabilities(): Promise<DatabaseProvider> {
     // First, get config-based selection
     const configSelectedProvider = this.selectProvider();
+
+    // Persistent SQLite fails closed in the provider; capabilities must not swap it out.
+    if (configSelectedProvider === 'sqlite-wasm') {
+      return configSelectedProvider;
+    }
     
     // Get capability-based recommendation
     let capabilityRecommendation: ProviderRecommendation | null = null;
     try {
       capabilityRecommendation = await this.capabilityDetector.getProviderRecommendation();
-      console.log(`🧠 [UnifiedDatabaseManager] CapabilityDetector recommends: ${capabilityRecommendation.recommended}`);
-      console.log(`📋 [UnifiedDatabaseManager] CapabilityDetector alternatives: ${capabilityRecommendation.alternatives.join(', ')}`);
+      logger.info(`🧠 [UnifiedDatabaseManager] CapabilityDetector recommends: ${capabilityRecommendation.recommended}`);
+      logger.info(`📋 [UnifiedDatabaseManager] CapabilityDetector alternatives: ${capabilityRecommendation.alternatives.join(', ')}`);
     } catch (error) {
-      console.warn(`⚠️ [UnifiedDatabaseManager] Capability detection failed, using config-based selection only:`, error);
+      logger.warn(`⚠️ [UnifiedDatabaseManager] Capability detection failed, using config-based selection only:`, error);
     }
     
     // If capability detection failed, fall back to config selection
@@ -352,18 +378,18 @@ export class UnifiedDatabaseManager {
       // Config provider is available, check if it's recommended or acceptable
       if (capabilityRecommended === configSelectedProvider || 
           capabilityAlternatives.includes(configSelectedProvider)) {
-        console.log(`✅ [UnifiedDatabaseManager] Config provider ${configSelectedProvider} is capability-compatible, using it`);
+        logger.info(`✅ [UnifiedDatabaseManager] Config provider ${configSelectedProvider} is capability-compatible, using it`);
         return configSelectedProvider;
       } else {
         // Config provider available but not recommended by capabilities
-        console.log(`⚠️ [UnifiedDatabaseManager] Config provider ${configSelectedProvider} available but not capability-recommended, using it anyway with fallback`);
+        logger.info(`⚠️ [UnifiedDatabaseManager] Config provider ${configSelectedProvider} available but not capability-recommended, using it anyway with fallback`);
         return configSelectedProvider;
       }
     } else {
       // Config provider not available, use capability recommendation
       const recommendedAvailable = await this.validateProviderAvailability(capabilityRecommended);
       if (recommendedAvailable) {
-        console.log(`✅ [UnifiedDatabaseManager] Config provider unavailable, using capability-recommended: ${capabilityRecommended}`);
+        logger.info(`✅ [UnifiedDatabaseManager] Config provider unavailable, using capability-recommended: ${capabilityRecommended}`);
         return capabilityRecommended;
       }
       
@@ -371,13 +397,13 @@ export class UnifiedDatabaseManager {
       for (const alternative of capabilityAlternatives) {
         const alternativeAvailable = await this.validateProviderAvailability(alternative);
         if (alternativeAvailable) {
-          console.log(`✅ [UnifiedDatabaseManager] Using capability alternative: ${alternative}`);
+          logger.info(`✅ [UnifiedDatabaseManager] Using capability alternative: ${alternative}`);
           return alternative;
         }
       }
       
       // Fallback to config provider anyway (will trigger fallback chain in initialize)
-      console.log(`⚠️ [UnifiedDatabaseManager] No capability-compatible providers available, falling back to config selection`);
+      logger.info(`⚠️ [UnifiedDatabaseManager] No capability-compatible providers available, falling back to config selection`);
       return configSelectedProvider;
     }
   }
@@ -405,7 +431,7 @@ export class UnifiedDatabaseManager {
    */
   private async initializeProvider(): Promise<void> {
     try {
-      console.log(`🔧 [UnifiedDatabaseManager] Initializing ${this.providerType} provider using factory...`);
+      logger.info(`🔧 [UnifiedDatabaseManager] Initializing ${this.providerType} provider using factory...`);
 
       // Create database configuration using enhanced config
       const dbConfig = getDatabaseConfig();
@@ -454,14 +480,14 @@ export class UnifiedDatabaseManager {
         throw new Error('Failed to initialize database provider through factory');
       }
 
-      console.log(`✅ [UnifiedDatabaseManager] Provider ${this.providerType} initialized successfully through factory`);
+      logger.info(`✅ [UnifiedDatabaseManager] Provider ${this.providerType} initialized successfully through factory`);
       
       // Start startup optimization
       if (this.provider) {
         await this.startupOptimizer.startOptimization(this.provider);
       }
     } catch (error) {
-      console.error(`❌ [UnifiedDatabaseManager] Provider initialization failed:`, error);
+      logger.error(`❌ [UnifiedDatabaseManager] Provider initialization failed:`, error);
       throw error;
     }
   }
@@ -475,14 +501,13 @@ export class UnifiedDatabaseManager {
       const storedVersion = localStorage.getItem('sp-db-version');
 
       if (storedVersion && storedVersion !== appVersion) {
-        console.log(`🔄 [UnifiedDatabaseManager] Schema version changed from ${storedVersion} to ${appVersion}. Clearing database...`);
-        await this.clearAllData();
-        console.log('✅ [UnifiedDatabaseManager] Database cleared for schema update');
+        // Data now persists: never wipe it on upgrade. Schema migrations arrive in P1.
+        logger.info(`🔄 [UnifiedDatabaseManager] App version changed from ${storedVersion} to ${appVersion}; keeping existing data.`);
       }
 
       localStorage.setItem('sp-db-version', appVersion);
     } catch (error) {
-      console.warn('⚠️ [UnifiedDatabaseManager] Failed to check schema version:', error);
+      logger.warn('⚠️ [UnifiedDatabaseManager] Failed to check schema version:', error);
     }
   }
 
@@ -491,10 +516,10 @@ export class UnifiedDatabaseManager {
    */
   private async createCollections(): Promise<void> {
     try {
-      console.log('📁 [UnifiedDatabaseManager] Creating collections from schema...');
+      logger.info('📁 [UnifiedDatabaseManager] Creating collections from schema...');
       
       const collectionCount = Object.keys(collectionsDefinition).length;
-      console.log(`📊 [UnifiedDatabaseManager] Processing ${collectionCount} collection definitions`);
+      logger.info(`📊 [UnifiedDatabaseManager] Processing ${collectionCount} collection definitions`);
 
       let created = 0;
       let skipped = 0;
@@ -511,21 +536,21 @@ export class UnifiedDatabaseManager {
             this.collections.set(collectionName, collection);
             created++;
           } else {
-            console.warn(`Provider does not support createCollection for ${collectionName}`);
+            logger.warn(`Provider does not support createCollection for ${collectionName}`);
             skipped++;
           }
         } catch (error) {
-          console.error(`Failed to create collection ${collectionName}:`, error);
+          logger.error(`Failed to create collection ${collectionName}:`, error);
           const errorMessage = error instanceof Error ? error.message : String(error);
           this.status.warnings.push(`Failed to create collection ${collectionName}: ${errorMessage}`);
           failed++;
         }
       }
 
-      console.log(`✅ [UnifiedDatabaseManager] Collections created: ${created}, skipped: ${skipped}, failed: ${failed}`);
+      logger.info(`✅ [UnifiedDatabaseManager] Collections created: ${created}, skipped: ${skipped}, failed: ${failed}`);
       this.status.collectionsCount = created;
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Collection creation failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Collection creation failed:', error);
       throw error;
     }
   }
@@ -549,7 +574,7 @@ export class UnifiedDatabaseManager {
     };
 
     if (!rxdbSchema || typeof rxdbSchema !== 'object') {
-      console.warn(`[UnifiedDatabaseManager] No valid schema for collection '${collectionName}', using fallback`);
+      logger.warn(`[UnifiedDatabaseManager] No valid schema for collection '${collectionName}', using fallback`);
       return fallbackSchema;
     }
 
@@ -557,7 +582,7 @@ export class UnifiedDatabaseManager {
       const conversionResult = SchemaConverter.convertRxDBToSQLite(collectionName, rxdbSchema);
       return conversionResult.schema;
     } catch (error) {
-      console.warn(`[UnifiedDatabaseManager] Schema conversion failed for '${collectionName}', using fallback:`, error);
+      logger.warn(`[UnifiedDatabaseManager] Schema conversion failed for '${collectionName}', using fallback:`, error);
       return fallbackSchema;
     }
   }
@@ -574,7 +599,7 @@ export class UnifiedDatabaseManager {
       this.performHealthCheck();
     }, 5 * 60 * 1000);
 
-    console.log('💓 [UnifiedDatabaseManager] Health monitoring started');
+    logger.info('💓 [UnifiedDatabaseManager] Health monitoring started');
   }
 
   /**
@@ -630,7 +655,7 @@ export class UnifiedDatabaseManager {
       }
 
       this.status.lastHealthCheck = health.lastCheck;
-      console.log(`💓 [UnifiedDatabaseManager] Health check: ${health.status} (${health.collectionsHealthy}/${health.collectionsTotal} collections healthy)`);
+      logger.info(`💓 [UnifiedDatabaseManager] Health check: ${health.status} (${health.collectionsHealthy}/${health.collectionsTotal} collections healthy)`);
 
       // Attempt automatic repair if issues are found
       if (health.status !== 'healthy') {
@@ -643,7 +668,7 @@ export class UnifiedDatabaseManager {
         severity: 'error',
         message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`
       });
-      console.error('❌ [UnifiedDatabaseManager] Health check failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Health check failed:', error);
     }
 
     return health;
@@ -778,7 +803,7 @@ export class UnifiedDatabaseManager {
     collection?: string;
   }>): Promise<void> {
     try {
-      console.log('🔧 [UnifiedDatabaseManager] Attempting automatic repair...');
+      logger.info('🔧 [UnifiedDatabaseManager] Attempting automatic repair...');
 
       const repairableIssues = issues.filter(issue => 
         issue.severity === 'error' && 
@@ -788,7 +813,7 @@ export class UnifiedDatabaseManager {
       );
 
       if (repairableIssues.length === 0) {
-        console.log('ℹ️ [UnifiedDatabaseManager] No automatically repairable issues found');
+        logger.info('ℹ️ [UnifiedDatabaseManager] No automatically repairable issues found');
         return;
       }
 
@@ -796,17 +821,17 @@ export class UnifiedDatabaseManager {
         if (!issue.collection) continue;
 
         try {
-          console.log(`🔧 [UnifiedDatabaseManager] Attempting to repair collection: ${issue.collection}`);
+          logger.info(`🔧 [UnifiedDatabaseManager] Attempting to repair collection: ${issue.collection}`);
 
           const collection = this.collections.get(issue.collection);
           if (!collection) {
-            console.warn(`⚠️ [UnifiedDatabaseManager] Collection ${issue.collection} not found for repair`);
+            logger.warn(`⚠️ [UnifiedDatabaseManager] Collection ${issue.collection} not found for repair`);
             continue;
           }
 
           // Attempt to recreate collection if it's corrupted
           if (issue.message.includes('operation failed')) {
-            console.log(`🔧 [UnifiedDatabaseManager] Attempting to recreate collection: ${issue.collection}`);
+            logger.info(`🔧 [UnifiedDatabaseManager] Attempting to recreate collection: ${issue.collection}`);
             
             // Get the original schema
             const originalDefinition = collectionsDefinition[issue.collection];
@@ -817,20 +842,20 @@ export class UnifiedDatabaseManager {
               if (this.provider && typeof this.provider.createCollection === 'function') {
                 const newCollection = await this.provider.createCollection(issue.collection, schema);
                 this.collections.set(issue.collection, newCollection);
-                console.log(`✅ [UnifiedDatabaseManager] Successfully recreated collection: ${issue.collection}`);
+                logger.info(`✅ [UnifiedDatabaseManager] Successfully recreated collection: ${issue.collection}`);
               }
             }
           }
 
         } catch (repairError) {
-          console.error(`❌ [UnifiedDatabaseManager] Failed to repair collection ${issue.collection}:`, repairError);
+          logger.error(`❌ [UnifiedDatabaseManager] Failed to repair collection ${issue.collection}:`, repairError);
         }
       }
 
-      console.log('✅ [UnifiedDatabaseManager] Automatic repair completed');
+      logger.info('✅ [UnifiedDatabaseManager] Automatic repair completed');
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Automatic repair failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Automatic repair failed:', error);
     }
   }
 
@@ -842,7 +867,7 @@ export class UnifiedDatabaseManager {
     message: string;
   }> {
     try {
-      console.log(`🔧 [UnifiedDatabaseManager] Manual repair requested for collection: ${collectionName}`);
+      logger.info(`🔧 [UnifiedDatabaseManager] Manual repair requested for collection: ${collectionName}`);
 
       if (!this.collections.has(collectionName)) {
         return {
@@ -883,7 +908,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error(`❌ [UnifiedDatabaseManager] Manual repair failed for ${collectionName}:`, error);
+      logger.error(`❌ [UnifiedDatabaseManager] Manual repair failed for ${collectionName}:`, error);
       return {
         success: false,
         message: `Repair failed: ${error instanceof Error ? error.message : String(error)}`
@@ -927,7 +952,7 @@ export class UnifiedDatabaseManager {
           totalRecords += count;
         }
       } catch (error) {
-        console.warn(`Failed to count records in collection ${name}:`, error);
+        logger.warn(`Failed to count records in collection ${name}:`, error);
       }
     }
     
@@ -969,7 +994,7 @@ export class UnifiedDatabaseManager {
             lastModified = stats.lastModified;
             indexes = stats.indexCount;
           } catch (statsError) {
-            console.warn(`Failed to get detailed stats for collection ${name}:`, statsError);
+            logger.warn(`Failed to get detailed stats for collection ${name}:`, statsError);
             health = 'warning';
           }
         }
@@ -995,7 +1020,7 @@ export class UnifiedDatabaseManager {
           status: 'error',
           health: 'error' as const
         });
-        console.error(`Failed to get statistics for collection ${name}:`, error);
+        logger.error(`Failed to get statistics for collection ${name}:`, error);
       }
     }
     
@@ -1086,7 +1111,7 @@ export class UnifiedDatabaseManager {
     sizeAfter?: number;
   }> {
     try {
-      console.log(`🗜️ [UnifiedDatabaseManager] Compacting collection: ${collectionName}`);
+      logger.info(`🗜️ [UnifiedDatabaseManager] Compacting collection: ${collectionName}`);
 
       const collection = this.collections.get(collectionName);
       if (!collection) {
@@ -1105,7 +1130,7 @@ export class UnifiedDatabaseManager {
           const statsBefore = await collection.getStats();
           sizeBefore = statsBefore.storageSize;
         } catch (error) {
-          console.warn(`Failed to get stats before compaction for ${collectionName}:`, error);
+          logger.warn(`Failed to get stats before compaction for ${collectionName}:`, error);
         }
       }
 
@@ -1125,7 +1150,7 @@ export class UnifiedDatabaseManager {
           const statsAfter = await collection.getStats();
           sizeAfter = statsAfter.storageSize;
         } catch (error) {
-          console.warn(`Failed to get stats after compaction for ${collectionName}:`, error);
+          logger.warn(`Failed to get stats after compaction for ${collectionName}:`, error);
         }
       }
 
@@ -1134,7 +1159,7 @@ export class UnifiedDatabaseManager {
         ? `Collection ${collectionName} compacted successfully. Saved ${Math.round(savedSpace / 1024)}KB`
         : `Collection ${collectionName} compacted successfully`;
 
-      console.log(`✅ [UnifiedDatabaseManager] ${message}`);
+      logger.info(`✅ [UnifiedDatabaseManager] ${message}`);
 
       return {
         success: true,
@@ -1144,7 +1169,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error(`❌ [UnifiedDatabaseManager] Compaction failed for ${collectionName}:`, error);
+      logger.error(`❌ [UnifiedDatabaseManager] Compaction failed for ${collectionName}:`, error);
       return {
         success: false,
         message: `Compaction failed: ${error instanceof Error ? error.message : String(error)}`
@@ -1164,7 +1189,7 @@ export class UnifiedDatabaseManager {
     }>;
   }> {
     try {
-      console.log('🗜️ [UnifiedDatabaseManager] Compacting all collections...');
+      logger.info('🗜️ [UnifiedDatabaseManager] Compacting all collections...');
 
       const results = [];
       let overallSuccess = true;
@@ -1183,7 +1208,7 @@ export class UnifiedDatabaseManager {
       }
 
       const successCount = results.filter(r => r.success).length;
-      console.log(`✅ [UnifiedDatabaseManager] Compaction completed: ${successCount}/${results.length} collections successful`);
+      logger.info(`✅ [UnifiedDatabaseManager] Compaction completed: ${successCount}/${results.length} collections successful`);
 
       return {
         success: overallSuccess,
@@ -1191,7 +1216,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Bulk compaction failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Bulk compaction failed:', error);
       return {
         success: false,
         results: []
@@ -1207,7 +1232,7 @@ export class UnifiedDatabaseManager {
     message: string;
   }> {
     try {
-      console.log(`🔨 [UnifiedDatabaseManager] Rebuilding indexes for collection: ${collectionName}`);
+      logger.info(`🔨 [UnifiedDatabaseManager] Rebuilding indexes for collection: ${collectionName}`);
 
       const collection = this.collections.get(collectionName);
       if (!collection) {
@@ -1233,9 +1258,9 @@ export class UnifiedDatabaseManager {
         for (const index of schema.indexes) {
           try {
             await collection.createIndex(index);
-            console.log(`✅ [UnifiedDatabaseManager] Rebuilt index ${index.name} for ${collectionName}`);
+            logger.info(`✅ [UnifiedDatabaseManager] Rebuilt index ${index.name} for ${collectionName}`);
           } catch (indexError) {
-            console.warn(`⚠️ [UnifiedDatabaseManager] Failed to rebuild index ${index.name}:`, indexError);
+            logger.warn(`⚠️ [UnifiedDatabaseManager] Failed to rebuild index ${index.name}:`, indexError);
           }
         }
       }
@@ -1246,7 +1271,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error(`❌ [UnifiedDatabaseManager] Index rebuild failed for ${collectionName}:`, error);
+      logger.error(`❌ [UnifiedDatabaseManager] Index rebuild failed for ${collectionName}:`, error);
       return {
         success: false,
         message: `Index rebuild failed: ${error instanceof Error ? error.message : String(error)}`
@@ -1262,7 +1287,7 @@ export class UnifiedDatabaseManager {
       // Use the factory to check provider availability
       return this.providerFactory.isProviderAvailable(providerType);
     } catch (error) {
-      console.warn(`Provider availability check failed for ${providerType}:`, error);
+      logger.warn(`Provider availability check failed for ${providerType}:`, error);
       return false;
     }
   }
@@ -1297,7 +1322,7 @@ export class UnifiedDatabaseManager {
     const issues = [];
     const recommendations = [];
 
-    console.log('🔍 [UnifiedDatabaseManager] Validating database configuration...');
+    logger.info('🔍 [UnifiedDatabaseManager] Validating database configuration...');
 
     // Validate deployment mode consistency
     const detectedMode = this.detectDeploymentMode();
@@ -1360,7 +1385,7 @@ export class UnifiedDatabaseManager {
 
     const isValid = !issues.some(issue => issue.severity === 'error');
 
-    console.log(`✅ [UnifiedDatabaseManager] Configuration validation complete: ${isValid ? 'Valid' : 'Issues found'}`);
+    logger.info(`✅ [UnifiedDatabaseManager] Configuration validation complete: ${isValid ? 'Valid' : 'Issues found'}`);
 
     return {
       isValid,
@@ -1437,7 +1462,7 @@ export class UnifiedDatabaseManager {
         };
       }
 
-      console.log('🔧 [UnifiedDatabaseManager] Updating database configuration:', newConfig);
+      logger.info('🔧 [UnifiedDatabaseManager] Updating database configuration:', newConfig);
 
       // Validate new configuration
       if (newConfig.provider) {
@@ -1459,7 +1484,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Configuration update failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Configuration update failed:', error);
       return {
         success: false,
         message: `Configuration update failed: ${error instanceof Error ? error.message : String(error)}`
@@ -1482,7 +1507,7 @@ export class UnifiedDatabaseManager {
     collections: Record<string, any[]>;
   }> {
     try {
-      console.log('📦 [UnifiedDatabaseManager] Creating backup...');
+      logger.info('📦 [UnifiedDatabaseManager] Creating backup...');
 
       if (!this.isInitialized || !this.provider) {
         throw new Error('Database not initialized - cannot create backup');
@@ -1505,31 +1530,31 @@ export class UnifiedDatabaseManager {
       // Backup each collection
       for (const [name, collection] of this.collections) {
         try {
-          console.log(`📦 [UnifiedDatabaseManager] Backing up collection: ${name}`);
+          logger.info(`📦 [UnifiedDatabaseManager] Backing up collection: ${name}`);
           
           if (collection && typeof collection.find === 'function') {
             const documents = await collection.find({});
             backup.collections[name] = documents;
             totalRecords += documents.length;
             
-            console.log(`✅ [UnifiedDatabaseManager] Backed up ${documents.length} documents from ${name}`);
+            logger.info(`✅ [UnifiedDatabaseManager] Backed up ${documents.length} documents from ${name}`);
           } else {
-            console.warn(`⚠️ [UnifiedDatabaseManager] Collection ${name} does not support find operation`);
+            logger.warn(`⚠️ [UnifiedDatabaseManager] Collection ${name} does not support find operation`);
             backup.collections[name] = [];
           }
         } catch (error) {
-          console.error(`❌ [UnifiedDatabaseManager] Failed to backup collection ${name}:`, error);
+          logger.error(`❌ [UnifiedDatabaseManager] Failed to backup collection ${name}:`, error);
           backup.collections[name] = [];
         }
       }
 
       backup.metadata.totalRecords = totalRecords;
 
-      console.log(`✅ [UnifiedDatabaseManager] Backup created with ${totalRecords} total records from ${this.collections.size} collections`);
+      logger.info(`✅ [UnifiedDatabaseManager] Backup created with ${totalRecords} total records from ${this.collections.size} collections`);
       return backup;
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Backup creation failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Backup creation failed:', error);
       throw error;
     }
   }
@@ -1551,7 +1576,7 @@ export class UnifiedDatabaseManager {
     errors: string[];
   }> {
     try {
-      console.log('📥 [UnifiedDatabaseManager] Starting restore from backup...');
+      logger.info('📥 [UnifiedDatabaseManager] Starting restore from backup...');
 
       if (!this.isInitialized || !this.provider) {
         throw new Error('Database not initialized - cannot restore backup');
@@ -1570,12 +1595,12 @@ export class UnifiedDatabaseManager {
         throw new Error('Invalid backup format - missing metadata or collections');
       }
 
-      console.log(`📥 [UnifiedDatabaseManager] Restoring backup from ${backup.metadata.timestamp}`);
-      console.log(`📊 [UnifiedDatabaseManager] Backup contains ${Object.keys(backup.collections).length} collections`);
+      logger.info(`📥 [UnifiedDatabaseManager] Restoring backup from ${backup.metadata.timestamp}`);
+      logger.info(`📊 [UnifiedDatabaseManager] Backup contains ${Object.keys(backup.collections).length} collections`);
 
       // Clear existing data if requested
       if (clearExisting) {
-        console.log('🗑️ [UnifiedDatabaseManager] Clearing existing data...');
+        logger.info('🗑️ [UnifiedDatabaseManager] Clearing existing data...');
         await this.clearAllData();
       }
 
@@ -1586,16 +1611,16 @@ export class UnifiedDatabaseManager {
         const documents = backup.collections[collectionName];
 
         if (skipCollections.includes(collectionName)) {
-          console.log(`⏭️ [UnifiedDatabaseManager] Skipping collection: ${collectionName}`);
+          logger.info(`⏭️ [UnifiedDatabaseManager] Skipping collection: ${collectionName}`);
           continue;
         }
 
         try {
-          console.log(`📥 [UnifiedDatabaseManager] Restoring collection: ${collectionName} (${documents.length} documents)`);
+          logger.info(`📥 [UnifiedDatabaseManager] Restoring collection: ${collectionName} (${documents.length} documents)`);
 
           const collection = this.collections.get(collectionName);
           if (!collection) {
-            console.warn(`⚠️ [UnifiedDatabaseManager] Collection ${collectionName} not found in current schema`);
+            logger.warn(`⚠️ [UnifiedDatabaseManager] Collection ${collectionName} not found in current schema`);
             result.errors.push(`Collection ${collectionName} not found in current schema`);
             continue;
           }
@@ -1618,14 +1643,14 @@ export class UnifiedDatabaseManager {
               }
               restored += batch.length;
             } catch (batchError) {
-              console.error(`❌ [UnifiedDatabaseManager] Failed to restore batch for ${collectionName}:`, batchError);
+              logger.error(`❌ [UnifiedDatabaseManager] Failed to restore batch for ${collectionName}:`, batchError);
               result.errors.push(`Failed to restore batch for ${collectionName}: ${batchError instanceof Error ? batchError.message : String(batchError)}`);
               result.failed += batch.length;
             }
           }
 
           result.restored += restored;
-          console.log(`✅ [UnifiedDatabaseManager] Restored ${restored} documents to ${collectionName}`);
+          logger.info(`✅ [UnifiedDatabaseManager] Restored ${restored} documents to ${collectionName}`);
 
           // Report progress
           if (onProgress) {
@@ -1633,7 +1658,7 @@ export class UnifiedDatabaseManager {
           }
 
         } catch (error) {
-          console.error(`❌ [UnifiedDatabaseManager] Failed to restore collection ${collectionName}:`, error);
+          logger.error(`❌ [UnifiedDatabaseManager] Failed to restore collection ${collectionName}:`, error);
           const errorMessage = error instanceof Error ? error.message : String(error);
           result.errors.push(`Failed to restore collection ${collectionName}: ${errorMessage}`);
           result.failed += documents.length;
@@ -1642,16 +1667,16 @@ export class UnifiedDatabaseManager {
 
       if (result.errors.length > 0) {
         result.success = false;
-        console.warn(`⚠️ [UnifiedDatabaseManager] Restore completed with ${result.errors.length} errors`);
+        logger.warn(`⚠️ [UnifiedDatabaseManager] Restore completed with ${result.errors.length} errors`);
       } else {
-        console.log(`✅ [UnifiedDatabaseManager] Restore completed successfully`);
+        logger.info(`✅ [UnifiedDatabaseManager] Restore completed successfully`);
       }
 
-      console.log(`📊 [UnifiedDatabaseManager] Restore summary: ${result.restored} restored, ${result.failed} failed`);
+      logger.info(`📊 [UnifiedDatabaseManager] Restore summary: ${result.restored} restored, ${result.failed} failed`);
       return result;
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Restore failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Restore failed:', error);
       throw error;
     }
   }
@@ -1661,7 +1686,7 @@ export class UnifiedDatabaseManager {
    */
   public async clearAllData(): Promise<void> {
     try {
-      console.log('🗑️ [UnifiedDatabaseManager] Clearing all data...');
+      logger.info('🗑️ [UnifiedDatabaseManager] Clearing all data...');
 
       if (!this.isInitialized || !this.provider) {
         throw new Error('Database not initialized - cannot clear data');
@@ -1669,7 +1694,7 @@ export class UnifiedDatabaseManager {
 
       for (const [name, collection] of this.collections) {
         try {
-          console.log(`🗑️ [UnifiedDatabaseManager] Clearing collection: ${name}`);
+          logger.info(`🗑️ [UnifiedDatabaseManager] Clearing collection: ${name}`);
           
           if (collection && typeof collection.removeMany === 'function') {
             await collection.removeMany({});
@@ -1682,18 +1707,18 @@ export class UnifiedDatabaseManager {
               }
             }
           } else {
-            console.warn(`⚠️ [UnifiedDatabaseManager] Collection ${name} does not support data clearing`);
+            logger.warn(`⚠️ [UnifiedDatabaseManager] Collection ${name} does not support data clearing`);
           }
           
-          console.log(`✅ [UnifiedDatabaseManager] Cleared collection: ${name}`);
+          logger.info(`✅ [UnifiedDatabaseManager] Cleared collection: ${name}`);
         } catch (error) {
-          console.error(`❌ [UnifiedDatabaseManager] Failed to clear collection ${name}:`, error);
+          logger.error(`❌ [UnifiedDatabaseManager] Failed to clear collection ${name}:`, error);
         }
       }
 
-      console.log('✅ [UnifiedDatabaseManager] All data cleared');
+      logger.info('✅ [UnifiedDatabaseManager] All data cleared');
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Clear data failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Clear data failed:', error);
       throw error;
     }
   }
@@ -1714,25 +1739,23 @@ export class UnifiedDatabaseManager {
     error?: string;
   }> {
     try {
-      console.log('🎲 [UnifiedDatabaseManager] Starting data generation...');
+      logger.info('🎲 [UnifiedDatabaseManager] Starting data generation...');
 
       if (!this.isInitialized || !this.provider) {
         throw new Error('Database not initialized - cannot generate data');
       }
 
-      const config = getCurrentUnifiedConfig();
       const {
         modules = ['administration', 'academic', 'finance'],
         counts = {},
         useRealisticData = true,
         includeTestData = false,
-        clearExisting = false,
-        onProgress
+        clearExisting = false
       } = options;
 
       // Clear existing data if requested
       if (clearExisting) {
-        console.log('🗑️ [UnifiedDatabaseManager] Clearing existing data before generation...');
+        logger.info('🗑️ [UnifiedDatabaseManager] Clearing existing data before generation...');
         await this.clearAllData();
       }
 
@@ -1768,7 +1791,7 @@ export class UnifiedDatabaseManager {
         }
       };
 
-      console.log('🎲 [UniversalDataGenerator] Configuration:', generationConfig);
+      logger.info('🎲 [UniversalDataGenerator] Configuration:', generationConfig);
 
       // Initialize and run data generator
       const generator = new UniversalDataGenerator(generationConfig);
@@ -1777,7 +1800,7 @@ export class UnifiedDatabaseManager {
       // Generate data with progress tracking
       const stats = await generator.generateData();
 
-      console.log('✅ [UnifiedDatabaseManager] Data generation completed:', stats);
+      logger.info('✅ [UnifiedDatabaseManager] Data generation completed:', stats);
 
       return {
         success: true,
@@ -1785,7 +1808,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Data generation failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Data generation failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error)
@@ -1806,7 +1829,7 @@ export class UnifiedDatabaseManager {
     stats?: GenerationStats;
   }> {
     try {
-      console.log('🌱 [UnifiedDatabaseManager] Seeding database...');
+      logger.info('🌱 [UnifiedDatabaseManager] Seeding database...');
 
       if (!this.provider) {
         throw new Error('Database provider is not initialized');
@@ -1819,12 +1842,14 @@ export class UnifiedDatabaseManager {
         volume = 'medium'
       } = seedConfig || {};
 
-      console.log(`🌱 [UnifiedDatabaseManager] Seeding with ${volume} volume for ${dataMode} mode`);
+      logger.info(`🌱 [UnifiedDatabaseManager] Seeding with ${volume} volume for ${dataMode} mode`);
 
       const stats = await seedProviderWithDemoData(this.provider, {
         modules,
         volume,
-        clearExisting: true
+        // Never wipe stored records: seed only collections that are still empty.
+        clearExisting: false,
+        onlyIfEmpty: true
       });
 
       return {
@@ -1834,7 +1859,7 @@ export class UnifiedDatabaseManager {
       };
 
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Database seeding failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Database seeding failed:', error);
       return {
         success: false,
         message: `Database seeding failed: ${error instanceof Error ? error.message : String(error)}`
@@ -1898,7 +1923,7 @@ export class UnifiedDatabaseManager {
    */
   public async shutdown(): Promise<void> {
     try {
-      console.log('🔄 [UnifiedDatabaseManager] Shutting down...');
+      logger.info('🔄 [UnifiedDatabaseManager] Shutting down...');
 
       // Stop health monitoring
       if (this.healthCheckInterval) {
@@ -1918,9 +1943,9 @@ export class UnifiedDatabaseManager {
       this.isInitialized = false;
       await this.updateStatus();
 
-      console.log('✅ [UnifiedDatabaseManager] Shutdown complete');
+      logger.info('✅ [UnifiedDatabaseManager] Shutdown complete');
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Shutdown failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Shutdown failed:', error);
       throw error;
     }
   }
@@ -1934,7 +1959,7 @@ export class UnifiedDatabaseManager {
     }
 
     try {
-      console.log(`🔄 [UnifiedDatabaseManager] Switching provider from ${this.providerType} to ${newProviderType}...`);
+      logger.info(`🔄 [UnifiedDatabaseManager] Switching provider from ${this.providerType} to ${newProviderType}...`);
 
       // Validate new provider is available
       const isAvailable = await this.validateProviderAvailability(newProviderType);
@@ -1954,9 +1979,9 @@ export class UnifiedDatabaseManager {
       this.isInitialized = true;
       await this.updateStatus();
 
-      console.log(`✅ [UnifiedDatabaseManager] Successfully switched to ${newProviderType}`);
+      logger.info(`✅ [UnifiedDatabaseManager] Successfully switched to ${newProviderType}`);
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Provider switch failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Provider switch failed:', error);
       throw error;
     }
   }
@@ -1966,15 +1991,21 @@ export class UnifiedDatabaseManager {
    */
   public async attemptRecovery(): Promise<boolean> {
     try {
-      console.log('🔧 [UnifiedDatabaseManager] Attempting recovery...');
+      logger.info('🔧 [UnifiedDatabaseManager] Attempting recovery...');
       
+      // Recovering by switching stores would hide missing persistent storage.
+      if (this.storageUnavailable) {
+        logger.warn('⚠️ [UnifiedDatabaseManager] Persistent storage unavailable; refusing to recover onto another store');
+        return false;
+      }
+
       // Clear previous errors
       this.status.errors = [];
       this.status.warnings = [];
       
       // Try fallback provider (PouchDB)
       if (this.providerType !== 'pouchdb') {
-        console.log('🔄 [UnifiedDatabaseManager] Attempting fallback to PouchDB...');
+        logger.info('🔄 [UnifiedDatabaseManager] Attempting fallback to PouchDB...');
         this.providerType = 'pouchdb';
         
         try {
@@ -1985,19 +2016,19 @@ export class UnifiedDatabaseManager {
           this.isInitialized = true;
           await this.updateStatus();
           
-          console.log('✅ [UnifiedDatabaseManager] Recovery successful with PouchDB fallback');
+          logger.info('✅ [UnifiedDatabaseManager] Recovery successful with PouchDB fallback');
           return true;
         } catch (fallbackError) {
-          console.error('❌ [UnifiedDatabaseManager] Fallback to PouchDB failed:', fallbackError);
+          logger.error('❌ [UnifiedDatabaseManager] Fallback to PouchDB failed:', fallbackError);
           const errorMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
           this.status.errors.push(`Fallback recovery failed: ${errorMessage}`);
         }
       }
       
-      console.log('❌ [UnifiedDatabaseManager] Recovery failed - no viable providers available');
+      logger.info('❌ [UnifiedDatabaseManager] Recovery failed - no viable providers available');
       return false;
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Recovery attempt failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Recovery attempt failed:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.status.errors.push(`Recovery attempt failed: ${errorMessage}`);
       return false;
@@ -2009,13 +2040,14 @@ export class UnifiedDatabaseManager {
    */
   public async reset(): Promise<void> {
     try {
-      console.log('🔄 [UnifiedDatabaseManager] Resetting database manager...');
+      logger.info('🔄 [UnifiedDatabaseManager] Resetting database manager...');
       
       // Shutdown everything
       await this.shutdown();
       
       // Reset internal state
       this.isInitialized = false;
+      this.storageUnavailable = false;
       this.provider = null;
       this.providerType = null;
       this.collections.clear();
@@ -2033,9 +2065,9 @@ export class UnifiedDatabaseManager {
       // Re-detect deployment mode
       this.deploymentMode = this.detectDeploymentMode();
       
-      console.log('✅ [UnifiedDatabaseManager] Reset complete');
+      logger.info('✅ [UnifiedDatabaseManager] Reset complete');
     } catch (error) {
-      console.error('❌ [UnifiedDatabaseManager] Reset failed:', error);
+      logger.error('❌ [UnifiedDatabaseManager] Reset failed:', error);
       throw error;
     }
   }

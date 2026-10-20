@@ -58,7 +58,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
     ? 'text-emerald-600 bg-emerald-50'
     : trend?.direction === 'down'
     ? 'text-rose-600 bg-rose-50'
-    : 'text-gray-600 bg-gray-50';
+    : 'text-surface-muted-fg bg-surface-muted';
 
   return (
     <button
@@ -67,17 +67,17 @@ const StatusCard: React.FC<StatusCardProps> = ({
         relative flex flex-col items-start p-4 rounded-lg border transition-all duration-200
         ${isActive
           ? 'border-violet-400 bg-violet-50 shadow-md ring-2 ring-violet-200'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+          : 'border-surface-border bg-surface-card hover:border-surface-border hover:shadow-sm'
         }
         w-full text-left group
       `}
     >
       <div className="flex items-center justify-between w-full mb-2">
         <span className={`text-sm font-medium ${textColor}`}>{label}</span>
-        <ArrowRightIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ArrowRightIcon className="w-4 h-4 text-surface-muted-fg opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
       <div className="flex items-center justify-between w-full">
-        <span className="text-2xl font-bold text-gray-900">{count}</span>
+        <span className="text-2xl font-bold text-surface-foreground">{count}</span>
         <div className={`p-2 rounded-lg ${color}`}>
           {icon}
         </div>
@@ -105,9 +105,9 @@ const PipelineStatusCards: React.FC<PipelineStatusCardsProps> = ({
       key: 'contacts',
       label: 'Contacts',
       count: counts.contacts,
-      icon: <UsersIcon className="w-5 h-5 text-gray-600" />,
-      color: 'bg-gray-100',
-      textColor: 'text-gray-700',
+      icon: <UsersIcon className="w-5 h-5 text-surface-muted-fg" />,
+      color: 'bg-surface-accent',
+      textColor: 'text-surface-foreground',
       trend: trends.enquiries,
     },
     {
@@ -123,9 +123,9 @@ const PipelineStatusCards: React.FC<PipelineStatusCardsProps> = ({
       key: 'applied',
       label: 'Applied',
       count: counts.applied,
-      icon: <DocumentTextIcon className="w-5 h-5 text-blue-600" />,
-      color: 'bg-blue-50',
-      textColor: 'text-blue-700',
+      icon: <DocumentTextIcon className="w-5 h-5 text-primary-600" />,
+      color: 'bg-primary-50',
+      textColor: 'text-primary-700',
       trend: trends.applications,
     },
     {

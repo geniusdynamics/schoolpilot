@@ -14,20 +14,18 @@ describe('OfflineQueue - Property-Based Tests', () => {
 
   describe('Singleton Pattern', () => {
     it('should return the same instance on repeated calls', async () => {
-      fc.assert(
-        fc.property(fc.integer(), async () => {
-          const instance1 = await OfflineQueue.getInstance();
-          const instance2 = await OfflineQueue.getInstance();
-          expect(instance1).toBe(instance2);
-          return true;
-        }),
-      );
+      // Deterministic (not property-based): identity is binary — fc adds no value
+      // here, and its async runner interacts badly with the singleton's
+      // before-each reset.
+      const instance1 = await OfflineQueue.getInstance({ persistQueue: false });
+      const instance2 = await OfflineQueue.getInstance({ persistQueue: false });
+      expect(instance1).toBe(instance2);
     });
 
     it('should reset instance properly', async () => {
-      const instance1 = await OfflineQueue.getInstance();
+      const instance1 = await OfflineQueue.getInstance({ persistQueue: false });
       OfflineQueue.resetInstance();
-      const instance2 = await OfflineQueue.getInstance();
+      const instance2 = await OfflineQueue.getInstance({ persistQueue: false });
       expect(instance1).not.toBe(instance2);
     });
   });
@@ -161,8 +159,8 @@ describe('NetworkMonitor - Property-Based Tests', () => {
   });
 
   describe('Singleton Pattern', () => {
-    it('should return the same instance on repeated calls', () => {
-      fc.assert(
+    it('should return the same instance on repeated calls', async () => {
+      await fc.assert(
         fc.property(fc.integer(), () => {
           const instance1 = NetworkMonitor.getInstance();
           const instance2 = NetworkMonitor.getInstance();
@@ -189,8 +187,8 @@ describe('NetworkMonitor - Property-Based Tests', () => {
   });
 
   describe('Network Status', () => {
-    it('should always return valid status', () => {
-      fc.assert(
+    it('should always return valid status', async () => {
+      await fc.assert(
         fc.property(fc.integer(), () => {
           const monitor = NetworkMonitor.getInstance();
           const status = monitor.getStatus();
@@ -217,8 +215,8 @@ describe('NetworkMonitor - Property-Based Tests', () => {
       expect(monitor.isOnline()).toBe(!monitor.isOffline());
     });
 
-    it('should handle checkStatus without throwing', () => {
-      fc.assert(
+    it('should handle checkStatus without throwing', async () => {
+      await fc.assert(
         fc.property(fc.integer(), () => {
           const monitor = NetworkMonitor.getInstance();
           expect(() => monitor.checkStatus()).not.toThrow();

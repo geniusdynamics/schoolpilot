@@ -120,7 +120,7 @@ async function migrateAndVerifySQLiteData() {
             const batchSize = 100;
             for (let i = 0; i < mockDataArray.length; i += batchSize) {
               const batch = mockDataArray.slice(i, i + batchSize);
-              const insertResults = await collection.insertMany(batch);
+
               console.log(`  Inserted batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(mockDataArray.length/batchSize)} for ${collectionName}`);
             }
           } else if (mockDataArray && !Array.isArray(mockDataArray) && mockDataArray !== null) {

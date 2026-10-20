@@ -1,6 +1,10 @@
+// ABOUTME: Staff list page — searchable grid plus add/edit/delete dialog for staff members.
+// ABOUTME: All staff CRUD goes through useAdministration(); the form captures identity and employment fields.
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Staff, Department, Designation } from '@/types';
+import { useTranslation } from 'react-i18next';
+
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
@@ -8,52 +12,58 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon, EyeIcon } from '@/components/ui/icons';
-// import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
-import { useAppData } from '@/hooks/useAppData'; // Import useAppData
+import { useAdministration } from '../hooks/useAdministration';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
 
-interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at'> { 
-  department_id?: number; 
-  designation_id?: number;
-  hod_of_department_id?: number; 
-}
+import EntityForm from '@/components/ui/forms/EntityForm';
+import type { Staff } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
+/** Identity and employment fields captured on the staff form (SO-31). */
+const STAFF_PROFILE_FIELDS = ['email', 'gender', 'national_id', 'employer_number', 'employment_type'] as const;
 
-const StaffListPage: React.FC = () => {
+type StaffWithProfile = Staff & Partial<Record<(typeof STAFF_PROFILE_FIELDS)[number], string | null>>;
+
+const optionalString = (value: unknown): string | undefined =>
+  value != null && value !== '' ? String(value) : undefined;
+
+export const StaffListContent: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    staff, loading, addStaffMember, updateStaffMember, deleteStaffMember: mockDeleteStaff,
-    departments, 
+  const { t } = useTranslation('administration');
+  const {
+    staff: rawStaff, loading, addStaff, updateStaff, deleteStaff,
+    departments,
     designations
-   } = useAppData(); 
+  } = useAdministration();
+  const staff = (rawStaff || []) as StaffWithProfile[];
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | ''>('');
-
-  const initialStaffFormData: StaffFormData = { staff_no: '', first_name: '', last_name: '', is_active: true };
-  const [formData, setFormData] = useState<StaffFormData>(initialStaffFormData);
+  const [initialValues, setInitialValues] = useState<Record<string, any>>({ staff_no: '', first_name: '', last_name: '', is_active: true });
 
   const openModal = (staffMember?: Staff) => {
     setEditingStaff(staffMember || null);
     if (staffMember) {
-      setFormData({
-        ...staffMember,
+      setInitialValues({
+        staff_no: staffMember.staff_no,
+        first_name: staffMember.first_name,
+        last_name: staffMember.last_name,
+        phone: staffMember.phone,
+        ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, (staffMember as StaffWithProfile)[field] ?? ''])),
         department_id: staffMember.department_id,
         designation_id: staffMember.designation_id,
         hod_of_department_id: staffMember.hod_of_department_id,
+        is_active: staffMember.is_active ?? true,
       });
     } else {
-      const existingStaffNos = staff.map(s => parseInt(s.staff_no.replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
+      const existingStaffNos = staff
+        .map(s => parseInt(String(s.staff_no ?? '').replace(/\D/g, ''), 10))
+        .filter(n => !isNaN(n));
       const nextStaffNoSuffix = existingStaffNos.length > 0 ? Math.max(...existingStaffNos) + 1 : 1;
       const nextStaffNo = `EMP${String(nextStaffNoSuffix).padStart(3, '0')}`;
-      setFormData({...initialStaffFormData, staff_no: nextStaffNo});
+      setInitialValues({ staff_no: nextStaffNo, first_name: '', last_name: '', phone: '', is_active: true });
     }
     setIsModalOpen(true);
   };
@@ -61,46 +71,12 @@ const StaffListPage: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingStaff(null);
-    setFormData(initialStaffFormData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let val: string | number | boolean | undefined = value;
-
-    if (type === 'checkbox' && 'checked' in e.target) {
-        val = (e.target as HTMLInputElement).checked;
-    } else if (name === 'designation_id' || name === 'department_id' || name === 'hod_of_department_id') {
-        val = value ? parseInt(value, 10) : undefined;
-        if (Number.isNaN(val as number)) val = undefined;
-    }
-    setFormData(prev => ({ ...prev, [name]: val }));
-  };
-  
-
-  const handleSubmit = async () => {
-    const payload: Omit<Staff, 'id'|'created_at'|'updated_at'|'department_name'|'designation_title'|'hod_of_department_name'|'user_username'|'email'|'display_name'|'user_id'|'deleted_at'> = {
-      staff_no: formData.staff_no || '',
-      first_name: formData.first_name || '',
-      last_name: formData.last_name || '',
-      is_active: formData.is_active || false,
-      phone: formData.phone,
-      department_id: formData.department_id,
-      designation_id: formData.designation_id,
-      hod_of_department_id: formData.hod_of_department_id,
-    };
-
-    if (editingStaff) {
-      await updateStaffMember({ ...editingStaff, ...payload } );
-    } else {
-      await addStaffMember(payload);
-    }
-    closeModal();
-  };
-
+  const confirm = useConfirm();
   const handleDelete = async (staffId: string) => {
-    if (window.confirm('Are you sure you want to delete this staff member?')) {
-      await mockDeleteStaff(staffId);
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this staff member?' }))) {
+      await deleteStaff(staffId);
     }
   };
 
@@ -108,92 +84,103 @@ const StaffListPage: React.FC = () => {
     navigate(`/administration/staff/${staffId}`);
   };
 
+  const departmentName = (id: unknown) => departments.find(d => String(d.id) === String(id))?.name;
+  const designationTitle = (id: unknown) => designations.find(d => String(d.id) === String(id))?.title;
+
   const filteredStaff = useMemo(() => {
     return staff
+      .filter(s => !s.deleted_at)
+      .map(s => ({
+        ...s,
+        // Resolve labels from the live lookups; fall back to the stored denormalised copies
+        department_name: departmentName(s.department_id) ?? s.department_name,
+        designation_title: designationTitle(s.designation_id) ?? s.designation_title,
+        hod_of_department_name: departmentName(s.hod_of_department_id) ?? s.hod_of_department_name,
+        // Materialize the computed 'name' the grid column references so
+        // DataGrid sorting/filtering operate on a real field
+        name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ') || s.staff_no || '—',
+      }))
       .filter(s =>
-        `${s.first_name} ${s.last_name} ${s.staff_no} ${s.email || ''} ${s.department_name || ''} ${s.designation_title || ''}`
+        [s.first_name, s.last_name, s.staff_no, s.email, s.department_name, s.designation_title, s.display_name]
+          .filter(Boolean)
+          .join(' ')
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       )
       .filter(s =>
         statusFilter ? (statusFilter === 'active' ? s.is_active : !s.is_active) : true
       );
-  }, [staff, searchTerm, statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lookup helpers derive from departments/designations
+  }, [staff, departments, designations, searchTerm, statusFilter]);
 
-  const columns: DataGridColumn<Staff>[] = [
-    { 
+  const columns: DataGridColumn<(typeof filteredStaff)[number]>[] = [
+    {
       key: 'staff_no',
-      header: 'Staff No', 
+      header: 'Staff No',
       sortable: true,
       filterable: true,
-      width: 120,
-      render: (value, item) => item.staff_no
+            render: (_value, item) => item.staff_no || '—'
     },
-    { 
+    {
       key: 'name',
-      header: 'Name', 
+      header: 'Name',
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value, item) => `${item.first_name} ${item.last_name}`
+            render: (_value, item) => item.name || '—'
     },
-    { 
+    {
       key: 'department_name',
-      header: 'Department', 
+      header: 'Department',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.department_name
+            render: (_value, item) => item.department_name || '—'
     },
-    { 
+    {
       key: 'designation_title',
-      header: 'Designation', 
+      header: 'Designation',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.designation_title
+            render: (_value, item) => item.designation_title || '—'
     },
-    { 
+    {
       key: 'hod_of_department_name',
-      header: 'HOD Of', 
+      header: 'HOD Of',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.hod_of_department_name
+            render: (_value, item) => item.hod_of_department_name || '—'
     },
-    { 
+    {
       key: 'phone',
-      header: 'Phone', 
+      header: 'Phone',
       sortable: true,
       filterable: true,
-      width: 120,
-      render: (value, item) => item.phone
+            render: (_value, item) => item.phone || '—'
     },
-    { 
+    {
       key: 'email',
-      header: 'Email', 
+      header: 'Email',
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value, item) => item.email
+            render: (_value, item) => (
+        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || '—'}</span>
+      )
     },
     { 
       key: 'is_active',
       header: 'Status', 
       sortable: true,
       filterable: true,
-      width: 100,
-      render: (value, item) => item.is_active ? 'Active' : 'Inactive'
+            render: (_value, item) => item.is_active ? 'Active' : 'Inactive'
     },
     {
       key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
-      width: 200,
+      
       sticky: 'right',
-      render: (value, item) => (
-        <div className="space-x-2">
+      render: (_value, item) => (
+        <div className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => handleView(item.id)} leftIcon={<EyeIcon className="w-4 h-4" />}>View</Button>
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -202,16 +189,16 @@ const StaffListPage: React.FC = () => {
     },
   ];
   
-  const pageIsLoading = loading.staff || loading.all;
+  const pageIsLoading = loading === true;
 
   return (
     <div className="space-y-6">
-      <Card title="Staff Management" actions={
+      <Card title="Staff Management" bodyClassName="p-0" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Staff
         </Button>
       }>
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 sm:p-6 pb-0 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             type="text"
             placeholder="Search staff..."
@@ -233,61 +220,119 @@ const StaffListPage: React.FC = () => {
         {pageIsLoading && !isModalOpen ? (
           <div className="flex justify-center items-center py-10"> <Spinner /> <span className="ml-2">Loading staff...</span> </div>
         ) : (
-          <DataGrid 
-            columns={columns} 
-            data={filteredStaff} 
-            loading={loading.staff && isModalOpen}
-            sortable
-            filterable
-            emptyState={
-              <div className="text-center py-12">
-                <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No staff members found</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by adding your first staff member.</p>
-              </div>
-            }
-          />
+          <div className="border-t border-surface-border">
+            <DataGrid 
+              columns={columns} 
+              data={filteredStaff} 
+              loading={pageIsLoading && !isModalOpen}
+              sortable
+              filterable
+              emptyState={{
+                icon: <UserGroupIcon className="h-12 w-12 text-surface-muted-fg" />,
+                title: 'No staff members found',
+                description: 'Get started by adding your first staff member.',
+              }}
+            />
+          </div>
         )}
       </Card>
 
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'} size="xl"
-        footer={
-          <>
-            <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button type="button" onClick={handleSubmit} disabled={loading.staff}>
-              {loading.staff ? <Spinner size="sm"/> : (editingStaff ? 'Save Changes' : 'Add Staff Member')}
-            </Button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input name="staff_no" label="Staff No." value={formData.staff_no || ''} onChange={handleInputChange} required />
-          <Input name="first_name" label="First Name" value={formData.first_name || ''} onChange={handleInputChange} required />
-          <Input name="last_name" label="Last Name" value={formData.last_name || ''} onChange={handleInputChange} required />
-          <Input name="phone" label="Phone" value={formData.phone || ''} onChange={handleInputChange} />
-          
-          <Select name="department_id" label="Department" value={formData.department_id || ''} onChange={handleInputChange}>
-            <option value="">Select Department</option>
-            {departments.map(dep => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
-          </Select>
-
-          <Select name="designation_id" label="Designation" value={formData.designation_id || ''} onChange={handleInputChange}>
-            <option value="">Select Designation</option>
-            {designations.map(des => <option key={des.id} value={des.id}>{des.title}</option>)}
-          </Select>
-          <Select name="hod_of_department_id" label="Head of Department (If applicable)" value={formData.hod_of_department_id || ''} onChange={handleInputChange}>
-            <option value="">None</option>
-            {departments.filter(d => d.is_academic).map(dep => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
-          </Select>
-          <div className="flex items-center mt-2 md:col-span-3">
-             <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
-                checked={formData.is_active || false} onChange={handleInputChange} />
-             <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Is Active Staff Member</label>
-          </div>
-        </div>
-      </DialogForm>
+      <EntityForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
+        initialData={initialValues}
+        fields={[
+          { name: 'staff_no', label: 'Staff No.', required: true },
+          { name: 'first_name', label: 'First Name', required: true },
+          { name: 'last_name', label: 'Last Name', required: true },
+          { name: 'phone', label: 'Phone' },
+          { name: 'email', label: t('staff.form.email', 'Email'), type: 'email' },
+          {
+            name: 'gender',
+            label: t('staff.form.gender', 'Gender'),
+            type: 'select',
+            placeholder: t('staff.form.genderPlaceholder', 'Select gender'),
+            options: [
+              { value: 'female', label: t('staff.form.genderFemale', 'Female') },
+              { value: 'male', label: t('staff.form.genderMale', 'Male') },
+              { value: 'other', label: t('staff.form.genderOther', 'Other') },
+            ],
+          },
+          { name: 'national_id', label: t('staff.form.nationalId', 'National ID / Passport No.') },
+          {
+            name: 'employer_number',
+            label: t('staff.form.employerNumber', 'Employer No. (e.g. TSC number)'),
+          },
+          {
+            name: 'employment_type',
+            label: t('staff.form.employmentType', 'Employment Type'),
+            type: 'select',
+            placeholder: t('staff.form.employmentTypePlaceholder', 'Select employment type'),
+            options: [
+              { value: 'permanent', label: t('staff.form.employmentPermanent', 'Permanent') },
+              { value: 'contract', label: t('staff.form.employmentContract', 'Contract') },
+              { value: 'part_time', label: t('staff.form.employmentPartTime', 'Part-time') },
+              { value: 'board', label: t('staff.form.employmentBoard', 'Board of Management') },
+              { value: 'intern', label: t('staff.form.employmentIntern', 'Intern / Attachment') },
+            ],
+          },
+          {
+            name: 'department_id',
+            label: 'Department',
+            type: 'select',
+            placeholder: 'Select Department',
+            options: departments.map(dep => ({ value: dep.id, label: dep.name })),
+          },
+          {
+            name: 'designation_id',
+            label: 'Designation',
+            type: 'select',
+            placeholder: 'Select Designation',
+            options: designations.map(des => ({ value: des.id, label: des.title })),
+          },
+          {
+            name: 'hod_of_department_id',
+            label: 'Head of Department (If applicable)',
+            type: 'select',
+            placeholder: 'None',
+            options: departments.filter(d => d.is_academic).map(dep => ({ value: dep.id, label: dep.name })),
+          },
+          { name: 'is_active', label: 'Is Active Staff Member', type: 'checkbox' },
+        ]}
+        submitLabel={editingStaff ? 'Save Changes' : 'Add Staff Member'}
+        cancelLabel="Cancel"
+        onSubmit={async (values) => {
+          const payload = {
+            staff_no: String(values.staff_no ?? ''),
+            first_name: String(values.first_name ?? ''),
+            last_name: String(values.last_name ?? ''),
+            is_active: Boolean(values.is_active),
+            phone: values.phone ? String(values.phone) : undefined,
+            ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, optionalString(values[field])])),
+            department_id: optionalString(values.department_id),
+            designation_id: optionalString(values.designation_id),
+            hod_of_department_id: optionalString(values.hod_of_department_id),
+            // Keep the stored denormalised labels in step with the chosen ids
+            department_name: departmentName(values.department_id),
+            designation_title: designationTitle(values.designation_id),
+            hod_of_department_name: departmentName(values.hod_of_department_id),
+          };
+          if (editingStaff) {
+            await updateStaff(String(editingStaff.id), payload);
+          } else {
+            await addStaff(payload);
+          }
+        }}
+      />
     </div>
   );
 };
+
+const StaffListPage: React.FC = () => (
+  <div className="space-y-6">
+    <StaffListContent />
+  </div>
+);
 
 export default StaffListPage;

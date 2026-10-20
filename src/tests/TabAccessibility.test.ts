@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TabAccessibilityManager, defaultTabAccessibilityConfig, TabAccessibilityState, TabAccessibilityCallbacks } from '../services/ui/TabAccessibilityManager';
 
 // Mock DOM elements for testing
+
 const createMockTabElement = (attributes: Record<string, any> = {}) => {
   const element = document.createElement('button');
   Object.entries(attributes).forEach(([key, value]) => {
@@ -254,7 +255,7 @@ describe('TabAccessibilityManager', () => {
       const classes = accessibilityManager.getTabButtonClasses(mockState);
       
       expect(classes).toContain('focus:ring-2');
-      expect(classes).toContain('focus:ring-blue-500');
+      expect(classes).toContain('focus:ring-primary-500');
       expect(classes).toContain('focus:ring-offset-2');
     });
 
@@ -263,9 +264,9 @@ describe('TabAccessibilityManager', () => {
       const inactiveState = { ...mockState, isActive: false };
       const inactiveClasses = accessibilityManager.getTabButtonClasses(inactiveState);
 
-      expect(activeClasses).toContain('bg-white');
-      expect(activeClasses).toContain('border-blue-500');
-      expect(inactiveClasses).toContain('text-gray-600');
+      expect(activeClasses).toContain('bg-surface-card');
+      expect(activeClasses).toContain('border-primary-500');
+      expect(inactiveClasses).toContain('text-surface-muted-fg');
     });
   });
 

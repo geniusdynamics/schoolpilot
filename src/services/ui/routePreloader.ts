@@ -1,8 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Route preloading service for commonly accessed pages
 // ABOUTME: Implements intelligent preloading strategies to improve navigation performance
 
 import { pageComponentResolver } from './pageComponentResolver';
-import { pageHealthMonitor } from '../performance/pageHealthMonitor';
 
 interface PreloadStrategy {
   name: string;
@@ -184,12 +185,12 @@ class RoutePreloader {
         this.updateMetrics(true, loadTime);
         this.preloadedRoutes.add(nav.path);
         
-        console.log(`✅ [RoutePreloader] Successfully preloaded: ${nav.path} (${loadTime}ms)`);
+        logger.info(`✅ [RoutePreloader] Successfully preloaded: ${nav.path} (${loadTime}ms)`);
       } catch (error) {
         const loadTime = Date.now() - startTime;
         this.updateMetrics(false, loadTime);
         
-        console.warn(`❌ [RoutePreloader] Failed to preload: ${nav.path}`, error);
+        logger.warn(`❌ [RoutePreloader] Failed to preload: ${nav.path}`, error);
       }
     });
 
@@ -274,7 +275,7 @@ class RoutePreloader {
   clearPreloadCache() {
     this.preloadedRoutes.clear();
     pageComponentResolver.clearCache();
-    console.log('🧹 [RoutePreloader] Preload cache cleared');
+    logger.info('🧹 [RoutePreloader] Preload cache cleared');
   }
 
   getPreloadMetrics(): PreloadMetrics & { 
@@ -309,7 +310,7 @@ class RoutePreloader {
       this.strategies = this.strategies.filter(s => s.name !== 'time-based');
     }
 
-    console.log('⚙️ [RoutePreloader] Configuration updated:', config);
+    logger.info('⚙️ [RoutePreloader] Configuration updated:', config);
   }
 
   // Integration with navigation system

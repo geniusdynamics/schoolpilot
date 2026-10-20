@@ -1,5 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Fine, Loan, FineStatus } from '@/types';
+// ABOUTME: Library Fines page - lists library fines and lets staff add manual fines or update their status.
+// ABOUTME: Reads fines and loans from the database through the library module hook.
+
+import React, { useState } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -11,22 +14,23 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, SparklesIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+import { useLibraryData } from '../data/useLibraryData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { FineStatus } from '@/core/types';
+import type { Fine } from '@/core/types';
 
 type FineFormData = Omit<Partial<Fine>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_due_date' | 'status'> & {
     status: FineStatus; // Ensure status is required for the form
 };
 
-const FinesPage: React.FC = () => {
+export const FinesPageContent: React.FC = () => {
   const { 
     fines, 
     loans,
     loading, 
     addFine, 
-    updateFineStatus // Assuming this specific function exists or using generic update
-  } = useAppData(); // Updated
+    updateFineStatus
+  } = useLibraryData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFine, setEditingFine] = useState<Fine | null>(null);
@@ -83,14 +87,13 @@ const FinesPage: React.FC = () => {
     };
 
     if (editingFine) {
-      // Use a specific updateFineStatus or generic update from useMockData
-      await updateFineStatus({ ...editingFine, ...payload }); // Assuming updateFineStatus takes full Fine object
+      // Only the status is editable on an existing fine.
+      await updateFineStatus(editingFine.id, payload.status);
     } else {
       await addFine(payload);
     }
     closeModal();
   };
-
 
   const columns: DataGridColumn<Fine>[] = [
     {
@@ -119,7 +122,7 @@ const FinesPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 140,
-      render: (value, item) => `${item.amount.toFixed(2)}`
+      render: (value) => Number(value ?? 0).toFixed(2)
     },
     {
       key: 'reason',
@@ -137,8 +140,8 @@ const FinesPage: React.FC = () => {
         <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
           item.status === FineStatus.PAID ? 'bg-green-100 text-green-800' :
           item.status === FineStatus.PENDING ? 'bg-yellow-100 text-yellow-800' :
-          item.status === FineStatus.BILLED ? 'bg-blue-100 text-blue-800' :
-          item.status === FineStatus.WAIVED ? 'bg-gray-100 text-gray-700' :
+          item.status === FineStatus.BILLED ? 'bg-primary-100 text-primary-800' :
+          item.status === FineStatus.WAIVED ? 'bg-surface-accent text-surface-foreground' :
           'bg-red-100 text-red-800' // For other potential statuses or error
         }`}>
           {item.status}
@@ -162,7 +165,7 @@ const FinesPage: React.FC = () => {
     }
   ];
 
-  if ((loading.fines || loading.loans) && !isModalOpen) {
+  if ((loading?.fines || loading?.loans) && !isModalOpen) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" /> <span className="ml-2">Loading Fines...</span>
@@ -177,7 +180,7 @@ const FinesPage: React.FC = () => {
           Add Manual Fine
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           View and manage library fines. Fines for overdue books are often generated automatically upon return.
         </p>
         <DataGrid
@@ -188,8 +191,8 @@ const FinesPage: React.FC = () => {
           filterable={true}
           emptyState={
             <div className="text-center py-8">
-              <SparklesIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No fines found</p>
+              <SparklesIcon className="w-12 h-12 text-surface-muted-fg mx-auto mb-4" />
+              <p className="text-surface-muted-fg">No fines found</p>
             </div>
           }
         />
@@ -242,13 +245,18 @@ const FinesPage: React.FC = () => {
         </FormSection>
         <FormActions>
           <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading.fines}>
-            {loading.fines ? <Spinner size="sm"/> : (editingFine ? 'Save Changes' : 'Add Fine')}
+          <Button onClick={handleSubmit} loading={loading.fines}>
+            {editingFine ? 'Save Changes' : 'Add Fine'}
           </Button>
         </FormActions>
       </DialogForm>
     </div>
   );
 };
+const FinesPage: React.FC = () => (
+  <div className="space-y-6">
+    <FinesPageContent />
+  </div>
+);
 
 export default FinesPage;

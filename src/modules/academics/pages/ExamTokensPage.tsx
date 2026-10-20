@@ -3,21 +3,35 @@ import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { KeyIcon, CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon, PlusIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { initialMockExamTokens } from '../data/mockData';
-import type { ExamToken } from '../data/types';
 
+import Spinner from '@/components/ui/Spinner';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import type { ExamToken } from '../data/types';
+import { logger } from '@/utils/logging';
+import { KeyIcon, PlusIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
+
+import { formatDate } from '@/utils/format';
 type ExamTokenFormData = Omit<Partial<ExamToken>, 'id' | 'generated_at' | 'used_at'>;
 
-const ExamTokensPage: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, teachers, subjects, classes, loading } = useAppData();
+export const ExamTokensPageContent: React.FC = () => {
+  const { examSessions, teacherSubjectAssignments, subjects, classes, loading } = useAppData();
+
+  const teachers = useMemo(() => {
+    const map = new Map<string, { id: string; first_name: string; last_name: string }>();
+    teacherSubjectAssignments.forEach(a => {
+      if (a.teacher_id && !map.has(a.teacher_id)) {
+        const parts = (a.teacher_name || '').split(' ');
+        map.set(a.teacher_id, { id: a.teacher_id, first_name: parts[0] || (a.teacher_name || ''), last_name: parts.slice(1).join(' ') });
+      }
+    });
+    return Array.from(map.values());
+  }, [teacherSubjectAssignments]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingToken, setEditingToken] = useState<ExamToken | null>(null);
@@ -34,15 +48,16 @@ const ExamTokensPage: React.FC = () => {
   };
   const [formData, setFormData] = useState<ExamTokenFormData>(initialFormData);
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockExamTokens: ExamToken[] = useMemo(() => {
-    let filtered = initialMockExamTokens;
+  const tokensCollection = useDatabaseCollection<ExamToken>('exam_tokens');
+
+  const examTokens: ExamToken[] = useMemo(() => {
+    let filtered = tokensCollection.data;
 
     if (searchTerm) {
       filtered = filtered.filter(token => 
-        token.token_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        token.teacher_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        token.subject_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (token.token_code?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (token.teacher_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (token.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -51,7 +66,7 @@ const ExamTokensPage: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, statusFilter]);
+  }, [tokensCollection.data, searchTerm, statusFilter]);
 
   const openModal = (token?: ExamToken) => {
     setEditingToken(token || null);
@@ -77,22 +92,66 @@ const ExamTokensPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.exam_session_id || !formData.teacher_id) {
-      alert('Exam session and teacher are required.');
+      toast.showWarning('Exam session and teacher are required.');
       return;
     }
-    // In production, this would call generateExamToken or updateExamToken
-    console.log('Saving exam token:', formData);
+
+    const session = examSessions?.find(s => String(s.id) === String(formData.exam_session_id));
+    const subject = subjects?.find(s => String(s.id) === String(formData.subject_id));
+    const cls = classes?.find(c => String(c.id) === String(formData.class_id));
+    const teacher = teachers.find(t => t.id === formData.teacher_id);
+    const teacherName = teacher ? `${teacher.first_name} ${teacher.last_name}`.trim() : '';
+
+    try {
+      if (editingToken) {
+        await tokensCollection.update(editingToken.id, {
+          exam_session_id: formData.exam_session_id,
+          exam_session_name: session?.name ?? editingToken.exam_session_name,
+          teacher_id: formData.teacher_id,
+          teacher_name: teacherName || editingToken.teacher_name,
+          subject_id: formData.subject_id,
+          subject_name: subject?.name ?? editingToken.subject_name,
+          class_id: formData.class_id,
+          class_name: cls?.name ?? editingToken.class_name,
+          expires_at: formData.expires_at || editingToken.expires_at,
+          status: formData.status
+        });
+        toast.showSuccess('Exam token updated.');
+      } else {
+        await tokensCollection.insert({
+          token_code: `TKN-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
+          exam_session_id: formData.exam_session_id,
+          exam_session_name: session?.name ?? '',
+          teacher_id: formData.teacher_id,
+          teacher_name: teacherName,
+          subject_id: formData.subject_id ?? '',
+          subject_name: subject?.name ?? '',
+          class_id: formData.class_id ?? '',
+          class_name: cls?.name ?? '',
+          generated_at: new Date().toISOString(),
+          expires_at: formData.expires_at || new Date(Date.now() + 7 * 86400000).toISOString(),
+          status: formData.status ?? 'Active',
+          used_at: null
+        });
+        toast.showSuccess('Exam token generated.');
+      }
+      logger.info('Saved exam token:', formData);
+    } catch (err) {
+      logger.error('Failed to save exam token:', err);
+      toast.showError('Failed to save exam token.');
+    }
     closeModal();
   };
 
   const getStatusBadge = (status: string) => {
     const styles = {
       'Active': 'bg-green-100 text-green-800',
-      'Used': 'bg-blue-100 text-blue-800',
+      'Used': 'bg-primary-100 text-primary-800',
       'Expired': 'bg-red-100 text-red-800',
-      'Revoked': 'bg-gray-100 text-gray-800'
+      'Revoked': 'bg-surface-accent text-surface-foreground'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
@@ -136,13 +195,13 @@ const ExamTokensPage: React.FC = () => {
       key: 'generated_at',
       header: 'Generated',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'expires_at',
       header: 'Expires',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'status',
@@ -155,7 +214,7 @@ const ExamTokensPage: React.FC = () => {
 
   const statusOptions = ['Active', 'Used', 'Expired', 'Revoked'];
 
-  if (loading && mockExamTokens.length === 0) {
+  if ((loading?.all || tokensCollection.loading) && examTokens.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -173,7 +232,7 @@ const ExamTokensPage: React.FC = () => {
             <span>Exam Tokens</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             <PlusIcon className="w-4 h-4 mr-2" />
             Generate Token
@@ -196,35 +255,33 @@ const ExamTokensPage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
+            <Select
               value={statusFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">All Statuses</option>
               {statusOptions.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Token, teacher, subject..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockExamTokens}
+          data={examTokens}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
 
@@ -236,59 +293,59 @@ const ExamTokensPage: React.FC = () => {
       >
         <FormSection>
           <FormField label="Exam Session" required>
-            <select
+            <Select
               name="exam_session_id"
               value={formData.exam_session_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select exam session</option>
               {examSessions?.map(session => (
                 <option key={session.id} value={session.id}>{session.name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Teacher" required>
-            <select
+            <Select
               name="teacher_id"
               value={formData.teacher_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select teacher</option>
               {teachers?.map(teacher => (
                 <option key={teacher.id} value={teacher.id}>{teacher.first_name} {teacher.last_name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Subject">
-            <select
+            <Select
               name="subject_id"
               value={formData.subject_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select subject</option>
               {subjects?.map(subject => (
                 <option key={subject.id} value={subject.id}>{subject.name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Class">
-            <select
+            <Select
               name="class_id"
               value={formData.class_id}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               <option value="">Select class</option>
               {classes?.map(cls => (
                 <option key={cls.id} value={cls.id}>{cls.name}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
 
           <FormField label="Expires At">
@@ -297,32 +354,37 @@ const ExamTokensPage: React.FC = () => {
               name="expires_at"
               value={formData.expires_at}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </FormField>
 
           <FormField label="Status">
-            <select
+            <Select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full"
             >
               {statusOptions.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
-            </select>
+            </Select>
           </FormField>
         </FormSection>
 
-        <FormActions
-          onCancel={closeModal}
-          onSubmit={handleSubmit}
-          submitLabel={editingToken ? 'Update' : 'Generate'}
-        />
+        <FormActions>
+          <Button variant="ghost" onClick={closeModal}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit}>{editingToken ? 'Update' : 'Generate'}</Button>
+        </FormActions>
       </DialogForm>
     </div>
   );
 };
+
+const ExamTokensPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamTokensPageContent />
+  </div>
+);
 
 export default ExamTokensPage;

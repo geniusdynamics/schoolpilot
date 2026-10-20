@@ -91,7 +91,7 @@ export const SchoolBlogFeed: React.FC<SchoolBlogFeedProps> = ({
             </p>
             
             {/* Title */}
-            <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+            <h4 className="text-sm font-medium text-surface-foreground group-hover:text-primary-600 transition-colors">
               {post.excerpt}
             </h4>
           </div>
@@ -99,7 +99,7 @@ export const SchoolBlogFeed: React.FC<SchoolBlogFeedProps> = ({
       </div>
 
       {posts.length === 0 && (
-        <div className="text-center py-6 text-gray-500">
+        <div className="text-center py-6 text-surface-muted-fg">
           <NewspaperIcon className="w-10 h-10 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">{t('portal.blog.noNews')}</p>
         </div>
@@ -118,7 +118,7 @@ export const SchoolBlogFeed: React.FC<SchoolBlogFeedProps> = ({
           {t('portal.blog.newer')}
         </Button>
 
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-surface-muted-fg">
           {t('portal.blog.pageOf', { current: page, total: totalPages })}
         </span>
 

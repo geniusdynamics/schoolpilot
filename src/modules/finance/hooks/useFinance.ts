@@ -1,31 +1,47 @@
 // ABOUTME: Main hook for Finance module pages
-// ABOUTME: Combines data from useFinanceData and useAdministrationData
+// ABOUTME: Combines Finance data with the shared 'customers' collection from the core data layer
 // ABOUTME: This is the ONLY hook Finance pages should use
 
 import { useCallback } from 'react';
 import { useFinanceData } from '../data/useFinanceData';
-import { useAdministrationData } from '@/modules/administration/data/useAdministrationData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 
 export const useFinance = () => {
   // Get data and CRUD from Finance module
   const finance = useFinanceData();
 
-  // Get customers from Administration module
-  const adminData = useAdministrationData();
+  // Customers are a shared record type read directly from the core data layer
+  // (the framework's shared 'customers' collection), so Finance stays decoupled from
+  // any sibling module. Mirrors how other modules access shared collections.
+  const customersCollection = useDatabaseCollection<any>('customers');
+
+  const addCustomer = useCallback(async (data: any) => {
+    return customersCollection.insert(data);
+  }, [customersCollection]);
+
+  const updateCustomer = useCallback(async (id: string, data: any) => {
+    return customersCollection.update(id, data);
+  }, [customersCollection]);
+
+  const deleteCustomer = useCallback(async (id: string) => {
+    return customersCollection.remove(id);
+  }, [customersCollection]);
 
   // ── Bulk Operations ────────────────────────────────────────────────────────────
-  const bulkAddBanks = useCallback(async (items: Parameters<typeof finance.addBank>[]) => {
-    return Promise.all(items.map(item => finance.addBank(item)));
-  }, [finance.addBank]);
+  const { addBank, deleteBank, updateFinancialYear } = finance;
+
+  const bulkAddBanks = useCallback(async (items: Parameters<typeof addBank>[]) => {
+    return Promise.all(items.map(item => addBank(item)));
+  }, [addBank]);
 
   const bulkDeleteBanks = useCallback(async (ids: string[]) => {
-    return Promise.all(ids.map(id => finance.deleteBank(id)));
-  }, [finance.deleteBank]);
+    return Promise.all(ids.map(id => deleteBank(id)));
+  }, [deleteBank]);
 
   // ── Close Financial Year ───────────────────────────────────────────────────────
   const closeFinancialYear = useCallback(async (id: string) => {
-    return finance.updateFinancialYear(id, { status: 'Closed', closed_at: new Date().toISOString() });
-  }, [finance.updateFinancialYear]);
+    return updateFinancialYear(id, { status: 'Closed', closed_at: new Date().toISOString() });
+  }, [updateFinancialYear]);
 
   // ── Validation Functions ──────────────────────────────────────────────────────
   const validateBank = useCallback((bank: { name?: string; account_number?: string; bank_code?: string }) => {
@@ -53,6 +69,10 @@ export const useFinance = () => {
   }, []);
 
   return {
+    // Every provider record and mutator (create(data) / update(id, patch) / delete(id)),
+    // including fee template items, term invoicing and learner financial profiles
+    ...finance,
+
     // Data from Finance module
     chartOfAccounts: finance.chartOfAccounts,
     banks: finance.banks,
@@ -75,8 +95,8 @@ export const useFinance = () => {
     generalLedgerEntries: finance.generalLedgerEntries,
     financialYears: finance.financialYears,
 
-    // Data from Administration module (customers)
-    customers: adminData.customers,
+    // Data from the shared 'customers' collection (core data layer)
+    customers: customersCollection.data,
 
     // Loading state (database collections load synchronously)
     loading: false,
@@ -103,10 +123,10 @@ export const useFinance = () => {
     updateFeeTemplate: finance.updateFeeTemplate,
     deleteFeeTemplate: finance.deleteFeeTemplate,
 
-    // Customer CRUD (from Administration module)
-    addCustomer: adminData.addCustomer,
-    updateCustomer: adminData.updateCustomer,
-    deleteCustomer: adminData.deleteCustomer,
+    // Customer CRUD (shared 'customers' collection via core data layer)
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
 
     // Financial Year CRUD
     addFinancialYear: finance.addFinancialYear,

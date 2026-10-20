@@ -83,7 +83,7 @@ export const useLibrarySettingsData = () => {
     }
     const lowerCaseQuery = query.toLowerCase();
     return data.filter(setting =>
-      setting.name.toLowerCase().includes(lowerCaseQuery) ||
+      (setting.name?.toLowerCase() ?? '').includes(lowerCaseQuery) ||
       setting.description?.toLowerCase().includes(lowerCaseQuery) ||
       setting.user_types.some(type => type.toLowerCase().includes(lowerCaseQuery)) ||
       setting.book_categories.some(category => category.toLowerCase().includes(lowerCaseQuery))

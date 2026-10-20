@@ -1,17 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { ClockIcon, UserIcon, CheckCircleIcon, XCircleIcon, PlayIcon, StopIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { initialMockSessionAttendance } from '../data/mockData';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { SessionAttendance, DynamicAttendanceStatus } from '../data/types';
+import { logger } from '@/utils/logging';
 
-const DynamicAttendancePage: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { students, classes, loading } = useAppData();
+export const DynamicAttendanceContent: React.FC = () => {
+  const sessionAttendanceCollection = useDatabaseCollection<SessionAttendance>('session_attendance');
 
   const [selectedSession, setSelectedSession] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -19,9 +17,9 @@ const DynamicAttendancePage: React.FC = () => {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
 
-  // Use centralized mock data (in production, this would come from useAppData)
-  const mockAttendance: SessionAttendance[] = useMemo(() => {
-    let filtered = initialMockSessionAttendance;
+  // Live session attendance records from the database
+  const attendanceRecords: SessionAttendance[] = useMemo(() => {
+    let filtered = sessionAttendanceCollection.data;
 
     if (selectedSession) {
       filtered = filtered.filter(r => r.session_id === selectedSession);
@@ -32,38 +30,45 @@ const DynamicAttendancePage: React.FC = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(r => 
-        r.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.admission_no.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(r =>
+        (r.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (r.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
     return filtered;
-  }, [selectedSession, selectedClass, searchTerm]);
+  }, [sessionAttendanceCollection.data, selectedSession, selectedClass, searchTerm]);
 
   const handleStartSession = () => {
     setIsSessionActive(true);
     setSessionStartTime(new Date().toISOString());
-    console.log('Starting session...');
+    logger.info('Starting session...');
   };
 
   const handleStopSession = () => {
     setIsSessionActive(false);
     setSessionStartTime(null);
-    console.log('Stopping session...');
+    logger.info('Stopping session...');
   };
 
+  const currentTime = () => new Date().toTimeString().slice(0, 5);
+
   const handleCheckIn = (record: SessionAttendance) => {
-    console.log('Check in student:', record.student_id);
-    // In production, this would record the check-in time
+    logger.info('Check in student:', record.student_id);
+    void sessionAttendanceCollection.update(record.id, {
+      check_in_time: currentTime(),
+      status: 'Present'
+    }).catch((err: unknown) => logger.error('Failed to check in student:', err));
   };
 
   const handleCheckOut = (record: SessionAttendance) => {
-    console.log('Check out student:', record.student_id);
-    // In production, this would record the check-out time
+    logger.info('Check out student:', record.student_id);
+    void sessionAttendanceCollection.update(record.id, {
+      check_out_time: currentTime()
+    }).catch((err: unknown) => logger.error('Failed to check out student:', err));
   };
 
-  const getStatusBadge = (status: AttendanceStatus) => {
+  const getStatusBadge = (status: DynamicAttendanceStatus) => {
     const styles = {
       'Present': 'bg-green-100 text-green-800',
       'Absent': 'bg-red-100 text-red-800',
@@ -141,25 +146,25 @@ const DynamicAttendancePage: React.FC = () => {
   ];
 
   const uniqueSessions = useMemo(() => {
-    const sessionIds = [...new Set(mockAttendance.map(r => r.session_id))];
-    return sessionIds.map(id => mockAttendance.find(r => r.session_id === id)?.session_name || id);
-  }, [mockAttendance]);
+    const sessionIds = [...new Set(attendanceRecords.map(r => r.session_id))];
+    return sessionIds.map(id => attendanceRecords.find(r => r.session_id === id)?.session_name || id);
+  }, [attendanceRecords]);
 
   const uniqueClasses = useMemo(() => {
-    const classIds = [...new Set(mockAttendance.map(r => r.class_id))];
-    return classIds.map(id => mockAttendance.find(r => r.class_id === id)?.class_name || id);
-  }, [mockAttendance]);
+    const classIds = [...new Set(attendanceRecords.map(r => r.class_id))];
+    return classIds.map(id => attendanceRecords.find(r => r.class_id === id)?.class_name || id);
+  }, [attendanceRecords]);
 
   const totals = useMemo(() => {
     return {
-      total: mockAttendance.length,
-      present: mockAttendance.filter(r => r.status === 'Present').length,
-      absent: mockAttendance.filter(r => r.status === 'Absent').length,
-      late: mockAttendance.filter(r => r.status === 'Late').length
+      total: attendanceRecords.length,
+      present: attendanceRecords.filter(r => r.status === 'Present').length,
+      absent: attendanceRecords.filter(r => r.status === 'Absent').length,
+      late: attendanceRecords.filter(r => r.status === 'Late').length
     };
-  }, [mockAttendance]);
+  }, [attendanceRecords]);
 
-  if (loading && mockAttendance.length === 0) {
+  if (sessionAttendanceCollection.loading && attendanceRecords.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -213,17 +218,17 @@ const DynamicAttendancePage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <UserIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Students</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Present</span>
             </div>
@@ -231,8 +236,8 @@ const DynamicAttendancePage: React.FC = () => {
               {totals.present}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <XCircleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Absent</span>
             </div>
@@ -240,8 +245,8 @@ const DynamicAttendancePage: React.FC = () => {
               {totals.absent}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ClockIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Late</span>
             </div>
@@ -254,11 +259,11 @@ const DynamicAttendancePage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Session</label>
             <select
               value={selectedSession}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedSession(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Sessions</option>
               {uniqueSessions.map(session => (
@@ -267,11 +272,11 @@ const DynamicAttendancePage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
             <select
               value={selectedClass}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Classes</option>
               {uniqueClasses.map(cls => (
@@ -280,24 +285,30 @@ const DynamicAttendancePage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Student, admission..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
 
         <DataGrid
-          data={mockAttendance}
+          data={attendanceRecords}
           columns={columns}
         />
       </Card>
     </div>
   );
 };
+
+const DynamicAttendancePage: React.FC = () => (
+  <div className="space-y-6">
+    <DynamicAttendanceContent />
+  </div>
+);
 
 export default DynamicAttendancePage;

@@ -1,8 +1,8 @@
 // Test file for database architecture with all 88 collections
 // RXDB removed - Phase 4: Now testing SQLite/PouchDB implementations
 
-import { getDatabaseManager, getDatabaseIntegrationHelper } from './ProviderSelector';
 import { getDatabaseProviderFactory } from './DatabaseProviderFactory';
+import { getDatabaseIntegrationHelper } from './ProviderSelector';
 // Using provider-agnostic collections (moved from rxdbService.ts)
 import { collectionsDefinition } from './collections';
 

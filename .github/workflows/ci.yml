@@ -1,0 +1,235 @@
+# ABOUTME: Pull-request CI for consolidation/main: install, PRD task gate vs the PR base, unit tests, build.
+# ABOUTME: The gate table (.prd-gate/report.md) and the unit-test summary are written to the job summary.
+name: CI
+
+on:
+  pull_request:
+    branches: [consolidation, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: '1'
+
+jobs:
+  actionlint:
+    name: Workflow lint (actionlint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:1.7.7
+        with:
+          args: -color
+
+  gate:
+    name: Gate, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout (full history for the gate diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan (tracked files)
+        run: node scripts/prd/secret-scan.mjs
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: PRD task gate (vs PR base)
+        id: gate
+        env:
+          BASE_REF: ${{ github.base_ref || 'consolidation' }}
+        run: |
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" HEAD)
+          echo "Gate base: origin/$BASE_REF @ $BASE"
+          node scripts/prd/gate.mjs task --base "$BASE"
+
+      - name: Gate table to job summary
+        if: always()
+        run: |
+          {
+            echo "## PRD task gate"
+            echo
+            if [ -f .prd-gate/report.md ]; then
+              cat .prd-gate/report.md
+            else
+              echo "Gate did not produce .prd-gate/report.md (step outcome: ${{ steps.gate.outcome }})."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Unit tests (no failures beyond the baseline's knownFailingFiles)
+        if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
+        run: |
+          mkdir -p .prd-gate
+          pnpm -s vitest run --reporter=json --outputFile=.prd-gate/vitest.json || true
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const baseline = JSON.parse(fs.readFileSync('scripts/prd/gate-baseline.json', 'utf8'));
+          const known = new Set(baseline.tests.knownFailingFiles || []);
+          if (!fs.existsSync('.prd-gate/vitest.json')) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Unit tests\n\nvitest produced no JSON report.\n');
+            process.exit(1);
+          }
+          const json = JSON.parse(fs.readFileSync('.prd-gate/vitest.json', 'utf8'));
+          const failed = (json.testResults || []).filter((f) => f.status === 'failed').map((f) => path.relative(process.cwd(), f.name));
+          const unexpected = failed.filter((f) => !known.has(f));
+          const lines = [
+            '## Unit tests',
+            '',
+            `${json.numTotalTests} tests, ${json.numFailedTests} failed; failed files ${failed.length} (known: ${known.size}).`,
+            ...(unexpected.length ? ['', '**New failing files:**', ...unexpected.map((f) => `- \`${f}\``)] : []),
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          console.log(lines.join('\n'));
+          process.exit(unexpected.length ? 1 : 0);
+          EOF
+
+      - name: Production build
+        if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
+        run: pnpm -s build
+
+  e2e:
+    name: GP-1-lite golden path (persistent SQLite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Integrity check (fresh school and demo seed)
+        run: pnpm integrity:check
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run GP-1-lite on a real SQLite-WASM database
+        run: pnpm exec playwright test tests/e2e/gp1-lite.spec.ts
+
+      - name: Upload Playwright traces and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gp1-lite-playwright
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  harness:
+    name: Repository integration harness (SQLite, optional Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Harness self-test (SQLite) and the storage-mock guard
+        run: >-
+          pnpm -s vitest run
+          src/data/__tests__/harness/harness.test.ts
+          src/data/__tests__/harness/guard.test.ts
+
+      # The Postgres path is optional: it needs a container, and a pull request must not
+      # turn red because the container could not be started. A self-test that ran and
+      # failed is a different thing: that is a red build. The step reports which of the
+      # two happened in the job summary.
+      - name: Harness self-test (Postgres, non-blocking when it cannot run)
+        env:
+          DATABASE_URL: postgres://schoolpilot:schoolpilot@localhost:5432/schoolpilot_test
+        run: |
+          if ! docker info >/dev/null 2>&1; then
+            echo "::notice::Docker is unavailable on this runner: the Postgres harness self-test is skipped."
+            echo "Skipped: Docker is unavailable on this runner, so the Postgres harness self-test did not run." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if ! docker run -d --name schoolpilot-harness-postgres \
+            -e POSTGRES_USER=schoolpilot \
+            -e POSTGRES_PASSWORD=schoolpilot \
+            -e POSTGRES_DB=schoolpilot_test \
+            -p 5432:5432 \
+            postgres:16-alpine \
+            -c fsync=off -c synchronous_commit=off -c full_page_writes=off; then
+            echo "::warning::The Postgres container could not be started: the Postgres harness self-test is skipped."
+            echo "Skipped: the Postgres container could not be started, so the Postgres harness self-test did not run." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          ready=0
+          attempt=0
+          while [ "$attempt" -lt 60 ]; do
+            attempt=$((attempt + 1))
+            if docker exec schoolpilot-harness-postgres pg_isready -U schoolpilot -d schoolpilot_test >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "::warning::The Postgres container did not become ready: the Postgres harness self-test is skipped."
+            echo "Skipped: the Postgres container did not become ready, so the Postgres harness self-test did not run." >> "$GITHUB_STEP_SUMMARY"
+            docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
+            exit 0
+          fi
+
+          if pnpm -s vitest run src/data/__tests__/harness/postgres.test.ts; then
+            echo "The Postgres harness self-test passed." >> "$GITHUB_STEP_SUMMARY"
+            docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
+            exit 0
+          fi
+
+          echo "::error::The Postgres harness self-test ran and failed. The Postgres path is optional, but a self-test that ran is a real result."
+          echo "Failed: the Postgres harness self-test ran and failed." >> "$GITHUB_STEP_SUMMARY"
+          docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
+          exit 1

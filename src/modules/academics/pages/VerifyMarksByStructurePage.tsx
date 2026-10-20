@@ -2,30 +2,31 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import { CheckCircleIcon, XCircleIcon, DocumentTextIcon, CalendarIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { initialMockStructureValidationItems } from '../data/mockData';
-import type { StructureValidationItem } from '../data/types';
 
-const VerifyMarksByStructurePage: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, subjects, classes, loading } = useAppData();
+import Spinner from '@/components/ui/Spinner';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import type { StructureValidationItem } from '../data/types';
+import { CheckCircleIcon, DocumentTextIcon, ExclamationTriangleIcon, XCircleIcon } from '@/components/ui/icons';
+
+export const VerifyMarksByStructurePageContent: React.FC = () => {
+
+  const { loading } = useAppData();
+
+  const validationCollection = useDatabaseCollection<StructureValidationItem>('structure_validation_records');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
 
-  // Use centralized mock data (in production, this would come from useAppData)
+  // Live collection data from structure_validation_records
   const mockValidationItems: StructureValidationItem[] = useMemo(() => {
-    let filtered = initialMockStructureValidationItems;
+    let filtered = validationCollection.data;
 
     if (searchTerm) {
       filtered = filtered.filter(item => 
-        item.subject_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.structure_component.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.class_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.structure_component?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
@@ -38,7 +39,7 @@ const VerifyMarksByStructurePage: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, selectedSession, statusFilter]);
+  }, [validationCollection.data, searchTerm, selectedSession, statusFilter]);
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -131,7 +132,7 @@ const VerifyMarksByStructurePage: React.FC = () => {
     return sessions.map(id => mockValidationItems.find(r => r.exam_session_id === id)?.exam_session_name || id);
   }, [mockValidationItems]);
 
-  if (loading && mockValidationItems.length === 0) {
+  if ((loading?.all || validationCollection.loading) && mockValidationItems.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -165,17 +166,17 @@ const VerifyMarksByStructurePage: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <DocumentTextIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Total Components</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mt-2">
+            <p className="text-2xl font-bold text-surface-foreground mt-2">
               {totals.total}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Valid</span>
             </div>
@@ -183,8 +184,8 @@ const VerifyMarksByStructurePage: React.FC = () => {
               {totals.valid}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <XCircleIcon className="w-5 h-5 text-red-600" />
               <span className="text-sm font-medium">Invalid</span>
             </div>
@@ -192,8 +193,8 @@ const VerifyMarksByStructurePage: React.FC = () => {
               {totals.invalid}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+            <div className="flex items-center gap-2 text-surface-muted-fg">
               <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600" />
               <span className="text-sm font-medium">Warnings</span>
             </div>
@@ -206,11 +207,11 @@ const VerifyMarksByStructurePage: React.FC = () => {
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Exam Session</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Exam Session</label>
             <select
               value={selectedSession}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedSession(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Sessions</option>
               {uniqueSessions.map(session => (
@@ -219,11 +220,11 @@ const VerifyMarksByStructurePage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
             <select
               value={statusFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             >
               <option value="">All Statuses</option>
               {statusOptions.map(s => (
@@ -232,13 +233,13 @@ const VerifyMarksByStructurePage: React.FC = () => {
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
             <input
               type="text"
               placeholder="Subject, class, component..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-surface-border rounded-md px-3 py-2"
             />
           </div>
         </div>
@@ -246,12 +247,16 @@ const VerifyMarksByStructurePage: React.FC = () => {
         <DataGrid
           data={mockValidationItems}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
     </div>
   );
 };
+
+const VerifyMarksByStructurePage: React.FC = () => (
+  <div className="space-y-6">
+    <VerifyMarksByStructurePageContent />
+  </div>
+);
 
 export default VerifyMarksByStructurePage;

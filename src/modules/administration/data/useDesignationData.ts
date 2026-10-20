@@ -1,63 +1,60 @@
-// ABOUTME: Self-contained hook for designation data management
-// ABOUTME: Provides CRUD operations for designation without depending on AppDataContext
+// ABOUTME: Database-backed designations (collection 'designations'): create(data), update(id, patch), remove(id).
+// ABOUTME: Writes announce 'appDataChanged' so pickers fed by the app-wide snapshot (e.g. staff forms) refresh.
 
-import { useState, useEffect } from 'react';
-import { initialMockDesignations } from './mockData';
+import { useCallback } from 'react';
 import { Designation } from '@/core/types';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+export const DESIGNATIONS_COLLECTION = 'designations';
+
+/** A stored designation; ids are strings at runtime. */
+export type DesignationRecord = Omit<Designation, 'id'> & { id: string };
+
+/** Editable fields of a designation. */
+export interface DesignationInput {
+  title: string;
+}
+
+const notifyAppDataChanged = () => {
+  window.dispatchEvent(new CustomEvent('appDataChanged', { detail: { collection: DESIGNATIONS_COLLECTION } }));
+};
 
 export const useDesignationData = () => {
-  const [data, setData] = useState<Designation[]>(initialMockDesignations || []);
-  const [loading, setLoading] = useState({ designations: false });
+  const collection = useDatabaseCollection<DesignationRecord>(DESIGNATIONS_COLLECTION);
+  const { insert, update, remove } = collection;
 
-  const addDesignation = async (newItem: Omit<Designation, 'id' | 'created_at' | 'updated_at'>) => {
-    setLoading(prev => ({ ...prev, designations: true }));
-    try {
-      const newDataItem: Designation = {
-        ...newItem,
-        id: Date.now(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setData((prev: Designation[]) => [...prev, newDataItem]);
-      return newDataItem;
-    } finally {
-      setLoading(prev => ({ ...prev, designations: false }));
-    }
-  };
+  const addDesignation = useCallback(async (input: DesignationInput) => {
+    const now = new Date().toISOString();
+    const created = await insert({ ...input, created_at: now, updated_at: now });
+    notifyAppDataChanged();
+    return created;
+  }, [insert]);
 
-  const updateDesignation = async (updatedItem: Designation) => {
-    setLoading(prev => ({ ...prev, designations: true }));
-    try {
-      setData((prev: Designation[]) => prev.map((item: Designation) => 
-        item.id === updatedItem.id 
-          ? { ...updatedItem, updated_at: new Date().toISOString() }
-          : item
-      ));
-    } finally {
-      setLoading(prev => ({ ...prev, designations: false }));
-    }
-  };
+  const updateDesignation = useCallback(async (id: string, patch: Partial<DesignationInput>) => {
+    const updated = await update(id, { ...patch, updated_at: new Date().toISOString() });
+    notifyAppDataChanged();
+    return updated;
+  }, [update]);
 
-  const deleteDesignation = async (id: number) => {
-    setLoading(prev => ({ ...prev, designations: true }));
-    try {
-      setData((prev: Designation[]) => prev.filter((item: Designation) => item.id !== id));
-    } finally {
-      setLoading(prev => ({ ...prev, designations: false }));
-    }
-  };
+  const deleteDesignation = useCallback(async (id: string) => {
+    const removed = await remove(id);
+    notifyAppDataChanged();
+    return removed;
+  }, [remove]);
 
   return {
-    designations: data,
-    loading,
+    designations: collection.data,
+    loading: { designations: collection.loading },
+    error: collection.error,
+    refresh: collection.refresh,
     addDesignation,
     updateDesignation,
     deleteDesignation,
-    // Legacy compatibility
-    data,
+    // Generic verbs with the same (data) / (id, patch) / (id) signatures
+    data: collection.data,
     create: addDesignation,
     update: updateDesignation,
-    remove: deleteDesignation
+    remove: deleteDesignation,
   };
 };
 

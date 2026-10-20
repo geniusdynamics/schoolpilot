@@ -2,10 +2,11 @@
 // ABOUTME: Tests boundary conditions, error handling, and unusual data scenarios
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
+import { screen } from '@testing-library/react';
 
 interface TestItem {
   id: string | number;
@@ -322,7 +323,7 @@ describe('DataGrid Edge Cases', () => {
     });
 
     it('handles keyboard navigation with disabled elements', async () => {
-      const user = userEvent.setup();
+
       
       const columnsWithDisabled: DataGridColumn<TestItem>[] = [
         { key: 'id', header: 'ID', sortable: false },

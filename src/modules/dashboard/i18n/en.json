@@ -127,5 +127,15 @@
   "activeFeeStructures": "Active Fee Structures",
   "analyzedExams": "Analyzed Exams",
   "studentGenderDistribution": "Student Gender Distribution",
-  "feeCollectionOverview": "Fee Collection Overview (Mock Data)"
+  "feeCollectionOverview": "Fee Collection Overview (Mock Data)",
+  "classPerformance": "Class Performance Summaries",
+  "noExamResults": "No exam results recorded yet.",
+  "examResultsCount": "{{count}} results",
+  "meanMarks": "Mean Marks",
+  "noApplications": "No applications received yet.",
+  "studentsByClass": "Students by Class",
+  "noClassAssignments": "No students assigned to classes yet.",
+  "count": "Count",
+  "noDisciplinaryCases": "No disciplinary cases recorded.",
+  "routesInUse": "Routes in Use"
 }

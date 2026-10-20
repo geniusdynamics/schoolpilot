@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Module Metadata Loader
  * 
@@ -44,7 +46,7 @@ class ModuleMetadataLoader {
    * Internal method to load all metadata
    */
   private async doLoadAllMetadata(): Promise<void> {
-    console.log('[ModuleMetadataLoader] Discovering modules...');
+    logger.info('[ModuleMetadataLoader] Discovering modules...');
 
     try {
       // Dynamic import all module.json files
@@ -59,7 +61,7 @@ class ModuleMetadataLoader {
           // Extract module ID from path: ../modules/{id}/module.json
           const moduleId = path.match(/modules\/([^/]+)/)?.[1];
           if (!moduleId) {
-            console.warn(`[ModuleMetadataLoader] Could not extract module ID from path: ${path}`);
+            logger.warn(`[ModuleMetadataLoader] Could not extract module ID from path: ${path}`);
             continue;
           }
 
@@ -69,7 +71,7 @@ class ModuleMetadataLoader {
           // Validate metadata
           const validation = this.validateMetadata(metadata, moduleId);
           if (!validation.valid) {
-            console.error(`[ModuleMetadataLoader] Invalid metadata for ${moduleId}:`, validation.errors);
+            logger.error(`[ModuleMetadataLoader] Invalid metadata for ${moduleId}:`, validation.errors);
             continue;
           }
 
@@ -85,18 +87,18 @@ class ModuleMetadataLoader {
             loadedAt: new Date(),
           });
 
-          console.log(`[ModuleMetadataLoader] Loaded metadata for ${moduleId}`);
+          logger.info(`[ModuleMetadataLoader] Loaded metadata for ${moduleId}`);
         } catch (error) {
-          console.error(`[ModuleMetadataLoader] Failed to load ${path}:`, error);
+          logger.error(`[ModuleMetadataLoader] Failed to load ${path}:`, error);
         }
       }
 
       // Validate dependencies after all modules loaded
       this.validateAllDependencies();
 
-      console.log(`[ModuleMetadataLoader] Loaded ${this.modules.size} modules`);
+      logger.info(`[ModuleMetadataLoader] Loaded ${this.modules.size} modules`);
     } catch (error) {
-      console.error('[ModuleMetadataLoader] Failed to load modules:', error);
+      logger.error('[ModuleMetadataLoader] Failed to load modules:', error);
       throw error;
     }
   }
@@ -148,7 +150,7 @@ class ModuleMetadataLoader {
     const visit = (id: string): void => {
       if (visited.has(id)) return;
       if (recursionStack.has(id)) {
-        console.warn(`[ModuleMetadataLoader] Circular dependency detected involving ${id}`);
+        logger.warn(`[ModuleMetadataLoader] Circular dependency detected involving ${id}`);
         return;
       }
 
@@ -185,7 +187,7 @@ class ModuleMetadataLoader {
     const visit = (id: string): void => {
       if (visited.has(id)) return;
       if (recursionStack.has(id)) {
-        console.warn(`[ModuleMetadataLoader] Circular dependency detected: ${id}`);
+        logger.warn(`[ModuleMetadataLoader] Circular dependency detected: ${id}`);
         return;
       }
 
@@ -290,7 +292,7 @@ class ModuleMetadataLoader {
     for (const [moduleId] of this.modules) {
       const result = this.validateDependencies(moduleId);
       if (!result.valid) {
-        console.warn(`[ModuleMetadataLoader] Dependency issues for ${moduleId}:`, {
+        logger.warn(`[ModuleMetadataLoader] Dependency issues for ${moduleId}:`, {
           missing: result.missing.map(d => d.moduleId),
           versionMismatches: result.versionMismatches.map(v => ({
             module: v.dependency.moduleId,

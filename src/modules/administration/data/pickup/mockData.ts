@@ -581,3 +581,11 @@ export const initialMockPickupLogs: PickupLog[] = [
     createdAt: '2026-04-01T14:50:00Z',
   },
 ];
+
+// -- Seedable exports ---------------------------------------------
+// Non-'initialMock*' aliases are picked up by seedProviderWithDemoData
+// (demoDataSeed.ts) and inserted into the real database collections.
+export const pickupCodes = initialMockPickupCodes;
+export const authorizedPersons = initialMockAuthorizedPersons;
+export const studentAuthorizations = initialMockStudentAuthorizations;
+export const pickupLogs = initialMockPickupLogs;

@@ -1,7 +1,6 @@
 // ABOUTME: Simple test to isolate React Testing Library DOM container issue
 // ABOUTME: Tests basic rendering functionality without complex components
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 

@@ -1,56 +1,78 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { StudentWallet, WalletTransaction, Student, WalletTransactionType, StudentStatus } from '@/types';
-import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast, Spinner } from '@/components/ui';
-import { PlusIcon, EyeIcon, CreditCardIcon } from '@/components/ui/icons';
+import React, { useState, useMemo } from 'react';
+
+import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast } from '@/components/ui';
+
 import { useAppData } from '@/hooks/useAppData';
-import { useTranslation } from 'react-i18next';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useNutrition } from '../hooks/useNutrition';
+import { StudentStatus, WalletTransactionType } from '@/core/types';
+import type { WalletTransaction } from '@/core/types';
+// The library module's StudentWallet type has no id, while the stored wallet rows
+// carry id, last_updated and student_name. Local view shape bridges the two until
+// the wallet types are unified. Ids are opaque strings (SO-22).
+interface WalletRow {
+  id: string;
+  student_id: string;
+  balance: number;
+  last_updated: string;
+  student_name?: string | null;
+  status?: string;
+}
+import { EyeIcon, PlusIcon } from '@/components/ui/icons';
+
+// Manual (admin) transaction kinds and how each one is stored.
+type ManualTransactionKind = 'deposit' | 'adjustment_debit' | 'adjustment_credit';
+const MANUAL_TRANSACTION_TYPES: Record<ManualTransactionKind, WalletTransactionType> = {
+    deposit: WalletTransactionType.CREDIT,
+    adjustment_debit: WalletTransactionType.DEBIT,
+    adjustment_credit: WalletTransactionType.ADJUSTMENT,
+};
 
 type WalletTransactionFormData = {
     student_id: string;
-    transaction_type: WalletTransactionType.DEPOSIT | WalletTransactionType.ADJUSTMENT_DEBIT | WalletTransactionType.ADJUSTMENT_CREDIT; // Admin transaction types
+    transaction_type: ManualTransactionKind;
     amount: number;
     description: string;
 };
 
-const StudentWalletPage: React.FC = () => {
-  const { 
-    studentWallets, 
-    students,
-    walletTransactions,
-    loading, 
-    addWalletTransaction 
-  } = useAppData();
+export const StudentWalletPageContent: React.FC = () => {
+  // Students are cross-domain read data; wallets and transactions come from the nutrition module.
+  const { students: appStudents } = useAppData();
+  const students = useMemo(() => appStudents || [], [appStudents]);
+  const { studentWallets, addWalletTransaction } = useNutrition();
+  const transactionsCollection = useDatabaseCollection<WalletTransaction>('wallet_transactions');
+  const walletTransactions = transactionsCollection.data;
+  const [posting, setPosting] = useState(false);
   
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   
-  const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<StudentWallet | null>(null);
+  const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<WalletRow | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [, setSelectedRows] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   const initialTxFormData: WalletTransactionFormData = { 
     student_id: '', 
-    transaction_type: WalletTransactionType.DEPOSIT, 
+    transaction_type: 'deposit', 
     amount: 0, 
     description: '' 
   };
   const [txFormData, setTxFormData] = useState<WalletTransactionFormData>(initialTxFormData);
 
   const filteredStudentWallets = useMemo(() => {
-    return (studentWallets || []).filter(sw => {
-        const student = (students || []).find(s => s.id === sw.student_id);
-        return student && `${student.first_name} ${student.last_name} ${student.admission_no}`.toLowerCase().includes(searchTerm.toLowerCase());
+    return ((studentWallets as unknown as WalletRow[]) || []).filter(sw => {
+        const student = (students || []).find(s => String(s.id) === String(sw.student_id));
+        return student && [student.first_name, student.last_name, student.admission_no].filter(Boolean).join(' ').toLowerCase().includes(searchTerm.toLowerCase());
     });
   }, [studentWallets, students, searchTerm]);
 
   const studentTransactionHistory = useMemo(() => {
     if (!selectedStudentForHistory) return [];
     return walletTransactions
-        .filter(tx => tx.student_id === selectedStudentForHistory.student_id)
+        .filter(tx => String(tx.student_id) === String(selectedStudentForHistory.student_id))
         .sort((a,b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
   }, [selectedStudentForHistory, walletTransactions]);
-
 
   const openTxModal = () => {
     setTxFormData(initialTxFormData);
@@ -58,7 +80,7 @@ const StudentWalletPage: React.FC = () => {
   };
   const closeTxModal = () => setIsTxModalOpen(false);
 
-  const openHistoryModal = (studentWallet: StudentWallet) => {
+  const openHistoryModal = (studentWallet: WalletRow) => {
     setSelectedStudentForHistory(studentWallet);
     setIsHistoryModalOpen(true);
   };
@@ -78,67 +100,76 @@ const StudentWalletPage: React.FC = () => {
       return;
     }
     
-    const validAdminTxTypes: WalletTransactionType[] = [WalletTransactionType.DEPOSIT, WalletTransactionType.ADJUSTMENT_DEBIT, WalletTransactionType.ADJUSTMENT_CREDIT];
-    if(!validAdminTxTypes.includes(txFormData.transaction_type as WalletTransactionType)){
+    if (!(txFormData.transaction_type in MANUAL_TRANSACTION_TYPES)) {
         setToast({ message: 'Invalid transaction type for manual entry.', type: 'error' });
         return;
     }
     
     let finalAmount = txFormData.amount;
-    if (txFormData.transaction_type === WalletTransactionType.ADJUSTMENT_DEBIT) {
+    if (txFormData.transaction_type === 'adjustment_debit') {
         finalAmount = -Math.abs(txFormData.amount); 
     } else { // DEPOSIT or ADJUSTMENT_CREDIT
         finalAmount = Math.abs(txFormData.amount); 
     }
 
-
-    const payload: Omit<WalletTransaction, 'id' | 'transaction_date' | 'running_balance' | 'student_name' | 'reference_id' | 'reference_type'> = {
-      student_id: txFormData.student_id!,
-      transaction_type: txFormData.transaction_type,
+    // The signed amount drives the balance; pass the running balance so the hook does not
+    // have to infer the direction from the stored transaction type.
+    const currentWallet = ((studentWallets as unknown as WalletRow[]) || []).find(sw => String(sw.student_id) === txFormData.student_id);
+    const student = students.find(s => String(s.id) === txFormData.student_id);
+    const payload = {
+      student_id: txFormData.student_id,
+      transaction_type: MANUAL_TRANSACTION_TYPES[txFormData.transaction_type],
       amount: finalAmount,
-      description: txFormData.description!,
+      description: txFormData.description,
+      transaction_date: new Date().toISOString(),
+      running_balance: (currentWallet?.balance || 0) + finalAmount,
+      student_name: student ? [student.first_name, student.last_name].filter(Boolean).join(' ') : undefined,
     };
 
+    setPosting(true);
     try {
       await addWalletTransaction(payload);
+      await transactionsCollection.refresh();
       setToast({ message: 'Transaction posted successfully!', type: 'success' });
       closeTxModal();
-    } catch (error) {
+    } catch {
       setToast({ message: 'Failed to post transaction. Please try again.', type: 'error' });
+    } finally {
+      setPosting(false);
     }
   };
 
   const walletColumns = [
-    { 
-      key: 'student_name', 
-      header: 'Student Name', 
-      sortable: true,
-      searchable: true
+    {
+      key: 'student_name',
+      header: 'Student Name',
+      sortable: true
     },
-    { 
-      key: 'admission_no', 
-      header: 'Admission No.', 
-      render: (item: StudentWallet) => students.find(s => s.id === item.student_id)?.admission_no || 'N/A',
-      sortable: true,
-      searchable: true
+    {
+      key: 'admission_no',
+      header: 'Admission No.',
+      render: (_v: any, item: WalletRow) => students.find(s => String(s.id) === String(item.student_id))?.admission_no || 'N/A',
+      sortable: true
     },
-    { 
-      key: 'balance', 
-      header: 'Wallet Balance (KES)', 
-      render: (item: StudentWallet) => item.balance.toFixed(2),
+    {
+      key: 'balance',
+      header: 'Wallet Balance (KES)',
+      render: (_v: any, item: WalletRow) => item.balance.toFixed(2),
       sortable: true,
       align: 'right' as const
     },
-    { 
-      key: 'last_updated', 
-      header: 'Last Updated', 
-      render: (item: StudentWallet) => new Date(item.last_updated).toLocaleString(),
+    {
+      key: 'last_updated',
+      header: 'Last Updated',
+      render: (_v: any, item: WalletRow) => new Date(item.last_updated).toLocaleString(),
       sortable: true
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (item: StudentWallet) => (
+      sortable: false,
+      filterable: false,
+      render: (_v: any, item: WalletRow) => (
         <Button size="sm" variant="ghost" onClick={() => openHistoryModal(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>
           View History
         </Button>
@@ -148,44 +179,35 @@ const StudentWalletPage: React.FC = () => {
   ];
 
   const historyColumns = [
-    { 
-      key: 'transaction_date', 
-      header: 'Date', 
-      render: (item: WalletTransaction) => new Date(item.transaction_date).toLocaleString(),
+    {
+      key: 'transaction_date',
+      header: 'Date',
+      render: (_v: any, item: WalletTransaction) => new Date(item.transaction_date).toLocaleString(),
       sortable: true
     },
-    { 
-      key: 'transaction_type', 
-      header: 'Type', 
+    {
+      key: 'transaction_type',
+      header: 'Type',
       sortable: true
     },
-    { 
-      key: 'amount', 
-      header: 'Amount (KES)', 
-      render: (item: WalletTransaction) => item.amount.toFixed(2),
+    {
+      key: 'amount',
+      header: 'Amount (KES)',
+      render: (_v: any, item: WalletTransaction) => item.amount.toFixed(2),
       sortable: true,
       align: 'right' as const
     },
-    { 
-      key: 'description', 
-      header: 'Description',
-      searchable: true
+    {
+      key: 'description',
+      header: 'Description'
     },
     { 
       key: 'running_balance', 
       header: 'Running Balance (KES)', 
-      render: (item: WalletTransaction) => item.running_balance.toFixed(2),
+      render: (_v: any, item: WalletTransaction) => item.running_balance.toFixed(2),
       align: 'right' as const
     },
   ];
-
-  if ((loading.studentWallets || loading.students || loading.walletTransactions) && !isTxModalOpen && !isHistoryModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Student Wallets...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -205,14 +227,11 @@ const StudentWalletPage: React.FC = () => {
         <DataGrid 
           columns={walletColumns} 
           data={filteredStudentWallets} 
-          loading={loading.studentWallets && !isTxModalOpen}
+          keyField="student_id"
           selectable
-          selectedRows={selectedRows}
-          onSelectionChange={setSelectedRows}
-          searchable
+          onSelectionChange={(rows) => setSelectedRows(rows.map(r => String(r.id)))}
           sortable
-          pagination
-          pageSize={10}
+          pagination={{ pageSize: 10 }}
         />
       </Card>
 
@@ -221,8 +240,8 @@ const StudentWalletPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeTxModal}>Cancel</Button>
-            <Button onClick={handleTxSubmit} disabled={loading.walletTransactions}>
-              {loading.walletTransactions ? <Spinner size="sm"/> : 'Post Transaction'}
+            <Button onClick={handleTxSubmit} loading={posting}>
+              {'Post Transaction'}
             </Button>
           </>
         }
@@ -232,9 +251,9 @@ const StudentWalletPage: React.FC = () => {
             {students.filter(s => s.status === StudentStatus.ACTIVE).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.admission_no})</option>)}
         </Select>
         <Select name="transaction_type" label="Transaction Type" value={txFormData.transaction_type} onChange={handleTxFormInputChange} required>
-            <option value={WalletTransactionType.DEPOSIT}>Deposit (Credit Wallet)</option>
-            <option value={WalletTransactionType.ADJUSTMENT_DEBIT}>Adjustment (Debit Wallet)</option>
-            <option value={WalletTransactionType.ADJUSTMENT_CREDIT}>Adjustment (Credit Wallet)</option>
+            <option value="deposit">Deposit (Credit Wallet)</option>
+            <option value="adjustment_debit">Adjustment (Debit Wallet)</option>
+            <option value="adjustment_credit">Adjustment (Credit Wallet)</option>
         </Select>
         <Input name="amount" label="Amount (KES)" type="number" step="0.01" min="0.01" value={txFormData.amount || ''} onChange={handleTxFormInputChange} required />
         <Textarea name="description" label="Description / Reason" value={txFormData.description} onChange={handleTxFormInputChange} rows={3} required />
@@ -256,12 +275,10 @@ const StudentWalletPage: React.FC = () => {
                 <DataGrid 
                     columns={historyColumns} 
                     data={studentTransactionHistory} 
-                    loading={loading.walletTransactions}
-                    searchable
+                    loading={transactionsCollection.loading}
                     sortable
-                    pagination
-                    pageSize={5}
-                    emptyStateMessage="No transactions found for this student."
+                    pagination={{ pageSize: 5 }}
+                    emptyState="No transactions found for this student."
                 />
             </div>
         )}
@@ -277,5 +294,10 @@ const StudentWalletPage: React.FC = () => {
     </div>
   );
 };
+const StudentWalletPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentWalletPageContent />
+  </div>
+);
 
 export default StudentWalletPage;

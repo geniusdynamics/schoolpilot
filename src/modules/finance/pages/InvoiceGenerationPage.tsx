@@ -1,41 +1,33 @@
-// ABOUTME: Invoice Generation Page - UI for bulk invoice generation
-// ABOUTME: Uses useInvoiceGeneration hook to create invoices for students
+// ABOUTME: Invoice Generation Page - bills every applicable fee template of a period to active learners.
+// ABOUTME: Uses the term billing service via useTermBilling: preview (dry run) first, then generate; re-runs add only what is missing.
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { DocumentPlusIcon, ArrowPathIcon, CheckCircleIcon, ExclamationCircleIcon, UserGroupIcon } from '@/components/ui/icons';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
-import { useInvoiceGeneration } from '../hooks/useFinanceServices';
+import { useTermBilling } from '../hooks/useFinanceServices';
 import { useAppData } from '@/hooks/useAppData';
-import type { InvoiceGenerationResult, ActiveStudentRecord } from '../services/InvoiceGenerationService';
+import type { GenerateTermInvoicesResult } from '@/domain/finance/billingService';
+import { ArrowPathIcon, CheckCircleIcon, DocumentAddIcon, ExclamationCircleIcon, UserGroupIcon } from '@/components/ui/icons';
 
 // Currency formatter for KES
 const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(value);
+  new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(value);
 
-interface PreviewStudent extends ActiveStudentRecord {
-  totalAmount: number;
-  hasExistingInvoice: boolean;
-}
-
-const InvoiceGenerationPage: React.FC = () => {
+export const InvoiceGenerationPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
-  const { generateTermlyInvoices, isGenerating, error: serviceError } = useInvoiceGeneration();
-  const { schoolPeriods, feeTemplates, feeTemplateItems, loading: appLoading } = useAppData();
+  const { generateTermInvoices, isRunning, error: serviceError } = useTermBilling();
+  const { schoolPeriods, feeTemplates, classes, loading: appLoading } = useAppData();
 
   // Form state
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>('');
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [selectedLevelId, setSelectedLevelId] = useState<string>('');
 
   // Results state
-  const [result, setResult] = useState<InvoiceGenerationResult | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [result, setResult] = useState<GenerateTermInvoicesResult | null>(null);
 
   // Get active school period
   const activePeriod = useMemo(() => {
@@ -49,182 +41,104 @@ const InvoiceGenerationPage: React.FC = () => {
     }
   }, [activePeriod, selectedPeriodId]);
 
-  // Get templates for selected period
-  const availableTemplates = useMemo(() => {
-    if (!selectedPeriodId) return [];
-    return (feeTemplates || []).filter(
-      (t) => t.school_period_id === parseInt(selectedPeriodId, 10)
-    );
-  }, [feeTemplates, selectedPeriodId]);
-
-  // Get template items for selected template
-  const templateItems = useMemo(() => {
-    if (!selectedTemplateId) return [];
-    const templateId = parseInt(selectedTemplateId, 10);
-    return (feeTemplateItems || []).filter((item) => item.fee_template_id === templateId);
-  }, [feeTemplateItems, selectedTemplateId]);
-
-  // Calculate total amount for preview
-  const templateTotal = useMemo(() => {
-    return templateItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-  }, [templateItems]);
-
-  // Handle generation
-  const handleGenerate = useCallback(async () => {
-    if (!selectedPeriodId) {
-      setLocalError(t('invoiceGeneration.selectPeriod') || 'Please select a school period');
-      return;
-    }
-
-    setLocalError(null);
-    setResult(null);
-
-    const periodId = parseInt(selectedPeriodId, 10);
-    const generationResult = await generateTermlyInvoices(periodId);
-
-    if (generationResult) {
-      setResult(generationResult);
-    }
-  }, [selectedPeriodId, generateTermlyInvoices, t]);
-
-  // Reset form
-  const handleReset = useCallback(() => {
-    setResult(null);
-    setLocalError(null);
-  }, []);
-
-  // DataGrid columns for preview
-  const previewColumns: DataGridColumn<PreviewStudent>[] = useMemo(
-    () => [
-      {
-        key: 'first_name',
-        header: t('tableHeaders.firstName') || 'First Name',
-        width: 150,
-        sortable: true,
-      },
-      {
-        key: 'last_name',
-        header: t('tableHeaders.lastName') || 'Last Name',
-        width: 150,
-        sortable: true,
-      },
-      {
-        key: 'totalAmount',
-        header: t('tableHeaders.totalAmount') || 'Total Amount',
-        width: 130,
-        sortable: true,
-        render: (value) => (
-          <span className="font-mono text-blue-600">{formatCurrency(value as number)}</span>
-        ),
-      },
-      {
-        key: 'hasExistingInvoice',
-        header: t('tableHeaders.status') || 'Status',
-        width: 150,
-        render: (value) => (
-          <span className={`px-2 py-1 rounded-full text-xs ${
-            value ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-          }`}>
-            {value ? 'Existing Invoice' : 'New Invoice'}
-          </span>
-        ),
-      },
-    ],
-    [t]
+  // Templates billed for the selected period (ids compared as strings)
+  const periodTemplates = useMemo(
+    () => (feeTemplates || []).filter((template) => String(template.school_period_id) === selectedPeriodId),
+    [feeTemplates, selectedPeriodId]
   );
 
-  const isLoading = appLoading;
+  const run = useCallback(async (dryRun: boolean) => {
+    if (!selectedPeriodId) return;
+    setResult(null);
+    const outcome = await generateTermInvoices({
+      periodId: selectedPeriodId,
+      levelIds: selectedLevelId ? [selectedLevelId] : undefined,
+      dryRun,
+    });
+    setResult(outcome);
+  }, [selectedPeriodId, selectedLevelId, generateTermInvoices]);
 
-  if (isLoading) {
+  if (appLoading.all) {
     return (
       <div className="flex justify-center items-center py-20">
         <Spinner size="lg" />
-        <span className="ml-2">{t('common.loading') || 'Loading...'}</span>
+        <span className="ml-2">{t('common.loading', 'Loading...')}</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card title={t('invoiceGeneration.title') || 'Invoice Generation'}>
+      <Card title={t('invoiceGeneration.title', 'Invoice Generation')}>
         {/* Configuration */}
-        <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600 mb-4">
-            {t('invoiceGeneration.description') || 
-              'Generate invoices for all active students for the selected school period and fee template.'}
+        <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
+          <p className="text-sm text-surface-muted-fg mb-4">
+            {t('invoiceGeneration.description',
+              'Bill every fee template of the selected period to the active learners it applies to (by level and student category). Each learner gets one invoice per period; re-running only adds what is missing.')}
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Select
-              label={t('invoiceGeneration.schoolPeriod') || 'School Period'}
+              label={t('invoiceGeneration.schoolPeriod', 'School Period')}
               value={selectedPeriodId}
               onChange={(e) => {
                 setSelectedPeriodId(e.target.value);
-                setSelectedTemplateId('');
                 setResult(null);
               }}
               required
             >
-              <option value="">{t('invoiceGeneration.selectPeriod') || 'Select Period'}</option>
+              <option value="">{t('invoiceGeneration.selectPeriod', 'Select Period')}</option>
               {(schoolPeriods || []).map((sp) => (
-                <option key={sp.id} value={sp.id}>
-                  {sp.name} {sp.is_active ? '(Active)' : ''}
+                <option key={sp.id} value={String(sp.id)}>
+                  {sp.name} {sp.is_active ? t('invoiceGeneration.activeSuffix', '(Active)') : ''}
                 </option>
               ))}
             </Select>
 
             <Select
-              label={t('invoiceGeneration.feeTemplate') || 'Fee Template'}
-              value={selectedTemplateId}
+              label={t('invoiceGeneration.level', 'Level')}
+              value={selectedLevelId}
               onChange={(e) => {
-                setSelectedTemplateId(e.target.value);
+                setSelectedLevelId(e.target.value);
                 setResult(null);
               }}
-              required
-              disabled={!selectedPeriodId}
             >
-              <option value="">{t('invoiceGeneration.selectTemplate') || 'Select Template'}</option>
-              {availableTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
+              <option value="">{t('invoiceGeneration.allLevels', 'All levels')}</option>
+              {(classes || []).map((cl) => (
+                <option key={cl.id} value={String(cl.id)}>{cl.name}</option>
               ))}
             </Select>
 
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
+              <Button variant="secondary" onClick={() => run(true)} disabled={isRunning || !selectedPeriodId} className="w-full">
+                {t('invoiceGeneration.preview', 'Preview')}
+              </Button>
               <Button
-                onClick={handleGenerate}
-                disabled={isGenerating || !selectedPeriodId || !selectedTemplateId}
+                onClick={() => run(false)}
+                disabled={isRunning || !selectedPeriodId}
                 className="w-full"
-                leftIcon={isGenerating ? <Spinner size="sm" /> : <DocumentAddIcon className="w-5 h-5" />}
+                leftIcon={isRunning ? <Spinner size="sm" /> : <DocumentAddIcon className="w-5 h-5" />}
               >
-                {isGenerating
-                  ? t('invoiceGeneration.generating') || 'Generating...'
-                  : t('invoiceGeneration.generate') || 'Generate Invoices'}
+                {isRunning
+                  ? t('invoiceGeneration.generating', 'Generating...')
+                  : t('invoiceGeneration.generate', 'Generate Invoices')}
               </Button>
             </div>
           </div>
 
-          {/* Template Summary */}
-          {selectedTemplateId && templateItems.length > 0 && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-md">
-              <div className="text-sm font-medium text-blue-800">
-                {t('invoiceGeneration.templateSummary') || 'Template Summary'}
-              </div>
-              <div className="text-sm text-blue-600 mt-1">
-                {templateItems.length} {t('invoiceGeneration.items') || 'items'} |{' '}
-                {t('invoiceGeneration.total') || 'Total'}: {formatCurrency(templateTotal)}
-              </div>
+          {selectedPeriodId && (
+            <div className="mt-4 p-3 bg-primary-50 rounded-md text-sm text-primary-700">
+              {t('invoiceGeneration.templatesForPeriod', '{{count}} fee template(s) in this period', { count: periodTemplates.length })}
             </div>
           )}
         </div>
 
         {/* Error Display */}
-        {(localError || serviceError) && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+        {serviceError && (
+          <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <div className="flex items-center gap-2 text-red-800">
               <ExclamationCircleIcon className="w-5 h-5" />
-              <span>{localError || serviceError?.message}</span>
+              <span>{serviceError.message}</span>
             </div>
           </div>
         )}
@@ -232,84 +146,64 @@ const InvoiceGenerationPage: React.FC = () => {
         {/* Results */}
         {result && (
           <div className="space-y-4">
-            {/* Result Summary */}
-            <div className={`p-4 rounded-md ${
-              result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
+            <div className={`p-4 rounded-md border ${result.dryRun ? 'bg-primary-50 border-primary-200' : 'bg-green-50 border-green-200'}`}>
               <div className="flex items-center gap-2 mb-2">
-                {result.success ? (
-                  <CheckCircleIcon className="w-6 h-6 text-green-600" />
-                ) : (
-                  <ExclamationCircleIcon className="w-6 h-6 text-red-600" />
-                )}
-                <span className={`text-lg font-medium ${
-                  result.success ? 'text-green-800' : 'text-red-800'
-                }`}>
-                  {result.success
-                    ? t('invoiceGeneration.success') || 'Invoices Generated Successfully'
-                    : t('invoiceGeneration.partialSuccess') || 'Partial Success'}
+                {!result.dryRun && <CheckCircleIcon className="w-6 h-6 text-green-600" />}
+                <span className="text-lg font-medium">
+                  {result.dryRun
+                    ? t('invoiceGeneration.previewTitle', 'Preview — nothing has been saved yet')
+                    : t('invoiceGeneration.success', 'Invoices Generated Successfully')}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-4 mt-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                 <div>
-                  <div className="text-sm text-gray-600">
-                    {t('invoiceGeneration.totalStudents') || 'Total Students'}
-                  </div>
-                  <div className="text-xl font-bold">{result.totalStudents}</div>
+                  <div className="text-sm text-surface-muted-fg">{t('invoiceGeneration.invoicesCreated', 'New invoices')}</div>
+                  <div className="text-xl font-bold text-green-600">{result.summary.invoicesCreated}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">
-                    {t('invoiceGeneration.invoicesCreated') || 'Invoices Created'}
-                  </div>
-                  <div className="text-xl font-bold text-green-600">{result.invoicesCreated}</div>
+                  <div className="text-sm text-surface-muted-fg">{t('invoiceGeneration.invoicesUpdated', 'Invoices with added items')}</div>
+                  <div className="text-xl font-bold">{result.summary.invoicesUpdated}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">
-                    {t('invoiceGeneration.skipped') || 'Skipped'}
-                  </div>
-                  <div className="text-xl font-bold text-yellow-600">{result.skipped}</div>
+                  <div className="text-sm text-surface-muted-fg">{t('invoiceGeneration.skipped', 'Already billed')}</div>
+                  <div className="text-xl font-bold text-yellow-600">{result.alreadyBilledStudentIds.length}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-surface-muted-fg">{t('invoiceGeneration.total', 'Total')}</div>
+                  <div className="text-xl font-bold">{formatCurrency(result.summary.amount)}</div>
                 </div>
               </div>
-              {result.errors.length > 0 && (
-                <div className="mt-3">
-                  <div className="text-sm font-medium text-red-800">
-                    {t('invoiceGeneration.errors') || 'Errors'}:
-                  </div>
-                  <ul className="mt-1 text-sm text-red-600 list-disc list-inside">
-                    {result.errors.slice(0, 5).map((err, i) => (
-                      <li key={i}>{err}</li>
-                    ))}
-                    {result.errors.length > 5 && (
-                      <li>...and {result.errors.length - 5} more</li>
-                    )}
-                  </ul>
-                </div>
+              {result.unmatchedStudentIds.length > 0 && (
+                <p className="mt-3 text-sm text-yellow-800">
+                  {t('invoiceGeneration.unmatched', '{{count}} active learner(s) have no matching fee template for this period.', { count: result.unmatchedStudentIds.length })}
+                </p>
               )}
             </div>
 
-            {/* Reset Button */}
             <div className="flex justify-end">
-              <Button
-                variant="secondary"
-                onClick={handleReset}
-                leftIcon={<ArrowPathIcon className="w-4 h-4" />}
-              >
-                {t('invoiceGeneration.generateMore') || 'Generate More'}
+              <Button variant="secondary" onClick={() => setResult(null)} leftIcon={<ArrowPathIcon className="w-4 h-4" />}>
+                {t('invoiceGeneration.generateMore', 'Generate More')}
               </Button>
             </div>
           </div>
         )}
 
         {/* Empty State */}
-        {!result && !isGenerating && !localError && !serviceError && (
-          <div className="text-center py-12 text-gray-500">
+        {!result && !isRunning && !serviceError && (
+          <div className="text-center py-12 text-surface-muted-fg">
             <UserGroupIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <p>{t('invoiceGeneration.configureMessage') || 'Configure the options above and click Generate to create invoices'}</p>
+            <p>{t('invoiceGeneration.configureMessage', 'Choose a period, preview the billing run, then generate the invoices')}</p>
           </div>
         )}
       </Card>
     </div>
   );
 };
+
+const InvoiceGenerationPage: React.FC = () => (
+  <div className="space-y-6">
+    <InvoiceGenerationPageContent />
+  </div>
+);
 
 export default InvoiceGenerationPage;

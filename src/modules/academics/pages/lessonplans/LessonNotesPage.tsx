@@ -18,8 +18,7 @@ import {
   FilterIcon,
   DocumentTextIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { LessonNote } from '../../data/types';
+import { useLessonPlansData, LessonNote } from '../../data/lessonplans/useLessonPlansData';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -180,12 +179,12 @@ const LessonNotesPage: React.FC = () => {
       await createLessonNote({
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         date: formData.date,
-        periodId: Number(formData.periodId),
+        periodId: formData.periodId,
         periodName: formData.periodName,
         topic: formData.topic,
         subTopic: formData.subTopic,
@@ -197,8 +196,8 @@ const LessonNotesPage: React.FC = () => {
         conclusion: formData.conclusion,
         reflection: formData.reflection,
         challenges: formData.challenges,
-        studentsPresent: formData.studentsPresent ? Number(formData.studentsPresent) : null,
-        studentsAbsent: formData.studentsAbsent ? Number(formData.studentsAbsent) : null,
+        studentsPresent: formData.studentsPresent,
+        studentsAbsent: formData.studentsAbsent,
       });
       showToast({
         type: 'success',
@@ -221,12 +220,12 @@ const LessonNotesPage: React.FC = () => {
       await updateLessonNote(editingNote.id, {
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         date: formData.date,
-        periodId: Number(formData.periodId),
+        periodId: formData.periodId,
         periodName: formData.periodName,
         topic: formData.topic,
         subTopic: formData.subTopic,
@@ -238,8 +237,8 @@ const LessonNotesPage: React.FC = () => {
         conclusion: formData.conclusion,
         reflection: formData.reflection,
         challenges: formData.challenges,
-        studentsPresent: formData.studentsPresent ? Number(formData.studentsPresent) : null,
-        studentsAbsent: formData.studentsAbsent ? Number(formData.studentsAbsent) : null,
+        studentsPresent: formData.studentsPresent,
+        studentsAbsent: formData.studentsAbsent,
       });
       showToast({
         type: 'success',
@@ -336,7 +335,7 @@ const LessonNotesPage: React.FC = () => {
       sortable: false,
       width: 250,
       render: (value) => (
-        <span className="text-sm text-gray-600 line-clamp-2">{value}</span>
+        <span className="text-sm text-surface-muted-fg line-clamp-2">{value}</span>
       ),
     },
     {
@@ -558,7 +557,7 @@ const LessonNotesPage: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-muted-fg" />
               <Input
                 placeholder="Search by topic, teacher, or subject..."
                 value={filters.searchQuery}
@@ -621,11 +620,11 @@ const LessonNotesPage: React.FC = () => {
           loading={loading}
           emptyState={
             <div className="text-center py-12">
-              <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <DocumentTextIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">
                 {t('common.noData')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-surface-muted-fg">
                 Get started by creating a new lesson note.
               </p>
               <div className="mt-6">

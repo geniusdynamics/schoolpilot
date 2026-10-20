@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Generates comprehensive dormitory management data including rooms, assignments, and matron supervision
 // ABOUTME: Creates realistic accommodation structures with capacity tracking and student occupancy management
 
@@ -68,7 +70,7 @@ export class DormitoryGenerator extends BaseGenerator {
     
     let dormitoryIndex = 0;
     
-    console.log(`Generating dormitories...`);
+    logger.info(`Generating dormitories...`);
     
     for (const dormType of dormitoryTypes) {
       for (const dormInfo of dormType.dormitories) {
@@ -107,7 +109,7 @@ export class DormitoryGenerator extends BaseGenerator {
       }
     }
     
-    console.log(`Generated ${dormitoryIndex} dormitories`);
+    logger.info(`Generated ${dormitoryIndex} dormitories`);
     
     return results;
   }
@@ -191,7 +193,7 @@ export class DormitoryGenerator extends BaseGenerator {
   private async generateDormitoryRooms(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} dormitory rooms...`);
+    logger.info(`Generating ${count} dormitory rooms...`);
     
     let roomIndex = 0;
     
@@ -242,7 +244,7 @@ export class DormitoryGenerator extends BaseGenerator {
       if (roomIndex >= count) break;
     }
     
-    console.log(`Generated ${roomIndex} dormitory rooms`);
+    logger.info(`Generated ${roomIndex} dormitory rooms`);
     
     return results;
   }
@@ -311,7 +313,7 @@ export class DormitoryGenerator extends BaseGenerator {
   private async generateRoomAssignments(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} room assignments...`);
+    logger.info(`Generating ${count} room assignments...`);
     
     // Track occupancy per room and dormitory
     const roomOccupancy: { [key: string]: number } = {};
@@ -424,7 +426,7 @@ export class DormitoryGenerator extends BaseGenerator {
   private async generateDormitoryInspections(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} dormitory inspections...`);
+    logger.info(`Generating ${count} dormitory inspections...`);
     
     for (let i = 0; i < count; i++) {
       const dormitory = this.randomChoice(this.dormitories);
@@ -564,7 +566,7 @@ export class DormitoryGenerator extends BaseGenerator {
   private async generateDormitoryIncidents(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} dormitory incidents...`);
+    logger.info(`Generating ${count} dormitory incidents...`);
     
     for (let i = 0; i < count; i++) {
       const dormitory = this.randomChoice(this.dormitories);

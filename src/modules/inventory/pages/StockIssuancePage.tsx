@@ -1,5 +1,9 @@
+// ABOUTME: Stock issuance: lists 'Issue' transactions and records new issues from a warehouse.
+// ABOUTME: Writes the transaction via useInventory and draws down stock_levels via useStockLevelService.
+
 import React, { useState, useMemo } from 'react';
-import { StockTransaction, StockTransactionType, ItemInv, Warehouse } from '@/types';
+import { useTranslation } from 'react-i18next';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -11,22 +15,19 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, ArrowsRightLeftIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { StockTransactionType } from '@/core/types';
+import type { StockTransaction } from '../data/types';
+import { useInventory } from '../hooks/useInventory';
+import { useStockLevelService } from '../hooks/useStockLevelService';
 
 type StockTransactionFormData = Omit<Partial<StockTransaction>, 'id' | 'item_name' | 'warehouse_name' | 'transaction_type' | 'transaction_date'> & {
     transaction_date?: string; // For form input
 };
 
-const StockIssuancePage: React.FC = () => {
-  const { 
-    stockTransactions, 
-    itemsInv,
-    warehouses,
-    loading, 
-    addStockTransaction 
-  } = useAppData(); // Updated
+export const StockIssuancePageContent: React.FC = () => {
+  const { stockTransactions, items: itemsInv, warehouses, addStockTransaction } = useInventory();
+  const { processTransaction, isProcessing } = useStockLevelService();
+  const { t } = useTranslation('inventory');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   // No editing for stock transactions in this simplified version, only adding new 'Issue'
@@ -56,8 +57,8 @@ const StockIssuancePage: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     let processedValue: string | number | undefined = value;
-     if (name === 'item_id' || name === 'warehouse_id') {
-        processedValue = value ? (name === 'item_id' ? value : parseInt(value)) : undefined;
+    if (name === 'item_id' || name === 'warehouse_id') {
+        processedValue = value || undefined; // ids are strings (UUIDs); never coerce
     } else if (name === 'quantity') {
         processedValue = parseInt(value) || 0;
     }
@@ -71,7 +72,7 @@ const StockIssuancePage: React.FC = () => {
     }
     const payload: Omit<StockTransaction, 'id' | 'item_name' | 'warehouse_name'> = {
       item_id: formData.item_id!,
-      warehouse_id: Number(formData.warehouse_id!),
+      warehouse_id: formData.warehouse_id!,
       transaction_type: StockTransactionType.ISSUE,
       quantity: Number(formData.quantity),
       transaction_date: formData.transaction_date,
@@ -79,7 +80,8 @@ const StockIssuancePage: React.FC = () => {
       // source_table and source_id could be added for linking to requisitions
     };
 
-    await addStockTransaction(payload);
+    const saved = await addStockTransaction(payload);
+    await processTransaction({ ...payload, id: saved?.id ?? undefined });
     closeModal();
   };
 
@@ -128,13 +130,6 @@ const StockIssuancePage: React.FC = () => {
     },
   ];
 
-  if ((loading.stockTransactions || loading.itemsInv || loading.warehouses) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Stock Issuance Data...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -143,7 +138,7 @@ const StockIssuancePage: React.FC = () => {
           Issue Stock
         </Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-surface-muted-fg mb-4">
           Record items issued from stores. This will update stock levels.
         </p>
         <DataGrid 
@@ -152,7 +147,7 @@ const StockIssuancePage: React.FC = () => {
           sortable
           filterable
           emptyState={{
-            icon: <ArrowsRightLeftIcon className="w-8 h-8 text-gray-400" />,
+            icon: <ArrowsRightLeftIcon className="w-8 h-8 text-surface-muted-fg" />,
             title: "No stock issuance records found",
             description: "Start by issuing your first stock item."
           }}
@@ -163,8 +158,8 @@ const StockIssuancePage: React.FC = () => {
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.stockTransactions}>
-              {loading.stockTransactions ? <Spinner size="sm"/> : 'Issue Item'}
+            <Button onClick={handleSubmit} loading={isProcessing}>
+              {'Issue Item'}
             </Button>
           </FormActions>
         }
@@ -198,5 +193,10 @@ const StockIssuancePage: React.FC = () => {
     </div>
   );
 };
+const StockIssuancePage: React.FC = () => (
+  <div className="space-y-6">
+    <StockIssuancePageContent />
+  </div>
+);
 
 export default StockIssuancePage;

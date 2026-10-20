@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file generates comprehensive inventory management data including items, stock, suppliers, and procurement
 // ABOUTME: Handles inventory tracking, stock movements, and supplier management for school resources
 
@@ -1107,12 +1109,12 @@ export class InventoryGenerator extends BaseGenerator {
   }
   
   private async initialize(): Promise<void> {
-    console.log('Initializing InventoryGenerator...');
+    logger.info('Initializing InventoryGenerator...');
   }
   
   private logProgress(current: number, total: number, type: string): void {
     if (current % 25 === 0 || current === total) {
-      console.log(`Generated ${current}/${total} ${type}s`);
+      logger.info(`Generated ${current}/${total} ${type}s`);
     }
   }
 }

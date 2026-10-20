@@ -1,8 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Backend API Integration Provider for external systems integration
 // ABOUTME: Provides bidirectional sync with ERPNext, custom APIs, and other backend systems
 
-import { Observable, Subject, BehaviorSubject, interval } from 'rxjs';
-import { map, filter, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   IDatabaseProvider,
   ICollection,
@@ -111,13 +113,13 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
   private setupNetworkMonitoring(): void {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => {
-        console.log(`[BackendAPICollection] Network online for ${this.name}`);
+        logger.info(`[BackendAPICollection] Network online for ${this.name}`);
         this.isOnline = true;
         this.processOperationQueue();
       });
 
       window.addEventListener('offline', () => {
-        console.log(`[BackendAPICollection] Network offline for ${this.name}`);
+        logger.info(`[BackendAPICollection] Network offline for ${this.name}`);
         this.isOnline = false;
       });
 
@@ -130,7 +132,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
       const data = await this.find();
       this.dataSubject.next(data);
     } catch (error) {
-      console.error(`[BackendAPICollection] Failed to load initial data for ${this.name}:`, error);
+      logger.error(`[BackendAPICollection] Failed to load initial data for ${this.name}:`, error);
     }
   }
 
@@ -151,7 +153,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
 
     try {
       this.syncStatus.isActive = true;
-      console.log(`[BackendAPICollection] Starting sync for ${this.name}`);
+      logger.info(`[BackendAPICollection] Starting sync for ${this.name}`);
 
       // Process pending operations first (push)
       await this.processOperationQueue();
@@ -160,9 +162,9 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
       await this.pullChangesFromBackend();
 
       this.syncStatus.lastSync = new Date();
-      console.log(`[BackendAPICollection] Sync completed for ${this.name}`);
+      logger.info(`[BackendAPICollection] Sync completed for ${this.name}`);
     } catch (error) {
-      console.error(`[BackendAPICollection] Sync failed for ${this.name}:`, error);
+      logger.error(`[BackendAPICollection] Sync failed for ${this.name}:`, error);
       this.syncStatus.errors.push(`Sync failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       this.syncStatus.isActive = false;
@@ -173,7 +175,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
     try {
       const syncEndpoint = this.endpointConfig.methods?.sync || this.endpointConfig.methods?.list;
       if (!syncEndpoint) {
-        console.warn(`[BackendAPICollection] No sync endpoint configured for ${this.name}`);
+        logger.warn(`[BackendAPICollection] No sync endpoint configured for ${this.name}`);
         return;
       }
 
@@ -209,7 +211,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
         }
       }
     } catch (error) {
-      console.error(`[BackendAPICollection] Failed to pull changes for ${this.name}:`, error);
+      logger.error(`[BackendAPICollection] Failed to pull changes for ${this.name}:`, error);
       throw error;
     }
   }
@@ -219,7 +221,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
       return;
     }
 
-    console.log(`[BackendAPICollection] Processing ${this.operationQueue.length} queued operations for ${this.name}`);
+    logger.info(`[BackendAPICollection] Processing ${this.operationQueue.length} queued operations for ${this.name}`);
     
     const queue = [...this.operationQueue];
     this.operationQueue = [];
@@ -227,9 +229,9 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
     for (const operation of queue) {
       try {
         await this.executeQueuedOperation(operation);
-        console.log(`[BackendAPICollection] Processed queued ${operation.operation} for ${this.name}`);
+        logger.info(`[BackendAPICollection] Processed queued ${operation.operation} for ${this.name}`);
       } catch (error) {
-        console.error(`[BackendAPICollection] Failed to process queued ${operation.operation} for ${this.name}:`, error);
+        logger.error(`[BackendAPICollection] Failed to process queued ${operation.operation} for ${this.name}:`, error);
         
         // Retry logic
         operation.retryCount++;
@@ -449,7 +451,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
             ok: true
           };
         } catch (error) {
-          console.warn(`[BackendAPICollection] Immediate create failed for ${this.name}, queuing:`, error);
+          logger.warn(`[BackendAPICollection] Immediate create failed for ${this.name}, queuing:`, error);
           // Fall through to queue operation
         }
       }
@@ -524,7 +526,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
         (item as any).id === id || (item as any)[this.endpointConfig.idField || 'id'] === id
       ) || null;
     } catch (error) {
-      console.error(`[BackendAPICollection] FindById failed for ${this.name}:`, error);
+      logger.error(`[BackendAPICollection] FindById failed for ${this.name}:`, error);
       
       // Fallback to local data
       const currentData = this.dataSubject.value;
@@ -584,7 +586,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
 
       return results;
     } catch (error) {
-      console.error(`[BackendAPICollection] Find failed for ${this.name}:`, error);
+      logger.error(`[BackendAPICollection] Find failed for ${this.name}:`, error);
       
       // Return local data as fallback
       return this.dataSubject.value;
@@ -614,7 +616,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
             ok: true
           };
         } catch (error) {
-          console.warn(`[BackendAPICollection] Immediate update failed for ${this.name}, queuing:`, error);
+          logger.warn(`[BackendAPICollection] Immediate update failed for ${this.name}, queuing:`, error);
           // Fall through to queue operation
         }
       }
@@ -677,7 +679,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
             deleted: true
           };
         } catch (error) {
-          console.warn(`[BackendAPICollection] Immediate delete failed for ${this.name}, queuing:`, error);
+          logger.warn(`[BackendAPICollection] Immediate delete failed for ${this.name}, queuing:`, error);
           // Fall through to queue operation
         }
       }
@@ -772,7 +774,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
 
   async createIndex(index: IndexDefinition): Promise<void> {
     // Backend API collections don't support local indexing
-    console.warn(`[BackendAPICollection] Index creation not supported for ${this.name}`);
+    logger.warn(`[BackendAPICollection] Index creation not supported for ${this.name}`);
   }
 
   async getStats(): Promise<CollectionStats> {
@@ -789,12 +791,12 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
 
   async compact(): Promise<void> {
     // No compaction needed for API collections
-    console.log(`[BackendAPICollection] Compact operation not applicable for ${this.name}`);
+    logger.info(`[BackendAPICollection] Compact operation not applicable for ${this.name}`);
   }
 
   async destroy(): Promise<void> {
     try {
-      console.log(`[BackendAPICollection] Destroying collection ${this.name}...`);
+      logger.info(`[BackendAPICollection] Destroying collection ${this.name}...`);
       
       this.isDestroyed = true;
       
@@ -805,7 +807,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
       
       // Process remaining queue if online
       if (this.isOnline && this.operationQueue.length > 0) {
-        console.log(`[BackendAPICollection] Processing ${this.operationQueue.length} remaining operations`);
+        logger.info(`[BackendAPICollection] Processing ${this.operationQueue.length} remaining operations`);
         await this.processOperationQueue();
       }
       
@@ -813,9 +815,9 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
       this.changeSubject.complete();
       this.dataSubject.complete();
       
-      console.log(`[BackendAPICollection] Collection ${this.name} destroyed successfully`);
+      logger.info(`[BackendAPICollection] Collection ${this.name} destroyed successfully`);
     } catch (error) {
-      console.error(`[BackendAPICollection] Failed to destroy ${this.name}:`, error);
+      logger.error(`[BackendAPICollection] Failed to destroy ${this.name}:`, error);
       throw new CollectionError(
         `Failed to destroy: ${error instanceof Error ? error.message : String(error)}`,
         this.name
@@ -921,7 +923,7 @@ export class BackendAPICollection<T extends { id?: string }> implements ICollect
     const count = this.operationQueue.length;
     this.operationQueue = [];
     this.syncStatus.pendingOperations = 0;
-    console.log(`[BackendAPICollection] Cleared ${count} queued operations for ${this.name}`);
+    logger.info(`[BackendAPICollection] Cleared ${count} queued operations for ${this.name}`);
   }
 }
 
@@ -936,7 +938,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
 
   async initialize(config: DatabaseConfig): Promise<void> {
     try {
-      console.log('[BackendAPIProvider] Initializing Backend API Provider...');
+      logger.info('[BackendAPIProvider] Initializing Backend API Provider...');
       
       this.config = config as BackendAPIConfig;
       
@@ -955,7 +957,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
       }
 
       this.isInitialized = true;
-      console.log('[BackendAPIProvider] Provider initialized successfully');
+      logger.info('[BackendAPIProvider] Provider initialized successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize Backend API provider: ${error instanceof Error ? error.message : String(error)}`,
@@ -986,7 +988,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
       );
 
       this.collections.set(name, collection);
-      console.log(`[BackendAPIProvider] Created collection: ${name}`);
+      logger.info(`[BackendAPIProvider] Created collection: ${name}`);
       
       return collection;
     } catch (error) {
@@ -1043,7 +1045,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
           data
         };
       } catch (error) {
-        console.error(`[BackendAPIProvider] Failed to backup collection ${name}:`, error);
+        logger.error(`[BackendAPIProvider] Failed to backup collection ${name}:`, error);
       }
     }
 
@@ -1059,7 +1061,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
         if (collection && (collectionData as any).data) {
           // Insert all documents from backup
           await collection.insertMany((collectionData as any).data);
-          console.log(`[BackendAPIProvider] Restored ${(collectionData as any).data.length} documents to ${name}`);
+          logger.info(`[BackendAPIProvider] Restored ${(collectionData as any).data.length} documents to ${name}`);
         }
       }
     } catch (error) {
@@ -1073,7 +1075,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
 
   async destroy(): Promise<void> {
     try {
-      console.log('[BackendAPIProvider] Destroying provider...');
+      logger.info('[BackendAPIProvider] Destroying provider...');
       
       // Destroy all collections
       for (const collection of this.collections.values()) {
@@ -1083,7 +1085,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
       this.collections.clear();
       this.isInitialized = false;
       
-      console.log('[BackendAPIProvider] Provider destroyed successfully');
+      logger.info('[BackendAPIProvider] Provider destroyed successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to destroy provider: ${error instanceof Error ? error.message : String(error)}`,
@@ -1107,7 +1109,7 @@ export class BackendAPIProvider implements IDatabaseProvider {
       
       return response.ok;
     } catch (error) {
-      console.error('[BackendAPIProvider] Connection test failed:', error);
+      logger.error('[BackendAPIProvider] Connection test failed:', error);
       return false;
     }
   }
@@ -1123,15 +1125,15 @@ export class BackendAPIProvider implements IDatabaseProvider {
   }
 
   async forceGlobalSync(): Promise<void> {
-    console.log('[BackendAPIProvider] Starting global sync...');
+    logger.info('[BackendAPIProvider] Starting global sync...');
     
     const syncPromises = Array.from(this.collections.values()).map(collection => 
       collection.forceSync().catch(error => {
-        console.error(`[BackendAPIProvider] Sync failed for collection:`, error);
+        logger.error(`[BackendAPIProvider] Sync failed for collection:`, error);
       })
     );
     
     await Promise.all(syncPromises);
-    console.log('[BackendAPIProvider] Global sync completed');
+    logger.info('[BackendAPIProvider] Global sync completed');
   }
 }

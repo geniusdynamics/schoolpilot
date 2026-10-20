@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for chartofaccount data management
 // ABOUTME: Provides CRUD operations for chartofaccount without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockChartOfAccounts } from './mockData';
 import { ChartOfAccount } from '@/core/types';
+import { useState } from 'react';
 
 export const useChartOfAccountData = () => {
   const [data, setData] = useState<ChartOfAccount[]>(initialMockChartOfAccounts);

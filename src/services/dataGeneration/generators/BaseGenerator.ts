@@ -1,7 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Base class for all data generators with common utilities
 // ABOUTME: Provides shared functionality for realistic data generation
 
 import { DataGenerationConfig } from '../types';
+import { generateAdmissionNo, generateKenyanPhone, generateDateOfBirth, getRandomInt as getRandomIntUtil } from './dataUtils';
 
 export abstract class BaseGenerator {
   protected config: DataGenerationConfig;
@@ -22,7 +25,7 @@ export abstract class BaseGenerator {
         this.faker.setLocale(this.config.locale);
       }
     } catch (error) {
-      console.warn('Faker.js not available, using basic data generation');
+      logger.warn('Faker.js not available, using basic data generation');
       this.faker = this.createBasicFaker();
     }
   }
@@ -77,21 +80,25 @@ export abstract class BaseGenerator {
     return date.toISOString().split('T')[0];
   }
 
+  // Centralized admission formatter ADMYYYYNNNN via dataUtils
+  protected generateAdmissionNo(index: number): string {
+    return generateAdmissionNo(index);
+  }
 
+  // Date generation capped to day 1-28 via dataUtils helper to avoid invalid dates (e.g., Feb 31)
+  protected generateDateOfBirth(minAge: number = 12, maxAge: number = 20): string {
+    return generateDateOfBirth(minAge, maxAge);
+  }
+
+  // Safe date creation with day capped 1-28
+  protected generateSafeDate(year: number, month: number): string {
+    const day = getRandomIntUtil(1, 28);
+    return new Date(year, month, day).toISOString().split('T')[0];
+  }
 
   protected generatePhoneNumber(): string {
-    if (this.faker?.phone?.number) {
-      return this.faker.phone.number();
-    }
-    // Fallback phone number generation
-    const formats = [
-      '+254 7## ### ###',
-      '+254 1## ### ###',
-      '07## ### ###',
-      '01## ### ###'
-    ];
-    const format = this.randomChoice(formats);
-    return format.replace(/#/g, () => Math.floor(Math.random() * 10).toString());
+    // Centralized Kenyan phone format for consistency with studentGenerator
+    return generateKenyanPhone();
   }
 
   protected generateEmail(firstName: string, lastName: string, domain?: string): string {
@@ -385,7 +392,7 @@ export abstract class BaseGenerator {
   protected logProgress(current: number, total: number, entity: string): void {
     if (current % Math.max(1, Math.floor(total / 10)) === 0 || current === total) {
       const percentage = Math.round((current / total) * 100);
-      console.log(`Generated ${current}/${total} ${entity} records (${percentage}%)`);
+      logger.info(`Generated ${current}/${total} ${entity} records (${percentage}%)`);
     }
   }
 }

@@ -2,7 +2,7 @@
 // ABOUTME: This demonstrates the recommended pattern for accessing shared entities
 
 import React from 'react';
-import { useSharedStudents, useSharedStaff, useSharedAcademicYears } from '@/hooks/useSharedData';
+import { useSharedStudents, useSharedStaff, useSharedAcademicYears, useSharedData } from '@/hooks/useSharedData';
 
 /**
  * Example component demonstrating cross-module data access
@@ -27,7 +27,7 @@ export const SharedDataExample: React.FC = () => {
       
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Students (from Administration Module)</h3>
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-surface-muted-fg mb-2">
           Accessed via useSharedStudents() - no direct import from administration module
         </p>
         <ul className="list-disc pl-5">
@@ -40,7 +40,7 @@ export const SharedDataExample: React.FC = () => {
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Staff (from Administration Module)</h3>
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-surface-muted-fg mb-2">
           Accessed via useSharedStaff() - no direct import from administration module
         </p>
         <ul className="list-disc pl-5">
@@ -53,7 +53,7 @@ export const SharedDataExample: React.FC = () => {
 
       <div>
         <h3 className="text-lg font-semibold mb-2">Academic Years (from Core Module)</h3>
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-surface-muted-fg mb-2">
           Accessed via useSharedAcademicYears() - no direct import from core module
         </p>
         <ul className="list-disc pl-5">
@@ -83,7 +83,7 @@ export const MultiEntityExample: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Multi-Entity Access Example</h2>
-      <p className="text-sm text-gray-600 mb-4">
+      <p className="text-sm text-surface-muted-fg mb-4">
         Using useSharedData(['students', 'staff', 'classes']) for batch access
       </p>
       

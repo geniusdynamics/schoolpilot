@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Bundle analysis and optimization service for performance monitoring
 // ABOUTME: Provides insights into bundle size, chunk analysis, and loading performance
 
@@ -88,7 +90,7 @@ class BundleAnalyzer {
     } else {
       // In production, we would analyze the actual build output
       // This would require integration with the build process
-      console.warn('Production bundle analysis not yet implemented');
+      logger.warn('Production bundle analysis not yet implemented');
     }
 
     return chunks;

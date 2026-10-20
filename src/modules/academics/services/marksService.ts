@@ -1,6 +1,7 @@
+import { logger } from '@/utils/logging';
+
 // src/modules/academics/services/marksService.ts
 
-import { StudentPaperMark } from '@/modules/academics/data/types';
 
 export interface MarksBulkImportData {
   examSessionId: string;
@@ -29,7 +30,7 @@ export const uploadMarks = async (file?: File): Promise<void> => {
       });
       
       // Validate and save marks
-      console.log('Parsed marks:', marks);
+      logger.info('Parsed marks:', marks);
     };
     reader.readAsText(file);
   } else {

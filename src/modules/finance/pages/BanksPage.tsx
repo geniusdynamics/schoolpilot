@@ -1,26 +1,33 @@
-import React, { useState } from 'react';
+// ABOUTME: Bank accounts page: lists, creates, edits and deletes banks through useFinance()
+// ABOUTME: Each bank links to an asset GL account by its string id; the GL name is resolved at read time
+
+import React, { useMemo, useState } from 'react';
 import { Bank, ChartOfAccount, AccountType } from '@/modules/finance';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/icons';
 import { useFinance } from '@/modules/finance/hooks/useFinance';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
-type BankFormData = Omit<Partial<Bank>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
+// Record ids are strings (UUIDs) at runtime, so the form keeps the GL account id as the option value.
+interface BankFormData {
+  name: string;
+  account_no: string;
+  gl_account_id: string;
+}
 
-const BanksPage: React.FC = () => {
+// The finance types still declare numeric ids; the data layer stores whatever string id the option carries.
+type BankInput = Parameters<ReturnType<typeof useFinance>['addBank']>[0];
+
+export const BanksPageContent: React.FC = () => {
   const { 
     banks, 
     chartOfAccounts,
-    loading, 
     addBank, 
     updateBank, 
     deleteBank 
@@ -28,15 +35,19 @@ const BanksPage: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBank, setEditingBank] = useState<Bank | null>(null);
-  const initialFormData: BankFormData = { name: '', account_no: '', gl_account_id: undefined };
+  const initialFormData: BankFormData = { name: '', account_no: '', gl_account_id: '' };
   const [formData, setFormData] = useState<BankFormData>(initialFormData);
 
   const assetAccounts = (chartOfAccounts || []).filter(coa => coa.type === AccountType.ASSET && coa.is_active);
+  const bankRows = useMemo(() => (banks || []).map(bank => ({
+    ...bank,
+    gl_account_name: (chartOfAccounts || []).find(coa => String(coa.id) === String(bank.gl_account_id))?.name ?? bank.gl_account_name ?? null,
+  })), [banks, chartOfAccounts]);
 
   const openModal = (bank?: Bank) => {
     setEditingBank(bank || null);
     setFormData(bank ? 
-      { name: bank.name, account_no: bank.account_no, gl_account_id: bank.gl_account_id } : 
+      { name: bank.name, account_no: bank.account_no ?? '', gl_account_id: bank.gl_account_id == null ? '' : String(bank.gl_account_id) } :
       initialFormData
     );
     setIsModalOpen(true);
@@ -50,31 +61,33 @@ const BanksPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'gl_account_id' ? (value ? parseInt(value) : undefined) : value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.gl_account_id) {
-      alert("Bank name and GL Account are required.");
+      toast.showWarning("Bank name and GL Account are required.");
       return;
     }
-    const payload = { 
-        name: formData.name!, 
-        account_no: formData.account_no || undefined,
-        gl_account_id: Number(formData.gl_account_id!)
-    };
+    const payload = {
+      name: formData.name,
+      account_no: formData.account_no || null,
+      gl_account_id: formData.gl_account_id,
+    } as unknown as BankInput;
 
     if (editingBank) {
-      await updateBank({ ...editingBank, ...payload });
+      await updateBank(String(editingBank.id), payload);
     } else {
       await addBank(payload);
     }
     closeModal();
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this bank account?')) {
-      await deleteBank(id);
+  const confirm = useConfirm();
+  const handleDelete = async (id: Bank['id']) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this bank account?' }))) {
+      await deleteBank(String(id));
     }
   };
 
@@ -93,7 +106,7 @@ const BanksPage: React.FC = () => {
       filterable: true,
       width: 200,
       render: (value) => (
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-surface-foreground">
           {value}
         </span>
       )
@@ -117,7 +130,7 @@ const BanksPage: React.FC = () => {
       filterable: true,
       width: 250,
       render: (value) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-surface-muted-fg">
           {value || 'Not linked'}
         </span>
       )
@@ -149,14 +162,6 @@ const BanksPage: React.FC = () => {
     }
   ];
 
-  if ((loading.banks || loading.chartOfAccounts) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Bank Accounts...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Bank Accounts Management" actions={
@@ -164,19 +169,19 @@ const BanksPage: React.FC = () => {
           Add Bank Account
         </Button>
       }>
-         <p className="text-sm text-gray-600 mb-4">
+         <p className="text-sm text-surface-muted-fg mb-4">
           Manage the school's bank accounts. Each bank account must be linked to an Asset account in the Chart of Accounts.
         </p>
         <DataGrid 
           columns={columns} 
-          data={(banks || [])} 
+          data={bankRows}
           sortable 
           filterable 
           emptyState={
             <div className="text-center py-12">
-              <BanknotesIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No bank accounts found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first bank account.</p>
+              <BanknotesIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
+              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No bank accounts found</h3>
+              <p className="mt-1 text-sm text-surface-muted-fg">Get started by adding your first bank account.</p>
               <div className="mt-6">
                 <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
                   Add Bank Account
@@ -191,8 +196,8 @@ const BanksPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.banks}>
-              {loading.banks ? <Spinner size="sm"/> : (editingBank ? 'Save Changes' : 'Add Bank')}
+            <Button onClick={handleSubmit}>
+              {editingBank ? 'Save Changes' : 'Add Bank'}
             </Button>
           </>
         }
@@ -213,7 +218,7 @@ const BanksPage: React.FC = () => {
         <Select 
           name="gl_account_id" 
           label="Link to GL Asset Account" 
-          value={formData.gl_account_id || ''} 
+          value={formData.gl_account_id}
           onChange={handleInputChange}
           required
         >
@@ -228,5 +233,10 @@ const BanksPage: React.FC = () => {
     </div>
   );
 };
+const BanksPage: React.FC = () => (
+  <div className="space-y-6">
+    <BanksPageContent />
+  </div>
+);
 
 export default BanksPage;

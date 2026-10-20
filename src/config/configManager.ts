@@ -1,3 +1,8 @@
+// ABOUTME: Unified configuration manager: the single source of truth for app configuration, including dataMode.
+// ABOUTME: Persists to one localStorage key; initUnifiedConfig() must be awaited before the app renders.
+
+import { logger } from '@/utils/logging';
+
 /**
  * Unified Configuration Manager
  *
@@ -23,38 +28,15 @@ import {
   getDefaultDataMode,
   getDefaultDatabaseProvider,
 } from './environmentMatrix';
-import {
-  DataModeSwitchResult,
-  DataModeState,
-  switchDataMode,
-  validateDataMode,
-  getDataModeState,
-  getStoredDataMode,
-} from './dataModePolicies';
-import {
-  ProductionDemoConfig,
-  ProductionDemoState,
-  getProductionDemoConfig,
-  getProductionDemoState,
-  initializeProductionDemo,
-  transitionToLiveMode,
-} from './productionDemo';
-import {
-  DatabaseConfigValidator,
-  databaseConfigValidator,
-  ValidationResult,
-  ValidationError,
-  ValidationWarning,
-} from './databaseConfigSchema';
-import { DB_ENV_VARS } from './databaseEnvVars';
+import { DataModeSwitchResult, DataModeState, switchDataMode, getDataModeState, getStoredDataMode, takeLegacyDataMode } from './dataModePolicies';
+import { getProductionDemoConfig, getProductionDemoState, transitionToLiveMode } from './productionDemo';
+import { databaseConfigValidator, ValidationResult, ValidationError } from './databaseConfigSchema';
 import {
   loadDatabaseConfigFromEnvironment,
   loadDatabaseConfigFromFile,
   exportDatabaseConfigToEnvVars,
 } from './databaseConfigRuntime';
-import { detectOptimalConfigurationRuntime } from './environmentRuntime';
 import type {
-  BackendEnvironment,
   BackendStatus,
   DevelopmentConfig,
   DemoConfig,
@@ -427,6 +409,7 @@ export class UnifiedConfigManager {
     this.config = await this.loadConfig();
     await this.loadConfigurationFile();
     this.initialized = true;
+    this.notifyListeners();
   }
 
   public static getInstance(): UnifiedConfigManager {
@@ -440,6 +423,10 @@ export class UnifiedConfigManager {
     let config = createDefaultConfig();
 
     if (typeof window !== 'undefined') {
+      // dataMode lives only in CONFIG_STORAGE_KEY; a legacy separate key is migrated once and removed.
+      const legacyDataMode = takeLegacyDataMode();
+      const migrateLegacyDataMode = legacyDataMode !== null && getStoredDataMode() === null;
+
       try {
         const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
         const storedVersion = localStorage.getItem(CONFIG_VERSION_KEY);
@@ -448,7 +435,7 @@ export class UnifiedConfigManager {
           const parsed = JSON.parse(stored);
 
           if (storedVersion !== CONFIG_VERSION) {
-            console.log(
+            logger.info(
               'Migrating unified configuration from version',
               storedVersion,
               'to',
@@ -474,7 +461,7 @@ export class UnifiedConfigManager {
           );
 
           if (missingFlags.length > 0) {
-            console.log('Adding missing feature flags:', missingFlags);
+            logger.info('Adding missing feature flags:', missingFlags);
             missingFlags.forEach((flag) => {
               (mergedConfig.features as any)[flag] = (config.features as any)[flag];
             });
@@ -486,7 +473,18 @@ export class UnifiedConfigManager {
           localStorage.setItem(CONFIG_VERSION_KEY, CONFIG_VERSION);
         }
       } catch (error) {
-        console.warn('Failed to load stored configuration:', error);
+        logger.warn('Failed to load stored configuration:', error);
+      }
+
+      if (migrateLegacyDataMode && legacyDataMode) {
+        logger.info('Migrating legacy dataMode into the unified configuration:', legacyDataMode);
+        config.dataMode = legacyDataMode;
+        config.demo = { ...config.demo, active: legacyDataMode === 'demo' };
+        try {
+          localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+        } catch (error) {
+          logger.warn('Failed to persist migrated dataMode:', error);
+        }
       }
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -533,7 +531,7 @@ export class UnifiedConfigManager {
       this.config.lastUpdated = new Date();
       localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(this.config));
     } catch (error) {
-      console.error('Failed to save configuration:', error);
+      logger.error('Failed to save configuration:', error);
     }
   }
 
@@ -612,9 +610,7 @@ export class UnifiedConfigManager {
     }
   }
 
-  public async transitionToLiveMode(
-    confirmationInputs: Record<string, string> = {},
-  ): Promise<any> {
+  public async transitionToLiveMode(): Promise<any> {
     if (this.config.environment !== 'production') {
       throw new Error('Live mode transition is only available in production');
     }
@@ -927,22 +923,22 @@ export class UnifiedConfigManager {
       const fileConfig = await loadDatabaseConfigFromFile();
 
       if (Object.keys(fileConfig).length > 0) {
-        console.log('📁 [UnifiedConfig] Applying configuration from file');
+        logger.info('📁 [UnifiedConfig] Applying configuration from file');
         this.updateDatabaseConfig(fileConfig);
       }
     } catch (error) {
-      console.warn('📁 [UnifiedConfig] Failed to load configuration file:', error);
+      logger.warn('📁 [UnifiedConfig] Failed to load configuration file:', error);
     }
   }
 
   public reloadFromEnvironment(): void {
-    console.log('🔄 [UnifiedConfig] Reloading configuration from environment variables');
+    logger.info('🔄 [UnifiedConfig] Reloading configuration from environment variables');
 
     const envDatabaseConfig = loadDatabaseConfigFromEnvironment();
 
     if (Object.keys(envDatabaseConfig).length > 0) {
       this.updateDatabaseConfig(envDatabaseConfig);
-      console.log('✅ [UnifiedConfig] Applied environment variable overrides');
+      logger.info('✅ [UnifiedConfig] Applied environment variable overrides');
     }
   }
 
@@ -995,7 +991,7 @@ export class UnifiedConfigManager {
 
       return { success: true, changes, remainingIssues };
     } catch (error) {
-      console.error('Auto-fix failed:', error);
+      logger.error('Auto-fix failed:', error);
       return {
         success: false,
         changes: [],
@@ -1023,7 +1019,7 @@ export class UnifiedConfigManager {
 
       return { success: true, appliedMigrations, validation };
     } catch (error) {
-      console.error('Migration failed:', error);
+      logger.error('Migration failed:', error);
       return {
         success: false,
         appliedMigrations: [],
@@ -1052,7 +1048,7 @@ export class UnifiedConfigManager {
 
       return { success: true, validation };
     } catch (error) {
-      console.error('Reset to defaults failed:', error);
+      logger.error('Reset to defaults failed:', error);
       return { success: false, validation: this.validateDatabaseConfig() };
     }
   }
@@ -1085,7 +1081,7 @@ export class UnifiedConfigManager {
 
       return { success: true, changes, migrations, validation };
     } catch (error) {
-      console.error('Repair failed:', error);
+      logger.error('Repair failed:', error);
       return {
         success: false,
         changes: [],

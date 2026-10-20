@@ -65,7 +65,7 @@ const DataCard: React.FC<DataCardProps> = ({
       case 'decrease':
         return 'text-red-600 bg-red-50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-surface-muted-fg bg-surface-muted';
     }
   };
 
@@ -107,7 +107,7 @@ const DataCard: React.FC<DataCardProps> = ({
             ${stringValue.toLowerCase() === 'active' ? 'bg-green-100 text-green-800' :
               stringValue.toLowerCase() === 'inactive' ? 'bg-red-100 text-red-800' :
               stringValue.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-gray-100 text-gray-800'}
+              'bg-surface-accent text-surface-foreground'}
           `}>
             {stringValue}
           </span>
@@ -129,9 +129,9 @@ const DataCard: React.FC<DataCardProps> = ({
       case 'purple':
         return 'text-purple-600';
       case 'gray':
-        return 'text-gray-600';
+        return 'text-surface-muted-fg';
       default:
-        return 'text-blue-600';
+        return 'text-primary-600';
     }
   };
 
@@ -146,16 +146,16 @@ const DataCard: React.FC<DataCardProps> = ({
     >
       {/* Header with title and subtitle */}
       {(title || subtitle || actions) && (
-        <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
+        <div className="border-b border-surface-border px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               {title && (
-                <h3 className="text-lg font-semibold text-gray-900 truncate">
+                <h3 className="text-lg font-semibold text-surface-foreground truncate">
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="mt-1 text-sm text-gray-500 truncate">
+                <p className="mt-1 text-sm text-surface-muted-fg truncate">
                   {subtitle}
                 </p>
               )}
@@ -201,7 +201,7 @@ const DataCard: React.FC<DataCardProps> = ({
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-surface-muted-fg mt-1">
                   {metric.label}
                 </p>
               </div>
@@ -214,10 +214,10 @@ const DataCard: React.FC<DataCardProps> = ({
           <div className="space-y-3">
             {fields.map((field, index) => (
               <div key={index} className="flex justify-between items-center py-2">
-                <dt className="text-sm font-medium text-gray-500">
+                <dt className="text-sm font-medium text-surface-muted-fg">
                   {field.label}
                 </dt>
-                <dd className="text-sm text-gray-900 font-medium">
+                <dd className="text-sm text-surface-foreground font-medium">
                   {formatFieldValue(field)}
                 </dd>
               </div>

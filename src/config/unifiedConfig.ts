@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Unified Configuration System — Thin Orchestrator
  *
@@ -202,7 +204,7 @@ export const migrateConfigurationToV2 = (): void => {
   }
   const detectedEnvironment = detectEnvironment();
   _mgr.updateEnvironment(detectedEnvironment, 'env');
-  console.log('Configuration migrated to v2.0');
+  logger.info('Configuration migrated to v2.0');
 };
 
 // Backward compatibility functions (migrated from appConfig.ts)

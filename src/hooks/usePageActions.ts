@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Hook for pages to register their actions with the ActionRegistry
 // ABOUTME: Provides a simple interface for pages to define contextual actions that appear in the ActionBar
 
@@ -144,7 +146,7 @@ export const usePageActions = (
     // Note: The ActionRegistry doesn't have an unregister method yet
     // This would need to be implemented in the store
     registeredActionIds.current.delete(actionId);
-    console.warn('Action unregistration not yet implemented in ActionRegistry');
+    logger.warn('Action unregistration not yet implemented in ActionRegistry');
   }, []);
   
   // Unregister all actions registered by this hook

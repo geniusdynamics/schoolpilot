@@ -1,71 +1,58 @@
-// ABOUTME: Self-contained hook for communication template data management.
-// ABOUTME: Provides CRUD operations plus page-friendly aliases for administration pages.
+// ABOUTME: Database-backed communication templates (collection 'communication_templates') with persistent CRUD.
+// ABOUTME: Replaces the former mock hook; ids are strings, update accepts a record or (id, patch), page aliases kept.
 
-import { useState } from 'react';
-import { initialMockTemplateComms } from './mockData';
+import { useCallback, useMemo } from 'react';
 import { AdminTemplateCommType } from './types';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 
-const createTimestamp = () => new Date().toISOString();
+export const COMMUNICATION_TEMPLATES_COLLECTION = 'communication_templates';
+
+/** A stored template; ids are strings at runtime. */
+export type TemplateCommRecord = Omit<AdminTemplateCommType, 'id'> & { id: string };
+type TemplateCommInput = Omit<TemplateCommRecord, 'id' | 'created_at' | 'updated_at'>;
+
+const stamp = () => new Date().toISOString();
+
+const toStored = (record: Partial<TemplateCommRecord>) =>
+  Object.fromEntries(Object.entries(record).filter(([key, value]) => key !== 'id' && value !== undefined)) as Partial<TemplateCommRecord>;
 
 export const useTemplateCommData = () => {
-  const [data, setData] = useState<AdminTemplateCommType[]>(initialMockTemplateComms);
+  const collection = useDatabaseCollection<TemplateCommRecord>(COMMUNICATION_TEMPLATES_COLLECTION);
+  const { data, insert, update: updateDocument, remove: removeDocument, refresh } = collection;
 
-  const create = async (newItem: Partial<AdminTemplateCommType>) => {
-    const timestamp = createTimestamp();
-    const newDataItem: AdminTemplateCommType = {
-      ...(newItem as AdminTemplateCommType),
-      id: Date.now(),
-      created_at: timestamp,
-      updated_at: timestamp
-    };
+  const templateComms = useMemo(() => [...data].sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? ''))), [data]);
 
-    setData((previousTemplates) => [...previousTemplates, newDataItem]);
-    return newDataItem;
-  };
+  const create = useCallback(
+    async (newItem: TemplateCommInput) => {
+      const now = stamp();
+      return insert({ ...(toStored(newItem) as TemplateCommInput), created_at: now, updated_at: now });
+    },
+    [insert]
+  );
 
-  const update = async (
-    idOrRecord: number | AdminTemplateCommType,
-    updatedData?: Partial<AdminTemplateCommType>
-  ) => {
-    const recordToPersist =
-      typeof idOrRecord === 'object'
-        ? idOrRecord
-        : ({ id: idOrRecord, ...(updatedData || {}) } as AdminTemplateCommType);
+  const update = useCallback(
+    async (idOrRecord: string | TemplateCommRecord, patch?: Partial<TemplateCommRecord>) => {
+      const id = typeof idOrRecord === 'object' ? idOrRecord.id : idOrRecord;
+      const changes = typeof idOrRecord === 'object' ? idOrRecord : patch ?? {};
+      return updateDocument(String(id), { ...toStored(changes), updated_at: stamp() });
+    },
+    [updateDocument]
+  );
 
-    let updatedTemplate: AdminTemplateCommType | undefined;
-
-    setData((previousTemplates) =>
-      previousTemplates.map((template) => {
-        if (template.id !== recordToPersist.id) {
-          return template;
-        }
-
-        updatedTemplate = {
-          ...template,
-          ...recordToPersist,
-          updated_at: createTimestamp()
-        };
-
-        return updatedTemplate;
-      })
-    );
-
-    return updatedTemplate;
-  };
-
-  const remove = async (id: number) => {
-    setData((previousTemplates) => previousTemplates.filter((template) => template.id !== id));
-  };
+  const remove = useCallback(async (id: string) => removeDocument(String(id)), [removeDocument]);
 
   return {
-    templateComms: data,
+    templateComms,
     addTemplateComm: create,
     updateTemplateComm: update,
     deleteTemplateComm: remove,
-    data,
+    loading: collection.loading,
+    error: collection.error,
+    refresh,
+    data: templateComms,
     create,
     update,
-    remove
+    remove,
   };
 };
 

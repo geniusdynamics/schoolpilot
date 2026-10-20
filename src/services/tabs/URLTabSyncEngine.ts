@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * URL Tab Sync Engine
  * 
@@ -8,6 +10,7 @@
 import type { Tab, ParsedTabState, TabStateSnapshot } from './types';
 import { performanceEventManager } from '@/services/performance';
 import { TabStateDeriver } from './TabStateDeriver';
+import { routeToTabMapper } from './RouteToTabMapper';
 
 const STORAGE_KEY = 'sp_tabs_v2';
 const MAX_TABS = 20;
@@ -43,10 +46,9 @@ export class URLTabSyncEngine {
   });
 
   constructor() {
-    // Listen for browser back/forward
-    window.addEventListener('popstate', () => {
-      this.handleURLChange();
-    });
+    // Listen for browser back/forward — HashRouter uses hashchange, not popstate
+    window.addEventListener('popstate', () => this.handleURLChange());
+    window.addEventListener('hashchange', () => this.handleURLChange());
 
     // Listen for storage changes (cross-tab sync)
     window.addEventListener('storage', (e) => {
@@ -63,10 +65,14 @@ export class URLTabSyncEngine {
     try {
       const urlObj = new URL(url, window.location.origin);
       const params = urlObj.searchParams;
+      // The router owns the hash (HashRouter); the tab list only lives in the
+      // outer search. The active tab must follow the routed page, never a
+      // stale tab-list index.
+      const route = this.extractRoute(urlObj);
 
       const compactState = this.parseCompactTabState(params);
       if (compactState) {
-        return compactState;
+        return this.reconcileActiveTab(compactState, route);
       }
 
       // Try to get tabs from URL first
@@ -83,24 +89,29 @@ export class URLTabSyncEngine {
 
           if (Array.isArray(tabs) && tabs.length > 0) {
             const validTabs = this.validateTabs(tabs);
-            const activeTabId = params.get(LEGACY_ACTIVE_PARAM) || validTabs[0]?.id;
-            return { tabs: validTabs, activeTabId };
+            if (validTabs.length > 0) {
+              const requestedActiveId = params.get(LEGACY_ACTIVE_PARAM);
+              const activeTabId = requestedActiveId && validTabs.some(tab => tab.id === requestedActiveId)
+                ? requestedActiveId
+                : validTabs[0].id;
+              return this.reconcileActiveTab({ tabs: validTabs, activeTabId }, route);
+            }
           }
         } catch (e) {
-          console.warn('Failed to parse tabs from URL:', e);
+          logger.warn('Failed to parse tabs from URL:', e);
         }
       }
 
       // Fallback to session storage
       const stored = this.loadFromStorage();
       if (stored && stored.tabs.length > 0) {
-        return stored;
+        return this.reconcileActiveTab(stored, route);
       }
 
       // Default to dashboard
-      return this.getDefaultState();
+      return this.reconcileActiveTab(this.getDefaultState(), route);
     } catch (error) {
-      console.error('Error parsing URL:', error);
+      logger.error('Error parsing URL:', error);
       return this.getDefaultState();
     }
   }
@@ -108,13 +119,20 @@ export class URLTabSyncEngine {
   /**
    * Update URL to reflect tab state
    */
+  // Queue pending update if another is in flight instead of dropping
+  private pendingState: { state: ParsedTabState; options?: { push?: boolean } } | null = null;
+
   updateURL(state: ParsedTabState, options?: { push?: boolean }): void {
-    if (this.isProcessing) return;
+    if (this.isProcessing) {
+      this.pendingState = { state, options };
+      return;
+    }
     this.isProcessing = true;
 
     try {
-      const finalUrl = this.createURL(state);
-      const historyState = this.buildHistoryState(state);
+      const sanitizedState = this.sanitizeState(state);
+      const finalUrl = this.createURL(sanitizedState);
+      const historyState = this.buildHistoryState(sanitizedState);
       // Update browser history
       try {
         if (options?.push) {
@@ -124,26 +142,31 @@ export class URLTabSyncEngine {
         }
         performanceEventManager.markDiagnostic('tab_url_updated', {
           mode: options?.push ? 'push' : 'replace',
-          tabsCount: state.tabs.length,
-          activeTabId: state.activeTabId
+          tabsCount: sanitizedState.tabs.length,
+          activeTabId: sanitizedState.activeTabId
         });
       } catch (historyErr) {
         performanceEventManager.markDiagnostic('tab_url_update_failed', {
           error: historyErr instanceof Error ? historyErr.message : String(historyErr)
         });
-        console.warn('[URLTabSyncEngine] Failed to update browser history:', historyErr);
+        logger.warn('[URLTabSyncEngine] Failed to update browser history:', historyErr);
       }
 
       // Store in session storage for redundancy
-      this.saveToStorage(state);
+      this.saveToStorage(sanitizedState);
 
       // Notify subscribers
-      this.lastState = state;
-      this.notifySubscribers(state);
+      this.lastState = sanitizedState;
+      this.notifySubscribers(sanitizedState);
     } catch (err) {
-      console.error('Error in updateURL:', err);
+      logger.error('Error in updateURL:', err);
     } finally {
       this.isProcessing = false;
+      if (this.pendingState) {
+        const pending = this.pendingState;
+        this.pendingState = null;
+        this.updateURL(pending.state, pending.options);
+      }
     }
   }
 
@@ -159,6 +182,9 @@ export class URLTabSyncEngine {
    * Create a new tab URL
    */
   createTabURL(baseURL: string, tabId: string): string {
+    // Tab URLs are route URLs; the id is accepted for callers that address a
+    // tab by id but does not change the resulting route.
+    void tabId;
     const url = new URL(baseURL, window.location.origin);
     return url.toString();
   }
@@ -259,20 +285,33 @@ export class URLTabSyncEngine {
       try {
         callback(state);
       } catch (error) {
-        console.error('Error in tab subscriber:', error);
+        logger.error('Error in tab subscriber:', error);
       }
     });
   }
 
   private validateTabs(tabs: any[]): Tab[] {
     if (!Array.isArray(tabs)) return [];
-    
-    return tabs
-      .filter(t => t && typeof t === 'object' && t.id && t.url && t.module)
-      .slice(0, MAX_TABS)
-      .map(t => ({
-        id: String(t.id),
-        url: String(t.url),
+
+    const usedIds = new Set<string>();
+    const validatedTabs: Tab[] = [];
+
+    for (const t of tabs) {
+      if (validatedTabs.length >= MAX_TABS) break;
+      if (!t || typeof t !== 'object' || !t.id || !t.url || !t.module) continue;
+
+      const url = String(t.url);
+      if (!routeToTabMapper.isKnownAppRoute(url)) {
+        logger.warn('[URLTabSyncEngine] Ignoring restored tab url the router cannot render:', url);
+        continue;
+      }
+
+      const id = this.makeUniqueTabId(String(t.id), usedIds);
+      usedIds.add(id);
+
+      validatedTabs.push({
+        id,
+        url,
         title: String(t.title || 'Untitled'),
         module: String(t.module),
         entity: t.entity ? String(t.entity) : undefined,
@@ -285,7 +324,26 @@ export class URLTabSyncEngine {
           createdAt: Number(t.metadata?.createdAt) || Date.now(),
           lastAccessed: Number(t.metadata?.lastAccessed) || Date.now()
         }
-      }));
+      });
+    }
+
+    return validatedTabs;
+  }
+
+  /**
+   * Drop tabs whose url the router cannot render and keep the active id real
+   */
+  private sanitizeState(state: ParsedTabState): ParsedTabState {
+    const tabs = state.tabs.filter(tab => routeToTabMapper.isKnownAppRoute(tab.url));
+    if (tabs.length === state.tabs.length) {
+      return state;
+    }
+
+    const activeTabId = tabs.some(tab => tab.id === state.activeTabId)
+      ? state.activeTabId
+      : tabs[0]?.id || '';
+
+    return { tabs, activeTabId };
   }
 
   private getDefaultState(): ParsedTabState {
@@ -309,9 +367,9 @@ export class URLTabSyncEngine {
     try {
       const data = JSON.stringify(state);
       sessionStorage.setItem(STORAGE_KEY, data);
-      console.log('[URLTabSyncEngine] Saved state to storage. Tabs count:', state.tabs.length, 'Data length:', data.length);
+      logger.info('[URLTabSyncEngine] Saved state to storage. Tabs count:', state.tabs.length, 'Data length:', data.length);
     } catch (error) {
-      console.error('[URLTabSyncEngine] Failed to save tab state to storage:', error);
+      logger.error('[URLTabSyncEngine] Failed to save tab state to storage:', error);
     }
   }
 
@@ -321,16 +379,20 @@ export class URLTabSyncEngine {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.tabs && parsed.activeTabId) {
-          const validated = {
-            tabs: this.validateTabs(parsed.tabs),
-            activeTabId: parsed.activeTabId
-          };
-          console.log('[URLTabSyncEngine] Loaded state from storage. Tabs count:', validated.tabs.length);
+          const tabs = this.validateTabs(parsed.tabs);
+          if (tabs.length === 0) {
+            return null;
+          }
+          const activeTabId = tabs.some(tab => tab.id === parsed.activeTabId)
+            ? String(parsed.activeTabId)
+            : tabs[0].id;
+          const validated = { tabs, activeTabId };
+          logger.info('[URLTabSyncEngine] Loaded state from storage. Tabs count:', validated.tabs.length);
           return validated;
         }
       }
     } catch (error) {
-      console.warn('[URLTabSyncEngine] Failed to load tab state from storage:', error);
+      logger.warn('[URLTabSyncEngine] Failed to load tab state from storage:', error);
     }
     return null;
   }
@@ -346,8 +408,82 @@ export class URLTabSyncEngine {
     );
   }
 
+  /**
+   * Extract the routed page from a URL
+   *
+   * HashRouter keeps the real route in the hash. When a caller passes the
+   * router's own pathname + search (as useTabs does), that value is the route.
+   */
+  private extractRoute(urlObj: URL): string | null {
+    if (urlObj.hash && urlObj.hash !== '#') {
+      const hashRoute = urlObj.hash.startsWith('#') ? urlObj.hash.slice(1) : urlObj.hash;
+      if (!hashRoute) {
+        return null;
+      }
+      return hashRoute.startsWith('/') ? hashRoute : `/${hashRoute}`;
+    }
+
+    return `${urlObj.pathname}${urlObj.search}` || '/';
+  }
+
+  /**
+   * Point the active tab at the tab that renders the current route
+   */
+  private reconcileActiveTab(state: ParsedTabState, route: string | null): ParsedTabState {
+    if (!route) {
+      return state;
+    }
+
+    const routedTab = this.findTabByRoute(state.tabs, route);
+    if (!routedTab || routedTab.id === state.activeTabId) {
+      return state;
+    }
+
+    return { ...state, activeTabId: routedTab.id };
+  }
+
+  private findTabByRoute(tabs: Tab[], route: string): Tab | null {
+    const target = this.splitRoute(route);
+    if (!target) {
+      return null;
+    }
+
+    const tabRoutes = tabs.map(tab => ({ tab, route: this.splitRoute(tab.url) }));
+
+    // Prefer an exact path + query match (hub sub-tab state included)
+    const exact = tabRoutes.find(entry =>
+      entry.route?.pathname === target.pathname && entry.route?.search === target.search
+    );
+    if (exact) {
+      return exact.tab;
+    }
+
+    // A hub tab owns all of its sub-tab queries
+    const byPathname = tabRoutes.find(entry => entry.route?.pathname === target.pathname);
+    return byPathname ? byPathname.tab : null;
+  }
+
+  private splitRoute(route: string): { pathname: string; search: string } | null {
+    if (!route || typeof route !== 'string') {
+      return null;
+    }
+
+    try {
+      const parsed = new URL(route, window.location.origin);
+      const pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+      return { pathname: pathname.toLowerCase(), search: parsed.search };
+    } catch (error) {
+      logger.warn('[URLTabSyncEngine] Ignoring malformed route:', route, error);
+      return null;
+    }
+  }
+
   private parseCompactTabState(params: URLSearchParams): ParsedTabState | null {
-    const tabUrls = params.getAll(TAB_PARAM).filter(Boolean);
+    // Workspace tabs are route paths. A bare `tab=` value is a hub sub-tab id
+    // (`bulk-streams`, `school-periods`) and belongs to the route, not the tab
+    // strip — coercing it into "/bulk-streams" creates a 404 tab. Validation
+    // happens after URL resolution in restoreCompactTabs.
+    const tabUrls = params.getAll(TAB_PARAM);
 
     if (tabUrls.length === 0) {
       return null;
@@ -382,38 +518,72 @@ export class URLTabSyncEngine {
 
   private restoreCompactTabs(tabUrls: string[], pinnedIndices: Set<number>, dirtyIndices: Set<number>): Tab[] {
     const seenUrls = new Map<string, number>();
+    const usedIds = new Set<string>();
 
     return tabUrls
       .map(url => this.normalizeTabUrl(url))
-      .filter(Boolean)
+      .filter((url): url is string => url !== null)
       .slice(0, MAX_TABS)
       .map((url, index) => {
         const occurrence = (seenUrls.get(url) || 0) + 1;
         seenUrls.set(url, occurrence);
 
         const derivedTab = this.deriver.deriveTab(url);
+        const id = this.makeUniqueTabId(this.buildRestoredTabId(derivedTab, occurrence), usedIds);
+        usedIds.add(id);
 
         return {
           ...derivedTab,
-          id: this.buildRestoredTabId(derivedTab, occurrence),
+          id,
           pinned: pinnedIndices.has(index) || derivedTab.pinned,
           isDirty: dirtyIndices.has(index)
         };
       });
   }
 
-  private normalizeTabUrl(url: string): string {
+  private normalizeTabUrl(url: string): string | null {
+    if (!routeToTabMapper.isTabRoutePath(url)) {
+      logger.warn('[URLTabSyncEngine] Ignoring tab url that is not an app route:', url);
+      return null;
+    }
+
     try {
       const parsed = new URL(url, window.location.origin);
-      return `${parsed.pathname}${parsed.search}`;
-    } catch {
-      return url.startsWith('/') ? url : `/${url.replace(/^\/+/, '')}`;
+      const normalized = `${parsed.pathname}${parsed.search}`;
+
+      // Shape alone is not enough: resolve the url first so dot segments such
+      // as /dashboard/../bulk-streams cannot smuggle in a 404 route.
+      if (!routeToTabMapper.isKnownAppRoute(normalized)) {
+        logger.warn('[URLTabSyncEngine] Ignoring tab url the router cannot render:', url);
+        return null;
+      }
+
+      return normalized;
+    } catch (error) {
+      logger.warn('[URLTabSyncEngine] Failed to normalize tab url:', url, error);
+      return null;
     }
+  }
+
+  private makeUniqueTabId(baseId: string, usedIds: Set<string>): string {
+    if (!usedIds.has(baseId)) {
+      return baseId;
+    }
+
+    let suffix = 2;
+    while (usedIds.has(`${baseId}-${suffix}`)) {
+      suffix += 1;
+    }
+    return `${baseId}-${suffix}`;
   }
 
   createURL(state: ParsedTabState, hashRoute?: string): string {
     const url = new URL(window.location.href);
     const activeTabIndex = Math.max(0, state.tabs.findIndex(tab => tab.id === state.activeTabId));
+
+    // Routes live in the hash (HashRouter), so any real pathname (e.g. a direct
+    // hit on /login) is stale noise — pin it to the app base for clean URLs.
+    url.pathname = import.meta.env.BASE_URL || '/';
 
     this.clearTabSearchParams(url.searchParams);
     this.applyStateToSearchParams(url.searchParams, state, activeTabIndex);

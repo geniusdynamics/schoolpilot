@@ -1,7 +1,7 @@
 // ABOUTME: Enhanced page component loader with caching and health monitoring
 // ABOUTME: Provides robust loading with fallback strategies and performance tracking
 
-import React, { Suspense, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useMemo } from 'react';
 import PageLoadingIndicator from './PageLoadingIndicator';
 import PageErrorBoundary from './PageErrorBoundary';
 
@@ -285,12 +285,12 @@ const PageComponentLoader: React.FC<PageComponentLoaderProps> = ({
     
     return (
       <div className="flex items-center justify-center min-h-96 p-6">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-red-200 p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="max-w-md w-full bg-surface-card rounded-lg shadow-sm border border-red-200 p-6 text-center">
+          <h3 className="text-lg font-semibold text-surface-foreground mb-2">
             Failed to Load Page
           </h3>
           
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-surface-muted-fg mb-4">
             The <strong>{pageName}</strong> page could not be loaded.
           </p>
           
@@ -321,7 +321,7 @@ const PageComponentLoader: React.FC<PageComponentLoaderProps> = ({
 
           {process.env.NODE_ENV === 'development' && (
             <details className="mt-4 text-left">
-              <summary className="cursor-pointer text-xs text-gray-500">
+              <summary className="cursor-pointer text-xs text-surface-muted-fg">
                 Error Details (Dev Mode)
               </summary>
               <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto max-h-32">
