@@ -31,7 +31,6 @@ import {
   completeSetup,
   go,
   gridRow,
-  navigate,
   reloadAndWait,
   signIn,
 } from './goldenPathSupport';
