@@ -1,0 +1,51 @@
+{
+  "task": "P1-C02",
+  "note": "The interactive level mapping step and the name of migration M2. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values. The migration's diagnostics (the reason a legacy row could not be mapped, the level and year it wrote) stay English on purpose: a data migration has no access to the translation layer, and the operator sees them as data diagnostics.",
+  "en": {
+    "common": {
+      "migration": {
+        "m2Name": "Migrate the classes and streams into levels and class groups",
+        "levelMapping": {
+          "title": "Match the old classes to levels",
+          "intro": "Every old class becomes a level, and every old stream becomes a class group in an academic year. Check each suggestion before the database is changed.",
+          "rule": "The suggestion reads the class name (Form 1, Grade 7, Year 8) and takes the academic year that covers today. Correct anything that is wrong; the migration uses your decisions, not the suggestion.",
+          "loading": "Reading the old classes",
+          "loadFailed": "The old classes could not be read: {{error}}",
+          "noYears": "No academic year is available. Run the calendar migration first, then come back to this step.",
+          "orphanTitle": "These streams point at a class the old database does not hold and will not be migrated:",
+          "unknownClass": "unknown class",
+          "unconfirmed": "This mapping is a suggestion that has not been confirmed yet. Confirm it to save the decisions the migration uses.",
+          "empty": "The old database holds no class to match.",
+          "classLegend": "{{className}} becomes {{levelName}}",
+          "corrected": "changed by you",
+          "proposal": "Suggestion ({{confidence}}): {{rule}}",
+          "confidenceHigh": "high",
+          "confidenceMedium": "medium",
+          "confidenceLow": "low",
+          "levelName": "Level name",
+          "levelCode": "Level code",
+          "levelOrder": "Order",
+          "levelFinal": "This is the final level",
+          "noStreams": "This class has no streams: it becomes one class group with the class name.",
+          "streamsCaption": "The streams and the learners in them",
+          "stream": "Stream",
+          "learners": "Learners",
+          "year": "Academic year",
+          "defaultGroup": "One class group",
+          "yearFor": "Academic year for {{className}} {{stream}}",
+          "chooseYear": "Choose a year",
+          "yearCorrected": "The year for {{stream}} was changed by you.",
+          "yearRule": "Year suggestion ({{confidence}}): {{rule}}",
+          "problemLevel": "The level for {{className}} needs a name and a code.",
+          "problemOrdinal": "The level order for {{className}} must be a whole number from 0.",
+          "problemYear": "Choose the academic year for {{className}} {{stream}}.",
+          "saving": "Saving the mapping",
+          "confirm": "Confirm the mapping",
+          "reset": "Use the suggested mapping",
+          "saved": "The mapping is saved. The migration will use these decisions.",
+          "saveFailed": "The mapping could not be saved: {{error}}"
+        }
+      }
+    }
+  }
+}
