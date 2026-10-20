@@ -100,6 +100,10 @@ export default defineConfig(({ mode }) => {
             '**/.git_disabled/**',
             '**/AkademicoNotes/**',
             '**/.git/**',
+            // Task worktrees live inside the project. Without this, every file an agent writes in a
+            // worktree triggers a reload (or a cache-clearing full reload when a tsconfig changes),
+            // slowing the dev server and every Playwright run for no benefit.
+            '**/.claude/**',
           ],
         },
         headers: {
