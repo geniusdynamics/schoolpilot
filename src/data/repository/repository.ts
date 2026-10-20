@@ -6,6 +6,7 @@ import { asId, generateUuidv7, isId, type Id } from '@/domain/ids';
 import { ENTITY_NAMES, type EntityName, type EntityRow } from '@/domain/schema';
 import {
   applyCanonicalSchema,
+  SqliteAdapterError,
   type SqliteAdapter,
   type SqliteBindValue,
   type SqliteRow,
@@ -91,6 +92,17 @@ interface Watcher {
 }
 
 /**
+ * The transaction a write joins while one is open.
+ *
+ * The events of the writes that joined it are held here until the transaction commits:
+ * a watcher must never see a change that a later failure rolls back.
+ */
+interface AmbientTransaction {
+  readonly tx: SqliteTransaction;
+  readonly events: ChangeEvent[];
+}
+
+/**
  * The typed repository.
  *
  * Every method works on the canonical entity registry, so one implementation serves all
@@ -111,6 +123,8 @@ export class Repository {
   private readonly pendingEntities = new Set<EntityName>();
   private deliveryChain: Promise<void> = Promise.resolve();
   private commitSequence = 0;
+  /** The transaction a write joins while one is open; null when there is none. */
+  private ambient: AmbientTransaction | null = null;
 
   constructor(options: RepositoryOptions) {
     this.adapter = options.adapter;
@@ -143,6 +157,62 @@ export class Repository {
   /** The commit sequence of the last write. */
   get currentCommitSequence(): number {
     return this.commitSequence;
+  }
+
+  /**
+   * Runs a callback inside one transaction.
+   *
+   * A write made while the callback runs joins this transaction instead of opening its
+   * own, so several rows land together or not at all. The adapter refuses nested
+   * transactions, so the join is the only way a service can write several rows
+   * atomically.
+   *
+   * The change events of the writes that joined are delivered when the transaction
+   * commits, never inside it: a watcher must never see a change that a later failure
+   * rolls back. Their order is the order the writes happened in, and their commit
+   * sequences stay monotonic.
+   *
+   * A callback that throws rolls the whole transaction back and rethrows. The audit rows
+   * of the writes that joined roll back with it, so a failed transaction leaves no
+   * trail. The repository is usable again straight after: the ambient transaction is
+   * released whatever the callback did.
+   *
+   * A write issued while the callback runs joins the transaction, whatever asked for it.
+   * The repository is the unit of the write, so there is one ambient transaction at a
+   * time; a transaction opened inside another is refused by the adapter.
+   */
+  async transaction<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T> {
+    const events: ChangeEvent[] = [];
+
+    let result: T;
+    try {
+      result = await this.adapter.transaction(async (tx) => {
+        const previous = this.ambient;
+        this.ambient = { tx, events };
+        try {
+          return await work(tx);
+        } finally {
+          this.ambient = previous;
+        }
+      });
+    } catch (error) {
+      // A nested transaction is a mistake in the calling code, not a storage failure, so
+      // it keeps the adapter's own error.
+      if (error instanceof SqliteAdapterError && error.code === 'nested_transaction') {
+        throw error;
+      }
+      if (error instanceof RepositoryError) throw error;
+      throw mapStorageError(undefined, error);
+    }
+
+    // The transaction committed, so the events of the writes that joined it are
+    // delivered now, in the order the writes happened.
+    for (const event of events) {
+      this.emitChangeEvent(event);
+      this.scheduleDelivery(event.entity);
+    }
+
+    return result;
   }
 
   /** Reads one row. Soft-deleted rows are hidden unless `includeDeleted` is set. */
@@ -209,31 +279,32 @@ export class Repository {
     const encoded = encodeRow(columns, row);
     encoded[columns.concurrencyColumn] = INITIAL_VERSION;
 
-    await this.runWrite(entity, async (tx) => {
-      await this.runGuards(tx, entity, 'create', null, row);
-      await this.writeStatement(
-        tx,
-        entity,
-        insertStatement(columns, encoded),
-        Object.values(encoded),
-        encoded
-      );
-      await writeAuditEvent(tx, {
-        entity,
-        entityId: row.id,
-        action: 'create',
-        actorId: actor ?? null,
-        changedFields: Object.keys(row),
-        before: null,
-        after: row,
-        reason: options.reason ?? null,
-        createdAt: now,
-        commitSequence,
-      });
-    });
-
-    this.emitChange(entity, 'create', [row.id], options.origin, commitSequence);
-    this.scheduleDelivery(entity);
+    await this.runWrite(
+      entity,
+      async (tx) => {
+        await this.runGuards(tx, entity, 'create', null, row);
+        await this.writeStatement(
+          tx,
+          entity,
+          insertStatement(columns, encoded),
+          Object.values(encoded),
+          encoded
+        );
+        await writeAuditEvent(tx, {
+          entity,
+          entityId: row.id,
+          action: 'create',
+          actorId: actor ?? null,
+          changedFields: Object.keys(row),
+          before: null,
+          after: row,
+          reason: options.reason ?? null,
+          createdAt: now,
+          commitSequence,
+        });
+      },
+      () => this.changeEvent(entity, 'create', [row.id], options.origin, commitSequence)
+    );
 
     return toRepositoryRow(entity, row, INITIAL_VERSION);
   }
@@ -262,87 +333,88 @@ export class Repository {
     let version = INITIAL_VERSION;
     let stored: Record<string, unknown> = {};
 
-    await this.runWrite(entity, async (tx) => {
-      const raw = await tx.get<SqliteRow>(
-        `SELECT * FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`,
-        [id]
-      );
-      if (!raw) throw new RepositoryNotFoundError(entity, id);
-
-      const current = decodeRow(columns, raw);
-      // An archived row is out of the default view, so it is out of reach for a write.
-      if (current.row.deleted_at) throw new RepositoryNotFoundError(entity, id);
-      if (current.version !== expectedVersion) {
-        throw new RepositoryConflictError(
-          entity,
-          'stale_version',
-          `${entity} ${id} has version ${current.version}, but the write expected ${expectedVersion}`,
-          { id, expectedVersion, actualVersion: current.version }
+    await this.runWrite(
+      entity,
+      async (tx) => {
+        const raw = await tx.get<SqliteRow>(
+          `SELECT * FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`,
+          [id]
         );
-      }
+        if (!raw) throw new RepositoryNotFoundError(entity, id);
 
-      const merged: Record<string, unknown> = {
-        ...current.row,
-        ...definedEntries(patch as Readonly<Record<string, unknown>>),
-      };
-      merged.updated_at = now;
-      // Without an actor the row keeps the actor of the last write that named one.
-      if (actor !== undefined) merged.updated_by = actor;
+        const current = decodeRow(columns, raw);
+        // An archived row is out of the default view, so it is out of reach for a write.
+        if (current.row.deleted_at) throw new RepositoryNotFoundError(entity, id);
+        if (current.version !== expectedVersion) {
+          throw new RepositoryConflictError(
+            entity,
+            'stale_version',
+            `${entity} ${id} has version ${current.version}, but the write expected ${expectedVersion}`,
+            { id, expectedVersion, actualVersion: current.version }
+          );
+        }
 
-      const row = this.validateRow(entity, merged);
-      this.checkPermission({ action: 'update', entity, id, row });
+        const merged: Record<string, unknown> = {
+          ...current.row,
+          ...definedEntries(patch as Readonly<Record<string, unknown>>),
+        };
+        merged.updated_at = now;
+        // Without an actor the row keeps the actor of the last write that named one.
+        if (actor !== undefined) merged.updated_by = actor;
 
-      await this.runGuards(tx, entity, 'update', current.row, row);
+        const row = this.validateRow(entity, merged);
+        this.checkPermission({ action: 'update', entity, id, row });
 
-      const encoded = encodeRow(columns, row);
-      const setColumns = Object.keys(encoded).filter((name) => name !== columns.primaryKey);
-      const assignments = [
-        ...setColumns.map((name) => `"${name}" = ?`),
-        `"${columns.concurrencyColumn}" = "${columns.concurrencyColumn}" + 1`,
-      ];
-      const params: SqliteBindValue[] = [
-        ...setColumns.map((name) => encoded[name]),
-        id,
-        expectedVersion,
-      ];
+        await this.runGuards(tx, entity, 'update', current.row, row);
 
-      const result = await this.writeStatement(
-        tx,
-        entity,
-        `UPDATE "${columns.table}" SET ${assignments.join(', ')}
-           WHERE "${columns.primaryKey}" = ? AND "${columns.concurrencyColumn}" = ?`,
-        params,
-        encoded
-      );
+        const encoded = encodeRow(columns, row);
+        const setColumns = Object.keys(encoded).filter((name) => name !== columns.primaryKey);
+        const assignments = [
+          ...setColumns.map((name) => `"${name}" = ?`),
+          `"${columns.concurrencyColumn}" = "${columns.concurrencyColumn}" + 1`,
+        ];
+        const params: SqliteBindValue[] = [
+          ...setColumns.map((name) => encoded[name]),
+          id,
+          expectedVersion,
+        ];
 
-      if (result.changes === 0) {
-        throw new RepositoryConflictError(
+        const result = await this.writeStatement(
+          tx,
           entity,
-          'stale_version',
-          `${entity} ${id} changed while the write was in flight`,
-          { id, expectedVersion }
+          `UPDATE "${columns.table}" SET ${assignments.join(', ')}
+             WHERE "${columns.primaryKey}" = ? AND "${columns.concurrencyColumn}" = ?`,
+          params,
+          encoded
         );
-      }
 
-      await writeAuditEvent(tx, {
-        entity,
-        entityId: row.id,
-        action: 'update',
-        actorId: actor ?? null,
-        changedFields: changedFields(current.row, row),
-        before: current.row,
-        after: row,
-        reason: options.reason ?? null,
-        createdAt: now,
-        commitSequence,
-      });
+        if (result.changes === 0) {
+          throw new RepositoryConflictError(
+            entity,
+            'stale_version',
+            `${entity} ${id} changed while the write was in flight`,
+            { id, expectedVersion }
+          );
+        }
 
-      stored = row;
-      version = current.version + 1;
-    });
+        await writeAuditEvent(tx, {
+          entity,
+          entityId: row.id,
+          action: 'update',
+          actorId: actor ?? null,
+          changedFields: changedFields(current.row, row),
+          before: current.row,
+          after: row,
+          reason: options.reason ?? null,
+          createdAt: now,
+          commitSequence,
+        });
 
-    this.emitChange(entity, 'update', [id], options.origin, commitSequence);
-    this.scheduleDelivery(entity);
+        stored = row;
+        version = current.version + 1;
+      },
+      () => this.changeEvent(entity, 'update', [id], options.origin, commitSequence)
+    );
 
     return toRepositoryRow(entity, stored, version);
   }
@@ -368,87 +440,88 @@ export class Repository {
     let stored: Record<string, unknown> = {};
     let version = INITIAL_VERSION;
 
-    await this.runWrite(entity, async (tx) => {
-      const raw = await tx.get<SqliteRow>(
-        `SELECT * FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`,
-        [id]
-      );
-      if (!raw) throw new RepositoryNotFoundError(entity, id);
-
-      const current = decodeRow(columns, raw);
-      // An archived row is already removed.
-      if (current.row.deleted_at) throw new RepositoryNotFoundError(entity, id);
-      if (
-        options.expectedVersion !== undefined &&
-        current.version !== options.expectedVersion
-      ) {
-        throw new RepositoryConflictError(
-          entity,
-          'stale_version',
-          `${entity} ${id} has version ${current.version}, but the removal expected ${options.expectedVersion}`,
-          { id, expectedVersion: options.expectedVersion, actualVersion: current.version }
+    await this.runWrite(
+      entity,
+      async (tx) => {
+        const raw = await tx.get<SqliteRow>(
+          `SELECT * FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`,
+          [id]
         );
-      }
+        if (!raw) throw new RepositoryNotFoundError(entity, id);
 
-      const row: Record<string, unknown> = { ...current.row };
-      if (soft) {
-        row.deleted_at = now;
-        row.updated_at = now;
-        if (actor !== undefined) row.updated_by = actor;
-      }
+        const current = decodeRow(columns, raw);
+        // An archived row is already removed.
+        if (current.row.deleted_at) throw new RepositoryNotFoundError(entity, id);
+        if (
+          options.expectedVersion !== undefined &&
+          current.version !== options.expectedVersion
+        ) {
+          throw new RepositoryConflictError(
+            entity,
+            'stale_version',
+            `${entity} ${id} has version ${current.version}, but the removal expected ${options.expectedVersion}`,
+            { id, expectedVersion: options.expectedVersion, actualVersion: current.version }
+          );
+        }
 
-      // A removal is a write, so the authorizer judges it. The row is passed the same way
-      // an update passes it, because a scope can only be judged against the row.
-      this.checkPermission({ action: 'remove', entity, id, row });
+        const row: Record<string, unknown> = { ...current.row };
+        if (soft) {
+          row.deleted_at = now;
+          row.updated_at = now;
+          if (actor !== undefined) row.updated_by = actor;
+        }
 
-      const params: SqliteBindValue[] = [id];
-      let statement: string;
-      let encoded: Record<string, SqliteBindValue> = {};
+        // A removal is a write, so the authorizer judges it. The row is passed the same
+        // way an update passes it, because a scope can only be judged against the row.
+        this.checkPermission({ action: 'remove', entity, id, row });
 
-      if (soft) {
-        const encodedRow = encodeRow(columns, row);
-        encoded = encodedRow;
-        const setColumns = Object.keys(encodedRow).filter(
-          (name) => name !== columns.primaryKey
-        );
-        statement = `UPDATE "${columns.table}" SET ${setColumns
-          .map((name) => `"${name}" = ?`)
-          .join(', ')}, "${columns.concurrencyColumn}" = "${columns.concurrencyColumn}" + 1
+        const params: SqliteBindValue[] = [id];
+        let statement: string;
+        let encoded: Record<string, SqliteBindValue> = {};
+
+        if (soft) {
+          const encodedRow = encodeRow(columns, row);
+          encoded = encodedRow;
+          const setColumns = Object.keys(encodedRow).filter(
+            (name) => name !== columns.primaryKey
+          );
+          statement = `UPDATE "${columns.table}" SET ${setColumns
+            .map((name) => `"${name}" = ?`)
+            .join(', ')}, "${columns.concurrencyColumn}" = "${columns.concurrencyColumn}" + 1
              WHERE "${columns.primaryKey}" = ?`;
-        params.unshift(...setColumns.map((name) => encodedRow[name]));
-      } else {
-        statement = `DELETE FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`;
-      }
+          params.unshift(...setColumns.map((name) => encodedRow[name]));
+        } else {
+          statement = `DELETE FROM "${columns.table}" WHERE "${columns.primaryKey}" = ?`;
+        }
 
-      if (options.expectedVersion !== undefined) {
-        statement += ` AND "${columns.concurrencyColumn}" = ?`;
-        params.push(options.expectedVersion);
-      }
+        if (options.expectedVersion !== undefined) {
+          statement += ` AND "${columns.concurrencyColumn}" = ?`;
+          params.push(options.expectedVersion);
+        }
 
-      const result = await this.writeStatement(tx, entity, statement, params, encoded);
-      if (result.changes === 0) {
-        throw new RepositoryNotFoundError(entity, id);
-      }
+        const result = await this.writeStatement(tx, entity, statement, params, encoded);
+        if (result.changes === 0) {
+          throw new RepositoryNotFoundError(entity, id);
+        }
 
-      await writeAuditEvent(tx, {
-        entity,
-        entityId: id,
-        action: 'remove',
-        actorId: actor ?? null,
-        changedFields: soft ? ['deleted_at'] : Object.keys(current.row),
-        before: current.row,
-        after: soft ? row : null,
-        reason: options.reason ?? null,
-        createdAt: now,
-        commitSequence,
-      });
+        await writeAuditEvent(tx, {
+          entity,
+          entityId: id,
+          action: 'remove',
+          actorId: actor ?? null,
+          changedFields: soft ? ['deleted_at'] : Object.keys(current.row),
+          before: current.row,
+          after: soft ? row : null,
+          reason: options.reason ?? null,
+          createdAt: now,
+          commitSequence,
+        });
 
-      stored = row;
-      version = current.version + 1;
-    });
-
-    this.emitChange(entity, 'remove', [id], options.origin, commitSequence);
-    this.scheduleDelivery(entity);
+        stored = row;
+        version = current.version + 1;
+      },
+      () => this.changeEvent(entity, 'remove', [id], options.origin, commitSequence)
+    );
 
     return toRepositoryRow(entity, stored, version);
   }
@@ -625,11 +698,27 @@ export class Repository {
     }
   }
 
+  /**
+   * Runs a write.
+   *
+   * A write made while a transaction is open joins it: the adapter refuses nested
+   * transactions, so the join is the only way several rows land together. The change
+   * event of the write is delivered when the transaction that owns it commits - straight
+   * away for a write of its own, at the commit for a write that joined one.
+   */
   private async runWrite(
     entity: EntityName,
-    work: (tx: SqliteTransaction) => Promise<void>
+    work: (tx: SqliteTransaction) => Promise<void>,
+    event: () => ChangeEvent
   ): Promise<void> {
+    const ambient = this.ambient;
+
     try {
+      if (ambient) {
+        await work(ambient.tx);
+        ambient.events.push(event());
+        return;
+      }
       await this.adapter.transaction(work);
     } catch (error) {
       // A typed repository error is the answer already; only a raw storage failure is
@@ -637,6 +726,10 @@ export class Repository {
       if (error instanceof RepositoryError) throw error;
       throw mapStorageError(entity, error);
     }
+
+    const change = event();
+    this.emitChangeEvent(change);
+    this.scheduleDelivery(change.entity);
   }
 
   private async writeStatement(
@@ -679,22 +772,20 @@ export class Repository {
     return this.commitSequence;
   }
 
-  private emitChange(
+  /** The change event of a write. */
+  private changeEvent(
     entity: EntityName,
     type: ChangeType,
     ids: readonly string[],
     origin: string | undefined,
     commitSequence: number
-  ): void {
-    if (this.changeListeners.size === 0) return;
+  ): ChangeEvent {
+    return { entity, type, ids, origin: origin ?? 'repository', commitSequence };
+  }
 
-    const event: ChangeEvent = {
-      entity,
-      type,
-      ids,
-      origin: origin ?? 'repository',
-      commitSequence,
-    };
+  /** Delivers a change event to the bus. */
+  private emitChangeEvent(event: ChangeEvent): void {
+    if (this.changeListeners.size === 0) return;
 
     for (const listener of this.changeListeners) {
       try {

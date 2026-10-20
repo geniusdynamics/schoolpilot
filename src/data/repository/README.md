@@ -31,6 +31,7 @@ const updated = await repository.update('learner', learner.id, { family_name: 'O
 | `remove` | `remove<E>(entity: E, id: Id<E>, options?: RemoveOptions): Promise<RepositoryRow<E>>` |
 | `watch` | `watch<E>(entity: E, query: ListQuery \| undefined, listener: WatchListener<RepositoryRow<E>>): Unsubscribe` |
 | `subscribe` | `subscribe(listener: (event: ChangeEvent) => void): Unsubscribe` |
+| `transaction` | `transaction<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T>` - runs the callback inside one transaction |
 | `auditTrail` | `auditTrail(entity: EntityName, entityId: string): Promise<readonly AuditEvent[]>` |
 | `auditLog` | `auditLog(query?: AuditQuery): Promise<readonly AuditEvent[]>` |
 | `whenIdle` | `whenIdle(): Promise<void>` - resolves when no watch delivery is pending |
@@ -39,6 +40,38 @@ const updated = await repository.update('learner', learner.id, { family_name: 'O
 `RepositoryRow<E>` is the entity's row plus `id: Id<E>` and `rowVersion: number`.
 `Page<T>` is `{ items, total, hasMore, nextCursor? }`, the shape the query cache expects
 (DR-04).
+
+## Transactions
+
+A service that has to write several rows atomically runs them in one transaction:
+
+```ts
+await repository.transaction(async (tx) => {
+  const learner = await repository.create('learner', { ... });
+  await repository.create('enrolment', { learner_id: learner.id, ... });
+});
+```
+
+- A write made while the callback runs **joins** the transaction instead of opening its
+  own. The adapter refuses nested transactions, so the join is the only way several rows
+  can land together.
+- The audit rows of the writes that joined roll back with the transaction, so a failed
+  transaction leaves no trail.
+- A callback that throws rolls the whole transaction back and rethrows. The repository is
+  usable again straight after: the ambient transaction is released whatever the callback
+  did.
+- The **change events** of the writes that joined are delivered when the transaction
+  commits, never inside it. A watcher therefore never sees a change that a later failure
+  rolls back. Their order is the order the writes happened in, and their commit sequences
+  stay monotonic.
+- A write outside a transaction is unchanged: it opens its own transaction, and its event
+  is announced as soon as that transaction committed.
+- A write issued while the callback runs joins the transaction, whatever asked for it.
+  The repository is the unit of the write, so there is one ambient transaction at a time;
+  a transaction opened inside another is refused by the adapter.
+
+The callback is handed the adapter's transaction handle, so a service that needs a
+statement the repository does not offer can still run it inside the same transaction.
 
 ## Schemas
 
@@ -181,7 +214,9 @@ is the same for every entity. A business `version` field keeps its own value.
 2. A committed write emits a `ChangeEvent { entity, type, ids, origin, commitSequence }`
    on the change bus **before the write promise resolves**. The event is not emitted
    synchronously inside the caller's block: the transaction is awaited first, so the
-   event can only be emitted once the write is committed.
+   event can only be emitted once the write is committed. A write that joined a
+   transaction is announced when that transaction commits, never inside it, so a watcher
+   never sees a change that a later failure rolls back.
 3. A watch payload is delivered **after** the write promise resolved. The repository
    queues the delivery on a macrotask, so a caller never sees a change before its own
    write resolves and the cache may assume read-your-writes.
@@ -221,6 +256,13 @@ below, with the task that owns them.
 | 7 | invoices, payments, credit notes and refunds are immutable after posting | `invoice`, `payment`, `credit_note`, `refund` update |
 | 8 | the allocations of a payment never exceed the amount paid | `payment_allocation` create and update |
 | 10 | every foreign key resolves | every write, plus the database's own foreign keys |
+
+The canonical registry carries one rule of its own that is not a §12 item but the same
+kind: the date of an `attendance_session` has to lie inside the `academic_period` it
+names (`attendance.date_in_period`). A register that names no period is still writable -
+a day no period covers has to be registrable too. The service that opens a register
+derives the outermost covering period when the caller names none, and a period it
+derives always covers the date, so the two agree.
 
 A posted document is never un-posted. The frozen fields of a posted invoice, payment,
 credit note or refund cannot change, and the status may only move to another posted
@@ -267,6 +309,11 @@ the seam. See "Permissions".
   database keep separate counters, so a token from one is not comparable with a token
   from the other. The application runs one repository per database; a transport that
   writes from more than one has to carry its own ordering.
+- **The ambient transaction is per repository, not per caller.** A write issued while a
+  transaction callback runs joins that transaction, whatever asked for it. The repository
+  is the unit of the write, so there is one ambient transaction at a time; a service that
+  wants a write to stay outside the transaction has to make it after the callback
+  returned. See "Transactions".
 
 ## Permissions
 

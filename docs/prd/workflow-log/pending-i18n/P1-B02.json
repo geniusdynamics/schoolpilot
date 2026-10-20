@@ -39,7 +39,8 @@
           "postedImmutable": "{{field}} cannot change once the {{entity}} is {{status}}",
           "postedUnpost": "A {{status}} {{entity}} cannot move back to {{nextStatus}}; post a reversal instead",
           "allocationCurrency": "The allocation currency differs from the payment currency",
-          "allocationExceedsPayment": "The allocations of this payment exceed the amount that was paid"
+          "allocationExceedsPayment": "The allocations of this payment exceed the amount that was paid",
+          "attendanceDateInPeriod": "The register date {{date}} lies outside the academic period {{name}} ({{startDate}} to {{endDate}})"
         }
       }
     }

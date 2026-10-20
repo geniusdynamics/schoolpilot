@@ -534,6 +534,44 @@ async function enforceAllocationWithinPayment(context: InvariantContext): Promis
   }
 }
 
+/**
+ * The date of an attendance register has to lie inside the academic period it names.
+ *
+ * The canonical registry recorded the rule and left it to the repository. A register
+ * that names no period is still writable: a day no period covers has to be registrable
+ * too, and the service that opens a register derives the outermost covering period when
+ * the caller names none.
+ */
+async function enforceAttendancePeriod(context: InvariantContext): Promise<void> {
+  const periodId = text(context.after.academic_period_id);
+  if (!periodId) return;
+
+  const date = text(context.after.date);
+  if (!date) return;
+
+  const period = await context.runner.get<Record<string, unknown>>(
+    `SELECT * FROM "academic_period" WHERE "id" = ?`,
+    [periodId]
+  );
+
+  // A period that does not exist is the reference guard's business.
+  if (!period) return;
+
+  const start = text(period.start_date);
+  const end = text(period.end_date);
+  if (!start || !end) return;
+
+  if (date >= start && date <= end) return;
+
+  const name = text(period.name) ?? periodId;
+  throw new RepositoryInvariantError(context.entity, 'attendance.date_in_period', [
+    fieldIssue(
+      'date',
+      `the register date ${date} lies outside the academic period ${name} (${start} to ${end})`
+    ),
+  ]);
+}
+
 /** The entity-specific guards, on top of the shared reference and tenancy check. */
 const ENTITY_GUARDS: Partial<Record<EntityName, readonly InvariantGuard[]>> = {
   enrolment: [enforceSingleActiveEnrolment, enforceEnrolmentClassGroup],
@@ -547,6 +585,7 @@ const ENTITY_GUARDS: Partial<Record<EntityName, readonly InvariantGuard[]>> = {
   credit_note: [enforcePostedImmutability],
   refund: [enforcePostedImmutability],
   payment_allocation: [enforceAllocationWithinPayment],
+  attendance_session: [enforceAttendancePeriod],
 };
 
 /** Every guard that runs for an entity, the shared one first. */
@@ -567,4 +606,5 @@ export const ENFORCED_INVARIANTS: readonly string[] = [
   'report_card.published_snapshot_immutable',
   'finance.posted_immutable',
   'payment_allocation.within_payment',
+  'attendance.date_in_period',
 ];
