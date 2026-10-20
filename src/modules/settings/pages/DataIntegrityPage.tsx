@@ -23,6 +23,7 @@ import {
   runIntegrityReport,
   type IntegrityFinding,
   type IntegrityFindingKind,
+  type IntegrityOption,
   type IntegrityReport,
   type RepairResult,
 } from '@/domain/repair';
@@ -45,6 +46,14 @@ const KINDS: readonly { readonly kind: IntegrityFindingKind; readonly label: str
 /** A DOM-safe id for a finding, so a label can point at its control. */
 function domId(findingId: string): string {
   return `integrity-${findingId.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+}
+
+/** How many unavailable choices the page lists before it counts the rest. */
+const UNAVAILABLE_LIMIT = 10;
+
+/** The choices of a finding that cannot be made, with the reason. */
+function unavailableOptions(finding: IntegrityFinding): readonly IntegrityOption[] {
+  return (finding.fix?.options ?? []).filter((option) => !option.selectable);
 }
 
 /** The message of a failure, without the stack. */
@@ -336,18 +345,20 @@ export const DataIntegrityContent: React.FC<DataIntegrityPageProps> = ({ adapter
                               checked={consented.includes(finding.id)}
                               disabled={!finding.fix}
                               onChange={() => toggle(finding)}
-                              aria-describedby={`${domId(finding.id)}-message`}
+                              aria-describedby={`${domId(finding.id)}-details`}
                             />
                             <div className="min-w-0 flex-1">
                               <label
                                 htmlFor={domId(finding.id)}
-                                id={`${domId(finding.id)}-message`}
                                 className="block text-sm font-medium text-surface-foreground"
                               >
                                 {finding.message}
                               </label>
 
-                              <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 text-xs text-surface-muted-fg sm:grid-cols-2">
+                              <dl
+                                id={`${domId(finding.id)}-details`}
+                                className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 text-xs text-surface-muted-fg sm:grid-cols-2"
+                              >
                                 <div>
                                   <dt className="inline font-medium">Entity:</dt>{' '}
                                   <dd className="inline">{finding.entity}</dd>
@@ -403,11 +414,48 @@ export const DataIntegrityContent: React.FC<DataIntegrityPageProps> = ({ adapter
                                       {t('integrity.choose', 'Choose…')}
                                     </option>
                                     {finding.fix.options.map((option) => (
-                                      <option key={option.id} value={option.id}>
+                                      <option
+                                        key={option.id}
+                                        value={option.id}
+                                        disabled={!option.selectable}
+                                        title={option.reason ?? undefined}
+                                      >
                                         {option.label}
+                                        {option.selectable
+                                          ? ''
+                                          : ` — ${t('integrity.notAvailable', 'not available')}`}
                                       </option>
                                     ))}
                                   </select>
+                                  {unavailableOptions(finding).length > 0 && (
+                                    <details className="mt-2 text-xs text-surface-muted-fg">
+                                      <summary className="cursor-pointer">
+                                        {t(
+                                          'integrity.unavailableCount',
+                                          '{{count}} choices are not available',
+                                          { count: unavailableOptions(finding).length }
+                                        )}
+                                      </summary>
+                                      <ul className="mt-1 list-disc space-y-1 pl-5">
+                                        {unavailableOptions(finding)
+                                          .slice(0, UNAVAILABLE_LIMIT)
+                                          .map((option) => (
+                                            <li key={option.id}>
+                                              {option.label} — {option.reason}
+                                            </li>
+                                          ))}
+                                        {unavailableOptions(finding).length > UNAVAILABLE_LIMIT && (
+                                          <li>
+                                            {t(
+                                              'integrity.unavailableMore',
+                                              'and {{count}} more',
+                                              { count: unavailableOptions(finding).length - UNAVAILABLE_LIMIT }
+                                            )}
+                                          </li>
+                                        )}
+                                      </ul>
+                                    </details>
+                                  )}
                                 </div>
                               )}
                             </div>

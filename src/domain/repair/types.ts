@@ -12,15 +12,27 @@ export type IntegrityFindingKind =
 
 /** The kinds of repair the tool can apply. */
 export type IntegrityFixKind =
-  | 'clear_reference'
   | 'set_reference'
+  | 'replace_reference'
   | 'create_enrolment'
   | 'rekey_duplicate';
+
+/**
+ * The choice that drops a reference instead of pointing it at a row.
+ *
+ * It is one of the options of a {@link IntegrityFix}, not a fix of its own: the user says
+ * "clear it" the same way they say "point it at that row".
+ */
+export const CLEAR_REFERENCE = '__clear__';
 
 /** One choice a human can make for a fix. */
 export interface IntegrityOption {
   readonly id: string;
   readonly label: string;
+  /** False when the choice would break the model; the reason says why. */
+  readonly selectable: boolean;
+  /** Why the choice cannot be made; null when it can. */
+  readonly reason: string | null;
 }
 
 /**

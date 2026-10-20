@@ -5,18 +5,24 @@
 import { generateUuidv7, isId } from '@/domain/ids';
 import { storageFor, type EntityName } from '@/domain/schema';
 import type { SqliteAdapter, SqliteBindValue, SqliteTransaction } from '@/data/adapters/sqlite';
-import { applyAuditSchema, writeAuditEvent } from '@/data/repository/audit';
+import { applyAuditSchema, writeAuditEvent } from '@/data/repository';
 
-import { IntegrityContext } from './checks';
+import {
+  asText,
+  CLASS_GROUP_TABLE,
+  IntegrityContext,
+  type TargetRow,
+} from './checks';
 import { columnOf, primaryKeyColumn, quoteIdentifier, type LiveTable } from './table';
-import type {
-  AppliedRepair,
-  IntegrityFinding,
-  IntegrityFix,
-  IntegrityReport,
-  RepairConsent,
-  RepairResult,
-  SkippedRepair,
+import {
+  CLEAR_REFERENCE,
+  type AppliedRepair,
+  type IntegrityFinding,
+  type IntegrityFix,
+  type IntegrityReport,
+  type RepairConsent,
+  type RepairResult,
+  type SkippedRepair,
 } from './types';
 
 /** How a repair run is set up. */
@@ -121,12 +127,11 @@ async function applyFix(
   }
 
   switch (fix.kind) {
-    case 'clear_reference':
-      return applyColumnChange(context, finding, fix, null, options, now);
     case 'set_reference':
-      return applyColumnChange(context, finding, fix, decision ?? null, options, now);
+    case 'replace_reference':
+      return applyReferenceChange(context, finding, fix, decision ?? null, options, now);
     case 'rekey_duplicate':
-      return applyColumnChange(context, finding, fix, fix.after, options, now);
+      return applyColumnChange(context, finding, fix, fix.after, options, now, null);
     case 'create_enrolment':
       return applyEnrolment(context, finding, fix, decision ?? null, options, now);
     default: {
@@ -148,6 +153,98 @@ function rowWhere(
   return { clause: `${quoteIdentifier(primaryKey)} = ?`, params: [finding.rowId ?? ''] };
 }
 
+/** The target of a reference, and the reason it cannot be used. */
+interface ResolvedTarget {
+  readonly refusal: string | null;
+  readonly row: TargetRow | null;
+}
+
+/**
+ * Resolves the row a reference is about to point at.
+ *
+ * The row has to be live: an archived row is not part of the model, and a reference that
+ * points at one is a reference to a row that is not there as far as the model is
+ * concerned.
+ */
+async function resolveTarget(
+  context: IntegrityContext,
+  finding: IntegrityFinding,
+  value: string | null
+): Promise<ResolvedTarget> {
+  if (value === null || value === '') {
+    return { refusal: 'the tool needs the id of the row to point at', row: null };
+  }
+  if (!isId(value)) {
+    return {
+      refusal: `the id ${value} is not a canonical id (UUIDv7), so the reference would be broken again`,
+      row: null,
+    };
+  }
+  const target = finding.relatedEntity;
+  if (!target) return { refusal: null, row: null };
+
+  const row = await context.targetRow(target, value);
+  if (!row) {
+    return { refusal: `the id ${value} is not a live ${target} row`, row: null };
+  }
+  if (row.archived) {
+    return { refusal: `the id ${value} is an archived ${target} row`, row: null };
+  }
+  return { refusal: null, row };
+}
+
+/**
+ * Why a class group cannot be the class group of this row.
+ *
+ * Spec 02 §12.2: the class group of an enrolment carries the same level and academic year.
+ * The repository refuses a row that breaks it, so the tool refuses the write as well.
+ */
+function alignmentRefusal(row: Readonly<Record<string, unknown>>, target: TargetRow): string | null {
+  const rowLevel = asText(row['level_id']);
+  const rowYear = asText(row['academic_year_id']);
+  if (rowLevel === null || rowYear === null) return null;
+  if (target.levelId === null || target.academicYearId === null) {
+    return 'the class group does not carry a level and an academic year, so the tool cannot check that it matches the row';
+  }
+  if (target.levelId === rowLevel && target.academicYearId === rowYear) return null;
+  return `the class group ${target.name} is in level ${target.levelId} and academic year ${target.academicYearId}, but the row is in level ${rowLevel} and academic year ${rowYear}: the repository refuses a row whose class group carries another level or year`;
+}
+
+/** Points a reference at the row the user chose, or clears it. */
+async function applyReferenceChange(
+  context: IntegrityContext,
+  finding: IntegrityFinding,
+  fix: IntegrityFix,
+  decision: string | null,
+  options: RepairOptions,
+  now: Date
+): Promise<FixOutcome> {
+  const canClear = fix.options.some((option) => option.id === CLEAR_REFERENCE);
+  let value: string | null;
+  let align: TargetRow | null = null;
+
+  if (decision === CLEAR_REFERENCE) {
+    if (!canClear) {
+      return {
+        ok: false,
+        reason: 'the reference cannot be cleared: the model requires the field',
+      };
+    }
+    value = null;
+  } else {
+    const resolved = await resolveTarget(context, finding, decision);
+    if (resolved.refusal) return { ok: false, reason: resolved.refusal };
+    value = decision;
+    if (resolved.row && finding.relatedEntity) {
+      if (storageFor(finding.relatedEntity).table === CLASS_GROUP_TABLE) {
+        align = resolved.row;
+      }
+    }
+  }
+
+  return applyColumnChange(context, finding, fix, value, options, now, align);
+}
+
 /** Writes one column of one row and records the change. */
 async function applyColumnChange(
   context: IntegrityContext,
@@ -155,17 +252,13 @@ async function applyColumnChange(
   fix: IntegrityFix,
   value: string | null,
   options: RepairOptions,
-  now: Date
+  now: Date,
+  align: TargetRow | null
 ): Promise<FixOutcome> {
   const { adapter } = options;
   const live = await context.liveTable(fix.table);
   if (!live) {
     return { ok: false, reason: `the table ${fix.table} is not in this database` };
-  }
-
-  if (fix.kind === 'set_reference') {
-    const refusal = await refuseUnknownTarget(context, finding, value);
-    if (refusal) return { ok: false, reason: refusal };
   }
 
   const where = rowWhere(live, finding);
@@ -185,6 +278,8 @@ async function applyColumnChange(
     // A dry run says what would change, so it checks that the row is still there.
     const row = await readRow(adapter, live, where);
     if (!row) return { ok: false, reason: 'the row is gone' };
+    const refusal = align ? alignmentRefusal(row, align) : null;
+    if (refusal) return { ok: false, reason: refusal };
     return { ok: true, change };
   }
 
@@ -192,6 +287,10 @@ async function applyColumnChange(
     await adapter.transaction(async (tx) => {
       const before = await readRow(tx, live, where);
       if (!before) throw new RepairFailure('the row is gone');
+      if (align) {
+        const refusal = alignmentRefusal(before, align);
+        if (refusal) throw new RepairFailure(refusal);
+      }
       await tx.run(
         `UPDATE ${quoteIdentifier(fix.table)} SET ${quoteIdentifier(fix.column)} = ? WHERE ${where.clause}`,
         [value, ...where.params]
@@ -214,28 +313,6 @@ async function applyColumnChange(
   }
 
   return { ok: true, change };
-}
-
-/** Refuses a reference to a row that is not there, or to an id the model does not use. */
-async function refuseUnknownTarget(
-  context: IntegrityContext,
-  finding: IntegrityFinding,
-  value: string | null
-): Promise<string | null> {
-  if (value === null) return 'the tool needs the id of the row to point at';
-  if (!isId(value)) {
-    return `the id ${value} is not a canonical id (UUIDv7), so the reference would be broken again`;
-  }
-  const target = finding.relatedEntity;
-  if (!target) return null;
-  const storage = storageFor(target);
-  const live = await context.liveTable(storage.table);
-  if (!live) {
-    return `the table ${storage.table} is not in this database, so there is nothing to point at`;
-  }
-  const ids = await context.ids(storage.table, storage.primaryKey);
-  if (!ids.has(value)) return `the id ${value} is not a live ${target} row`;
-  return null;
 }
 
 /** Creates the enrolment a learner needs to have a class group. */
@@ -277,6 +354,12 @@ async function applyEnrolment(
   );
   if (!classGroup) {
     return { ok: false, reason: `the id ${classGroupId} is not a live class_group row` };
+  }
+  // An archived class group is not part of the live model: a new enrolment would point at
+  // a row that the model does not hold.
+  const deletedAt = asText(classGroup['deleted_at']);
+  if (deletedAt !== null) {
+    return { ok: false, reason: `the id ${classGroupId} is an archived class_group row` };
   }
 
   const learnerTable = storageFor(finding.entity);

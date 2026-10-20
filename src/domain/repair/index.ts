@@ -2,6 +2,7 @@
 // ABOUTME: produce, the consented fixes and the types a caller works with.
 
 export {
+  asText,
   checkDuplicateIds,
   checkReferences,
   CLASS_GROUP_TABLE,
@@ -11,6 +12,7 @@ export {
   labelForRow,
   learnerWithoutClassGroup,
   nullStreamFinding,
+  type TargetRow,
 } from './checks';
 
 export {
@@ -35,6 +37,7 @@ export {
 } from './table';
 
 export {
+  CLEAR_REFERENCE,
   findingsByKind,
   type AppliedRepair,
   type IntegrityFinding,

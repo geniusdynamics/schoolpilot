@@ -1,18 +1,18 @@
 // ABOUTME: Tests the integrity and repair tool against a real SQLite database holding
-// ABOUTME: audit-era data: a legacy learner table with numeric ids, a missing class group, an
-// ABOUTME: orphan reference and a duplicate id.
+// ABOUTME: audit-era data: a legacy-shaped learner table with numeric ids, a missing class
+// ABOUTME: group, an orphan reference and a duplicate id.
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { createNodeSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
-import { createRepository } from '@/data/repository';
+import { createRepository, guardsFor } from '@/data/repository';
 import { applyAuditSchema } from '@/data/repository/audit';
 import {
   closeTestContext,
   createTestContext,
 } from '@/data/repository/__tests__/helpers';
 
-import { applyIntegrityFixes, findingsByKind, runIntegrityReport } from '..';
+import { applyIntegrityFixes, CLEAR_REFERENCE, findingsByKind, runIntegrityReport } from '..';
 import type { IntegrityFinding, IntegrityFindingKind } from '../types';
 
 /** The ids of the fixture rows. Every one of them is a canonical UUIDv7. */
@@ -30,6 +30,19 @@ const IDS = {
   classlessLearner: '01930000-0000-7000-8000-00000000000b',
   duplicate: '01930000-0000-7000-8000-00000000000c',
   missingHouse: '01930000-0000-7000-8000-00000000000d',
+  otherLevel: '01930000-0000-7000-8000-000000000010',
+  otherYear: '01930000-0000-7000-8000-000000000011',
+  otherClassGroup: '01930000-0000-7000-8000-000000000012',
+  archivedClassGroup: '01930000-0000-7000-8000-000000000013',
+  legacyLearner: '01930000-0000-7000-8000-00000000000e',
+} as const;
+
+/** The enrolments of the fixture. */
+const ENROLMENTS = {
+  good: '01930000-0000-7000-8000-0000000000e1',
+  legacyClassGroup: '01930000-0000-7000-8000-0000000000e2',
+  orphanLearner: '01930000-0000-7000-8000-0000000000e3',
+  malformedLearner: '01930000-0000-7000-8000-0000000000e4',
 } as const;
 
 const TIMESTAMP = '2027-01-05T08:00:00.000Z';
@@ -50,7 +63,7 @@ const AUDIT_ERA_SCHEMA = [
   `CREATE TABLE "level" ("id" TEXT PRIMARY KEY, "name" TEXT)`,
   `CREATE TABLE "class_group" (
      "id" TEXT PRIMARY KEY, "name" TEXT, "institution_id" TEXT,
-     "academic_year_id" TEXT, "programme_id" TEXT, "level_id" TEXT
+     "academic_year_id" TEXT, "programme_id" TEXT, "level_id" TEXT, "deleted_at" TEXT
    )`,
   `CREATE TABLE "learner" (
      "id" TEXT, "institution_id" TEXT, "given_name" TEXT, "family_name" TEXT,
@@ -59,29 +72,50 @@ const AUDIT_ERA_SCHEMA = [
   `CREATE TABLE "enrolment" (
      "id" TEXT PRIMARY KEY, "institution_id" TEXT, "learner_id" TEXT,
      "academic_year_id" TEXT, "programme_id" TEXT, "level_id" TEXT, "class_group_id" TEXT,
-     "status" TEXT, "start_date" TEXT, "entry_reason" TEXT, "created_at" TEXT, "updated_at" TEXT
+     "status" TEXT, "start_date" TEXT, "end_date" TEXT, "entry_reason" TEXT,
+     "created_at" TEXT, "updated_at" TEXT, "deleted_at" TEXT
    )`,
 ];
+
+/** An enrolment row of the audit-era fixture. */
+function enrolmentRow(id: string, learnerId: string, classGroupId: string): string {
+  return `INSERT INTO "enrolment" (
+      "id", "institution_id", "learner_id", "academic_year_id", "programme_id", "level_id",
+      "class_group_id", "status", "start_date", "end_date", "entry_reason",
+      "created_at", "updated_at", "deleted_at"
+    ) VALUES (
+      '${id}', '${IDS.institution}', '${learnerId}', '${IDS.academicYear}', '${IDS.programme}',
+      '${IDS.level}', '${classGroupId}', 'active', '2027-01-05', NULL, 'new_admission',
+      '${TIMESTAMP}', '${TIMESTAMP}', NULL
+    )`;
+}
 
 const AUDIT_ERA_ROWS = [
   `INSERT INTO "institution" VALUES ('${IDS.institution}', 'Greenfield School')`,
   `INSERT INTO "house" VALUES ('${IDS.house}', 'Bamba House')`,
   `INSERT INTO "household" VALUES ('${IDS.household}', 'Otieno household')`,
   `INSERT INTO "academic_year" VALUES ('${IDS.academicYear}', '2027', '2027-01-05', '2027-12-18')`,
+  `INSERT INTO "academic_year" VALUES ('${IDS.otherYear}', '2028', '2028-01-05', '2028-12-18')`,
   `INSERT INTO "programme" VALUES ('${IDS.programme}', 'CBC')`,
   `INSERT INTO "level" VALUES ('${IDS.level}', 'Grade 6')`,
-  `INSERT INTO "class_group" VALUES ('${IDS.classGroup}', 'Grade 6 Blue', '${IDS.institution}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}')`,
+  `INSERT INTO "level" VALUES ('${IDS.otherLevel}', 'Grade 7')`,
+  `INSERT INTO "class_group" VALUES ('${IDS.classGroup}', 'Grade 6 Blue', '${IDS.institution}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}', NULL)`,
+  // A class group of another level and year: it would break the class-group alignment.
+  `INSERT INTO "class_group" VALUES ('${IDS.otherClassGroup}', 'Grade 7 Red', '${IDS.institution}', '${IDS.otherYear}', '${IDS.programme}', '${IDS.otherLevel}', NULL)`,
+  // An archived class group: it is not part of the live model.
+  `INSERT INTO "class_group" VALUES ('${IDS.archivedClassGroup}', 'Grade 6 Green (archived)', '${IDS.institution}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}', '${TIMESTAMP}')`,
   // A learner in a class, with a live house and household.
   `INSERT INTO "learner" VALUES ('${IDS.learner}', '${IDS.institution}', 'Amani', 'Otieno', 'ADM-1', 'enrolled', '${IDS.house}', '${IDS.household}')`,
-  `INSERT INTO "enrolment" VALUES ('01930000-0000-7000-8000-0000000000e1', '${IDS.institution}', '${IDS.learner}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}', '${IDS.classGroup}', 'active', '2027-01-05', 'new_admission', '${TIMESTAMP}', '${TIMESTAMP}')`,
-  // The same learner, in a class group the legacy system numbered.
-  `INSERT INTO "enrolment" VALUES ('01930000-0000-7000-8000-0000000000e2', '${IDS.institution}', '${IDS.learner}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}', '42', 'active', '2027-01-05', 'new_admission', '${TIMESTAMP}', '${TIMESTAMP}')`,
+  enrolmentRow(ENROLMENTS.good, IDS.learner, IDS.classGroup),
+  // A learner in a class group the legacy system numbered.
+  `INSERT INTO "learner" VALUES ('${IDS.legacyLearner}', '${IDS.institution}', 'Zawadi', 'Mwangi', 'ADM-8', 'applicant', NULL, NULL)`,
+  enrolmentRow(ENROLMENTS.legacyClassGroup, IDS.legacyLearner, '42'),
   // A learner whose house was deleted.
   `INSERT INTO "learner" VALUES ('${IDS.orphanLearner}', '${IDS.institution}', 'Bodu', 'Achieng', 'ADM-2', 'enrolled', '${IDS.missingHouse}', NULL)`,
-  `INSERT INTO "enrolment" VALUES ('01930000-0000-7000-8000-0000000000e3', '${IDS.institution}', '${IDS.orphanLearner}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}', '${IDS.classGroup}', 'active', '2027-01-05', 'new_admission', '${TIMESTAMP}', '${TIMESTAMP}')`,
+  enrolmentRow(ENROLMENTS.orphanLearner, IDS.orphanLearner, IDS.classGroup),
   // A learner whose household is a legacy number.
   `INSERT INTO "learner" VALUES ('${IDS.malformedLearner}', '${IDS.institution}', 'Chelsea', 'Wekesa', 'ADM-3', 'enrolled', NULL, '42')`,
-  `INSERT INTO "enrolment" VALUES ('01930000-0000-7000-8000-0000000000e4', '${IDS.institution}', '${IDS.malformedLearner}', '${IDS.academicYear}', '${IDS.programme}', '${IDS.level}', '${IDS.classGroup}', 'active', '2027-01-05', 'new_admission', '${TIMESTAMP}', '${TIMESTAMP}')`,
+  enrolmentRow(ENROLMENTS.malformedLearner, IDS.malformedLearner, IDS.classGroup),
   // A learner that is in no class at all.
   `INSERT INTO "learner" VALUES ('${IDS.classlessLearner}', '${IDS.institution}', 'Dalia', 'Mumo', 'ADM-4', 'enrolled', NULL, NULL)`,
   // Two rows that carry the same id.
@@ -148,7 +182,7 @@ describe('the integrity report', () => {
       grouped.malformed_reference,
       'malformed_reference',
       'class_group_id',
-      '01930000-0000-7000-8000-0000000000e2'
+      ENROLMENTS.legacyClassGroup
     );
     expect(enrolment).toMatchObject({ entity: 'enrolment', value: '42' });
 
@@ -194,7 +228,8 @@ describe('the integrity report', () => {
     }
   });
 
-  it('finds nothing in a database without defects', async () => {    const clean = createNodeSqliteAdapter({ filename: ':memory:', foreignKeys: true });
+  it('finds nothing in a database without defects', async () => {
+    const clean = createNodeSqliteAdapter({ filename: ':memory:', foreignKeys: true });
     await clean.open();
     try {
       for (const statement of AUDIT_ERA_SCHEMA) await clean.exec(statement);
@@ -209,6 +244,91 @@ describe('the integrity report', () => {
     } finally {
       await clean.close();
     }
+  });
+
+  it('does not report a learner whose status is not enrolled', async () => {
+    await adapter.exec(
+      `INSERT INTO "learner" VALUES ('01930000-0000-7000-8000-0000000000f0', '${IDS.institution}', 'Wanjiru', 'Kimani', 'ADM-7', 'suspended', NULL, NULL)`
+    );
+    const report = await runIntegrityReport(adapter);
+    const grouped = findingsByKind(report);
+    expect(
+      grouped.null_stream.some((finding) => finding.rowId === '01930000-0000-7000-8000-0000000000f0')
+    ).toBe(false);
+  });
+});
+
+describe('the choices a fix offers', () => {
+  it('offers the live rows of the target table and the choice to clear the reference', async () => {
+    const report = await runIntegrityReport(adapter);
+    const malformed = findingOf(
+      report.findings,
+      'malformed_reference',
+      'household_id',
+      IDS.malformedLearner
+    );
+
+    const options = malformed.fix?.options ?? [];
+    expect(options.map((option) => option.id)).toContain(CLEAR_REFERENCE);
+    expect(options.map((option) => option.id)).toContain(IDS.household);
+    expect(options.every((option) => option.selectable)).toBe(true);
+  });
+
+  it('offers every live row of the target table, not the first fifty', async () => {
+    for (let index = 0; index < 60; index += 1) {
+      const id = `01930000-0000-7000-8000-00000000${(0x1000 + index).toString(16)}`;
+      await adapter.exec(`INSERT INTO "household" VALUES ('${id}', 'Household ${index}')`);
+    }
+    const report = await runIntegrityReport(adapter);
+    const malformed = findingOf(
+      report.findings,
+      'malformed_reference',
+      'household_id',
+      IDS.malformedLearner
+    );
+
+    const households = (malformed.fix?.options ?? []).filter(
+      (option) => option.id !== CLEAR_REFERENCE
+    );
+    expect(households).toHaveLength(61);
+  });
+
+  it('does not offer an archived class group', async () => {
+    const report = await runIntegrityReport(adapter);
+    const legacy = findingOf(
+      report.findings,
+      'malformed_reference',
+      'class_group_id',
+      ENROLMENTS.legacyClassGroup
+    );
+
+    const options = legacy.fix?.options ?? [];
+    expect(options.map((option) => option.id)).not.toContain(IDS.archivedClassGroup);
+    expect(options.map((option) => option.id)).toContain(IDS.classGroup);
+  });
+
+  it('marks a class group of another level or year as not available, with the reason', async () => {
+    const report = await runIntegrityReport(adapter);
+    const legacy = findingOf(
+      report.findings,
+      'malformed_reference',
+      'class_group_id',
+      ENROLMENTS.legacyClassGroup
+    );
+
+    const other = (legacy.fix?.options ?? []).find(
+      (option) => option.id === IDS.otherClassGroup
+    );
+    expect(other).toBeDefined();
+    expect(other?.selectable).toBe(false);
+    expect(other?.reason).toContain('Grade 7');
+    expect(other?.reason).toContain('Grade 6');
+
+    const matching = (legacy.fix?.options ?? []).find(
+      (option) => option.id === IDS.classGroup
+    );
+    expect(matching?.selectable).toBe(true);
+    expect(matching?.reason).toBeNull();
   });
 });
 
@@ -227,17 +347,12 @@ describe('the consented fixes', () => {
     const before = await readTable('learner');
     const beforeEnrolments = await readTable('enrolment');
     const report = await runIntegrityReport(adapter);
-    const orphan = findingOf(
-      report.findings,
-      'orphan_reference',
-      'house_id',
-      IDS.orphanLearner
-    );
+    const orphan = findingOf(report.findings, 'orphan_reference', 'house_id', IDS.orphanLearner);
 
     const result = await applyIntegrityFixes({
       adapter,
       report,
-      consent: { findingIds: [orphan.id] },
+      consent: { findingIds: [orphan.id], decisions: { [orphan.id]: CLEAR_REFERENCE } },
       dryRun: true,
     });
 
@@ -245,7 +360,7 @@ describe('the consented fixes', () => {
     expect(result.changes).toHaveLength(1);
     expect(result.changes[0]).toMatchObject({
       findingId: orphan.id,
-      kind: 'clear_reference',
+      kind: 'replace_reference',
       before: IDS.missingHouse,
       after: null,
     });
@@ -256,17 +371,11 @@ describe('the consented fixes', () => {
   it('repairs exactly the finding that was consented to', async () => {
     const report = await runIntegrityReport(adapter);
     const orphan = findingOf(report.findings, 'orphan_reference', 'house_id', IDS.orphanLearner);
-    const malformed = findingOf(
-      report.findings,
-      'malformed_reference',
-      'household_id',
-      IDS.malformedLearner
-    );
 
     const result = await applyIntegrityFixes({
       adapter,
       report,
-      consent: { findingIds: [orphan.id] },
+      consent: { findingIds: [orphan.id], decisions: { [orphan.id]: CLEAR_REFERENCE } },
     });
 
     expect(result.changes).toHaveLength(1);
@@ -284,10 +393,9 @@ describe('the consented fixes', () => {
       [IDS.malformedLearner]
     );
     expect(untouched?.['household_id']).toBe('42');
-    expect(malformed.kind).toBe('malformed_reference');
   });
 
-  it('leaves an unconsented finding alone', async () => {
+  it('leaves a finding the user did not name alone', async () => {
     const report = await runIntegrityReport(adapter);
     const malformed = findingOf(
       report.findings,
@@ -295,11 +403,12 @@ describe('the consented fixes', () => {
       'household_id',
       IDS.malformedLearner
     );
+    const orphan = findingOf(report.findings, 'orphan_reference', 'house_id', IDS.orphanLearner);
 
     const result = await applyIntegrityFixes({
       adapter,
       report,
-      consent: { findingIds: [malformed.id] },
+      consent: { findingIds: [malformed.id], decisions: { [malformed.id]: CLEAR_REFERENCE } },
     });
 
     expect(result.changes).toHaveLength(1);
@@ -308,6 +417,13 @@ describe('the consented fixes', () => {
       [IDS.malformedLearner]
     );
     expect(repaired?.['household_id']).toBeNull();
+
+    const untouched = await adapter.get<Record<string, unknown>>(
+      'SELECT * FROM "learner" WHERE "id" = ?',
+      [IDS.orphanLearner]
+    );
+    expect(untouched?.['house_id']).toBe(IDS.missingHouse);
+    expect(orphan.kind).toBe('orphan_reference');
   });
 
   it('refuses to guess which row a legacy id meant, and says what it needs', async () => {
@@ -316,7 +432,7 @@ describe('the consented fixes', () => {
       report.findings,
       'malformed_reference',
       'class_group_id',
-      '01930000-0000-7000-8000-0000000000e2'
+      ENROLMENTS.legacyClassGroup
     );
 
     const refused = await applyIntegrityFixes({
@@ -329,7 +445,7 @@ describe('the consented fixes', () => {
     expect(refused.skipped[0].reason).toContain('class_group');
     const row = await adapter.get<Record<string, unknown>>(
       'SELECT * FROM "enrolment" WHERE "id" = ?',
-      ['01930000-0000-7000-8000-0000000000e2']
+      [ENROLMENTS.legacyClassGroup]
     );
     expect(row?.['class_group_id']).toBe('42');
   });
@@ -340,7 +456,7 @@ describe('the consented fixes', () => {
       report.findings,
       'malformed_reference',
       'class_group_id',
-      '01930000-0000-7000-8000-0000000000e2'
+      ENROLMENTS.legacyClassGroup
     );
 
     const result = await applyIntegrityFixes({
@@ -352,14 +468,160 @@ describe('the consented fixes', () => {
     expect(result.changes).toHaveLength(1);
     const row = await adapter.get<Record<string, unknown>>(
       'SELECT * FROM "enrolment" WHERE "id" = ?',
-      ['01930000-0000-7000-8000-0000000000e2']
+      [ENROLMENTS.legacyClassGroup]
     );
     expect(row?.['class_group_id']).toBe(IDS.classGroup);
   });
 
+  it('refuses a class group of another level or year, the way the repository refuses it', async () => {
+    const report = await runIntegrityReport(adapter);
+    const legacy = findingOf(
+      report.findings,
+      'malformed_reference',
+      'class_group_id',
+      ENROLMENTS.legacyClassGroup
+    );
+
+    const result = await applyIntegrityFixes({
+      adapter,
+      report,
+      consent: { findingIds: [legacy.id], decisions: { [legacy.id]: IDS.otherClassGroup } },
+    });
+
+    expect(result.changes).toHaveLength(0);
+    expect(result.skipped[0].reason).toContain('another level or year');
+    const row = await adapter.get<Record<string, unknown>>(
+      'SELECT * FROM "enrolment" WHERE "id" = ?',
+      [ENROLMENTS.legacyClassGroup]
+    );
+    expect(row?.['class_group_id']).toBe('42');
+  });
+
+  it('refuses the row the repository itself refuses (spec 02 §12.2)', async () => {
+    const report = await runIntegrityReport(adapter);
+    const legacy = findingOf(
+      report.findings,
+      'malformed_reference',
+      'class_group_id',
+      ENROLMENTS.legacyClassGroup
+    );
+
+    await applyIntegrityFixes({
+      adapter,
+      report,
+      consent: { findingIds: [legacy.id], decisions: { [legacy.id]: IDS.otherClassGroup } },
+    });
+
+    // The repository's own guard refuses the same row: the tool and the repository agree.
+    const after = {
+      id: ENROLMENTS.legacyClassGroup,
+      institution_id: IDS.institution,
+      learner_id: IDS.legacyLearner,
+      academic_year_id: IDS.academicYear,
+      programme_id: IDS.programme,
+      level_id: IDS.level,
+      class_group_id: IDS.otherClassGroup,
+      status: 'active',
+      start_date: '2027-01-05',
+      entry_reason: 'new_admission',
+    };
+    await expect(async () => {
+      for (const guard of guardsFor('enrolment')) {
+        await guard({
+          entity: 'enrolment',
+          action: 'update',
+          before: null,
+          after,
+          runner: adapter,
+          now: new Date(TIMESTAMP),
+        });
+      }
+    }).rejects.toThrow(/class_group_alignment/);
+  });
+
+  it('keeps the repaired enrolment aligned with its class group', async () => {
+    const report = await runIntegrityReport(adapter);
+    const legacy = findingOf(
+      report.findings,
+      'malformed_reference',
+      'class_group_id',
+      ENROLMENTS.legacyClassGroup
+    );
+
+    await applyIntegrityFixes({
+      adapter,
+      report,
+      consent: { findingIds: [legacy.id], decisions: { [legacy.id]: IDS.classGroup } },
+    });
+
+    const row = await adapter.get<Record<string, unknown>>(
+      'SELECT * FROM "enrolment" WHERE "id" = ?',
+      [ENROLMENTS.legacyClassGroup]
+    );
+    const group = await adapter.get<Record<string, unknown>>(
+      'SELECT * FROM "class_group" WHERE "id" = ?',
+      [IDS.classGroup]
+    );
+    expect(row?.['level_id']).toBe(group?.['level_id']);
+    expect(row?.['academic_year_id']).toBe(group?.['academic_year_id']);
+  });
+
+  it('refuses an archived class group', async () => {
+    const report = await runIntegrityReport(adapter);
+    const legacy = findingOf(
+      report.findings,
+      'malformed_reference',
+      'class_group_id',
+      ENROLMENTS.legacyClassGroup
+    );
+
+    const result = await applyIntegrityFixes({
+      adapter,
+      report,
+      consent: { findingIds: [legacy.id], decisions: { [legacy.id]: IDS.archivedClassGroup } },
+    });
+
+    expect(result.changes).toHaveLength(0);
+    expect(result.skipped[0].reason).toContain('archived');
+    const row = await adapter.get<Record<string, unknown>>(
+      'SELECT * FROM "enrolment" WHERE "id" = ?',
+      [ENROLMENTS.legacyClassGroup]
+    );
+    expect(row?.['class_group_id']).toBe('42');
+  });
+
+  it('refuses to enrol a learner in an archived class group', async () => {
+    const report = await runIntegrityReport(adapter);
+    const finding = findingOf(
+      report.findings,
+      'null_stream',
+      'enrolment.learner_id',
+      IDS.classlessLearner
+    );
+
+    const result = await applyIntegrityFixes({
+      adapter,
+      report,
+      consent: { findingIds: [finding.id], decisions: { [finding.id]: IDS.archivedClassGroup } },
+    });
+
+    expect(result.changes).toHaveLength(0);
+    expect(result.skipped[0].reason).toContain('archived');
+    const enrolments = await adapter.all<Record<string, unknown>>(
+      'SELECT * FROM "enrolment" WHERE "learner_id" = ?',
+      [IDS.classlessLearner]
+    );
+    expect(enrolments).toHaveLength(0);
+  });
+
   it('enrols a learner that has no class group, in the class group the user names', async () => {
     const report = await runIntegrityReport(adapter);
-    const finding = findingOf(report.findings, 'null_stream', 'enrolment.learner_id', IDS.classlessLearner);
+    const finding = findingOf(
+      report.findings,
+      'null_stream',
+      'enrolment.learner_id',
+      IDS.classlessLearner
+    );
 
     const result = await applyIntegrityFixes({
       adapter,
@@ -382,6 +644,26 @@ describe('the consented fixes', () => {
       status: 'active',
       start_date: '2027-01-05',
     });
+  });
+
+  it('gives the second row of a duplicate id a new id', async () => {
+    const report = await runIntegrityReport(adapter);
+    const duplicate = findingOf(report.findings, 'duplicate_id', 'id', IDS.duplicate);
+
+    const result = await applyIntegrityFixes({
+      adapter,
+      report,
+      consent: { findingIds: [duplicate.id] },
+    });
+
+    expect(result.changes).toHaveLength(1);
+    const rows = await adapter.all<Record<string, unknown>>(
+      'SELECT * FROM "learner" WHERE "admission_number" IN (?, ?)',
+      ['ADM-5', 'ADM-6']
+    );
+    const ids = rows.map((row) => String(row['id']));
+    expect(new Set(ids).size).toBe(2);
+    expect(ids).toContain(IDS.duplicate);
   });
 
   it('refuses to point at a table the database does not hold', async () => {
@@ -412,26 +694,6 @@ describe('the consented fixes', () => {
       await bare.close();
     }
   });
-
-  it('gives the second row of a duplicate id a new id', async () => {
-    const report = await runIntegrityReport(adapter);
-    const duplicate = findingOf(report.findings, 'duplicate_id', 'id', IDS.duplicate);
-
-    const result = await applyIntegrityFixes({
-      adapter,
-      report,
-      consent: { findingIds: [duplicate.id] },
-    });
-
-    expect(result.changes).toHaveLength(1);
-    const rows = await adapter.all<Record<string, unknown>>(
-      'SELECT * FROM "learner" WHERE "admission_number" IN (?, ?)',
-      ['ADM-5', 'ADM-6']
-    );
-    const ids = rows.map((row) => String(row['id']));
-    expect(new Set(ids).size).toBe(2);
-    expect(ids).toContain(IDS.duplicate);
-  });
 });
 
 describe('the record of what was done', () => {
@@ -443,7 +705,7 @@ describe('the record of what was done', () => {
     await applyIntegrityFixes({
       adapter,
       report,
-      consent: { findingIds: [orphan.id] },
+      consent: { findingIds: [orphan.id], decisions: { [orphan.id]: CLEAR_REFERENCE } },
       actor: '01930000-0000-7000-8000-0000000000ff',
     });
 
@@ -462,7 +724,12 @@ describe('the record of what was done', () => {
   it('records the enrolment it created', async () => {
     const repository = createRepository({ adapter });
     const report = await runIntegrityReport(adapter);
-    const finding = findingOf(report.findings, 'null_stream', 'enrolment.learner_id', IDS.classlessLearner);
+    const finding = findingOf(
+      report.findings,
+      'null_stream',
+      'enrolment.learner_id',
+      IDS.classlessLearner
+    );
 
     await applyIntegrityFixes({
       adapter,
@@ -488,7 +755,7 @@ describe('the record of what was done', () => {
     await applyIntegrityFixes({
       adapter,
       report,
-      consent: { findingIds: [orphan.id] },
+      consent: { findingIds: [orphan.id], decisions: { [orphan.id]: CLEAR_REFERENCE } },
       dryRun: true,
     });
 

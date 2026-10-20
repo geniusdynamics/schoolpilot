@@ -21,7 +21,12 @@ import {
   readLiveTable,
   type LiveTable,
 } from './table';
-import type { IntegrityFinding, IntegrityFix, IntegrityOption } from './types';
+import {
+  CLEAR_REFERENCE,
+  type IntegrityFinding,
+  type IntegrityFix,
+  type IntegrityOption,
+} from './types';
 
 /** The table that holds the class groups - the streams of the canonical model. */
 export const CLASS_GROUP_TABLE = storageFor('class_group').table;
@@ -33,9 +38,6 @@ const ENTITY_BY_TABLE = new Map<string, EntityName>(
 
 /** The learner statuses that mean the learner belongs to a class. */
 const LEARNER_NEEDS_CLASS = new Set(['enrolled']);
-
-/** How many rows a fix offers as choices. */
-const OPTION_LIMIT = 50;
 
 interface FieldShape {
   safeParse(value: unknown): { success: boolean };
@@ -68,6 +70,12 @@ export function fieldIsRequired(entity: EntityName, field: string): boolean {
 /** True when the value holds nothing: null, an empty string or only spaces. */
 export function isBlank(value: string | null): boolean {
   return value === null || value.trim() === '';
+}
+
+/** The value as text, or null when there is none. */
+export function asText(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  return String(value);
 }
 
 /** The label of a row, falling back to its id when the row predates the model. */
@@ -123,16 +131,31 @@ async function scanTable(
   });
 }
 
+/** One row of a table a reference may point at. */
+export interface TargetRow {
+  readonly id: string;
+  /** The label of the row, as the registry names it. */
+  readonly name: string;
+  /** The label with the id, which is what a picker shows. */
+  readonly label: string;
+  /** The level the row belongs to, when the row names one. */
+  readonly levelId: string | null;
+  /** The academic year the row belongs to, when the row names one. */
+  readonly academicYearId: string | null;
+  /** True when the row is archived: it is not part of the live model. */
+  readonly archived: boolean;
+}
+
 /**
  * What the checks read from the database.
  *
- * The live shape of a table, the ids it holds and the choices a fix may offer are read
+ * The live shape of a table, the rows it holds and the choices a fix may offer are read
  * once each: the report walks every entity, and the tables repeat.
  */
 export class IntegrityContext {
   private readonly tableCache = new Map<string, Promise<LiveTable | null>>();
   private readonly idCache = new Map<string, Promise<ReadonlySet<string>>>();
-  private readonly optionCache = new Map<string, Promise<readonly IntegrityOption[]>>();
+  private readonly targetCache = new Map<EntityName, Promise<readonly TargetRow[]>>();
 
   constructor(readonly adapter: SqliteAdapter) {}
 
@@ -168,25 +191,58 @@ export class IntegrityContext {
     return pending;
   }
 
-  /** The rows a fix may point at, as choices for the user. */
-  options(entity: EntityName): Promise<readonly IntegrityOption[]> {
-    const cached = this.optionCache.get(entity);
+  /**
+   * Every row of a table a reference may point at.
+   *
+   * The list is complete: the tool does not hide a row behind a limit, because a row the
+   * user cannot see is a row the user cannot choose. The order is the label, with the id
+   * as the tiebreaker, so the list is stable.
+   */
+  targetRows(entity: EntityName): Promise<readonly TargetRow[]> {
+    const cached = this.targetCache.get(entity);
     if (cached) return cached;
 
     const pending = (async () => {
       const storage = storageFor(entity);
       const live = await this.liveTable(storage.table);
       if (!live) return [];
+
       const rows = await this.adapter.all<Record<string, unknown>>(
-        `SELECT * FROM ${quoteIdentifier(live.table)} LIMIT ${OPTION_LIMIT}`
+        `SELECT * FROM ${quoteIdentifier(live.table)} ORDER BY ${quoteIdentifier(storage.primaryKey)}`
       );
-      return rows.map((row) => ({
-        id: String(row[storage.primaryKey]),
-        label: `${labelForRow(entity, row)} (${String(row[storage.primaryKey])})`,
-      }));
+      const hasDeletedAt = columnOf(live, 'deleted_at') !== undefined;
+
+      const targets: TargetRow[] = rows.map((row) => {
+        const id = String(row[storage.primaryKey]);
+        const name = labelForRow(entity, row);
+        return {
+          id,
+          name,
+          label: `${name} (${id})`,
+          levelId: asText(row['level_id']),
+          academicYearId: asText(row['academic_year_id']),
+          archived: hasDeletedAt && asText(row['deleted_at']) !== null,
+        };
+      });
+
+      return [...targets].sort(
+        (left, right) => left.label.localeCompare(right.label) || left.id.localeCompare(right.id)
+      );
     })();
-    this.optionCache.set(entity, pending);
+    this.targetCache.set(entity, pending);
     return pending;
+  }
+
+  /** The row with this id, archived or not. */
+  async targetRow(entity: EntityName, id: string): Promise<TargetRow | undefined> {
+    const rows = await this.targetRows(entity);
+    return rows.find((row) => row.id === id);
+  }
+
+  /** The name of the row with this id, when the table holds it. */
+  async nameOf(entity: EntityName, id: string): Promise<string | null> {
+    const row = await this.targetRow(entity, id);
+    return row ? row.name : null;
   }
 }
 
@@ -200,37 +256,85 @@ export function findingId(
   return `${kind}:${table}:${column}:${handle}`;
 }
 
-/** The fix that drops a reference the column can do without. */
-function clearReferenceFix(
-  finding: Omit<IntegrityFinding, 'fix' | 'needs'>,
-  before: string | null
-): IntegrityFix {
-  return {
-    kind: 'clear_reference',
-    findingId: finding.id,
-    entity: finding.entity,
-    table: finding.table,
-    column: finding.column,
-    rowId: finding.rowId,
-    before,
-    after: null,
-    rewritesRow: true,
-    description: `Clears ${finding.table}.${finding.column}: the reference is dropped and the row itself is kept.`,
-    needs: null,
-    options: [],
-  };
+/**
+ * The choices a reference fix offers.
+ *
+ * Every live row of the target table is a choice, and a column the model allows to be
+ * absent can be cleared as well. The tool does not narrow the list down on its own: it
+ * marks the choices that would break the model and leaves the rest to the user.
+ */
+async function referenceOptions(
+  context: IntegrityContext,
+  targetEntity: EntityName | null,
+  targetTable: string,
+  row: ScannedRow | null,
+  canClear: boolean
+): Promise<readonly IntegrityOption[]> {
+  const options: IntegrityOption[] = [];
+  if (canClear) {
+    options.push({
+      id: CLEAR_REFERENCE,
+      label: 'Clear the reference (drop the value)',
+      selectable: true,
+      reason: null,
+    });
+  }
+  if (!targetEntity) return options;
+
+  for (const target of await context.targetRows(targetEntity)) {
+    // An archived row is not part of the live model, so it is not a choice.
+    if (target.archived) continue;
+    const reason = await alignmentReason(context, targetTable, row, target);
+    options.push({ id: target.id, label: target.label, selectable: reason === null, reason });
+  }
+  return options;
 }
 
-/** The fix that points a reference at the row the user chooses. */
-function setReferenceFix(
+/**
+ * Why a class group cannot be the class group of this row.
+ *
+ * Spec 02 §12.2: the class group of an enrolment carries the same level and academic year.
+ * The repository refuses a row that breaks it, so the tool refuses the choice too.
+ */
+async function alignmentReason(
+  context: IntegrityContext,
+  targetTable: string,
+  row: ScannedRow | null,
+  target: TargetRow
+): Promise<string | null> {
+  if (targetTable !== CLASS_GROUP_TABLE || !row) return null;
+  const rowLevel = row.values['level_id'] ?? null;
+  const rowYear = row.values['academic_year_id'] ?? null;
+  // The row does not say which level and year it is in, so there is nothing to check.
+  if (rowLevel === null || rowYear === null) return null;
+  if (target.levelId === null || target.academicYearId === null) {
+    return 'the class group does not carry a level and an academic year, so the tool cannot check that it matches the row';
+  }
+  if (target.levelId === rowLevel && target.academicYearId === rowYear) return null;
+
+  const level = await context.nameOf('level', rowLevel);
+  const year = await context.nameOf('academic_year', rowYear);
+  const targetLevel = await context.nameOf('level', target.levelId);
+  const targetYear = await context.nameOf('academic_year', target.academicYearId);
+  return `the class group is in ${targetLevel ?? 'another level'} of ${targetYear ?? 'another year'}, but the row is in ${level ?? 'another level'} of ${year ?? 'another year'}: a class group carries the level and the academic year of the row that points at it`;
+}
+
+/**
+ * The fix that points a reference at the row the user chooses.
+ *
+ * A column the model allows to be absent can also be cleared, and that is one of the
+ * choices rather than a fix of its own.
+ */
+function referenceFix(
   finding: Omit<IntegrityFinding, 'fix' | 'needs'>,
   before: string | null,
   targetEntity: EntityName | null,
+  canClear: boolean,
   options: readonly IntegrityOption[]
 ): IntegrityFix {
   const target = targetEntity ?? finding.relatedEntity;
   return {
-    kind: 'set_reference',
+    kind: canClear ? 'replace_reference' : 'set_reference',
     findingId: finding.id,
     entity: finding.entity,
     table: finding.table,
@@ -239,8 +343,12 @@ function setReferenceFix(
     before,
     after: null,
     rewritesRow: true,
-    description: `Sets ${finding.table}.${finding.column} to the ${target ?? 'referenced'} row you choose. The tool does not guess which row the stored value referred to.`,
-    needs: `the id of the ${target ?? 'referenced'} row to point at`,
+    description: canClear
+      ? `Sets ${finding.table}.${finding.column} to the ${target ?? 'referenced'} row you choose, or clears the reference if you choose that instead. The tool does not guess which row the stored value referred to.`
+      : `Sets ${finding.table}.${finding.column} to the ${target ?? 'referenced'} row you choose. The tool does not guess which row the stored value referred to.`,
+    needs: canClear
+      ? `the ${target ?? 'referenced'} row to point at, or the choice to clear the reference`
+      : `the id of the ${target ?? 'referenced'} row to point at`,
     options,
   };
 }
@@ -285,7 +393,7 @@ export async function checkReferences(
     const isClassGroup = targetTable === CLASS_GROUP_TABLE;
     // A reference can only be dropped where the model allows the field to be absent. A
     // column the model requires needs a real row, even when the table would take a null.
-    const nullable = acceptsNull(live, column) && !required;
+    const canClear = acceptsNull(live, column) && !required;
 
     for (const row of rows) {
       const value = row.values[column] ?? null;
@@ -294,7 +402,9 @@ export async function checkReferences(
         // A missing reference is a defect only where the model requires one.
         if (!required) continue;
         if (isClassGroup) {
-          findings.push(await nullStreamFinding(context, entity, live, row, column, targetEntity, null));
+          findings.push(
+            await nullStreamFinding(context, entity, live, row, column, targetEntity, value, canClear)
+          );
           continue;
         }
         findings.push(
@@ -305,9 +415,10 @@ export async function checkReferences(
             row,
             column,
             targetEntity,
-            null,
+            targetTable,
+            value,
             'the reference is missing',
-            nullable
+            canClear
           )
         );
         continue;
@@ -315,7 +426,9 @@ export async function checkReferences(
 
       if (isBlank(value)) {
         if (isClassGroup && required) {
-          findings.push(await nullStreamFinding(context, entity, live, row, column, targetEntity, value));
+          findings.push(
+            await nullStreamFinding(context, entity, live, row, column, targetEntity, value, canClear)
+          );
           continue;
         }
         findings.push(
@@ -326,9 +439,10 @@ export async function checkReferences(
             row,
             column,
             targetEntity,
+            targetTable,
             value,
             'the reference is empty',
-            nullable
+            canClear
           )
         );
         continue;
@@ -343,9 +457,10 @@ export async function checkReferences(
             row,
             column,
             targetEntity,
+            targetTable,
             value,
             'the reference is not a canonical id (UUIDv7)',
-            nullable
+            canClear
           )
         );
         continue;
@@ -353,7 +468,17 @@ export async function checkReferences(
 
       if (!targetIds.has(value)) {
         findings.push(
-          await orphanFinding(context, entity, live, row, column, targetEntity, value, nullable)
+          await orphanFinding(
+            context,
+            entity,
+            live,
+            row,
+            column,
+            targetEntity,
+            targetTable,
+            value,
+            canClear
+          )
         );
       }
     }
@@ -370,8 +495,9 @@ async function orphanFinding(
   row: ScannedRow,
   column: string,
   targetEntity: EntityName | null,
+  targetTable: string,
   value: string,
-  nullable: boolean
+  canClear: boolean
 ): Promise<IntegrityFinding> {
   const id = findingId('orphan_reference', live.table, column, row.handle);
   const base = {
@@ -387,13 +513,8 @@ async function orphanFinding(
     message: `${live.table}.${column} points at ${value}, which is not a row of ${targetEntity ?? 'the referenced table'}.`,
   };
 
-  if (nullable) {
-    const fix = clearReferenceFix(base, value);
-    return { ...base, needs: null, fix };
-  }
-
-  const options = targetEntity ? await context.options(targetEntity) : [];
-  const fix = setReferenceFix(base, value, targetEntity, options);
+  const options = await referenceOptions(context, targetEntity, targetTable, row, canClear);
+  const fix = referenceFix(base, value, targetEntity, canClear, options);
   return { ...base, needs: fix.needs, fix };
 }
 
@@ -405,9 +526,10 @@ async function malformedFinding(
   row: ScannedRow,
   column: string,
   targetEntity: EntityName | null,
+  targetTable: string,
   value: string | null,
   reason: string,
-  nullable: boolean
+  canClear: boolean
 ): Promise<IntegrityFinding> {
   const id = findingId('malformed_reference', live.table, column, row.handle);
   const base = {
@@ -425,13 +547,8 @@ async function malformedFinding(
     } and ${reason}.`,
   };
 
-  if (nullable) {
-    const fix = clearReferenceFix(base, value);
-    return { ...base, needs: null, fix };
-  }
-
-  const options = targetEntity ? await context.options(targetEntity) : [];
-  const fix = setReferenceFix(base, value, targetEntity, options);
+  const options = await referenceOptions(context, targetEntity, targetTable, row, canClear);
+  const fix = referenceFix(base, value, targetEntity, canClear, options);
   return { ...base, needs: fix.needs, fix };
 }
 
@@ -448,7 +565,8 @@ export async function nullStreamFinding(
   row: ScannedRow,
   column: string,
   targetEntity: EntityName | null,
-  value: string | null
+  value: string | null,
+  canClear: boolean
 ): Promise<IntegrityFinding> {
   const id = findingId('null_stream', live.table, column, row.handle);
   const base = {
@@ -464,8 +582,14 @@ export async function nullStreamFinding(
     message: `${live.table}.${column} is empty: this row has no class group.`,
   };
 
-  const options = targetEntity ? await context.options(targetEntity) : [];
-  const fix = setReferenceFix(base, value, targetEntity, options);
+  const options = await referenceOptions(
+    context,
+    targetEntity,
+    CLASS_GROUP_TABLE,
+    row,
+    canClear
+  );
+  const fix = referenceFix(base, value, targetEntity, canClear, options);
   return { ...base, needs: fix.needs, fix };
 }
 
@@ -508,7 +632,16 @@ export async function learnerWithoutClassGroup(
     if (row.id === null) continue;
     if (enrolledLearners.has(row.id)) continue;
     const id = findingId('null_stream', learnerTable.table, 'enrolment.learner_id', row.handle);
-    const options = await context.options('class_group');
+    // The enrolment takes the level, the year and the programme of the class group, so
+    // every live class group is a choice here.
+    const options = (await context.targetRows('class_group'))
+      .filter((target) => !target.archived)
+      .map((target) => ({
+        id: target.id,
+        label: target.label,
+        selectable: true,
+        reason: null,
+      }));
     const fix: IntegrityFix = {
       kind: 'create_enrolment',
       findingId: id,
