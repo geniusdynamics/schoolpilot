@@ -1,0 +1,42 @@
+{
+  "task": "P1-C06",
+  "note": "New strings of the Settings › Data integrity page (P1-C06). The page falls back to the English text below when the key is missing. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values.",
+  "en": {
+    "common": {
+      "integrity": {
+        "title": "Data integrity",
+        "subtitle": "The checks look for references that point at a row that is not there, references that do not hold an id, learners without a class group and ids that are used twice. Nothing is changed until you agree to a fix.",
+        "checkAgain": "Check again",
+        "running": "Checking the database…",
+        "failed": "The checks could not run: {{error}}",
+        "notConnectedTitle": "The data layer is not connected",
+        "notConnected": "The checks read the canonical tables of the new data layer, which is not connected to this page yet.",
+        "summary": "Summary",
+        "total": "Findings",
+        "kinds": {
+          "orphan_reference": "Orphan references",
+          "malformed_reference": "Malformed references",
+          "null_stream": "Missing class groups",
+          "duplicate_id": "Duplicate ids"
+        },
+        "proposedFix": "Proposed fix:",
+        "needs": "The tool needs {{what}}.",
+        "empty": "(empty)",
+        "choose": "Choose…",
+        "clean": "The checks found nothing. Every reference of the canonical tables resolves.",
+        "outcome": "What was changed",
+        "outcomeNone": "Nothing was changed.",
+        "skipped": "What was not changed",
+        "preview": "What would change",
+        "previewNone": "Nothing would change.",
+        "previewButton": "Preview the changes",
+        "consent": "The fixes you agreed to",
+        "selected": "{{count}} selected",
+        "apply": "Apply the fixes",
+        "applyTitle": "Apply the fixes",
+        "applyMessage": "{{count}} changes will be written to the database. Every change is recorded in the audit trail.",
+        "confirmApply": "Yes, apply them"
+      }
+    }
+  }
+}
