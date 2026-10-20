@@ -22,6 +22,9 @@ import { useToast } from '@/hooks/useToast';
 type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | 'structure_name'>;
 
 const AcademicPeriodDefinitionsPage: React.FC = () => {
+  // GAP(P1-E01): the canonical registry models academic periods of a year, not the period
+  // definition templates ("Term 1" inside a year structure). The definitions therefore stay
+  // on their own collection until a registry change adds `academic_period_definition`.
   const appData = useAppData();
   const academicPeriodDefinitionsData = useMemo(
     () => appData.academicPeriodDefinitions || [],

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -9,15 +10,13 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { CurrencyDollarIcon, UserIcon, PlusIcon, ArrowUpIcon, ArrowDownIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { WalletTransaction, WalletTransactionType } from '../data/types';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 export const StaffWalletContent: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { staff } = useAppData();
+  const { staff } = useCanonicalStaff();
   const walletCollection = useDatabaseCollection<WalletTransaction>('staff_wallet_transactions');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -410,4 +409,5 @@ const StaffWalletPage: React.FC = () => (
   </div>
 );
 
-export default StaffWalletPage;
+const StaffWalletPageWithRepository = withCanonicalRepository(StaffWalletPage);
+export default StaffWalletPageWithRepository;

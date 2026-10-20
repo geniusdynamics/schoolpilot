@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates manual entry, dynamic tracker, attendance view, and reports into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -95,4 +96,5 @@ const StudentAttendancePage: React.FC = () => {
   );
 };
 
-export default StudentAttendancePage;
+const StudentAttendancePageWithRepository = withCanonicalRepository(StudentAttendancePage);
+export default StudentAttendancePageWithRepository;

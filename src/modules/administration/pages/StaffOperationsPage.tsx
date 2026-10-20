@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates staff directory, attendance, ID cards, wallet, and bulk updates into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -104,4 +105,5 @@ const StaffOperationsPage: React.FC = () => {
   );
 };
 
-export default StaffOperationsPage;
+const StaffOperationsPageWithRepository = withCanonicalRepository(StaffOperationsPage);
+export default StaffOperationsPageWithRepository;

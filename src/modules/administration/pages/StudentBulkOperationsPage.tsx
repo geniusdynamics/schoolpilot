@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates bulk student updates, data import, roll number assignment and year-end promotion into tabs
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -96,4 +97,5 @@ const StudentBulkOperationsPage: React.FC = () => {
   );
 };
 
-export default StudentBulkOperationsPage;
+const StudentBulkOperationsPageWithRepository = withCanonicalRepository(StudentBulkOperationsPage);
+export default StudentBulkOperationsPageWithRepository;

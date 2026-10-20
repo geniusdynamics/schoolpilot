@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates departments, designations, and clubs into a tabbed interface (3 tabs)
 
 import React from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
@@ -52,4 +53,5 @@ const SchoolOrganizationPage: React.FC = () => {
   );
 };
 
-export default SchoolOrganizationPage;
+const SchoolOrganizationPageWithRepository = withCanonicalRepository(SchoolOrganizationPage);
+export default SchoolOrganizationPageWithRepository;

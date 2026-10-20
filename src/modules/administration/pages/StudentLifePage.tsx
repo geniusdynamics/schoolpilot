@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates dormitories, student categories, and partners into a tabbed interface (3 tabs)
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -88,4 +89,5 @@ const StudentLifePage: React.FC = () => {
   );
 };
 
-export default StudentLifePage;
+const StudentLifePageWithRepository = withCanonicalRepository(StudentLifePage);
+export default StudentLifePageWithRepository;

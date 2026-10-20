@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates academic years, school periods, period definitions, and structures into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -96,5 +97,6 @@ const AcademicCalendarPage: React.FC = () => {
   );
 };
 
-export default AcademicCalendarPage;
+const AcademicCalendarPageWithRepository = withCanonicalRepository(AcademicCalendarPage);
+export default AcademicCalendarPageWithRepository;
 

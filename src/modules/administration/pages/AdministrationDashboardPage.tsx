@@ -1,6 +1,12 @@
 import React from 'react';
 import { CogIcon, AcademicCapIcon, CalendarDaysIcon, UserGroupIcon, UsersIcon, BriefcaseIcon, BuildingOffice2Icon, ListBulletIcon, PlusIcon, ClipboardDocumentListIcon, CheckCircleIcon, ArrowRightIcon, ClockIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
+import { useCanonicalClassGroups } from '../data/useCanonicalClassGroups';
+import { useCanonicalOrganisation } from '../data/useCanonicalOrganisation';
+import { useCanonicalCalendar } from '../data/useCanonicalCalendar';
 import Spinner from '@/components/ui/Spinner';
 import DonutChart from '@/components/ui/DonutChart';
 import Card from '@/components/ui/Card';
@@ -13,21 +19,21 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const AdministrationDashboardPage: React.FC = () => {
+export const AdministrationDashboardContent: React.FC = () => {
+  const { learners: students, isLoading: learnersLoading } = useCanonicalLearners();
+  const { staff, isLoading: staffLoading } = useCanonicalStaff();
+  const { classGroups: classes, isLoading: classesLoading } = useCanonicalClassGroups();
+  const { departmentRows: departments } = useCanonicalOrganisation();
+  const { academicYearRows: academicYears, academicPeriodRows } = useCanonicalCalendar();
+  // GAP(P1-E01): applications, student categories and year structures have no canonical
+  // entity; the dashboard reads them from the legacy collections.
   const {
-    loading,
-    students = [],
-    staff = [],
-    classes = [],
     academicYearStructures = [],
-    academicYears = [],
-    schoolPeriods = [],
-    departments = [],
     studentCategories = [],
     applications = [],
   } = useAppData();
 
-  if (loading.all || loading.students || loading.staff || loading.classes || loading.departments || loading.studentCategories) {
+  if (learnersLoading || staffLoading || classesLoading) {
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
 
@@ -39,17 +45,14 @@ const AdministrationDashboardPage: React.FC = () => {
     }))
     .filter(d => d.value > 0);
 
-  const studentsByCategoryData: ChartData[] = studentCategories
-    .map(cat => ({
-      name: cat.name,
-      value: students.filter(s => s.student_category_id === cat.id).length,
-    }))
-    .filter(d => d.value > 0);
+  // GAP(P1-E01): the canonical learner carries no student category, so the category chart
+  // stays empty until the registry models one.
+  const studentsByCategoryData: ChartData[] = [];
 
   // Alert calculations
   const pendingApplications = applications.filter((a: any) => a.status === 'pending' || a.status === 'submitted').length;
   const staffWithoutDept = staff.filter(s => !s.department_id).length;
-  const incompleteRecords = students.filter((s: any) => !s.admission_number || !s.date_of_birth).length;
+  const incompleteRecords = students.filter((s) => !s.admission_no || !s.date_of_birth).length;
 
   // Enhanced metrics with trends and navigation
   const metrics: DashboardMetric[] = [
@@ -248,7 +251,7 @@ const AdministrationDashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <span className="text-sm text-surface-muted-fg">School Periods</span>
-              <span className="font-semibold text-surface-foreground">{schoolPeriods.length}</span>
+              <span className="font-semibold text-surface-foreground">{academicPeriodRows.length}</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-sm text-surface-muted-fg">Total Classes</span>
@@ -319,5 +322,15 @@ const AdministrationDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+
+/**
+ * The dashboard opens the canonical repository itself when the app shell has not handed
+ * one down, so the page renders in isolation (module tests and a standalone route).
+ */
+const AdministrationDashboardPage: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <AdministrationDashboardContent />
+  </CanonicalRepositoryProvider>
+);
 
 export default AdministrationDashboardPage;

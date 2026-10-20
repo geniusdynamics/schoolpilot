@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Staff } from '@/types';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { AdminClubAndSocietyType as ClubAndSociety, ClubType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -10,12 +10,12 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/components/ui/icons';
 import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndSocietyData';
-import { useAppData } from '@/hooks/useAppData'; // For staff data only
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 
@@ -26,7 +26,7 @@ type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated
 const ClubsPage: React.FC = () => {
   const { t } = useTranslation();
   const { data: clubsAndSocieties, create: addClubAndSociety, update: updateClubAndSociety, remove: deleteClubAndSociety } = useClubAndSocietyData();
-  const { staff = [] } = useAppData(); // Only for staff data
+  const { staff } = useCanonicalStaff();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<ClubAndSociety | null>(null);
@@ -187,7 +187,7 @@ const ClubsPage: React.FC = () => {
               onChange={handleInputChange}
             >
               <option value="">Select Patron</option>
-              {staff.filter(s => s.is_active).map((staffMember: Staff) => (
+              {staff.filter(s => s.is_active).map((staffMember) => (
                 <option key={staffMember.id} value={staffMember.id}>
                   {staffMember.first_name} {staffMember.last_name}
                 </option>
@@ -206,6 +206,7 @@ const ClubsPage: React.FC = () => {
   );
 };
 
-export default ClubsPage;
+const ClubsPageWithRepository = withCanonicalRepository(ClubsPage);
+export default ClubsPageWithRepository;
 
 export const ClubsContent = ClubsPage;

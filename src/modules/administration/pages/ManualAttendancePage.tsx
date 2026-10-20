@@ -1,210 +1,187 @@
-// ABOUTME: Manual daily roll-call: pick a class stream, mark learners Present/Absent/Late and save.
-// ABOUTME: Options come from class streams (value = stream id); saving writes one mark per learner per date/session.
+// ABOUTME: Manual daily roll-call: pick a class group, mark learners Present/Absent/Late and save.
+// ABOUTME: The register and its marks are written through AttendanceService; the roster is the canonical enrolment.
 
-import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import React, { useCallback, useMemo, useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+
 import Button from '@/components/ui/Button';
-import { CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { logger } from '@/utils/logging';
+import Card from '@/components/ui/Card';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  UserIcon,
+  XCircleIcon,
+} from '@/components/ui/icons';
 import { useToast } from '@/hooks/useToast';
+import { asId } from '@/domain/ids';
+import { AttendanceService } from '@/domain/services';
+import { logger } from '@/utils/logging';
+
+import { useWritableRepository } from '../data/useWritableRepository';
+import { useCanonicalClassGroups } from '../data/useCanonicalClassGroups';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
 type AttendanceStatus = 'Present' | 'Absent' | 'Late';
 
-/** Session key for a manual full-day roll-call; (student_id, date, session) identifies a mark. */
-const MANUAL_SESSION = 'full_day';
-
-/** Shape of a row in the manual attendance grid (derived from live students). */
-interface ManualAttendanceRecord {
-  id: string;
-  student_id: string;
-  student_name: string;
-  admission_no: string;
-  class_id: string;
-  class_name: string;
-  date: string;
-  status: AttendanceStatus;
-  notes?: string;
+interface RollCallRow {
+  readonly id: string;
+  readonly learner_id: string;
+  readonly student_name: string;
+  readonly admission_no: string;
+  readonly class_name: string;
+  readonly status: AttendanceStatus;
 }
 
-export const ManualAttendanceContent: React.FC = () => {
-  const { students, classes, classStreams, loading, saveStudentAttendance } = useAppData();
+const CANONICAL_STATUS: Record<AttendanceStatus, 'present' | 'absent' | 'late'> = {
+  Present: 'present',
+  Absent: 'absent',
+  Late: 'late',
+};
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedClass, setSelectedClass] = useState('');
+export const ManualAttendanceContent: React.FC = () => {
+  const repository = useWritableRepository();
+  const { classGroups, classGroupsLookup } = useCanonicalClassGroups();
+  const { learners } = useCanonicalLearners();
+  const { staff } = useCanonicalStaff();
+  const toast = useToast();
+
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0] as string);
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [attendanceData, setAttendanceData] = useState<Record<string, AttendanceStatus>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Class stream options: value is the stream id, label is "<level> · <stream>".
-  const streamOptions = useMemo(() => {
-    const levelNameById = new Map((classes || []).map(c => [String(c.id), c.name]));
-    return (classStreams || [])
-      .map(cs => {
-        const level = levelNameById.get(String(cs.class_id)) || cs.class_name || '';
-        return { value: String(cs.id), label: [level, cs.name].filter(Boolean).join(' · ') };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
-  }, [classes, classStreams]);
-
-  const streamLabelById = useMemo(
-    () => new Map(streamOptions.map(o => [o.value, o.label])),
-    [streamOptions]
+  const classLabelById = useMemo(
+    () => new Map(classGroups.map((group) => [group.id, group.display_name])),
+    [classGroups]
   );
 
-  // Roll-call for the selected class stream (all learners when no class is chosen)
-  const rollCallRows: ManualAttendanceRecord[] = useMemo(() => {
-    const rows: ManualAttendanceRecord[] = (students || [])
-      .filter(s => !s.deleted_at)
-      .map(s => ({
-        id: String(s.id),
-        student_id: String(s.id),
-        student_name: s.display_name || `${s.first_name} ${s.last_name}`.trim(),
-        admission_no: s.admission_no,
-        class_id: String(s.current_class_stream_id ?? ''),
-        class_name: streamLabelById.get(String(s.current_class_stream_id ?? ''))
-          || [s.current_class_name, s.current_class_stream_name].filter(Boolean).join(' · ')
-          || '-',
-        date: selectedDate,
-        status: attendanceData[String(s.id)] || 'Present',
-        notes: ''
+  const rollCallRows = useMemo<RollCallRow[]>(() => {
+    const rows = learners
+      .filter((learner) => !learner.deleted_at)
+      .filter((learner) => (selectedClass ? learner.class_group_id === selectedClass : false))
+      .map((learner) => ({
+        id: learner.id,
+        learner_id: learner.id,
+        student_name: learner.name,
+        admission_no: learner.admission_no,
+        class_name: (learner.class_group_id
+          ? classLabelById.get(learner.class_group_id)
+          : undefined) ?? '—',
+        status: attendanceData[learner.id] ?? 'Present',
       }));
 
-    return selectedClass ? rows.filter(r => r.class_id === selectedClass) : rows;
-  }, [students, selectedDate, selectedClass, attendanceData, streamLabelById]);
+    if (!searchTerm) return rows;
+    const needle = searchTerm.toLowerCase();
+    return rows.filter(
+      (row) =>
+        row.student_name.toLowerCase().includes(needle) ||
+        row.admission_no.toLowerCase().includes(needle)
+    );
+  }, [learners, selectedClass, classLabelById, attendanceData, searchTerm]);
 
-  // Rows shown in the grid (roll-call narrowed by the search box)
-  const attendanceRows: ManualAttendanceRecord[] = useMemo(() => {
-    let rows = rollCallRows;
-    if (searchTerm) {
-      rows = rows.filter(r =>
-        (r.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (r.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return rows;
-  }, [rollCallRows, searchTerm]);
-
-  const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
-    setAttendanceData(prev => ({ ...prev, [studentId]: status }));
+  const handleStatusChange = (learnerId: string, status: AttendanceStatus) => {
+    setAttendanceData((previous) => ({ ...previous, [learnerId]: status }));
   };
 
-  const toast = useToast();
-  const handleSaveAttendance = async () => {
-    if (rollCallRows.length === 0) {
-      toast.showWarning('Mark at least one student before saving.');
+  const handleSaveAttendance = useCallback(async () => {
+    if (!selectedClass || rollCallRows.length === 0) {
+      toast.showWarning('Select a class group with at least one learner before saving.');
       return;
     }
+
+    // The register names the member of staff who took it. The manual entry screen has no
+    // staff picker, so it uses the first active member of the school.
+    const takenBy = staff.find((member) => member.is_active) ?? staff[0];
+    if (!takenBy) {
+      toast.showError('The school has no member of staff, so the register cannot be taken.');
+      return;
+    }
+
     setIsSaving(true);
-    logger.info('Saving attendance:', attendanceData);
     try {
-      // One mark per learner on the roll-call; unmarked learners default to Present.
-      const records = rollCallRows.map(row => {
-        const status = attendanceData[row.student_id] ?? 'Present';
-        return {
-          student_id: row.student_id,
-          class_stream_id: row.class_id,
-          period_id: 0, // Manual full-day entry (no timetable period)
-          period_name: 'Manual Entry',
-          session: MANUAL_SESSION,
-          date: selectedDate,
-          status,
-          reason_for_absence: status === 'Absent' ? 'Marked absent manually' : '',
-          student_name: row.student_name
-        };
+      const attendance = new AttendanceService({ repository });
+      const session = await attendance.openRegister({
+        scope: { kind: 'class_group', id: asId<'class_group'>(selectedClass) },
+        date: selectedDate,
+        session: 'day',
+        takenBy: asId<'staff'>(takenBy.id),
       });
-      await saveStudentAttendance(records);
-      toast.showSuccess(`Saved ${records.length} attendance record(s).`);
+
+      for (const row of rollCallRows) {
+        const status = attendanceData[row.learner_id] ?? 'Present';
+        await attendance.recordMark({
+          sessionId: asId<'attendance_session'>(session.id),
+          learnerId: asId<'learner'>(row.learner_id),
+          status: CANONICAL_STATUS[status],
+          ...(status === 'Present' ? {} : { reason: 'other' as const }),
+        });
+      }
+
+      toast.showSuccess(`Saved ${rollCallRows.length} attendance record(s).`);
       setAttendanceData({});
-    } catch (err) {
-      logger.error('Failed to save attendance:', err);
+    } catch (caught) {
+      logger.error('Failed to save attendance:', caught);
       toast.showError('Failed to save attendance.');
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [repository, selectedClass, selectedDate, rollCallRows, attendanceData, staff, toast]);
 
-  const columns: DataGridColumn<ManualAttendanceRecord>[] = [
-    {
-      key: 'student_name',
-      header: 'Student Name',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'admission_no',
-      header: 'Admission No',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'class_name',
-      header: 'Class',
-      sortable: true,
-      filterable: true
-    },
+  const columns: DataGridColumn<RollCallRow>[] = [
+    { key: 'student_name', header: 'Student Name', sortable: true, filterable: true },
+    { key: 'admission_no', header: 'Admission No', sortable: true, filterable: true },
+    { key: 'class_name', header: 'Class', sortable: true, filterable: true },
     {
       key: 'status',
       header: 'Status',
       sortable: true,
-      render: (value, record) => (
+      render: (_value, record) => (
         <div className="flex gap-2">
-          <button
-            onClick={() => handleStatusChange(record.student_id, 'Present')}
-            className={`px-3 py-1 rounded text-xs font-medium ${attendanceData[record.student_id] === 'Present' || (attendanceData[record.student_id] === undefined && value === 'Present') ? 'bg-green-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Present
-          </button>
-          <button
-            onClick={() => handleStatusChange(record.student_id, 'Absent')}
-            className={`px-3 py-1 rounded text-xs font-medium ${attendanceData[record.student_id] === 'Absent' ? 'bg-red-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Absent
-          </button>
-          <button
-            onClick={() => handleStatusChange(record.student_id, 'Late')}
-            className={`px-3 py-1 rounded text-xs font-medium ${attendanceData[record.student_id] === 'Late' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Late
-          </button>
+          {(['Present', 'Absent', 'Late'] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => handleStatusChange(record.learner_id, status)}
+              className={`rounded px-3 py-1 text-xs font-medium ${
+                record.status === status &&
+                (attendanceData[record.learner_id] === status ||
+                  (!attendanceData[record.learner_id] && status === 'Present'))
+                  ? status === 'Present'
+                    ? 'bg-green-500 text-white'
+                    : status === 'Absent'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-yellow-500 text-white'
+                  : 'bg-gray-200 text-surface-foreground'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
         </div>
-      )
+      ),
     },
-    {
-      key: 'notes',
-      header: 'Notes',
-      sortable: false,
-      render: (value) => value || '-'
-    }
   ];
 
-  const totals = useMemo(() => {
-    return {
-      total: attendanceRows.length,
-      present: attendanceRows.filter(r => attendanceData[r.student_id] === 'Present' || (attendanceData[r.student_id] === undefined && r.status === 'Present')).length,
-      absent: attendanceRows.filter(r => attendanceData[r.student_id] === 'Absent').length,
-      late: attendanceRows.filter(r => attendanceData[r.student_id] === 'Late').length
-    };
-  }, [attendanceRows, attendanceData]);
-
-  if (loading?.all && attendanceRows.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-        <span className="ml-2">Loading attendance data...</span>
-      </div>
-    );
-  }
+  const totals = useMemo(
+    () => ({
+      total: rollCallRows.length,
+      present: rollCallRows.filter((row) => row.status === 'Present').length,
+      absent: rollCallRows.filter((row) => row.status === 'Absent').length,
+      late: rollCallRows.filter((row) => row.status === 'Late').length,
+    }),
+    [rollCallRows]
+  );
 
   return (
     <div className="p-6">
       <Card
         title={
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-6 h-6 text-emerald-600" />
+            <CalendarIcon className="h-6 w-6 text-emerald-600" />
             <span>Manual Attendance</span>
           </div>
         }
@@ -214,99 +191,91 @@ export const ManualAttendanceContent: React.FC = () => {
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
           <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-emerald-600 mt-0.5" />
+            <CalendarIcon className="mt-0.5 h-5 w-5 text-emerald-600" />
             <div>
               <h3 className="font-semibold text-emerald-800">Daily Roll-Call Entry</h3>
-              <p className="text-sm text-emerald-700 mt-1">
-                Manually record daily attendance for students. Mark students as Present, Absent, or Late
-                with optional notes for each attendance record.
+              <p className="mt-1 text-sm text-emerald-700">
+                Record one full-day register for a class group. Learners not marked are saved as
+                present.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <UserIcon className="w-5 h-5" />
+              <UserIcon className="h-5 w-5" />
               <span className="text-sm font-medium">Total Students</span>
             </div>
-            <p className="text-2xl font-bold text-surface-foreground mt-2">
-              {totals.total}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-surface-foreground">{totals.total}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+              <CheckCircleIcon className="h-5 w-5 text-green-600" />
               <span className="text-sm font-medium">Present</span>
             </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {totals.present}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-green-600">{totals.present}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <XCircleIcon className="w-5 h-5 text-red-600" />
+              <XCircleIcon className="h-5 w-5 text-red-600" />
               <span className="text-sm font-medium">Absent</span>
             </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">
-              {totals.absent}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{totals.absent}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <ClockIcon className="w-5 h-5 text-yellow-600" />
+              <ClockIcon className="h-5 w-5 text-yellow-600" />
               <span className="text-sm font-medium">Late</span>
             </div>
-            <p className="text-2xl font-bold text-yellow-600 mt-2">
-              {totals.late}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-yellow-600">{totals.late}</p>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Date</label>
+        <div className="mb-6 flex flex-wrap gap-4">
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-surface-foreground" htmlFor="attendance-date">
+              Date
+            </label>
             <input
+              id="attendance-date"
               type="date"
               value={selectedDate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedDate(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             />
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
-            <select
-              value={selectedClass}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            >
-              <option value="">All Classes</option>
-              {streamOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+          <div className="flex-1">
+            <EntityPicker
+              id="attendance-class"
+              name="class_group_id"
+              label="Class"
+              value={selectedClass ? asId<'class_group'>(selectedClass) : null}
+              onChange={(id) => setSelectedClass(id)}
+              lookup={classGroupsLookup}
+              placeholder="Select class group"
+              data-testid="attendance-class-picker"
+            />
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-surface-foreground" htmlFor="attendance-search">
+              Search
+            </label>
             <input
+              id="attendance-search"
               type="text"
               placeholder="Student, admission..."
               value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             />
           </div>
         </div>
 
-        <DataGrid
-          data={attendanceRows}
-          columns={columns}
-        />
+        <DataGrid data={rollCallRows} columns={columns} />
       </Card>
     </div>
   );
@@ -318,4 +287,5 @@ const ManualAttendancePage: React.FC = () => (
   </div>
 );
 
-export default ManualAttendancePage;
+const ManualAttendancePageWithRepository = withCanonicalRepository(ManualAttendancePage);
+export default ManualAttendancePageWithRepository;

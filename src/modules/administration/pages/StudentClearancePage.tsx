@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -8,8 +9,9 @@ import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 
 import { useAppData } from '@/hooks/useAppData';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import { useTranslation } from 'react-i18next';
-import type { StudentClearanceRequest, StudentClearance, ClearanceRequestStatus, ClearanceStatus, ClearanceType } from '../data/types';
+import type { StudentClearanceRequest, ClearanceRequestStatus, ClearanceStatus } from '../data/types';
 import { CheckCircleIcon, EyeIcon, PlusIcon } from '@/components/ui/icons';
 import { useToast } from '@/hooks/useToast';
 
@@ -17,11 +19,9 @@ const StudentClearancePage: React.FC = () => {
   const { t } = useTranslation('administration');
   const {
     student_clearance_requests = [],
-    student_clearances = [],
-    students = [],
     academic_years = [],
-    loading
   } = useAppData();
+  const { learners: students, isLoading: loading } = useCanonicalLearners();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<StudentClearanceRequest | null>(null);
@@ -216,7 +216,7 @@ const StudentClearancePage: React.FC = () => {
             label="Student"
             value={formData.student_id}
             onChange={(value) => handleInputChange('student_id', value)}
-            options={students.map((s: any) => ({ label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_number ? ` (${s.admission_number})` : ''), value: s.id }))}
+            options={students.map((s) => ({ label: `${[s.first_name, s.last_name].filter(Boolean).join(' ')} (${s.admission_no})`, value: s.id }))}
             required
           />
           <Select
@@ -238,6 +238,7 @@ const StudentClearancePage: React.FC = () => {
   );
 };
 
-export default StudentClearancePage;
+const StudentClearancePageWithRepository = withCanonicalRepository(StudentClearancePage);
+export default StudentClearancePageWithRepository;
 
 export const StudentClearanceContent = StudentClearancePage;

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
@@ -41,7 +42,7 @@ const toCertificateStudent = (student: Student): TransferCertificateStudent => {
 
 export const TransferCertificateContent: React.FC = () => {
 
-  const { students, loading } = useAppData();
+  const { learners: students, isLoading } = useCanonicalLearners();
 
   const [selectedClass, setSelectedClass] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,7 +85,7 @@ export const TransferCertificateContent: React.FC = () => {
     window.print();
   };
 
-  if (loading.all && filteredStudents.length === 0) {
+  if (isLoading && filteredStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -275,4 +276,5 @@ const TransferCertificatePage: React.FC = () => (
   </div>
 );
 
-export default TransferCertificatePage;
+const TransferCertificatePageWithRepository = withCanonicalRepository(TransferCertificatePage);
+export default TransferCertificatePageWithRepository;

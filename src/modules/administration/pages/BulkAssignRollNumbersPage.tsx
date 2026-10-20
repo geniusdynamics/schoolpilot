@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { useAdministration } from '../hooks/useAdministration';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -7,7 +7,6 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, ArrowPathIcon, CheckIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
 import type { StudentRollNumber } from '../data/types';
 import type { Student } from '@/core/types';
 import { StudentStatus } from '@/core/types';
@@ -25,7 +24,9 @@ const composeClassName = (student: Student): string => {
 };
 
 export const BulkAssignRollNumbersContent: React.FC = () => {
-  const { students, loading, updateStudent } = useAppData();
+  // GAP(P1-E01): the roll number has no canonical learner column, so the bulk screen
+  // keeps the legacy student collection through the module facade until P1-C03/P1-E06.
+  const { students, updateStudent } = useAdministration();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState('');
@@ -166,14 +167,9 @@ export const BulkAssignRollNumbersContent: React.FC = () => {
     };
   }, [studentRows]);
 
-  if (loading?.all && studentRows.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-        <span className="ml-2">Loading student records...</span>
-      </div>
-    );
-  }
+  // The grid owns the empty state; there is no page-level loading screen once the
+  // canonical repository is the source of truth.
+
 
   return (
     <div className="p-6">

@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates certificate requests, birth, character, and transfer certificates into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -96,4 +97,5 @@ const CertificatesPage: React.FC = () => {
   );
 };
 
-export default CertificatesPage;
+const CertificatesPageWithRepository = withCanonicalRepository(CertificatesPage);
+export default CertificatesPageWithRepository;

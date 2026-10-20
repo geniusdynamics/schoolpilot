@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -25,7 +26,7 @@ interface StudentIDCardRow {
 }
 
 const StudentIDCardsPage: React.FC = () => {
-  const { students, loading } = useAppData();
+  const { learners: students, isLoading } = useCanonicalLearners();
 
   const [selectedClass, setSelectedClass] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,7 +147,7 @@ const StudentIDCardsPage: React.FC = () => {
     return classIds.map(id => cardRows.find(s => s.class_id === id)?.class_name || id);
   }, [cardRows]);
 
-  if (loading?.all && cardRows.length === 0) {
+  if (isLoading && cardRows.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -260,4 +261,5 @@ const StudentIDCardsPage: React.FC = () => {
   );
 };
 
-export default StudentIDCardsPage;
+const StudentIDCardsPageWithRepository = withCanonicalRepository(StudentIDCardsPage);
+export default StudentIDCardsPageWithRepository;

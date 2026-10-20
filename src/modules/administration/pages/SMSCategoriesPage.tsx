@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
@@ -6,14 +7,8 @@ import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { PaperAirplaneIcon, UsersIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-
-interface SMSRecipientCategory {
-  id: string;
-  name: string;
-  type: 'Class' | 'Stream' | 'All Parents' | 'All Staff' | 'All Students' | 'Custom';
-  recipientCount: number;
-}
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
+import { useCanonicalClassGroups } from '../data/useCanonicalClassGroups';
 
 const categoryOptions = [
   { label: 'All Parents', value: 'all-parents' },
@@ -25,7 +20,8 @@ const categoryOptions = [
 ];
 
 const SMSCategoriesPage: React.FC = () => {
-  const { classes = [], students = [] } = useAppData();
+  const { learners: students } = useCanonicalLearners();
+  const { classGroups } = useCanonicalClassGroups();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [messageText, setMessageText] = useState('');
@@ -84,7 +80,7 @@ const SMSCategoriesPage: React.FC = () => {
               placeholder="Choose a class..."
               value={selectedClass}
               onChange={(value) => setSelectedClass(value)}
-              options={classes.map((c: any) => ({ label: c.name || c.class_name || '', value: c.id || '' }))}
+              options={classGroups.map((c) => ({ label: c.display_name, value: c.id }))}
             />
           )}
 
@@ -153,5 +149,6 @@ const SMSCategoriesPage: React.FC = () => {
   );
 };
 
-export default SMSCategoriesPage;
+const SMSCategoriesPageWithRepository = withCanonicalRepository(SMSCategoriesPage);
+export default SMSCategoriesPageWithRepository;
 export const SMSCategoriesContent = SMSCategoriesPage;

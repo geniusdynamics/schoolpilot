@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { DocumentTextIcon, CalendarIcon, UserIcon, ChartBarIcon } from '@/components/ui/icons';
@@ -11,7 +12,7 @@ import { AttendanceStatus } from '@/core/types';
 
 export const AttendanceReportsContent: React.FC = () => {
 
-  const { loading, students } = useAppData();
+  const { learners: students, isLoading } = useCanonicalLearners();
   const attendanceCollection = useDatabaseCollection<StudentAttendance>('student_attendance');
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -173,7 +174,7 @@ export const AttendanceReportsContent: React.FC = () => {
     };
   }, [reports]);
 
-  if (loading?.all && attendanceCollection.loading && reports.length === 0) {
+  if (isLoading && attendanceCollection.loading && reports.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -296,4 +297,5 @@ const AttendanceReportsPage: React.FC = () => (
   </div>
 );
 
-export default AttendanceReportsPage;
+const AttendanceReportsPageWithRepository = withCanonicalRepository(AttendanceReportsPage);
+export default AttendanceReportsPageWithRepository;

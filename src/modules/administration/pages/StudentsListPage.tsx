@@ -1,443 +1,416 @@
-// ABOUTME: Student directory: lists learners with class, stream and guardian resolved at read time from live collections.
-// ABOUTME: Add/Edit modal persists the learner and its primary guardian (guardian + relationship rows) via the guardian service.
+// ABOUTME: Student directory: lists canonical learners with class placement and primary guardian resolved at read time.
+// ABOUTME: Add and edit write the learner, the placement and the primary guardian through the repository in one transaction.
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
+import React, { useCallback, useMemo, useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { Link, useNavigate } from 'react-router-dom';
 
-import DataGrid from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
-import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon, UsersIcon, AcademicCapIcon } from '@/components/ui/icons';
-// import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
-import { useAppData } from '@/hooks/useAppData'; // Import useAppData
-import { useLookups, resolveClassPlacement } from '@/hooks/useLookups';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import Input from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
+import { DataGrid } from '@/components/ui/data';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import TabbedForm, { type FormTab } from '@/components/ui/forms/TabbedForm';
 import {
-  saveStudentGuardian,
-  resolvePrimaryGuardian,
-  type GuardianInput,
-  type GuardianRecord,
-  type GuardianRelationshipRecord,
-} from '@/domain/students/guardianService';
-
-import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
-import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
-// (usePageActions removed — its ActionBar registry is not rendered in the current layout)
-import { useToast } from '@/hooks/useToast';
-import DialogForm from '@/components/ui/forms/DialogForm';
-
-import { logger } from '@/utils/logging';
-import { PersonGender, StudentStatus } from '@/core/types';
-import type { ExamResultSummary, Student } from '@/core/types';
+  AcademicCapIcon,
+  DeleteIcon,
+  EditIcon,
+  PlusIcon,
+  UserCircleIcon,
+  UsersIcon,
+} from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
+import { asId } from '@/domain/ids';
+import { logger } from '@/utils/logging';
 
-/** Foreign keys held as strings: UI-created records use UUIDs, so ids are never coerced to numbers. */
-const ID_FIELDS = ['current_class_stream_id', 'student_category_id', 'dormitory_id'] as const;
-type IdField = typeof ID_FIELDS[number];
+import { useWritableRepository } from '../data/useWritableRepository';
+import {
+  useCanonicalLearners,
+  type CanonicalLearner,
+  type LearnerFormValues,
+  type LearnerGuardianInput,
+  admitLearner,
+  updateLearner,
+} from '../data/useCanonicalLearners';
+import { useCanonicalClassGroups } from '../data/useCanonicalClassGroups';
+import { useInstitutionId } from '../data/useCanonicalStaff';
 
-/** Denormalised display copies: never written by this page (names are resolved at read time). */
-const DENORMALISED_FIELDS = [
-  'current_class_name', 'current_class_stream_name', 'student_category_name', 'dormitory_name', 'primary_guardian',
-] as const;
-
-interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name' | IdField> {
-  admission_no: string; // Required
-  first_name: string;   // Required
-  last_name: string;    // Required
-  gender: PersonGender; // Required
-  status: StudentStatus;// Required
-
-  // IDs for dropdowns (string ids, '' or undefined when unset)
-  current_class_stream_id?: string;
-  student_category_id?: string;
-  dormitory_id?: string;
-
-  // Primary Guardian Details (for the form)
-  primary_guardian_id?: string; // Existing guardian ID
-  primary_guardian_name?: string;
-  primary_guardian_phone?: string;
-  primary_guardian_relationship_type?: string; // e.g., Mother, Father, Guardian
-
-  // Exam Result Summary (simplified for form)
-  exam_result_summary_exam_name?: string;
-  exam_result_summary_english?: string;
-  exam_result_summary_kiswahili?: string;
-  exam_result_summary_mathematics?: string;
-  exam_result_summary_science?: string;
-  exam_result_summary_ssre?: string;
-  exam_result_summary_total_marks?: string; // Input as string, convert to number
+interface StudentFormState extends LearnerFormValues {
+  primary_guardian_name: string;
+  primary_guardian_phone: string;
+  primary_guardian_relationship_type: string;
+  primary_guardian_id: string | null;
 }
 
-const createInitialFormData = (): StudentFormData => ({
+const createInitialForm = (): StudentFormState => ({
   admission_no: '',
   first_name: '',
+  middle_name: '',
   last_name: '',
-  gender: PersonGender.MALE,
-  status: StudentStatus.ACTIVE,
+  gender: 'Male',
+  status: 'Active',
+  date_of_birth: '',
+  admission_date: '',
+  current_class_stream_id: null,
+  upi_no: '',
+  previous_school: '',
+  county: '',
+  religion: '',
+  remarks: '',
+  phone: '',
+  email: '',
+  primary_guardian_name: '',
+  primary_guardian_phone: '',
   primary_guardian_relationship_type: 'Guardian',
+  primary_guardian_id: null,
 });
 
-const idToString = (value: unknown): string => (value == null ? '' : String(value));
-const idOrNull = (value: string | undefined): string | null => (value ? value : null);
+const RELATIONSHIP_OPTIONS = ['Father', 'Mother', 'Guardian', 'Other'] as const;
 
-const StudentsListPage: React.FC = () => {
+export const StudentsListContent: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    students, loading, addStudent, updateStudent, deleteStudent: mockDeleteStudent,
-    studentCategories,
-    dormitories,
-  } = useAppData(); // Use useAppData
+  const repository = useWritableRepository();
+  const institutionId = useInstitutionId();
+  const { learners, learnerRows, status, isLoading } = useCanonicalLearners();
+  const { classGroupsLookup } = useCanonicalClassGroups();
+  const toast = useToast();
+  const confirm = useConfirm();
 
-  // Live id → name maps (class, stream, guardian) so UI-created learners never render blank.
-  const lookups = useLookups();
-  // Write ports for the guardian service (reads come from `lookups`).
-  const guardiansCollection = useDatabaseCollection<GuardianRecord>('parents_guardians', { loadOnMount: false, subscribeToChanges: false });
-  const relationshipsCollection = useDatabaseCollection<GuardianRelationshipRecord>('student_guardian_relationships', { loadOnMount: false, subscribeToChanges: false });
-
-  const { showToast } = useToast();
-
+  // GAP(P1-E01): the canonical model has no student category entity, so the category column
+  // and the form field are not offered. Dormitory assignment has no learner column either;
+  // a residence is a canonical entity but residence assignment is not modelled on the learner.
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [quickEditStudent, setQuickEditStudent] = useState<Student | null>(null);
-
+  const [editing, setEditing] = useState<CanonicalLearner | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [form, setForm] = useState<StudentFormState>(createInitialForm);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<StudentFormData>(createInitialFormData);
-
-  const openModal = useCallback((student?: Student) => {
-    setEditingStudent(student || null);
-    setActiveTab(0); // Reset to first tab
-
-    if (student) {
-      const guardian = resolvePrimaryGuardian(student, lookups.guardianRelationships, lookups.guardiansById);
-      const editableFields: Partial<Student> = { ...student };
-      for (const field of [...DENORMALISED_FIELDS, 'id', 'created_at', 'updated_at', 'exam_result_summary'] as const) {
-        delete editableFields[field];
-      }
-      const studentFormData: StudentFormData = {
-        ...editableFields, // Spread the remaining editable student properties
-        admission_no: student.admission_no,
-        first_name: student.first_name,
-        last_name: student.last_name,
-        gender: student.gender,
-        status: student.status,
-        current_class_stream_id: idToString(student.current_class_stream_id),
-        student_category_id: idToString(student.student_category_id),
-        dormitory_id: idToString(student.dormitory_id),
-        primary_guardian_id: guardian?.id || undefined,
-        primary_guardian_name: guardian?.name || '',
-        primary_guardian_phone: guardian?.phone || '',
-        primary_guardian_relationship_type: guardian?.relationship_type || 'Guardian',
-        exam_result_summary_exam_name: student.exam_result_summary?.exam_name || '',
-        exam_result_summary_english: String(student.exam_result_summary?.english || ''),
-        exam_result_summary_kiswahili: String(student.exam_result_summary?.kiswahili || ''),
-        exam_result_summary_mathematics: String(student.exam_result_summary?.mathematics || ''),
-        exam_result_summary_science: String(student.exam_result_summary?.science || ''),
-        exam_result_summary_ssre: String(student.exam_result_summary?.social_studies_religious_education || ''),
-        exam_result_summary_total_marks: String(student.exam_result_summary?.total_marks || ''),
-      };
-      setFormData(studentFormData);
-    } else {
-      setFormData(createInitialFormData());
-    }
+  const openModal = useCallback((learner?: CanonicalLearner) => {
+    setEditing(learner ?? null);
+    setActiveTab(0);
+    setError(null);
+    setForm(
+      learner
+        ? {
+            admission_no: learner.admission_no,
+            first_name: learner.first_name,
+            middle_name: learner.middle_name,
+            last_name: learner.last_name,
+            gender: learner.gender,
+            status: learner.status,
+            date_of_birth: learner.date_of_birth,
+            admission_date: learner.admission_date,
+            current_class_stream_id: learner.current_class_stream_id,
+            upi_no: learner.upi_no,
+            previous_school: learner.previous_school,
+            county: learner.county,
+            religion: learner.religion,
+            remarks: learner.remarks,
+            phone: learner.phone,
+            email: learner.email,
+            primary_guardian_name: learner.primary_guardian,
+            primary_guardian_phone: learner.primary_guardian_phone,
+            primary_guardian_relationship_type: learner.primary_guardian_relationship,
+            primary_guardian_id: learner.primary_guardian_id,
+          }
+        : createInitialForm()
+    );
     setIsModalOpen(true);
-  }, [lookups.guardianRelationships, lookups.guardiansById]);
-
-  // Opens the in-page add/edit modal. (The old ActionBar registry this used to
-  // register with is not rendered anywhere in the current layout.)
-  const handleAddStudent = useCallback(() => {
-    openModal();
-  }, [openModal]);
+  }, []);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setEditingStudent(null);
-    setFormData(createInitialFormData());
-    setActiveTab(0);
+    setEditing(null);
+    setError(null);
   }, []);
 
-  // Handle form field changes. Id fields stay strings (UUIDs must not be parsed as numbers).
-  const handleFieldChange = useCallback((name: string, value: any) => {
-    let processedValue: any = value;
-
-    if (name === 'gender') {
-        processedValue = value as PersonGender;
-    } else if (name === 'status') {
-        processedValue = value as StudentStatus;
-    } else if ((ID_FIELDS as readonly string[]).includes(name)) {
-        processedValue = idToString(value);
-    }
-
-    setFormData(prev => ({ ...prev, [name]: processedValue }));
+  const handleFieldChange = useCallback((name: string, value: unknown) => {
+    setForm((previous) => ({ ...previous, [name]: value }));
   }, []);
 
-  // Memoized navigation callback to prevent infinite re-renders
-  const handleStudentDetailsClick = useCallback((studentId: string) => {
-    navigate(`/administration/students/${studentId}`);
-  }, [navigate]);
+  const guardianOf = (state: StudentFormState): LearnerGuardianInput => ({
+    guardianId: state.primary_guardian_id,
+    name: state.primary_guardian_name,
+    phone: state.primary_guardian_phone,
+    relationship: state.primary_guardian_relationship_type,
+  });
 
-  const toast = useToast();
-  const { guardianRelationships: guardianRelationshipsForSave, refresh: refreshLookups } = lookups;
   const handleSubmit = useCallback(async () => {
-    // Simple validation
-    if (!formData.admission_no || !formData.first_name || !formData.last_name) {
+    if (!form.admission_no.trim() || !form.first_name.trim() || !form.last_name.trim()) {
       toast.showWarning('Please fill in all required fields (Admission No, First Name, Last Name)');
       return;
     }
-
-    // Destructure form data
-    const {
-      primary_guardian_id, primary_guardian_name, primary_guardian_phone, primary_guardian_relationship_type,
-      exam_result_summary_exam_name, exam_result_summary_english, exam_result_summary_kiswahili,
-      exam_result_summary_mathematics, exam_result_summary_science, exam_result_summary_ssre, exam_result_summary_total_marks,
-      ...coreStudentData // this will contain admission_no, first_name etc directly from StudentFormData
-    } = formData;
-
-    const studentPayload: Record<string, unknown> = {
-      ...coreStudentData, // contains fields like admission_no, upi_no, first_name, etc.
-      current_class_stream_id: idOrNull(coreStudentData.current_class_stream_id),
-      student_category_id: idOrNull(coreStudentData.student_category_id),
-      dormitory_id: idOrNull(coreStudentData.dormitory_id),
-    };
-    for (const field of DENORMALISED_FIELDS) delete studentPayload[field];
-
-    const guardianInput: GuardianInput | undefined = primary_guardian_name
-      ? {
-          id: primary_guardian_id || undefined, // Important for updates
-          name: primary_guardian_name,
-          phone: primary_guardian_phone || '',
-          relationship_type: primary_guardian_relationship_type || 'Guardian',
-        }
-      : undefined;
-
-    let examSummaryPayload: ExamResultSummary | undefined = undefined;
-    if (exam_result_summary_exam_name) {
-        examSummaryPayload = {
-            exam_name: exam_result_summary_exam_name,
-            english: exam_result_summary_english,
-            kiswahili: exam_result_summary_kiswahili,
-            mathematics: exam_result_summary_mathematics,
-            science: exam_result_summary_science,
-            social_studies_religious_education: exam_result_summary_ssre,
-            total_marks: exam_result_summary_total_marks ? parseFloat(exam_result_summary_total_marks) : undefined,
-        };
+    if (!institutionId) {
+      setError('The school profile is not available, so the learner cannot be saved.');
+      return;
     }
 
-    const guardianStore = {
-      guardians: guardiansCollection,
-      relationships: relationshipsCollection,
-      existingRelationships: guardianRelationshipsForSave,
-    };
-
+    setSaving(true);
+    setError(null);
     try {
-      if (editingStudent) {
-        const studentId = String(editingStudent.id);
-        await updateStudent(studentId, {
-          ...studentPayload,
-          exam_result_summary: examSummaryPayload || editingStudent.exam_result_summary, // Keep existing if not changed
+      if (editing) {
+        const row = learnerRows.find((candidate) => candidate.id === editing.id);
+        if (!row) throw new Error('the learner is no longer in the repository');
+        await updateLearner(repository, {
+          learner: row,
+          values: form,
+          guardian: guardianOf(form),
+          currentGuardian: {
+            guardianId: editing.primary_guardian_id,
+            name: editing.primary_guardian,
+            phone: editing.primary_guardian_phone,
+            relationship: editing.primary_guardian_relationship,
+          },
+          placement: { classGroupId: form.current_class_stream_id ?? null },
         });
-        await saveStudentGuardian(guardianStore, studentId, guardianInput);
-        showToast({
+        toast.showToast({
           variant: 'success',
           title: 'Student Updated',
           message: 'Student information has been successfully updated.',
         });
       } else {
-        // The id is chosen here so the guardian relationship can reference the new learner.
-        const studentId = crypto.randomUUID();
-        const newStudent = {
-          ...studentPayload,
-          id: studentId,
-          admission_no: coreStudentData.admission_no,
-          first_name: coreStudentData.first_name,
-          last_name: coreStudentData.last_name,
-          gender: coreStudentData.gender,
-          status: coreStudentData.status,
-          exam_result_summary: examSummaryPayload,
-        };
-        await addStudent(newStudent);
-        await saveStudentGuardian(guardianStore, studentId, guardianInput);
-        showToast({
+        await admitLearner(repository, {
+          institutionId,
+          values: form,
+          guardian: guardianOf(form),
+          placement: {
+            classGroupId: form.current_class_stream_id ?? null,
+            ...(form.admission_date ? { startDate: form.admission_date } : {}),
+          },
+        });
+        toast.showToast({
           variant: 'success',
           title: 'Student Added',
           message: 'New student has been successfully added.',
         });
       }
-      await refreshLookups();
       closeModal();
-    } catch (error) {
-      logger.error('Error saving student:', error);
-      showToast({
-        variant: 'error',
-        title: 'Save Failed',
-        message: 'Failed to save student information. Please try again.',
-      });
+    } catch (caught) {
+      logger.error('Error saving student:', caught);
+      setError(caught instanceof Error ? caught.message : 'Failed to save student information.');
+    } finally {
+      setSaving(false);
     }
-  }, [editingStudent, formData, updateStudent, addStudent, closeModal, showToast, toast, guardiansCollection, relationshipsCollection, guardianRelationshipsForSave, refreshLookups]);
+  }, [form, editing, learnerRows, repository, institutionId, toast, closeModal]);
 
-  // Quick edit functionality - memoized to prevent column re-creation
-  const handleQuickEdit = useCallback((student: Student) => {
-    setQuickEditStudent(student);
-  }, []);
-
-  // Quick-edit fields — student-specific (3.2). The former generic config shapes
-  // never matched real Student columns; these mirror what the old slideout
-  // actually intended to expose.
-  const quickEditFields: EntityFieldConfig[] = useMemo(() => [
-    { name: 'first_name', label: 'First Name', required: true },
-    { name: 'last_name', label: 'Last Name', required: true },
-    {
-      name: 'current_class_stream_id',
-      label: 'Class Stream',
-      type: 'select',
-      options: lookups.streamOptions.map(o => ({ value: o.value, label: o.label })),
-    },
-    {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      required: true,
-      options: Object.values(StudentStatus).map(s => ({ value: s, label: s })),
-    },
-  ], [lookups.streamOptions]);
-
-  // Quick-edit save — provider contract is (id, partial)
-  const handleQuickEditSave = useCallback(async (values: Record<string, any>) => {
-    if (!quickEditStudent) return;
-    // An emptied stream picker clears the placement; ids stay strings.
-    const patch: Record<string, unknown> = { ...values, current_class_stream_id: idOrNull(values.current_class_stream_id) };
-    await updateStudent(String(quickEditStudent.id), patch);
-  }, [quickEditStudent, updateStudent]);
-
-  // Memoized delete handler to prevent column re-creation
-  const confirm = useConfirm();
-  const handleDelete = useCallback(async (studentId: string) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this student?' }))) {
-      try {
-        await mockDeleteStudent(studentId);
-        showToast({
-          variant: 'success',
-          title: 'Student Deleted',
-          message: 'Student has been successfully deleted.',
-        });
-      } catch (error) {
-        logger.error('Error deleting student:', error);
-        showToast({
-          variant: 'error',
-          title: 'Delete Failed',
-          message: 'Failed to delete student. Please try again.',
-        });
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (await confirm({ variant: 'danger', message: 'Are you sure you want to delete this student?' })) {
+        try {
+          await repository.remove('learner', asId<'learner'>(id));
+          toast.showToast({
+            variant: 'success',
+            title: 'Student Deleted',
+            message: 'Student has been successfully deleted.',
+          });
+        } catch (caught) {
+          logger.error('Error deleting student:', caught);
+          toast.showToast({
+            variant: 'error',
+            title: 'Delete Failed',
+            message: 'Failed to delete student. Please try again.',
+          });
+        }
       }
-    }
-  }, [confirm, mockDeleteStudent, showToast]);
+    },
+    [confirm, repository, toast]
+  );
 
-  // Create form tabs
-  const createFormTabs = useCallback((): FormTab[] => {
-    
+  const columns = useMemo(
+    () => [
+      { key: 'admission_no' as const, header: 'Adm No', sortable: true, filterable: true },
+      {
+        key: 'name' as const,
+        header: 'Name',
+        sortable: true,
+        filterable: true,
+        render: (_value: unknown, item: CanonicalLearner) => (
+          <Link
+            to={`/administration/students/${item.id}`}
+            className="block max-w-[160px] truncate font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+            title={item.name}
+          >
+            {item.name}
+          </Link>
+        ),
+      },
+      { key: 'current_class_name' as const, header: 'Class', sortable: true, filterable: true },
+      { key: 'current_class_stream_name' as const, header: 'Stream', sortable: true, filterable: true },
+      {
+        key: 'gender' as const,
+        header: 'Gender',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        key: 'status' as const,
+        header: 'Status',
+        sortable: true,
+        filterable: true,
+        render: (_value: unknown, item: CanonicalLearner) => (
+          <span className="inline-flex rounded-full bg-surface-accent px-2 text-xs font-semibold leading-5 text-surface-foreground">
+            {item.status}
+          </span>
+        ),
+      },
+      {
+        key: 'primary_guardian' as const,
+        header: 'Guardian',
+        sortable: true,
+        filterable: true,
+        render: (_value: unknown, item: CanonicalLearner) => (
+          <span className="block max-w-[130px] truncate" title={item.primary_guardian}>
+            {item.primary_guardian || '—'}
+          </span>
+        ),
+      },
+      {
+        key: 'actions' as const,
+        header: 'Actions',
+        align: 'center' as const,
+        sticky: 'right' as const,
+        render: (_value: unknown, item: CanonicalLearner) => (
+          <div className="flex justify-center space-x-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(event: React.MouseEvent) => {
+                event.stopPropagation();
+                event.preventDefault();
+                openModal(item);
+              }}
+              title="Edit"
+            >
+              <EditIcon className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={(event: React.MouseEvent) => {
+                event.stopPropagation();
+                event.preventDefault();
+                void handleDelete(item.id);
+              }}
+              leftIcon={<DeleteIcon className="h-4 w-4" />}
+            >
+              Delete
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [openModal, handleDelete]
+  );
+
+  const tabs = useMemo((): FormTab[] => {
     return [
       {
         id: 'personal',
         label: 'Personal Details',
-        icon: <UserCircleIcon className="w-5 h-5" />,
+        icon: <UserCircleIcon className="h-5 w-5" />,
         required: true,
         content: (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Input
                 name="admission_no"
-                value={formData.admission_no || ''}
-                label="Admission No." 
-                required 
-                onChange={(e) => handleFieldChange('admission_no', e.target.value)}
+                value={form.admission_no}
+                label="Admission No."
+                required
+                onChange={(event) => handleFieldChange('admission_no', event.target.value)}
               />
-              <Input 
+              <Input
                 name="upi_no"
-                value={formData.upi_no || ''}
-                label="UPI No." 
-                onChange={(e) => handleFieldChange('upi_no', e.target.value)}
+                value={form.upi_no ?? ''}
+                label="UPI No."
+                onChange={(event) => handleFieldChange('upi_no', event.target.value)}
               />
-              <Input 
+              <Input
                 name="first_name"
-                value={formData.first_name || ''}
-                label="First Name" 
-                required 
-                onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                value={form.first_name}
+                label="First Name"
+                required
+                onChange={(event) => handleFieldChange('first_name', event.target.value)}
               />
-              <Input 
+              <Input
                 name="middle_name"
-                value={formData.middle_name || ''}
-                label="Middle Name" 
-                onChange={(e) => handleFieldChange('middle_name', e.target.value)}
+                value={form.middle_name ?? ''}
+                label="Middle Name"
+                onChange={(event) => handleFieldChange('middle_name', event.target.value)}
               />
-              <Input 
+              <Input
                 name="last_name"
-                value={formData.last_name || ''}
-                label="Last Name" 
-                required 
-                onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                value={form.last_name}
+                label="Last Name"
+                required
+                onChange={(event) => handleFieldChange('last_name', event.target.value)}
               />
-              <Select 
+              <Select
                 name="gender"
-                value={formData.gender || PersonGender.MALE}
-                label="Gender" 
+                value={form.gender}
+                label="Gender"
                 required
-                onChange={(e) => handleFieldChange('gender', e.target.value)}
+                onChange={(event) => handleFieldChange('gender', event.target.value)}
               >
-                {Object.values(PersonGender).map(gender => (
-                  <option key={gender} value={gender}>{gender}</option>
-                ))}
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </Select>
-              <Input 
+              <Input
                 name="date_of_birth"
-                value={formData.date_of_birth || ''}
-                label="Date of Birth" 
-                type="date" 
-                onChange={(e) => handleFieldChange('date_of_birth', e.target.value)}
+                value={form.date_of_birth ?? ''}
+                label="Date of Birth"
+                type="date"
+                onChange={(event) => handleFieldChange('date_of_birth', event.target.value)}
               />
-              <Input 
+              <Input
                 name="admission_date"
-                value={formData.admission_date || ''}
-                label="Admission Date" 
-                type="date" 
-                onChange={(e) => handleFieldChange('admission_date', e.target.value)}
+                value={form.admission_date ?? ''}
+                label="Admission Date"
+                type="date"
+                onChange={(event) => handleFieldChange('admission_date', event.target.value)}
               />
-              <Select 
+              <Select
                 name="status"
-                value={formData.status || StudentStatus.ACTIVE}
-                label="Status" 
+                value={form.status}
+                label="Status"
                 required
-                onChange={(e) => handleFieldChange('status', e.target.value)}
+                onChange={(event) => handleFieldChange('status', event.target.value)}
               >
-                {Object.values(StudentStatus).map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Transferred">Transferred</option>
+                <option value="Alumni">Alumni</option>
+                <option value="Withdrawn">Withdrawn</option>
               </Select>
-              <Input 
+              <Input
                 name="religion"
-                value={formData.religion || ''}
-                label="Religion" 
-                onChange={(e) => handleFieldChange('religion', e.target.value)}
+                value={form.religion ?? ''}
+                label="Religion"
+                onChange={(event) => handleFieldChange('religion', event.target.value)}
               />
-              <Input 
+              <Input
                 name="county"
-                value={formData.county || ''}
-                label="County" 
-                onChange={(e) => handleFieldChange('county', e.target.value)}
+                value={form.county ?? ''}
+                label="County"
+                onChange={(event) => handleFieldChange('county', event.target.value)}
               />
-              <Input 
+              <Input
                 name="primary_school"
-                value={formData.primary_school || ''}
-                label="Primary School Attended" 
-                onChange={(e) => handleFieldChange('primary_school', e.target.value)}
+                value={form.previous_school ?? ''}
+                label="Primary School Attended"
+                onChange={(event) => handleFieldChange('previous_school', event.target.value)}
               />
             </div>
-            <Input 
+            <Input
               name="remarks"
-              value={formData.remarks || ''}
-              label="Remarks" 
-              onChange={(e) => handleFieldChange('remarks', e.target.value)}
+              value={form.remarks ?? ''}
+              label="Remarks"
+              onChange={(event) => handleFieldChange('remarks', event.target.value)}
               className="w-full"
             />
           </div>
@@ -446,381 +419,146 @@ const StudentsListPage: React.FC = () => {
       {
         id: 'guardian',
         label: 'Guardian Details',
-        icon: <UsersIcon className="w-5 h-5" />,
-
+        icon: <UsersIcon className="h-5 w-5" />,
         content: (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input 
-                name="primary_guardian_name"
-                value={formData.primary_guardian_name || ''}
-                label="Guardian Full Name" 
-                onChange={(e) => handleFieldChange('primary_guardian_name', e.target.value)}
-              />
-              <Select 
-                name="primary_guardian_relationship_type"
-                value={formData.primary_guardian_relationship_type || 'Guardian'}
-                label="Relationship Type" 
-                onChange={(e) => handleFieldChange('primary_guardian_relationship_type', e.target.value)}
-              >
-                <option value="">Select Type</option>
-                <option value="Father">Father</option>
-                <option value="Mother">Mother</option>
-                <option value="Guardian">Guardian</option>
-              </Select>
-              <Input 
-                name="primary_guardian_phone"
-                value={formData.primary_guardian_phone || ''}
-                label="Phone Number" 
-                onChange={(e) => handleFieldChange('primary_guardian_phone', e.target.value)}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              name="primary_guardian_name"
+              value={form.primary_guardian_name}
+              label="Guardian Full Name"
+              onChange={(event) => handleFieldChange('primary_guardian_name', event.target.value)}
+            />
+            <Select
+              name="primary_guardian_relationship_type"
+              value={form.primary_guardian_relationship_type}
+              label="Relationship Type"
+              onChange={(event) =>
+                handleFieldChange('primary_guardian_relationship_type', event.target.value)
+              }
+            >
+              <option value="">Select Type</option>
+              {RELATIONSHIP_OPTIONS.map((relationship) => (
+                <option key={relationship} value={relationship}>
+                  {relationship}
+                </option>
+              ))}
+            </Select>
+            <Input
+              name="primary_guardian_phone"
+              value={form.primary_guardian_phone}
+              label="Phone Number"
+              onChange={(event) => handleFieldChange('primary_guardian_phone', event.target.value)}
+            />
           </div>
         ),
       },
       {
         id: 'academic',
         label: 'Academic Details',
-        icon: <AcademicCapIcon className="w-5 h-5" />,
-
+        icon: <AcademicCapIcon className="h-5 w-5" />,
         content: (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h4 className="text-md font-semibold text-surface-foreground">Current Academic Status</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select 
-                  name="current_class_stream_id" 
-                  label="Class Stream" 
-                  value={formData.current_class_stream_id ?? ''} 
-                  onChange={(e) => handleFieldChange('current_class_stream_id', e.target.value)}
-                >
-                  <option value="">Select Stream</option>
-                  {lookups.streamOptions.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
-                <Select 
-                  name="student_category_id" 
-                  label="Student Category" 
-                  value={formData.student_category_id ?? ''} 
-                  onChange={(e) => handleFieldChange('student_category_id', e.target.value)}
-                >
-                  <option value="">Select Category</option>
-                  {(studentCategories || []).map(sc => (
-                    <option key={sc.id} value={String(sc.id)}>{sc.name}</option>
-                  ))}
-                </Select>
-                <Select 
-                  name="dormitory_id" 
-                  label="Dormitory" 
-                  value={formData.dormitory_id ?? ''} 
-                  onChange={(e) => handleFieldChange('dormitory_id', e.target.value)}
-                >
-                  <option value="">Select Dormitory</option>
-                  {(dormitories || []).map(d => (
-                    <option key={d.id} value={String(d.id)}>{d.name}</option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="text-md font-semibold text-surface-foreground">Exam Result Summary (e.g., KCPE)</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <Input 
-                  name="exam_result_summary_exam_name" 
-                  label="Exam Name" 
-                  value={formData.exam_result_summary_exam_name || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_exam_name', e.target.value)}
-                />
-                <Input 
-                  name="exam_result_summary_english" 
-                  label="English" 
-                  value={formData.exam_result_summary_english || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_english', e.target.value)}
-                />
-                <Input 
-                  name="exam_result_summary_kiswahili" 
-                  label="Kiswahili" 
-                  value={formData.exam_result_summary_kiswahili || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_kiswahili', e.target.value)}
-                />
-                <Input 
-                  name="exam_result_summary_mathematics" 
-                  label="Mathematics" 
-                  value={formData.exam_result_summary_mathematics || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_mathematics', e.target.value)}
-                />
-                <Input 
-                  name="exam_result_summary_science" 
-                  label="Science" 
-                  value={formData.exam_result_summary_science || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_science', e.target.value)}
-                />
-                <Input 
-                  name="exam_result_summary_ssre" 
-                  label="SSRE" 
-                  value={formData.exam_result_summary_ssre || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_ssre', e.target.value)}
-                />
-                <Input 
-                  name="exam_result_summary_total_marks" 
-                  label="Total Marks" 
-                  type="number" 
-                  value={formData.exam_result_summary_total_marks || ''} 
-                  onChange={(e) => handleFieldChange('exam_result_summary_total_marks', e.target.value)}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <EntityPicker
+                  id="student-class-group"
+                  name="current_class_stream_id"
+                  label="Class Group"
+                  value={
+                    form.current_class_stream_id
+                      ? asId<'class_group'>(form.current_class_stream_id)
+                      : null
+                  }
+                  onChange={(id) => handleFieldChange('current_class_stream_id', id)}
+                  lookup={classGroupsLookup}
+                  placeholder="Select class group"
+                  allowClear
+                  data-testid="student-class-group-picker"
+                  emptyState={
+                    <p className="px-2 py-3 text-sm text-surface-muted-fg">
+                      No class groups exist yet. Create one under Class Management.
+                    </p>
+                  }
                 />
               </div>
             </div>
+            {/* GAP(P1-E01): learner category and dormitory have no canonical column. */}
+            <p className="text-sm text-surface-muted-fg">
+              Student category and dormitory are not part of the canonical learner model yet.
+            </p>
           </div>
         ),
       },
     ];
-  }, [formData, handleFieldChange, lookups.streamOptions, studentCategories, dormitories]);
+  }, [form, handleFieldChange, classGroupsLookup]);
 
-  // Use students directly since DataGrid handles filtering.
-  // Project each row into a view model that materializes the computed
-  // 'name' / 'className' / 'streamName' / 'guardian' fields the columns reference —
-  // resolved at read time from live lookups (never from denormalised *_name fields),
-  // so DataGrid's sort/filter work and UI-created learners do not render blank.
-  const { streamById, guardianRelationships, guardiansById } = lookups;
-  const studentsData = useMemo(
-    () =>
-      (students || []).map(s => {
-        const placement = resolveClassPlacement({ streamById }, s.current_class_stream_id);
-        const guardian = resolvePrimaryGuardian(s, guardianRelationships, guardiansById);
-        return {
-          ...s,
-          name:
-            s.display_name ||
-            [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ') ||
-            s.admission_no ||
-            '—',
-          className: placement.className || '—',
-          streamName: placement.streamName || '—',
-          guardian: guardian?.name || '—',
-        };
-      }),
-    [students, streamById, guardianRelationships, guardiansById]
-  );
-
-
-  const columns = useMemo(() => [
-    { 
-      key: 'admission_no' as keyof Student, 
-      header: 'Adm No',
-      sortable: true,
-      filterable: true,
-      
-    },
-    {
-      key: 'name',
-      header: 'Name',
-      sortable: true,
-      filterable: true,
-
-      render: (value: any, item: Student & { name?: string }) => {
-        const displayName = item.name || item.admission_no || '—';
-        return (
-          <Link to={`/administration/students/${item.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium truncate block max-w-[160px]" title={displayName}>
-            {displayName}
-          </Link>
-        );
-      }
-    },
-    { 
-      key: 'className', 
-      header: 'Class',
-      sortable: true,
-      filterable: true,
-      
-    },
-    { 
-      key: 'streamName', 
-      header: 'Stream',
-      sortable: true,
-      filterable: true,
-      
-    },
-    { 
-      key: 'gender' as keyof Student, 
-      header: 'Gender',
-      sortable: true,
-      filterable: true,
-      
-    },
-    { 
-      key: 'status' as keyof Student,
-      header: 'Status',
-      sortable: true,
-      filterable: true,
-      
-      render: (value: any, item: Student) => {
-        let colorClass = '';
-        switch(item.status) {
-          case StudentStatus.ACTIVE: colorClass = 'bg-green-100 text-green-800'; break;
-          case StudentStatus.SUSPENDED: colorClass = 'bg-yellow-100 text-yellow-800'; break;
-          case StudentStatus.ALUMNI: colorClass = 'bg-primary-100 text-primary-800'; break;
-          case StudentStatus.TRANSFERRED: colorClass = 'bg-gray-200 text-surface-foreground'; break;
-          case StudentStatus.EXPELLED: colorClass = 'bg-red-100 text-red-800'; break;
-          default: colorClass = 'bg-surface-accent text-surface-foreground';
-        }
-        return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>
-      }
-    },
-    {
-      key: 'guardian',
-      header: 'Guardian',
-      sortable: true,
-      filterable: true,
-
-      render: (value: any, item: Student & { guardian?: string }) => (
-        <span className="truncate block max-w-[130px]" title={item.guardian || ''}>{item.guardian || '—'}</span>
-      )
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-            align: 'center' as const,
-      sticky: 'right' as const,
-      render: (value: any, item: Student) => (
-        <div className="flex space-x-1 justify-center">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              handleQuickEdit(item);
-            }} 
-            title="Quick Edit"
-          >
-            <EditIcon className="w-4 h-4" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              openModal(item);
-            }} 
-            leftIcon={<EditIcon className="w-4 h-4" />}
-          >
-            Edit
-          </Button>
-          <Button 
-            size="sm" 
-            variant="danger" 
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              handleDelete(item.id);
-            }} 
-            leftIcon={<DeleteIcon className="w-4 h-4" />}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ], [handleQuickEdit, openModal, handleDelete]);
-  
-  // Using a more specific loading state key if available, else fallback to `all` or `students`
-  const pageIsLoading = loading.students || loading.all;
+  const pageIsLoading = isLoading && learnerRows.length === 0 && status === 'loading';
 
   return (
     <div className="space-y-6">
-      <Card title="Student Management" bodyClassName="p-0" actions={
-        <div className="flex space-x-2">
-          <Button onClick={handleAddStudent} leftIcon={<PlusIcon className="w-5 h-5" />}>
-            Add Student
-          </Button>
-        </div>
-      }>
+      <Card
+        title="Student Management"
+        bodyClassName="p-0"
+        actions={
+          <div className="flex space-x-2">
+            <Button onClick={() => openModal()} leftIcon={<PlusIcon className="h-5 w-5" />}>
+              Add Student
+            </Button>
+          </div>
+        }
+      >
         <div className="border-t border-surface-border">
           <DataGrid
             columns={columns}
-            data={studentsData}
+            data={learners.slice()}
             loading={pageIsLoading && !isModalOpen}
-            sortable={true}
-            filterable={true}
-            selectable={true}
-            onRowClick={(student) => handleStudentDetailsClick(student.id)}
-            onSelectionChange={(selected) => {
-              logger.info('Selected students:', selected);
-            }}
+            sortable
+            filterable
+            selectable
+            onRowClick={(student) => navigate(`/administration/students/${student.id}`)}
             emptyState={{
               icon: <UserCircleIcon className="h-12 w-12 text-surface-muted-fg" />,
               title: 'No students found',
-              description: 'Get started by adding a new student using the Add Student action above.',
+              description:
+                'Get started by adding a new student using the Add Student action above.',
             }}
           />
         </div>
       </Card>
 
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingStudent ? 'Edit Student' : 'Add New Student'}
+        title={editing ? 'Edit Student' : 'Add New Student'}
         size="xl"
-        className="max-h-[90vh] overflow-hidden"
-        contentPadding="none"
+        bodyClassName="max-h-[80vh] overflow-y-auto"
       >
-        <div className="h-full overflow-hidden">
-          <TabbedForm
-            tabs={createFormTabs()}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            showProgress={true}
-            allowTabSwitching={true}
-            onSubmit={handleSubmit}
-            onCancel={closeModal}
-            loading={loading.students}
-            submitButtonText={editingStudent ? 'Save Changes' : 'Add Student'}
-            cancelButtonText="Cancel"
-            size="md"
-            variant="default"
-          />
-        </div>
-      </DialogForm>
-
-      {/* Quick Edit - EntityForm driven by a student-specific field set (3.2). */}
-      {/* The former generic config shapes never matched real Student columns. */}
-      {quickEditStudent && (
-        <EntityForm
-          isOpen
-          onClose={() => setQuickEditStudent(null)}
-          title={'Quick Edit — ' + (quickEditStudent.display_name || [quickEditStudent.first_name, quickEditStudent.last_name].filter(Boolean).join(' ') || quickEditStudent.admission_no)}
-          description={quickEditStudent.admission_no}
-          initialData={{
-            first_name: quickEditStudent.first_name || '',
-            last_name: quickEditStudent.last_name || '',
-            current_class_stream_id: quickEditStudent.current_class_stream_id != null ? String(quickEditStudent.current_class_stream_id) : '',
-            status: quickEditStudent.status || '',
-          }}
-          fields={quickEditFields}
-          onSubmit={handleQuickEditSave}
-        >
-          <div className="flex justify-between items-center mt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const studentData = quickEditStudent;
-                setQuickEditStudent(null);
-                setTimeout(() => openModal(studentData), 200);
-              }}
-            >
-              Full Edit
-            </Button>
-          </div>
-        </EntityForm>
-      )}
+        {error ? (
+          <p role="alert" className="mb-4 text-sm font-medium text-red-600">
+            {error}
+          </p>
+        ) : null}
+        <TabbedForm
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          showProgress
+          allowTabSwitching
+          onSubmit={handleSubmit}
+          onCancel={closeModal}
+          loading={saving}
+          submitButtonText={editing ? 'Save Changes' : 'Add Student'}
+          cancelButtonText="Cancel"
+          size="md"
+          variant="default"
+        />
+      </Modal>
     </div>
   );
 };
 
-export default StudentsListPage;
+const StudentsListPage: React.FC = () => <StudentsListContent />;
 
-export const StudentsListContent = StudentsListPage;
+const StudentsListPageWithRepository = withCanonicalRepository(StudentsListPage);
+export default StudentsListPageWithRepository;
+export const StudentsListContentAlias = StudentsListPage;

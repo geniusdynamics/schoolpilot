@@ -14,8 +14,14 @@ vi.mock('@/hooks/useAppData', () => ({
   useAppData: () => mockUseAppData(),
 }));
 
+// The page writes through the module facade; the test hands it the same rows.
+vi.mock('../../hooks/useAdministration', () => ({
+  useAdministration: () => mockUseAppData(),
+}));
+
 vi.mock('@/hooks/useToast', () => ({
   useToast: () => ({ showSuccess, showError, showWarning, showInfo: vi.fn() }),
+  useToastHelpers: () => ({ showSuccess, showError, showWarning, showInfo: vi.fn() }),
 }));
 
 vi.mock('react-i18next', () => ({

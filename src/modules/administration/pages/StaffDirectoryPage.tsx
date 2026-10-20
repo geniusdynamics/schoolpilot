@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates staff directory, bio data, ID cards, and wallet into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -96,4 +97,5 @@ const StaffDirectoryPage: React.FC = () => {
   );
 };
 
-export default StaffDirectoryPage;
+const StaffDirectoryPageWithRepository = withCanonicalRepository(StaffDirectoryPage);
+export default StaffDirectoryPageWithRepository;

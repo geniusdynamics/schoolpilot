@@ -4,7 +4,7 @@
 import { render as rtlRender, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MessageCampaignsPage from '../MessageCampaignsPage';
-import StudentHealthRecordsPage from '../StudentHealthRecordsPage';
+import { StudentHealthRecordsContent } from '../StudentHealthRecordsPage';
 import { ToastProvider } from '@/hooks/useToast';
 import { CampaignAudienceType, CampaignStatus, TemplateType } from '../../data/types';
 import { databaseService } from '@/services/database/databaseService';
@@ -35,6 +35,28 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: { getDatabase: vi.fn(), generateId: vi.fn(() => 'generated-id') }
+}));
+
+// The learner and class-group reads are canonical now; the test hands the pages those rows.
+const learners = [
+  {
+    id: 'S001', admission_no: 'ADM001', first_name: 'Jim', last_name: 'Halpert',
+    name: 'Jim Halpert', current_class_name: 'Form 1', current_class_stream_name: '',
+    class_group_id: null, status: 'Active', gender: 'Male', deleted_at: null,
+  },
+  {
+    id: 'S002', admission_no: 'ADM002', first_name: 'Michael', last_name: 'Scofield',
+    name: 'Michael Scofield', current_class_name: 'Form 1', current_class_stream_name: '',
+    class_group_id: null, status: 'Active', gender: 'Male', deleted_at: null,
+  },
+];
+
+vi.mock('../../data/useCanonicalLearners', () => ({
+  useCanonicalLearners: () => ({ learners, isLoading: false }),
+}));
+
+vi.mock('../../data/useCanonicalClassGroups', () => ({
+  useCanonicalClassGroups: () => ({ classGroups: [], isLoading: false }),
 }));
 
 // Campaigns, templates and health records now come from the database, not mock arrays.
@@ -144,7 +166,7 @@ describe('administration communication and health pages', () => {
   });
 
   it('renders student rows and existing health record state', async () => {
-    render(<StudentHealthRecordsPage />);
+    render(<StudentHealthRecordsContent />);
 
     expect(screen.getByText('Jim Halpert')).toBeInTheDocument();
     expect(screen.getByText('ADM001')).toBeInTheDocument();
