@@ -139,8 +139,8 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run GP-1-lite on a real SQLite-WASM database
-        run: pnpm exec playwright test tests/e2e/gp1-lite.spec.ts
+      - name: Run GP-1-lite and GP-6 on a real SQLite-WASM database
+        run: pnpm exec playwright test tests/e2e/gp1-lite.spec.ts tests/e2e/gp6.spec.ts
 
       - name: Upload Playwright traces and screenshots
         if: always()
