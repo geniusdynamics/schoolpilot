@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for student admission management
 
 import { ModuleDefinition } from '@/core/types';
-import { DocumentAddIcon, DocumentTextIcon, ClipboardDocumentListIcon, EyeIcon, ChartBarIcon, AcademicCapIcon } from '@/components/ui/icons';
+import { DocumentAddIcon, DocumentTextIcon, ClipboardDocumentListIcon, EyeIcon, ChartBarIcon, AcademicCapIcon, UserPlusIcon, UserGroupIcon } from '@/components/ui/icons';
 
 export const admissionsModule: ModuleDefinition = {
   id: 'admissions',
@@ -18,6 +18,20 @@ export const admissionsModule: ModuleDefinition = {
       path: '/admissions/dashboard',
       icon: ChartBarIcon,
       page: 'AdmissionsDashboardPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:admissions.admitLearner',
+      path: '/admissions/admit',
+      icon: UserPlusIcon,
+      page: 'AdmitLearnerPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:admissions.register',
+      path: '/admissions/register',
+      icon: UserGroupIcon,
+      page: 'AdmissionsRegisterPage',
       showInModes: ['standard', 'fullwidth'],
     },
     {
@@ -91,6 +105,8 @@ export const admissionsModule: ModuleDefinition = {
   optionalDependencies: [],
   routes: [
     { path: '/admissions/dashboard', page: 'AdmissionsDashboardPage' },
+    { path: '/admissions/admit', page: 'AdmitLearnerPage' },
+    { path: '/admissions/register', page: 'AdmissionsRegisterPage' },
     { path: '/admissions/new-application', page: 'ApplicationFormPage' },
     { path: '/admissions/applications-hub', page: 'ApplicationsPage' },
     { path: '/admissions/applications', page: 'ApplicationsListPage' },

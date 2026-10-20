@@ -1,8 +1,14 @@
 ﻿import { logger } from '@/utils/logging';
 
 // ABOUTME: Self-contained hook for admissions data management
-// ABOUTME: Provides CRUD operations for applications, documents, reviews, and enrollment
+// ABOUTME: Provides CRUD operations for applications, documents, reviews and decisions
 // ABOUTME: All database access goes through the provider-agnostic ICollection API
+//
+// GAP(P1-E04): the canonical registry models no admission application, review, document,
+// approval or note entity, so the application pipeline of spec 04 §2.1-2.5 keeps its own
+// collections until a registry change adds them. Admitting a learner is not one of these
+// rows: it goes through AdmissionService on the Admit learner page, which writes the
+// canonical learner, guardians, links, identifiers and enrolment in one transaction.
 
 import { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
@@ -16,7 +22,6 @@ import type {
   ApplicationReview,
   ReviewFormData,
   DecisionFormData,
-  EnrollmentDetails,
   ApplicationNote,
   ApplicationStatus,
 } from './types';
@@ -24,15 +29,13 @@ import { ApplicationStatus as AppStatus } from './types';
 
 // Registered collection names (see src/services/database/collections.ts):
 // admissions_applications, application_reviews, application_documents,
-// application_approvals, application_notes, admission_enrollments, students.
+// application_approvals, application_notes.
 const COLLECTIONS = {
   applications: 'admissions_applications',
   reviews: 'application_reviews',
   documents: 'application_documents',
   decisions: 'application_approvals',
   notes: 'application_notes',
-  enrollments: 'admission_enrollments',
-  students: 'students',
 } as const;
 
 // Resolve an ICollection through the live database manager.
@@ -51,14 +54,6 @@ const generateApplicationNumber = (): string => {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).substring(2, 5).toUpperCase();
   return `${prefix}-${timestamp}-${random}`;
-};
-
-// Generate unique admission number
-const generateAdmissionNumber = (): string => {
-  const prefix = 'ADM';
-  const year = new Date().getFullYear().toString();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `${prefix}${year}${random}`;
 };
 
 export const useAdmissionsData = () => {
@@ -384,96 +379,16 @@ export const useAdmissionsData = () => {
         decisionDate: new Date().toISOString(),
       });
 
-      // If approved, process enrollment
-      if (decisionData.decision === AppStatus.APPROVED) {
-        await processEnrollment(applicationId, decisionData, decidedBy);
-      }
+      // GAP(P1-E04): an approval records the decision only. Admitting the learner is the
+      // AdmissionService call on /admissions/admit, which writes the canonical learner,
+      // guardians, links, identifiers and enrolment; the old student and admission_enrollments
+      // rows are gone, because `learner` and `enrolment` are canonical entities.
     } catch (err) {
       setError('Failed to make decision');
       logger.error('Error making decision:', err);
       throw err;
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Process enrollment and create student record
-  const processEnrollment = async (
-    applicationId: string,
-    decisionData: DecisionFormData,
-    enrolledBy: string
-  ): Promise<EnrollmentDetails> => {
-    try {
-      const app = await getApplication(applicationId);
-
-      if (!app) {
-        throw new Error('Application not found');
-      }
-
-      const studentsCollection = await getCollection(COLLECTIONS.students);
-
-      // Create student record
-      const studentId = databaseService.generateId();
-      const admissionNumber = decisionData.admissionNumber || generateAdmissionNumber();
-
-      const student = {
-        id: studentId,
-        admission_no: admissionNumber,
-        first_name: app.firstName,
-        middle_name: app.middleName,
-        last_name: app.lastName,
-        gender: app.gender,
-        date_of_birth: app.dateOfBirth,
-        current_class_stream_id: decisionData.assignedStreamId ? parseInt(decisionData.assignedStreamId) : null,
-        student_category_id: null,
-        dormitory_id: decisionData.dormitoryId ? parseInt(decisionData.dormitoryId) : null,
-        admission_date: decisionData.startDate || new Date().toISOString(),
-        status: 'Active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        email: app.guardianEmail,
-        phone: app.guardianPhone,
-        address: app.residentialAddress,
-        religion: app.religion,
-        county: app.county,
-        primary_school: app.previousSchool,
-        marks_attained_primary: app.kcpeMarks?.toString(),
-      };
-
-      await studentsCollection.insert(student);
-
-      // Create enrollment record
-      const enrollmentsCollection = await getCollection(COLLECTIONS.enrollments);
-      const enrollment: EnrollmentDetails = {
-        id: databaseService.generateId(),
-        applicationId,
-        studentId,
-        admissionNumber,
-        enrolledAt: new Date().toISOString(),
-        enrolledBy,
-        classId: decisionData.assignedClassId || '',
-        streamId: decisionData.assignedStreamId,
-        dormitoryId: decisionData.dormitoryId,
-        feeStructureId: decisionData.feeStructureId,
-        documentsReceived: [],
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await enrollmentsCollection.insert(enrollment);
-
-      // Update application to enrolled status
-      await updateApplication(applicationId, {
-        status: AppStatus.ENROLLED,
-        enrollmentDate: new Date().toISOString(),
-      });
-
-      return enrollment;
-    } catch (err) {
-      setError('Failed to process enrollment');
-      logger.error('Error processing enrollment:', err);
-      throw err;
     }
   };
 
@@ -612,7 +527,6 @@ export const useAdmissionsData = () => {
     getApplicationByReference,
     addReview,
     makeDecision,
-    processEnrollment,
     uploadDocument,
     addNote,
     getApplicationDocuments,
