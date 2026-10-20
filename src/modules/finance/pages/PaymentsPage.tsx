@@ -11,6 +11,7 @@ import {
   WalletIcon,
   ClipboardDocumentListIcon,
 } from '@/components/ui/icons';
+import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import { StudentPaymentsPageContent } from './StudentPaymentsPage';
 import { FeeCollectionSummaryPageContent } from './FeeCollectionSummaryPage';
 import { StudentFinancialSummaryPageContent } from './StudentFinancialSummaryPage';
@@ -80,26 +81,28 @@ const PaymentsPage: React.FC = () => {
   const activeTabData = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
-    <div className="space-y-4">
-      <PageHeaderWithTabs
-        title={t('payments.title', 'Payments')}
-        subtitle={t(
-          'payments.subtitle',
-          'Manage student payments, balances, collection summaries, and receipts'
-        )}
-        tabs={tabs.map((tab) => ({
-          id: tab.id,
-          label: tab.label,
-          icon: tab.icon,
-        }))}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        variant="compact"
-        colorScheme="green"
-      >
-        {activeTabData.component}
-      </PageHeaderWithTabs>
-    </div>
+    <CanonicalRepositoryProvider>
+      <div className="space-y-4">
+        <PageHeaderWithTabs
+          title={t('payments.title', 'Payments')}
+          subtitle={t(
+            'payments.subtitle',
+            'Manage student payments, balances, collection summaries, and receipts'
+          )}
+          tabs={tabs.map((tab) => ({
+            id: tab.id,
+            label: tab.label,
+            icon: tab.icon,
+          }))}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          variant="compact"
+          colorScheme="green"
+        >
+          {activeTabData.component}
+        </PageHeaderWithTabs>
+      </div>
+    </CanonicalRepositoryProvider>
   );
 };
 

@@ -6,6 +6,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import {
   ExclamationTriangleIcon,
   CalendarIcon,
@@ -66,6 +67,7 @@ const FeeRulesPage: React.FC = () => {
   const activeTabData = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
+    <CanonicalRepositoryProvider>
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('feeRules.title', 'Fee Rules')}
@@ -86,6 +88,7 @@ const FeeRulesPage: React.FC = () => {
         {activeTabData.component}
       </PageHeaderWithTabs>
     </div>
+    </CanonicalRepositoryProvider>
   );
 };
 
