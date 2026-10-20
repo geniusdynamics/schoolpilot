@@ -1,0 +1,11 @@
+{
+  "task": "P1-C01",
+  "note": "The name the migration progress screen shows for migration M1. A migration runs outside the React tree, so it cannot translate its own name; the screen interpolates it into the translated 'migration.current' sentence. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. The migration's diagnostics (the reason a legacy row could not be mapped, the counts, the date checks) stay English on purpose: the screen interpolates them into the translated failure sentence as operator diagnostics, and a data migration has no access to the translation layer.",
+  "en": {
+    "common": {
+      "migration": {
+        "m1Name": "Migrate the institution and the calendar"
+      }
+    }
+  }
+}
