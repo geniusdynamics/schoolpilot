@@ -17,6 +17,7 @@ import {
   applyAuditSchema,
   readAuditEntities,
   readAuditEvents,
+  readMaxAuditSequence,
   writeAuditEvent,
   type AuditRunner,
 } from './audit';
@@ -152,6 +153,9 @@ export class Repository {
     await applyCanonicalSchema(this.adapter, this.entities);
     await ensureConcurrencyColumns(this.adapter, this.entities);
     await applyAuditSchema(this.adapter);
+    // The trail can hold events written by something else (the repair tool numbers its own from
+    // the table), so the counter starts where the table already is.
+    this.commitSequence = await readMaxAuditSequence(this.adapter);
   }
 
   /** The commit sequence of the last write. */

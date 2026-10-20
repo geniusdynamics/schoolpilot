@@ -10,6 +10,7 @@ import {
   TEST_ACTOR,
   type TestContext,
 } from './helpers';
+import { Repository } from '../repository';
 
 describe('repository audit trail', () => {
   let context: TestContext;
@@ -20,6 +21,31 @@ describe('repository audit trail', () => {
 
   afterAll(async () => {
     await closeTestContext(context);
+  });
+
+  it('starts its commit sequence where the audit trail already is', async () => {
+    // Something other than the repository can write the trail (the repair tool numbers its own
+    // events from the table), so a fresh repository over the same database must not restart the
+    // counter at zero and hand out a sequence another event already carries.
+    const other = await createTestContext();
+    await other.repository.create(
+      'comment_bank_entry',
+      fixtureInput(other, 'comment_bank_entry', { text: 'Written elsewhere.' })
+    );
+    await other.adapter.exec('UPDATE "audit_event" SET "commit_sequence" = 5000');
+
+    const repository = new Repository({ adapter: other.adapter });
+    await repository.setup();
+
+    expect(repository.currentCommitSequence).toBe(5000);
+    const created = await repository.create(
+      'comment_bank_entry',
+      fixtureInput(other, 'comment_bank_entry', { text: 'After the reseed.' })
+    );
+    expect(repository.currentCommitSequence).toBeGreaterThan(5000);
+    const trail = await repository.auditTrail('comment_bank_entry', created.id);
+    expect(trail[0]?.commitSequence).toBeGreaterThan(5000);
+    await closeTestContext(other);
   });
 
   it('records a create with the actor, the entity, the id and the changed fields', async () => {
