@@ -1,0 +1,36 @@
+{
+  "task": "P1-B04",
+  "note": "New domain service strings: the refusals the four services raise themselves (a missing reference, a rule the service owns, a duplicate, a register outside its academic period, an unknown failure). The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw. Interpolation tokens are shown literally in the values.",
+  "en": {
+    "common": {
+      "services": {
+        "errors": {
+          "classGroupMissing": "The class group {{id}} does not exist",
+          "programmeMissing": "The programme {{id}} does not exist",
+          "enrolmentMissing": "The enrolment {{id}} does not exist",
+          "learnerMissing": "The learner {{id}} does not exist",
+          "guardianMissing": "The guardian {{id}} does not exist",
+          "staffMissing": "The staff row {{id}} does not exist",
+          "academicPeriodMissing": "The academic period {{id}} does not exist",
+          "registerMissing": "The register {{id}} does not exist",
+          "identifierMissing": "The identifier {{id}} does not exist",
+          "residenceMissing": "The residence {{id}} does not exist",
+          "teachingGroupMissing": "The teaching group {{id}} does not exist",
+          "classGroupDisagrees": "The class group carries a different {{field}} ({{derived}}) than the one named ({{named}})",
+          "alreadyInClassGroup": "The learner is already in the class group {{id}}",
+          "programmeDisagrees": "The class group belongs to the programme {{name}}, not to {{id}}",
+          "markNeedsReason": "A {{status}} mark has to carry a reason",
+          "periodNeedsLesson": "A period_n register has to name the lesson it covers",
+          "registerLocked": "The register {{id}} is locked and takes no further marks",
+          "identifierWithoutGuardian": "The identifier {{scheme}} names a guardian the admission does not have",
+          "identifierHeldByOther": "The {{scheme}} {{value}} already belongs to another owner",
+          "identifierAlreadyRecorded": "The {{scheme}} {{value}} is already recorded for this owner",
+          "guardianAlreadyLinked": "The guardian {{id}} is already linked to the learner {{id}}",
+          "learnerAlreadyMarked": "The learner {{id}} is already marked in this register",
+          "outsideAcademicPeriod": "The register date {{date}} lies outside the academic period {{name}} ({{startDate}} to {{endDate}})",
+          "failed": "The operation failed: {{message}}"
+        }
+      }
+    }
+  }
+}

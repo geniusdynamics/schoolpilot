@@ -100,9 +100,13 @@ function resolveBase() {
   // the content checks while still reporting GATE PASSED.
   if (wanted) {
     const resolved = shOk(`git rev-parse --verify --quiet "${wanted}"`).out.trim();
-    if (resolved) return resolved;
-    console.error(`WARN unknown --base ref "${wanted}"; gating against HEAD checks no changed files`);
-    return 'HEAD';
+    // `git rev-parse --verify` echoes an argument it cannot resolve, so the string is not proof
+    // that a commit exists. A base that is not a real commit makes the diff empty, and an empty
+    // diff makes every content check vacuous — a gate that reports success without testing
+    // anything. Fail loudly instead.
+    if (resolved && shOk(`git cat-file -e "${resolved}^{commit}"`).ok) return resolved;
+    console.error(`FAIL the --base ref "${wanted}" does not resolve to a commit; refusing to gate against an empty diff`);
+    process.exit(1);
   }
   for (const ref of ['origin/consolidation', 'consolidation']) {
     if (shOk(`git rev-parse --verify --quiet ${ref}`).ok) return sh(`git merge-base ${ref} HEAD`).trim();
@@ -225,6 +229,13 @@ const base = resolveBase();
 const files = changedFiles(base);
 console.log(`gate ${mode}${option('task') ? ' for ' + option('task') : ''} · base ${base.slice(0, 10)} · ${files.length} changed file(s)`);
 
+// A gate that checks nothing must not report success: every content check below is computed from
+// the changed files, so an empty diff makes them all vacuously true.
+if (mode !== 'baseline' && files.length === 0 && !flag('allow-empty')) {
+  console.error('FAIL the gate found no changed files between the base and the working tree; every content check would be vacuous. Pass --allow-empty if there is genuinely nothing to check.');
+  process.exit(1);
+}
+
 let measured = {};
 if (mode === 'baseline') {
   measured.typecheck = measureTypecheck();
@@ -248,7 +259,6 @@ if (mode === 'baseline') {
 
 measured = await runTaskChecks(base, baseline, files);
 if (mode === 'phase') Object.assign(measured, await runPhaseChecks(baseline));
-
 const failed = results.filter((r) => r.status === 'FAIL');
 fs.mkdirSync(REPORT_DIR, { recursive: true });
 const report = { mode, task: option('task'), base, files, results, measured, passed: failed.length === 0 };

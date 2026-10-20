@@ -64,7 +64,10 @@ export async function mapWriteError(
 }
 
 /** Turns a raw storage failure into a typed error. */
-export function mapStorageError(entity: EntityName, error: unknown): RepositoryStorageError {
+export function mapStorageError(
+  entity: EntityName | undefined,
+  error: unknown
+): RepositoryStorageError {
   if (error instanceof RepositoryStorageError) return error;
   const message = error instanceof Error ? error.message : String(error);
   const constraint = error instanceof SqliteAdapterError ? error.constraint : undefined;

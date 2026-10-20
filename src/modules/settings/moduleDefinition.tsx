@@ -2,7 +2,7 @@
 // ABOUTME: Exports the module definition for the settings module with hub-and-spoke navigation
 
 import { ModuleDefinition } from '@/core/types';
-import { AdjustmentsHorizontalIcon, ArrowsRightLeftIcon, CircleStackIcon, ClockIcon, CogIcon, DocumentTextIcon, HomeIcon, IdentificationIcon, PuzzlePieceIcon, SparklesIcon, UsersIcon, ViewColumnsIcon, WrenchIcon } from '@/components/ui/icons';
+import { AdjustmentsHorizontalIcon, ArrowsRightLeftIcon, CircleStackIcon, ClockIcon, CogIcon, DocumentTextIcon, HomeIcon, IdentificationIcon, PuzzlePieceIcon, ShieldCheckIcon, SparklesIcon, UsersIcon, ViewColumnsIcon, WrenchIcon } from '@/components/ui/icons';
 
 // Simple database icon component
 const DatabaseIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -40,6 +40,13 @@ const settingsModule: ModuleDefinition = {
       path: '/settings/school',
       icon: IdentificationIcon,
       page: 'SchoolOperationsPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:settings.dataIntegrity',
+      path: '/settings/data-integrity',
+      icon: ShieldCheckIcon,
+      page: 'DataIntegrityPage',
       showInModes: ['standard', 'fullwidth'],
     },
 

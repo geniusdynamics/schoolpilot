@@ -611,4 +611,89 @@ describe('spec 02 §12 invariants', () => {
     expect(error.issues.map((issue) => issue.path)).toContain('amount.amount_minor');
     expect(payment).not.toBeNull();
   });
+
+  describe('the attendance period rule', () => {
+    it('refuses a register whose date lies outside the period it names', async () => {
+      // The seeded period is Term 1, 2027-01-05 to 2027-04-10.
+      const error = await expectInvariant(
+        () =>
+          context.repository.create(
+            'attendance_session',
+            fixtureInput(context, 'attendance_session', {
+              date: '2027-05-01',
+              session: 'pm',
+            })
+          ),
+        'attendance.date_in_period'
+      );
+
+      expect(error.issues.map((issue) => issue.path)).toContain('date');
+      expect(error.issues[0]?.message).toContain('2027-05-01');
+    });
+
+    it('refuses a register whose date lies before the period it names', async () => {
+      const error = await expectInvariant(
+        () =>
+          context.repository.create(
+            'attendance_session',
+            fixtureInput(context, 'attendance_session', {
+              date: '2026-12-20',
+              session: 'pm',
+            })
+          ),
+        'attendance.date_in_period'
+      );
+
+      expect(error.issues.map((issue) => issue.path)).toContain('date');
+    });
+
+    it('accepts a register whose date lies inside the period it names', async () => {
+      const created = await context.repository.create(
+        'attendance_session',
+        fixtureInput(context, 'attendance_session', {
+          date: '2027-02-15',
+          session: 'pm',
+        })
+      );
+
+      expect(created.date).toBe('2027-02-15');
+      expect(created.academic_period_id).toBe(seededId(context, 'academic_period'));
+    });
+
+    it('accepts a register that names no period at all', async () => {
+      // A day no period covers still has to be registrable, and the service that opens a
+      // register writes no period in that case.
+      const created = await context.repository.create(
+        'attendance_session',
+        fixtureInput(context, 'attendance_session', {
+          date: '2027-05-01',
+          session: 'pm',
+          academic_period_id: undefined,
+        })
+      );
+
+      expect(created.date).toBe('2027-05-01');
+      expect(created.academic_period_id).toBeUndefined();
+    });
+
+    it('refuses a register that is moved outside the period it names', async () => {
+      const register = await context.repository.get(
+        'attendance_session',
+        seededId(context, 'attendance_session')
+      );
+
+      const error = await expectInvariant(
+        () =>
+          context.repository.update(
+            'attendance_session',
+            register!.id,
+            { date: '2027-06-01' },
+            { expectedVersion: register!.rowVersion }
+          ),
+        'attendance.date_in_period'
+      );
+
+      expect(error.issues.map((issue) => issue.path)).toContain('date');
+    });
+  });
 });

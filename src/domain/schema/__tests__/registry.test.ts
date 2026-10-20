@@ -16,13 +16,15 @@ import {
 } from '../index';
 import { validFixtures } from './fixtures';
 
-const EXPECTED_ENTITY_COUNT = 63;
+const EXPECTED_ENTITY_COUNT = 68;
 
 const EXPECTED_ENTITIES = [
   'academic_period',
   'academic_year',
   'assessment',
   'assessment_scheme',
+  'attendance_mark',
+  'attendance_session',
   'calendar',
   'calendar_event',
   'campus',
@@ -32,6 +34,7 @@ const EXPECTED_ENTITIES = [
   'competency',
   'competency_observation',
   'component',
+  'conduct_incident',
   'credit_note',
   'curriculum_pack',
   'department',
@@ -45,6 +48,7 @@ const EXPECTED_ENTITIES = [
   'financial_year',
   'grading_scale',
   'guardian',
+  'health_visit',
   'house',
   'household',
   'identifier',
@@ -58,6 +62,7 @@ const EXPECTED_ENTITIES = [
   'learner_guardian',
   'learning_area',
   'learning_area_enrolment',
+  'leave_out',
   'level',
   'mark',
   'outcome',

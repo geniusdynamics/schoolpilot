@@ -2,6 +2,7 @@
 // ABOUTME: every mutation makes inside its own transaction, and the reader for the trail.
 
 import { generateUuidv7, asId } from '@/domain/ids';
+import type { EntityName } from '@/domain/schema';
 import type { SqliteAdapter, SqliteBindValue, SqliteRunResult } from '@/data/adapters/sqlite';
 
 import type { AuditEvent, AuditQuery, ChangeType } from './types';
@@ -44,8 +45,7 @@ export interface AuditRunner {
 }
 
 /** Creates the audit table and its indexes. */
-export async function applyAuditSchema(adapter: SqliteAdapter): Promise<void> {
-  for (const statement of AUDIT_DDL) {
+export async function applyAuditSchema(adapter: SqliteAdapter): Promise<void> {  for (const statement of AUDIT_DDL) {
     await adapter.exec(statement);
   }
 }
@@ -104,7 +104,31 @@ interface AuditRow {
   readonly commit_sequence: number;
 }
 
+/** Reads the entities the audit trail covers. */
+export async function readAuditEntities(runner: AuditRunner): Promise<readonly EntityName[]> {
+  const rows = await runner.all<{ entity: string }>(
+    `SELECT DISTINCT "entity" FROM "${AUDIT_TABLE}" ORDER BY "entity"`
+  );
+  return rows.map((row) => row.entity as EntityName);
+}
+
 /** Reads the audit trail, newest first. */
+/**
+ * The highest commit sequence the audit trail already holds, or 0 when it is empty.
+ *
+ * The trail can be written by something that is not the repository (the repair tool numbers its
+ * own events from the table), so the repository seeds its counter from the table instead of from
+ * zero. Otherwise two events could carry the same sequence and a consumer comparing tokens could
+ * read a stale payload as current.
+ */
+export async function readMaxAuditSequence(runner: AuditRunner): Promise<number> {
+  const rows = await runner.all<{ max_sequence: number | null }>(
+    `SELECT MAX("commit_sequence") AS max_sequence FROM "${AUDIT_TABLE}"`
+  );
+  const value = rows[0]?.max_sequence;
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
 export async function readAuditEvents(
   runner: AuditRunner,
   query: AuditQuery = {}

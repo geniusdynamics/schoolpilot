@@ -14,15 +14,22 @@ function columnsOf(constraint: UniqueConstraint): readonly string[] {
   return 'columns' in constraint ? constraint.columns : constraint;
 }
 
+/**
+ * Applies a partial-index predicate to a row. The predicate is a list of `column IS NULL` /
+ * `column IS NOT NULL` clauses joined by `AND`; a row is inside the index when every clause
+ * holds.
+ */
 function appliesTo(row: Row, constraint: UniqueConstraint): boolean {
   if (!('columns' in constraint)) return true;
-  if (constraint.where === 'component_id IS NULL') {
-    return row.component_id === null || row.component_id === undefined;
-  }
-  if (constraint.where === 'campus_id IS NULL') {
-    return row.campus_id === null || row.campus_id === undefined;
-  }
-  return true;
+  if (!constraint.where) return true;
+
+  return constraint.where.split(' AND ').every((clause) => {
+    const match = /^(\w+) IS (NOT )?NULL$/.exec(clause.trim());
+    if (!match) throw new Error(`unsupported partial index predicate: ${clause}`);
+    const [, column, negated] = match;
+    const isNull = row[column] === null || row[column] === undefined;
+    return negated ? !isNull : isNull;
+  });
 }
 
 function keyOf(row: Row, columns: readonly string[]): string {
@@ -227,5 +234,132 @@ describe('over-constrained unique keys', () => {
   it('uses the generated-number uniqueness for invoices and receipts', () => {
     expect(entityDefinitions.invoice.storage.unique).toEqual([['institution_id', 'number']]);
     expect(entityDefinitions.receipt.storage.unique).toEqual([['institution_id', 'number']]);
+  });
+});
+
+describe('attendance register natural keys', () => {
+  const OTHER_SESSION_ID = '00000000-0000-7000-8000-000000000301';
+  const OTHER_SESSION_DATE = '2027-01-07';
+
+  function register(overrides: Row = {}): Row {
+    return { ...structuredClone(validFixtures.attendance_session), ...overrides };
+  }
+
+  function keyFor(where: string): UniqueKey {
+    const key = entityDefinitions.attendance_session.storage.unique.find(
+      (constraint): constraint is UniqueKey =>
+        'columns' in constraint && constraint.where === where
+    );
+    if (!key) throw new Error(`attendance_session must declare the unique key "${where}"`);
+    return key;
+  }
+
+  const CLASS_GROUP_PERIOD_KEY =
+    'class_group_id IS NOT NULL AND period_number IS NOT NULL';
+  const CLASS_GROUP_NO_PERIOD_KEY = 'class_group_id IS NOT NULL AND period_number IS NULL';
+
+  it('keeps one register per scope, date, session and lesson', () => {
+    const first = register({ session: 'period_n', period_number: 2 });
+    const duplicate = register({
+      id: OTHER_SESSION_ID,
+      session: 'period_n',
+      period_number: 2,
+    });
+
+    expect(accepts('attendance_session', first)).toBe(true);
+    expect(accepts('attendance_session', duplicate)).toBe(true);
+    expect(collides([first, duplicate], keyFor(CLASS_GROUP_PERIOD_KEY))).toBe(true);
+  });
+
+  it('lets two lessons of the same day live side by side', () => {
+    const secondLesson = register({ session: 'period_n', period_number: 2 });
+    const thirdLesson = register({
+      id: OTHER_SESSION_ID,
+      session: 'period_n',
+      period_number: 3,
+    });
+
+    expect(collides([secondLesson, thirdLesson], keyFor(CLASS_GROUP_PERIOD_KEY))).toBe(false);
+  });
+
+  it('rejects a second register without a lesson for the same scope, date and session', () => {
+    const morning = register({ session: 'am' });
+    const secondMorning = register({ id: OTHER_SESSION_ID, session: 'am' });
+
+    expect(accepts('attendance_session', morning)).toBe(true);
+    expect(accepts('attendance_session', secondMorning)).toBe(true);
+    expect(collides([morning, secondMorning], keyFor(CLASS_GROUP_NO_PERIOD_KEY))).toBe(true);
+  });
+
+  it('keeps a register without a lesson apart from a lesson register', () => {
+    const morning = register({ session: 'am' });
+    const lesson = register({
+      id: OTHER_SESSION_ID,
+      session: 'period_n',
+      period_number: 2,
+    });
+
+    expect(collides([morning, lesson], keyFor(CLASS_GROUP_NO_PERIOD_KEY))).toBe(false);
+    expect(collides([morning, lesson], keyFor(CLASS_GROUP_PERIOD_KEY))).toBe(false);
+  });
+
+  it('scopes the register key to the institution and the scope', () => {
+    const key = keyFor(CLASS_GROUP_PERIOD_KEY);
+    expect(columnsOf(key)).toEqual([
+      'institution_id',
+      'class_group_id',
+      'date',
+      'session',
+      'period_number',
+    ]);
+    expect(columnsOf(keyFor(CLASS_GROUP_NO_PERIOD_KEY))).toEqual([
+      'institution_id',
+      'class_group_id',
+      'date',
+      'session',
+    ]);
+  });
+
+  it('gives every scope and every lesson case its own partial key', () => {
+    const predicates = entityDefinitions.attendance_session.storage.unique
+      .filter((constraint): constraint is UniqueKey => 'columns' in constraint)
+      .map((constraint) => constraint.where);
+
+    expect(predicates).toEqual([
+      CLASS_GROUP_PERIOD_KEY,
+      CLASS_GROUP_NO_PERIOD_KEY,
+      'teaching_group_id IS NOT NULL AND period_number IS NOT NULL',
+      'teaching_group_id IS NOT NULL AND period_number IS NULL',
+      'residence_id IS NOT NULL AND period_number IS NOT NULL',
+      'residence_id IS NOT NULL AND period_number IS NULL',
+    ]);
+  });
+
+  it('does not let a register of one scope collide with another scope', () => {
+    const classGroupRegister = register({ session: 'period_n', period_number: 2 });
+    const teachingGroupRegister = register({
+      id: OTHER_SESSION_ID,
+      session: 'period_n',
+      period_number: 2,
+      class_group_id: undefined,
+      teaching_group_id: validFixtures.teaching_group.id,
+    });
+
+    expect(accepts('attendance_session', classGroupRegister)).toBe(true);
+    expect(accepts('attendance_session', teachingGroupRegister)).toBe(true);
+    expect(collides([classGroupRegister, teachingGroupRegister], keyFor(CLASS_GROUP_PERIOD_KEY))).toBe(
+      false
+    );
+  });
+
+  it('keeps a register of another day apart', () => {
+    const first = register({ session: 'am' });
+    const nextDay = register({
+      id: OTHER_SESSION_ID,
+      session: 'am',
+      date: OTHER_SESSION_DATE,
+    });
+
+    expect(collides([first, nextDay], keyFor(CLASS_GROUP_NO_PERIOD_KEY))).toBe(false);
   });
 });

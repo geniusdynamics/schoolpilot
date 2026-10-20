@@ -2048,8 +2048,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "notes": "Opened at P1-W3 because P1-B04 must deliver an AttendanceService and spec 02 §9 (attendance_session, attendance_mark, leave_out, conduct_incident, health_visit) was deferred from P1-A03. Owns the entity-count assertion in A04 adapter contract test (currently 63) and the A03 registry."
+      "status": "done",
+      "notes": "Opened at P1-W3 because P1-B04 must deliver an AttendanceService and spec 02 §9 (attendance_session, attendance_mark, leave_out, conduct_incident, health_visit) was deferred from P1-A03. Owns the entity-count assertion in A04 adapter contract test (currently 63) and the A03 registry.",
+      "commit": "9022048",
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-A04",
@@ -2101,10 +2103,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "5559e1a",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-B01",
@@ -2181,10 +2183,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "eff2ca2",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-B04",
@@ -2207,10 +2209,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "bf132d5",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-B05",
@@ -2233,10 +2235,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "b4075d2",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-C01",
@@ -2392,10 +2394,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "83c8f8d",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-D01",
@@ -2647,10 +2649,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "cef1592",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-Q02",

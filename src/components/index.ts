@@ -112,6 +112,7 @@ export { SyncManagementPanel } from './SyncManagementPanel';
 export { DatabaseMonitoringDashboard } from './DatabaseMonitoringDashboard';
 export { ConflictResolutionInterface } from './ConflictResolutionInterface';
 export { GlobalNotifications } from './GlobalNotifications';
+export { MigrationScreen, useMigrationStatus } from './MigrationScreen';
 
 // --- Module System ---
 export { ModuleDashboardPlaceholder } from './ModuleDashboardPlaceholder';
