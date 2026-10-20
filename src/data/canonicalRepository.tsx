@@ -100,9 +100,14 @@ export const CanonicalRepositoryProvider: React.FC<{
   }, [repository, inherited]);
 
   if (failure) {
+    // A swallowed cause turns a two-minute diagnosis into a hunt; log it, and show it in dev only.
+    console.error('[canonical] the canonical data layer did not open:', failure);
     return (
       <p role="alert" className="text-sm text-red-600 dark:text-red-400">
         The canonical data layer is unavailable, so this page cannot be shown.
+        {import.meta.env.DEV ? (
+          <span className="mt-1 block text-xs opacity-80">{String(failure)}</span>
+        ) : null}
       </p>
     );
   }
