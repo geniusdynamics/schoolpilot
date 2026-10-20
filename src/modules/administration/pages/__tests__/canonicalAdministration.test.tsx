@@ -234,6 +234,55 @@ describe('StudentsListContent (P1-E01)', () => {
       expect(enrolments.items[0]?.class_group_id).toBe(context.seed.idOf('class_group'));
     });
   });
+
+  it('admits a learner with the guardian filled on the Guardian Details tab', async () => {
+    renderPage(<StudentsListContent />);
+    await screen.findByText('Amani Wekesa');
+    fireEvent.click(screen.getByRole('button', { name: /Add Student/i }));
+    const dialog = await screen.findByRole('dialog');
+
+    fireEvent.change(within(dialog).getByLabelText(/Admission No\./i), {
+      target: { value: 'GA/2027/010' },
+    });
+    fireEvent.change(within(dialog).getByLabelText(/First Name/i), { target: { value: 'Neema' } });
+    fireEvent.change(within(dialog).getByLabelText(/Last Name/i), { target: { value: 'Kiptoo' } });
+
+    fireEvent.click(within(dialog).getByRole('tab', { name: /Guardian Details/i }));
+    fireEvent.change(within(dialog).getByLabelText(/Guardian Full Name/i), {
+      target: { value: 'Grace Otieno' },
+    });
+    fireEvent.change(within(dialog).getByLabelText(/Phone Number/i), {
+      target: { value: '+254711222333' },
+    });
+    fireEvent.change(within(dialog).getByLabelText(/Relationship Type/i), {
+      target: { value: 'Mother' },
+    });
+
+    // The submit button sits on the last tab, so the run moves there and submits from it.
+    fireEvent.click(within(dialog).getByRole('tab', { name: /Academic Details/i }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Add Student/i }));
+
+    await waitFor(async () => {
+      const page = await context.repository.list('learner', {
+        where: { admission_number: 'GA/2027/010' },
+      });
+      expect(page.items).toHaveLength(1);
+      const learner = page.items[0]!;
+
+      const links = await context.repository.list('learner_guardian', {
+        where: { learner_id: learner.id },
+      });
+      expect(links.items).toHaveLength(1);
+      expect(links.items[0]?.is_primary).toBe(true);
+      expect(links.items[0]?.relationship).toBe('mother');
+
+      const guardians = await context.repository.list('guardian', { limit: 50 });
+      const guardian = guardians.items.find((row) => row.id === links.items[0]?.guardian_id);
+      expect(guardian?.given_name).toBe('Grace');
+      expect(guardian?.family_name).toBe('Otieno');
+      expect(guardian?.phones?.[0]?.number).toBe('+254711222333');
+    });
+  });
 });
 
 describe('ManualAttendanceContent (P1-E01)', () => {

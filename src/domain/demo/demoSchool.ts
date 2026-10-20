@@ -76,7 +76,7 @@ export interface DemoSchoolResult {
   readonly counts: DemoSchoolCounts;
 }
 
-/** A seed that could not finish: the step that failed and what had already landed. */
+/** A seed that could not finish: the step that failed and what the attempt had written. */
 export class DemoSchoolSeedError extends Error {
   constructor(
     readonly step: string,
@@ -226,6 +226,14 @@ async function findOrCreate<E extends EntityName>(
  * §12, the tenancy rule, the audit trail and the concurrency columns are all exercised. The
  * learners are admitted through `AdmissionService`, and the register is taken through
  * `AttendanceService`, so the two golden paths of the product create the demo data.
+ *
+ * ### Atomicity and failure
+ *
+ * The whole run is one transaction of the repository, and every service the run calls joins it.
+ * A failure therefore leaves nothing behind: no half-built school, no learner without its
+ * guardians, no invoice without its lines. The error names the substep that was running - a
+ * failure while admitting the third learner reports "learners", not "institution" - and the
+ * counts of the attempt, so a caller can see how far it got.
  */
 export async function seedDemoSchool(
   repository: Repository,
@@ -237,16 +245,22 @@ export async function seedDemoSchool(
   };
   const options: WriteOptions = { reason: 'demo school seeded', origin: 'demo-seed' };
 
-  /** Runs a step and reports what failed without losing what already landed. */
-  const step = async <T>(name: string, work: () => Promise<T>): Promise<T> => {
-    try {
-      return await work();
-    } catch (error) {
-      throw new DemoSchoolSeedError(name, { ...counts }, error);
-    }
+  // The substep that is running. Every block below names itself before it writes, so a failure
+  // reports where it happened instead of the step the run started at.
+  let running = 'institution';
+  const at = (name: string): void => {
+    running = name;
   };
 
-  return step('institution', async () => {
+  try {
+    return await repository.transaction(seed);
+  } catch (error) {
+    if (error instanceof DemoSchoolSeedError) throw error;
+    throw new DemoSchoolSeedError(running, { ...counts }, error);
+  }
+
+  // The body of the seed, run inside one repository transaction: every write it makes joins it.
+  async function seed(): Promise<DemoSchoolResult> {
     const schools = await repository.list('institution', { limit: 2 });
     if (schools.items.length > 1) {
       throw new Error('the canonical database holds more than one institution');
@@ -288,6 +302,8 @@ export async function seedDemoSchool(
       );
     }
     const institutionId = asId<'institution'>(institution.id);
+
+    at('structure');
 
     const campus = await findOrCreate<'campus'>(
       repository,
@@ -500,6 +516,7 @@ export async function seedDemoSchool(
         levels,
         count,
         options,
+        at,
       });
     }
 
@@ -509,7 +526,7 @@ export async function seedDemoSchool(
       demoSeeded,
       counts: { ...counts },
     };
-  });
+  }
 }
 
 interface DemoPeopleInput {
@@ -525,6 +542,8 @@ interface DemoPeopleInput {
   readonly levels: readonly RepositoryRow<'level'>[];
   readonly count: (entity: string) => void;
   readonly options: WriteOptions;
+  /** Names the substep that is running, so a failure reports where it happened. */
+  readonly at: (name: string) => void;
 }
 
 /**
@@ -545,6 +564,8 @@ async function seedDemoPeople(
 
   const { institutionId, campusId, academicYearId, programmeId, periodId, currency, options } = input;
   const money = (amountMinor: number) => ({ amount_minor: amountMinor, currency });
+
+  input.at('staff');
 
   const department = await findOrCreate<'department'>(
     repository,
@@ -610,6 +631,8 @@ async function seedDemoPeople(
     );
   }
 
+  input.at('curriculum');
+
   const gradingScale = await findOrCreate<'grading_scale'>(
     repository,
     'grading_scale',
@@ -655,6 +678,7 @@ async function seedDemoPeople(
   }
 
   // The learners, their guardians, the identifiers and the first enrolment, through the service.
+  input.at('learners');
   const admissions = new AdmissionService({ repository });
   const admitted: Array<{
     learnerId: Id<'learner'>;
@@ -724,6 +748,7 @@ async function seedDemoPeople(
   }
 
   // A teaching group for every learning area of every class group, with its members and teacher.
+  input.at('teaching');
   const teachingGroups: Array<{
     id: Id<'teaching_group'>;
     learningAreaId: Id<'learning_area'>;
@@ -799,6 +824,7 @@ async function seedDemoPeople(
   }
 
   // One end-of-term assessment per learning area, with a mark for every learner of it.
+  input.at('assessment');
   const random = createRandom(20261020);
   const assessmentDate = addDays(input.periodStart, 30);
   for (const area of learningAreas) {
@@ -850,6 +876,7 @@ async function seedDemoPeople(
   }
 
   // The fee items, one published schedule and its lines.
+  input.at('fees');
   const feeItems: RepositoryRow<'fee_item'>[] = [];
   for (const item of FEE_ITEMS) {
     const row = await findOrCreate<'fee_item'>(
@@ -998,6 +1025,7 @@ async function seedDemoPeople(
   }
 
   // The morning register of every class group, taken through the service.
+  input.at('register');
   const attendance = new AttendanceService({ repository });
   for (const group of input.classGroups) {
     const session = await attendance.openRegister({

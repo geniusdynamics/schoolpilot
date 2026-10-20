@@ -186,7 +186,17 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       await saveCanonicalSchool(draft);
     } catch (error) {
       logger.error('[SetupWizard] could not save the canonical school:', error);
-      toast.showError(error instanceof Error ? error.message : t('setupWizard.canonicalError', 'The school structure could not be saved.'));
+      const detail =
+        error instanceof Error
+          ? error.message
+          : t('setupWizard.canonicalError', 'The school structure could not be saved.');
+      // Without the canonical structure the install has no class groups, so every golden path is
+      // dead. Recording setup as complete would hide that: the wizard stays open, and finishing
+      // again retries the write.
+      toast.showError(
+        `${detail} Setup is not complete; correct the problem and finish again.`
+      );
+      return;
     }
     try {
       // The completion time lives on the school profile, so every device sees that setup is done.

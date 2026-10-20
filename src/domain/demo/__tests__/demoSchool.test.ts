@@ -1,7 +1,7 @@
 // ABOUTME: The demo school seed, proven against a real SQLite database: the rows it writes, the
 // ABOUTME: audit trail behind them, its idempotency and the way it fails.
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   closeTestContext,
@@ -210,7 +210,7 @@ describe('the demo school seed', () => {
     expect(groups.items.every((row) => row.programme_id && row.level_id && row.academic_year_id)).toBe(true);
   });
 
-  it('fails loudly and reports what it could not create', async () => {
+  it('fails loudly, names the substep and leaves nothing behind', async () => {
     const context = await freshContext();
     const structure = await seedDemoSchool(context.repository, demoInput({ demo: false }));
 
@@ -237,17 +237,54 @@ describe('the demo school seed', () => {
 
     expect(failure).toBeInstanceOf(DemoSchoolSeedError);
     const seedFailure = failure as DemoSchoolSeedError;
-    expect(seedFailure.step).toBe('institution');
+    // The refusal happened while admitting, not while creating the institution.
+    expect(seedFailure.step).toBe('learners');
     expect(seedFailure.counts.learner).toBe(1);
     expect(seedFailure.message).toContain('ke.kemis_upi');
 
-    // The first admission landed; the refused one left no learner, guardian or enrolment behind.
+    // The run is one transaction, so even the first admission was rolled back with it.
     const learners = await context.repository.list('learner', { limit: 50 });
-    expect(learners.items.map((row) => row.admission_number)).not.toContain('ADM/2027/002');
+    expect(learners.total).toBe(0);
     const guardians = await context.repository.list('guardian', { limit: 50 });
-    expect(guardians.items.map((row) => row.phones?.[0]?.number)).not.toContain('+254711000103');
+    expect(guardians.items.map((row) => row.phones?.[0]?.number)).not.toContain('+254711000101');
+    expect(guardians.items.some((row) => row.given_name === 'Naomi')).toBe(false);
     const enrolments = await context.repository.list('enrolment', { limit: 50 });
-    expect(enrolments.items).toHaveLength(1);
+    expect(enrolments.total).toBe(0);
+  });
+
+  it('leaves no partial school when a late step fails', async () => {
+    const context = await freshContext();
+    const create = context.repository.create.bind(context.repository);
+    const failureSeen = { value: false };
+    vi.spyOn(context.repository, 'create').mockImplementation(async (entity, input, options) => {
+      if (entity === 'attendance_session') {
+        failureSeen.value = true;
+        throw new Error('the register could not be written');
+      }
+      return create(entity, input, options);
+    });
+
+    const failure = await seedDemoSchool(context.repository, demoInput()).catch(
+      (error: unknown) => error
+    );
+    vi.mocked(context.repository.create).mockRestore();
+
+    expect(failureSeen.value).toBe(true);
+    expect(failure).toBeInstanceOf(DemoSchoolSeedError);
+    const seedFailure = failure as DemoSchoolSeedError;
+    expect(seedFailure.step).toBe('register');
+    // The attempt had reached the register: the counts show how far it got.
+    expect(seedFailure.counts.learner).toBe(12);
+    expect(seedFailure.counts.invoice).toBe(12);
+
+    // Nothing of the attempt survives: no school, no learners, no invoices, no marks.
+    expect(await count(context, 'institution')).toBe(0);
+    expect(await count(context, 'learner')).toBe(0);
+    expect(await count(context, 'enrolment')).toBe(0);
+    expect(await count(context, 'mark')).toBe(0);
+    expect(await count(context, 'invoice')).toBe(0);
+    expect(await count(context, 'payment')).toBe(0);
+    expect(await count(context, 'attendance_session')).toBe(0);
   });
 
   it('seeds the demo school the onboarding installs', async () => {
@@ -289,8 +326,9 @@ describe('the demo school seed', () => {
     const failure = await seedDemoSchool(context.repository, input).catch((error: unknown) => error);
 
     expect(failure).toBeInstanceOf(DemoSchoolSeedError);
-    expect((failure as DemoSchoolSeedError).step).toBe('institution');
+    expect((failure as DemoSchoolSeedError).step).toBe('structure');
     expect(await count(context, 'class_group')).toBe(0);
     expect(await count(context, 'learner')).toBe(0);
+    expect(await count(context, 'institution')).toBe(0);
   });
 });

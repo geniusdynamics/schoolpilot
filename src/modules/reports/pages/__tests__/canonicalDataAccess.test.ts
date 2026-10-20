@@ -11,8 +11,9 @@ const MODULE_TREES = ['inventory', 'library', 'nutrition', 'hr', 'reports'] as c
 /**
  * The legacy collections the canonical model serves.
  *
- * A page that still reads one of these through `useAppData()` reads canonical data
- * through the legacy context, which is what this check refuses.
+ * A page that still reads one of these through `useAppData()` or `useDatabaseCollection()` reads
+ * canonical data through the legacy context, which is what this check refuses. Both spellings are
+ * listed: the camelCase member the context exposes and the snake_case collection name.
  */
 const CANONICAL_LEGACY_COLLECTIONS = [
   'users',
@@ -20,18 +21,28 @@ const CANONICAL_LEGACY_COLLECTIONS = [
   'staff',
   'classes',
   'classStreams',
+  'class_streams',
   'subjects',
   'departments',
   'designations',
   'academicYears',
+  'academic_years',
   'schoolPeriods',
+  'school_periods',
   'financialYears',
+  'financial_years',
   'examSessions',
+  'exam_sessions',
   'gradingSchemes',
+  'grading_schemes',
   'studentInvoices',
+  'student_invoices',
   'studentPayments',
+  'student_payments',
   'studentExamResults',
+  'student_exam_results',
   'teacherSubjectAssignments',
+  'teacher_subject_assignments',
 ] as const;
 
 /**
@@ -127,7 +138,22 @@ function sourceFiles(): SourceFile[] {
   return found;
 }
 
-/** The names a `useAppData()` call reads. */
+/** The collections a `useDatabaseCollection` call binds, by literal or by the constant naming it. */
+function databaseCollectionNames(source: string): string[] {
+  const names: string[] = [];
+  const constants = new Map<string, string>();
+  for (const declared of source.matchAll(/(?:const|let)\s+(\w+)\s*(?::\s*string)?\s*=\s*['"]([^'"]+)['"]/g)) {
+    constants.set(declared[1] as string, declared[2] as string);
+  }
+  for (const called of source.matchAll(/useDatabaseCollection\s*(?:<[^()]*>)?\s*\(\s*([^)]+)\)/g)) {
+    const argument = (called[1] ?? '').trim();
+    const name = /^['"]([^'"]+)['"]$/.exec(argument)?.[1] ?? constants.get(argument);
+    if (name) names.push(name);
+  }
+  return names;
+}
+
+/** The names a `useAppData()` call reads, by destructuring, by member or through its variable. */
 function collectionsReadBy(source: string): string[] {
   const names: string[] = [];
   // The destructuring spelling: const { a, b } = useAppData();
@@ -147,6 +173,17 @@ function collectionsReadBy(source: string): string[] {
     names.push(match[1] as string);
     match = member.exec(source);
   }
+  // The variable spelling: const appData = useAppData(); appData.students
+  const assigned = /(?:const|let|var)\s+(\w+)\s*(?::\s*[^=;\n]+)?=\s*useAppData\(\)/g;
+  match = assigned.exec(source);
+  while (match) {
+    const holder = match[1] as string;
+    for (const read of source.matchAll(new RegExp(`\\b${holder}\\.(\\w+)`, 'g'))) {
+      names.push(read[1] as string);
+    }
+    match = assigned.exec(source);
+  }
+  names.push(...databaseCollectionNames(source));
   return names;
 }
 
@@ -226,5 +263,29 @@ describe('the five module trees read canonical data through the repository', () 
       expect(head[0]?.startsWith('// ABOUTME:'), `${file.modulePath} needs an ABOUTME line`).toBe(true);
       expect(head[1]?.startsWith('// ABOUTME:'), `${file.modulePath} needs a second ABOUTME line`).toBe(true);
     }
+  });
+});
+
+describe('the guard sees every spelling a screen could use', () => {
+  it('reads a canonical collection held in a context variable', () => {
+    const fixture = [
+      'const appData = useAppData();',
+      'const rows = appData.students;',
+      'appData.addStaff({});',
+    ].join('\n');
+
+    expect(collectionsReadBy(fixture)).toEqual(expect.arrayContaining(['students', 'addStaff']));
+  });
+
+  it('reads a useDatabaseCollection call by its literal and by the constant naming it', () => {
+    expect(collectionsReadBy("const c = useDatabaseCollection<Record<string, unknown>>('academic_years');")).toContain(
+      'academic_years'
+    );
+
+    const throughConstant = [
+      "const YEARS = 'academic_years';",
+      'const c = useDatabaseCollection<YearRow>(YEARS);',
+    ].join('\n');
+    expect(collectionsReadBy(throughConstant)).toContain('academic_years');
   });
 });

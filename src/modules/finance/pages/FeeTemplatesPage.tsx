@@ -66,9 +66,16 @@ export const FeeTemplatesContent: React.FC = () => {
   const [levelIds, setLevelIds] = useState<string[]>([]);
   const [levelDraft, setLevelDraft] = useState<Id<'level'> | null>(null);
 
-  const [lineSchedule, setLineSchedule] = useState<FinanceScheduleRow | null>(null);
+  const [lineScheduleId, setLineScheduleId] = useState<string | null>(null);
   const [lineDraft, setLineDraft] = useState<LineDraft | null>(null);
   const [lineError, setLineError] = useState<string | null>(null);
+
+  // The open lines dialog follows the repository: a line added, edited or removed shows in it
+  // straight away instead of waiting for the dialog to be re-opened.
+  const lineSchedule = useMemo(
+    () => finance.scheduleRows.find((row) => row.id === lineScheduleId) ?? null,
+    [finance.scheduleRows, lineScheduleId]
+  );
 
   const defaultInstitutionId = finance.years[0]?.institution_id ?? '';
 
@@ -297,7 +304,7 @@ export const FeeTemplatesContent: React.FC = () => {
             onClick={() => {
               setLineError(null);
               setLineDraft(null);
-              setLineSchedule(row);
+              setLineScheduleId(row.id);
             }}
             leftIcon={<ListBulletIcon className="w-4 h-4" />}
           >
@@ -450,6 +457,7 @@ export const FeeTemplatesContent: React.FC = () => {
                   data-testid="schedule-period-picker"
                 />
                 <Button
+                  type="button"
                   size="sm"
                   variant="secondary"
                   onClick={() => {
@@ -497,6 +505,7 @@ export const FeeTemplatesContent: React.FC = () => {
                   data-testid="schedule-level-picker"
                 />
                 <Button
+                  type="button"
                   size="sm"
                   variant="secondary"
                   onClick={() => {
@@ -535,7 +544,7 @@ export const FeeTemplatesContent: React.FC = () => {
       <Modal
         isOpen={lineSchedule !== null}
         onClose={() => {
-          setLineSchedule(null);
+          setLineScheduleId(null);
           setLineDraft(null);
         }}
         title={`Fee lines${lineSchedule ? ` · ${lineSchedule.name}` : ''}`}

@@ -45,6 +45,20 @@ vi.mock('@/services/auth/authService', () => ({
 const toast = vi.hoisted(() => ({ showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn() }));
 vi.mock('@/hooks/useToast', () => ({ useToast: () => toast }));
 
+// The canonical school is written through the real seed unless a test asks for a failure, so the
+// wizard's own behaviour is exercised against the code it actually runs.
+const canonical = vi.hoisted(() => ({ fail: false, message: 'the demo school could not be seeded at "structure"' }));
+vi.mock('@/components/setup/steps/canonicalSetup', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/setup/steps/canonicalSetup')>();
+  return {
+    ...actual,
+    saveCanonicalSchool: async (draft: Parameters<typeof actual.saveCanonicalSchool>[0]) => {
+      if (canonical.fail) throw new Error(canonical.message);
+      return actual.saveCanonicalSchool(draft);
+    },
+  };
+});
+
 import { SetupWizard, clearWizardDraft } from '@/components/setup/SetupWizard';
 import { readSetupCompletedAt } from '@/components/setup/steps/setupStatus';
 import SettingsSchoolProfilePage from '@/modules/settings/pages/SettingsSchoolProfilePage';
@@ -415,6 +429,49 @@ describe('SetupWizard on the real provider', () => {
     await waitFor(() => expect(onComplete).toHaveBeenCalled());
     expect(await rows('users')).toHaveLength(1);
   }, 30000);
+
+  it('does not complete setup when the canonical school cannot be written, and completes on a retry', async () => {
+    const now = new Date().toISOString();
+    await real.provider!.getCollection('users').insert({
+      id: 'u-canon', username: 'existing', email: '', role_id: 'super_admin', is_active: true, created_at: now, updated_at: now,
+    });
+    const onComplete = vi.fn();
+    render(<SetupWizard onComplete={onComplete} />);
+    fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Canon Academy' } });
+    for (let step = 1; step <= 6; step++) {
+      if (step === 2) fireEvent.click(screen.getAllByRole('radio')[0]);
+      if (step === 3) {
+        type('Academic year start', '2027-01-04');
+        type('Academic year end', '2027-11-26');
+      }
+      click(/^Next$/);
+      await onStep(step + 1);
+    }
+
+    // The canonical structure is what the migrated pages read; without it the install has no
+    // class groups, so setup must not be recorded as complete.
+    canonical.fail = true;
+    click(/Finish setup/);
+
+    await waitFor(() =>
+      expect(toast.showError).toHaveBeenCalledWith(expect.stringMatching(/Setup is not complete/))
+    );
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(screen.getByText(`Step 7 of ${TOTAL_STEPS}`)).toBeInTheDocument();
+
+    const [school] = await rows('school_details');
+    expect(school?.setup_completed_at ?? null).toBeNull();
+    expect(await readSetupCompletedAt()).toBeNull();
+    expect(localStorage.getItem('schoolpilot_setup_wizard_draft')).not.toBeNull();
+
+    // The problem is fixed, and finishing again writes the school and records completion.
+    canonical.fail = false;
+    click(/Finish setup/);
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
+    const [completed] = await rows('school_details');
+    expect(typeof completed?.setup_completed_at).toBe('string');
+    expect(localStorage.getItem('schoolpilot_setup_wizard_draft')).toBeNull();
+  }, 60000);
 
   it('persists a resumable draft after completing a step', async () => {
     render(<SetupWizard onComplete={() => {}} />);

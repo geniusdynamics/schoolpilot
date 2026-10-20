@@ -186,6 +186,16 @@ function appDataNames(source: string): string[] {
     names.push(match[1] as string);
     match = member.exec(source);
   }
+  // The context held in a variable: `const appData = useAppData(); appData.students`.
+  const assigned = /(?:const|let|var)\s+(\w+)\s*(?::\s*[^=;\n]+)?=\s*useAppData\(\)/g;
+  match = assigned.exec(source);
+  while (match) {
+    const holder = match[1] as string;
+    for (const read of source.matchAll(new RegExp(`\\b${holder}\\.(\\w+)`, 'g'))) {
+      names.push(read[1] as string);
+    }
+    match = assigned.exec(source);
+  }
   return names;
 }
 
@@ -207,13 +217,17 @@ function academicContextNames(source: string): string[] {
   return names;
 }
 
-/** The collections a `useDatabaseCollection` call reads. */
+/** The collections a `useDatabaseCollection` call reads, by literal or by the constant naming it. */
 function collectionsByName(source: string): string[] {
   const names: string[] = [];
-  for (const line of source.split('\n')) {
-    if (!line.includes('useDatabaseCollection')) continue;
-    const match = /\(\s*'([^']+)'/.exec(line);
-    if (match) names.push(match[1] as string);
+  const constants = new Map<string, string>();
+  for (const declared of source.matchAll(/(?:const|let)\s+(\w+)\s*(?::\s*string)?\s*=\s*['"]([^'"]+)['"]/g)) {
+    constants.set(declared[1] as string, declared[2] as string);
+  }
+  for (const called of source.matchAll(/useDatabaseCollection\s*(?:<[^()]*>)?\s*\(\s*([^)]+)\)/g)) {
+    const argument = (called[1] ?? '').trim();
+    const name = /^['"]([^'"]+)['"]$/.exec(argument)?.[1] ?? constants.get(argument);
+    if (name) names.push(name);
   }
   return names;
 }
@@ -342,5 +356,30 @@ describe('the academics module reads canonical data through the repository', () 
       expect(head[0]?.startsWith('// ABOUTME:'), `${file.modulePath} needs an ABOUTME line`).toBe(true);
       expect(head[1]?.startsWith('// ABOUTME:'), `${file.modulePath} needs a second ABOUTME line`).toBe(true);
     }
+  });
+});
+
+describe('the guard sees every spelling a screen could use', () => {
+  it('reads a canonical collection held in a context variable, and its mutator as a write', () => {
+    const fixture = [
+      'const appData = useAppData();',
+      'const rows = appData.students;',
+      'appData.addSubject({ code: "MAT" });',
+    ].join('\n');
+
+    expect(legacyReads(fixture)).toContain('students');
+    expect(appDataNames(fixture)).toEqual(expect.arrayContaining(['students', 'addSubject']));
+  });
+
+  it('reads a useDatabaseCollection call by its literal and by the constant naming it', () => {
+    expect(legacyReads("const c = useDatabaseCollection<Record<string, unknown>>('academic_years');")).toContain(
+      'academic_years'
+    );
+
+    const throughConstant = [
+      "export const YEARS = 'academic_years';",
+      'const c = useDatabaseCollection<YearRow>(YEARS);',
+    ].join('\n');
+    expect(legacyReads(throughConstant)).toContain('academic_years');
   });
 });

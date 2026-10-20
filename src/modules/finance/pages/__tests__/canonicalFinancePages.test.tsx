@@ -1,6 +1,25 @@
 // ABOUTME: Page tests for the finance UI on the canonical repository: every migrated page renders from
 // ABOUTME: the repository, a write reaches it, money round-trips exactly, a posted document refuses an
 // ABOUTME: edit, and a reference is chosen through EntityPicker.
+//
+// The five legacy finance suites this wave replaced pinned behaviours that no longer exist on the
+// canonical model. They are recorded here rather than left as silence:
+// - A fee template's `items` array: the canonical model has no embedded items. A fee schedule holds
+//   `fee_schedule_line` rows, one per fee item, so the line add/edit/delete tests below are the
+//   replacement for `FeeTemplatesPage.saveLine`/`deleteLine`.
+// - Legacy items without ids, given a stable id on read: `fee_schedule_line` rows are repository rows
+//   with UUIDv7 ids from the moment they are written, so there is nothing to stabilise.
+// - `applicable_level_ids` compared against the loaded `classes` list, with unknown ids kept:
+//   `fee_schedule.level_ids` is a reference array, and the level picker offers the canonical levels.
+// - A pre-filled, gap-free receipt number (`RCT/<year>/000003`) computed on the page: the receipt
+//   number is now issued by `recordPayment` through the document sequence, so the page no longer
+//   offers the field at all.
+// - A duplicate receipt number refused by the page: the sequence issues the number, so a user cannot
+//   type a duplicate.
+// - Editing a payment's amount in place: a payment is posted when recorded and frozen, so the page
+//   offers the repository's refusal instead (asserted below).
+// - `financeSchemas` amount bounds below 999,999.99: the canonical money shape has no upper bound;
+//   the amount round-trip tests below cover the same intent.
 
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -63,6 +82,7 @@ const CLASS_GROUP = '66666666-6666-7666-8666-666666666666';
 const LEARNER = '77777777-7777-7777-8777-777777777777';
 const FEE_ITEM = '99999999-9999-7999-8999-999999999999';
 const SCHEDULE = 'aaaaaaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa';
+const EMPTY_SCHEDULE = 'aaaaaaaa-aaaa-7aaa-8aaa-bbbbbbbbbbbb';
 const INVOICE = 'bbbbbbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb';
 const FINE_INVOICE = 'bbbbbbbb-bbbb-7bbb-8bbb-cccccccccccc';
 const OPENING_INVOICE = 'bbbbbbbb-bbbb-7bbb-8bbb-dddddddddddd';
@@ -198,6 +218,20 @@ function seed(): FinanceRepositoryDouble {
         new_learners_only: false,
         version: 1,
         status: 'published',
+      },
+      {
+        id: EMPTY_SCHEDULE,
+        institution_id: INSTITUTION,
+        name: 'Form 3 2027',
+        academic_year_id: YEAR,
+        academic_period_ids: [],
+        programme_ids: [],
+        level_ids: [],
+        residence_statuses: [],
+        fee_category_ids: [],
+        new_learners_only: false,
+        version: 1,
+        status: 'draft',
       },
     ],
     fee_schedule_line: [
@@ -513,5 +547,267 @@ describe('money never drifts through a float', () => {
       );
       expect(created).toBeDefined();
     });
+  });
+});
+
+/** The row of a grid that shows the given text. */
+const gridRow = async (text: string | RegExp): Promise<HTMLElement> => {
+  const cell = await screen.findByText(text);
+  const row = cell.closest('tr');
+  expect(row).not.toBeNull();
+  return row as HTMLElement;
+};
+
+describe('a fee schedule keeps its lines while the schedule is edited', () => {
+  it('adds, edits and deletes a fee schedule line', async () => {
+    renderPage(<FeeTemplatesContent />);
+    const row = await gridRow('Form 1 2027');
+    fireEvent.click(within(row).getByRole('button', { name: /Lines/ }));
+
+    const linesDialog = await screen.findByRole('dialog');
+    fireEvent.click(within(linesDialog).getByRole('button', { name: /Add fee line/i }));
+
+    const form = (await screen.findAllByRole('dialog')).at(-1) as HTMLElement;
+    fireEvent.click(within(form).getByRole('combobox', { name: /Fee item/i }));
+    fireEvent.click(await screen.findByRole('option', { name: /TUITION Tuition/ }));
+    fireEvent.change(within(form).getByLabelText(/Amount/), { target: { value: '250.00' } });
+    fireEvent.submit(form.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      const added = (repository.rows.fee_schedule_line ?? []).filter(
+        (line) => (line.amount as { amount_minor: number }).amount_minor === 25_000
+      );
+      expect(added).toHaveLength(1);
+      expect(added[0]?.fee_schedule_id).toBe(SCHEDULE);
+    });
+
+    const added = (repository.rows.fee_schedule_line ?? []).find(
+      (line) => (line.amount as { amount_minor: number }).amount_minor === 25_000
+    );
+    const addedId = String(added?.id);
+
+    // The line is edited in place: its id stays, its amount moves.
+    const addedRow = await gridRow(/250\.00/);
+    fireEvent.click(within(addedRow).getByRole('button', { name: /^Edit$/i }));
+    const editForm = (await screen.findAllByRole('dialog')).at(-1) as HTMLElement;
+    fireEvent.change(within(editForm).getByLabelText(/Amount/), { target: { value: '300.00' } });
+    fireEvent.submit(editForm.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      const edited = (repository.rows.fee_schedule_line ?? []).find((line) => line.id === addedId);
+      expect((edited?.amount as { amount_minor: number }).amount_minor).toBe(30_000);
+      expect(repository.writes.some((write) => write.entity === 'fee_schedule_line' && write.action === 'update')).toBe(true);
+    });
+
+    // The removal is persisted, and the seeded line is untouched.
+    const editedRow = await gridRow(/300\.00/);
+    fireEvent.click(within(editedRow).getByRole('button', { name: /^Delete$/i }));
+    const confirmText = await screen.findByText('Delete this fee line?');
+    const confirmDialog = confirmText.closest('[role="dialog"]') as HTMLElement;
+    fireEvent.click(within(confirmDialog).getByRole('button', { name: /^Delete$/i }));
+
+    await waitFor(() => {
+      const live = (repository.rows.fee_schedule_line ?? []).filter((line) => !line.deleted_at);
+      expect(live).toHaveLength(1);
+      expect(String(live[0]?.id)).toBe('0d0d0d0d-0d0d-7d0d-8d0d-0d0d0d0d0d0d');
+    });
+  });
+
+  it('saves a changed schedule name and period and keeps the lines', async () => {
+    renderPage(<FeeTemplatesContent />);
+    const row = await gridRow('Form 1 2027');
+    fireEvent.click(within(row).getByRole('button', { name: /^Edit$/i }));
+    const modal = await dialog();
+
+    fireEvent.change(within(modal).getByLabelText(/Schedule name/), {
+      target: { value: 'Form 1 2027 (revised)' },
+    });
+
+    // The period is a reference chosen through the picker, and the stored one is removed.
+    fireEvent.click(within(modal).getByRole('button', { name: 'Remove Term 1 2027' }));
+
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      const schedule = (repository.rows.fee_schedule ?? []).find((entry) => entry.id === SCHEDULE);
+      expect(schedule?.name).toBe('Form 1 2027 (revised)');
+      expect(schedule?.academic_period_ids).toEqual([]);
+    });
+
+    const lines = (repository.rows.fee_schedule_line ?? []).filter(
+      (line) => line.fee_schedule_id === SCHEDULE && !line.deleted_at
+    );
+    expect(lines).toHaveLength(1);
+  });
+
+  it('saves the level selection of a schedule', async () => {
+    renderPage(<FeeTemplatesContent />);
+    const row = await gridRow('Form 3 2027');
+    fireEvent.click(within(row).getByRole('button', { name: /^Edit$/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Add level/ }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Form 1' }));
+    const levels = within(modal).getByRole('group', { name: 'Levels' });
+    await waitFor(() => expect(within(levels).getByRole('button', { name: 'Add' })).toBeEnabled());
+    fireEvent.click(within(levels).getByRole('button', { name: 'Add' }));
+    expect(await within(modal).findByRole('button', { name: 'Remove Form 1' })).toBeInTheDocument();
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      const schedule = (repository.rows.fee_schedule ?? []).find(
+        (entry) => entry.id === EMPTY_SCHEDULE
+      );
+      expect(schedule?.level_ids).toEqual([LEVEL]);
+    });
+  });
+});
+
+describe('a charge is posted as a one-line invoice', () => {
+  it('posts a fine against a learner', async () => {
+    renderPage(<FeesFinesPageContent />);
+    await screen.findByText('Damaged textbook');
+    fireEvent.click(screen.getByRole('button', { name: /Add fine/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '250.00' } });
+    fireEvent.change(within(modal).getByLabelText(/^Reason$/), {
+      target: { value: 'Late library book' },
+    });
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      const line = (repository.rows.invoice_line ?? []).find(
+        (entry) => entry.description === 'Late library book'
+      );
+      expect(line).toBeDefined();
+      expect(line?.kind).toBe('fine');
+      expect((line?.amount as { amount_minor: number }).amount_minor).toBe(25_000);
+
+      const invoice = (repository.rows.invoice ?? []).find((entry) => entry.id === line?.invoice_id);
+      expect(invoice?.status).toBe('posted');
+      expect(invoice?.learner_id).toBe(LEARNER);
+    });
+  });
+
+  it('posts an opening balance and surfaces the freeze when it is edited', async () => {
+    renderPage(<StudentOpeningBalancesPageContent />);
+    await screen.findByText('INV-000003');
+    fireEvent.click(screen.getByRole('button', { name: /Add opening balance/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '1200.00' } });
+    fireEvent.change(within(modal).getByLabelText(/Description/), {
+      target: { value: 'Brought forward from 2026' },
+    });
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      const line = (repository.rows.invoice_line ?? []).find(
+        (entry) => entry.description === 'Brought forward from 2026'
+      );
+      expect(line?.kind).toBe('opening_balance');
+      expect((line?.amount as { amount_minor: number }).amount_minor).toBe(120_000);
+    });
+
+    // The balance is posted, so the edit path is the repository's refusal.
+    const balanceRow = await gridRow(/1[,.]?200\.00/);
+    fireEvent.click(within(balanceRow).getByRole('button', { name: /^Edit$/i }));
+    const edit = await dialog();
+    fireEvent.change(within(edit).getByLabelText(/Amount/), { target: { value: '1300.00' } });
+    fireEvent.submit(edit.querySelector('form') as HTMLFormElement);
+    expect(await within(edit).findByText(/posted_immutable/)).toBeInTheDocument();
+  });
+});
+
+describe('a form refuses what it cannot save', () => {
+  it('keeps the payment dialog open when the learner is missing', async () => {
+    renderPage(<StudentPaymentsPageContent />);
+    await screen.findByText('RCT-000001');
+    fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
+    const modal = await dialog();
+
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    expect(
+      await within(modal).findByText(/Please fix the highlighted fields before saving/)
+    ).toBeInTheDocument();
+    expect(repository.writes.some((write) => write.entity === 'payment')).toBe(false);
+  });
+
+  it('shows the save error inside the payment dialog and keeps it open', async () => {
+    const create = vi
+      .spyOn(repository, 'create')
+      .mockRejectedValueOnce(new Error('Database is read-only'));
+    renderPage(<StudentPaymentsPageContent />);
+    await screen.findByText('RCT-000001');
+    fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '500.00' } });
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    expect(await within(modal).findByText(/Database is read-only/)).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    create.mockRestore();
+  });
+
+  it('refuses a fine with no reason before it writes anything', async () => {
+    renderPage(<FeesFinesPageContent />);
+    await screen.findByText('Damaged textbook');
+    fireEvent.click(screen.getByRole('button', { name: /Add fine/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '250.00' } });
+    fireEvent.change(within(modal).getByLabelText(/^Reason$/), { target: { value: '  ' } });
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    expect(await within(modal).findByText(/Describe the fine/)).toBeInTheDocument();
+    expect(repository.writes.some((write) => write.entity === 'invoice')).toBe(false);
+  });
+
+  it('shows the save error inside the fine dialog and keeps it open', async () => {
+    const create = vi
+      .spyOn(repository, 'create')
+      .mockRejectedValueOnce(new Error('Database is read-only'));
+    renderPage(<FeesFinesPageContent />);
+    await screen.findByText('Damaged textbook');
+    fireEvent.click(screen.getByRole('button', { name: /Add fine/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '250.00' } });
+    fireEvent.change(within(modal).getByLabelText(/^Reason$/), {
+      target: { value: 'Broken window' },
+    });
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    expect(await within(modal).findByText(/Database is read-only/)).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    create.mockRestore();
+  });
+
+  it('refuses a payment of zero before it writes anything', async () => {
+    renderPage(<StudentPaymentsPageContent />);
+    await screen.findByText('RCT-000001');
+    fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
+    const modal = await dialog();
+
+    fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '0' } });
+    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
+
+    expect(await within(modal).findByText(/greater than zero/)).toBeInTheDocument();
+    expect(repository.writes.some((write) => write.entity === 'payment')).toBe(false);
   });
 });

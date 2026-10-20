@@ -293,7 +293,17 @@ export function createFinanceRepositoryDouble(
       const list = entityRows(entity);
       const index = list.findIndex((row) => row.id === id && !row.deleted_at);
       if (index < 0) throw new RepositoryNotFoundError(entity, id);
-      const removed = { ...list[index], deleted_at: new Date().toISOString() } as StoredRow;
+      const before = list[index] as StoredRow;
+      // A posted document cannot be edited and cannot be erased either, exactly as the repository
+      // withholds the removal.
+      const rule = FROZEN_AFTER_POSTING[entity];
+      const status = before.status;
+      if (rule && typeof status === 'string' && rule.statuses.includes(status)) {
+        throw new RepositoryInvariantError(entity, `${entity}.posted_immutable`, [
+          { path: 'status', message: `a ${status} ${entity} cannot be removed; post a reversal instead` },
+        ]);
+      }
+      const removed = { ...before, deleted_at: new Date().toISOString() } as StoredRow;
       list[index] = removed;
       writes.push({ entity, action: 'remove', id });
       deliver(entity);

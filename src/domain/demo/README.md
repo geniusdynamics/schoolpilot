@@ -38,10 +38,12 @@ The structure is looked up by its natural key before it is created, so re-openin
 reuses the school and adds only what is missing. The demo rows are written only when `demo` is set
 **and** the school has no learners yet: a real school never receives them.
 
-The seed is not one transaction, because an admission owns its own. It is a sequence of atomic
-steps instead: a refusal surfaces as `DemoSchoolSeedError` with the step that failed and the counts
-it had already written, and the refused admission leaves no learner, guardian, link, identifier or
-enrolment behind.
+The whole run is **one transaction** of the repository; every service it calls (the admissions, the
+registers) joins it instead of opening a second one. A failure therefore leaves nothing behind - not
+a half-built school, not a learner without their guardians, not an invoice without its lines. It
+surfaces as `DemoSchoolSeedError` with the substep that was running (`institution`, `structure`,
+`staff`, `curriculum`, `learners`, `teaching`, `assessment`, `fees`, `register`) and the counts the
+attempt had reached, so a caller can see how far it got and where it stopped.
 
 ## What stays legacy
 

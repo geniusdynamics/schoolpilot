@@ -439,15 +439,28 @@ const FROZEN_AFTER_POSTING: Partial<
  * Spec 02 §12.7 - invoices, payments, credit notes and refunds are immutable after
  * posting; corrections are reversals. Journal entries are not modelled yet and belong
  * to the finance ledger task.
+ *
+ * A removal is a write like any other, so a posted document cannot be removed either: a
+ * soft delete would take the posted amount out of every read while leaving its receipt,
+ * its allocation and its audit trail behind. The row has to be reversed, not erased.
  */
 async function enforcePostedImmutability(context: InvariantContext): Promise<void> {
-  if (context.action !== 'update' || !context.before) return;
+  if (context.action === 'create' || !context.before) return;
 
   const rule = FROZEN_AFTER_POSTING[context.entity];
   if (!rule) return;
 
   const previousStatus = text(context.before.status);
   if (!previousStatus || !rule.statuses.includes(previousStatus)) return;
+
+  if (context.action === 'remove') {
+    throw new RepositoryInvariantError(context.entity, 'finance.posted_immutable', [
+      fieldIssue(
+        'status',
+        `a ${previousStatus} ${context.entity} cannot be removed; post a reversal instead`
+      ),
+    ]);
+  }
 
   const issues = [];
 
@@ -591,6 +604,18 @@ const ENTITY_GUARDS: Partial<Record<EntityName, readonly InvariantGuard[]>> = {
 /** Every guard that runs for an entity, the shared one first. */
 export function guardsFor(entity: EntityName): readonly InvariantGuard[] {
   return [enforceReferencesAndTenancy, ...(ENTITY_GUARDS[entity] ?? [])];
+}
+
+/**
+ * The guards a removal runs.
+ *
+ * A removal keeps the row (a soft delete) or deletes it outright, so the guards that judge
+ * the shape of a new row, the overlap of a period or the membership of a mark have nothing
+ * to add. The posting freeze is the one rule that withholds a removal, because erasing a
+ * posted document is how its immutability would be bypassed.
+ */
+export function guardsForRemoval(entity: EntityName): readonly InvariantGuard[] {
+  return FROZEN_AFTER_POSTING[entity] ? [enforcePostedImmutability] : [];
 }
 
 /** The invariant identifiers the repository enforces, for documentation and tests. */

@@ -183,4 +183,87 @@ describe('repository transaction', () => {
 
     expect(seen).toBeGreaterThan(0);
   });
+
+  it('joins an ambient transaction instead of opening a second one', async () => {
+    // A service that opens its own transaction inside an admission is the ordinary case:
+    // the guardian is created and linked while the learner's transaction is still open.
+    const events: ChangeEvent[] = [];
+    const unsubscribe = context.repository.subscribe((event) => {
+      events.push(event);
+    });
+
+    const outer = await context.repository.transaction(async () => {
+      const learner = await context.repository.create(
+        'learner',
+        fixtureInput(context, 'learner', { admission_number: 'GA/2027/TX3' })
+      );
+
+      const inner = await context.repository.transaction(async (tx) => {
+        // The inner callback runs on the outer handle, so it reads what the outer wrote.
+        const seen = await tx.get<{ count: number }>(
+          'SELECT COUNT(*) AS count FROM "learner" WHERE "id" = ?',
+          [learner.id]
+        );
+        expect(seen?.count).toBe(1);
+
+        return context.repository.create(
+          'comment_bank_entry',
+          fixtureInput(context, 'comment_bank_entry', { text: 'Written by the inner transaction.' })
+        );
+      });
+
+      // The write of the inner transaction is part of the outer one: it is visible here.
+      const visible = await context.repository.get('comment_bank_entry', inner.id);
+      expect(visible?.text).toBe('Written by the inner transaction.');
+      expect(events).toHaveLength(0);
+
+      return { learner, inner };
+    });
+
+    // Nothing was committed twice and nothing was announced early.
+    expect(events).toHaveLength(2);
+    expect(await context.repository.get('learner', outer.learner.id)).not.toBeNull();
+    expect(await context.repository.get('comment_bank_entry', outer.inner.id)).not.toBeNull();
+
+    unsubscribe();
+  });
+
+  it('rolls the whole transaction back when an inner transaction throws', async () => {
+    const events: ChangeEvent[] = [];
+    const unsubscribe = context.repository.subscribe((event) => {
+      events.push(event);
+    });
+
+    const failure = await context.repository
+      .transaction(async () => {
+        await context.repository.create(
+          'comment_bank_entry',
+          fixtureInput(context, 'comment_bank_entry', { text: 'Outer write before the inner one.' })
+        );
+
+        await context.repository.transaction(async () => {
+          await context.repository.create(
+            'comment_bank_entry',
+            fixtureInput(context, 'comment_bank_entry', { text: 'Inner write that rolls back.' })
+          );
+          throw new Error('the inner transaction fails');
+        });
+      })
+      .catch((error: unknown) => error);
+
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toContain('the inner transaction fails');
+
+    const outerWrite = await context.repository.list('comment_bank_entry', {
+      where: { text: 'Outer write before the inner one.' },
+    });
+    const innerWrite = await context.repository.list('comment_bank_entry', {
+      where: { text: 'Inner write that rolls back.' },
+    });
+    expect(outerWrite.total).toBe(0);
+    expect(innerWrite.total).toBe(0);
+    expect(events).toHaveLength(0);
+
+    unsubscribe();
+  });
 });

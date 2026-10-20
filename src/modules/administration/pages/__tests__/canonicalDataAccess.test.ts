@@ -7,30 +7,53 @@ import { join, relative, sep } from 'node:path';
 
 const MODULE_ROOT = join(process.cwd(), 'src', 'modules', 'administration');
 
-/** The legacy collections the canonical registry serves. */
+/**
+ * The legacy collections the canonical registry serves.
+ *
+ * The names are the collection names the legacy layer uses (`useDatabaseCollection('students')`,
+ * `appData.students`); the camelCase aliases are the members the app-data context exposes for the
+ * same collections, and both spellings are a read of canonical data through the old layer.
+ */
 const CANONICAL_LEGACY_COLLECTIONS = [
   'students',
   'staff',
   'classes',
   'classStreams',
+  'class_streams',
   'departments',
   'designations',
   'academicYears',
+  'academic_years',
   'schoolPeriods',
+  'school_periods',
   'users',
   'parentsGuardians',
+  'parents_guardians',
   'studentGuardianRelationships',
+  'student_guardian_relationships',
   'studentAttendance',
+  'student_attendance',
 ] as const;
 
 /**
- * The pages whose canonical reads are still pending, with the entities that serve them.
+ * The files whose canonical reads still go through the legacy layer, each with the canonical
+ * entities that serve them.
  *
- * The promotion screen drives the legacy promotion hook, which moves the legacy student and
- * class-history rows; both are migrated by P1-C02/P1-C03 before the screen can move.
+ * The pages are pending because their screen has not moved; the data hooks feed the pages that
+ * have no canonical home yet (the promotion run, the masterlist, the attendance report) and the
+ * legacy CRUD hooks the GAP pages still import through `useAdministration`.
  */
 const PENDING_CANONICAL_MIGRATION: Record<string, string> = {
   'pages/StudentPromotionPage.tsx': 'learner, class_group, academic_year',
+  'pages/AttendanceReportsPage.tsx': 'attendance_mark, attendance_session, learner',
+  'data/useAcademicYearData.ts': 'academic_year',
+  'data/useAdministrationData.ts':
+    'learner, staff, class_group, department, job_title, guardian, learner_guardian, attendance_mark',
+  'data/useDepartmentData.ts': 'department',
+  'data/useDesignationData.ts': 'job_title',
+  'data/useSchoolPeriodData.ts': 'academic_period',
+  'hooks/useStudentMasterlist.ts': 'learner, class_group, guardian, learner_guardian',
+  'hooks/useStudentPromotion.ts': 'learner, class_group, enrolment',
 };
 
 /**
@@ -45,6 +68,10 @@ const GAP_WRITES: Record<string, string> = {
   'pages/BulkAssignRollNumbersPage.tsx': 'learner.roll_number',
   'pages/BulkStudentUpdatePage.tsx': 'learner bulk fields (P1-C03)',
   'pages/BulkStreamCreationPage.tsx': 'class_group mapping (P1-C02)',
+  // The promotion run rewrites the legacy student row (`current_class_stream_id`) and its class
+  // history. The canonical model moves a learner through `enrolment` (EnrolmentService.transfer),
+  // so the run has to be re-expressed on it before this can leave the legacy layer.
+  'hooks/useStudentPromotion.ts': 'enrolment promotion run (P1-C03)',
 };
 
 /** The pages migrated onto the repository in this task that offer a reference. */
@@ -86,7 +113,47 @@ function sourceFiles(): SourceFile[] {
 const files = sourceFiles();
 const byPath = new Map(files.map((file) => [file.modulePath, file] as const));
 
-/** The names a `useAppData()` call destructures. */
+/** The variables a `useAppData()` call is assigned to, so `appData.students` is a read too. */
+function appDataHolders(source: string): string[] {
+  const holders: string[] = [];
+  const assigned = /(?:const|let|var)\s+(\w+)\s*(?::\s*[^=;\n]+)?=\s*useAppData\(\)/g;
+  let match = assigned.exec(source);
+  while (match) {
+    holders.push(match[1] as string);
+    match = assigned.exec(source);
+  }
+  return holders;
+}
+
+/** The string constants the file declares, so a collection named through one is resolved. */
+function stringConstants(source: string): Map<string, string> {
+  const constants = new Map<string, string>();
+  const declared = /(?:const|let)\s+(\w+)\s*(?::\s*string)?\s*=\s*['"]([^'"]+)['"]/g;
+  let match = declared.exec(source);
+  while (match) {
+    constants.set(match[1] as string, match[2] as string);
+    match = declared.exec(source);
+  }
+  return constants;
+}
+
+/** The collections a `useDatabaseCollection` call binds, by literal or by the constant naming it. */
+function databaseCollectionNames(source: string): string[] {
+  const names: string[] = [];
+  const constants = stringConstants(source);
+  const called = /useDatabaseCollection\s*(?:<[^()]*>)?\s*\(\s*([^)]+)\)/g;
+  let match = called.exec(source);
+  while (match) {
+    const argument = (match[1] ?? '').trim();
+    const literal = /^['"]([^'"]+)['"]$/.exec(argument);
+    const resolved = literal?.[1] ?? constants.get(argument);
+    if (resolved) names.push(resolved);
+    match = called.exec(source);
+  }
+  return names;
+}
+
+/** The names a `useAppData()` call reads, by destructuring, by member or through its variable. */
 function collectionsReadBy(source: string): string[] {
   const names: string[] = [];
   const destructured = /\{([^{}]*)\}\s*=\s*useAppData\(\)/g;
@@ -104,19 +171,25 @@ function collectionsReadBy(source: string): string[] {
     names.push(match[1] as string);
     match = member.exec(source);
   }
+  for (const holder of appDataHolders(source)) {
+    for (const read of source.matchAll(new RegExp(`\\b${holder}\\.(\\w+)`, 'g'))) {
+      names.push(read[1] as string);
+    }
+  }
+  names.push(...databaseCollectionNames(source));
   return names;
 }
 
 const WRITE_NAME = /^(add|update|delete|remove|save|create|commit|undo|insert|assign|bulk)[A-Z]/;
 
-/** The writes a page makes through `useAppData()`, by destructuring or by `appData.x`. */
+/** The writes a page makes through the legacy layer, by destructuring, by holder or by collection. */
 function writesThroughLegacy(source: string): string[] {
   const writes = collectionsReadBy(source).filter((name) => WRITE_NAME.test(name));
-  const appData = /const\s+appData\s*=\s*useAppData\(\)/.test(source);
-  if (!appData) return writes;
-  for (const match of source.matchAll(/appData\.(\w+)/g)) {
-    const name = match[1] as string;
-    if (WRITE_NAME.test(name)) writes.push(name);
+  for (const holder of appDataHolders(source)) {
+    for (const call of source.matchAll(new RegExp(`\\b${holder}\\.(\\w+)`, 'g'))) {
+      const name = call[1] as string;
+      if (WRITE_NAME.test(name)) writes.push(name);
+    }
   }
   return writes;
 }
@@ -194,5 +267,44 @@ describe('the administration module reads canonical data through the repository'
       expect(head[0]?.startsWith('// ABOUTME:'), `${file.modulePath} needs an ABOUTME line`).toBe(true);
       expect(head[1]?.startsWith('// ABOUTME:'), `${file.modulePath} needs a second ABOUTME line`).toBe(true);
     }
+  });
+});
+
+describe('the guard sees every spelling a page could use', () => {
+  it('reads a collection held in a variable, and writes through the same variable', () => {
+    const fixture = [
+      'const appData = useAppData();',
+      'const rows = appData.students;',
+      'appData.addStudent({ given_name: "Zawadi" });',
+      'appData.deleteStaff("x");',
+    ].join('\n');
+
+    expect(collectionsReadBy(fixture)).toContain('students');
+    expect(writesThroughLegacy(fixture)).toEqual(expect.arrayContaining(['addStudent', 'deleteStaff']));
+  });
+
+  it('types a holder: the annotation does not hide the variable spelling', () => {
+    const fixture = [
+      'const ctx: AdministrationContextValue = useAppData();',
+      'const rows = ctx.studentAttendance;',
+    ].join('\n');
+
+    expect(collectionsReadBy(fixture)).toContain('studentAttendance');
+  });
+
+  it('reads a useDatabaseCollection call by its literal and by the constant naming it', () => {
+    const literal = "const years = useDatabaseCollection<Record<string, unknown>>('academic_years');";
+    expect(collectionsReadBy(literal)).toContain('academic_years');
+
+    const throughConstant = [
+      "export const COLLECTION = 'school_periods';",
+      'const periods = useDatabaseCollection<PeriodRow>(COLLECTION);',
+    ].join('\n');
+    expect(collectionsReadBy(throughConstant)).toContain('school_periods');
+  });
+
+  it('leaves a canonical read alone when no legacy layer is involved', () => {
+    const fixture = 'const years = useEntityQuery(repository, "academic_year");';
+    expect(collectionsReadBy(fixture)).toEqual([]);
   });
 });
