@@ -20,11 +20,17 @@ type ChangeEvent = { type: 'insert' | 'update' | 'delete'; doc: Doc; id: string 
 const makeCollection = (initial: Doc[]) => {
   const docs = [...initial];
   const changes = new Subject<ChangeEvent>();
+  // True once the provider watches this collection for change events.
+  const watched = { value: false };
   return {
     docs,
     changes,
+    watched,
     find: vi.fn(async () => docs.map((d) => ({ ...d }))),
-    subscribeToChanges: () => changes.asObservable(),
+    subscribeToChanges: () => {
+      watched.value = true;
+      return changes.asObservable();
+    },
     // Simulates a write made by another hook (useDatabaseCollection, useEntityCrud, …).
     insertFromElsewhere(doc: Doc) {
       docs.push(doc);
@@ -103,6 +109,61 @@ const renderApp = () =>
     </BackupRestoreProvider>
   );
 
+/** The read counter of a collection double. */
+type ReadCounter = { mock: { calls: readonly unknown[] } };
+
+/**
+ * Waits until the read count of a collection stops moving.
+ *
+ * The provider reads a collection when it loads, and again when a change event arrives
+ * after a debounce. A snapshot taken while a read is still on its way counts a read that
+ * belongs to the previous burst, which is what made this test flaky under load. The
+ * helper waits for the count to be quiet for a while, and for the collection to have been
+ * read at least once, so the count it returns is a settled one.
+ */
+const waitForStableReads = async (
+  find: ReadCounter,
+  options: { quietMs?: number; timeoutMs?: number } = {}
+): Promise<number> => {
+  const quietMs = options.quietMs ?? 200;
+  let last = -1;
+  let quietSince = Date.now();
+
+  await waitFor(
+    () => {
+      const current = find.mock.calls.length;
+      if (current !== last) {
+        last = current;
+        quietSince = Date.now();
+        throw new Error('the read count is still moving');
+      }
+      if (current < 1) throw new Error('the collection was not read yet');
+      if (Date.now() - quietSince < quietMs) throw new Error('the read count is not quiet yet');
+    },
+    { timeout: options.timeoutMs ?? 10_000, interval: 25 }
+  );
+
+  return last;
+};
+
+/**
+ * Waits until the provider watches a collection for change events.
+ *
+ * The provider subscribes when the initialisation finishes, which is after the first
+ * render that shows the loaded rows. A change event emitted before that subscription
+ * exists is lost, so the test waits for the watch instead of racing it.
+ */
+const waitForWatch = async (collection: { watched: { value: boolean } }) => {
+  await waitFor(
+    () => {
+      if (!collection.watched.value) {
+        throw new Error('the provider does not watch the collection yet');
+      }
+    },
+    { timeout: 10_000, interval: 25 }
+  );
+};
+
 describe('AppDataProvider live refresh of shared lookups', () => {
   beforeEach(() => {
     collections.clear();
@@ -119,6 +180,7 @@ describe('AppDataProvider live refresh of shared lookups', () => {
     expect(await screen.findByText('2026')).toBeTruthy();
     expect(screen.queryByText('2027')).toBeNull();
 
+    await waitForWatch(years);
     act(() => {
       years.insertFromElsewhere({ id: 'y2', name: '2027' });
     });
@@ -135,13 +197,22 @@ describe('AppDataProvider live refresh of shared lookups', () => {
     renderApp();
 
     expect(await screen.findByText('Grade 6')).toBeTruthy();
-    const yearReads = years.find.mock.calls.length;
 
+    // The initial load of both collections has to have settled before the count is
+    // compared, so a read that was still on its way is not counted as a re-read.
+    const yearReads = await waitForStableReads(years.find);
+    await waitForStableReads(classes.find);
+    expect(yearReads).toBeGreaterThan(0);
+
+    await waitForWatch(classes);
     act(() => {
       classes.insertFromElsewhere({ id: 7, name: 'Grade 7' });
     });
 
     expect(await screen.findByText('Grade 7')).toBeTruthy();
+
+    // The change was in `classes`, so `years` was not read again.
+    await waitForStableReads(years.find);
     expect(years.find.mock.calls.length).toBe(yearReads);
   });
 
@@ -150,16 +221,23 @@ describe('AppDataProvider live refresh of shared lookups', () => {
     collections.set('classes', classes);
     renderApp();
 
-    await waitFor(() => expect(classes.find).toHaveBeenCalled());
-    const before = classes.find.mock.calls.length;
+    // The initial load has to have settled, so the burst is measured against a quiet
+    // database.
+    const before = await waitForStableReads(classes.find);
+    expect(before).toBeGreaterThan(0);
 
+    await waitForWatch(classes);
     act(() => {
       classes.insertFromElsewhere({ id: 'a', name: 'Form 1' });
       classes.insertFromElsewhere({ id: 'b', name: 'Form 2' });
       classes.insertFromElsewhere({ id: 'c', name: 'Form 3' });
     });
 
+    // The new row is on screen, so the read of the burst has already happened.
     expect(await screen.findByText('Form 3')).toBeTruthy();
-    expect(classes.find.mock.calls.length - before).toBe(1);
+
+    // One read for the burst of three change events, and no second one.
+    const after = await waitForStableReads(classes.find);
+    expect(after - before).toBe(1);
   });
 });

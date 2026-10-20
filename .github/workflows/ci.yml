@@ -150,3 +150,86 @@ jobs:
           path: test-results
           if-no-files-found: ignore
           retention-days: 7
+
+  harness:
+    name: Repository integration harness (SQLite, optional Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Harness self-test (SQLite) and the storage-mock guard
+        run: >-
+          pnpm -s vitest run
+          src/data/__tests__/harness/harness.test.ts
+          src/data/__tests__/harness/guard.test.ts
+
+      # The Postgres path is optional: it needs a container, and a pull request must not
+      # turn red because the container could not be started. A self-test that ran and
+      # failed is a different thing: that is a red build. The step reports which of the
+      # two happened in the job summary.
+      - name: Harness self-test (Postgres, non-blocking when it cannot run)
+        env:
+          DATABASE_URL: postgres://schoolpilot:schoolpilot@localhost:5432/schoolpilot_test
+        run: |
+          if ! docker info >/dev/null 2>&1; then
+            echo "::notice::Docker is unavailable on this runner: the Postgres harness self-test is skipped."
+            echo "Skipped: Docker is unavailable on this runner, so the Postgres harness self-test did not run." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if ! docker run -d --name schoolpilot-harness-postgres \
+            -e POSTGRES_USER=schoolpilot \
+            -e POSTGRES_PASSWORD=schoolpilot \
+            -e POSTGRES_DB=schoolpilot_test \
+            -p 5432:5432 \
+            postgres:16-alpine \
+            -c fsync=off -c synchronous_commit=off -c full_page_writes=off; then
+            echo "::warning::The Postgres container could not be started: the Postgres harness self-test is skipped."
+            echo "Skipped: the Postgres container could not be started, so the Postgres harness self-test did not run." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          ready=0
+          attempt=0
+          while [ "$attempt" -lt 60 ]; do
+            attempt=$((attempt + 1))
+            if docker exec schoolpilot-harness-postgres pg_isready -U schoolpilot -d schoolpilot_test >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "::warning::The Postgres container did not become ready: the Postgres harness self-test is skipped."
+            echo "Skipped: the Postgres container did not become ready, so the Postgres harness self-test did not run." >> "$GITHUB_STEP_SUMMARY"
+            docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
+            exit 0
+          fi
+
+          if pnpm -s vitest run src/data/__tests__/harness/postgres.test.ts; then
+            echo "The Postgres harness self-test passed." >> "$GITHUB_STEP_SUMMARY"
+            docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
+            exit 0
+          fi
+
+          echo "::error::The Postgres harness self-test ran and failed. The Postgres path is optional, but a self-test that ran is a real result."
+          echo "Failed: the Postgres harness self-test ran and failed." >> "$GITHUB_STEP_SUMMARY"
+          docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
+          exit 1
