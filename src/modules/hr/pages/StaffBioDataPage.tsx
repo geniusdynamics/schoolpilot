@@ -1,15 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { UserIcon, PlusIcon, AcademicCapIcon, BriefcaseIcon, DocumentTextIcon, ChartBarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import type { StaffBioData } from '../data/types';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
 import { formatKES, formatDate } from '@/utils/format';
 export const StaffBioDataPageContent: React.FC = () => {
 
-  const { staff = [], loading } = useAppData();
+  const { staff, isLoading } = useCanonicalStaff();
 
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -20,12 +21,12 @@ export const StaffBioDataPageContent: React.FC = () => {
   const staffBioData: StaffBioData[] = useMemo(() => {
     return staff.map(s => ({
       id: String(s.id),
-      staff_id: s.staff_no || '',
-      name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ').trim() || 'Unnamed',
-      designation: s.designation_title || '',
-      department: s.department_name || '',
-      date_of_birth: '',
-      gender: '',
+      staff_id: s.employee_number || '',
+      name: s.display_name || [s.given_name, s.family_name].filter(Boolean).join(' ').trim() || 'Unnamed',
+      designation: s.job_title || '',
+      department: s.department || '',
+      date_of_birth: s.date_of_birth || '',
+      gender: s.gender || '',
       marital_status: '',
       blood_group: '',
       phone: s.phone || '',
@@ -72,7 +73,7 @@ export const StaffBioDataPageContent: React.FC = () => {
     [staffBioData, selectedStaffId]
   );
 
-  if (loading?.all && staffBioData.length === 0) {
+  if (isLoading && staffBioData.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -356,9 +357,11 @@ export const StaffBioDataPageContent: React.FC = () => {
   );
 };
 const StaffBioDataPage: React.FC = () => (
-  <div className="space-y-6">
-    <StaffBioDataPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StaffBioDataPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StaffBioDataPage;

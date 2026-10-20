@@ -17,6 +17,8 @@ import { FoodItem, KitchenMealPlan, InventoryStatus } from '../data/types';
 import { logger } from '@/utils/logging';
 
 export const KitchenManagementPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no food item and no kitchen meal plan, so
+  // the kitchen page keeps reading the legacy collections.
   const { foodInventory, kitchenMealPlans, loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);

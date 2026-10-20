@@ -1,5 +1,5 @@
 // ABOUTME: Stock requisitions list, add/edit dialog and per-requisition line items.
-// ABOUTME: Requisitions and items come from useInventory; staff from the app-wide snapshot; items nest on the requisition.
+// ABOUTME: Requisitions and items come from useInventory; staff come from the canonical repository.
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,10 +13,13 @@ import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId } from '@/domain/ids';
 
-import { useAppData } from '@/hooks/useAppData';
 import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 import { RequisitionStatus } from '@/core/types';
 import type { Requisition, RequisitionItem } from '@/core/types';
 import { ClipboardDocumentListIcon, DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
@@ -29,8 +32,9 @@ type RequisitionItemFormData = Omit<Partial<RequisitionItem>, 'id' | 'requisitio
 };
 
 export const RequisitionsPageContent: React.FC = () => {
-  const { staff: staffList } = useAppData();
-  const staff = staffList ?? [];
+  const { staffLookup } = useCanonicalStaff();
+  // GAP(P1-E05): the canonical registry models no requisition and no item, so the
+  // requisition register stays on the legacy collections.
   const { requisitions, items: itemsInv, addRequisition, updateRequisition, deleteRequisition } = useInventory();
   const { t } = useTranslation('inventory');
   const confirm = useConfirm();
@@ -416,10 +420,16 @@ export const RequisitionsPageContent: React.FC = () => {
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select name="requesting_staff_id" label="Requesting Staff" value={reqFormData.requesting_staff_id || ''} onChange={handleReqInputChange} required>
-                <option value="">Select Staff</option>
-                {staff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.department_name})</option>)}
-            </Select>
+            <div>
+              <EntityPicker
+                value={reqFormData.requesting_staff_id ? asId<'staff'>(reqFormData.requesting_staff_id) : null}
+                onChange={(id) => setReqFormData(prev => ({ ...prev, requesting_staff_id: id ?? undefined }))}
+                lookup={staffLookup}
+                label="Requesting Staff"
+                placeholder="Select Staff"
+                data-testid="requisition-staff-picker"
+              />
+            </div>
             <Input name="request_date" label="Request Date" type="date" value={reqFormData.request_date || ''} onChange={handleReqInputChange} required />
             <Select name="status" label="Status" value={reqFormData.status || ''} onChange={handleReqInputChange} required className="md:col-span-2">
                 {Object.values(RequisitionStatus).map(s => <option key={s} value={s}>{s}</option>)}
@@ -475,9 +485,11 @@ export const RequisitionsPageContent: React.FC = () => {
   );
 };
 const RequisitionsPage: React.FC = () => (
-  <div className="space-y-6">
-    <RequisitionsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <RequisitionsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default RequisitionsPage;

@@ -12,27 +12,31 @@ import ModuleDashboardShell, {
   DashboardQuickAction,
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
+import { useEntityQuery } from '@/data/query';
+import { CanonicalRepositoryProvider, useCanonicalRepository } from '../data/canonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
 export const HRDashboardPageContent: React.FC = () => {
-  const {
-    staff,
-    payrollPeriods,
-    payrollItemTypes,
-    staffSalarySettings,
-    payslips,
-    departments,
-    loading,
-  } = useAppData();
+  const repository = useCanonicalRepository();
+  // Canonical staff and departments come from the repository.
+  const { staff, isLoading: staffLoading } = useCanonicalStaff();
+  const departmentsQuery = useEntityQuery(repository, 'department');
+  const departments = departmentsQuery.data?.items ?? [];
 
-  const pageIsLoading = loading.staff || loading.payrollPeriods || loading.payrollItemTypes || loading.staffSalarySettings || loading.payslips;
+  // GAP(P1-E05): the payroll collections have no canonical entity yet - the registry
+  // models no payroll period, payroll item type, salary setting or payslip. They stay
+  // on the legacy collections until a registry change adds them.
+  const { payrollPeriods, payrollItemTypes, staffSalarySettings, payslips } = useAppData();
+
+  const pageIsLoading = staffLoading || departmentsQuery.status === 'loading';
 
   if (pageIsLoading) {
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
 
   // Employment type distribution
-  const employmentTypeCounts = (staff || []).reduce<Record<string, number>>((accumulator: Record<string, number>, member: any) => {
-    const key = String(member.employment_type || member.employmentType || member.contract_type || 'Unspecified');
+  const employmentTypeCounts = (staff || []).reduce<Record<string, number>>((accumulator: Record<string, number>, member) => {
+    const key = String(member.employment_type || 'Unspecified');
     accumulator[key] = (accumulator[key] || 0) + 1;
     return accumulator;
   }, {});
@@ -45,12 +49,12 @@ export const HRDashboardPageContent: React.FC = () => {
   const staffByDepartmentData: ChartData[] = (departments || [])
     .map(dept => ({
       name: dept.name,
-      value: (staff || []).filter((s: any) => s.department_id === dept.id).length,
+      value: (staff || []).filter((s) => s.department_ids.includes(dept.id)).length,
     }))
     .filter(d => d.value > 0);
 
   // Alert calculations
-  const staffWithoutSalary = (staff || []).filter((s: any) =>
+  const staffWithoutSalary = (staff || []).filter((s) =>
     !(staffSalarySettings || []).some((sss: any) => sss.staff_id === s.id)
   ).length;
   const unprocessedPayslips = (payslips || []).filter((p: any) => p.status === 'draft' || p.status === 'pending').length;
@@ -347,9 +351,11 @@ export const HRDashboardPageContent: React.FC = () => {
   );
 };
 const HRDashboardPage: React.FC = () => (
-  <div className="space-y-6">
-    <HRDashboardPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <HRDashboardPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default HRDashboardPage;

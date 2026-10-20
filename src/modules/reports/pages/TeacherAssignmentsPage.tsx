@@ -1,17 +1,18 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 
-import { useAppData } from '@/hooks/useAppData';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalReportData } from '../data/useCanonicalReportData';
 import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 
 import { useTranslation } from 'react-i18next';
-import type { TeacherSubjectAssignment } from '@/core/types';
+import type { ReportTeacherAssignment } from '../data/useCanonicalReportData';
 
 export const TeacherAssignmentsPageContent: React.FC = () => {
-  const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
+  const { staff, academicYears, teacherSubjectAssignments, isLoading: loading } = useCanonicalReportData();
   const { t } = useTranslation('reports');
 
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<string | undefined>(() => {
@@ -20,7 +21,7 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   });
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | undefined>();
   
-  const [reportData, setReportData] = useState<TeacherSubjectAssignment[]>([]);
+  const [reportData, setReportData] = useState<ReportTeacherAssignment[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   
   const teachers = useMemo(() => (staff || []).filter(s => s.is_active && (s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal') || s.department_name === 'Academics')), [staff]);
@@ -51,13 +52,13 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
-    { header: 'Academic Year', key: 'academic_year_name' as keyof TeacherSubjectAssignment },
-    { header: 'Teacher', key: 'teacher_name' as keyof TeacherSubjectAssignment },
-    { header: 'Class Stream', key: 'class_stream_name' as keyof TeacherSubjectAssignment },
-    { header: 'Subject', key: 'subject_name' as keyof TeacherSubjectAssignment },
+    { header: 'Academic Year', key: 'academic_year_name' as keyof ReportTeacherAssignment },
+    { header: 'Teacher', key: 'teacher_name' as keyof ReportTeacherAssignment },
+    { header: 'Class Stream', key: 'class_stream_name' as keyof ReportTeacherAssignment },
+    { header: 'Subject', key: 'subject_name' as keyof ReportTeacherAssignment },
   ];
 
-  const isLoadingPage = loading.staff || loading.academicYears || loading.teacherSubjectAssignments;
+  const isLoadingPage = loading;
 
   return (
     <div className="space-y-6">
@@ -99,9 +100,11 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   );
 };
 const TeacherAssignmentsPage: React.FC = () => (
-  <div className="space-y-6">
-    <TeacherAssignmentsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <TeacherAssignmentsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default TeacherAssignmentsPage;

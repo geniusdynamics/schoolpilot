@@ -14,6 +14,9 @@ import ModuleDashboardShell, {
 } from '@/components/ModuleDashboardShell';
 
 export const InventoryDashboardPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no item, warehouse, stock level,
+  // requisition, purchase order or supplier, so the dashboard keeps reading the legacy
+  // inventory collections.
   const { itemsInv, stockLevels, requisitions, purchaseOrders, vendors, loading } = useAppData();
 
   if (loading.itemsInv || loading.stockLevels || loading.requisitions || loading.purchaseOrders || loading.all) {

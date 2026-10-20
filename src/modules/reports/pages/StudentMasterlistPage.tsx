@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 
-import { useAppData } from '@/hooks/useAppData';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalReportData } from '../data/useCanonicalReportData';
 import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
@@ -10,10 +11,10 @@ import SchoolLetterhead from '@/components/SchoolLetterhead';
 
 import { useTranslation } from 'react-i18next';
 import { PersonGender, StudentStatus } from '@/core/types';
-import type { Student } from '@/core/types';
+import type { ReportStudent } from '../data/useCanonicalReportData';
 
 export const StudentMasterlistPageContent: React.FC = () => {
-  const { students, classes, classStreams, loading } = useAppData();
+  const { students, classes, classStreams, isLoading: loading } = useCanonicalReportData();
   const { t } = useTranslation('reports');
 
   const [selectedClassId, setSelectedClassId] = useState<string | undefined>();
@@ -21,7 +22,7 @@ export const StudentMasterlistPageContent: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<StudentStatus | ''>('');
   const [selectedGender, setSelectedGender] = useState<PersonGender | ''>('');
   
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<ReportStudent[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const availableStreams = useMemo(() => {
@@ -62,19 +63,19 @@ export const StudentMasterlistPageContent: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps 
 
   const columns = [
-    { header: 'Adm No', key: 'admission_no' as keyof Student },
-    { header: 'Student Name', key: 'student_name', render: (_v: any, item: Student) => `${item.first_name} ${item.last_name}` },
-    { header: 'Gender', key: 'gender' as keyof Student },
-    { header: 'Status', key: 'status' as keyof Student },
-    { header: 'Class', key: 'current_class_name' as keyof Student },
-    { header: 'Stream', key: 'current_class_stream_name' as keyof Student },
-    { header: 'Category', key: 'student_category_name' as keyof Student },
-    { header: 'Dormitory', key: 'dormitory_name' as keyof Student },
-    { header: 'Guardian Name', key: 'guardian_name', render: (_v: any, item: Student) => item.primary_guardian?.name || '-' },
-    { header: 'Guardian Phone', key: 'guardian_phone', render: (_v: any, item: Student) => item.primary_guardian?.phone || '-' },
+    { header: 'Adm No', key: 'admission_no' as keyof ReportStudent },
+    { header: 'Student Name', key: 'student_name', render: (_v: any, item: ReportStudent) => `${item.first_name} ${item.last_name}` },
+    { header: 'Gender', key: 'gender' as keyof ReportStudent },
+    { header: 'Status', key: 'status' as keyof ReportStudent },
+    { header: 'Class', key: 'current_class_name' as keyof ReportStudent },
+    { header: 'Stream', key: 'current_class_stream_name' as keyof ReportStudent },
+    { header: 'Category', key: 'student_category_name' as keyof ReportStudent },
+    { header: 'Dormitory', key: 'dormitory_name' as keyof ReportStudent },
+    { header: 'Guardian Name', key: 'guardian_name', render: (_v: any, item: ReportStudent) => item.primary_guardian?.name || '-' },
+    { header: 'Guardian Phone', key: 'guardian_phone', render: (_v: any, item: ReportStudent) => item.primary_guardian?.phone || '-' },
   ];
 
-  const isLoadingPage = loading.students || loading.classes || loading.classStreams;
+  const isLoadingPage = loading;
 
   const handlePrint = () => {
     window.print();
@@ -86,9 +87,9 @@ export const StudentMasterlistPageContent: React.FC = () => {
       return columns.map(col => {
         let value;
         if (col.render) {
-          value = col.render(student[col.key as keyof Student], student);
+          value = col.render(student[col.key as keyof ReportStudent], student);
         } else {
-          value = student[col.key as keyof Student] as string | number | undefined;
+          value = student[col.key as keyof ReportStudent] as string | number | undefined;
         }
         // Handle potential commas in values by double-quoting
         const stringValue = String(value !== undefined && value !== null ? value : '-');
@@ -160,9 +161,11 @@ export const StudentMasterlistPageContent: React.FC = () => {
   );
 };
 const StudentMasterlistPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentMasterlistPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentMasterlistPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentMasterlistPage;

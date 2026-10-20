@@ -11,13 +11,16 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import type { Staff } from '@/core/types';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import type { Id } from '@/domain/ids';
 import type { Payslip, PayrollPeriod } from '@/modules/hr/data/types';
 import { logger } from '@/utils/logging';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
 import { formatKES, formatDate } from '@/utils/format';
 interface GeneratePayslipFormData {
-  staff_id: number | null;
+  staff_id: Id<'staff'> | null;
   period_id: number | null;
   payment_date: string;
   notes: string;
@@ -25,10 +28,12 @@ interface GeneratePayslipFormData {
 
 export const PayslipsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
-  const { payslips, loading: appDataLoading, refreshCollection } = useAppData();
-  const { staff } = useAppData();
-  const { payrollPeriods } = useAppData();
-  
+  // The staff a payslip is paid to is canonical; the payslip itself is not modelled yet.
+  const { staff, staffLookup } = useCanonicalStaff();
+  // GAP(P1-E05): the registry models no payslip and no payroll period, so both stay on
+  // the legacy collections until a registry change adds them.
+  const { payslips, loading: appDataLoading, refreshCollection, payrollPeriods } = useAppData();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPayslip, setSelectedPayslip] = useState<Payslip | null>(null);
@@ -75,8 +80,8 @@ export const PayslipsPageContent: React.FC = () => {
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-                name === 'staff_id' || name === 'period_id' ? (value ? parseInt(value) : null) : value;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked :
+                name === 'period_id' ? (value ? parseInt(value) : null) : value;
     setFormData(prev => ({ ...prev, [name]: val }));
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
@@ -141,11 +146,11 @@ export const PayslipsPageContent: React.FC = () => {
     }
   }, [formData, refreshCollection, closeModal, validateForm]);
 
-  const getStaffName = (staffId: number) => {
-    const staffMember = (staff as Staff[] | undefined)?.find(s => s.id === staffId);
-    return staffMember?.first_name && staffMember?.last_name 
-      ? [staffMember.first_name, staffMember.last_name].filter(Boolean).join(' ')
-      : staffMember?.username || `Staff #${staffId}`;
+  const getStaffName = (staffId: string) => {
+    const staffMember = staff.find(s => s.id === staffId);
+    return staffMember
+      ? staffMember.display_name
+      : `Staff #${staffId}`;
   };
 
   const getPeriodName = (periodId: number) => {
@@ -158,7 +163,7 @@ export const PayslipsPageContent: React.FC = () => {
     { 
       header: t('tableHeaders.staff'), 
       key: 'staff_id' as keyof Payslip,
-      render: (value: number) => getStaffName(value)
+      render: (value: string) => getStaffName(value)
     },
     { 
       header: t('tableHeaders.period'), 
@@ -220,20 +225,18 @@ export const PayslipsPageContent: React.FC = () => {
       >
         <FormSection title={t('payslips.formSection.title')}>
           <FormField label={t('fields.staff')} required error={formErrors.staff_id}>
-            <select
-              name="staff_id"
-              value={formData.staff_id || ''}
-              onChange={handleInputChange}
+            <EntityPicker
+              value={formData.staff_id}
+              onChange={(id) => {
+                setFormData(prev => ({ ...prev, staff_id: id }));
+                if (formErrors.staff_id) setFormErrors(prev => ({ ...prev, staff_id: '' }));
+              }}
+              lookup={staffLookup}
+              label={t('fields.staff')}
+              placeholder={t('fields.selectStaff')}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">{t('fields.selectStaff')}</option>
-              {(staff as Staff[] || []).map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.first_name} {s.last_name} - {s.username}
-                </option>
-              ))}
-            </select>
+              data-testid="payslip-staff-picker"
+            />
           </FormField>
           <FormField label={t('fields.payrollPeriod')} required error={formErrors.period_id}>
             <select
@@ -343,9 +346,11 @@ export const PayslipsPageContent: React.FC = () => {
 };
 
 const PayslipsPage: React.FC = () => (
-  <div className="space-y-6">
-    <PayslipsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <PayslipsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default PayslipsPage;

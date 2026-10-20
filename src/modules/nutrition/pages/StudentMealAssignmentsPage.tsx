@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { StudentMealPlan, Student, MealPlan, SchoolPeriod, StudentMealPlanStatus, StudentStatus } from '@/types';
+import { StudentMealPlan, MealPlan, StudentMealPlanStatus } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -9,7 +9,11 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 
-import { useAppData } from '@/hooks/useAppData';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId } from '@/domain/ids';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalLearners, type CanonicalLearner } from '../data/useCanonicalLearners';
+import { useCanonicalPeriods } from '../data/useCanonicalPeriods';
 import { useNutrition } from '../hooks/useNutrition';
 import { EditIcon, UsersIcon } from '@/components/ui/icons';
 
@@ -25,8 +29,11 @@ const toId = (value: unknown): string | undefined =>
   value === null || value === undefined || value === '' ? undefined : String(value);
 
 export const StudentMealAssignmentsPageContent: React.FC = () => {
-  // Students and school periods are cross-domain read data; meal plan data and CRUD come from the module hook.
-  const { students, schoolPeriods } = useAppData();
+  // The learner and the school period are canonical; the meal plan is not modelled yet.
+  // GAP(P1-E05): the canonical registry models no meal plan and no student meal plan,
+  // so the assignment register keeps reading the legacy collections.
+  const { learners, learnersLookup } = useCanonicalLearners();
+  const { periods, periodsLookup } = useCanonicalPeriods();
   const { studentMealPlans, mealPlans, addStudentMealPlan, updateStudentMealPlan } = useNutrition();
   const [saving, setSaving] = useState(false);
   
@@ -34,7 +41,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
   const [editingAssignment, setEditingAssignment] = useState<StudentMealPlan | null>(null);
   
   const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<string | undefined>(
-    toId((schoolPeriods || []).find(sp => sp.is_active)?.id ?? (schoolPeriods || [])[0]?.id)
+    periods.find(sp => sp.is_active)?.id ?? periods[0]?.id
   );
 
   const initialFormData: AssignmentFormData = { 
@@ -49,14 +56,21 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
     setFormData(prev => ({...prev, school_period_id: selectedSchoolPeriodId}));
   }, [selectedSchoolPeriodId]);
 
-  const activeStudents = useMemo(() => (students || []).filter(s => s.status === StudentStatus.ACTIVE), [students]);
+  // The periods arrive from the repository, so the first one is selected once they land.
+  useEffect(() => {
+    if (selectedSchoolPeriodId) return;
+    const first = periods.find(period => period.is_active)?.id ?? periods[0]?.id;
+    if (first) setSelectedSchoolPeriodId(first);
+  }, [periods, selectedSchoolPeriodId]);
+
+  const activeStudents = useMemo(() => learners.filter(s => s.is_active), [learners]);
   
   const assignmentsForSelectedPeriod = useMemo(() => {
     if (!selectedSchoolPeriodId) return [];
     return (studentMealPlans || []).filter(smp => toId(smp.school_period_id) === selectedSchoolPeriodId);
   }, [studentMealPlans, selectedSchoolPeriodId]);
 
-  const openModal = (assignment?: StudentMealPlan, student?: Student) => {
+  const openModal = (assignment?: StudentMealPlan, student?: CanonicalLearner) => {
     setEditingAssignment(assignment || null);
     setFormData(assignment ? 
       { 
@@ -122,7 +136,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
     closeModal();
   };
 
-  const studentAssignmentColumns: DataGridColumn<Student>[] = [
+  const studentAssignmentColumns: DataGridColumn<CanonicalLearner>[] = [
     { 
       key: 'first_name', 
       header: 'Student Name', 
@@ -132,7 +146,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       render: (value, row) => [row.first_name, row.last_name].filter(Boolean).join(' ') + (row.admission_no ? ` (${row.admission_no})` : '')
     },
     { 
-      key: 'current_class_stream_name', 
+      key: 'class_name', 
       header: 'Class', 
       sortable: true, 
       filterable: true, 
@@ -187,15 +201,14 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card title="Student Meal Plan Assignments">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
-            <Select 
-                label="Filter by School Period" 
-                value={selectedSchoolPeriodId || ''} 
-                onChange={e => setSelectedSchoolPeriodId(toId(e.target.value))}
-                required
-            >
-                <option value="">-- Select School Period --</option>
-                {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
-            </Select>
+            <EntityPicker
+              value={selectedSchoolPeriodId ? asId<'academic_period'>(selectedSchoolPeriodId) : null}
+              onChange={(id) => setSelectedSchoolPeriodId(id ?? undefined)}
+              lookup={periodsLookup}
+              label="Filter by School Period"
+              placeholder="-- Select School Period --"
+              data-testid="meal-assignment-period-picker"
+            />
         </div>
         {selectedSchoolPeriodId ? (
              <DataGrid 
@@ -225,20 +238,26 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       >
         <FormSection columns={2}>
           <FormField label="Student" required>
-            <Select name="student_id" value={formData.student_id || ''} onChange={handleInputChange} disabled={!!editingAssignment}>
-              <option value="">Select Student</option>
-              {(activeStudents || []).map((student: Student) => (
-                <option key={student.id} value={student.id}>{student.first_name} {student.last_name} ({student.admission_no})</option>
-              ))}
-            </Select>
+            <EntityPicker
+              value={formData.student_id ? asId<'learner'>(formData.student_id) : null}
+              onChange={(id) => setFormData(prev => ({ ...prev, student_id: id ?? undefined }))}
+              lookup={learnersLookup}
+              label="Student"
+              placeholder="Select Student"
+              disabled={!!editingAssignment}
+              data-testid="meal-assignment-student-picker"
+            />
           </FormField>
           <FormField label="School Period" required>
-            <Select name="school_period_id" value={formData.school_period_id || ''} onChange={handleInputChange} disabled={!!editingAssignment}>
-              <option value="">Select School Period</option>
-              {(schoolPeriods || []).map((period: SchoolPeriod) => (
-                <option key={period.id} value={period.id}>{period.name}</option>
-              ))}
-            </Select>
+            <EntityPicker
+              value={formData.school_period_id ? asId<'academic_period'>(formData.school_period_id) : null}
+              onChange={(id) => setFormData(prev => ({ ...prev, school_period_id: id ?? undefined }))}
+              lookup={periodsLookup}
+              label="School Period"
+              placeholder="Select School Period"
+              disabled={!!editingAssignment}
+              data-testid="meal-assignment-form-period-picker"
+            />
           </FormField>
           <FormField label="Meal Plan" required>
             <Select name="meal_plan_id" value={formData.meal_plan_id || ''} onChange={handleInputChange}>
@@ -267,9 +286,11 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
   );
 };
 const StudentMealAssignmentsPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentMealAssignmentsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentMealAssignmentsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentMealAssignmentsPage;

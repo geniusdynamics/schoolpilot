@@ -14,11 +14,13 @@ import FormActions from '@/components/ui/forms/FormActions';
 import type { PayrollPeriod } from '@/modules/hr/data/types';
 import { logger } from '@/utils/logging';
 
-import { formatKES, formatDate } from '@/utils/format';
+import { formatDate } from '@/utils/format';
 type PayrollPeriodFormData = Omit<Partial<PayrollPeriod>, 'id' | 'created_at' | 'updated_at'>;
 
 export const PayrollPeriodsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
+  // GAP(P1-E05): the canonical registry models no payroll period, so the payroll
+  // periods stay on the legacy collection until a registry change adds the entity.
   const { payrollPeriods, loading: appDataLoading, refreshCollection } = useAppData();
   
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -1,5 +1,5 @@
 // ABOUTME: Fixed assets register with add/edit/delete dialog.
-// ABOUTME: Assets and items come from the useInventory module hook; staff come from the app-wide snapshot.
+// ABOUTME: Assets and items come from the useInventory module hook; staff come from the canonical repository.
 
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +10,12 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId } from '@/domain/ids';
 import { useInventory } from '../hooks/useInventory';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -26,7 +29,9 @@ type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updat
 };
 
 export const FixedAssetsPageContent: React.FC = () => {
-  const { staff } = useAppData();
+  const { staffLookup } = useCanonicalStaff();
+  // GAP(P1-E05): the canonical registry models no fixed asset, no item and no stock
+  // level, so the asset register stays on the legacy collections.
   const { fixedAssets, items: itemsInv, addFixedAsset, updateFixedAsset, deleteFixedAsset } = useInventory();
   const { t } = useTranslation('inventory');
   const confirm = useConfirm();
@@ -48,7 +53,6 @@ export const FixedAssetsPageContent: React.FC = () => {
   const [formData, setFormData] = useState<FixedAssetFormData>(initialFormData);
 
   const fixedAssetItems = useMemo(() => itemsInv.filter(item => item.item_type === ItemTypeInv.FIXED_ASSET), [itemsInv]);
-  const activeStaff = useMemo(() => (staff ?? []).filter(s => s.is_active), [staff]);
 
   const openModal = (asset?: FixedAsset) => {
     setEditingAsset(asset || null);
@@ -245,10 +249,15 @@ export const FixedAssetsPageContent: React.FC = () => {
             <Input name="depreciation_rate_pa" type="number" step="0.01" min="0" max="100" value={formData.depreciation_rate_pa ?? ''} onChange={handleInputChange} />
           </FormField>
           <FormField label="Assigned To Staff (Optional)">
-            <Select name="assigned_to_staff_id" value={formData.assigned_to_staff_id || ''} onChange={handleInputChange}>
-              <option value="">None</option>
-              {activeStaff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
-            </Select>
+            <EntityPicker
+              value={formData.assigned_to_staff_id ? asId<'staff'>(formData.assigned_to_staff_id) : null}
+              onChange={(id) => setFormData(prev => ({ ...prev, assigned_to_staff_id: id ?? undefined }))}
+              lookup={staffLookup}
+              label="Assigned To Staff (Optional)"
+              placeholder="None"
+              allowClear
+              data-testid="fixed-asset-staff-picker"
+            />
           </FormField>
         </FormSection>
 
@@ -263,9 +272,11 @@ export const FixedAssetsPageContent: React.FC = () => {
   );
 };
 const FixedAssetsPage: React.FC = () => (
-  <div className="space-y-6">
-    <FixedAssetsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <FixedAssetsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default FixedAssetsPage;

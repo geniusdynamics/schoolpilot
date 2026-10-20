@@ -14,6 +14,8 @@ import { StationeryItem, StationeryCategory, AllocationStatus } from '../data/ty
 import { logger } from '@/utils/logging';
 
 export const StationeryPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no stationery item, so the page keeps
+  // reading the legacy collection.
   const { stationeryItems, loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);

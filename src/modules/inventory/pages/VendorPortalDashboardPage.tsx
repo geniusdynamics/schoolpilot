@@ -6,6 +6,8 @@ import ModuleDashboardShell, { DashboardMetric, DashboardNotification, Dashboard
 import { ArchiveIcon, ClockIcon, CurrencyDollarIcon, DocumentReportIcon } from '@/components/ui/icons';
 
 export const VendorPortalDashboardPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no RFQ, purchase order, supplier invoice
+  // or supplier, so the portal keeps reading the legacy collections.
   const { rfqs, purchaseOrders, supplierInvoices, suppliers } = useAppData();
 
   const openRfqs = rfqs.filter((rfq: any) => String(rfq.status || '').toLowerCase().includes('open'));

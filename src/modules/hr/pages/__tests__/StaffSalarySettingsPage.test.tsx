@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { databaseService } from '@/services/database/databaseService';
 import StaffSalarySettingsPage from '../StaffSalarySettingsPage';
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
+import { createFakeRepository, type FakeRepository } from '../../data/__tests__/canonicalRepositoryDouble';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -47,11 +49,14 @@ function createMemoryCollection(seed: Row[] = []) {
 const STAFF_UUID = '874b9758-1f2e-4c1a-9d3e-0a1b2c3d4e5f';
 let collections: Record<string, ReturnType<typeof createMemoryCollection>>;
 let nextId = 0;
+let repository: FakeRepository;
 
 const renderPage = () =>
   render(
     <ConfirmProvider>
-      <StaffSalarySettingsPage />
+      <CanonicalRepositoryProvider repository={repository}>
+        <StaffSalarySettingsPage />
+      </CanonicalRepositoryProvider>
     </ConfirmProvider>
   );
 
@@ -60,6 +65,25 @@ const field = (dialog: HTMLElement, name: string) =>
 
 beforeEach(() => {
   nextId = 0;
+  repository = createFakeRepository({
+    staff: [
+      {
+        id: STAFF_UUID,
+        institution_id: '00000000-0000-7000-8000-000000000001',
+        given_name: 'Jane',
+        family_name: 'Wanjiru',
+        name_order: 'given_first',
+        gender: 'female',
+        employee_number: 'EMP-1',
+        employment_type: 'permanent',
+        department_ids: [],
+        start_date: '2020-01-01',
+        homeroom_teacher_ids: [],
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  });
   collections = {
     staff: createMemoryCollection([{ id: STAFF_UUID, first_name: 'Jane', last_name: 'Wanjiru', username: 'jwanjiru' }]),
     staff_salary_components: createMemoryCollection([
@@ -93,11 +117,13 @@ describe('StaffSalarySettingsPage (P0-H04)', () => {
     fireEvent.click(screen.getByRole('button', { name: /salarySettings.addButton/ }));
     const dialog = await screen.findByRole('dialog');
 
+    const picker = within(dialog).getByTestId('salary-component-staff-picker');
+    fireEvent.click(picker);
+    const option = await screen.findByRole('option', { name: /Jane Wanjiru/ });
+    fireEvent.click(option);
     await waitFor(() =>
-      expect(within(dialog).getByRole('option', { name: /Jane Wanjiru/ })).toHaveValue(STAFF_UUID)
+      expect(within(dialog).getByTestId('salary-component-staff-picker')).toHaveTextContent(/Jane Wanjiru/)
     );
-    fireEvent.change(field(dialog, 'staff_id'), { target: { value: STAFF_UUID } });
-    expect(field(dialog, 'staff_id')).toHaveValue(STAFF_UUID);
     fireEvent.change(field(dialog, 'component_name'), { target: { value: 'NHIF' } });
     fireEvent.change(field(dialog, 'component_type'), { target: { value: 'deduction' } });
     fireEvent.change(field(dialog, 'amount'), { target: { value: '1700' } });
@@ -119,7 +145,7 @@ describe('StaffSalarySettingsPage (P0-H04)', () => {
     await screen.findByText('House Allowance');
     fireEvent.click(screen.getByRole('button', { name: /common:edit/ }));
     const dialog = await screen.findByRole('dialog');
-    expect(field(dialog, 'staff_id')).toHaveValue(STAFF_UUID);
+    expect(within(dialog).getByTestId('salary-component-staff-picker')).toHaveTextContent(/Jane Wanjiru/);
     fireEvent.change(field(dialog, 'amount'), { target: { value: '6000' } });
     fireEvent.submit(dialog.querySelector('form')!);
 

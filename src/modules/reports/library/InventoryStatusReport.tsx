@@ -26,6 +26,8 @@ interface InventoryStatusItem {
 type StatusFilter = 'all' | 'adequate' | 'out_of_stock';
 
 const InventoryStatusReport: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no item, no warehouse, no item category and
+  // no stock level, so the inventory status report keeps reading the legacy collections.
   const { itemsInv, warehouses, itemCategoriesInv, stockLevels, loading } = useAppData();
 
   const [selectedWarehouse, setSelectedWarehouse] = useState<number | 'all'>('all');

@@ -17,6 +17,9 @@ interface LedgerEntryRow extends GeneralLedgerEntry {
 }
 
 export const AccountLedgerPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no chart of accounts and no journal entry
+  // (the ledger entries of spec 02 section 10 are still missing), so the account ledger keeps
+  // reading the legacy collections.
   const { chartOfAccounts, generalLedgerEntries = [], loading } = useAppData();
 
   const { t } = useTranslation('reports');

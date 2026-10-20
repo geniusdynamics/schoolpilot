@@ -5,7 +5,7 @@ import { screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
-import { AccountType, MealType, StudentStatus } from '@/types';
+import { AccountType, MealType } from '@/types';
 import MealPlansPage from '../MealPlansPage';
 import MenusPage from '../MenusPage';
 import MerchantsPage from '../MerchantsPage';
@@ -15,6 +15,8 @@ import StudentWalletPage from '../StudentWalletPage';
 import MealPlanningHubPage from '../MealPlanningHubPage';
 import NutritionOperationsHubPage from '../NutritionOperationsHubPage';
 import { databaseService } from '@/services/database/databaseService';
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
+import { createFakeRepository, type FakeRepository } from '@/modules/hr/data/__tests__/canonicalRepositoryDouble';
 
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
@@ -35,20 +37,9 @@ const MENU_ID = '5a4b3c2d-1e0f-4a9b-8c7d-6e5f4a3b2c1d';
 const COA_ID = '7d6c5b4a-3f2e-4d1c-9b0a-8f7e6d5c4b3a';
 const today = new Date().toISOString().split('T')[0];
 
-// The app-wide snapshot only supplies cross-domain read data; it has none of the nutrition
-// mutators (SO-11), so a page that still reads CRUD from it calls undefined and fails.
+// The app-wide snapshot only supplies the collections the canonical model does not
+// cover yet (SO-11); the learners and the school periods come from the repository.
 const appData = {
-  students: [
-    {
-      id: STUDENT_ID,
-      first_name: 'Amina',
-      last_name: 'Otieno',
-      admission_no: 'ADM001',
-      status: StudentStatus.ACTIVE,
-      current_class_stream_name: 'Grade 7 East',
-    },
-  ],
-  schoolPeriods: [{ id: PERIOD_ID, name: 'Term 1 2026', is_active: true }],
   chartOfAccounts: [
     { id: COA_ID, name: 'Canteen Sales', account_code: '4100', type: AccountType.REVENUE, is_active: true },
   ],
@@ -58,6 +49,77 @@ const appData = {
 vi.mock('@/hooks/useAppData', () => ({
   useAppData: () => appData,
 }));
+
+const CLASS_GROUP_ID = '5e4d3c2b-1a09-4f8e-9d7c-6b5a4938271f';
+const INSTITUTION_ID = '00000000-0000-7000-8000-000000000001';
+
+/** The canonical rows the nutrition pages read: the learner, its class and the term. */
+function canonicalRows() {
+  return {
+    learner: [
+      {
+        id: STUDENT_ID,
+        institution_id: INSTITUTION_ID,
+        given_name: 'Amina',
+        family_name: 'Otieno',
+        name_order: 'given_first',
+        gender: 'female',
+        admission_number: 'ADM001',
+        status: 'enrolled',
+        residence_status: 'day',
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+    class_group: [
+      {
+        id: CLASS_GROUP_ID,
+        institution_id: INSTITUTION_ID,
+        campus_id: '00000000-0000-7000-8000-000000000002',
+        academic_year_id: '00000000-0000-7000-8000-000000000003',
+        programme_id: '00000000-0000-7000-8000-000000000004',
+        level_id: '00000000-0000-7000-8000-000000000005',
+        name: 'Grade 7 East',
+        homeroom_teacher_ids: [],
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+    enrolment: [
+      {
+        id: '00000000-0000-7000-8000-000000000006',
+        institution_id: INSTITUTION_ID,
+        learner_id: STUDENT_ID,
+        academic_year_id: '00000000-0000-7000-8000-000000000003',
+        programme_id: '00000000-0000-7000-8000-000000000004',
+        level_id: '00000000-0000-7000-8000-000000000005',
+        class_group_id: CLASS_GROUP_ID,
+        status: 'active',
+        start_date: '2026-01-01',
+        entry_reason: 'new_admission',
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+    academic_period: [
+      {
+        id: PERIOD_ID,
+        institution_id: INSTITUTION_ID,
+        academic_year_id: '00000000-0000-7000-8000-000000000003',
+        kind: 'term',
+        sequence: 1,
+        name: 'Term 1 2026',
+        start_date: '2026-01-01',
+        end_date: '2026-03-31',
+        is_reporting: true,
+        is_billing: true,
+        status: 'current',
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  };
+}
 
 type Row = { id: string } & Record<string, unknown>;
 
@@ -94,6 +156,7 @@ function createMemoryCollection(seed: Row[] = []): MemoryCollection {
 
 let collections: Record<string, MemoryCollection>;
 let nextId = 0;
+let repository: FakeRepository;
 
 const collection = (name: string) => {
   if (!collections[name]) collections[name] = createMemoryCollection();
@@ -103,7 +166,9 @@ const collection = (name: string) => {
 const renderPage = (ui: React.ReactElement) =>
   render(
     <MemoryRouter>
-      <ConfirmProvider>{ui}</ConfirmProvider>
+      <ConfirmProvider>
+        <CanonicalRepositoryProvider repository={repository}>{ui}</CanonicalRepositoryProvider>
+      </ConfirmProvider>
     </MemoryRouter>
   );
 
@@ -111,6 +176,7 @@ const stamp = { created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T
 
 beforeEach(() => {
   nextId = 0;
+  repository = createFakeRepository(canonicalRows());
   collections = {
     meal_plans: createMemoryCollection([
       { id: PLAN_ID, name: 'Full Board', description: 'Three meals', cost_per_period: 1000, ...stamp },
@@ -254,8 +320,10 @@ describe('StudentMealAssignmentsPage (P0-H03)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Assign Plan/i }));
     const dialog = await screen.findByRole('dialog');
-    const [, periodSelect, planSelect] = within(dialog).getAllByRole('combobox');
-    expect(periodSelect).toHaveValue(PERIOD_ID);
+    const comboboxes = within(dialog).getAllByRole('combobox');
+    // The student and the period are pickers; the meal plan is still a select.
+    expect(comboboxes[1]).toHaveTextContent(/Term 1 2026/);
+    const planSelect = comboboxes[2];
     fireEvent.change(planSelect, { target: { value: PLAN_ID } });
     expect(planSelect).toHaveValue(PLAN_ID);
     fireEvent.click(within(dialog).getAllByRole('button').at(-1)!);
@@ -277,8 +345,7 @@ describe('StudentMealAssignmentsPage (P0-H03)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Edit Assignment/i }));
     const dialog = await screen.findByRole('dialog');
     const planSelect = within(dialog).getAllByRole('combobox')[2];
-    fireEvent.change(planSelect, { target: { value: OTHER_PLAN_ID } });
-    fireEvent.click(within(dialog).getAllByRole('button').at(-1)!);
+    fireEvent.change(planSelect, { target: { value: OTHER_PLAN_ID } });    fireEvent.click(within(dialog).getAllByRole('button').at(-1)!);
 
     await waitFor(() =>
       expect(collections.student_meal_plans.update).toHaveBeenCalledWith(
@@ -295,7 +362,8 @@ describe('MealConsumptionLogPage (P0-H03)', () => {
     expect(await screen.findByText('Brian Kiprop')).toBeInTheDocument();
     expect(await screen.findByText(/Selected Menu:/)).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText(/Select Student/i), { target: { value: STUDENT_ID } });
+    fireEvent.click(screen.getByTestId('meal-log-student-picker'));
+    fireEvent.click(await screen.findByRole('option', { name: /Amina Otieno/ }));
     fireEvent.click(screen.getByRole('button', { name: /Log Consumption/i }));
 
     await waitFor(() =>
@@ -320,8 +388,9 @@ describe('StudentWalletPage (P0-H03)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Manual Transaction/i }));
     const dialog = await screen.findByRole('dialog');
-    const [studentSelect, typeSelect] = within(dialog).getAllByRole('combobox');
-    fireEvent.change(studentSelect, { target: { value: STUDENT_ID } });
+    fireEvent.click(within(dialog).getByTestId('wallet-student-picker'));
+    fireEvent.click(await screen.findByRole('option', { name: /Amina Otieno/ }));
+    const typeSelect = within(dialog).getAllByRole('combobox')[1];
     expect((typeSelect as HTMLSelectElement).value).not.toBe('');
     fireEvent.change(within(dialog).getByRole('spinbutton'), { target: { value: '50' } });
     fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Pocket money' } });
@@ -340,8 +409,9 @@ describe('StudentWalletPage (P0-H03)', () => {
     await screen.findByText('Amina Otieno');
     fireEvent.click(screen.getByRole('button', { name: /Manual Transaction/i }));
     const dialog = await screen.findByRole('dialog');
-    const [studentSelect, typeSelect] = within(dialog).getAllByRole('combobox');
-    fireEvent.change(studentSelect, { target: { value: STUDENT_ID } });
+    fireEvent.click(within(dialog).getByTestId('wallet-student-picker'));
+    fireEvent.click(await screen.findByRole('option', { name: /Amina Otieno/ }));
+    const typeSelect = within(dialog).getAllByRole('combobox')[1];
     const debitOption = within(typeSelect).getByRole('option', { name: /Debit Wallet/i }) as HTMLOptionElement;
     fireEvent.change(typeSelect, { target: { value: debitOption.value } });
     fireEvent.change(within(dialog).getByRole('spinbutton'), { target: { value: '30' } });

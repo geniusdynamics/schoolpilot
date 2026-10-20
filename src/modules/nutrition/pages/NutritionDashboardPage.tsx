@@ -1,6 +1,8 @@
 import React from 'react';
 import { CakeIcon, UsersIcon, ListBulletIcon, BuildingStorefrontIcon, WalletIcon, ArrowRightIcon, ClockIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Spinner from '@/components/ui/Spinner';
 import { StudentMealPlanStatus, ChartData } from '@/types';
 import DonutChart from '@/components/ui/DonutChart';
@@ -15,6 +17,10 @@ import ModuleDashboardShell, {
 } from '@/components/ModuleDashboardShell';
 
 export const NutritionDashboardPageContent: React.FC = () => {
+  // The learners on the roll are canonical.
+  const { learners } = useCanonicalLearners();
+  // GAP(P1-E05): the canonical registry models no meal plan, menu, merchant, wallet or
+  // meal consumption log, so the dashboard keeps reading the legacy collections.
   const {
     mealPlans,
     studentMealPlans,
@@ -22,7 +28,6 @@ export const NutritionDashboardPageContent: React.FC = () => {
     merchants,
     studentWallets,
     mealConsumptionLogs,
-    students,
     loading,
   } = useAppData();
 
@@ -220,8 +225,8 @@ export const NutritionDashboardPageContent: React.FC = () => {
     {
       id: 'meal-coverage',
       title: 'Meal Plan Coverage',
-      message: `${activeStudentAssignments} of ${(students || []).length} students have active meal plans.`,
-      severity: activeStudentAssignments < (students || []).length * 0.5 ? 'warning' : 'normal',
+      message: `${activeStudentAssignments} of ${(learners || []).length} students have active meal plans.`,
+      severity: activeStudentAssignments < (learners || []).length * 0.5 ? 'warning' : 'normal',
     },
     {
       id: 'merchant-status',
@@ -326,13 +331,13 @@ export const NutritionDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-cyan-700">Meal Plan Coverage</span>
                 <span className="font-bold text-cyan-700">
-                  {(students || []).length > 0 ? `${Math.round((activeStudentAssignments / (students || []).length) * 100)}%` : '0%'}
+                  {(learners || []).length > 0 ? `${Math.round((activeStudentAssignments / (learners || []).length) * 100)}%` : '0%'}
                 </span>
               </div>
               <div className="w-full bg-cyan-200 rounded-full h-2 mt-2">
                 <div
                   className="bg-cyan-500 h-2 rounded-full"
-                  style={{ width: `${(students || []).length > 0 ? (activeStudentAssignments / (students || []).length) * 100 : 0}%` }}
+                  style={{ width: `${(learners || []).length > 0 ? (activeStudentAssignments / (learners || []).length) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -340,7 +345,7 @@ export const NutritionDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-violet-700">Avg. Wallet per Student</span>
                 <span className="font-bold text-violet-700">
-                  Ksh {(students || []).length > 0 ? Math.round(aggregateWalletBalance / (students || []).length) : 0}
+                  Ksh {(learners || []).length > 0 ? Math.round(aggregateWalletBalance / (learners || []).length) : 0}
                 </span>
               </div>
             </div>
@@ -357,9 +362,11 @@ export const NutritionDashboardPageContent: React.FC = () => {
   );
 };
 const NutritionDashboardPage: React.FC = () => (
-  <div className="space-y-6">
-    <NutritionDashboardPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <NutritionDashboardPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default NutritionDashboardPage;

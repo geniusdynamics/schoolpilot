@@ -15,7 +15,11 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId, type Id } from '@/domain/ids';
 import { logger } from '@/utils/logging';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
 import { formatKES, formatDate } from '@/utils/format';
 
@@ -35,15 +39,8 @@ interface StaffSalaryComponent {
   updated_at?: string;
 }
 
-interface StaffOption {
-  id: string | number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-}
-
 interface SalaryComponentFormData {
-  staff_id: string | null;
+  staff_id: Id<'staff'> | null;
   component_name: string;
   component_type: 'earning' | 'deduction';
   amount: number | null;
@@ -55,6 +52,10 @@ interface SalaryComponentFormData {
 export const StaffSalarySettingsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const confirm = useConfirm();
+  // The staff member a component belongs to is canonical.
+  const { staff, staffLookup } = useCanonicalStaff();
+  // GAP(P1-E05): the registry models no salary component, so the components stay on
+  // their own legacy collection until a registry change adds the entity.
   const {
     data: salaryComponents,
     loading,
@@ -62,7 +63,6 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
     update,
     remove,
   } = useDatabaseCollection<StaffSalaryComponent>(STAFF_SALARY_COMPONENTS_COLLECTION);
-  const { data: staff } = useDatabaseCollection<StaffOption>('staff');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState<StaffSalaryComponent | null>(null);
@@ -81,7 +81,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
     if (component) {
       setEditingComponent(component);
       setFormData({
-        staff_id: component.staff_id == null ? null : String(component.staff_id),
+        staff_id: component.staff_id == null ? null : asId<'staff'>(component.staff_id),
         component_name: component.component_name,
         component_type: component.component_type,
         amount: component.amount,
@@ -199,10 +199,8 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
   }, [confirm, remove, t]);
 
   const getStaffName = (staffId: string) => {
-    const staffMember = staff.find(s => String(s.id) === String(staffId));
-    return staffMember?.first_name && staffMember?.last_name 
-      ? [staffMember.first_name, staffMember.last_name].filter(Boolean).join(' ')
-      : staffMember?.username || `Staff #${staffId}`;
+    const staffMember = staff.find(s => s.id === staffId);
+    return staffMember?.display_name || `Staff #${staffId}`;
   };
 
   const columns = [
@@ -278,20 +276,18 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
       >
         <FormSection title={t('salarySettings.formSection.title')}>
           <FormField label={t('fields.staff')} required error={formErrors.staff_id}>
-            <select
-              name="staff_id"
-              value={formData.staff_id || ''}
-              onChange={handleInputChange}
+            <EntityPicker
+              value={formData.staff_id}
+              onChange={(id) => {
+                setFormData(prev => ({ ...prev, staff_id: id }));
+                if (formErrors.staff_id) setFormErrors(prev => ({ ...prev, staff_id: '' }));
+              }}
+              lookup={staffLookup}
+              label={t('fields.staff')}
+              placeholder={t('fields.selectStaff')}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-surface-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">{t('fields.selectStaff')}</option>
-              {staff.map(s => (
-                <option key={s.id} value={String(s.id)}>
-                  {s.first_name} {s.last_name} - {s.username}
-                </option>
-              ))}
-            </select>
+              data-testid="salary-component-staff-picker"
+            />
           </FormField>
           <FormField label={t('fields.componentName')} required error={formErrors.component_name}>
             <Input
@@ -372,9 +368,11 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
 };
 
 const StaffSalarySettingsPage: React.FC = () => (
-  <div className="space-y-6">
-    <StaffSalarySettingsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StaffSalarySettingsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StaffSalarySettingsPage;
