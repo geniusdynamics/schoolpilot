@@ -35,6 +35,21 @@ vi.mock('@/services/database/databaseService', () => ({
   databaseService: { getDatabase: vi.fn(), generateId: vi.fn() },
 }));
 
+// The learner and class-group reads are canonical now; the test hands the pages those rows.
+const canonicalLearners = [
+  {
+    id: 'S001', admission_no: 'ADM001', first_name: 'Jim', last_name: 'Halpert',
+    name: 'Jim Halpert', current_class_name: 'Form 1', current_class_stream_name: '',
+    class_group_id: null, status: 'Active', gender: 'Male', deleted_at: null,
+  },
+];
+vi.mock('../../data/useCanonicalLearners', () => ({
+  useCanonicalLearners: () => ({ learners: canonicalLearners, isLoading: false }),
+}));
+vi.mock('../../data/useCanonicalClassGroups', () => ({
+  useCanonicalClassGroups: () => ({ classGroups: [], isLoading: false }),
+}));
+
 type Row = { id: string } & Record<string, unknown>;
 
 /** A store that outlives component mounts, standing in for the persisted database. */

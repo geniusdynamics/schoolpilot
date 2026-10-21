@@ -1,18 +1,19 @@
 import React, { useState, useMemo } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { StaffAttendanceRecord, StaffAttendanceStatus } from '../data/types';
 
 import { logger } from '@/utils/logging';
 
 const StaffAttendancePage: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { staffAttendanceRecords, staff, loading } = useAppData();
+  // GAP(P1-E01): staff attendance has no canonical entity, so the register keeps its own
+  // collection. The staff directory page reads the canonical staff rows.
+  const { staffAttendanceRecords } = useAppData();
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -34,7 +35,7 @@ const StaffAttendancePage: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedDate, selectedDepartment, searchTerm]);
+  }, [staffAttendanceRecords, selectedDate, selectedDepartment, searchTerm]);
 
   const handleStatusChange = (staffId: string, status: StaffAttendanceStatus) => {
     setAttendanceData(prev => ({ ...prev, [staffId]: status }));
@@ -42,20 +43,6 @@ const StaffAttendancePage: React.FC = () => {
 
   const handleSaveAttendance = () => {
     logger.info('Saving staff attendance:', attendanceData);
-  };
-
-  const getStatusBadge = (status: StaffAttendanceStatus) => {
-    const styles = {
-      'Present': 'bg-green-100 text-green-800',
-      'Absent': 'bg-red-100 text-red-800',
-      'Late': 'bg-yellow-100 text-yellow-800',
-      'On Leave': 'bg-primary-100 text-primary-800'
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
-        {status}
-      </span>
-    );
   };
 
   const columns: DataGridColumn<StaffAttendanceRecord>[] = [
@@ -151,7 +138,7 @@ const StaffAttendancePage: React.FC = () => {
     };
   }, [mockAttendance, attendanceData]);
 
-  if (loading?.all && mockAttendance.length === 0) {
+  if (mockAttendance.length === 0 && (staffAttendanceRecords ?? []).length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -275,7 +262,8 @@ const StaffAttendancePage: React.FC = () => {
   );
 };
 
-export default StaffAttendancePage;
+const StaffAttendancePageWithRepository = withCanonicalRepository(StaffAttendancePage);
+export default StaffAttendancePageWithRepository;
 
 export const StaffAttendanceContent = StaffAttendancePage;
 

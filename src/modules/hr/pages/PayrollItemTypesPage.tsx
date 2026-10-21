@@ -18,6 +18,8 @@ type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at
 
 export const PayrollItemTypesPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
+  // GAP(P1-E05): the canonical registry models no payroll item type, so the item types
+  // stay on the legacy collection until a registry change adds the entity.
   const { payrollItemTypes, loading: appDataLoading, refreshCollection } = useAppData();
   
   const [isSubmitting, setIsSubmitting] = useState(false);

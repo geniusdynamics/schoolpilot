@@ -2,10 +2,13 @@ import React, { useState, useMemo } from 'react';
 
 import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast } from '@/components/ui';
 
-import { useAppData } from '@/hooks/useAppData';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId } from '@/domain/ids';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { useNutrition } from '../hooks/useNutrition';
-import { StudentStatus, WalletTransactionType } from '@/core/types';
+import { WalletTransactionType } from '@/core/types';
 import type { WalletTransaction } from '@/core/types';
 // The library module's StudentWallet type has no id, while the stored wallet rows
 // carry id, last_updated and student_name. Local view shape bridges the two until
@@ -36,9 +39,10 @@ type WalletTransactionFormData = {
 };
 
 export const StudentWalletPageContent: React.FC = () => {
-  // Students are cross-domain read data; wallets and transactions come from the nutrition module.
-  const { students: appStudents } = useAppData();
-  const students = useMemo(() => appStudents || [], [appStudents]);
+  // The learner a wallet belongs to is canonical; the wallet and its transactions are not modelled yet.
+  // GAP(P1-E05): the canonical registry models no student wallet and no wallet transaction,
+  // so the wallet keeps reading the legacy collections.
+  const { learners, learnersLookup } = useCanonicalLearners();
   const { studentWallets, addWalletTransaction } = useNutrition();
   const transactionsCollection = useDatabaseCollection<WalletTransaction>('wallet_transactions');
   const walletTransactions = transactionsCollection.data;
@@ -62,10 +66,10 @@ export const StudentWalletPageContent: React.FC = () => {
 
   const filteredStudentWallets = useMemo(() => {
     return ((studentWallets as unknown as WalletRow[]) || []).filter(sw => {
-        const student = (students || []).find(s => String(s.id) === String(sw.student_id));
+        const student = (learners || []).find(s => s.id === String(sw.student_id));
         return student && [student.first_name, student.last_name, student.admission_no].filter(Boolean).join(' ').toLowerCase().includes(searchTerm.toLowerCase());
     });
-  }, [studentWallets, students, searchTerm]);
+  }, [studentWallets, learners, searchTerm]);
 
   const studentTransactionHistory = useMemo(() => {
     if (!selectedStudentForHistory) return [];
@@ -115,7 +119,7 @@ export const StudentWalletPageContent: React.FC = () => {
     // The signed amount drives the balance; pass the running balance so the hook does not
     // have to infer the direction from the stored transaction type.
     const currentWallet = ((studentWallets as unknown as WalletRow[]) || []).find(sw => String(sw.student_id) === txFormData.student_id);
-    const student = students.find(s => String(s.id) === txFormData.student_id);
+    const student = learners.find(s => s.id === txFormData.student_id);
     const payload = {
       student_id: txFormData.student_id,
       transaction_type: MANUAL_TRANSACTION_TYPES[txFormData.transaction_type],
@@ -148,7 +152,7 @@ export const StudentWalletPageContent: React.FC = () => {
     {
       key: 'admission_no',
       header: 'Admission No.',
-      render: (_v: any, item: WalletRow) => students.find(s => String(s.id) === String(item.student_id))?.admission_no || 'N/A',
+      render: (_v: any, item: WalletRow) => learners.find(s => s.id === String(item.student_id))?.admission_no || 'N/A',
       sortable: true
     },
     {
@@ -246,10 +250,14 @@ export const StudentWalletPageContent: React.FC = () => {
           </>
         }
       >
-        <Select name="student_id" label="Select Student" value={txFormData.student_id || ''} onChange={handleTxFormInputChange} required>
-            <option value="">-- Select Student --</option>
-            {students.filter(s => s.status === StudentStatus.ACTIVE).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.admission_no})</option>)}
-        </Select>
+        <EntityPicker
+          value={txFormData.student_id ? asId<'learner'>(txFormData.student_id) : null}
+          onChange={(id) => setTxFormData(prev => ({ ...prev, student_id: id ?? '' }))}
+          lookup={learnersLookup}
+          label="Select Student"
+          placeholder="-- Select Student --"
+          data-testid="wallet-student-picker"
+        />
         <Select name="transaction_type" label="Transaction Type" value={txFormData.transaction_type} onChange={handleTxFormInputChange} required>
             <option value="deposit">Deposit (Credit Wallet)</option>
             <option value="adjustment_debit">Adjustment (Debit Wallet)</option>
@@ -295,9 +303,11 @@ export const StudentWalletPageContent: React.FC = () => {
   );
 };
 const StudentWalletPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentWalletPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentWalletPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentWalletPage;

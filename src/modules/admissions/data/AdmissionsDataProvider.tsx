@@ -1,4 +1,7 @@
 // ABOUTME: Admissions Data Provider
+// GAP(P1-E04): the provider serves the application and interview collections, which the
+// canonical registry does not model yet; the admitted learner is canonical and lives on
+// the Admit learner and register pages instead.
 import React, { createContext, useContext, ReactNode, useCallback, useState } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import { useToast } from '@/hooks/useToast';
@@ -42,7 +45,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
   const [localLoading, setLocalLoading] = useState(false);
   const loading = parentLoading || localLoading;
 
-  const withToast = async <T,>(fn: () => Promise<T>, successMsg: string): Promise<T> => {
+  const withToast = useCallback(async <T,>(fn: () => Promise<T>, successMsg: string): Promise<T> => {
     setLocalLoading(true);
     try {
       const result = await fn();
@@ -54,12 +57,12 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
     } finally {
       setLocalLoading(false);
     }
-  };
+  }, [toast]);
 
-  const withConfirm = async <T,>(fn: () => Promise<T>, confirmMsg: string): Promise<T | void> => {
+  const withConfirm = useCallback(async <T,>(fn: () => Promise<T>, confirmMsg: string): Promise<T | void> => {
     if (!(await confirm({ title: 'Confirm action', message: confirmMsg, variant: 'danger' }))) return;
     return fn();
-  };
+  }, [confirm]);
 
   const addApplication = useCallback((data) =>
     withToast(async () => {
@@ -73,7 +76,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
       };
       await db.admission_applications?.insert(newItem);
       return newItem;
-    }, 'Application submitted'), [toast]);
+    }, 'Application submitted'), [withToast]);
 
   const updateApplication = useCallback((id, data) =>
     withToast(async () => {
@@ -81,12 +84,12 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
       const updates = { ...data, updated_at: new Date().toISOString() };
       await db.admission_applications?.update(id, updates);
       return { ...applications.find(a => a.id === id), ...updates } as types.AdmissionApplication;
-    }, 'Application updated'), [applications, toast]);
+    }, 'Application updated'), [applications, withToast]);
 
   const deleteApplication = useCallback((id) =>
     withConfirm(() =>
       withToast(async () => { const db = await databaseService.getDatabase(); await db.admission_applications?.remove(id); }, 'Application deleted'),
-      'Delete this application?'), [toast]);
+      'Delete this application?'), [withConfirm, withToast]);
 
   const approveApplication = useCallback((id) =>
     withToast(async () => {
@@ -94,7 +97,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
       const updates = { status: 'Approved' as types.ApplicationStatus, updated_at: new Date().toISOString() };
       await db.admission_applications?.update(id, updates);
       return { ...applications.find(a => a.id === id), ...updates } as types.AdmissionApplication;
-    }, 'Application approved'), [applications, toast]);
+    }, 'Application approved'), [applications, withToast]);
 
   const rejectApplication = useCallback((id, reason) =>
     withToast(async () => {
@@ -102,7 +105,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
       const updates = { status: 'Rejected' as types.ApplicationStatus, rejection_reason: reason, updated_at: new Date().toISOString() };
       await db.admission_applications?.update(id, updates);
       return { ...applications.find(a => a.id === id), ...updates } as types.AdmissionApplication;
-    }, 'Application rejected'), [applications, toast]);
+    }, 'Application rejected'), [applications, withToast]);
 
   const addInterview = useCallback((data) =>
     withToast(async () => {
@@ -110,7 +113,7 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
       const newItem: types.AdmissionInterview = { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
       await db.admission_interviews?.insert(newItem);
       return newItem;
-    }, 'Interview scheduled'), [toast]);
+    }, 'Interview scheduled'), [withToast]);
 
   const updateInterview = useCallback((id, data) =>
     withToast(async () => {
@@ -118,12 +121,12 @@ export const AdmissionsDataProvider: React.FC<Props> = ({
       const updates = { ...data, updated_at: new Date().toISOString() };
       await db.admission_interviews?.update(id, updates);
       return { ...interviews.find(i => i.id === id), ...updates } as types.AdmissionInterview;
-    }, 'Interview updated'), [interviews, toast]);
+    }, 'Interview updated'), [interviews, withToast]);
 
   const deleteInterview = useCallback((id) =>
     withConfirm(() =>
       withToast(async () => { const db = await databaseService.getDatabase(); await db.admission_interviews?.remove(id); }, 'Interview deleted'),
-      'Delete this interview?'), [toast]);
+      'Delete this interview?'), [withConfirm, withToast]);
 
   return (
     <AdmissionsDataContext.Provider value={{

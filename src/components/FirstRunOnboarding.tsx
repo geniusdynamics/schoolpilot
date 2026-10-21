@@ -27,6 +27,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import { SetupWizard } from '@/components/setup/SetupWizard';
+import { seedCanonicalDemoSchool } from '@/data/demo/seedCanonicalDemo';
 import { StorageUnavailableScreen } from '@/components/StorageUnavailableScreen';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
@@ -201,6 +202,18 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
         } catch (seedError) {
           logger.warn('[FirstRunOnboarding] Demo seeding failed, continuing anyway:', seedError);
           // Don't block onboarding on seeding failure
+        }
+
+        // The migrated pages read the canonical database, so the demo school is written there
+        // through the repository as well. A refusal is shown and the user can retry, because an
+        // onboarding that finishes without it leaves every canonical page empty.
+        try {
+          await seedCanonicalDemoSchool();
+        } catch (canonicalError) {
+          logger.error('[FirstRunOnboarding] The canonical demo school was not installed:', canonicalError);
+          setError(canonicalError instanceof Error ? canonicalError.message : 'The sample school could not be created.');
+          setIsProcessing(false);
+          return;
         }
 
         saveOnboardingState({

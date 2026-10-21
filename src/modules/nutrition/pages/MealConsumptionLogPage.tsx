@@ -6,17 +6,21 @@ import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import { ClipboardDocumentListIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId } from '@/domain/ids';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { useNutrition } from '../hooks/useNutrition';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Spinner from '@/components/ui/Spinner';
-import { MealType, StudentStatus } from '@/core/types';
+import { MealType } from '@/core/types';
 import type { MealConsumptionLog } from '@/core/types';
 
 export const MealConsumptionLogPageContent: React.FC = () => {
-  // Students are cross-domain read data; menus and logging come from the nutrition module.
-  const { students: appStudents } = useAppData();
-  const students = useMemo(() => appStudents || [], [appStudents]);
+  // The learner a meal is logged for is canonical; the menu and the log are not modelled yet.
+  const { learners, learnersLookup } = useCanonicalLearners();
+  // GAP(P1-E05): the canonical registry models no menu and no meal consumption log, so
+  // the meal log keeps reading the legacy collections.
   const { menus, addMealConsumptionLog } = useNutrition();
   const logsCollection = useDatabaseCollection<MealConsumptionLog>('meal_consumption_logs');
   const mealConsumptionLogs = logsCollection.data;
@@ -27,8 +31,6 @@ export const MealConsumptionLogPageContent: React.FC = () => {
   
   const [logging, setLogging] = useState(false);
   const [logMessage, setLogMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-
-  const activeStudents = useMemo(() => students.filter(s => s.status === StudentStatus.ACTIVE), [students]);
 
   const selectedMenu = useMemo(() => {
     if (!selectedDate || !selectedMealType) return null;
@@ -44,7 +46,7 @@ export const MealConsumptionLogPageContent: React.FC = () => {
     setLogMessage(null);
     try {
       // The addMealConsumptionLog mock function needs to handle the logic for checking plans/wallet
-      const student = students.find(s => String(s.id) === selectedStudentId);
+      const student = learners.find(s => s.id === selectedStudentId);
       // The module hook stamps consumption_time and works out the charge from the meal plan / wallet.
       const result = await addMealConsumptionLog({
         student_id: selectedStudentId,
@@ -129,17 +131,15 @@ export const MealConsumptionLogPageContent: React.FC = () => {
                     <option key={type} value={type}>{type}</option>
                 ))}
             </Select>
-            <Select 
-                name="student_id" 
-                label="Select Student" 
-                value={selectedStudentId || ''} 
-                onChange={e => setSelectedStudentId(e.target.value || undefined)}
-                required
-                disabled={!selectedMenu}
-            >
-                <option value="">-- Select Student --</option>
-                {activeStudents.map(student => <option key={student.id} value={student.id}>{student.first_name} {student.last_name} ({student.admission_no})</option>)}
-            </Select>
+            <EntityPicker
+              value={selectedStudentId ? asId<'learner'>(selectedStudentId) : null}
+              onChange={(id) => setSelectedStudentId(id ?? undefined)}
+              lookup={learnersLookup}
+              label="Select Student"
+              placeholder="-- Select Student --"
+              disabled={!selectedMenu}
+              data-testid="meal-log-student-picker"
+            />
         </div>
         
         {selectedMenu ? (
@@ -186,9 +186,11 @@ export const MealConsumptionLogPageContent: React.FC = () => {
   );
 };
 const MealConsumptionLogPage: React.FC = () => (
-  <div className="space-y-6">
-    <MealConsumptionLogPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <MealConsumptionLogPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default MealConsumptionLogPage;

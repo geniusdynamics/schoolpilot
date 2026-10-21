@@ -31,8 +31,9 @@ const students: Student[] = [
   } as Student,
 ];
 
-vi.mock('@/hooks/useAppData', () => ({
-  useAppData: () => ({ students, loading: { all: false } }),
+// The page reads the canonical learner view; the test hands it the shape it reads.
+vi.mock('../../data/useCanonicalLearners', () => ({
+  useCanonicalLearners: () => ({ learners: students, isLoading: false }),
 }));
 
 describe('TransferCertificateContent', () => {

@@ -1,5 +1,10 @@
 // ABOUTME: Student promotion runs (SO-16): preview -> commit -> undo over students and student_class_history
 // ABOUTME: Pure run functions take collections (testable with real provider semantics); the hook binds them to the database
+//
+// GAP(P1-E01): a promotion rewrites the legacy student row and its class history. The canonical
+// model moves a learner through `enrolment` (EnrolmentService.transfer) and records the move in
+// `enrolment_change`, so the run has to be re-expressed on those before it can leave the legacy
+// collections. Until P1-C03 lands, the run keeps the legacy rows.
 
 import { useCallback, useMemo } from 'react';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';

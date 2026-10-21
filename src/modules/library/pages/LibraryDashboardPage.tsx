@@ -14,12 +14,13 @@ import ModuleDashboardShell, {
 import Card from '@/components/ui/Card';
 
 export const LibraryDashboardPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no book, no loan, no fine and no book
+  // category, so the dashboard keeps reading the legacy library collections.
   const {
     books,
     loans,
     fines,
     bookCategories,
-    students,
     loading,
   } = useAppData();
 

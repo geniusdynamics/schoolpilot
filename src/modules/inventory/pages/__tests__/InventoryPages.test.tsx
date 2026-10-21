@@ -11,6 +11,8 @@ import ItemCategoriesPage from '../ItemCategoriesPage';
 import ItemsPage from '../ItemsPage';
 import FixedAssetsPage from '../FixedAssetsPage';
 import StockLevelsPage from '../StockLevelsPage';
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
+import { createFakeRepository, type FakeRepository } from '@/modules/hr/data/__tests__/canonicalRepositoryDouble';
 import StockIssuancePage from '../StockIssuancePage';
 import StockReceptionPage from '../StockReceptionPage';
 import StockReturnsPage from '../StockReturnsPage';
@@ -76,7 +78,9 @@ const collection = (name: string) => {
 const renderPage = (ui: React.ReactElement) =>
   render(
     <MemoryRouter>
-      <ConfirmProvider>{ui}</ConfirmProvider>
+      <ConfirmProvider>
+        <CanonicalRepositoryProvider repository={repository}>{ui}</CanonicalRepositoryProvider>
+      </ConfirmProvider>
     </MemoryRouter>
   );
 
@@ -100,9 +104,30 @@ const stamp = { created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T
 const WH = '0d3c7a52-6f1e-4b8a-9a43-1d2e3f4a5b6c';
 const CAT = '874b9758-1c2d-4e5f-8a9b-0c1d2e3f4a5b';
 const ITEM = 'b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e';
+const STAFF_UUID = '874b9758-1f2e-4c1a-9d3e-0a1b2c3d4e5f';
+let repository: FakeRepository;
 
 beforeEach(() => {
   nextId = 0;
+  repository = createFakeRepository({
+    staff: [
+      {
+        id: STAFF_UUID,
+        institution_id: '00000000-0000-7000-8000-000000000001',
+        given_name: 'Jane',
+        family_name: 'Wanjiru',
+        name_order: 'given_first',
+        gender: 'female',
+        employee_number: 'EMP-1',
+        employment_type: 'permanent',
+        department_ids: [],
+        start_date: '2020-01-01',
+        homeroom_teacher_ids: [],
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  });
   collections = {
     warehouses: createMemoryCollection([
       { id: WH, name: 'Central Store', ...stamp },
@@ -213,6 +238,21 @@ describe('FixedAssetsPage (P0-H01)', () => {
         'fa-1',
         expect.objectContaining({ asset_tag: 'TAG-001A', item_id: 'item-asset', assigned_to_staff_id: 'stf-uuid-1' })
       )
+    );
+  });
+
+  it('picks the assigned staff from the canonical repository', async () => {
+    renderPage(<FixedAssetsPage />);
+    await screen.findByText('TAG-001');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
+    const dialog = await screen.findByRole('dialog');
+    const picker = within(dialog).getByTestId('fixed-asset-staff-picker');
+    fireEvent.click(picker);
+    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
+
+    await waitFor(() =>
+      expect(within(dialog).getByTestId('fixed-asset-staff-picker')).toHaveTextContent(/Jane Wanjiru/)
     );
   });
 });

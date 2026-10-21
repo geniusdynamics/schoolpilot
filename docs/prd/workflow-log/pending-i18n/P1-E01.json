@@ -1,0 +1,25 @@
+{
+  "task": "P1-E01",
+  "note": "New strings of the administration pages moved onto the canonical repository. They are rendered with inline English defaults; the wave merge adds them under the module's `administration` namespace. Translate for de, es, fr, it, nl, pt, rw, sw.",
+  "en": {
+    "administration": {
+      "canonicalForms": {
+        "departmentKind": "Department kind",
+        "category": "Category",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "status": "Status",
+        "classGroup": "Class Group",
+        "noClassGroups": "No class groups exist yet. Create one under Class Management.",
+        "learnerGapNotice": "Student category and dormitory are not part of the canonical learner model yet.",
+        "addStudentGapNotice": "Student category, dormitory and the primary exam summary are not part of the canonical learner model yet.",
+        "selectClassGroup": "Select class group",
+        "registerHint": "Record one full-day register for a class group. Learners not marked are saved as present.",
+        "selectClassGroupFirst": "Select a class group with at least one learner before saving.",
+        "noStaffForRegister": "The school has no member of staff, so the register cannot be taken.",
+        "couldNotSave": "The record could not be saved.",
+        "staffStartDateRequired": "The start date of a member of staff is required."
+      }
+    }
+  }
+}

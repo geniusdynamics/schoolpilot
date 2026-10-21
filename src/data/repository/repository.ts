@@ -34,7 +34,7 @@ import {
   RepositoryStorageError,
   RepositoryValidationError,
 } from './errors';
-import { guardsFor } from './invariants';
+import { guardsFor, guardsForRemoval } from './invariants';
 import {
   buildOrder,
   buildWhere,
@@ -194,11 +194,17 @@ export class Repository {
    * trail. The repository is usable again straight after: the ambient transaction is
    * released whatever the callback did.
    *
-   * A write issued while the callback runs joins the transaction, whatever asked for it.
-   * The repository is the unit of the write, so there is one ambient transaction at a
-   * time; a transaction opened inside another is refused by the adapter.
+   * A write issued while the callback runs joins the transaction, whatever asked for it. The
+   * repository is the unit of the write, so there is one ambient transaction at a time; a
+   * transaction opened inside another joins it instead of opening a second one, which the
+   * adapter would refuse.
    */
   async transaction<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T> {
+    // A service called inside a transaction joins it instead of opening a second one. The adapter
+    // refuses a nested transaction, and a guardian created while a learner is being admitted is the
+    // ordinary case, not an edge one: without this, "admit a learner and their guardian" throws.
+    if (this.ambient) return work(this.ambient.tx);
+
     const events: ChangeEvent[] = [];
     const done = deferred();
     this.inFlight = { done: done.promise };
@@ -522,6 +528,10 @@ export class Repository {
         // way an update passes it, because a scope can only be judged against the row.
         this.checkPermission({ action: 'remove', entity, id, row });
 
+        // The freeze of a posted document follows it into the removal: a document that
+        // cannot be edited cannot be erased either.
+        await this.runGuards(tx, entity, 'remove', current.row, row);
+
         const params: SqliteBindValue[] = [id];
         let statement: string;
         let encoded: Record<string, SqliteBindValue> = {};
@@ -744,7 +754,8 @@ export class Repository {
       now: this.clock(),
     };
 
-    for (const guard of guardsFor(entity)) {
+    const guards = action === 'remove' ? guardsForRemoval(entity) : guardsFor(entity);
+    for (const guard of guards) {
       await guard(context);
     }
   }

@@ -45,7 +45,10 @@ async function handle(request: SqliteWorkerRequest, post: (response: SqliteWorke
     switch (request.type) {
       case 'open': {
         sqlite3 = sqlite3 ?? (await sqlite3InitModule({ print: console.log, printErr: console.error }));
-        await sqlite3.installOpfsSAHPoolVfs({});
+        // A named pool directory, not the default one: the legacy data layer keeps its own
+        // OPFS SAH pool open in its worker, and two pools cannot share the same files — the
+        // second install fails to create its access handles ("another open Access Handle").
+        await sqlite3.installOpfsSAHPoolVfs({ directory: '/schoolpilot-canonical' });
         database = new sqlite3.oo1.DB({
           filename: `file:/${request.dbName}.sqlite3?vfs=${ADAPTER_PERSISTENT_VFS}`,
           flags: 'c',

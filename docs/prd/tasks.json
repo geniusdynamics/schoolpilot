@@ -2261,10 +2261,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "91a02d7",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-C02",
@@ -2475,10 +2475,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "2e296ff",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-E02",
@@ -2503,10 +2503,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "cec892b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-E03",
@@ -2531,10 +2531,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "2ff3a1e",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-E04",
@@ -2560,10 +2560,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "d7fc38d",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-E05",
@@ -2586,10 +2586,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "c1c3da5",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-E06",
@@ -2620,10 +2620,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "06ec6cb",
       "notes": "Amended at P1-W1 from DR-01: retiring the legacy registry includes src/services/database/collections.ts. createDatabaseSchema/SchemaConverter stay as the DDL backend.",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P1-Q01",

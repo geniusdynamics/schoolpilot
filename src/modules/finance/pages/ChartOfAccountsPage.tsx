@@ -1,5 +1,6 @@
 // ABOUTME: Chart of accounts page: lists, creates, edits and deletes GL accounts through useFinance()
 // ABOUTME: Expense accounts link to an expense category by its string id; the category name is resolved at read time
+// GAP(P1-E03): the registry models no chart-of-accounts entity; accounts land with the P3 ledger.
 
 import React, { useMemo, useState } from 'react';
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -8,7 +9,7 @@ import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 
-import { useAppData } from '@/hooks/useAppData';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import { EnvelopeIcon, EyeIcon, PhoneIcon, PlusIcon } from '@/components/ui/icons';
 import {
   AlumniRecord,
@@ -18,7 +19,7 @@ import {
 
 const AlumniDirectoryPage: React.FC = () => {
 
-  const { students = [], loading } = useAppData();
+  const { learners: students, isLoading: loading } = useCanonicalLearners();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
@@ -491,6 +492,7 @@ const AlumniDirectoryPage: React.FC = () => {
   );
 };
 
-export default AlumniDirectoryPage;
+const AlumniDirectoryPageWithRepository = withCanonicalRepository(AlumniDirectoryPage);
+export default AlumniDirectoryPageWithRepository;
 
 export const AlumniDirectoryContent = AlumniDirectoryPage;

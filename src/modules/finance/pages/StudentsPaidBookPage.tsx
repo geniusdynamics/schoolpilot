@@ -1,244 +1,152 @@
-import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+// ABOUTME: Students paid book: every posted payment in a date range with its receipt, from the
+// ABOUTME: canonical payment and receipt rows. Totals are exact minor units.
+
+import React, { useMemo, useState } from 'react';
+
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { BookOpenIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
-import { StudentPaymentRecord } from '../data/types';
-import { formatDate } from '@/utils/format';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { BookOpenIcon } from '@/components/ui/icons';
+
+import {
+  formatMoneyMinor,
+  useCanonicalFinance,
+  type FinancePaymentRow,
+} from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+
+const today = (): string => new Date().toISOString().slice(0, 10);
+
+const monthAgo = (): string => {
+  const date = new Date();
+  date.setMonth(date.getMonth() - 1);
+  return date.toISOString().slice(0, 10);
+};
+
+interface PaidRow extends FinancePaymentRow {
+  readonly admissionNumber: string;
+  readonly date: string;
+}
 
 export const StudentsPaidBookPageContent: React.FC = () => {
+  const finance = useCanonicalFinance();
+  const [startDate, setStartDate] = useState(monthAgo);
+  const [endDate, setEndDate] = useState(today);
+  const [search, setSearch] = useState('');
 
-  const { studentPaymentRecords, loading } = useAppData() as any;
+  const admissionByLearner = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const learner of finance.learnerRows) map.set(learner.id, learner.admissionNumber);
+    return map;
+  }, [finance.learnerRows]);
 
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 1);
-    return date.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [classFilter, setClassFilter] = useState('');
+  const rows = useMemo<readonly PaidRow[]>(() => {
+    const term = search.trim().toLowerCase();
+    return finance.paymentRows
+      .filter((payment) => {
+        if (payment.status === 'reversed' || payment.status === 'bounced') return false;
+        const date = payment.receivedAt.slice(0, 10);
+        if (startDate && date < startDate) return false;
+        if (endDate && date > endDate) return false;
+        if (!term) return true;
+        const admission = payment.learnerId ? admissionByLearner.get(payment.learnerId) ?? '' : '';
+        return (
+          payment.learnerName.toLowerCase().includes(term) ||
+          admission.toLowerCase().includes(term) ||
+          payment.receiptNumber.toLowerCase().includes(term) ||
+          payment.reference.toLowerCase().includes(term)
+        );
+      })
+      .map((payment) => ({
+        ...payment,
+        admissionNumber: payment.learnerId ? admissionByLearner.get(payment.learnerId) ?? '' : '',
+        date: payment.receivedAt.slice(0, 10),
+      }));
+  }, [finance.paymentRows, startDate, endDate, search, admissionByLearner]);
 
-  const allPaymentRecords: StudentPaymentRecord[] = useMemo(() => {
-    return studentPaymentRecords || [];
-  }, [studentPaymentRecords]);
+  const totalMinor = rows.reduce((total, row) => total + row.amount.amount_minor, 0);
 
-  const filteredPaymentRecords: StudentPaymentRecord[] = useMemo(() => {
-    let filtered = allPaymentRecords;
-
-    if (searchTerm) {
-      filtered = filtered.filter(record =>
-        (record.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (record.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (record.receipt_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (record.reference_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (classFilter) {
-      filtered = filtered.filter(record => record.class_name === classFilter);
-    }
-
-    return filtered;
-  }, [allPaymentRecords, searchTerm, classFilter]);
-
-  // Calculate totals
-  const totals = useMemo(() => {
-    return filteredPaymentRecords.reduce((acc, record) => ({
-      total: acc.total + (record.amount_paid ?? 0),
-      count: acc.count + 1
-    }), { total: 0, count: 0 });
-  }, [filteredPaymentRecords]);
-
-  const columns: DataGridColumn<StudentPaymentRecord>[] = [
+  const columns: DataGridColumn<PaidRow>[] = [
+    { key: 'date', header: 'Date', sortable: true, filterable: true },
     {
-      key: 'transaction_date',
-      header: 'Date',
+      key: 'receiptNumber',
+      header: 'Receipt',
       sortable: true,
-      render: (value) => value ? formatDate(value) : '-'
+      filterable: true,
+      render: (value) => <span className="font-mono">{value || '-'}</span>,
     },
+    { key: 'learnerName', header: 'Learner', sortable: true, filterable: true },
+    { key: 'admissionNumber', header: 'Adm no', sortable: true, filterable: true },
     {
-      key: 'receipt_no',
-      header: 'Receipt No',
+      key: 'amount',
+      header: 'Amount',
+      align: 'right',
       sortable: true,
-      filterable: true
+      render: (_value, row) => <span className="font-mono">{formatMoneyMinor(row.amount.amount_minor)}</span>,
     },
-    {
-      key: 'student_name',
-      header: 'Student Name',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'admission_no',
-      header: 'Admission No',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'class_name',
-      header: 'Class',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'fee_type',
-      header: 'Fee Type',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'amount_paid',
-      header: 'Amount Paid',
-      sortable: true,
-      render: (value) => (
-        <span className="font-semibold text-green-600">KES {value?.toLocaleString?.() ?? '-'}</span>
-      )
-    },
-    {
-      key: 'payment_method',
-      header: 'Payment Method',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'reference_no',
-      header: 'Reference',
-      sortable: true,
-      filterable: true
-    }
+    { key: 'channel', header: 'Channel', sortable: true, filterable: true },
+    { key: 'reference', header: 'Reference', filterable: true },
+    { key: 'status', header: 'Status', sortable: true, filterable: true },
   ];
 
-  const uniqueClasses = useMemo(() => {
-    const classes = [...new Set(filteredPaymentRecords.map(r => r.class_name))];
-    return classes.sort();
-  }, [filteredPaymentRecords]);
-
-  if (loading?.all && filteredPaymentRecords.length === 0 && !studentPaymentRecords) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-        <span className="ml-2">Loading student payment records...</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6">
-      <Card 
-        title={
-          <div className="flex items-center gap-2">
-            <BookOpenIcon className="w-6 h-6 text-primary-600" />
-            <span>Students Paid Book</span>
-          </div>
-        }
-      >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <BookOpenIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">Student Payment Ledger</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                The Students Paid Book provides a comprehensive ledger view of all student payments by date range. 
-                Track payment history, analyze payment patterns, and generate payment reports for reconciliation.
-              </p>
-            </div>
-          </div>
-        </div>
+    <Card
+      title={
+        <span className="flex items-center gap-2">
+          <BookOpenIcon className="h-5 w-5 text-primary-600" />
+          Students paid book
+        </span>
+      }
+    >
+      <div className="mb-4 flex flex-wrap gap-4">
+        <label className="flex-1 text-sm">
+          <span className="mb-1 block font-medium text-surface-foreground">Start date</span>
+          <Input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+        </label>
+        <label className="flex-1 text-sm">
+          <span className="mb-1 block font-medium text-surface-foreground">End date</span>
+          <Input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+        </label>
+        <label className="flex-1 text-sm">
+          <span className="mb-1 block font-medium text-surface-foreground">Search</span>
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Learner, admission number, receipt or reference"
+          />
+        </label>
+      </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Start Date</label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">End Date</label>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Class Filter</label>
-            <Select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              options={[
-                { value: '', label: 'All Classes' },
-                ...uniqueClasses.map(c => ({ value: c, label: c }))
-              ]}
-              className="w-full"
-            />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
-            <Input
-              type="text"
-              placeholder="Student name, admission no, receipt..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
-          </div>
-        </div>
+      <div className="mb-4 flex flex-wrap gap-6 text-sm">
+        <span>
+          Collected: <span className="font-mono font-semibold text-green-600">{formatMoneyMinor(totalMinor)}</span>
+        </span>
+        <span>
+          Payments: <span className="font-semibold">{rows.length}</span>
+        </span>
+      </div>
 
-        {/* Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CurrencyDollarIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Total Collected</span>
-            </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.total?.toLocaleString?.() ?? '0'}
-            </p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Payment Records</span>
-            </div>
-            <p className="text-2xl font-bold text-surface-foreground mt-2">
-              {totals.count}
-            </p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <BookOpenIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Average Payment</span>
-            </div>
-            <p className="text-2xl font-bold text-primary-600 mt-2">
-              KES {totals.count > 0 ? Math.round(totals.total / totals.count)?.toLocaleString?.() ?? '0' : 0}
-            </p>
-          </div>
-        </div>
-
-        <DataGrid
-          data={filteredPaymentRecords}
-          columns={columns}
-          pageSize={50}
-          searchable={false}
-          exportable={true}
-        />
-      </Card>
-    </div>
+      <DataGrid
+        columns={columns}
+        data={[...rows]}
+        sortable
+        filterable
+        emptyState={{
+          icon: <BookOpenIcon className="w-12 h-12 text-surface-muted-fg" />,
+          title: 'No payments in this range',
+          description: 'Widen the dates or record a payment.',
+        }}
+      />
+    </Card>
   );
 };
+
 const StudentsPaidBookPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentsPaidBookPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentsPaidBookPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentsPaidBookPage;

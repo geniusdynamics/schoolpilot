@@ -41,6 +41,7 @@ import {
   saveSchoolProfile,
   saveSubjects,
 } from './steps/writers';
+import { saveCanonicalSchool } from './steps/canonicalSetup';
 
 export { clearWizardDraft };
 
@@ -171,10 +172,32 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       const chosen = presetSubjects.filter(s => draft.selectedSubjects[s.subject_code] !== false);
       recordCreated(await saveSubjects(await openWizardStore(), chosen, draft.created.subjectIds));
     },
+    sample: async () => {
+      // The canonical school the pages read: institution, calendar, year, terms, levels, classes.
+      await saveCanonicalSchool(draft);
+    },
     admin: saveAdministrator,
   }), [draft, presetSubjects, recordCreated, saveAdministrator]);
 
   const handleWizardComplete = useCallback(async () => {
+    try {
+      // The canonical school is what the migrated pages read; the step above already wrote it,
+      // so this run is a cheap idempotent safety net for a wizard resumed on its last step.
+      await saveCanonicalSchool(draft);
+    } catch (error) {
+      logger.error('[SetupWizard] could not save the canonical school:', error);
+      const detail =
+        error instanceof Error
+          ? error.message
+          : t('setupWizard.canonicalError', 'The school structure could not be saved.');
+      // Without the canonical structure the install has no class groups, so every golden path is
+      // dead. Recording setup as complete would hide that: the wizard stays open, and finishing
+      // again retries the write.
+      toast.showError(
+        `${detail} Setup is not complete; correct the problem and finish again.`
+      );
+      return;
+    }
     try {
       // The completion time lives on the school profile, so every device sees that setup is done.
       await markSetupCompleted(await openWizardStore());
@@ -187,7 +210,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     clearWizardDraft();
     toast.showSuccess('Setup complete. Welcome aboard!');
     onComplete();
-  }, [toast, onComplete, t]);
+  }, [draft, toast, onComplete, t]);
 
   // ── Step definitions ────────────────────────────────────────────
 
@@ -378,6 +401,38 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
               <Badge>{s.grouping.replace(/\(.*\)/, '').trim()}</Badge>
             </label>
           ))}
+        </div>
+      ),
+    },
+    {
+      id: 'sample',
+      title: t('setupWizard.sample.title', 'Sample data'),
+      description: t('setupWizard.sample.description', 'Start with a school that already has something in it'),
+      content: (
+        <div className="space-y-3">
+          <p className="text-sm text-surface-muted-fg">
+            {t(
+              'setupWizard.sample.intro',
+              'The classes you entered are saved as the school structure. You can also load sample learners, staff, fees and a register to explore the app.'
+            )}
+          </p>
+          <label className="flex items-start gap-3 rounded-lg border border-surface-border p-4 cursor-pointer hover:bg-surface-muted">
+            <Checkbox
+              checked={draft.includeDemoData}
+              onChange={checked => update({ includeDemoData: checked })}
+            />
+            <span>
+              <span className="block text-sm font-medium text-surface-foreground">
+                {t('setupWizard.sample.demoLabel', 'Create sample data')}
+              </span>
+              <span className="block text-xs text-surface-muted-fg">
+                {t(
+                  'setupWizard.sample.demoHint',
+                  'Adds demo learners, guardians, staff, teaching groups, marks, fee invoices and a morning register. It is written the same way the app writes real records, and you can add your own next to it.'
+                )}
+              </span>
+            </span>
+          </label>
         </div>
       ),
     },

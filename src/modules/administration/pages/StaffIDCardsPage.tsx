@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -22,7 +23,7 @@ interface StaffIDCardRow {
 }
 
 const StaffIDCardsPage: React.FC = () => {
-  const { staff, loading } = useAppData();
+  const { staff, isLoading } = useCanonicalStaff();
 
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,7 +132,7 @@ const StaffIDCardsPage: React.FC = () => {
     return depts.filter(dept => dept !== '-');
   }, [cardRows]);
 
-  if (loading?.all && cardRows.length === 0) {
+  if (isLoading && cardRows.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -234,6 +235,7 @@ const StaffIDCardsPage: React.FC = () => {
   );
 };
 
-export default StaffIDCardsPage;
+const StaffIDCardsPageWithRepository = withCanonicalRepository(StaffIDCardsPage);
+export default StaffIDCardsPageWithRepository;
 
 export const StaffIDCardsContent = StaffIDCardsPage;

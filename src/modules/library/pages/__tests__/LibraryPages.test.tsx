@@ -6,10 +6,18 @@ import { renderHook } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
+import { ToastProvider } from '@/hooks/useToast';
 import BookCategoriesPage from '../BookCategoriesPage';
 import FinesPage from '../FinesPage';
 import { useLibraryData } from '../../data/useLibraryData';
 import { databaseService } from '@/services/database/databaseService';
+import BookLoansPage from '../BookLoansPage';
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
+import { createFakeRepository, type FakeRepository } from '@/modules/hr/data/__tests__/canonicalRepositoryDouble';
+
+const USER_UUID = '874b9758-3d4e-4f1a-9b3c-0d1e2f3a4b5c';
+const STAFF_UUID = '874b9758-1f2e-4c1a-9d3e-0a1b2c3d4e5f';
+let repository: FakeRepository;
 
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
@@ -19,10 +27,12 @@ vi.mock('@/services/database/databaseService', () => ({
 }));
 
 // Library pages must not read CRUD from the app-wide snapshot: it lacks these mutators (SO-11).
+// The catalogue reads (books, loans, fines) stay there until the registry models them.
 vi.mock('@/hooks/useAppData', () => ({
-  useAppData: () => {
-    throw new Error('library pages must not use useAppData()');
-  },
+  useAppData: () => ({
+    books: [],
+    loading: {},
+  }),
 }));
 
 type Row = { id: string } & Record<string, unknown>;
@@ -63,7 +73,11 @@ let nextId = 0;
 const renderWithProviders = (ui: React.ReactElement) =>
   render(
     <MemoryRouter>
-      <ConfirmProvider>{ui}</ConfirmProvider>
+      <ToastProvider>
+        <ConfirmProvider>
+          <CanonicalRepositoryProvider repository={repository}>{ui}</CanonicalRepositoryProvider>
+        </ConfirmProvider>
+      </ToastProvider>
     </MemoryRouter>
   );
 
@@ -75,6 +89,38 @@ const submitDialog = (dialog: HTMLElement) => {
 beforeEach(() => {
   nextId = 0;
   requested = [];
+  repository = createFakeRepository({
+    user: [
+      {
+        id: USER_UUID,
+        institution_id: '00000000-0000-7000-8000-000000000001',
+        username: 'amani',
+        password_hash: 'hash',
+        status: 'active',
+        mfa: false,
+        person_ref: { type: 'staff', id: STAFF_UUID },
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+    staff: [
+      {
+        id: STAFF_UUID,
+        institution_id: '00000000-0000-7000-8000-000000000001',
+        given_name: 'Amani',
+        family_name: 'Otieno',
+        name_order: 'given_first',
+        gender: 'female',
+        employee_number: 'EMP-2',
+        employment_type: 'permanent',
+        department_ids: [],
+        start_date: '2020-01-01',
+        homeroom_teacher_ids: [],
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+  });
   collections = {
     book_categories: createMemoryCollection([{ id: 'bc-1', name: 'Fiction' }]),
     books: createMemoryCollection(),
@@ -141,6 +187,20 @@ describe('BookCategoriesPage (P0-H02)', () => {
     dialog = await screen.findByRole('dialog');
     submitDialog(dialog);
     await waitFor(() => expect(collections.book_categories.remove).toHaveBeenCalledWith('bc-1'));
+  });
+});
+
+describe('BookLoansPage (P1-E05)', () => {
+  it('picks the borrower from the canonical users', async () => {
+    renderWithProviders(<BookLoansPage />);
+    fireEvent.click(await screen.findByRole('button', { name: /issue|loan|add/i }));
+    const dialog = await screen.findByRole('dialog');
+    const picker = within(dialog).getByTestId('book-loan-borrower-picker');
+    fireEvent.click(picker);
+    fireEvent.click(await screen.findByRole('option', { name: /Amani Otieno/ }));
+    await waitFor(() =>
+      expect(within(dialog).getByTestId('book-loan-borrower-picker')).toHaveTextContent(/Amani Otieno/)
+    );
   });
 });
 

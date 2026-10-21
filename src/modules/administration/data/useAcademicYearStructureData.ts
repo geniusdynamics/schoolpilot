@@ -1,40 +1,53 @@
-// ABOUTME: Self-contained hook for academicyearstructure data management
-// ABOUTME: Provides CRUD operations for academicyearstructure without depending on AppDataContext
+// ABOUTME: Database-backed academic year structures (collection 'academic_year_structures').
+// ABOUTME: The canonical registry has no structure template entity, so the page keeps its own collection.
 
-import { initialMockAcademicYearStructures } from './mockData';
-import { AcademicYearStructure } from '@/core/types';
-import { useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import type { AcademicYearStructure } from '@/core/types';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+
+export const ACADEMIC_YEAR_STRUCTURES_COLLECTION = 'academic_year_structures';
+
+const stamp = () => new Date().toISOString();
 
 export const useAcademicYearStructureData = () => {
-  const [data, setData] = useState<AcademicYearStructure[]>(initialMockAcademicYearStructures);
+  const collection = useDatabaseCollection<AcademicYearStructure>(ACADEMIC_YEAR_STRUCTURES_COLLECTION);
+  const { data, insert, update: updateDocument, remove: removeDocument, refresh } = collection;
 
-  const create = async (newItem: Partial<AcademicYearStructure>) => {
-    const newDataItem: AcademicYearStructure = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as AcademicYearStructure;
-    setData((prev: AcademicYearStructure[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
+  const structures = useMemo(
+    () => [...data].sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? ''))),
+    [data]
+  );
 
-  const update = async (id: number, updatedData: Partial<AcademicYearStructure>) => {
-    setData((prev: AcademicYearStructure[]) => prev.map((item: AcademicYearStructure) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
+  const create = useCallback(
+    async (input: { name: string }) => {
+      const now = stamp();
+      return insert({ ...input, created_at: now, updated_at: now } as Omit<
+        AcademicYearStructure,
+        'id'
+      >);
+    },
+    [insert]
+  );
 
-  const remove = async (id: number) => {
-    setData((prev: AcademicYearStructure[]) => prev.filter((item: AcademicYearStructure) => item.id !== id));
-  };
+  const update = useCallback(
+    async (id: string, patch: { name?: string }) =>
+      updateDocument(id, { ...patch, updated_at: stamp() }),
+    [updateDocument]
+  );
+
+  const remove = useCallback(async (id: string) => removeDocument(id), [removeDocument]);
 
   return {
-    data,
+    academicYearStructures: structures,
+    data: structures,
+    loading: { academicYearStructures: collection.loading },
+    error: collection.error,
+    refresh,
     create,
     update,
-    remove
+    remove,
   };
 };
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

@@ -1,11 +1,14 @@
 // ABOUTME: General Receipts page - records miscellaneous payments (donations, hire, sales) with revenue-coded items.
-// ABOUTME: CRUD goes through useFinance() with update(id, patch); ids stay strings, payer names resolved at read time.
+// ABOUTME: The learner and staff payers are canonical and chosen through EntityPicker; the receipt itself
+// ABOUTME: stays on the general_payments collection because the registry models no general receipt
+// ABOUTME: (GAP(P1-E03): general_payment, customer and partner are not canonical entities).
 
 import React, { useState, useMemo } from 'react';
 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import DialogForm from "@/components/ui/forms/DialogForm";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -13,7 +16,6 @@ import Textarea from '@/components/ui/Textarea';
 import { Alert } from '@/components/ui/Alert';
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon } from '@/components/ui/icons';
 import { useFinance } from '@/modules/finance/hooks/useFinance';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { AccountType, GeneralPayerType } from '@/core/types';
 import type { GeneralPayment } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -21,8 +23,10 @@ import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { databaseService } from '@/services/database/databaseService';
 import { formatDate } from '@/utils/format';
+import { asId } from '@/domain/ids';
+import { useCanonicalFinance } from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 
-interface PersonOption { id: string | number; first_name?: string; last_name?: string; admission_no?: string; staff_no?: string }
 interface NamedOption { id: string | number; name?: string }
 
 interface ReceiptItemForm {
@@ -48,7 +52,6 @@ type ReceiptRow = GeneralPayment & { payer_name_resolved: string | null };
 
 const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 const idOf = (value: unknown): string => (value == null ? '' : String(value));
-const personName = (p: PersonOption) => [p.first_name, p.last_name].filter(Boolean).join(' ');
 
 export const GeneralReceiptsPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
@@ -60,9 +63,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
     updateGeneralPayment,
     deleteGeneralPayment
   } = useFinance();
-  const { data: students } = useDatabaseCollection<PersonOption>('students');
-  const { data: staff } = useDatabaseCollection<PersonOption>('staff');
-  const { data: partners } = useDatabaseCollection<NamedOption>('partners');
+  const finance = useCanonicalFinance();
   const { showSuccess, showError } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,12 +87,20 @@ export const GeneralReceiptsPageContent: React.FC = () => {
   const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
   const payersByType = useMemo<Record<GeneralPayerType, { id: string; name: string; label: string }[]>>(() => ({
-    [GeneralPayerType.STUDENT]: students.map(s => ({ id: idOf(s.id), name: personName(s), label: personName(s) + (s.admission_no ? ` (Adm: ${s.admission_no})` : '') })),
-    [GeneralPayerType.STAFF]: staff.map(st => ({ id: idOf(st.id), name: personName(st), label: personName(st) + (st.staff_no ? ` (Staff No: ${st.staff_no})` : '') })),
+    [GeneralPayerType.STUDENT]: finance.lookups.learner.options.map((learner) => ({
+      id: learner.id,
+      name: finance.lookups.learner.label(asId<'learner'>(learner.id), ''),
+      label: finance.lookups.learner.label(asId<'learner'>(learner.id), ''),
+    })),
+    [GeneralPayerType.STAFF]: finance.lookups.staff.options.map((member) => ({
+      id: member.id,
+      name: finance.lookups.staff.label(asId<'staff'>(member.id), ''),
+      label: finance.lookups.staff.label(asId<'staff'>(member.id), ''),
+    })),
     [GeneralPayerType.CUSTOMER]: (customers as NamedOption[]).map(c => ({ id: idOf(c.id), name: c.name ?? '', label: c.name ?? '' })),
-    [GeneralPayerType.PARTNER]: partners.map(p => ({ id: idOf(p.id), name: p.name ?? '', label: p.name ?? '' })),
+    [GeneralPayerType.PARTNER]: [],
     [GeneralPayerType.OTHER]: [],
-  }), [students, staff, customers, partners]);
+  }), [finance.lookups.learner, finance.lookups.staff, customers]);
   const payerList = payersByType[formData.payer_type] ?? [];
 
   const rows = useMemo<ReceiptRow[]>(() => generalPayments.map(payment => {
@@ -346,6 +355,30 @@ export const GeneralReceiptsPageContent: React.FC = () => {
 
             {formData.payer_type === GeneralPayerType.OTHER ? (
                 <Input name="payer_name_external" label="Payer Name (External)" value={formData.payer_name_external} onChange={handleInputChange} required />
+            ) : formData.payer_type === GeneralPayerType.STUDENT ? (
+                <EntityPicker
+                    value={formData.payer_id ? asId<'learner'>(formData.payer_id) : null}
+                    onChange={(id) => {
+                        setFormError(null);
+                        setFormData(prev => ({ ...prev, payer_id: id ?? '' }));
+                    }}
+                    lookup={finance.lookups.learner}
+                    label="Select Payer"
+                    placeholder="Select learner"
+                    data-testid="general-receipt-learner-picker"
+                />
+            ) : formData.payer_type === GeneralPayerType.STAFF ? (
+                <EntityPicker
+                    value={formData.payer_id ? asId<'staff'>(formData.payer_id) : null}
+                    onChange={(id) => {
+                        setFormError(null);
+                        setFormData(prev => ({ ...prev, payer_id: id ?? '' }));
+                    }}
+                    lookup={finance.lookups.staff}
+                    label="Select Payer"
+                    placeholder="Select staff member"
+                    data-testid="general-receipt-staff-picker"
+                />
             ) : (
                 <Select name="payer_id" label="Select Payer" value={formData.payer_id} onChange={handleInputChange} required>
                     <option value="">-- Select Payer --</option>
@@ -421,9 +454,11 @@ export const GeneralReceiptsPageContent: React.FC = () => {
 };
 
 const GeneralReceiptsPage: React.FC = () => (
-  <div className="space-y-6">
-    <GeneralReceiptsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <GeneralReceiptsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default GeneralReceiptsPage;

@@ -1,3 +1,4 @@
+// GAP(P1-E03): the balance-sheet view reads the ledger (account, journal_line) which is not modelled before P3.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
@@ -33,7 +34,7 @@ export const BalanceSheetPageContent: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, categoryFilter]);
+  }, [searchTerm, categoryFilter, balanceSheetItems]);
 
   // Calculate totals
   const totals = useMemo(() => {

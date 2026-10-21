@@ -1,5 +1,6 @@
 // ABOUTME: Customer invoices page: creates, edits and deletes customer invoices and their line items through useFinance()
 // ABOUTME: Customers and revenue accounts are linked by string id; names are resolved at read time
+// GAP(P1-E03): the registry models no external customer or customer invoice; the canonical invoice is a learner invoice.
 
 import React, { useState, useMemo } from 'react';
 

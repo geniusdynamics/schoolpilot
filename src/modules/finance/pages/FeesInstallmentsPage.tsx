@@ -1,376 +1,313 @@
-import React, { useState, useMemo } from 'react';
-import { FeeInstallment, InstallmentStatus } from '@/modules/finance/data/types';
-import { useAppData } from '@/hooks/useAppData';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+// ABOUTME: Fee installments page: the canonical installment plans a fee schedule may reference.
+// ABOUTME: A plan is its name, its academic period and the dated percentage installments it defines.
+
+import React, { useMemo, useState } from 'react';
+
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { logger } from '@/utils/logging';
-import { CalendarIcon, PlusIcon } from '@/components/ui/icons';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { CalendarIcon, DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { DateField, SchemaEntityForm } from '@/components/ui/forms';
+import {
+  createSchemaFor,
+  toWritableValues,
+  updateSchemaFor,
+  type CreateInput,
+  type RepositoryRow,
+  type UpdateInput,
+} from '@/data/repository';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
-import { formatDate } from '@/utils/format';
+import { asId } from '@/domain/ids';
 
-type InstallmentFormData = Omit<Partial<FeeInstallment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
+import { useCanonicalFinance, useFinanceRepository, toFormLookup } from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+interface InstallmentDraftRow {
+  readonly sequence: number;
+  readonly due_date: string;
+  readonly percent: number;
+}
+
+interface PlanDraft {
+  readonly row: RepositoryRow<'installment_plan'> | null;
+}
 
 export const FeesInstallmentsPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { 
-    students,
-    schoolPeriods,
-    loading
-  } = useAppData();
+  const finance = useCanonicalFinance();
+  const repository = useFinanceRepository();
+  const confirm = useConfirm();
+  const { showSuccess, showError } = useToast();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingInstallment, setEditingInstallment] = useState<FeeInstallment | null>(null);
-  
-  const initialFormData: InstallmentFormData = {
-    student_id: '',
-    school_period_id: undefined,
-    installment_number: 1,
-    due_date: '',
-    amount_due: 0,
-    amount_paid: 0,
-    status: InstallmentStatus.PENDING,
-    invoice_id: '',
-    notes: ''
-  };
-  const [formData, setFormData] = useState<InstallmentFormData>(initialFormData);
+  const [draft, setDraft] = useState<PlanDraft | null>(null);
+  const [installments, setInstallments] = useState<InstallmentDraftRow[]>([]);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // Mock data for installments (in production, this would come from useAppData)
-  const mockInstallments: FeeInstallment[] = useMemo(() => {
-    if (!students || students.length === 0) return [];
-    return students.slice(0, 5).map((student, idx) => ({
-      id: `inst-${idx}`,
-      student_id: student.id,
-      school_period_id: 1,
-      installment_number: idx + 1,
-      due_date: new Date(Date.now() + (idx + 1) * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      amount_due: 15000,
-      amount_paid: idx % 2 === 0 ? 15000 : 7500,
-      status: idx % 2 === 0 ? InstallmentStatus.PAID : (idx === 1 ? InstallmentStatus.PARTIAL : InstallmentStatus.PENDING),
-      invoice_id: `INV-${1000 + idx}`,
-      notes: '',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      student_name: [student.first_name, student.last_name].filter(Boolean).join(' ') || 'Unknown',
-      school_period_name: 'Term 1 2024'
-    }));
-  }, [students]);
+  const defaultInstitutionId = finance.periods[0]?.institution_id ?? '';
 
-  const openModal = (installment?: FeeInstallment) => {
-    setEditingInstallment(installment || null);
-    setFormData(installment ? {
-      student_id: installment.student_id,
-      school_period_id: installment.school_period_id,
-      installment_number: installment.installment_number,
-      due_date: installment.due_date.split('T')[0],
-      amount_due: installment.amount_due,
-      amount_paid: installment.amount_paid,
-      status: installment.status,
-      invoice_id: installment.invoice_id || '',
-      notes: installment.notes || ''
-    } : initialFormData);
-    setIsModalOpen(true);
-  };
+  const fields = useMemo(
+    () => [
+      { path: 'name', label: 'Plan name', order: 1, required: true },
+      {
+        path: 'academic_period_id',
+        label: 'Academic period',
+        order: 2,
+        widget: 'entity' as const,
+        lookupKey: 'period',
+      },
+    ],
+    []
+  );
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingInstallment(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    let val: string | number | undefined = value;
-    
-    if (name === 'school_period_id' || name === 'installment_number') {
-      val = value ? parseInt(value) : undefined;
-    } else if (name === 'amount_due' || name === 'amount_paid') {
-      val = parseFloat(value) || 0;
-    }
-    
-    setFormData(prev => ({ ...prev, [name]: val }));
-  };
-
-  const toast = useToast();
-  const handleSubmit = async () => {
-    if (!formData.student_id || !formData.school_period_id || !formData.due_date || !formData.amount_due) {
-      toast.showWarning('Student, school period, due date, and amount due are required.');
-      return;
-    }
-
-    // In production, this would call addFeeInstallment or updateFeeInstallment
-    logger.info('Saving installment:', formData);
-    closeModal();
-  };
-
-  const getStatusBadge = (status: InstallmentStatus) => {
-    const styles = {
-      [InstallmentStatus.PENDING]: 'bg-surface-accent text-surface-foreground',
-      [InstallmentStatus.PARTIAL]: 'bg-yellow-100 text-yellow-800',
-      [InstallmentStatus.PAID]: 'bg-green-100 text-green-800',
-      [InstallmentStatus.OVERDUE]: 'bg-red-100 text-red-800',
-      [InstallmentStatus.WAIVED]: 'bg-primary-100 text-primary-800'
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
-        {status}
-      </span>
+  const open = (row: RepositoryRow<'installment_plan'> | null) => {
+    setFormError(null);
+    setDraft({ row });
+    setInstallments(
+      row
+        ? [...row.installments].sort((left, right) => left.sequence - right.sequence)
+        : [{ sequence: 1, due_date: '', percent: 100 }]
     );
   };
 
-  const columns: DataGridColumn<FeeInstallment>[] = [
-    {
-      key: 'student_name',
-      header: 'Student',
-      sortable: true,
-      filterable: true,
-      render: (value) => value || '-'
-    },
-    {
-      key: 'school_period_name',
-      header: 'School Period',
-      sortable: true,
-      filterable: true,
-      render: (value) => value || '-'
-    },
-    {
-      key: 'installment_number',
-      header: '#',
-      sortable: true,
-      render: (value) => value || '-'
-    },
-    {
-      key: 'due_date',
-      header: 'Due Date',
-      sortable: true,
-      render: (value) => value ? formatDate(value) : '-'
-    },
-    {
-      key: 'amount_due',
-      header: 'Amount Due',
-      sortable: true,
-      render: (value) => value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
-    },
-    {
-      key: 'amount_paid',
-      header: 'Amount Paid',
-      sortable: true,
-      render: (value) => value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
-    },
-    {
-      key: 'balance',
-      header: 'Balance',
-      sortable: true,
-      render: (_, item) => {
-        const balance = (item.amount_due ?? 0) - (item.amount_paid ?? 0);
-        return (
-          <span className={`font-semibold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            KES {balance?.toLocaleString?.() ?? balance}
-          </span>
+  const addInstallment = () => {
+    setInstallments((current) => [
+      ...current,
+      { sequence: current.length + 1, due_date: '', percent: 0 },
+    ]);
+  };
+
+  const updateInstallment = (index: number, patch: Partial<InstallmentDraftRow>) => {
+    setInstallments((current) =>
+      current.map((row, position) => (position === index ? { ...row, ...patch } : row))
+    );
+  };
+
+  const removeInstallment = (index: number) => {
+    setInstallments((current) =>
+      current
+        .filter((_row, position) => position !== index)
+        .map((row, position) => ({ ...row, sequence: position + 1 }))
+    );
+  };
+
+  const save = async (values: Record<string, unknown>) => {
+    if (!draft) return;
+    setFormError(null);
+    const rows = installments
+      .filter((row) => row.due_date !== '')
+      .map((row, position) => ({ ...row, sequence: position + 1 }));
+    if (rows.length === 0) {
+      const message = 'Add at least one installment with a due date.';
+      setFormError(message);
+      throw new Error(message);
+    }
+    try {
+      if (draft.row) {
+        await repository.update(
+          'installment_plan',
+          asId<'installment_plan'>(draft.row.id),
+          {
+            ...(values as unknown as UpdateInput<'installment_plan'>),
+            installments: rows,
+          },
+          { expectedVersion: draft.row.rowVersion }
         );
+        showSuccess('Installment plan updated.');
+      } else {
+        const input: CreateInput<'installment_plan'> = {
+          ...(values as unknown as CreateInput<'installment_plan'>),
+          institution_id: defaultInstitutionId,
+          installments: rows,
+        };
+        await repository.create('installment_plan', input);
+        showSuccess('Installment plan created.');
       }
-    },
+      setDraft(null);
+    } catch (error) {
+      setFormError(errorMessage(error));
+      throw error;
+    }
+  };
+
+  const remove = async (row: RepositoryRow<'installment_plan'>) => {
+    if (!(await confirm({ variant: 'danger', message: 'Delete this installment plan?' }))) return;
+    try {
+      await repository.remove('installment_plan', asId<'installment_plan'>(row.id));
+      showSuccess('Installment plan deleted.');
+    } catch (error) {
+      showError(`Failed to delete the plan: ${errorMessage(error)}`);
+    }
+  };
+
+  const columns: DataGridColumn<RepositoryRow<'installment_plan'>>[] = [
     {
-      key: 'status',
-      header: 'Status',
+      key: 'name',
+      header: 'Plan',
       sortable: true,
       filterable: true,
-      render: (value) => getStatusBadge(value)
+      render: (value) => <span className="font-medium">{value}</span>,
+    },
+    {
+      key: 'academic_period_id',
+      header: 'Period',
+      sortable: true,
+      filterable: true,
+      render: (value) => finance.periodName(String(value ?? '')) || '-',
+    },
+    {
+      key: 'installmentCount',
+      header: 'Installments',
+      render: (value) => (Array.isArray(value) ? value.length : 0),
+    },
+    {
+      key: 'firstDue',
+      header: 'First due',
+      render: (_value, row) => {
+        const first = [...row.installments].sort((left, right) => left.sequence - right.sequence)[0];
+        return first ? first.due_date : '-';
+      },
+    },
+    {
+      key: 'percentTotal',
+      header: 'Percent',
+      align: 'right',
+      render: (_value, row) =>
+        row.installments.reduce((total, installment) => total + installment.percent, 0),
     },
     {
       key: 'actions',
       header: 'Actions',
-      sortable: false,
-      render: (_, item) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => openModal(item)}
-            className="text-primary-600 hover:text-primary-800"
-            title="Edit"
-          >
+      render: (_value, row) => (
+        <div className="flex gap-1">
+          <Button size="sm" variant="ghost" onClick={() => open(row)} leftIcon={<EditIcon className="w-4 h-4" />}>
             Edit
-          </button>
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void remove(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
-  if (loading?.students && !students && mockInstallments.length === 0) {
+  if (finance.status === 'loading' && finance.installmentPlans.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-        <span className="ml-2">Loading installments...</span>
+      <div className="flex items-center justify-center py-16" role="status">
+        Loading installment plans...
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <Card 
-        title={
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-6 h-6 text-primary-600" />
-            <span>Fee Installments</span>
-          </div>
-        }
-        extra={
-          <Button onClick={() => openModal()} variant="primary">
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Add Installment Plan
+    <div className="space-y-4">
+      <Card
+        title="Fee installments"
+        actions={
+          <Button
+            onClick={() => open(null)}
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+            disabled={!defaultInstitutionId}
+          >
+            Add installment plan
           </Button>
         }
       >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">About Fee Installments</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                Fee installments allow you to break down fee payments into scheduled payments for students. 
-                Track due dates, payments, and balances for each installment across the academic period.
-              </p>
-            </div>
-          </div>
-        </div>
-
+        <p className="mb-4 text-sm text-surface-muted-fg">
+          An installment plan splits a fee into dated percentages. A fee schedule line can name a
+          plan; the plan itself carries no money, so it never drifts from the amount billed.
+        </p>
         <DataGrid
-          data={mockInstallments}
           columns={columns}
-          pageSize={20}
-          searchable={true}
-          exportable={true}
+          data={[...finance.installmentPlans]}
+          sortable
+          filterable
+          emptyState={{
+            icon: <CalendarIcon className="w-12 h-12 text-surface-muted-fg" />,
+            title: 'No installment plans',
+            description: 'Create a plan to split a fee into dated installments.',
+          }}
         />
       </Card>
 
-      <DialogForm
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingInstallment ? 'Edit Installment' : 'Add Installment Plan'}
+      <Modal
+        isOpen={draft !== null}
+        onClose={() => setDraft(null)}
+        title={draft?.row ? 'Edit installment plan' : 'New installment plan'}
+        size="lg"
       >
-        <FormSection>
-          <FormField label="Student" required>
-            <Select
-              name="student_id"
-              value={formData.student_id}
-              onChange={handleInputChange}
-              options={students?.map(s => ({ value: s.id, label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '') })) || []}
-              placeholder="Select student"
-            />
-          </FormField>
-
-          <FormField label="School Period" required>
-            <Select
-              name="school_period_id"
-              value={formData.school_period_id != null ? String(formData.school_period_id) : ''}
-              onChange={handleInputChange}
-              options={schoolPeriods?.map(sp => ({ value: sp.id != null ? String(sp.id) : '', label: sp.name })) || []}
-              placeholder="Select school period"
-            />
-          </FormField>
-
-          <FormField label="Installment Number" required>
-            <Input
-              type="number"
-              name="installment_number"
-              value={formData.installment_number || 1}
-              onChange={handleInputChange}
-              placeholder="e.g., 1, 2, 3"
-              min="1"
-            />
-          </FormField>
-
-          <FormField label="Due Date" required>
-            <Input
-              type="date"
-              name="due_date"
-              value={formData.due_date || ''}
-              onChange={handleInputChange}
-            />
-          </FormField>
-
-          <FormField label="Amount Due" required>
-            <Input
-              type="number"
-              name="amount_due"
-              value={formData.amount_due || ''}
-              onChange={handleInputChange}
-              placeholder="Enter amount due"
-              min="0"
-              step="0.01"
-            />
-          </FormField>
-
-          <FormField label="Amount Paid">
-            <Input
-              type="number"
-              name="amount_paid"
-              value={formData.amount_paid || ''}
-              onChange={handleInputChange}
-              placeholder="Enter amount paid"
-              min="0"
-              step="0.01"
-            />
-          </FormField>
-
-          <FormField label="Status">
-            <Select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              options={[
-                { value: InstallmentStatus.PENDING, label: 'Pending' },
-                { value: InstallmentStatus.PARTIAL, label: 'Partial' },
-                { value: InstallmentStatus.PAID, label: 'Paid' },
-                { value: InstallmentStatus.OVERDUE, label: 'Overdue' },
-                { value: InstallmentStatus.WAIVED, label: 'Waived' }
-              ]}
-            />
-          </FormField>
-
-          <FormField label="Invoice Reference (Optional)">
-            <Input
-              name="invoice_id"
-              value={formData.invoice_id || ''}
-              onChange={handleInputChange}
-              placeholder="Invoice reference"
-            />
-          </FormField>
-
-          <FormField label="Notes">
-            <Textarea
-              name="notes"
-              value={formData.notes || ''}
-              onChange={handleInputChange}
-              placeholder="Additional notes"
-              rows={3}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormActions
-          onCancel={closeModal}
-          onSubmit={handleSubmit}
-          submitLabel={editingInstallment ? 'Update' : 'Add Installment'}
-        />
-      </DialogForm>
+        {draft ? (
+          <SchemaEntityForm
+            schema={draft.row ? updateSchemaFor('installment_plan') : createSchemaFor('installment_plan')}
+            recordKey={draft.row?.id ?? 'new'}
+            initialValues={
+              draft.row
+                ? toWritableValues(draft.row)
+                : {
+                    institution_id: defaultInstitutionId,
+                    name: '',
+                    installments: [],
+                  }
+            }
+            fields={fields}
+            lookups={{ period: toFormLookup(finance.lookups.period) }}
+            serverError={formError}
+            submitLabel={draft.row ? 'Save plan' : 'Create plan'}
+            onCancel={() => setDraft(null)}
+            onSubmit={save}
+          >
+            <fieldset className="mt-4 space-y-2">
+              <legend className="text-sm font-medium text-surface-foreground">Installments</legend>
+              {installments.map((row, index) => (
+                <div key={row.sequence} className="flex items-end gap-2">
+                  <span className="w-6 pb-2 text-sm text-surface-muted-fg">{index + 1}</span>
+                  <DateField
+                    label="Due date"
+                    value={row.due_date}
+                    onChange={(next) => updateInstallment(index, { due_date: next })}
+                    className="flex-1"
+                  />
+                  <input
+                    type="number"
+                    aria-label={`Percent for installment ${index + 1}`}
+                    className="h-10 w-24 rounded-lg border border-surface-input bg-surface-card px-3 text-sm"
+                    value={row.percent}
+                    min={0}
+                    max={100}
+                    onChange={(event) =>
+                      updateInstallment(index, { percent: Number(event.target.value) })
+                    }
+                  />
+                  <Button size="sm" variant="secondary" onClick={() => removeInstallment(index)}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button size="sm" variant="secondary" onClick={addInstallment} leftIcon={<PlusIcon className="w-4 h-4" />}>
+                Add installment
+              </Button>
+            </fieldset>
+          </SchemaEntityForm>
+        ) : null}
+      </Modal>
     </div>
   );
 };
 
 const FeesInstallmentsPage: React.FC = () => (
-  <div className="space-y-6">
-    <FeesInstallmentsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <FeesInstallmentsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default FeesInstallmentsPage;

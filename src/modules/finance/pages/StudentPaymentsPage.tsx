@@ -1,336 +1,322 @@
-// ABOUTME: Student Payments page: lists fee payments and records/edits them in a dialog.
-// ABOUTME: New payments go through recordStudentPayment with auto RCT/<year>/<seq> receipts; failures show in the dialog.
+// ABOUTME: Student payments page: records a posted payment with its receipt, allocates it to an
+// ABOUTME: invoice when one is chosen, and surfaces the repository's refusal when a posted payment
+// ABOUTME: is edited or reversed out of its posted states. Amounts stay exact minor units.
 
-import React, { useState } from 'react';
-import { StudentPayment } from '@/modules/finance';
-import { Student } from '@/core/types';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import React, { useMemo, useState } from 'react';
+
 import Button from '@/components/ui/Button';
-import DialogForm from "@/components/ui/forms/DialogForm";
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { Alert } from '@/components/ui/Alert';
-import { PlusIcon, EditIcon, DeleteIcon, CreditCardIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
-import { useToast } from '@/hooks/useToast';
-import Spinner from '@/components/ui/Spinner';
-import { logger } from '@/utils/logging';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { CreditCardIcon, EditIcon, PlusIcon, ReceiptRefundIcon } from '@/components/ui/icons';
+import { SchemaEntityForm } from '@/components/ui/forms';
+import {
+  createSchemaFor,
+  toWritableValues,
+  updateSchemaFor,
+  type RepositoryRow,
+  type UpdateInput,
+} from '@/data/repository';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { formatDate } from '@/utils/format';
-import { nextReceiptNumber } from '@/domain/sequences';
+import { useToast } from '@/hooks/useToast';
+import { asId } from '@/domain/ids';
+import type { Money } from '@/domain/schema/common';
 
-type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
+import {
+  formatMoney,
+  money,
+  toFormLookup,
+  useCanonicalFinance,
+  useFinanceRepository,
+  type FinancePaymentRow,
+} from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { recordPayment, refusalMessage, reversePayment } from '../services/canonicalFinanceService';
+import type { Id } from '@/domain/ids';
 
-const todayIsoDate = (): string => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-};
-
-const toIsoDate = (value: string): string => {
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString().split('T')[0];
-};
+const CHANNELS = ['cash', 'bank_deposit', 'cheque', 'mobile_money', 'card', 'in_kind'] as const;
+const CURRENCY = 'KES';
 
 const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+interface PaymentDraft {
+  readonly row: RepositoryRow<'payment'> | null;
+}
+
 export const StudentPaymentsPageContent: React.FC = () => {
-  const {
-    studentPayments,
-    students,
-    loading,
-    recordStudentPayment,
-    refreshData,
-  } = useAppData();
-  // Edits and deletes write the student_payments collection directly (AppData exposes no update/delete
-  // for payments); the AppData list is reloaded afterwards so the grid and balances stay in step.
-  const paymentsCollection = useDatabaseCollection<StudentPayment>('student_payments', {
-    loadOnMount: false,
-    subscribeToChanges: false,
-  });
-
-  const { showSuccess, showError } = useToast();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPayment, setEditingPayment] = useState<StudentPayment | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  // The receipt number we generated for the open form; replaced if the date moves to another year.
-  const [autoReceiptNo, setAutoReceiptNo] = useState<string | null>(null);
-
-  const payments: StudentPayment[] = Array.isArray(studentPayments) ? studentPayments : [];
-  const studentList: Student[] = Array.isArray(students) ? students : [];
-  const issuedReceiptNumbers = () => payments.map((payment) => payment.receipt_no);
-
-  const blankPaymentForm = (): StudentPaymentFormData => {
-    const transactionDate = todayIsoDate();
-    return {
-      student_id: undefined,
-      receipt_no: nextReceiptNumber(issuedReceiptNumbers(), transactionDate),
-      total_amount_paid: 0,
-      payment_method: 'Cash',
-      transaction_date: transactionDate,
-      reference_no: ''
-    };
-  };
-  const [paymentFormData, setPaymentFormData] = useState<StudentPaymentFormData>({});
-
-  const openModal = (payment?: StudentPayment) => {
-    setEditingPayment(payment || null);
-    setFormError(null);
-    if (payment) {
-      setAutoReceiptNo(null);
-      setPaymentFormData({
-        student_id: payment.student_id,
-        receipt_no: payment.receipt_no,
-        total_amount_paid: payment.total_amount_paid,
-        payment_method: payment.payment_method,
-        transaction_date: toIsoDate(payment.transaction_date),
-        reference_no: payment.reference_no
-      });
-    } else {
-      const blank = blankPaymentForm();
-      setAutoReceiptNo(blank.receipt_no ?? null);
-      setPaymentFormData(blank);
-    }
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingPayment(null);
-    setFormError(null);
-    setAutoReceiptNo(null);
-    setPaymentFormData({});
-  };
-
-  const handlePaymentInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormError(null);
-    if (name === 'transaction_date' && !editingPayment && paymentFormData.receipt_no === autoReceiptNo) {
-      const regenerated = nextReceiptNumber(issuedReceiptNumbers(), value);
-      setAutoReceiptNo(regenerated);
-      setPaymentFormData(prev => ({ ...prev, transaction_date: value, receipt_no: regenerated }));
-      return;
-    }
-    setPaymentFormData(prev => ({ ...prev, [name]: (name === 'total_amount_paid') ? parseFloat(value) : value }));
-  };
-
-  const validatePaymentForm = (receiptNo: string): string | null => {
-    const problems: string[] = [];
-    if (!paymentFormData.student_id) problems.push('Select a student.');
-    if (!receiptNo) problems.push('Enter a receipt number.');
-    const amount = Number(paymentFormData.total_amount_paid);
-    if (!Number.isFinite(amount) || amount <= 0) problems.push('Enter an amount paid greater than zero.');
-    if (!paymentFormData.transaction_date) problems.push('Enter the transaction date.');
-    if (receiptNo && payments.some((p) => p.id !== editingPayment?.id && p.receipt_no?.trim() === receiptNo)) {
-      problems.push(`Receipt number ${receiptNo} is already in use.`);
-    }
-    return problems.length ? problems.join(' ') : null;
-  };
-
-  const handleSubmit = async () => {
-    if (saving) return;
-    // An untouched auto number is re-issued at save time so it reflects payments recorded meanwhile.
-    const receiptNo = (!editingPayment && paymentFormData.receipt_no === autoReceiptNo
-      ? nextReceiptNumber(issuedReceiptNumbers(), paymentFormData.transaction_date)
-      : paymentFormData.receipt_no ?? '').trim();
-
-    const validationError = validatePaymentForm(receiptNo);
-    if (validationError) {
-      setFormError(validationError);
-      return;
-    }
-
-    const student = studentList.find((s) => s.id === paymentFormData.student_id);
-    const payload = {
-      ...paymentFormData,
-      receipt_no: receiptNo,
-      total_amount_paid: Number(paymentFormData.total_amount_paid),
-      student_name: student ? `${student.first_name ?? ''} ${student.last_name ?? ''}`.trim() : undefined,
-    };
-
-    setSaving(true);
-    setFormError(null);
-    try {
-      if (editingPayment) {
-        await paymentsCollection.update(editingPayment.id, { ...payload, updated_at: new Date().toISOString() });
-        showSuccess('Student payment updated successfully!');
-      } else {
-        await recordStudentPayment(payload);
-        showSuccess(`Payment recorded. Receipt ${receiptNo}.`);
-      }
-      closeModal();
-    } catch (error) {
-      logger.error('Error saving student payment:', error);
-      setFormError(`Failed to save student payment: ${errorMessage(error)}`);
-      setSaving(false);
-      return;
-    }
-    setSaving(false);
-    if (editingPayment) {
-      await refreshData().catch((error: unknown) => logger.error('Error reloading student payments:', error));
-    }
-  };
-
+  const finance = useCanonicalFinance();
+  const repository = useFinanceRepository();
   const confirm = useConfirm();
-  const handleDelete = async (paymentId: string) => {
-    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this payment record?' }))) {
-      return;
-    }
+  const { showSuccess, showError } = useToast();
 
-    try {
-      await paymentsCollection.remove(paymentId);
-      showSuccess('Student payment deleted successfully!');
-    } catch (error) {
-      showError(`Failed to delete student payment: ${errorMessage(error)}`);
-      logger.error('Error deleting student payment:', error);
-      return;
-    }
-    await refreshData().catch((error: unknown) => logger.error('Error reloading student payments:', error));
+  const [draft, setDraft] = useState<PaymentDraft | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [invoiceId, setInvoiceId] = useState<Id<'invoice'> | null>(null);
+
+  const fields = useMemo(
+    () => [
+      {
+        path: 'learner_id',
+        label: 'Learner',
+        order: 1,
+        widget: 'entity' as const,
+        lookupKey: 'learner',
+        required: true,
+      },
+      {
+        path: 'amount',
+        label: 'Amount',
+        order: 2,
+        widget: 'money' as const,
+        required: true,
+        currency: CURRENCY,
+      },
+      {
+        path: 'channel',
+        label: 'Channel',
+        order: 3,
+        widget: 'select' as const,
+        options: CHANNELS.map((channel) => ({ value: channel, label: channel })),
+        required: true,
+      },
+      { path: 'reference', label: 'Reference', order: 4 },
+    ],
+    []
+  );
+
+  const invoiceOptions = useMemo(
+    () => finance.invoiceRows.filter((invoice) => invoice.status !== 'void'),
+    [finance.invoiceRows]
+  );
+
+  const openNew = () => {
+    setFormError(null);
+    setInvoiceId(null);
+    setDraft({ row: null });
   };
 
-  const paymentColumns: DataGridColumn<StudentPayment>[] = [
-    { 
-      key: 'receipt_no', 
-      header: 'Receipt No', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (value) => <span className="font-mono text-sm">{value}</span>
-    },
-    { 
-      key: 'student_name', 
-      header: 'Student Name', 
-      sortable: true, 
-      filterable: true, 
-      width: 200,
-      render: (value) => <span className="font-medium">{value}</span>
-    },
-    { 
-      key: 'total_amount_paid', 
-      header: 'Amount Paid (KES)', 
-      sortable: true, 
-      filterable: true, 
-      width: 150,
-      render: (_value, row) => <span className="font-mono text-green-600">{`KES ${row.total_amount_paid?.toFixed(2) || '0.00'}`}</span>
-    },
-    { 
-      key: 'payment_method', 
-      header: 'Payment Method', 
-      sortable: true, 
-      filterable: true, 
-      width: 130,
-      render: (value) => <span className="text-primary-600">{value}</span>
-    },
-    { 
-      key: 'transaction_date', 
-      header: 'Date', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (_value, row) => <span className="text-surface-foreground">{formatDate(row.transaction_date)}</span>
-    },
+  const openEdit = (row: RepositoryRow<'payment'>) => {
+    setFormError(null);
+    setInvoiceId(null);
+    setDraft({ row });
+  };
+
+  const savePayment = async (values: Record<string, unknown>) => {
+    setFormError(null);
+    try {
+      if (draft?.row) {
+        await repository.update(
+          'payment',
+          asId<'payment'>(draft.row.id),
+          values as unknown as UpdateInput<'payment'>,
+          { expectedVersion: draft.row.rowVersion }
+        );
+        showSuccess('Payment updated.');
+      } else {
+        const learnerId = values.learner_id;
+        const amount = values.amount;
+        if (typeof learnerId !== 'string' || !learnerId) {
+          throw new Error('Select the learner the payment belongs to.');
+        }
+        if (
+          amount === null ||
+          typeof amount !== 'object' ||
+          typeof (amount as Money).amount_minor !== 'number'
+        ) {
+          throw new Error('Enter the amount that was paid.');
+        }
+        const result = await recordPayment(repository, {
+          learnerId,
+          amount: amount as Money,
+          channel: (values.channel as RepositoryRow<'payment'>['channel']) ?? 'cash',
+          receivedAt:
+            typeof values.received_at === 'string'
+              ? values.received_at
+              : new Date().toISOString(),
+          ...(typeof values.reference === 'string' && values.reference
+            ? { reference: values.reference }
+            : {}),
+          ...(invoiceId ? { invoiceId } : {}),
+        });
+        showSuccess(`Payment recorded. Receipt ${result.receipt.number}.`);
+      }
+      setDraft(null);
+      setInvoiceId(null);
+    } catch (error) {
+      setFormError(errorMessage(error));
+      throw error;
+    }
+  };
+
+  const reverse = async (row: RepositoryRow<'payment'>) => {
+    if (
+      !(await confirm({
+        variant: 'danger',
+        message:
+          'Reverse this payment? A posted payment is never deleted; a reversal keeps the money on the books.',
+      }))
+    ) {
+      return;
+    }
+    try {
+      await reversePayment(repository, row);
+      showSuccess('Payment reversed.');
+    } catch (error) {
+      showError(`The payment could not be reversed: ${refusalMessage(error)}`);
+    }
+  };
+
+  const columns: DataGridColumn<FinancePaymentRow>[] = [
     {
-      key: 'id',
+      key: 'receiptNumber',
+      header: 'Receipt',
+      sortable: true,
+      filterable: true,
+      render: (value) => <span className="font-mono text-sm">{value || '-'}</span>,
+    },
+    { key: 'learnerName', header: 'Learner', sortable: true, filterable: true },
+    {
+      key: 'amount',
+      header: 'Amount',
+      align: 'right',
+      sortable: true,
+      render: (value) => <span className="font-mono">{formatMoney(value as Money)}</span>,
+    },
+    { key: 'channel', header: 'Channel', sortable: true, filterable: true },
+    {
+      key: 'receivedAt',
+      header: 'Received',
+      sortable: true,
+      render: (value) => String(value ?? '').slice(0, 10),
+    },
+    { key: 'reference', header: 'Reference', filterable: true },
+    { key: 'status', header: 'Status', sortable: true, filterable: true },
+    {
+      key: 'actions',
       header: 'Actions',
-      sortable: false,
-      filterable: false,
-      width: 150,
-      sticky: 'right',
       render: (_value, row) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openEdit(row.row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => void reverse(row.row)}
+            leftIcon={<ReceiptRefundIcon className="w-4 h-4" />}
+          >
+            Reverse
+          </Button>
         </div>
       ),
     },
   ];
 
-  const isLoadingData = loading.studentPayments || loading.students;
-
-  if (isLoadingData && !isModalOpen) {
+  if (finance.status === 'loading' && finance.paymentRows.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Student Payments...</span>
+      <div className="flex items-center justify-center py-16" role="status">
+        Loading student payments...
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card title="Student Payments" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Record Payment
-        </Button>
-      }>
-        <DataGrid 
-          columns={paymentColumns} 
-          data={payments}
-          isLoading={loading.studentPayments}
+    <div className="space-y-4">
+      <Card
+        title="Student payments"
+        actions={
+          <Button onClick={openNew} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            Record payment
+          </Button>
+        }
+      >
+        <p className="mb-4 text-sm text-surface-muted-fg">
+          A payment is posted when it is recorded, so it can be reversed but never edited or
+          deleted. The receipt number is issued with the payment.
+        </p>
+        <DataGrid
+          columns={columns}
+          data={[...finance.paymentRows]}
           sortable
           filterable
           emptyState={{
             icon: <CreditCardIcon className="w-12 h-12 text-surface-muted-fg" />,
-            title: "No Student Payments Found",
-            description: "Record your first student payment to track fee collections and payment history.",
-            action: {
-              label: "Record Payment",
-              onClick: () => openModal()
-            }
+            title: 'No payments recorded',
+            description: 'Record the first payment to start the collection history.',
           }}
         />
       </Card>
 
-      <DialogForm
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingPayment ? 'Edit Student Payment' : 'Record New Student Payment'}
+      <Modal
+        isOpen={draft !== null}
+        onClose={() => setDraft(null)}
+        title={draft?.row ? 'Edit payment' : 'Record payment'}
         size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={saving}>
-              {editingPayment ? 'Save Changes' : 'Record Payment'}
-            </Button>
-          </>
-        }
       >
-        {formError && (
-          <Alert variant="destructive" className="mb-4">{formError}</Alert>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select name="student_id" label="Student" value={paymentFormData.student_id || ''} onChange={handlePaymentInputChange} required>
-            <option value="">Select Student</option>
-            {studentList.map((student: Student) => (
-              <option key={student.id} value={student.id}>
-                {student.first_name} {student.last_name} ({student.admission_no})
-              </option>
-            ))}
-          </Select>
-          <Input name="receipt_no" label="Receipt Number" value={paymentFormData.receipt_no || ''} onChange={handlePaymentInputChange} required />
-          <Input name="total_amount_paid" label="Total Amount Paid (KES)" type="number" step="0.01" value={paymentFormData.total_amount_paid || ''} onChange={handlePaymentInputChange} required />
-          <Select name="payment_method" label="Payment Method" value={paymentFormData.payment_method || ''} onChange={handlePaymentInputChange}>
-            <option value="Cash">Cash</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Cheque">Cheque</option>
-            <option value="Mobile Money">Mobile Money</option>
-            <option value="Card">Card</option>
-            <option value="Other">Other</option>
-          </Select>
-          <Input name="transaction_date" label="Transaction Date" type="date" value={paymentFormData.transaction_date || ''} onChange={handlePaymentInputChange} required />
-          <Input name="reference_no" label="Reference No. (e.g., Cheque No, M-Pesa Code)" value={paymentFormData.reference_no || ''} onChange={handlePaymentInputChange} />
-        </div>
-      </DialogForm>
+        {draft ? (
+          <SchemaEntityForm
+            schema={draft.row ? updateSchemaFor('payment') : createSchemaFor('payment')}
+            recordKey={draft.row?.id ?? 'new'}
+            initialValues={
+              draft.row
+                ? toWritableValues(draft.row)
+                : {
+                    institution_id: finance.learners[0]?.institution_id ?? '',
+                    learner_id: '',
+                    amount: money(0, CURRENCY),
+                    channel: 'cash' as const,
+                    received_at: new Date().toISOString(),
+                    status: 'posted' as const,
+                  }
+            }
+            fields={fields}
+            lookups={{ learner: toFormLookup(finance.lookups.learner) }}
+            serverError={formError}
+            submitLabel={draft.row ? 'Save payment' : 'Record payment'}
+            onCancel={() => setDraft(null)}
+            onSubmit={savePayment}
+          >
+            {!draft.row ? (
+              <div className="mt-4">
+                <span className="mb-1.5 block text-sm font-medium text-surface-foreground">
+                  Allocate to invoice (optional)
+                </span>
+                <EntityPicker
+                  value={invoiceId}
+                  onChange={setInvoiceId}
+                  lookup={finance.lookups.invoice}
+                  filter={(row) => invoiceOptions.some((invoice) => invoice.id === row.id)}
+                  placeholder="Leave unallocated"
+                  aria-label="Invoice to allocate the payment to"
+                  data-testid="payment-invoice-picker"
+                />
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-surface-muted-fg">
+                A posted payment's amount, date, channel and learner are frozen. To correct it,
+                reverse the payment and record a new one.
+              </p>
+            )}
+          </SchemaEntityForm>
+        ) : null}
+      </Modal>
     </div>
   );
 };
 
 const StudentPaymentsPage: React.FC = () => (
-  <div className="space-y-6">
-    <StudentPaymentsPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <StudentPaymentsPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default StudentPaymentsPage;

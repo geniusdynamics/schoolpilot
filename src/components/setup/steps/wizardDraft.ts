@@ -59,6 +59,8 @@ export interface WizardDraft {
   financialYearEnd: string;
   classes: ClassRowDraft[];
   selectedSubjects: Record<string, boolean>;
+  /** Whether the canonical demo rows (learners, staff, fees, a register) are written too. */
+  includeDemoData: boolean;
   created: CreatedRecords;
 }
 
@@ -119,6 +121,7 @@ export function defaultDraft(today: Date = new Date()): WizardDraft {
     financialYearEnd: financialYear.end_date,
     classes: [{ name: '', streams: 'North, South' }],
     selectedSubjects: {},
+    includeDemoData: false,
     created: { classIds: [], streamIds: [], subjectIds: {} },
   };
 }

@@ -1,5 +1,6 @@
-// ABOUTME: Page tests for academics configuration pages (P0-F04, SO-11/22/23): allocations, teacher assignments,
-// ABOUTME: enrolments, subject papers, grading schemes, education systems and timetable persist with string (UUID) ids.
+// ABOUTME: Page tests for the academics configuration pages that still read the legacy module
+// ABOUTME: context (P0-F04, SO-11/22/23): grading schemes, education systems, timetable entries
+// ABOUTME: and exam sessions persist with string (UUID) ids.
 
 import React from 'react';
 import { screen, fireEvent, waitFor, within } from '@testing-library/react';
@@ -7,10 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { databaseService } from '@/services/database/databaseService';
 import { AdministrationDataProvider } from '@/modules/administration/data/AdministrationDataContext';
 import { AcademicDataProvider } from '@/modules/academics/data/AcademicDataContext';
-import ClassSubjectAllocationsPage from '../ClassSubjectAllocationsPage';
-import TeacherSubjectAssignmentPage from '../TeacherSubjectAssignmentPage';
-import StudentSubjectEnrollmentPage from '../StudentSubjectEnrollmentPage';
-import SubjectPapersManagementPage from '../SubjectPapersManagementPage';
 import GradingSchemesPage from '../GradingSchemesPage';
 import EducationSystemsPage from '../EducationSystemsPage';
 import TimetableEntriesPage from '../TimetableEntriesPage';
@@ -127,130 +124,6 @@ beforeEach(() => {
     getCollection: (name: string) => collection(name),
   } as never);
   vi.mocked(databaseService.generateId).mockImplementation(() => `uuid-${++nextId}`);
-});
-
-describe('ClassSubjectAllocationsPage (P0-F04)', () => {
-  it('creates, edits and deletes an allocation with string ids and resolves names at read time', async () => {
-    renderPage(<ClassSubjectAllocationsPage />);
-    await waitFor(() => expect(collections.class_streams.find).toHaveBeenCalled());
-
-    fireEvent.click(await screen.findByRole('button', { name: /add/i }));
-    const dialog = await screen.findByRole('dialog');
-    await waitFor(() => expect(optionLabels(selectByName('class_stream_id'))).toEqual(['Grade 7 - East']));
-    fireEvent.change(selectByName('class_stream_id'), { target: { value: STREAM } });
-    fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT } });
-    fireEvent.change(selectByName('academic_year_id'), { target: { value: YEAR } });
-    fireEvent.click(within(dialog).getByRole('button', { name: /save/i }));
-
-    await waitFor(() => expect(collections.class_subject_allocations.rows()).toHaveLength(1));
-    expect(collections.class_subject_allocations.rows()[0]).toMatchObject({
-      class_stream_id: STREAM,
-      subject_id: SUBJECT,
-      academic_year_id: YEAR,
-    });
-    expect(await screen.findByText('Mathematics')).toBeInTheDocument();
-    expect(screen.getByText('Grade 7 - East')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
-    const editDialog = await screen.findByRole('dialog');
-    fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT_2 } });
-    fireEvent.click(within(editDialog).getByRole('button', { name: /save/i }));
-    await waitFor(() => expect(collections.class_subject_allocations.update).toHaveBeenCalledWith('uuid-1', expect.objectContaining({ subject_id: SUBJECT_2 })));
-
-    fireEvent.click(await screen.findByRole('button', { name: /delete/i }));
-    await waitFor(() => expect(collections.class_subject_allocations.rows()).toHaveLength(0));
-  });
-});
-
-describe('TeacherSubjectAssignmentPage (P0-F04)', () => {
-  beforeEach(() => {
-    collections.class_subject_allocations = createMemoryCollection([
-      { id: ALLOCATION, class_stream_id: STREAM, subject_id: SUBJECT, academic_year_id: YEAR },
-    ]);
-  });
-
-  it('offers UI-created allocations with readable labels and persists an assignment', async () => {
-    renderPage(<TeacherSubjectAssignmentPage />);
-    fireEvent.click(await screen.findByRole('button', { name: /assign teacher/i }));
-    await screen.findByRole('dialog');
-    await waitFor(() => expect(optionLabels(selectByName('allocation_id'))).toEqual(['Grade 7 - East - Mathematics (2026)']));
-    expect(optionLabels(selectByName('teacher_id'))).toEqual(['Jane Wanjiru']);
-
-    fireEvent.change(selectByName('allocation_id'), { target: { value: ALLOCATION } });
-    fireEvent.change(selectByName('teacher_id'), { target: { value: TEACHER } });
-    const dialog = screen.getByRole('dialog');
-    const buttons = within(dialog).getAllByRole('button', { name: /assign teacher/i });
-    fireEvent.click(buttons[buttons.length - 1]);
-
-    await waitFor(() => expect(collections.teacher_subject_assignments.rows()).toHaveLength(1));
-    expect(collections.teacher_subject_assignments.rows()[0]).toMatchObject({ allocation_id: ALLOCATION, teacher_id: TEACHER });
-    expect(await screen.findByText('Jane Wanjiru')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /delete/i }));
-    await waitFor(() => expect(collections.teacher_subject_assignments.rows()).toHaveLength(0));
-  });
-});
-
-describe('StudentSubjectEnrollmentPage (P0-F04)', () => {
-  beforeEach(() => {
-    collections.class_subject_allocations = createMemoryCollection([
-      { id: ALLOCATION, class_stream_id: STREAM, subject_id: SUBJECT, academic_year_id: YEAR },
-    ]);
-  });
-
-  it('fills the period and stream pickers for UUID ids and enrols from the grid', async () => {
-    renderPage(<StudentSubjectEnrollmentPage />);
-    const year = await screen.findByLabelText('Academic Year');
-    await waitFor(() => expect(optionLabels(year as HTMLSelectElement)).toEqual(['2026']));
-    fireEvent.change(year, { target: { value: YEAR } });
-
-    const period = screen.getByLabelText('School Period') as HTMLSelectElement;
-    expect(optionLabels(period)).toEqual(['Term 1']);
-    fireEvent.change(period, { target: { value: TERM } });
-
-    const klass = screen.getByLabelText('Class') as HTMLSelectElement;
-    fireEvent.change(klass, { target: { value: CLASS } });
-
-    const stream = screen.getByLabelText('Stream') as HTMLSelectElement;
-    expect(optionLabels(stream)).toEqual(['East']);
-    fireEvent.change(stream, { target: { value: STREAM } });
-
-    fireEvent.click(screen.getByRole('button', { name: /load enrollment grid/i }));
-    const checkbox = await screen.findByRole('checkbox');
-    fireEvent.click(checkbox);
-
-    await waitFor(() => expect(collections.student_subject_enrollments.rows()).toHaveLength(1));
-    expect(collections.student_subject_enrollments.rows()[0]).toMatchObject({
-      student_id: STUDENT,
-      class_subject_allocation_id: ALLOCATION,
-      status: 'Enrolled',
-    });
-  });
-});
-
-describe('SubjectPapersManagementPage (P0-F04)', () => {
-  it('creates, edits and deletes a paper keeping subject_id a string', async () => {
-    renderPage(<SubjectPapersManagementPage />);
-    fireEvent.click(await screen.findByRole('button', { name: /add subject paper/i }));
-    const dialog = await screen.findByRole('dialog');
-    await waitFor(() => expect(optionLabels(selectByName('subject_id'))).toHaveLength(2));
-    fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT } });
-    fireEvent.change(within(dialog).getByPlaceholderText(/paper 1/i), { target: { value: 'Paper 1' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: /add paper/i }));
-
-    await waitFor(() => expect(collections.subject_papers.rows()).toHaveLength(1));
-    expect(collections.subject_papers.rows()[0]).toMatchObject({ name: 'Paper 1', subject_id: SUBJECT });
-    expect(await screen.findByText('Mathematics')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
-    const editDialog = await screen.findByRole('dialog');
-    fireEvent.change(within(editDialog).getByPlaceholderText(/paper 1/i), { target: { value: 'Paper 2' } });
-    fireEvent.click(within(editDialog).getByRole('button', { name: /save changes/i }));
-    await waitFor(() => expect(collections.subject_papers.update).toHaveBeenCalledWith('uuid-1', { name: 'Paper 2', subject_id: SUBJECT }));
-
-    fireEvent.click(await screen.findByRole('button', { name: /delete/i }));
-    await waitFor(() => expect(collections.subject_papers.rows()).toHaveLength(0));
-  });
 });
 
 describe('GradingSchemesPage (P0-F04)', () => {

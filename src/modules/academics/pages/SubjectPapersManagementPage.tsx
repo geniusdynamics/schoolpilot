@@ -1,202 +1,253 @@
-// ABOUTME: Subject papers page — define the papers (e.g. Paper 1, Practical) each subject is examined in.
-// ABOUTME: CRUD goes through the academics module context; subject ids stay strings and names resolve at read time.
+// ABOUTME: Components page — the papers, practicals and coursework a learning area is
+// ABOUTME: assessed through. Rows read and write through the canonical repository, and the
+// ABOUTME: learning area a component belongs to is chosen with an EntityPicker.
 
-import React, { useMemo, useState } from 'react';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { logger } from '@/utils/logging';
-import { useAcademicDataContext } from '../data/AcademicDataContext';
+
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { SchemaEntityForm, type EntityFormFieldMeta } from '@/components/ui/forms';
+import { useLookup } from '@/data/query';
+import { toWritableValues, type CreateInput, type UpdateInput } from '@/data/repository';
+import { asId } from '@/domain/ids';
 import { useToast } from '@/hooks/useToast';
 
-type Id = string | number;
+import {
+  CanonicalRepositoryProvider,
+  createFormSchema,
+  updateFormSchema,
+} from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
+import {
+  createdLabel,
+  useCanonicalAcademics,
+  type ComponentRow,
+} from '../data/useCanonicalAcademics';
 
-interface SubjectPaperFormData {
-  name?: string;
-  subject_id?: string;
-}
+const FIELDS: readonly EntityFormFieldMeta[] = [
+  {
+    path: 'learning_area_id',
+    label: 'Learning area',
+    order: 1,
+    section: 'Component',
+    widget: 'entity',
+    lookupKey: 'learning_area',
+    required: true,
+  },
+  { path: 'code', label: 'Code', order: 2, section: 'Component', required: true },
+  { path: 'name', label: 'Name', order: 3, section: 'Component', required: true, colSpan: 2 },
+  { path: 'kind', label: 'Kind', order: 4, section: 'Component', required: true },
+  { path: 'weight', label: 'Weight', order: 5, section: 'Scoring', widget: 'number', required: false },
+  {
+    path: 'max_score',
+    label: 'Maximum score',
+    order: 6,
+    section: 'Scoring',
+    widget: 'number',
+    required: false,
+  },
+];
 
-interface SubjectRecord { id: Id; name?: string | null; subject_code?: string | null }
-interface StoredPaper {
-  id: Id;
-  name: string;
-  subject_id?: Id | null;
-  subject_name?: string | null;
-  created_at?: string;
-}
-
-/** A paper row as shown in the grid, with its subject name resolved. */
-interface PaperRow {
-  id: string;
-  name: string;
-  subject_id: string;
-  subject_name: string;
-  created_at?: string;
-}
-
-const idOf = (value: Id | null | undefined): string => (value == null ? '' : String(value));
-
-export const SubjectPapersManagementContent: React.FC = () => {
-  const { t } = useTranslation();
-  const academic = useAcademicDataContext();
-  const { addSubjectPaper, updateSubjectPaper, deleteSubjectPaper } = academic;
-  const subjects = academic.subjects as SubjectRecord[];
-  const [isSaving, setIsSaving] = useState(false);
-
-  const subjectPapers = useMemo<PaperRow[]>(() =>
-    (academic.subjectPapers as StoredPaper[]).map(paper => ({
-      id: idOf(paper.id),
-      name: paper.name,
-      subject_id: idOf(paper.subject_id),
-      subject_name: subjects.find(s => idOf(s.id) === idOf(paper.subject_id))?.name ?? paper.subject_name ?? '',
-      created_at: paper.created_at,
-    })), [academic.subjectPapers, subjects]);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPaper, setEditingPaper] = useState<PaperRow | null>(null);
-  const initialFormData: SubjectPaperFormData = { name: '', subject_id: undefined };
-  const [formData, setFormData] = useState<SubjectPaperFormData>(initialFormData);
-
-  const openModal = (paper?: PaperRow) => {
-    setEditingPaper(paper || null);
-    setFormData(paper ? 
-      { name: paper.name, subject_id: paper.subject_id } : 
-      initialFormData
-    );
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingPaper(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'subject_id' ? (value || undefined) : value }));
-  };
-
+const ComponentsContent: React.FC = () => {
+  const { t } = useTranslation('academics');
   const toast = useToast();
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.subject_id) {
-      toast.showWarning(t('validation.paperNameAndSubjectAreRequired'));
-      return;
-    }
-    const payload = {
-        name: formData.name,
-        subject_id: formData.subject_id,
-    };
-
-    setIsSaving(true);
-    try {
-      if (editingPaper) {
-        await updateSubjectPaper(editingPaper.id, payload);
-      } else {
-        await addSubjectPaper(payload);
-      }
-      closeModal();
-    } catch (error) {
-      logger.error('Failed to save subject paper:', error);
-      toast.showError('Failed to save subject paper.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const confirm = useConfirm();
-  const handleDelete = async (id: string) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this subject paper? This might affect exam paper settings.' }))) {
-      await deleteSubjectPaper(id);
+  const { repository, institutionId, isLoading, components, learningAreaById } =
+    useCanonicalAcademics();
+  const learningAreas = useLookup(repository, 'learning_area', { label: (row) => row.name });
+
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<ComponentRow | null>(null);
+
+  const closeForm = () => {
+    setCreating(false);
+    setEditing(null);
+  };
+
+  const create = async (values: CreateInput<'component'>) => {
+    try {
+      await repository.create('component', values);
+      closeForm();
+      toast.showSuccess('Component created.');
+    } catch (error) {
+      throw new Error(messageOf(error));
     }
   };
-  
-  const columns: DataGridColumn<PaperRow>[] = [
-    { key: 'id', header: 'ID' },
-    { key: 'name', header: 'Paper Name' },
-    { key: 'subject_name', header: 'Subject' }, // Resolved name
-    { key: 'created_at', header: 'Created At', render: (_value: unknown, item: PaperRow) => (item.created_at ? new Date(item.created_at).toLocaleDateString() : '—') },
+
+  const update = async (values: UpdateInput<'component'>) => {
+    if (!editing) return;
+    try {
+      await repository.update('component', asId<'component'>(editing.id), values, {
+        expectedVersion: editing.rowVersion,
+      });
+      closeForm();
+      toast.showSuccess('Component saved.');
+    } catch (error) {
+      throw new Error(messageOf(error));
+    }
+  };
+
+  const remove = async (row: ComponentRow) => {
+    const confirmed = await confirm({
+      variant: 'danger',
+      message: `Delete the component ${row.name}?`,
+    });
+    if (!confirmed) return;
+    try {
+      await repository.remove('component', asId<'component'>(row.id), {
+        expectedVersion: row.rowVersion,
+      });
+      toast.showSuccess('Component deleted.');
+    } catch (error) {
+      toast.showError(messageOf(error));
+    }
+  };
+
+  const columns: DataGridColumn<ComponentRow>[] = [
+    { key: 'code', header: 'Code', sortable: true, filterable: true },
+    { key: 'name', header: t('subjectPapers.paperName', 'Name'), sortable: true, filterable: true },
+    {
+      key: 'learning_area_id',
+      header: t('subjects.title', 'Learning area'),
+      render: (_value: unknown, row: ComponentRow) =>
+        learningAreaById.get(row.learning_area_id)?.name ?? row.learning_area_id,
+    },
+    { key: 'kind', header: 'Kind' },
+    {
+      key: 'weight',
+      header: 'Weight',
+      align: 'right',
+      render: (_value: unknown, row: ComponentRow) => row.weight ?? '—',
+    },
+    {
+      key: 'max_score',
+      header: 'Maximum score',
+      align: 'right',
+      render: (_value: unknown, row: ComponentRow) => row.max_score ?? '—',
+    },
+    {
+      key: 'created_at',
+      header: 'Created',
+      render: (_value: unknown, row: ComponentRow) => createdLabel(row.created_at),
+    },
     {
       key: 'actions',
       header: 'Actions',
-      render: (_value: unknown, item: PaperRow) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      render: (_value: unknown, row: ComponentRow) => (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditing(row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void remove(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
         </div>
       ),
     },
   ];
 
-return (
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  const initialCreate: Partial<CreateInput<'component'>> = {
+    institution_id: institutionId ?? undefined,
+    kind: 'paper',
+  };
+
+  return (
     <div className="space-y-6">
-      <Card title="Subject Papers Management" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Subject Paper
-        </Button>
-      }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Define individual papers for each subject (e.g., "Mathematics Paper 1", "Chemistry Practical Paper 2"). These papers are then used in exam settings.
+      {institutionId === null && (
+        <p role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          The canonical database holds no institution row, so a component cannot be saved yet.
         </p>
-        <DataGrid columns={columns} data={subjectPapers} />
+      )}
+
+      <Card
+        title={t('subjectPapers.title', 'Assessment components')}
+        bodyClassName="p-0"
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setCreating(true);
+            }}
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+          >
+            Add component
+          </Button>
+        }
+      >
+        <p className="p-4 text-sm text-surface-muted-fg border-t border-surface-border">
+          A component is one paper, practical, coursework, oral, project or strand of a
+          learning area.
+        </p>
+        <DataGrid
+          columns={columns}
+          data={[...components]}
+          sortable
+          filterable
+          pagination
+          emptyState="No components yet. Add the first one."
+        />
       </Card>
 
-      <DialogForm
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingPaper ? 'Edit Subject Paper' : 'Add New Subject Paper'}
-        size="lg"
-        onSubmit={handleSubmit}
-      >
-        <FormSection columns={1}>
-          <FormField label="Subject" required>
-            <Select
-              name="subject_id"
-              value={formData.subject_id ?? ''}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select Subject</option>
-              {subjects.map(subject => (
-                <option key={subject.id} value={idOf(subject.id)}>
-                  {subject.name} ({subject.subject_code})
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label="Paper Name" required>
-            <Input
-              name="name"
-              placeholder="e.g., Paper 1 (Theory)"
-              value={formData.name || ''}
-              onChange={handleInputChange}
-              required
+      {(creating || editing) && (
+        <Card title={editing ? `Edit ${editing.name}` : 'New component'}>
+          {editing ? (
+            <SchemaEntityForm
+              schema={updateFormSchema('component')}
+              fields={FIELDS}
+              recordKey={editing.id}
+              initialValues={toWritableValues(editing)}
+              lookups={{ learning_area: learningAreas }}
+              submitLabel="Save component"
+              onCancel={closeForm}
+              onSubmit={update}
             />
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit" loading={isSaving}>
-            {editingPaper ? 'Save Changes' : 'Add Paper'}
-          </Button>
-        </FormActions>
-      </DialogForm>
+          ) : (
+            <SchemaEntityForm
+              schema={createFormSchema('component')}
+              fields={FIELDS}
+              recordKey="new-component"
+              initialValues={initialCreate}
+              lookups={{ learning_area: learningAreas }}
+              submitLabel="Create component"
+              onCancel={closeForm}
+              onSubmit={create}
+            />
+          )}
+        </Card>
+      )}
     </div>
   );
 };
 
-const SubjectPapersManagementPage: React.FC = () => {
-  return <SubjectPapersManagementContent />;
-};
+export const SubjectPapersManagementContent: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <ComponentsContent />
+  </CanonicalRepositoryProvider>
+);
+
+const SubjectPapersManagementPage: React.FC = () => <SubjectPapersManagementContent />;
 
 export default SubjectPapersManagementPage;

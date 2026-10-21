@@ -17,20 +17,51 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/hooks/useAppData', () => ({
   useAppData: () => ({
-    students: [],
-    classes: [],
-    classStreams: [],
-    loading: { students: false, classes: false, classStreams: false },
+    loading: {},
   }),
 }));
 
 import StudentMasterlistPage from '../StudentMasterlistPage';
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
+import { createFakeRepository } from '@/modules/hr/data/__tests__/canonicalRepositoryDouble';
+
+const repository = createFakeRepository({
+  learner: [
+    {
+      id: '874b9758-2c1d-4f1e-9a01-5b7c2d3e4f50',
+      institution_id: '00000000-0000-7000-8000-000000000001',
+      given_name: 'Amina',
+      family_name: 'Otieno',
+      name_order: 'given_first',
+      gender: 'female',
+      admission_number: 'ADM001',
+      status: 'enrolled',
+      residence_status: 'day',
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    },
+  ],
+});
 
 describe('StudentMasterlistPage report header', () => {
   it('shows the saved school name and address above the report', async () => {
     fake.current.collections.school_details.seed([{ id: 's1', name: 'Probe Academy', postal_address: 'P.O. Box 1', town: 'Nairobi' }]);
-    render(<StudentMasterlistPage />);
+    render(
+      <CanonicalRepositoryProvider repository={repository}>
+        <StudentMasterlistPage />
+      </CanonicalRepositoryProvider>
+    );
     expect(await screen.findByText('Probe Academy')).toBeTruthy();
     expect(screen.getByText('P.O. Box 1, Nairobi')).toBeTruthy();
+  });
+
+  it('lists the learners the repository holds', async () => {
+    fake.current.collections.school_details.seed([{ id: 's1', name: 'Probe Academy', postal_address: 'P.O. Box 1', town: 'Nairobi' }]);
+    render(
+      <CanonicalRepositoryProvider repository={repository}>
+        <StudentMasterlistPage />
+      </CanonicalRepositoryProvider>
+    );
+    expect(await screen.findByText(/Amina Otieno/)).toBeTruthy();
   });
 });

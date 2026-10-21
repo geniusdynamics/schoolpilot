@@ -1,3 +1,4 @@
+// GAP(P1-E03): the cash-book view reads the ledger (journal_line) and general payments, neither is modelled before P3.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
@@ -10,7 +11,7 @@ import { formatDate } from '@/utils/format';
 
 export const CashBookPageContent: React.FC = () => {
 
-  const { cashBookEntries, generalPayments, loading } = useAppData() as any;
+  const { cashBookEntries, loading } = useAppData() as any;
 
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);

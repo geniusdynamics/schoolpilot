@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useParams, Link } from 'react-router-dom';
-import { useAppData } from '@/hooks/useAppData';
-import { Staff } from '@/types';
+import { useCanonicalStaff, type CanonicalStaffMember } from '../data/useCanonicalStaff';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Tabs from '@/components/ui/Tabs';
@@ -10,8 +10,8 @@ import { UserCircleIcon, EnvelopeIcon, PhoneIcon, EditIcon, BriefcaseIcon, Build
 
 const StaffDetailPage: React.FC = () => {
   const { staffId } = useParams<{ staffId: string }>();
-  const { staff, loading } = useAppData();
-  const [staffMember, setStaffMember] = useState<Staff | null>(null);
+  const { staff, isLoading } = useCanonicalStaff();
+  const [staffMember, setStaffMember] = useState<CanonicalStaffMember | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const StaffDetailPage: React.FC = () => {
     };
   }, [staffId, staff]);
 
-  if (isLoadingPage || loading) {
+  if (isLoadingPage || isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -52,7 +52,6 @@ const StaffDetailPage: React.FC = () => {
   }
 
   const {
-    photo_path,
     first_name,
     last_name,
     staff_no,
@@ -184,15 +183,7 @@ const StaffDetailPage: React.FC = () => {
           <div className="lg:col-span-1 space-y-6">
             <Card>
               <div className="text-center p-4">
-                {photo_path ? (
-                  <img
-                    src={photo_path}
-                    alt={fullName}
-                    className="w-32 h-32 rounded-full mx-auto mb-4 object-cover ring-4 ring-indigo-200 shadow-md"
-                  />
-                ) : (
-                  <UserCircleIcon className="w-32 h-32 text-gray-300 mx-auto mb-4" />
-                )}
+                <UserCircleIcon className="w-32 h-32 text-gray-300 mx-auto mb-4" />
                 <h2 className="text-xl font-semibold text-surface-foreground">{fullName}</h2>
                 <p className="text-sm text-surface-muted-fg">ID: {staff_no}</p>
                 <p className="text-sm text-indigo-600 font-medium flex items-center justify-center mt-1">
@@ -228,6 +219,7 @@ const StaffDetailPage: React.FC = () => {
   );
 };
 
-export default StaffDetailPage;
+const StaffDetailPageWithRepository = withCanonicalRepository(StaffDetailPage);
+export default StaffDetailPageWithRepository;
 
 export const StaffDetailContent = StaffDetailPage;

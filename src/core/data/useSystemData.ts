@@ -59,25 +59,6 @@ export function useSystemData() {
   }, []);
 
   // ── Seed / Clear ────────────────────────────────────────────────────────────
-  const triggerSeedRxDB = useCallback(async () => {
-    try {
-      await databaseService.seedDatabaseWithMockData();
-      await Promise.all([
-        schoolDetailsDoc.refresh(),
-        usersCollection.refresh(),
-        rolesCollection.refresh(),
-        campaignsCollection.refresh(),
-        templatesCommCollection.refresh(),
-        auditLogsCollection.refresh(),
-        workflowsCollection.refresh(),
-        workflowStatesCollection.refresh(),
-      ]);
-      logger.info('Database seeded with mock data successfully');
-    } catch (error) {
-      logger.error('Failed to seed database:', error);
-    }
-  }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
-
   const triggerClearRxDB = useCallback(async () => {
     try {
       await databaseService.clearDatabase();
@@ -192,7 +173,6 @@ export function useSystemData() {
     initializationError,
     isRxDBModeActive: true as const,
     isUsingRxDBDummyData: false,
-    triggerSeedRxDB,
     triggerClearRxDB,
 
     // Data

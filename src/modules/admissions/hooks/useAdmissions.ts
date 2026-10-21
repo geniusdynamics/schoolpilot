@@ -1,6 +1,9 @@
 // ABOUTME: Main hook for Admissions module pages
 // ABOUTME: Uses useAdmissionsData() for database-backed data and CRUD
-// ABOUTME: This is the ONLY hook Admissions pages should use
+
+// GAP(P1-E04): the canonical registry models no interview entity, so interviews keep their
+// legacy collection. Admitting a learner is not an interview: it goes through
+// AdmissionService on the Admit learner page.
 
 import { useCallback } from 'react';
 import { useAdmissionsData } from '../data/useAdmissionsData';
@@ -62,7 +65,6 @@ export const useAdmissions = () => {
     getApplicationByReference: admissionsData.getApplicationByReference,
     addReview: admissionsData.addReview,
     makeDecision: admissionsData.makeDecision,
-    processEnrollment: admissionsData.processEnrollment,
   };
 };
 

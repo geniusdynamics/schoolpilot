@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -8,7 +9,7 @@ import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { EyeIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
-import { useAppData } from '@/hooks/useAppData';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import { StudentStatus } from '@/core/types/enums';
 
 interface TransferredStudent {
@@ -31,7 +32,7 @@ interface TransferredStudent {
 
 const TransferredStudentsPage: React.FC = () => {
 
-  const { students = [], loading } = useAppData();
+  const { learners: students, isLoading: loading } = useCanonicalLearners();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -191,5 +192,6 @@ const TransferredStudentsPage: React.FC = () => {
   );
 };
 
-export default TransferredStudentsPage;
+const TransferredStudentsPageWithRepository = withCanonicalRepository(TransferredStudentsPage);
+export default TransferredStudentsPageWithRepository;
 export const TransferredStudentsContent = TransferredStudentsPage;

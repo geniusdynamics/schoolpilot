@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates student directory, bio data, health records, and clearance into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -104,4 +105,5 @@ const StudentDirectoryPage: React.FC = () => {
   );
 };
 
-export default StudentDirectoryPage;
+const StudentDirectoryPageWithRepository = withCanonicalRepository(StudentDirectoryPage);
+export default StudentDirectoryPageWithRepository;

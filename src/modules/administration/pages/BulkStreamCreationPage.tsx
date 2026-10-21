@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
 import { PlusIcon, XMarkIcon, CheckCircleIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { useAdministration } from '../hooks/useAdministration';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logging';
 import {
@@ -31,11 +31,32 @@ const selectClassName =
 
 const BulkStreamCreationPage: React.FC = () => {
   const { t } = useTranslation(['administration', 'common']);
-  const appData = useAppData();
+  // GAP(P1-E01): classes and streams are still the legacy collections until P1-C02 maps
+  // them onto year-scoped class groups. The page writes them through the module facade.
+  const appData = useAdministration();
   const { addClassStream, updateStudent, deleteClassStream } = appData;
-  const classes = useMemo(() => (appData.classes || []) as ClassOption[], [appData.classes]);
-  const classStreams = useMemo(() => (appData.classStreams || []) as StreamRecord[], [appData.classStreams]);
-  const students = useMemo(() => (appData.students || []) as StudentStreamRecord[], [appData.students]);
+  const classes = useMemo<ClassOption[]>(
+    () => (appData.classes ?? []).map((item) => ({ id: String(item.id), name: item.name })),
+    [appData.classes]
+  );
+  const classStreams = useMemo<StreamRecord[]>(
+    () =>
+      (appData.classStreams ?? []).map((item) => ({
+        id: String(item.id),
+        name: item.name,
+        class_id: item.class_id == null ? null : String(item.class_id),
+      })),
+    [appData.classStreams]
+  );
+  const students = useMemo<StudentStreamRecord[]>(
+    () =>
+      (appData.students ?? []).map((item) => ({
+        id: String(item.id),
+        current_class_stream_id:
+          item.current_class_stream_id == null ? null : String(item.current_class_stream_id),
+      })),
+    [appData.students]
+  );
   const toast = useToast();
   const [selectedClassId, setSelectedClassId] = useState('');
   const [streamNames, setStreamNames] = useState<string[]>(['']);

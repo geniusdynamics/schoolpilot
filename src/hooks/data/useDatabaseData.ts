@@ -59,7 +59,6 @@ export function useDatabaseData(): AppDataContextType {
     initializationError: system.initializationError,
     isRxDBModeActive: system.isRxDBModeActive,
     isUsingRxDBDummyData: system.isUsingRxDBDummyData,
-    triggerSeedRxDB: system.triggerSeedRxDB,
     triggerClearRxDB: system.triggerClearRxDB,
 
     // Cross-domain

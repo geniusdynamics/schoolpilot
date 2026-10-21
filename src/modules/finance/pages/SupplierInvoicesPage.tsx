@@ -1,5 +1,6 @@
 // ABOUTME: Supplier invoices page: records, edits and deletes supplier invoices through useFinance()
 // ABOUTME: Invoices link to suppliers by string id; the supplier name is resolved at read time
+// GAP(P1-E03): the registry models no supplier or supplier invoice; both land with the procurement and ledger work.
 
 import React, { useMemo, useState } from 'react';
 import { SupplierInvoice, Supplier, SupplierInvoiceStatus } from '@/modules/finance';

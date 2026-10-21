@@ -3,14 +3,18 @@ import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { asId } from '@/domain/ids';
 import { PlusIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { useCanonicalUsers } from '../data/useCanonicalUsers';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +30,11 @@ type LoanFormData = Omit<Partial<Loan>, 'id' | 'created_at' | 'updated_at' | 'bo
 
 export const BookLoansPageContent: React.FC = () => {
   const { t } = useTranslation(['library', 'common']);
-  const { books, users, loading } = useAppData();
+  // The borrower is a canonical user; the book and the loan are not modelled yet.
+  // GAP(P1-E05): the canonical registry models no book, no loan and no fine, so the
+  // catalogue keeps reading the legacy collections.
+  const { books, loading } = useAppData();
+  const { users, usersLookup } = useCanonicalUsers();
   const { data: loans, create: addLoan, update: updateLoan } = useLoanData();
   const { data: librarySettings } = useLibrarySettingsData();
 
@@ -44,7 +52,6 @@ export const BookLoansPageContent: React.FC = () => {
   const [formData, setFormData] = useState<LoanFormData>(initialFormData);
 
   const availableBooks = useMemo(() => books.filter(b => b.status === BookStatus.AVAILABLE), [books]);
-  const borrowers = useMemo(() => users.filter(u => u.isActive && (u.userType === 'Student' || u.userType === 'Staff')), [users]);
 
   // Borrowing rules validation functions
   const getBorrowingRule = (userType: string): LibrarySettingsType | null => {
@@ -287,16 +294,15 @@ export const BookLoansPageContent: React.FC = () => {
             </Select>
           </FormField>
           <FormField label={t('library:bookLoans.borrower')} required>
-            <Select 
-              name="user_id" 
-              value={formData.user_id || ''} 
-              onChange={handleInputChange}
-              required
+            <EntityPicker
+              value={formData.user_id ? asId<'user'>(formData.user_id) : null}
+              onChange={(id) => setFormData(prev => ({ ...prev, user_id: id ?? undefined }))}
+              lookup={usersLookup}
+              label={t('library:bookLoans.borrower')}
+              placeholder={t('library:bookLoans.selectUser')}
               disabled={!!editingLoan}
-            >
-              <option value="">{t('library:bookLoans.selectUser')}</option>
-              {borrowers.map(user => <option key={user.id} value={user.id}>{user.display_name} ({user.userType})</option>)}
-            </Select>
+              data-testid="book-loan-borrower-picker"
+            />
           </FormField>
           <FormField label={t('library:bookLoans.dueDate')} required>
             <Input 
@@ -336,9 +342,11 @@ export const BookLoansPageContent: React.FC = () => {
   );
 };
 const BookLoansPage: React.FC = () => (
-  <div className="space-y-6">
-    <BookLoansPageContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <BookLoansPageContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default BookLoansPage;

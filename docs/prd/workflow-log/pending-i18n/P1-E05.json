@@ -1,0 +1,12 @@
+{
+  "task": "P1-E05",
+  "note": "New strings of the canonical repository provider, used with inline English defaults. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw.",
+  "en": {
+    "common": {
+      "canonicalData": {
+        "unavailable": "The canonical data layer is unavailable, so this page cannot be shown.",
+        "loading": "Loading the canonical data layer..."
+      }
+    }
+  }
+}

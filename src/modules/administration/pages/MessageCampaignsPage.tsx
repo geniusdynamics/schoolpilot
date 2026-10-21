@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { CampaignStatus, CampaignAudienceType, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -10,7 +11,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '@/components/ui/icons';
 import { useCampaignData, type CampaignRecord as Campaign } from '@/modules/administration/data/useCampaignData';
 import { useTemplateCommData, type TemplateCommRecord as TemplateComm } from '@/modules/administration/data/useTemplateCommData';
-import { useAppData } from '@/hooks/useAppData'; // For classStreams only
+import { useCanonicalClassGroups } from '../data/useCanonicalClassGroups';
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -30,7 +31,7 @@ type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_a
 export const MessageCampaignsContent: React.FC = () => {
   const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaignData();
   const { templateComms } = useTemplateCommData();
-  const { classStreams = [] } = useAppData(); // For classStreams only
+  const { classGroups } = useCanonicalClassGroups(); // For class groups only
   
   const { currentUser } = useUser(); // Get currentUser
   const { t } = useTranslation('administration');
@@ -323,7 +324,7 @@ export const MessageCampaignsContent: React.FC = () => {
                 required
               >
                 <option value="">{t('MessageCampaignsPage.selectClassStream')}</option>
-                {(classStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
+                {classGroups.map(cs => <option key={cs.id} value={cs.id}>{cs.display_name}</option>)}
               </Select>
             </FormField>
           )}
@@ -377,4 +378,5 @@ const MessageCampaignsPage: React.FC = () => (
   </div>
 );
 
-export default MessageCampaignsPage;
+const MessageCampaignsPageWithRepository = withCanonicalRepository(MessageCampaignsPage);
+export default MessageCampaignsPageWithRepository;

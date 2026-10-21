@@ -25,6 +25,8 @@ interface FormTemplate {
 
 // Live-backed form templates ('application_form_templates' collection,
 // seeded via applicationFormTemplates in administration/data/mockData.ts).
+// GAP(P1-E04): the canonical registry models no application form template, so the builder
+// keeps this collection until a registry change adds the entity.
 const FORM_TEMPLATES_COLLECTION = 'application_form_templates';
 
 export const FormBuilderPageContent: React.FC = () => {
@@ -140,7 +142,7 @@ export const FormBuilderPageContent: React.FC = () => {
         </div>
       ),
     },
-  ], [t, showInfo, showSuccess, handleEdit, handleDuplicate, handleDelete]);
+  ], [t, handleEdit, handleDuplicate, handleDelete]);
 
   return (
     <div className="space-y-4">

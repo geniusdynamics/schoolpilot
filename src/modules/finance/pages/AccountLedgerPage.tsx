@@ -1,5 +1,6 @@
 // ABOUTME: Account Ledger Page - displays general ledger with human-readable particulars
 // ABOUTME: Uses useAccountLedger hook to resolve source_table/source_id to readable particulars
+// GAP(P1-E03): chart_of_accounts and the ledger (journal_entry, journal_line, account) are spec 02 §10 entities and land with the P3 ledger.
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -61,8 +62,7 @@ export const AccountLedgerPageContent: React.FC = () => {
 
     // Account filter
     if (selectedAccountId) {
-      const accountIdNum = parseInt(selectedAccountId, 10);
-      result = result.filter((r) => r.accountId === accountIdNum);
+      result = result.filter((r) => String(r.accountId) === selectedAccountId);
     }
 
     // Date range filter

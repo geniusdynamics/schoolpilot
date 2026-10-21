@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -8,20 +9,21 @@ import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 
 import { useAppData } from '@/hooks/useAppData';
+import { useCanonicalCalendar } from '../data/useCanonicalCalendar';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import { useTranslation } from 'react-i18next';
-import type { StudentClearanceRequest, StudentClearance, ClearanceRequestStatus, ClearanceStatus, ClearanceType } from '../data/types';
+import type { StudentClearanceRequest, ClearanceRequestStatus, ClearanceStatus } from '../data/types';
 import { CheckCircleIcon, EyeIcon, PlusIcon } from '@/components/ui/icons';
 import { useToast } from '@/hooks/useToast';
 
+// GAP(P1-E01): the canonical registry has no clearance entity, so the requests themselves are
+// still read from `student_clearance_requests`. The academic year they name is canonical and is
+// read through the repository.
 const StudentClearancePage: React.FC = () => {
   const { t } = useTranslation('administration');
-  const {
-    student_clearance_requests = [],
-    student_clearances = [],
-    students = [],
-    academic_years = [],
-    loading
-  } = useAppData();
+  const { student_clearance_requests = [] } = useAppData();
+  const { academicYearRows } = useCanonicalCalendar();
+  const { learners: students, isLoading: loading } = useCanonicalLearners();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<StudentClearanceRequest | null>(null);
@@ -216,14 +218,14 @@ const StudentClearancePage: React.FC = () => {
             label="Student"
             value={formData.student_id}
             onChange={(value) => handleInputChange('student_id', value)}
-            options={students.map((s: any) => ({ label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_number ? ` (${s.admission_number})` : ''), value: s.id }))}
+            options={students.map((s) => ({ label: `${[s.first_name, s.last_name].filter(Boolean).join(' ')} (${s.admission_no})`, value: s.id }))}
             required
           />
           <Select
             label="Academic Year"
             value={formData.academic_year_id}
             onChange={(value) => handleInputChange('academic_year_id', value)}
-            options={academic_years.map((y: any) => ({ label: y.name, value: y.id }))}
+            options={academicYearRows.map((year) => ({ label: year.name, value: year.id }))}
           />
           <Textarea
             label="Reason for Clearance"
@@ -238,6 +240,7 @@ const StudentClearancePage: React.FC = () => {
   );
 };
 
-export default StudentClearancePage;
+const StudentClearancePageWithRepository = withCanonicalRepository(StudentClearancePage);
+export default StudentClearancePageWithRepository;
 
 export const StudentClearanceContent = StudentClearancePage;

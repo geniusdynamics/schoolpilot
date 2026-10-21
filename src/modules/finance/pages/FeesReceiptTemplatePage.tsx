@@ -1,3 +1,4 @@
+// GAP(P1-E03): the registry models an issued receipt, not a receipt template.
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';

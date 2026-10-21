@@ -592,6 +592,59 @@ describe('spec 02 §12 invariants', () => {
     expect(posted.status).toBe('posted');
   });
 
+  it('§12.7 refuses to remove a posted payment', async () => {
+    const payment = await context.repository.get('payment', seededId(context, 'payment'));
+    expect(payment?.status).toBe('posted');
+
+    const error = await expectInvariant(
+      () => context.repository.remove('payment', payment!.id),
+      'finance.posted_immutable'
+    );
+    expect(error.issues.map((issue) => issue.path)).toContain('status');
+    expect(error.issues[0]?.message).toContain('cannot be removed');
+
+    // The row is still there, and nothing marked it deleted: the refusal wrote no tombstone.
+    const stored = await context.repository.get('payment', payment!.id);
+    expect(stored).not.toBeNull();
+    expect(stored?.deleted_at ?? null).toBeNull();
+  });
+
+  it('§12.7 refuses to remove a posted credit note', async () => {
+    const creditNote = await context.repository.create(
+      'credit_note',
+      fixtureInput(context, 'credit_note', {
+        number: 'CN/2027/000004',
+        status: 'posted',
+        amount: { amount_minor: 3500, currency: 'KES' },
+      })
+    );
+
+    const error = await expectInvariant(
+      () => context.repository.remove('credit_note', creditNote.id),
+      'finance.posted_immutable'
+    );
+    expect(error.issues[0]?.message).toContain('cannot be removed');
+
+    const stored = await context.repository.get('credit_note', creditNote.id);
+    expect(stored).not.toBeNull();
+    expect(stored?.deleted_at ?? null).toBeNull();
+  });
+
+  it('§12.7 still lets a draft credit note be removed', async () => {
+    const draft = await context.repository.create(
+      'credit_note',
+      fixtureInput(context, 'credit_note', {
+        number: 'CN/2027/000003',
+        status: 'draft',
+        amount: { amount_minor: 2500, currency: 'KES' },
+      })
+    );
+
+    const removed = await context.repository.remove('credit_note', draft.id);
+    expect(removed.id).toBe(draft.id);
+    expect(await context.repository.get('credit_note', draft.id)).toBeNull();
+  });
+
   it('§12.8 keeps the allocations of a payment within the amount paid', async () => {
     const payment = await context.repository.get(
       'payment',

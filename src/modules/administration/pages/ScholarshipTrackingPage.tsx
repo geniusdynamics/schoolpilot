@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -9,7 +10,6 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, CurrencyDollarIcon, PlusIcon, CheckIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { ScholarshipRecord } from '../data/types';
 
@@ -17,8 +17,7 @@ import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 const ScholarshipTrackingPage: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { students } = useAppData();
+  const { learners: students } = useCanonicalLearners();
   const scholarshipCollection = useDatabaseCollection<ScholarshipRecord>('scholarships');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -463,4 +462,5 @@ const ScholarshipTrackingPage: React.FC = () => {
   );
 };
 
-export default ScholarshipTrackingPage;
+const ScholarshipTrackingPageWithRepository = withCanonicalRepository(ScholarshipTrackingPage);
+export default ScholarshipTrackingPageWithRepository;

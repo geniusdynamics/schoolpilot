@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { useAdministration } from '../hooks/useAdministration';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -7,7 +7,6 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, PencilIcon, CheckIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 import type { Student } from '@/core/types';
@@ -33,7 +32,9 @@ type StudentWithRoll = Student & { roll_number?: string | null };
 type StudentPatch = Partial<Student> & { roll_number?: string };
 
 export const BulkStudentUpdateContent: React.FC = () => {
-  const { students, loading, updateStudent } = useAppData();
+  // GAP(P1-E01): the learner rows are migrated in P1-C03; until then the bulk screen
+  // reads and writes the legacy student collection through the module facade.
+  const { students, updateStudent } = useAdministration();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
@@ -196,15 +197,6 @@ export const BulkStudentUpdateContent: React.FC = () => {
     { value: 'email', label: 'Email' },
     { value: 'address', label: 'Address' }
   ];
-
-  if (loading?.all && studentRows.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-        <span className="ml-2">Loading student records...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">

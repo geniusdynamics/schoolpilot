@@ -6,6 +6,8 @@ import ModuleDashboardShell, { DashboardMetric, DashboardNotification, Dashboard
 import { ArchiveIcon, CheckCircleIcon, ClockIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 
 export const SchoolProcurementDashboardPageContent: React.FC = () => {
+  // GAP(P1-E05): the canonical registry models no requisition, purchase order or
+  // supplier, so the dashboard keeps reading the legacy collections.
   const { requisitions, purchaseOrders, suppliers } = useAppData();
 
   const openRequisitions = requisitions.filter((req: any) => String(req.status || '').toLowerCase().includes('pending'));

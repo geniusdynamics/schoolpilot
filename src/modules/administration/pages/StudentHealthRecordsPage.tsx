@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { Student } from '@/types';
 import { AdminStudentHealthRecordType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
@@ -8,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { EditIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useStudentHealthRecordData } from '@/modules/administration/data/useStudentHealthRecordData';
-import { useAppData } from '@/hooks/useAppData'; // For students data only
+import { useCanonicalLearners } from '../data/useCanonicalLearners'; // For learners data only
 import Textarea from '@/components/ui/Textarea';
 
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -20,7 +21,7 @@ type HealthRecordFormData = Omit<Partial<AdminStudentHealthRecordType>, 'id' | '
 
 const StudentHealthRecordsPage: React.FC = () => {
   const { studentHealthRecords, addStudentHealthRecord, updateStudentHealthRecord } = useStudentHealthRecordData();
-  const { students = [] } = useAppData(); // Only for students data
+  const { learners: students } = useCanonicalLearners(); // Only for learners data
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -220,6 +221,7 @@ const StudentHealthRecordsPage: React.FC = () => {
   );
 };
 
-export default StudentHealthRecordsPage;
+const StudentHealthRecordsPageWithRepository = withCanonicalRepository(StudentHealthRecordsPage);
+export default StudentHealthRecordsPageWithRepository;
 
 export const StudentHealthRecordsContent = StudentHealthRecordsPage;

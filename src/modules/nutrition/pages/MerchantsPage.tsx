@@ -19,6 +19,8 @@ type MerchantFormData = { name?: string; gl_account_id?: string };
 
 export const MerchantsPageContent: React.FC = () => {
   // Chart of accounts is cross-domain read data; merchant CRUD lives on the nutrition module hook.
+  // GAP(P1-E05): the canonical registry models no chart of accounts and no merchant, so
+  // the merchant register keeps reading the legacy collections.
   const { chartOfAccounts } = useAppData();
   const { merchants, addMerchant, updateMerchant, deleteMerchant } = useNutrition();
   const confirm = useConfirm();

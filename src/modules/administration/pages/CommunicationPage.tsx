@@ -2,6 +2,7 @@
 // ABOUTME: Consolidates templates, campaigns, SMS reports, auto-SMS settings, and newsletters into tabbed interface
 
 import React, { useState, useCallback } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -112,4 +113,5 @@ const CommunicationPage: React.FC = () => {
   );
 };
 
-export default CommunicationPage;
+const CommunicationPageWithRepository = withCanonicalRepository(CommunicationPage);
+export default CommunicationPageWithRepository;

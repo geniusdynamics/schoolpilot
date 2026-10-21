@@ -1,444 +1,626 @@
-// ABOUTME: Fee templates page: manage templates per school period/category and their fee items (voteheads).
-// ABOUTME: Persists through updateFeeTemplate(id, patch); fee items carry stable UUIDs and string foreign keys; templates store applicable level (class) ids.
+// ABOUTME: Fee schedules page: the canonical billing structure of an academic year, its fee lines
+// ABOUTME: and the fee items those lines charge. Amounts are exact minor units and every write goes
+// ABOUTME: through the canonical repository; the lines a posted invoice carries are never edited here.
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
-import { SchoolPeriod, StudentCategory, Class } from '@/core/types';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from "@/components/ui/forms/DialogForm";
-import EntityForm from "@/components/ui/forms/EntityForm";
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Checkbox from '@/components/ui/Checkbox';
-import { PlusIcon, EditIcon, DeleteIcon, TicketIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
-import Spinner from '@/components/ui/Spinner';
-import { AccountType } from '@/core/types';
-import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { DeleteIcon, EditIcon, ListBulletIcon, PlusIcon, TicketIcon } from '@/components/ui/icons';
+import { SchemaEntityForm } from '@/components/ui/forms';
+import {
+  createSchemaFor,
+  toWritableValues,
+  updateSchemaFor,
+  type CreateInput,
+  type RepositoryRow,
+  type UpdateInput,
+} from '@/data/repository';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { asId } from '@/domain/ids';
+import type { Money } from '@/domain/schema/common';
 
-/** A fee item as stored on a template: ids are opaque strings matching the fee_templates schema. */
-type StoredFeeItem = Omit<FeeTemplateItem, 'fee_template_id' | 'revenue_account_id' | 'linked_expense_category_id'> & {
-  fee_template_id: string;
-  revenue_account_id: string;
-  linked_expense_category_id?: string;
-};
+import {
+  formatMoney,
+  money,
+  toFormLookup,
+  useCanonicalFinance,
+  useFinanceRepository,
+  type FinanceScheduleRow,
+} from '../data/canonicalFinance';
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import type { Id } from '@/domain/ids';
 
-interface FeeItemFormData {
-  description: string;
-  amount?: number;
-  revenue_account_id?: string;
-  linked_expense_category_id?: string;
+const SCHEDULE_STATUSES = ['draft', 'submitted', 'approved', 'published', 'archived'] as const;
+const FREQUENCIES = ['per_term', 'per_year', 'monthly', 'one_off_at_admission'] as const;
+const PRORATION_RULES = ['full', 'none', 'pro_rata_weeks', 'pro_rata_days', 'from_half_term'] as const;
+const CURRENCY = 'KES';
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+interface ScheduleDraft {
+  readonly id: string | null;
+  readonly row: RepositoryRow<'fee_schedule'> | null;
 }
 
-interface TemplateItemsContext {
-  id: string;
-  name: string;
-  items: StoredFeeItem[];
+interface LineDraft {
+  readonly id: string | null;
+  readonly row: RepositoryRow<'fee_schedule_line'> | null;
 }
-
-const optionalId = (value: unknown): string | undefined =>
-  value === undefined || value === null || value === '' ? undefined : String(value);
-
-/** Normalises a template's items to string ids, giving any item without an id a stable UUID. */
-const toStoredItems = (template: FeeTemplate): StoredFeeItem[] =>
-  (template.items || []).map((item) => ({
-    ...item,
-    id: item.id ? String(item.id) : crypto.randomUUID(),
-    fee_template_id: String(template.id),
-    revenue_account_id: optionalId(item.revenue_account_id) ?? '',
-    linked_expense_category_id: optionalId(item.linked_expense_category_id),
-  }));
-
-const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 export const FeeTemplatesContent: React.FC = () => {
-  const { 
-    feeTemplates, 
-    schoolPeriods,
-    studentCategories,
-    classes,
-    chartOfAccounts,
-    expenseCategories,
-    loading, 
-    addFeeTemplate, 
-    updateFeeTemplate, 
-    deleteFeeTemplate 
-  } = useAppData(); 
-  
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-  
-  const [editingTemplate, setEditingTemplate] = useState<FeeTemplate | null>(null);
-  const [editingItem, setEditingItem] = useState<StoredFeeItem | null>(null);
-  const [currentTemplateForItems, setCurrentTemplateForItems] = useState<TemplateItemsContext | null>(null);
-
-  const initialItemFormData: FeeItemFormData = { description: '', amount: 0, revenue_account_id: undefined, linked_expense_category_id: undefined };
-  const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
-  const [templateInitialValues, setTemplateInitialValues] = useState<Record<string, any>>({ name: '', school_period_id: undefined, student_category_id: undefined });
-  /** Class (level) ids selected for the template being edited; empty means every level. */
-  const [templateLevelIds, setTemplateLevelIds] = useState<string[]>([]);
-  const levelOptions = useMemo(() => (classes || []).map((cls: Class) => ({ id: String(cls.id), name: String(cls.name ?? '') })), [classes]);
-  const toggleTemplateLevel = (levelId: string, checked: boolean) =>
-    setTemplateLevelIds(prev => (checked ? (prev.includes(levelId) ? prev : [...prev, levelId]) : prev.filter(id => id !== levelId)));
-
-  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
-
-  // Template Modal
-  const openTemplateModal = (template?: FeeTemplate) => {
-    setEditingTemplate(template || null);
-    setTemplateInitialValues(template ?
-      { name: template.name, school_period_id: optionalId(template.school_period_id), student_category_id: optionalId(template.student_category_id) } :
-      { name: '', school_period_id: undefined, student_category_id: undefined }
-    );
-    setTemplateLevelIds((template?.applicable_level_ids || []).map(String));
-    setIsTemplateModalOpen(true);
-  };
-  const closeTemplateModal = () => {
-    setIsTemplateModalOpen(false);
-    setEditingTemplate(null);
-  };
-
-  // Item Modal
-  const openItemModal = (template: FeeTemplate) => {
-    setCurrentTemplateForItems({ id: String(template.id), name: template.name, items: toStoredItems(template) });
-    setEditingItem(null);
-    setItemFormData(initialItemFormData);
-    setIsItemModalOpen(true);
-  };
-  const startEditingItem = (item: StoredFeeItem) => {
-    setEditingItem(item);
-    setItemFormData({ description: item.description, amount: item.amount, revenue_account_id: item.revenue_account_id, linked_expense_category_id: item.linked_expense_category_id });
-  };
-  const closeItemModal = () => {
-    setIsItemModalOpen(false);
-    setEditingItem(null);
-    // setCurrentTemplateForItems(null); // Keep context if modal is just for adding more items
-    setItemFormData(initialItemFormData);
-  };
-
-  const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setItemFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value || undefined) : (name === 'amount' ? parseFloat(value) : value) }));
-  };
-
-  const toast = useToast();
-  const handleItemSubmit = async () => {
-    if (!currentTemplateForItems || !itemFormData.description || itemFormData.amount === undefined || !itemFormData.revenue_account_id) {
-      toast.showWarning("Description, Amount, and Revenue Account are required for an item.");
-      return;
-    }
-
-    const revenueAccountId = itemFormData.revenue_account_id;
-    const expenseCategoryId = itemFormData.linked_expense_category_id;
-    const itemFields = {
-      description: itemFormData.description,
-      amount: Number(itemFormData.amount),
-      revenue_account_id: revenueAccountId,
-      linked_expense_category_id: expenseCategoryId,
-      revenue_account_name: revenueAccounts.find(ra => String(ra.id) === revenueAccountId)?.name,
-      linked_expense_category_name: expenseCategoryId ? expenseCategories.find(ec => String(ec.id) === expenseCategoryId)?.name : undefined,
-    };
-
-    const updatedItems: StoredFeeItem[] = editingItem
-      ? currentTemplateForItems.items.map(i => (i.id === editingItem.id ? { ...i, ...itemFields } : i))
-      : [...currentTemplateForItems.items, { ...itemFields, id: crypto.randomUUID(), fee_template_id: currentTemplateForItems.id }];
-
-    try {
-      await updateFeeTemplate(currentTemplateForItems.id, { items: updatedItems });
-    } catch (error) {
-      toast.showError(`Failed to save fee item: ${errorMessage(error)}`);
-      return;
-    }
-
-    setCurrentTemplateForItems({ ...currentTemplateForItems, items: updatedItems });
-    setEditingItem(null);
-    setItemFormData(initialItemFormData);
-  };
-
+  const finance = useCanonicalFinance();
+  const repository = useFinanceRepository();
   const confirm = useConfirm();
-  const handleDeleteTemplate = async (id: number) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template? All its items will also be deleted.' }))) {
-      await deleteFeeTemplate(id);
+  const { showSuccess, showError } = useToast();
+
+  const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [periodIds, setPeriodIds] = useState<string[]>([]);
+  const [periodDraft, setPeriodDraft] = useState<Id<'academic_period'> | null>(null);
+  const [levelIds, setLevelIds] = useState<string[]>([]);
+  const [levelDraft, setLevelDraft] = useState<Id<'level'> | null>(null);
+
+  const [lineScheduleId, setLineScheduleId] = useState<string | null>(null);
+  const [lineDraft, setLineDraft] = useState<LineDraft | null>(null);
+  const [lineError, setLineError] = useState<string | null>(null);
+
+  // The open lines dialog follows the repository: a line added, edited or removed shows in it
+  // straight away instead of waiting for the dialog to be re-opened.
+  const lineSchedule = useMemo(
+    () => finance.scheduleRows.find((row) => row.id === lineScheduleId) ?? null,
+    [finance.scheduleRows, lineScheduleId]
+  );
+
+  const defaultInstitutionId = finance.years[0]?.institution_id ?? '';
+
+  const scheduleFields = useMemo(
+    () => [
+      { path: 'name', label: 'Schedule name', order: 1, required: true },
+      {
+        path: 'academic_year_id',
+        label: 'Academic year',
+        order: 2,
+        widget: 'entity' as const,
+        lookupKey: 'year',
+        required: true,
+      },
+      { path: 'version', label: 'Version', order: 3, widget: 'number' as const, required: true },
+      {
+        path: 'status',
+        label: 'Status',
+        order: 4,
+        widget: 'select' as const,
+        options: SCHEDULE_STATUSES.map((status) => ({ value: status, label: status })),
+        required: true,
+      },
+      {
+        path: 'new_learners_only',
+        label: 'New learners only',
+        order: 5,
+        widget: 'checkbox' as const,
+      },
+    ],
+    []
+  );
+
+  const lineFields = useMemo(
+    () => [
+      {
+        path: 'fee_item_id',
+        label: 'Fee item',
+        order: 1,
+        widget: 'entity' as const,
+        lookupKey: 'feeItem',
+        required: true,
+      },
+      { path: 'amount', label: 'Amount', order: 2, widget: 'money' as const, required: true },
+      { path: 'mandatory', label: 'Mandatory', order: 3, widget: 'checkbox' as const },
+      {
+        path: 'frequency',
+        label: 'Frequency',
+        order: 4,
+        widget: 'select' as const,
+        options: FREQUENCIES.map((value) => ({ value, label: value })),
+        required: true,
+      },
+      {
+        path: 'proration_rule',
+        label: 'Proration',
+        order: 5,
+        widget: 'select' as const,
+        options: PRORATION_RULES.map((value) => ({ value, label: value })),
+        required: true,
+      },
+    ],
+    []
+  );
+
+  const openSchedule = (row: FinanceScheduleRow | null) => {
+    setScheduleError(null);
+    setScheduleDraft({ id: row?.id ?? null, row: row?.row ?? null });
+    setPeriodIds(row ? [...row.periodIds] : []);
+    setLevelIds(row ? [...row.levelIds] : []);
+    setPeriodDraft(null);
+    setLevelDraft(null);
+  };
+
+  const saveSchedule = async (values: Record<string, unknown>) => {
+    if (!scheduleDraft) return;
+    setScheduleError(null);
+    const base = values as unknown as UpdateInput<'fee_schedule'>;
+    const payload: UpdateInput<'fee_schedule'> = {
+      ...base,
+      academic_period_ids: periodIds,
+      level_ids: levelIds,
+      programme_ids: scheduleDraft.row?.programme_ids ?? [],
+      residence_statuses: scheduleDraft.row?.residence_statuses ?? [],
+      fee_category_ids: scheduleDraft.row?.fee_category_ids ?? [],
+    };
+    try {
+      if (scheduleDraft.id && scheduleDraft.row) {
+        await repository.update('fee_schedule', asId<'fee_schedule'>(scheduleDraft.id), payload, {
+          expectedVersion: scheduleDraft.row.rowVersion,
+        });
+        showSuccess('Fee schedule updated.');
+      } else {
+        const input: CreateInput<'fee_schedule'> = {
+          ...(base as CreateInput<'fee_schedule'>),
+          institution_id: defaultInstitutionId,
+          academic_period_ids: periodIds,
+          level_ids: levelIds,
+          programme_ids: scheduleDraft.row?.programme_ids ?? [],
+          residence_statuses: scheduleDraft.row?.residence_statuses ?? [],
+          fee_category_ids: scheduleDraft.row?.fee_category_ids ?? [],
+        };
+        await repository.create('fee_schedule', input);
+        showSuccess('Fee schedule created.');
+      }
+      setScheduleDraft(null);
+    } catch (error) {
+      setScheduleError(errorMessage(error));
+      throw error;
     }
   };
 
-  const handleDeleteItem = async (itemId: string) => {
-    if (!currentTemplateForItems) return;
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template item?' }))) {
-      const updatedItems = currentTemplateForItems.items.filter(i => i.id !== itemId);
-      try {
-        await updateFeeTemplate(currentTemplateForItems.id, { items: updatedItems });
-      } catch (error) {
-        toast.showError(`Failed to delete fee item: ${errorMessage(error)}`);
-        return;
-      }
-      setCurrentTemplateForItems({ ...currentTemplateForItems, items: updatedItems });
-      if (editingItem?.id === itemId) {
-        setEditingItem(null);
-        setItemFormData(initialItemFormData);
-      }
+  const deleteSchedule = async (row: FinanceScheduleRow) => {
+    if (
+      !(await confirm({
+        variant: 'danger',
+        message: 'Delete this fee schedule and its fee lines? Posted invoices keep their own lines.',
+      }))
+    ) {
+      return;
+    }
+    try {
+      await repository.remove('fee_schedule', asId<'fee_schedule'>(row.id));
+      showSuccess('Fee schedule deleted.');
+    } catch (error) {
+      showError(`Failed to delete the fee schedule: ${errorMessage(error)}`);
     }
   };
 
-  const templateColumns: DataGridColumn<FeeTemplate>[] = [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      sortable: true, 
-      filterable: true, 
-      width: 80,
-      render: (value) => <span className="font-mono text-sm">{value}</span>
+  const saveLine = async (values: Record<string, unknown>) => {
+    if (!lineSchedule) return;
+    setLineError(null);
+    try {
+      if (lineDraft?.id && lineDraft.row) {
+        await repository.update(
+          'fee_schedule_line',
+          asId<'fee_schedule_line'>(lineDraft.id),
+          values as unknown as UpdateInput<'fee_schedule_line'>,
+          { expectedVersion: lineDraft.row.rowVersion }
+        );
+        showSuccess('Fee line updated.');
+      } else {
+        const input: CreateInput<'fee_schedule_line'> = {
+          ...(values as unknown as CreateInput<'fee_schedule_line'>),
+          institution_id: lineSchedule.row.institution_id,
+          fee_schedule_id: lineSchedule.id,
+        };
+        await repository.create('fee_schedule_line', input);
+        showSuccess('Fee line added.');
+      }
+      setLineDraft(null);
+    } catch (error) {
+      setLineError(errorMessage(error));
+      throw error;
+    }
+  };
+
+  const deleteLine = async (row: RepositoryRow<'fee_schedule_line'>) => {
+    if (!(await confirm({ variant: 'danger', message: 'Delete this fee line?' }))) return;
+    try {
+      await repository.remove('fee_schedule_line', row.id);
+      showSuccess('Fee line deleted.');
+    } catch (error) {
+      showError(`Failed to delete the fee line: ${errorMessage(error)}`);
+    }
+  };
+
+  const scheduleColumns: DataGridColumn<FinanceScheduleRow>[] = [
+    {
+      key: 'name',
+      header: 'Schedule',
+      sortable: true,
+      filterable: true,
+      render: (value, row) => (
+        <span className="font-medium">
+          {value} <span className="text-surface-muted-fg">v{row.version}</span>
+        </span>
+      ),
     },
-    { 
-      key: 'name', 
-      header: 'Template Name', 
-      sortable: true, 
-      filterable: true, 
-      width: 200,
-      render: (value) => <span className="font-medium">{value}</span>
+    {
+      key: 'academicYearName',
+      header: 'Academic year',
+      sortable: true,
+      filterable: true,
     },
-    { 
-      key: 'school_period_name', 
-      header: 'School Period', 
-      sortable: true, 
-      filterable: true, 
-      width: 150,
-      render: (value) => <span className="text-primary-600">{value}</span>
+    {
+      key: 'periodNames',
+      header: 'Periods',
+      render: (value) =>
+        Array.isArray(value) && value.length > 0 ? value.join(', ') : 'Whole year',
     },
-    { 
-      key: 'student_category_name', 
-      header: 'Student Category', 
-      sortable: true, 
-      filterable: true, 
-      width: 150,
-      render: (value) => <span className="text-purple-600">{value || 'All Categories'}</span>
+    {
+      key: 'levelNames',
+      header: 'Levels',
+      render: (value) =>
+        Array.isArray(value) && value.length > 0 ? value.join(', ') : 'Every level',
     },
-    { 
-      key: 'items_count', 
-      header: 'Items', 
-      sortable: true, 
-      filterable: false, 
-      width: 80,
-      render: (value, row) => <span className="text-center font-semibold">{row.items?.length || 0}</span>
+    {
+      key: 'lines',
+      header: 'Lines',
+      render: (value) => (Array.isArray(value) ? value.length : 0),
     },
+    {
+      key: 'total',
+      header: 'Total',
+      align: 'right',
+      render: (value) => <span className="font-mono">{formatMoney(value as Money)}</span>,
+    },
+    { key: 'status', header: 'Status', sortable: true, filterable: true },
     {
       key: 'actions',
       header: 'Actions',
-      sortable: false,
-      filterable: false,
-      width: 200,
-      sticky: 'right',
-      render: (value, row) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openTemplateModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="secondary" onClick={() => openItemModal(row)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Items</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteTemplate(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      render: (_value, row) => (
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openSchedule(row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setLineError(null);
+              setLineDraft(null);
+              setLineScheduleId(row.id);
+            }}
+            leftIcon={<ListBulletIcon className="w-4 h-4" />}
+          >
+            Lines
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void deleteSchedule(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
         </div>
       ),
     },
   ];
 
-  const itemColumns: DataGridColumn<StoredFeeItem>[] = [
-    { 
-      key: 'description', 
-      header: 'Description', 
-      sortable: true, 
-      filterable: true, 
-      width: 200,
-      render: (value) => <span className="font-medium">{value}</span>
-    },
-    { 
-      key: 'amount', 
-      header: 'Amount', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (value, row) => <span className="font-mono text-green-600">{row.amount.toFixed(2)}</span>
-    },
-    { 
-      key: 'revenue_account_name', 
-      header: 'Revenue Account', 
-      sortable: true, 
-      filterable: true, 
-      width: 180,
-      render: (value) => <span className="text-primary-600">{value}</span>
-    },
-    { 
-      key: 'linked_expense_category_name', 
-      header: 'Expense Category', 
-      sortable: true, 
-      filterable: true, 
-      width: 150,
-      render: (value) => <span className="text-purple-600">{value || 'None'}</span>
+  const lineColumns: DataGridColumn<RepositoryRow<'fee_schedule_line'>>[] = [
+    {
+      key: 'fee_item_id',
+      header: 'Fee item',
+      sortable: true,
+      filterable: true,
+      render: (value) => finance.feeItemName(String(value ?? '')),
     },
     {
-      key: 'id',
+      key: 'amount',
+      header: 'Amount',
+      align: 'right',
+      render: (value) => <span className="font-mono">{formatMoney(value as Money)}</span>,
+    },
+    { key: 'mandatory', header: 'Mandatory', render: (value) => (value ? 'Yes' : 'No') },
+    { key: 'frequency', header: 'Frequency', sortable: true, filterable: true },
+    { key: 'proration_rule', header: 'Proration', sortable: true, filterable: true },
+    {
+      key: 'actions',
       header: 'Actions',
-      sortable: false,
-      filterable: false,
-      width: 120,
-      sticky: 'right',
-      render: (value, row) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => startEditingItem(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteItem(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
+      render: (_value, row) => (
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setLineError(null);
+              setLineDraft({ id: row.id, row });
+            }}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => void deleteLine(row)}>
+            Delete
+          </Button>
         </div>
       ),
     },
   ];
-  
-  const isLoadingData = loading.feeTemplates || loading.schoolPeriods || loading.studentCategories || loading.chartOfAccounts || loading.expenseCategories;
 
-  if (isLoadingData && !isTemplateModalOpen && !isItemModalOpen) {
+  if (finance.status === 'loading' && finance.feeSchedules.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Fee Templates...</span>
+      <div className="flex items-center justify-center py-16" role="status">
+        Loading fee schedules...
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card title="Fee Templates Management" actions={
-        <Button onClick={() => openTemplateModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Fee Template
-        </Button>
-      }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Create and manage fee templates for different school periods and student categories. Define template items (voteheads) and amounts.
+    <div className="space-y-4">
+      <Card
+        title="Fee Schedules"
+        actions={
+          <Button
+            onClick={() => openSchedule(null)}
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+            disabled={!defaultInstitutionId}
+          >
+            Add Fee Schedule
+          </Button>
+        }
+      >
+        <p className="mb-4 text-sm text-surface-muted-fg">
+          A fee schedule fixes the fee items and exact amounts an academic year bills. An invoice
+          copies the schedule's lines when the billing run posts it; editing a schedule later never
+          changes an invoice that is already posted.
         </p>
-        <DataGrid 
-          columns={templateColumns} 
-          data={(feeTemplates || [])} 
-          isLoading={loading.feeTemplates && (isTemplateModalOpen || isItemModalOpen)}
+        <DataGrid
+          columns={scheduleColumns}
+          data={[...finance.scheduleRows]}
           sortable
           filterable
           emptyState={{
             icon: <TicketIcon className="w-12 h-12 text-surface-muted-fg" />,
-            title: "No Fee Templates Found",
-            description: "Create your first fee template to define fees for different school periods and student categories.",
-            action: {
-              label: "Add Fee Template",
-              onClick: () => openTemplateModal()
-            }
+            title: 'No fee schedules yet',
+            description: 'Create a fee schedule to define what a term bills.',
           }}
         />
       </Card>
 
-      <EntityForm
-        isOpen={isTemplateModalOpen}
-        onClose={closeTemplateModal}
-        title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'}
-        initialData={templateInitialValues}
-        submitLabel={editingTemplate ? 'Save Changes' : 'Add Template'}
-        cancelLabel="Cancel"
-        onSubmit={async (values) => {
-          const schoolPeriodId = optionalId(values.school_period_id);
-          const studentCategoryId = optionalId(values.student_category_id);
-          const payload = {
-            name: String(values.name ?? ''),
-            school_period_id: schoolPeriodId,
-            student_category_id: studentCategoryId ?? null,
-            school_period_name: (schoolPeriods || []).find((period: SchoolPeriod) => String(period.id) === schoolPeriodId)?.name ?? null,
-            student_category_name: studentCategoryId ? (studentCategories || []).find((category: StudentCategory) => String(category.id) === studentCategoryId)?.name ?? null : null,
-            // Keep the class order stable regardless of click order; keep stored ids that are not in the
-            // loaded class list (classes not loaded yet, or a retired class) so a save never wipes them.
-            applicable_level_ids: [
-              ...levelOptions.filter(level => templateLevelIds.includes(level.id)).map(level => level.id),
-              ...templateLevelIds.filter(id => !levelOptions.some(level => level.id === id)),
-            ],
-          };
-
-          if (editingTemplate) {
-            await updateFeeTemplate(String(editingTemplate.id), payload);
-          } else {
-            await addFeeTemplate({ ...payload, items: [] });
-          }
-        }}
-        fields={[
-          { name: 'name', label: 'Template Name', required: true },
-          { name: 'school_period_id', label: 'School Period', type: 'select', required: true, placeholder: 'Select School Period', options: (schoolPeriods || []).map((period: SchoolPeriod) => ({ value: period.id, label: period.name })) },
-          { name: 'student_category_id', label: 'Student Category (Optional)', type: 'select', placeholder: 'All Categories', options: (studentCategories || []).map((category: StudentCategory) => ({ value: category.id, label: String(category.name ?? '') })) },
-        ]}
+      <Modal
+        isOpen={scheduleDraft !== null}
+        onClose={() => setScheduleDraft(null)}
+        title={scheduleDraft?.id ? 'Edit fee schedule' : 'New fee schedule'}
+        size="lg"
       >
-        <fieldset className="mt-4">
-          <legend className="text-sm font-medium text-surface-foreground">Applicable Levels (Optional)</legend>
-          <p className="text-xs text-surface-muted-fg mb-2">Leave all unticked to apply the template to every level.</p>
-          {levelOptions.length === 0 ? (
-            <p className="text-sm text-surface-muted-fg">No classes defined yet.</p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {levelOptions.map(level => (
-                <Checkbox
-                  key={level.id}
-                  checked={templateLevelIds.includes(level.id)}
-                  onChange={(checked) => toggleTemplateLevel(level.id, checked)}
+        {scheduleDraft ? (
+          <SchemaEntityForm
+            schema={
+              scheduleDraft.id ? updateSchemaFor('fee_schedule') : createSchemaFor('fee_schedule')
+            }
+            recordKey={scheduleDraft.id ?? 'new'}
+            initialValues={
+              scheduleDraft.row
+                ? toWritableValues(scheduleDraft.row)
+                : {
+                    institution_id: defaultInstitutionId,
+                    name: '',
+                    academic_year_id: '',
+                    academic_period_ids: [],
+                    programme_ids: [],
+                    level_ids: [],
+                    residence_statuses: [],
+                    fee_category_ids: [],
+                    new_learners_only: false,
+                    version: 1,
+                    status: 'draft' as const,
+                  }
+            }
+            fields={scheduleFields}
+            lookups={{ year: toFormLookup(finance.lookups.year) }}
+            serverError={scheduleError}
+            submitLabel={scheduleDraft.id ? 'Save schedule' : 'Create schedule'}
+            onCancel={() => setScheduleDraft(null)}
+            onSubmit={saveSchedule}
+          >
+            <fieldset className="mt-4 space-y-2">
+              <legend className="text-sm font-medium text-surface-foreground">
+                Billing periods
+              </legend>
+              <p className="text-xs text-surface-muted-fg">
+                Leave empty to bill the whole academic year.
+              </p>
+              <div className="flex items-end gap-2">
+                <EntityPicker
+                  value={periodDraft}
+                  onChange={setPeriodDraft}
+                  lookup={finance.lookups.period}
+                  aria-label="Add billing period"
+                  placeholder="Select a period"
+                  data-testid="schedule-period-picker"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    if (periodDraft && !periodIds.includes(periodDraft)) {
+                      setPeriodIds([...periodIds, periodDraft]);
+                    }
+                    setPeriodDraft(null);
+                  }}
+                  disabled={!periodDraft}
                 >
-                  {level.name}
-                </Checkbox>
-              ))}
-            </div>
-          )}
-        </fieldset>
-      </EntityForm>
-
-      <DialogForm 
-        isOpen={isItemModalOpen} 
-        onClose={closeItemModal} 
-        title={`Manage Items for: ${currentTemplateForItems?.name || ''}`} 
-        size="xl"
-        footer={<Button variant="secondary" onClick={closeItemModal}>Done</Button>}
-      >
-        {currentTemplateForItems && (
-          <div className="space-y-4">
-            <Card title="Add/Edit Fee Template Item">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input name="description" label="Description (Votehead)" value={itemFormData.description || ''} onChange={handleItemInputChange} required />
-                <Input name="amount" label="Amount" type="number" step="0.01" value={itemFormData.amount ?? ''} onChange={handleItemInputChange} required />
-                <Select name="revenue_account_id" label="Revenue GL Account" value={itemFormData.revenue_account_id || ''} onChange={handleItemInputChange} required>
-                    <option value="">Select Revenue Account</option>
-                    {(revenueAccounts || []).map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
-                </Select>
-                <Select name="linked_expense_category_id" label="Linked Expense Category (Optional)" value={itemFormData.linked_expense_category_id || ''} onChange={handleItemInputChange}>
-                    <option value="">None</option>
-                    {(expenseCategories || []).map(ec => <option key={ec.id} value={ec.id}>{ec.name}</option>)}
-                </Select>
-              </div>
-              <div className="text-right mt-4">
-                <Button onClick={handleItemSubmit} size="sm" loading={loading.feeTemplates}>
-                  {editingItem ? 'Update Item' : 'Add Item'}
+                  Add
                 </Button>
               </div>
-            </Card>
-            
-            <h4 className="text-md font-semibold text-surface-foreground mt-6">Existing Items for this Template</h4>
-            <DataGrid 
-              columns={itemColumns} 
-              data={(currentTemplateForItems.items || [])} 
-              isLoading={loading.feeTemplates && isItemModalOpen}
-              sortable
-              filterable
-              emptyState={{
-                icon: <ListBulletIcon className="w-12 h-12 text-surface-muted-fg" />,
-                title: "No Items Defined",
-                description: "No items have been defined for this fee template yet. Add items to specify the fee components."
+              <ul className="flex flex-wrap gap-2">
+                {periodIds.map((id) => (
+                  <li
+                    key={id}
+                    className="flex items-center gap-2 rounded-full bg-surface-accent px-3 py-1 text-sm"
+                  >
+                    {finance.periodName(id) || id}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${finance.periodName(id) || id}`}
+                      onClick={() => setPeriodIds(periodIds.filter((entry) => entry !== id))}
+                    >
+                      x
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+
+            <fieldset className="mt-4 space-y-2">
+              <legend className="text-sm font-medium text-surface-foreground">Levels</legend>
+              <p className="text-xs text-surface-muted-fg">
+                Leave empty to bill every level.
+              </p>
+              <div className="flex items-end gap-2">
+                <EntityPicker
+                  value={levelDraft}
+                  onChange={setLevelDraft}
+                  lookup={finance.lookups.level}
+                  aria-label="Add level"
+                  placeholder="Select a level"
+                  data-testid="schedule-level-picker"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    if (levelDraft && !levelIds.includes(levelDraft)) {
+                      setLevelIds([...levelIds, levelDraft]);
+                    }
+                    setLevelDraft(null);
+                  }}
+                  disabled={!levelDraft}
+                >
+                  Add
+                </Button>
+              </div>
+              <ul className="flex flex-wrap gap-2">
+                {levelIds.map((id) => (
+                  <li
+                    key={id}
+                    className="flex items-center gap-2 rounded-full bg-surface-accent px-3 py-1 text-sm"
+                  >
+                    {finance.levelName(id) || id}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${finance.levelName(id) || id}`}
+                      onClick={() => setLevelIds(levelIds.filter((entry) => entry !== id))}
+                    >
+                      x
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+          </SchemaEntityForm>
+        ) : null}
+      </Modal>
+
+      <Modal
+        isOpen={lineSchedule !== null}
+        onClose={() => {
+          setLineScheduleId(null);
+          setLineDraft(null);
+        }}
+        title={`Fee lines${lineSchedule ? ` · ${lineSchedule.name}` : ''}`}
+        size="xl"
+      >
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              onClick={() => {
+                setLineError(null);
+                setLineDraft({ id: null, row: null });
               }}
-            />
+              leftIcon={<PlusIcon className="w-4 h-4" />}
+            >
+              Add fee line
+            </Button>
           </div>
-        )}
-      </DialogForm>
+          <DataGrid
+            columns={lineColumns}
+            data={[...(lineSchedule?.lines ?? [])]}
+            sortable
+            filterable
+            emptyState={{
+              icon: <ListBulletIcon className="w-8 h-8 text-surface-muted-fg" />,
+              title: 'No fee lines',
+              description: 'A schedule with no lines bills nothing.',
+            }}
+          />
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={lineDraft !== null}
+        onClose={() => setLineDraft(null)}
+        title={lineDraft?.id ? 'Edit fee line' : 'New fee line'}
+        size="lg"
+      >
+        {lineSchedule && lineDraft ? (
+          <SchemaEntityForm
+            schema={
+              lineDraft.id ? updateSchemaFor('fee_schedule_line') : createSchemaFor('fee_schedule_line')
+            }
+            recordKey={lineDraft.id ?? `new-${lineSchedule.id}`}
+            initialValues={
+              lineDraft.row
+                ? toWritableValues(lineDraft.row)
+                : {
+                    institution_id: lineSchedule.row.institution_id,
+                    fee_schedule_id: lineSchedule.id,
+                    fee_item_id: '',
+                    amount: money(0, CURRENCY),
+                    mandatory: true,
+                    frequency: 'per_term' as const,
+                    proration_rule: 'full' as const,
+                  }
+            }
+            fields={lineFields}
+            lookups={{ feeItem: toFormLookup(finance.lookups.feeItem) }}
+            serverError={lineError}
+            submitLabel={lineDraft.id ? 'Save line' : 'Add line'}
+            onCancel={() => setLineDraft(null)}
+            onSubmit={saveLine}
+          />
+        ) : null}
+      </Modal>
     </div>
   );
 };
 
 const FeeTemplatesPage: React.FC = () => (
-  <div className="space-y-6">
-    <FeeTemplatesContent />
-  </div>
+  <CanonicalRepositoryProvider>
+    <div className="space-y-6">
+      <FeeTemplatesContent />
+    </div>
+  </CanonicalRepositoryProvider>
 );
 
 export default FeeTemplatesPage;

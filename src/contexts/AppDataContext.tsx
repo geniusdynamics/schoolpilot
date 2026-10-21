@@ -20,6 +20,7 @@ import { NetworkStateManager, NetworkState } from '../services/data/NetworkState
 import { getDataModeManager } from '../services/data/dataModeManager';
 import { sharedDataStore } from '../services/data/SharedDataStore';
 import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
+import { seedCanonicalDemoSchool } from '../data/demo/seedCanonicalDemo';
 import { moduleRegistry } from '../core/moduleRegistry';
 import {
   createAppDataLoadingState,
@@ -469,6 +470,17 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
               dataMode: 'demo',
               volume: 'medium'
             });
+          }
+          // The migrated pages read the canonical database, so a fresh install is seeded there
+          // too, through the repository. The seed is idempotent: a school that already exists is
+          // reused and the demo rows are not written again.
+          try {
+            const demo = await seedCanonicalDemoSchool();
+            if (demo.created) {
+              logger.info('[AppDataContext] the canonical demo school was installed');
+            }
+          } catch (demoError) {
+            logger.error('[AppDataContext] the canonical demo school was not installed:', demoError);
           }
         }
 
@@ -1173,17 +1185,17 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [getNormalizedData]);
 
   const getTimetableEntries = useCallback((classStreamId: number) => {
-    return (getNormalizedData().timetableEntries || []).filter((entry: any) => Number(entry.class_stream_id) === Number(classStreamId));
+    return (getNormalizedData().timetableEntries || []).filter((entry: any) => String(entry.class_stream_id) === String(classStreamId));
   }, [getNormalizedData]);
 
   const getStudentAttendanceByFilters = useCallback((date: string, classStreamId: number, periodId: number) => {
     const normalized = getNormalizedData();
-    const studentsInStream = (normalized.students || []).filter((student: any) => Number(student.current_class_stream_id) === Number(classStreamId));
+    const studentsInStream = (normalized.students || []).filter((student: any) => String(student.current_class_stream_id) === String(classStreamId));
     const studentIds = new Set(studentsInStream.map((student: any) => String(student.id)));
 
     return (normalized.studentAttendance || []).filter((record: any) =>
       record.date === date &&
-      Number(record.period_id) === Number(periodId) &&
+      String(record.period_id) === String(periodId) &&
       studentIds.has(String(record.student_id))
     );
   }, [getNormalizedData]);
@@ -1213,10 +1225,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     throw new Error('student_attendance collection not available');
   }, [dbManager, loadAllCollections]);
 
-  const resolveSubjectPaperDetails = useCallback((subjectPaperId: number) => {
+  const resolveSubjectPaperDetails = useCallback((subjectPaperId: string) => {
     const normalized = getNormalizedData();
     const subjectPaper = (normalized.subjectPapers || []).find(
-      (item: any) => Number(item.id) === Number(subjectPaperId)
+      (item: any) => String(item.id) === String(subjectPaperId)
     );
     return {
       subject_name: subjectPaper?.subject_name || null,
@@ -1250,7 +1262,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const addExamSession = useCallback(async (sessionData: any) => {
     const normalized = getNormalizedData();
     const schoolPeriod = (normalized.schoolPeriods || []).find(
-      (item: any) => Number(item.id) === Number(sessionData.school_period_id)
+      (item: any) => String(item.id) === String(sessionData.school_period_id)
     );
     const timestamp = new Date().toISOString();
     const nextSession = {
@@ -1276,7 +1288,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return mutateExamSessionRecord(sessionId, (currentSession, timestamp) => {
       const normalized = getNormalizedData();
       const schoolPeriodId = sessionData.school_period_id ?? currentSession.school_period_id;
-      const schoolPeriod = (normalized.schoolPeriods || []).find((item: any) => Number(item.id) === Number(schoolPeriodId));
+      const schoolPeriod = (normalized.schoolPeriods || []).find((item: any) => String(item.id) === String(schoolPeriodId));
       return {
         ...currentSession,
         ...sessionData,
@@ -1299,7 +1311,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const addExamPaperSetting = useCallback(async (settingData: any) => {
     const timestamp = new Date().toISOString();
-    const paperDetails = resolveSubjectPaperDetails(Number(settingData.subject_paper_id));
+    const paperDetails = resolveSubjectPaperDetails(String(settingData.subject_paper_id));
     const nextSetting = {
       ...settingData,
       ...paperDetails,
@@ -1327,7 +1339,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       ...session,
       paper_settings: (session.paper_settings || []).map((setting: any) => {
         if (String(setting.id) !== String(settingId)) return setting;
-        const paperDetails = resolveSubjectPaperDetails(Number(settingData.subject_paper_id ?? setting.subject_paper_id));
+        const paperDetails = resolveSubjectPaperDetails(String(settingData.subject_paper_id ?? setting.subject_paper_id));
         return { ...setting, ...settingData, ...paperDetails, updated_at: timestamp };
       }),
       updated_at: timestamp
@@ -1359,7 +1371,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const timestamp = new Date().toISOString();
     const student = (normalized.students || []).find((item: any) => String(item.id) === String(resultData.student_id));
     const session = (normalized.examSessions || []).find((item: any) => String(item.id) === String(resultData.exam_session_id));
-    const classStream = (normalized.classStreams || []).find((item: any) => Number(item.id) === Number(student?.current_class_stream_id));
+    const classStream = (normalized.classStreams || []).find((item: any) => String(item.id) === String(student?.current_class_stream_id));
     const marks = (resultData.marks || []).map((mark: any) => {
       const paper = (session?.paper_settings || []).find((item: any) => String(item.id) === String(mark.paper_setting_id));
       return {
@@ -1435,9 +1447,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const addTimetableEntry = useCallback(async (entryData: any) => {
     const normalized = getNormalizedData();
-    const classStream = (normalized.classStreams || []).find((item: any) => Number(item.id) === Number(entryData.class_stream_id));
-    const period = (normalized.timetablePeriodDefs || []).find((item: any) => Number(item.id) === Number(entryData.period_id));
-    const subject = (normalized.subjects || []).find((item: any) => Number(item.id) === Number(entryData.subject_id));
+    const classStream = (normalized.classStreams || []).find((item: any) => String(item.id) === String(entryData.class_stream_id));
+    const period = (normalized.timetablePeriodDefs || []).find((item: any) => String(item.id) === String(entryData.period_id));
+    const subject = (normalized.subjects || []).find((item: any) => String(item.id) === String(entryData.subject_id));
     const teacher = (normalized.staff || []).find((item: any) => String(item.id) === String(entryData.teacher_id));
 
     const newEntry = {

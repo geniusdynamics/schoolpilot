@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
@@ -22,14 +21,11 @@ interface Student {
 
 export const BirthCertificateContent: React.FC = () => {
 
-  const { loading } = useAppData();
-
   const [selectedClass, setSelectedClass] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
-  // Mock data for students (in production, this would come from useAppData)
-  const mockStudents: Student[] = useMemo(() => {
+    const mockStudents: Student[] = useMemo(() => {
     const students: Student[] = [
       {
         id: 'stu-1',
@@ -101,7 +97,7 @@ export const BirthCertificateContent: React.FC = () => {
     window.print();
   };
 
-  if (loading?.all && mockStudents.length === 0) {
+  if (mockStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

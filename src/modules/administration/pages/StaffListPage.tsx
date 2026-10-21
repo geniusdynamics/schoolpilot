@@ -1,215 +1,243 @@
-// ABOUTME: Staff list page — searchable grid plus add/edit/delete dialog for staff members.
-// ABOUTME: All staff CRUD goes through useAdministration(); the form captures identity and employment fields.
+// ABOUTME: Staff list page — searchable grid plus add/edit dialog bound to the canonical staff schema.
+// ABOUTME: Reads and writes go through the repository; the job title and department are EntityPickers.
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
-import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon, EyeIcon } from '@/components/ui/icons';
-import { useAdministration } from '../hooks/useAdministration';
+import Input from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
-
-import EntityForm from '@/components/ui/forms/EntityForm';
-import type { Staff } from '@/core/types';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { SchemaEntityForm } from '@/components/ui/forms';
+import { DeleteIcon, EditIcon, EyeIcon, PlusIcon, UserGroupIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { createSchemaFor, updateSchemaFor } from '@/data/repository';
+import { asId } from '@/domain/ids';
 
-/** Identity and employment fields captured on the staff form (SO-31). */
-const STAFF_PROFILE_FIELDS = ['email', 'gender', 'national_id', 'employer_number', 'employment_type'] as const;
+import { useWritableRepository } from '../data/useWritableRepository';
+import { useInstitutionId } from '../data/useCanonicalStaff';
+import {
+  EMPLOYMENT_TYPE_OPTIONS,
+  GENDER_OPTIONS,
+  type CanonicalStaffMember,
+  saveStaffIdentifiers,
+  staffCreateInput,
+  staffUpdateInput,
+  useCanonicalStaff,
+} from '../data/useCanonicalStaff';
+import { useCanonicalOrganisation } from '../data/useCanonicalOrganisation';
 
-type StaffWithProfile = Staff & Partial<Record<(typeof STAFF_PROFILE_FIELDS)[number], string | null>>;
+interface StaffFormState {
+  staff_no: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email: string;
+  gender: string;
+  employment_type: string;
+  department_id: string | null;
+  designation_id: string | null;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  national_id: string;
+  employer_number: string;
+}
 
-const optionalString = (value: unknown): string | undefined =>
-  value != null && value !== '' ? String(value) : undefined;
+const emptyForm = (): StaffFormState => ({
+  staff_no: '',
+  first_name: '',
+  last_name: '',
+  phone: '',
+  email: '',
+  gender: 'not_stated',
+  employment_type: 'permanent',
+  department_id: null,
+  designation_id: null,
+  start_date: new Date().toISOString().slice(0, 10),
+  end_date: null,
+  is_active: true,
+  national_id: '',
+  employer_number: '',
+});
+
+function formOf(member: CanonicalStaffMember): StaffFormState {
+  return {
+    staff_no: member.staff_no,
+    first_name: member.first_name,
+    last_name: member.last_name,
+    phone: member.phone,
+    email: member.email,
+    gender: member.gender || 'not_stated',
+    employment_type: member.employment_type,
+    department_id: member.department_id,
+    designation_id: member.designation_id,
+    start_date: member.start_date,
+    end_date: member.end_date,
+    is_active: member.is_active,
+    national_id: member.national_id,
+    employer_number: member.employer_number,
+  };
+}
 
 export const StaffListContent: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('administration');
-  const {
-    staff: rawStaff, loading, addStaff, updateStaff, deleteStaff,
-    departments,
-    designations
-  } = useAdministration();
-  const staff = (rawStaff || []) as StaffWithProfile[];
-  
+  const repository = useWritableRepository();
+  const institutionId = useInstitutionId();
+  const { staff, isLoading } = useCanonicalStaff();
+  const { departments, jobTitles, departmentRows, jobTitleRows } = useCanonicalOrganisation();
+  const confirm = useConfirm();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [editing, setEditing] = useState<CanonicalStaffMember | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | ''>('');
-  const [initialValues, setInitialValues] = useState<Record<string, any>>({ staff_no: '', first_name: '', last_name: '', is_active: true });
+  const [form, setForm] = useState<StaffFormState>(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const openModal = (staffMember?: Staff) => {
-    setEditingStaff(staffMember || null);
-    if (staffMember) {
-      setInitialValues({
-        staff_no: staffMember.staff_no,
-        first_name: staffMember.first_name,
-        last_name: staffMember.last_name,
-        phone: staffMember.phone,
-        ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, (staffMember as StaffWithProfile)[field] ?? ''])),
-        department_id: staffMember.department_id,
-        designation_id: staffMember.designation_id,
-        hod_of_department_id: staffMember.hod_of_department_id,
-        is_active: staffMember.is_active ?? true,
-      });
-    } else {
-      const existingStaffNos = staff
-        .map(s => parseInt(String(s.staff_no ?? '').replace(/\D/g, ''), 10))
-        .filter(n => !isNaN(n));
-      const nextStaffNoSuffix = existingStaffNos.length > 0 ? Math.max(...existingStaffNos) + 1 : 1;
-      const nextStaffNo = `EMP${String(nextStaffNoSuffix).padStart(3, '0')}`;
-      setInitialValues({ staff_no: nextStaffNo, first_name: '', last_name: '', phone: '', is_active: true });
-    }
+  const openModal = (member?: CanonicalStaffMember) => {
+    setEditing(member ?? null);
+    setError(null);
+    setForm(
+      member
+        ? formOf(member)
+        : { ...emptyForm(), staff_no: nextEmployeeNumber(staff) }
+    );
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingStaff(null);
+    setEditing(null);
   };
 
-  const confirm = useConfirm();
-  const handleDelete = async (staffId: string) => {
+  const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this staff member?' }))) {
-      await deleteStaff(staffId);
+      await repository.remove('staff', asId<'staff'>(id));
     }
   };
 
-  const handleView = (staffId: string) => {
-    navigate(`/administration/staff/${staffId}`);
-  };
+  const filteredStaff = useMemo(
+    () =>
+      staff
+        .filter((member) => !member.deleted_at)
+        .filter((member) =>
+          statusFilter ? (statusFilter === 'active' ? member.is_active : !member.is_active) : true
+        )
+        .filter((member) =>
+          [
+            member.first_name,
+            member.last_name,
+            member.staff_no,
+            member.email,
+            member.department_name,
+            member.designation_title,
+            member.display_name,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+        ),
+    [staff, searchTerm, statusFilter]
+  );
 
-  const departmentName = (id: unknown) => departments.find(d => String(d.id) === String(id))?.name;
-  const designationTitle = (id: unknown) => designations.find(d => String(d.id) === String(id))?.title;
-
-  const filteredStaff = useMemo(() => {
-    return staff
-      .filter(s => !s.deleted_at)
-      .map(s => ({
-        ...s,
-        // Resolve labels from the live lookups; fall back to the stored denormalised copies
-        department_name: departmentName(s.department_id) ?? s.department_name,
-        designation_title: designationTitle(s.designation_id) ?? s.designation_title,
-        hod_of_department_name: departmentName(s.hod_of_department_id) ?? s.hod_of_department_name,
-        // Materialize the computed 'name' the grid column references so
-        // DataGrid sorting/filtering operate on a real field
-        name: s.display_name || [s.first_name, s.last_name].filter(Boolean).join(' ') || s.staff_no || '—',
-      }))
-      .filter(s =>
-        [s.first_name, s.last_name, s.staff_no, s.email, s.department_name, s.designation_title, s.display_name]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      )
-      .filter(s =>
-        statusFilter ? (statusFilter === 'active' ? s.is_active : !s.is_active) : true
-      );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- lookup helpers derive from departments/designations
-  }, [staff, departments, designations, searchTerm, statusFilter]);
-
-  const columns: DataGridColumn<(typeof filteredStaff)[number]>[] = [
-    {
-      key: 'staff_no',
-      header: 'Staff No',
-      sortable: true,
-      filterable: true,
-            render: (_value, item) => item.staff_no || '—'
-    },
-    {
-      key: 'name',
-      header: 'Name',
-      sortable: true,
-      filterable: true,
-            render: (_value, item) => item.name || '—'
-    },
+  const columns: DataGridColumn<CanonicalStaffMember>[] = [
+    { key: 'staff_no', header: 'Staff No', sortable: true, filterable: true, render: (_v, item) => item.staff_no || '—' },
+    { key: 'name', header: 'Name', sortable: true, filterable: true, render: (_v, item) => item.name || '—' },
     {
       key: 'department_name',
       header: 'Department',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.department_name || '—'
+      render: (_v, item) => item.department_name || '—',
     },
     {
       key: 'designation_title',
       header: 'Designation',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.designation_title || '—'
+      render: (_v, item) => item.designation_title || '—',
     },
     {
       key: 'hod_of_department_name',
       header: 'HOD Of',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.hod_of_department_name || '—'
+      render: (_v, item) => item.hod_of_department_name || '—',
     },
-    {
-      key: 'phone',
-      header: 'Phone',
-      sortable: true,
-      filterable: true,
-            render: (_value, item) => item.phone || '—'
-    },
+    { key: 'phone', header: 'Phone', sortable: true, filterable: true, render: (_v, item) => item.phone || '—' },
     {
       key: 'email',
       header: 'Email',
       sortable: true,
       filterable: true,
-            render: (_value, item) => (
-        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || '—'}</span>
-      )
+      render: (_v, item) => (
+        <span className="block max-w-[180px] truncate" title={item.email || ''}>
+          {item.email || '—'}
+        </span>
+      ),
     },
-    { 
+    {
       key: 'is_active',
-      header: 'Status', 
+      header: 'Status',
       sortable: true,
       filterable: true,
-            render: (_value, item) => item.is_active ? 'Active' : 'Inactive'
+      render: (_v, item) => (item.is_active ? 'Active' : 'Inactive'),
     },
     {
       key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
-      
       sticky: 'right',
-      render: (_value, item) => (
+      render: (_v, item) => (
         <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" onClick={() => handleView(item.id)} leftIcon={<EyeIcon className="w-4 h-4" />}>View</Button>
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => navigate(`/administration/staff/${item.id}`)} leftIcon={<EyeIcon className="w-4 h-4" />}>
+            View
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
+            Edit
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>
+            Delete
+          </Button>
         </div>
       ),
     },
   ];
-  
-  const pageIsLoading = loading === true;
 
   return (
     <div className="space-y-6">
-      <Card title="Staff Management" bodyClassName="p-0" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Staff
-        </Button>
-      }>
-        <div className="p-4 sm:p-6 pb-0 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card
+        title="Staff Management"
+        bodyClassName="p-0"
+        actions={
+          <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            Add Staff
+          </Button>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 p-4 pb-0 sm:p-6 md:grid-cols-3">
           <Input
             type="text"
             placeholder="Search staff..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(event) => setSearchTerm(event.target.value)}
             label="Search"
           />
           <Select
             name="statusFilter"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'active' | 'inactive' | '')}
+            onChange={(event) => setStatusFilter(event.target.value as 'active' | 'inactive' | '')}
             label="Filter by Status"
           >
             <option value="">All Statuses</option>
@@ -217,14 +245,16 @@ export const StaffListContent: React.FC = () => {
             <option value="inactive">Inactive</option>
           </Select>
         </div>
-        {pageIsLoading && !isModalOpen ? (
-          <div className="flex justify-center items-center py-10"> <Spinner /> <span className="ml-2">Loading staff...</span> </div>
+        {isLoading && staff.length === 0 && !isModalOpen ? (
+          <div className="flex items-center justify-center py-10">
+            <Spinner /> <span className="ml-2">Loading staff...</span>
+          </div>
         ) : (
           <div className="border-t border-surface-border">
-            <DataGrid 
-              columns={columns} 
-              data={filteredStaff} 
-              loading={pageIsLoading && !isModalOpen}
+            <DataGrid
+              columns={columns}
+              data={filteredStaff}
+              loading={isLoading && !isModalOpen}
               sortable
               filterable
               emptyState={{
@@ -237,97 +267,193 @@ export const StaffListContent: React.FC = () => {
         )}
       </Card>
 
-      <EntityForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
-        initialData={initialValues}
-        fields={[
-          { name: 'staff_no', label: 'Staff No.', required: true },
-          { name: 'first_name', label: 'First Name', required: true },
-          { name: 'last_name', label: 'Last Name', required: true },
-          { name: 'phone', label: 'Phone' },
-          { name: 'email', label: t('staff.form.email', 'Email'), type: 'email' },
-          {
-            name: 'gender',
-            label: t('staff.form.gender', 'Gender'),
-            type: 'select',
-            placeholder: t('staff.form.genderPlaceholder', 'Select gender'),
-            options: [
-              { value: 'female', label: t('staff.form.genderFemale', 'Female') },
-              { value: 'male', label: t('staff.form.genderMale', 'Male') },
-              { value: 'other', label: t('staff.form.genderOther', 'Other') },
-            ],
-          },
-          { name: 'national_id', label: t('staff.form.nationalId', 'National ID / Passport No.') },
-          {
-            name: 'employer_number',
-            label: t('staff.form.employerNumber', 'Employer No. (e.g. TSC number)'),
-          },
-          {
-            name: 'employment_type',
-            label: t('staff.form.employmentType', 'Employment Type'),
-            type: 'select',
-            placeholder: t('staff.form.employmentTypePlaceholder', 'Select employment type'),
-            options: [
-              { value: 'permanent', label: t('staff.form.employmentPermanent', 'Permanent') },
-              { value: 'contract', label: t('staff.form.employmentContract', 'Contract') },
-              { value: 'part_time', label: t('staff.form.employmentPartTime', 'Part-time') },
-              { value: 'board', label: t('staff.form.employmentBoard', 'Board of Management') },
-              { value: 'intern', label: t('staff.form.employmentIntern', 'Intern / Attachment') },
-            ],
-          },
-          {
-            name: 'department_id',
-            label: 'Department',
-            type: 'select',
-            placeholder: 'Select Department',
-            options: departments.map(dep => ({ value: dep.id, label: dep.name })),
-          },
-          {
-            name: 'designation_id',
-            label: 'Designation',
-            type: 'select',
-            placeholder: 'Select Designation',
-            options: designations.map(des => ({ value: des.id, label: des.title })),
-          },
-          {
-            name: 'hod_of_department_id',
-            label: 'Head of Department (If applicable)',
-            type: 'select',
-            placeholder: 'None',
-            options: departments.filter(d => d.is_academic).map(dep => ({ value: dep.id, label: dep.name })),
-          },
-          { name: 'is_active', label: 'Is Active Staff Member', type: 'checkbox' },
-        ]}
-        submitLabel={editingStaff ? 'Save Changes' : 'Add Staff Member'}
-        cancelLabel="Cancel"
-        onSubmit={async (values) => {
-          const payload = {
-            staff_no: String(values.staff_no ?? ''),
-            first_name: String(values.first_name ?? ''),
-            last_name: String(values.last_name ?? ''),
-            is_active: Boolean(values.is_active),
-            phone: values.phone ? String(values.phone) : undefined,
-            ...Object.fromEntries(STAFF_PROFILE_FIELDS.map(field => [field, optionalString(values[field])])),
-            department_id: optionalString(values.department_id),
-            designation_id: optionalString(values.designation_id),
-            hod_of_department_id: optionalString(values.hod_of_department_id),
-            // Keep the stored denormalised labels in step with the chosen ids
-            department_name: departmentName(values.department_id),
-            designation_title: designationTitle(values.designation_id),
-            hod_of_department_name: departmentName(values.hod_of_department_id),
-          };
-          if (editingStaff) {
-            await updateStaff(String(editingStaff.id), payload);
-          } else {
-            await addStaff(payload);
+        title={editing ? 'Edit Staff Member' : 'Add New Staff Member'}
+        size="xl"
+        bodyClassName="max-h-[80vh] overflow-y-auto"
+      >
+        {error ? (
+          <p role="alert" className="mb-4 text-sm font-medium text-red-600">
+            {error}
+          </p>
+        ) : null}
+        <SchemaEntityForm
+          schema={editing ? updateSchemaFor('staff') : createSchemaFor('staff')}
+          recordKey={editing?.id ?? 'new'}
+          initialValues={
+            editing
+              ? {
+                  institution_id: editing.institution_id,
+                  given_name: editing.given_name,
+                  family_name: editing.family_name,
+                  name_order: 'given_first',
+                  gender: editing.gender || 'not_stated',
+                  employee_number: editing.employee_number,
+                  employment_type: editing.employment_type,
+                  department_ids: [...editing.department_ids],
+                  start_date: editing.start_date,
+                  ...(editing.job_title_id ? { job_title_id: editing.job_title_id } : {}),
+                  ...(editing.end_date ? { end_date: editing.end_date } : {}),
+                }
+              : {
+                  institution_id: institutionId ?? '',
+                  given_name: '',
+                  family_name: '',
+                  name_order: 'given_first',
+                  gender: 'not_stated',
+                  employee_number: form.staff_no,
+                  employment_type: 'permanent',
+                  department_ids: [],
+                  start_date: form.start_date,
+                }
           }
-        }}
-      />
+          fields={[
+            { path: 'employee_number', label: 'Staff No.', order: 1, required: true },
+            { path: 'given_name', label: 'First Name', order: 2, required: true },
+            { path: 'family_name', label: 'Last Name', order: 3, required: true },
+            {
+              path: 'gender',
+              label: t('staff.form.gender', 'Gender'),
+              order: 4,
+              widget: 'select',
+              options: GENDER_OPTIONS.map((option) => ({ ...option })),
+            },
+            {
+              path: 'employment_type',
+              label: t('staff.form.employmentType', 'Employment Type'),
+              order: 5,
+              widget: 'select',
+              options: EMPLOYMENT_TYPE_OPTIONS.map((option) => ({ ...option })),
+            },
+            {
+              path: 'job_title_id',
+              label: 'Designation',
+              order: 6,
+              widget: 'entity',
+              lookupKey: 'job_title_id',
+            },
+            { path: 'start_date', label: 'Start Date', order: 7, widget: 'date', required: true },
+          ]}
+          lookups={{ job_title_id: jobTitles }}
+          onSubmit={async (values) => {
+            const gender =
+              values.gender === 'female' || values.gender === 'male' || values.gender === 'other'
+                ? values.gender
+                : 'not_stated';
+            const employmentType =
+              values.employment_type === 'contract' ||
+              values.employment_type === 'board_employed' ||
+              values.employment_type === 'volunteer' ||
+              values.employment_type === 'intern'
+                ? values.employment_type
+                : 'permanent';
+            const mapped = {
+              staff_no: String(values.employee_number ?? ''),
+              first_name: String(values.given_name ?? ''),
+              last_name: String(values.family_name ?? ''),
+              phone: form.phone,
+              email: form.email,
+              gender,
+              employment_type: employmentType,
+              department_id: form.department_id,
+              designation_id:
+                typeof values.job_title_id === 'string' ? values.job_title_id : null,
+              start_date: String(values.start_date ?? form.start_date),
+              end_date: form.end_date,
+              is_active: form.is_active,
+              national_id: form.national_id,
+              employer_number: form.employer_number,
+            };
+            setSaving(true);
+            setError(null);
+            try {
+              const staffId = editing
+                ? (
+                    await repository.update('staff', asId<'staff'>(editing.id), staffUpdateInput(mapped), {
+                      expectedVersion: editing.rowVersion,
+                    })
+                  ).id
+                : (
+                    await repository.create('staff', staffCreateInput(mapped, institutionId ?? ''))
+                  ).id;
+              await saveStaffIdentifiers(repository, {
+                staffId,
+                institutionId: institutionId ?? '',
+                nationalId: mapped.national_id,
+                employerNumber: mapped.employer_number,
+              });
+              closeModal();
+            } catch (caught) {
+              setError(caught instanceof Error ? caught.message : 'The staff member could not be saved.');
+            } finally {
+              setSaving(false);
+            }
+          }}
+          onCancel={closeModal}
+          submitting={saving}
+          submitLabel={editing ? 'Save Changes' : 'Add Staff Member'}
+          cancelLabel="Cancel"
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              name="phone"
+              label="Phone"
+              value={form.phone}
+              onChange={(event) => setForm((previous) => ({ ...previous, phone: event.target.value }))}
+            />
+            <Input
+              name="email"
+              label={t('staff.form.email', 'Email')}
+              type="email"
+              value={form.email}
+              onChange={(event) => setForm((previous) => ({ ...previous, email: event.target.value }))}
+            />
+            <Input
+              name="national_id"
+              label={t('staff.form.nationalId', 'National ID / Passport No.')}
+              value={form.national_id}
+              onChange={(event) => setForm((previous) => ({ ...previous, national_id: event.target.value }))}
+            />
+            <Input
+              name="employer_number"
+              label={t('staff.form.employerNumber', 'Employer No. (e.g. TSC number)')}
+              value={form.employer_number}
+              onChange={(event) => setForm((previous) => ({ ...previous, employer_number: event.target.value }))}
+            />
+            <div>
+              <EntityPicker
+                id="staff-department"
+                name="department_id"
+                label="Department"
+                value={form.department_id ? asId<'department'>(form.department_id) : null}
+                onChange={(id) => setForm((previous) => ({ ...previous, department_id: id }))}
+                lookup={departments}
+                placeholder="Select Department"
+                allowClear
+                data-testid="staff-department-picker"
+              />
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-surface-muted-fg">
+            {departmentRows.length} department(s) and {jobTitleRows.length} designation(s) are held
+            by the canonical repository.
+          </p>
+        </SchemaEntityForm>
+      </Modal>
     </div>
   );
 };
+
+/** The next employee number the dialog proposes. */
+function nextEmployeeNumber(staff: readonly CanonicalStaffMember[]): string {
+  const existing = staff
+    .map((member) => parseInt(String(member.staff_no ?? '').replace(/\D/g, ''), 10))
+    .filter((value) => !Number.isNaN(value));
+  const next = existing.length > 0 ? Math.max(...existing) + 1 : 1;
+  return `EMP${String(next).padStart(3, '0')}`;
+}
 
 const StaffListPage: React.FC = () => (
   <div className="space-y-6">
@@ -335,4 +461,5 @@ const StaffListPage: React.FC = () => (
   </div>
 );
 
-export default StaffListPage;
+const StaffListPageWithRepository = withCanonicalRepository(StaffListPage);
+export default StaffListPageWithRepository;

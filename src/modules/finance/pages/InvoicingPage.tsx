@@ -9,6 +9,7 @@ import {
   DocumentDuplicateIcon,
   DocumentTextIcon,
 } from '@/components/ui/icons';
+import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import { InvoiceGenerationPageContent } from './InvoiceGenerationPage';
 import { CustomerInvoicesPageContent } from './CustomerInvoicesPage';
 import { SupplierInvoicesPageContent } from './SupplierInvoicesPage';
@@ -64,26 +65,28 @@ const InvoicingPage: React.FC = () => {
   const activeTabData = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
-    <div className="space-y-4">
-      <PageHeaderWithTabs
-        title={t('invoicing.title', 'Invoicing')}
-        subtitle={t(
-          'invoicing.subtitle',
-          'Generate and manage customer and supplier invoices'
-        )}
-        tabs={tabs.map((tab) => ({
-          id: tab.id,
-          label: tab.label,
-          icon: tab.icon,
-        }))}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        variant="compact"
-        colorScheme="teal"
-      >
-        {activeTabData.component}
-      </PageHeaderWithTabs>
-    </div>
+    <CanonicalRepositoryProvider>
+      <div className="space-y-4">
+        <PageHeaderWithTabs
+          title={t('invoicing.title', 'Invoicing')}
+          subtitle={t(
+            'invoicing.subtitle',
+            'Generate and manage customer and supplier invoices'
+          )}
+          tabs={tabs.map((tab) => ({
+            id: tab.id,
+            label: tab.label,
+            icon: tab.icon,
+          }))}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          variant="compact"
+          colorScheme="teal"
+        >
+          {activeTabData.component}
+        </PageHeaderWithTabs>
+      </div>
+    </CanonicalRepositoryProvider>
   );
 };
 

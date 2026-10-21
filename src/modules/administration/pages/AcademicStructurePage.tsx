@@ -3,13 +3,13 @@ import { AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, PuzzlePieceIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+import { useAcademicYearStructureData } from '../data/useAcademicYearStructureData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -19,12 +19,14 @@ type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 
 const AcademicStructurePage: React.FC = () => {
   const { t } = useTranslation();
-  const appData = useAppData();
-  const academicYearStructures = appData.academicYearStructures || [];
-  const loading = appData.loading || {};
-  const addAcademicYearStructure = appData.addAcademicYearStructure;
-  const updateAcademicYearStructure = appData.updateAcademicYearStructure;
-  const deleteAcademicYearStructure = appData.deleteAcademicYearStructure;
+  // GAP(P1-E01): the registry models academic years and periods, not the year-structure
+  // templates ("Standard 3-Term System"); the structure keeps its own collection.
+  const structures = useAcademicYearStructureData();
+  const academicYearStructures = structures.academicYearStructures;
+  const loading = structures.loading;
+  const addAcademicYearStructure = structures.create;
+  const updateAcademicYearStructure = structures.update;
+  const deleteAcademicYearStructure = structures.remove;
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<AcademicYearStructure | null>(null);
