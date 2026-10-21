@@ -1,0 +1,11 @@
+{
+  "task": "P1-C05",
+  "note": "The name of migration M5, which the progress screen shows while it runs. The migration has no interactive step and no other UI strings; its report (the reason a legacy invoice, payment or adjustment could not be mapped, the rounding of an amount, the currency of a foreign payment, the over-allocated application) stays English on purpose, because a data migration has no access to the translation layer and the operator sees those lines as data diagnostics. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw.",
+  "en": {
+    "common": {
+      "migration": {
+        "m5Name": "Migrate the fee templates, invoices, payments and credit notes"
+      }
+    }
+  }
+}
