@@ -2675,10 +2675,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "2138d16",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P2-A01",
