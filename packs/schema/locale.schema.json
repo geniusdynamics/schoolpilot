@@ -1,0 +1,80 @@
+{
+  "$comment": "Implements spec 03 §2.1 (locales/en.json, sw.json: labels, descriptors and comment-bank seeds) and §8.2 (multilingual template labels from the pack locale). One locale file per language; the pack maps language tags to this shape.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/locale.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack locale",
+  "description": "Translated labels, band descriptors and comment-bank seeds for one language (spec 03 §2.1, §8.2).",
+  "type": "object",
+  "minProperties": 1,
+  "properties": {
+    "labels": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "description": "Template and field labels keyed by locale key, for example report.results or block.attendance. Report templates reference these keys through block label_key (spec 03 §8.2)."
+    },
+    "descriptors": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "description": "Descriptor text by scale code and then band code, for example cbe_8_level.EE1 (spec 03 §2.1 comment-bank and descriptor seeds; §5 band descriptor)."
+    },
+    "comment_bank": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/comment"
+      },
+      "description": "Seed remarks a teacher can insert, filtered by scope and band (spec 03 §8.2 comment-bank suggestions by band; spec 02 §8 comment_bank_entry)."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "comment": {
+      "type": "object",
+      "required": [
+        "scope",
+        "band",
+        "text"
+      ],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "learning_area",
+            "overall",
+            "conduct"
+          ],
+          "description": "Where the remark applies (spec 02 §8 comment_bank_entry.scope)."
+        },
+        "band": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Band or level code the remark suits, for example EE1 or B+."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "The remark text in this locale (spec 03 §8.2)."
+        },
+        "learning_area": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Optional learning-area code when the remark only fits one subject."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

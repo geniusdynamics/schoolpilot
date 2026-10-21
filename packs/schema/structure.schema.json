@@ -1,0 +1,222 @@
+{
+  "$comment": "Implements spec 03 §3 (structural model: stages, levels, pathways and the calendar template). This file is the schema for structure.json.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/structure.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack structure (structure.json)",
+  "description": "Stages, levels, pathways and the calendar template a programme instantiates (spec 03 §3).",
+  "type": "object",
+  "required": [
+    "stages",
+    "levels",
+    "calendar_template"
+  ],
+  "properties": {
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stage"
+      },
+      "description": "Ordered bands of schooling, for example Pre-primary, Lower Primary, Junior School or KS3 (spec 03 §3). Stage order is the array order."
+    },
+    "levels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/level"
+      },
+      "description": "Every level a programme can place a learner in. Codes are unique within the pack (runtime check)."
+    },
+    "pathways": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/pathway"
+      },
+      "description": "Senior-school pathways or A-Level combinations (spec 03 §3, Appendix A). Optional: a primary-only pack has none."
+    },
+    "calendar_template": {
+      "$ref": "#/$defs/calendarTemplate"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "levels"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Level codes belonging to this stage, in order. Each must be declared in levels (runtime check)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "level": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "ordinal"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Global position within the programme, used by promotion. Spec 02 §4 defines ordinal as global within a programme."
+        },
+        "typical_age": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Typical age in years at entry to the level (spec 03 §3 example: G7 has typical_age 12)."
+        },
+        "next": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/code"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The level a learner normally moves to. null marks the end of a programme. The code must resolve to a declared level (runtime check)."
+        },
+        "is_stage_exit": {
+          "type": "boolean",
+          "description": "True when leaving this level ends a stage and needs a stage transition, for example G9 to Senior School (spec 03 §3, §7)."
+        },
+        "national_assessment": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/code"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Code of the national assessment taken at this level, for example KJSEA at G9, or null when there is none (spec 03 §3). No national weights are hard-coded in the pack (Appendix A)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "pathway": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "levels"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels in which this pathway is offered, for example G10 to G12 for Kenya Senior School (spec 03 §3)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "calendarTemplate": {
+      "type": "object",
+      "required": [
+        "year_kind",
+        "periods"
+      ],
+      "properties": {
+        "year_kind": {
+          "type": "string",
+          "enum": [
+            "calendar_year",
+            "academic_year"
+          ],
+          "description": "calendar_year runs January to December (Kenya, Uganda, Tanzania); academic_year runs September to July (British packs, Appendix C). A programme's academic years are created from this template."
+        },
+        "periods": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/calendarPeriod"
+          },
+          "description": "Reporting periods in sequence. Half-terms nest inside terms (spec 02 §3)."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "Free text for the setup wizard, for example that exact dates are published annually by the ministry (spec 03 §3)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "calendarPeriod": {
+      "type": "object",
+      "required": [
+        "kind",
+        "sequence",
+        "name",
+        "typical"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Optional stable period code used by annual weights and conformance vectors, for example T1. When absent the engine uses T{sequence}."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "term",
+            "semester",
+            "trimester",
+            "quarter",
+            "half_term"
+          ],
+          "description": "Period kind from spec 02 §3. Pack examples use terms; British packs may use three terms with half-terms and Francophone packs three trimestres."
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Order within the year, starting at 1 (spec 03 §3, spec 02 §3 academic_period.sequence)."
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "typical": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-2])-([0-2][0-9]|3[01])$"
+          },
+          "description": "Typical start and end as MM-DD in the institution time zone. The wizard pre-fills these and the school confirms the exact dates (spec 03 §3)."
+        },
+        "half_term": {
+          "type": "boolean",
+          "description": "True when a mid-term break falls inside this period (spec 03 §3)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

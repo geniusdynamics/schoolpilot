@@ -1,0 +1,64 @@
+{
+  "$comment": "Implements spec 03 §2.1 (the pack layout and the published JSON Schema at packs/schema/pack.schema.json). This root composes the section schemas for §2.2 (manifest), §3 (structure, learning areas), §4-§6 (assessment), §7 (progression), §8 (reports), §2.1/§8.2 (locales) and §12 (tests).",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/pack.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack",
+  "description": "A complete, versioned curriculum pack loaded by the pack registry. The pack is assembled from the section files in spec 03 §2.1; this document is their validated composition.",
+  "type": "object",
+  "required": [
+    "pack",
+    "structure",
+    "learning_areas",
+    "assessment",
+    "progression",
+    "reports",
+    "locales",
+    "tests"
+  ],
+  "properties": {
+    "pack": {
+      "$ref": "manifest.schema.json",
+      "description": "Contents of pack.json (spec 03 §2.2)."
+    },
+    "structure": {
+      "$ref": "structure.schema.json",
+      "description": "Contents of structure.json (spec 03 §3)."
+    },
+    "learning_areas": {
+      "$ref": "learning-areas.schema.json",
+      "description": "Contents of learning-areas.json (spec 03 §3)."
+    },
+    "assessment": {
+      "$ref": "assessment.schema.json",
+      "description": "Contents of assessment.json (spec 03 §4 to §6)."
+    },
+    "progression": {
+      "$ref": "progression.schema.json",
+      "description": "Contents of progression.json (spec 03 §7)."
+    },
+    "reports": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "report.schema.json"
+      },
+      "description": "One entry per file under reports/ (spec 03 §2.1, §8.1). C-8 requires report cards to be template-driven per pack."
+    },
+    "locales": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "common.schema.json#/$defs/localeTag"
+      },
+      "additionalProperties": {
+        "$ref": "locale.schema.json"
+      },
+      "description": "Translations keyed by language tag, one entry per file under locales/ (spec 03 §2.1, §8.2). Every manifest language must have an entry (runtime check)."
+    },
+    "tests": {
+      "$ref": "tests.schema.json",
+      "description": "Contents of tests/*.vectors.json (spec 03 §12). C-10 requires every pack to ship conformance vectors."
+    }
+  },
+  "additionalProperties": false
+}

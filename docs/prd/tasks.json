@@ -2701,10 +2701,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "aa008a7",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-A02",
@@ -2756,10 +2756,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "37b4f03",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-B02",

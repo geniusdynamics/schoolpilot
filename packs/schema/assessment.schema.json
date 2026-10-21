@@ -1,0 +1,571 @@
+{
+  "$comment": "Implements spec 03 §4 (assessment schemes: slots, learning-area score, component policy, missing-mark policy, rounding, formative observations), §4.1 (period to annual aggregation), §5 (grading scales) and §6 (aggregations, ranking). This file is the schema for assessment.json.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/assessment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack assessment model (assessment.json)",
+  "description": "Assessment schemes, grading scales, aggregation operators, ranking policy and the period-to-annual rule (spec 03 §4 to §6).",
+  "type": "object",
+  "required": [
+    "schemes",
+    "grading_scales"
+  ],
+  "properties": {
+    "schemes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scheme"
+      },
+      "description": "Assessment schemes by level band. Codes are unique within the pack (runtime check)."
+    },
+    "grading_scales": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "grading-scale.schema.json"
+      },
+      "description": "Every scale the pack references from a scheme, aggregation or national assessment (spec 03 §5)."
+    },
+    "aggregations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "aggregation.schema.json"
+      },
+      "description": "Overall-result operators such as KCSE best-7, PLE division or the Francophone moyenne (spec 03 §6). Optional for a formative-only pack."
+    },
+    "ranking": {
+      "$ref": "ranking.schema.json"
+    },
+    "annual": {
+      "$ref": "#/$defs/annualAggregation"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "scheme": {
+      "description": "A marks-and-slots scheme or a rubric-observation scheme. The two shapes are mutually exclusive: each branch forbids the other branch's keys (spec 03 §4).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/marksScheme"
+        },
+        {
+          "$ref": "#/$defs/formativeScheme"
+        }
+      ]
+    },
+    "marksScheme": {
+      "type": "object",
+      "required": [
+        "code",
+        "levels",
+        "slots",
+        "learning_area_score",
+        "grading_scale"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels the scheme applies to. Codes must resolve to declared levels (runtime check)."
+        },
+        "slots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/slot"
+          },
+          "description": "The assessments that exist in a period and their weight buckets (spec 03 §4: CA1 20, CA2 20, Exam 60). Slot codes are unique within the scheme (runtime check)."
+        },
+        "learning_area_score": {
+          "$ref": "#/$defs/learningAreaScore"
+        },
+        "grading_scale": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Scale code applied to the learning-area score, for example waec or kcse_subject (spec 03 §4)."
+        },
+        "missing": {
+          "$ref": "#/$defs/missingPolicyMap"
+        },
+        "component_policy": {
+          "$ref": "#/$defs/componentPolicy"
+        },
+        "rounding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/roundingRule"
+          },
+          "description": "Rounding rules per computation stage. The default is to round only for display and grade lookup (spec 03 §4)."
+        },
+        "overridable": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/overridePath"
+          },
+          "description": "Scheme paths a school may override, for example slots.*.scale_to (spec 03 §4, §2.3)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "formativeScheme": {
+      "type": "object",
+      "required": [
+        "code",
+        "levels",
+        "evidence",
+        "observation_scale",
+        "term_judgement",
+        "summative_slots",
+        "report_shows"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList"
+        },
+        "evidence": {
+          "type": "string",
+          "const": "rubric_observations",
+          "description": "The only evidence source named in spec 03 §4: teacher rubric observations per outcome, optionally with a photo or note (§9)."
+        },
+        "observation_scale": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Scale code used for observation levels, for example cbe_4_level (spec 03 §4, §5)."
+        },
+        "term_judgement": {
+          "$ref": "#/$defs/termJudgement"
+        },
+        "summative_slots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/summativeSlot"
+          },
+          "description": "Optional marks-based slots inside a formative scheme, such as an end-of-term test mapped onto the rubric (spec 03 §4)."
+        },
+        "report_shows": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "rubric_level",
+              "descriptor",
+              "teacher_comment"
+            ]
+          },
+          "description": "What the report card shows for this scheme (spec 03 §4 example; §8.1 rubric_table)."
+        },
+        "overridable": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/overridePath"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "slot": {
+      "type": "object",
+      "required": [
+        "code",
+        "label",
+        "kind"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "label": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "formative",
+            "cat",
+            "opener",
+            "mid_term",
+            "end_term",
+            "mock",
+            "project",
+            "practical",
+            "portfolio",
+            "national"
+          ],
+          "description": "Assessment kind from spec 02 §8. The spec 03 §4 examples use cat and end_term."
+        },
+        "max": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Raw maximum for one assessment in this slot, for example CA1 max 20 (spec 03 §4)."
+        },
+        "scale_to": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Points this slot contributes after scaling, for example CAT scale_to 30 (spec 03 §4). Scores are stored raw and scaled by the engine."
+        },
+        "multi": {
+          "type": "boolean",
+          "description": "True when the slot collects several assessments, for example all CATs in a term (spec 03 §4)."
+        },
+        "combine": {
+          "type": "string",
+          "enum": [
+            "mean",
+            "sum",
+            "best_of"
+          ],
+          "description": "How several assessments in a multi slot are reduced. Spec 03 §4 names mean for multi slots; best_of and sum are the reductions named for components."
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "max"
+          ]
+        },
+        {
+          "required": [
+            "scale_to"
+          ]
+        }
+      ]
+    },
+    "summativeSlot": {
+      "type": "object",
+      "required": [
+        "code",
+        "label",
+        "max",
+        "maps_to"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "label": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "max": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Raw maximum for the assessment (spec 03 §4 example: 100)."
+        },
+        "maps_to": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Scale the summative result maps onto, for example cbe_4_level (spec 03 §4)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "learningAreaScore": {
+      "type": "object",
+      "required": [
+        "op",
+        "of",
+        "out_of"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "sum",
+            "mean"
+          ],
+          "description": "How slot results combine into the learning-area score. Spec 03 §4 examples use sum."
+        },
+        "of": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Slot codes that feed the score. Each must be declared in slots (runtime check)."
+        },
+        "out_of": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Denominator the learning-area score is expressed out of, for example 100 (spec 03 §4)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "missingPolicyMap": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "common.schema.json#/$defs/code"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "zero",
+          "exclude",
+          "incomplete",
+          "carry_previous"
+        ]
+      },
+      "description": "Missing-mark policy per slot: zero scores it zero; exclude removes it and renormalises the remaining weights; incomplete produces no grade and flags the learner; carry_previous uses the previous period's mark (spec 03 §4). Keys must be slot codes declared in the same scheme (runtime check)."
+    },
+    "componentPolicy": {
+      "type": "object",
+      "required": [
+        "papers",
+        "out_of"
+      ],
+      "properties": {
+        "papers": {
+          "type": "string",
+          "enum": [
+            "sum",
+            "scale_each_then_sum",
+            "weighted",
+            "best_of"
+          ],
+          "description": "How papers are combined: sum raw, scale each to a common maximum then sum, weighted by component weight, or keep the best of several attempts (spec 03 §4)."
+        },
+        "out_of": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Denominator the combined paper result is expressed out of, for example 100 (spec 03 §4)."
+        },
+        "best_of": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many papers or attempts count when papers is best_of."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "papers": {
+                "const": "best_of"
+              }
+            },
+            "required": [
+              "papers"
+            ]
+          },
+          "then": {
+            "required": [
+              "best_of"
+            ]
+          }
+        }
+      ]
+    },
+    "roundingRule": {
+      "type": "object",
+      "required": [
+        "stage",
+        "precision",
+        "mode"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Computation stage the rule applies to. Spec 03 §4 gives learning_area_score; component_score, period_result and annual are the other stages the engine computes."
+        },
+        "precision": {
+          "$ref": "common.schema.json#/$defs/precision"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "half_up",
+            "half_even",
+            "floor",
+            "ceil",
+            "truncate"
+          ],
+          "description": "Rounding mode. Spec 03 §4 names half_up; the other modes are accepted for engine parity and must be applied identically by every implementation."
+        }
+      },
+      "additionalProperties": false
+    },
+    "termJudgement": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "teacher_best_fit",
+          "description": "A teacher makes the final term judgement from the evidence (spec 03 §4)."
+        },
+        "suggest": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Strategy the engine uses to suggest a level. Spec 03 §4 names mode_of_latest_per_outcome; the field stays open because later strategies do not change the shape."
+        }
+      },
+      "additionalProperties": false
+    },
+    "annualAggregation": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "weighted_mean",
+            "mean",
+            "final_period_only",
+            "cumulative_sum",
+            "best_of"
+          ],
+          "description": "How period results become an annual result (spec 03 §4.1)."
+        },
+        "of": {
+          "description": "Period weights as a map of period code to fraction, or a list of period codes. Spec 03 §4.1 example: T1 0.3, T2 0.3, T3 0.4. Weights must sum to 1 (runtime check).",
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "common.schema.json#/$defs/code"
+              }
+            },
+            {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "common.schema.json#/$defs/code"
+              },
+              "additionalProperties": {
+                "$ref": "common.schema.json#/$defs/weight"
+              }
+            }
+          ]
+        },
+        "missing": {
+          "type": "string",
+          "enum": [
+            "renormalise",
+            "zero",
+            "incomplete",
+            "carry_previous"
+          ],
+          "description": "What to do when a period has no result. renormalise is the spec 03 §4.1 example and is the annual form of the slot-level exclude policy."
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many periods count when op is best_of."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "weighted_mean"
+              }
+            },
+            "required": [
+              "op"
+            ]
+          },
+          "then": {
+            "required": [
+              "of"
+            ],
+            "properties": {
+              "of": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": {
+                  "$ref": "common.schema.json#/$defs/code"
+                },
+                "additionalProperties": {
+                  "$ref": "common.schema.json#/$defs/weight"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "best_of"
+              }
+            },
+            "required": [
+              "op"
+            ]
+          },
+          "then": {
+            "required": [
+              "n"
+            ]
+          }
+        }
+      ]
+    },
+    "schemesSection": {
+      "type": "object",
+      "required": [
+        "schemes"
+      ],
+      "properties": {
+        "schemes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/scheme"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "A standalone schemes fragment, the shape shown in spec 03 §4."
+    },
+    "aggregationsSection": {
+      "type": "object",
+      "required": [
+        "aggregations"
+      ],
+      "properties": {
+        "aggregations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "aggregation.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "A standalone aggregations fragment, the shape shown in spec 03 §6."
+    },
+    "annualSection": {
+      "type": "object",
+      "required": [
+        "annual"
+      ],
+      "properties": {
+        "annual": {
+          "$ref": "#/$defs/annualAggregation"
+        }
+      },
+      "additionalProperties": false,
+      "description": "A standalone annual fragment, the shape shown in spec 03 §4.1."
+    }
+  }
+}

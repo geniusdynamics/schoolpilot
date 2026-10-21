@@ -1,0 +1,5 @@
+{
+  "task": "P2-B01",
+  "note": "No user-facing strings. The engine returns typed codes (EngineFlag, EngineIssue) and exact decimal strings; the diagnostics in EngineIssue.detail are developer-facing and are never rendered to a learner, guardian or teacher.",
+  "en": {}
+}

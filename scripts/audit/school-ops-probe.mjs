@@ -17,6 +17,10 @@ const record = (id, title, status, detail = '') => {
 
 const browser = await chromium.launch({ headless: true, executablePath: CHROMIUM_PATH });
 const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+// The first request to a cold Vite server compiles the app and can take a couple of minutes;
+// the default 30 s navigation timeout made the probe crash before any check beyond C01 ran.
+page.setDefaultNavigationTimeout(240_000);
+page.setDefaultTimeout(120_000);
 const consoleLines = [];
 page.on('console', (m) => consoleLines.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => consoleLines.push(`[pageerror] ${e.message}`));

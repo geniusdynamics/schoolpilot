@@ -1,0 +1,126 @@
+{
+  "$comment": "Implements spec 03 §8.1 (report template blocks, page size and orientation, results-table columns, comment length limits). One template per document, matching reports/*.report.json in the pack layout (spec 03 §2.1).",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Report card template",
+  "description": "A template-driven report card rendered to HTML then PDF, with blocks in reading order (spec 03 §8.1).",
+  "type": "object",
+  "required": [
+    "code",
+    "name",
+    "levels",
+    "blocks"
+  ],
+  "properties": {
+    "code": {
+      "$ref": "common.schema.json#/$defs/code"
+    },
+    "name": {
+      "$ref": "common.schema.json#/$defs/name"
+    },
+    "levels": {
+      "$ref": "common.schema.json#/$defs/codeList",
+      "description": "Levels the template is used for, for example G1 to G6 for a primary term report (spec 03 §2.1, §8.1)."
+    },
+    "page": {
+      "$ref": "#/$defs/page"
+    },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/block"
+      },
+      "description": "Blocks rendered in this order (spec 03 §8.1). A runtime check rejects a template that repeats a single-instance block such as header or summary."
+    },
+    "comment_max_length": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum length of a free-text comment under this template (spec 03 §8.2: length limits per template)."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "page": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "string",
+          "enum": [
+            "A4",
+            "A5"
+          ],
+          "description": "Paper size. A4 portrait is the default; A5 is an option (spec 03 §8.1)."
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "portrait",
+            "landscape"
+          ],
+          "description": "Page orientation. portrait is the default; landscape is an option (spec 03 §8.1)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "block": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "header",
+            "learner",
+            "attendance",
+            "results_table",
+            "rubric_table",
+            "competencies",
+            "affective_psychomotor",
+            "co_curricular",
+            "summary",
+            "comments",
+            "progression",
+            "fees",
+            "calendar",
+            "signatures",
+            "verification"
+          ],
+          "description": "Block type from spec 03 §8.1. fees is optional and policy-controlled; verification carries a QR code linking to a signed verification URL."
+        },
+        "label_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[a-z0-9]+(?:[._-][a-z0-9_]+)+$",
+          "description": "Locale key for the block heading, resolved from the pack locale files (spec 03 §8.2)."
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "components",
+              "slots",
+              "total",
+              "grade",
+              "points",
+              "position",
+              "class_mean",
+              "highest",
+              "lowest",
+              "teacher_initials",
+              "remark"
+            ]
+          },
+          "description": "Configurable columns for a results_table (spec 03 §8.1). Other blocks ignore this property."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

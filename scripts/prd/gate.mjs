@@ -82,9 +82,18 @@ async function measureProbe() {
     }
     if (!up) return { pass: 0, total: 0, error: 'dev server did not start' };
     const out = path.join(REPORT_DIR, 'probe.md');
-    spawnSync('node', ['scripts/audit/school-ops-probe.mjs', '--out', out], { cwd: ROOT, env: { ...process.env, BASE_URL: `http://localhost:${port}` }, stdio: 'inherit', timeout: 30 * 60 * 1000 });
+    const run = spawnSync('node', ['scripts/audit/school-ops-probe.mjs', '--out', out], { cwd: ROOT, env: { ...process.env, BASE_URL: `http://localhost:${port}` }, stdio: 'inherit', timeout: 30 * 60 * 1000 });
     const md = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
-    return { pass: (md.match(/\| PASS \|/g) || []).length, total: (md.match(/^\| C\d+/gm) || []).length };
+    const pass = (md.match(/\| PASS \|/g) || []).length;
+    const total = (md.match(/^\| C\d+/gm) || []).length;
+    // A probe that crashed part-way has a partial report. Counting its PASS rows against a zero
+    // baseline would report success for a run that never finished — the vacuous pass this gate is
+    // supposed to prevent.
+    if (run.status !== 0) {
+      return { pass, total, error: `the probe exited with code ${run.status ?? 'null (killed)'} after ${pass}/${total} checks` };
+    }
+    if (total === 0) return { pass: 0, total: 0, error: 'the probe produced no checks' };
+    return { pass, total };
   } finally {
     try { process.kill(-server.pid); } catch { /* already stopped */ }
   }
@@ -268,9 +277,10 @@ const base = resolveBase();
 const files = changedFiles(base);
 console.log(`gate ${mode}${option('task') ? ' for ' + option('task') : ''} · base ${base.slice(0, 10)} · ${files.length} changed file(s)`);
 
-// A gate that checks nothing must not report success: every content check below is computed from
-// the changed files, so an empty diff makes them all vacuously true.
-if (mode !== 'baseline' && files.length === 0 && !flag('allow-empty')) {
+// A task gate that checks nothing must not report success: its content checks are computed from the
+// changed files. A phase gate is different — it validates the whole tree (tests, build, probe) — so
+// an empty diff is normal there.
+if (mode === 'task' && files.length === 0 && !flag('allow-empty')) {
   console.error('FAIL the gate found no changed files between the base and the working tree; every content check would be vacuous. Pass --allow-empty if there is genuinely nothing to check.');
   process.exit(1);
 }
