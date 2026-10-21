@@ -232,7 +232,7 @@ export const BooksPageContent: React.FC = () => {
       purchase_cost: formData.purchase_cost ? Number(formData.purchase_cost) : undefined,
       status: formData.status,
       location_shelf: formData.location_shelf || undefined,
-      category_id: formData.category_id ? Number(formData.category_id) : undefined,
+      category_id: formData.category_id || undefined,
       is_digital: formData.is_digital || false,
       digital_access_url: formData.digital_access_url || undefined,
       digital_format: formData.digital_format || undefined,

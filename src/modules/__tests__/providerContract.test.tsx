@@ -1,12 +1,31 @@
 // ABOUTME: Contract test for the module data providers (administration, finance, academics) against an in-memory database.
 // ABOUTME: Pins CRUD arity, persistence, nested collections (incl. computed hooks) and that contract-scan missing functions exist on a module or sync hook.
 
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
 import type React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const execFileAsync = promisify(execFile);
+
+/**
+ * Runs the contract scan without blocking the worker.
+ *
+ * The scan is a CPU-heavy Node process. `execFileSync` used to block the event loop for it, which
+ * starved vitest's heartbeat and made these two tests fail with a 20 s timeout (and the worker with
+ * an `onTaskUpdate` timeout) whenever the machine was busy.
+ */
+async function scanContracts(): Promise<unknown> {
+  const { stdout } = await execFileAsync('node', ['scripts/audit/contract-scan.cjs', '--json'], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  return JSON.parse(stdout);
+}
 import { databaseService } from '@/services/database/databaseService';
 import { useAdministrationData } from '@/modules/administration/data/useAdministrationData';
 import { useAdministration } from '@/modules/administration/hooks/useAdministration';
@@ -463,8 +482,15 @@ describe('sync hook', () => {
 });
 
 describe('contract-scan missing functions', () => {
-  it('reports zero violations in every scanned section', () => {
-    const report = JSON.parse(execFileSync('node', ['scripts/audit/contract-scan.cjs', '--json'], { cwd: process.cwd(), encoding: 'utf8' }));
+  it('reports zero violations in every scanned section', async () => {
+    const report = (await scanContracts()) as {
+      undefinedCollections: unknown;
+      missingAppDataFunctions: unknown;
+      singleArgUpdateCalls: unknown;
+      numericIdCoercions: { writes: unknown; selectors: unknown };
+      mockBackedHooksInUi: unknown;
+      routesOutsideNavigation: { routes: unknown };
+    };
 
     expect(report.undefinedCollections).toEqual([]);
     expect(report.missingAppDataFunctions).toEqual([]);
@@ -473,11 +499,13 @@ describe('contract-scan missing functions', () => {
     expect(report.numericIdCoercions.selectors).toEqual([]);
     expect(report.mockBackedHooksInUi).toEqual([]);
     expect(report.routesOutsideNavigation.routes).toEqual([]);
-  });
+  }, 120_000);
 
   it('exist on a module or sync hook', async () => {
-    const report = JSON.parse(execFileSync('node', ['scripts/audit/contract-scan.cjs', '--json'], { cwd: process.cwd(), encoding: 'utf8' }));
-    const wanted = new Set<string>(report.missingAppDataFunctions.flatMap((entry: { missing: string[] }) => entry.missing));
+    const report = (await scanContracts()) as {
+      missingAppDataFunctions: Array<{ missing: string[] }>;
+    };
+    const wanted = new Set<string>(report.missingAppDataFunctions.flatMap((entry) => entry.missing));
 
     const { result } = await renderProvider(() => ({
       ...useSync(),
@@ -486,5 +514,5 @@ describe('contract-scan missing functions', () => {
     }), SyncProvider);
     const missing = [...wanted].filter((name) => !(name in result.current));
     expect(missing).toEqual([]);
-  });
+  }, 120_000);
 });

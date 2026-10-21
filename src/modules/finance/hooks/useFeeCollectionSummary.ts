@@ -11,15 +11,15 @@ import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
  */
 export interface FeeCollectionSummaryRow {
   /** School period ID */
-  schoolPeriodId: number;
+  schoolPeriodId: string;
   /** School period name (e.g., "Term 1 2025") */
   schoolPeriodName: string;
   /** Class ID (nullable = unassigned) */
-  classId: number | null;
+  classId: string | null;
   /** Class name (nullable = unassigned) */
   className: string | null;
   /** Stream ID (nullable = unassigned) */
-  streamId: number | null;
+  streamId: string | null;
   /** Stream name (nullable = unassigned) */
   streamName: string | null;
   /** Votehead / line-item description */
@@ -94,15 +94,15 @@ export function useFeeCollectionSummary() {
 
     // Map student_id → { classId, className, streamId, streamName }
     const studentClassInfo = new Map<string, {
-      classId: number | null; className: string | null;
-      streamId: number | null; streamName: string | null;
+      classId: string | null; className: string | null;
+      streamId: string | null; streamName: string | null;
     }>();
 
     for (const student of students) {
       if (student.deleted_at) continue;
       const sid = String(student.id);
       const streamId = student.current_class_stream_id ?? null;
-      let classId: number | null = null;
+      let classId: string | null = null;
       let className: string | null = null;
       let streamName: string | null = null;
 
@@ -114,7 +114,7 @@ export function useFeeCollectionSummary() {
           if (cid != null) {
             const cls = classMap.get(String(cid));
             if (cls) {
-              classId = Number(cls.id);
+              classId = String(cls.id);
               className = String(cls.name ?? '');
             }
           }
@@ -125,7 +125,7 @@ export function useFeeCollectionSummary() {
       if (!className && student.current_class_name) className = String(student.current_class_name);
       if (!streamName && student.current_class_stream_name) streamName = String(student.current_class_stream_name);
 
-      studentClassInfo.set(sid, { classId, className, streamId: streamId != null ? Number(streamId) : null, streamName });
+      studentClassInfo.set(sid, { classId, className, streamId: streamId != null ? String(streamId) : null, streamName });
     }
 
     // Pre-aggregate payment applications per invoice_item_id
@@ -145,10 +145,10 @@ export function useFeeCollectionSummary() {
     }
 
     // Map student_id → array of fee adjustments per period
-    const adjByStudentPeriod = new Map<string, Map<number, { exemptions: number; penalties: number }>>();
+    const adjByStudentPeriod = new Map<string, Map<string, { exemptions: number; penalties: number }>>();
     for (const adj of adjustments) {
       const sid = String(adj.student_id);
-      const periodId = Number(adj.school_period_id) || 0;
+      const periodId = adj.school_period_id == null ? '' : String(adj.school_period_id);
       const amount = Number(adj.amount) || 0;
       const adjType = String(adj.adjustment_type ?? '');
 
@@ -166,9 +166,9 @@ export function useFeeCollectionSummary() {
 
     // Aggregate by composite key: period + class + stream + votehead
     const aggregationMap = new Map<string, {
-      schoolPeriodId: number; schoolPeriodName: string;
-      classId: number | null; className: string | null;
-      streamId: number | null; streamName: string | null;
+      schoolPeriodId: string; schoolPeriodName: string;
+      classId: string | null; className: string | null;
+      streamId: string | null; streamName: string | null;
       votehead: string;
       totalBilled: number; totalPaid: number;
       totalExemptions: number; totalPenalties: number;
@@ -178,14 +178,14 @@ export function useFeeCollectionSummary() {
       if (inv.status === 'Voided' || inv.deleted_at) continue;
 
       const studentId = String(inv.student_id);
-      const schoolPeriodId = Number(inv.school_period_id) || 0;
+      const schoolPeriodId = inv.school_period_id == null ? '' : String(inv.school_period_id);
       const classInfo = studentClassInfo.get(studentId) ?? {
         classId: null, className: null, streamId: null, streamName: null,
       };
 
       // Resolve period name
       let schoolPeriodName = '';
-      const sp = schoolPeriodMap.get(String(schoolPeriodId));
+      const sp = schoolPeriodMap.get(schoolPeriodId);
       if (sp) {
         schoolPeriodName = String(sp.name ?? '');
       }
@@ -273,22 +273,30 @@ export function useFeeCollectionSummary() {
     schoolPeriodsCol.loading,
   ]);
 
+  const { refresh: refreshStudents } = studentsCol;
+  const { refresh: refreshClassStreams } = classStreamsCol;
+  const { refresh: refreshClasses } = classesCol;
+  const { refresh: refreshStudentInvoices } = studentInvoicesCol;
+  const { refresh: refreshStudentInvoiceItems } = studentInvoiceItemsCol;
+  const { refresh: refreshInvoicePaymentApplications } = invoicePaymentApplicationsCol;
+  const { refresh: refreshFeeAdjustments } = feeAdjustmentsCol;
+  const { refresh: refreshSchoolPeriods } = schoolPeriodsCol;
+
   const refresh = useCallback(async () => {
     await Promise.all([
-      studentsCol.refresh(),
-      classStreamsCol.refresh(),
-      classesCol.refresh(),
-      studentInvoicesCol.refresh(),
-      studentInvoiceItemsCol.refresh(),
-      invoicePaymentApplicationsCol.refresh(),
-      feeAdjustmentsCol.refresh(),
-      schoolPeriodsCol.refresh(),
+      refreshStudents(),
+      refreshClassStreams(),
+      refreshClasses(),
+      refreshStudentInvoices(),
+      refreshStudentInvoiceItems(),
+      refreshInvoicePaymentApplications(),
+      refreshFeeAdjustments(),
+      refreshSchoolPeriods(),
     ]);
   }, [
-    studentsCol.refresh, classStreamsCol.refresh, classesCol.refresh,
-    studentInvoicesCol.refresh, studentInvoiceItemsCol.refresh,
-    invoicePaymentApplicationsCol.refresh, feeAdjustmentsCol.refresh,
-    schoolPeriodsCol.refresh,
+    refreshStudents, refreshClassStreams, refreshClasses, refreshStudentInvoices,
+    refreshStudentInvoiceItems, refreshInvoicePaymentApplications, refreshFeeAdjustments,
+    refreshSchoolPeriods,
   ]);
 
   return {

@@ -1,0 +1,11 @@
+{
+  "task": "P1-C03",
+  "note": "The name of migration M3, which the progress screen shows while it runs. The migration has no interactive step and no other UI strings; its report (the reason a legacy learner or guardian could not be mapped, the phone rule, the enrolment assumptions) stays English on purpose, because a data migration has no access to the translation layer and the operator sees those lines as data diagnostics. The wave merge must unwrap the `en.common` wrapper and merge the children into the central `common` namespace (do not copy the wrapper). Translate for fr, rw, sw.",
+  "en": {
+    "common": {
+      "migration": {
+        "m3Name": "Migrate the learners, guardians and enrolments"
+      }
+    }
+  }
+}

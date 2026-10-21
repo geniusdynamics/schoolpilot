@@ -9,7 +9,6 @@ import Button from '@/components/ui/Button';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import { FormSection, FormActions } from '@/components/ui/forms';
-import type { RbacRole } from '@/core/types';
 import { useTranslation } from 'react-i18next';
 import { databaseService } from '@/services/database/databaseService';
 import { hashPassword, checkPasswordComplexity } from '@/utils/passwordHash';
@@ -30,7 +29,6 @@ export const SettingsUsersContent: React.FC = () => {
     deleteRole,
     refreshCollection
   } = context;
-  const rbacRoles: RbacRole[] = (context as any).rbacRoles || [];
   const { t } = useTranslation();
   const { showError, showSuccess } = useToast();
 
@@ -174,8 +172,6 @@ export const SettingsUsersContent: React.FC = () => {
     }
   ];
 
-  const isLoadingPage = loading.users || loading.roles;
-
   return (
     <div className="space-y-6">
       <Card title="User Accounts Management" actions={
@@ -225,7 +221,7 @@ export const SettingsUsersContent: React.FC = () => {
               email: String(values.email ?? ''),
               userType: String(values.userType ?? ''),
               isActive: Boolean(values.isActive),
-              role_id: values.role_id ? Number(values.role_id) : undefined,
+              role_id: values.role_id || undefined,
             };
             if (values.password) {
               const hashedPassword = await hashPassword(String(values.password));
@@ -239,7 +235,7 @@ export const SettingsUsersContent: React.FC = () => {
               email: String(values.email ?? ''),
               userType: String(values.userType ?? ''),
               isActive: Boolean(values.isActive),
-              role_id: values.role_id ? Number(values.role_id) : undefined,
+              role_id: values.role_id || undefined,
               hashed_password: hashedPassword.hash + ':' + hashedPassword.salt + ':' + hashedPassword.iterations,
             };
             await usersCollection.insert(newUser);

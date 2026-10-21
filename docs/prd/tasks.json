@@ -1992,10 +1992,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "0c7ff4e",
       "notes": "Opened during P1-W1 from the P1-A02 review: the rule is clean on changed files, but 44 pre-existing coercions (21 in AppDataContext) keep `pnpm lint` red and prevent a CI-wide gate.",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P1-A03",
@@ -2315,10 +2315,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "27cd932",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P1-C04",
@@ -2675,10 +2675,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "2138d16",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-20"
     },
     {
       "id": "P2-A01",
