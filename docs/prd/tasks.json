@@ -2315,10 +2315,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "27cd932",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P1-C04",
