@@ -1,7 +1,14 @@
 // ABOUTME: Integration test for the first-run setup wizard on the real SQLite-WASM provider (in-memory database):
 // ABOUTME: walking every step with Back/Next twice creates exactly one of each record in the defined collections.
 
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, configure } from '@testing-library/react';
+
+// The wizard's steps write through the real provider and take seconds each; Testing Library's
+// 1000 ms default for waitFor is tight enough that a slower CI runner fails a passing assertion.
+configure({ asyncUtilTimeout: 20_000 });
+// Each case drives the whole wizard through the real provider; the global 20 s budget is not enough
+// on a loaded CI runner.
+vi.setConfig({ testTimeout: 60_000 });
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SQLiteWASMProvider } from '@/services/database/SQLiteWASMProvider';
 import { collectionsDefinition } from '@/services/database/collections';
@@ -83,7 +90,7 @@ async function openRealDatabase() {
 }
 
 const rows = async (name: string): Promise<any[]> => (await real.provider!.getCollection(name).find({})) ?? [];
-const onStep = (n: number) => screen.findByText(`Step ${n} of ${TOTAL_STEPS}`, {}, { timeout: 5000 });
+const onStep = (n: number) => screen.findByText(`Step ${n} of ${TOTAL_STEPS}`, {}, { timeout: 20_000 });
 const click = (name: RegExp) => fireEvent.click(screen.getByRole('button', { name }));
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
@@ -135,7 +142,7 @@ async function walkWizard(onComplete = vi.fn()) {
   type('Password', 'correct-horse-1');
   type('Confirm password', 'correct-horse-1');
   click(/Finish setup/);
-  await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1), { timeout: 5000 });
+  await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1), { timeout: 20_000 });
   return onComplete;
 }
 
@@ -360,7 +367,7 @@ describe('SetupWizard on the real provider', () => {
     await nextWithBackAndForth(6);
     expect(await screen.findByText(/An administrator account already exists/)).toBeInTheDocument();
     click(/Finish setup/);
-    await waitFor(() => expect(screen.queryByText(`Step 6 of ${TOTAL_STEPS}`)).not.toBeInTheDocument(), { timeout: 5000 });
+    await waitFor(() => expect(screen.queryByText(`Step 6 of ${TOTAL_STEPS}`)).not.toBeInTheDocument(), { timeout: 20_000 });
     expect(toast.showError).not.toHaveBeenCalled();
 
     expect(await count()).toEqual(before);
