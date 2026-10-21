@@ -86,15 +86,30 @@
           "code": "P2",
           "name": "Paper 2 (Extended)",
           "kind": "paper",
-          "weight": 0.35,
+          "levels": [
+            "Y10",
+            "Y11"
+          ],
           "max_score": 70
         },
         {
           "code": "P4",
           "name": "Paper 4 (Extended)",
           "kind": "paper",
-          "weight": 0.65,
+          "levels": [
+            "Y10",
+            "Y11"
+          ],
           "max_score": 130
+        }
+      ],
+      "grade_scales": [
+        {
+          "levels": [
+            "Y10",
+            "Y11"
+          ],
+          "scale": "igcse_a_star_g"
         }
       ],
       "pathways": [

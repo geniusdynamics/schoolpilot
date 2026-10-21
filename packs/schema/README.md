@@ -81,14 +81,39 @@ parent object's properties. Every other Ajv strict check is enabled.
 - Patterns and ranges: pack code, entity code, semver, pack reference, locale tag, calendar
   date shape, MM-DD period bounds, year and month bounds, weight 0 to 1, precision 0 to 6,
   `max`, `scale_to` and `out_of` greater than 0, `ordinal` and `typical_age` ranges.
-- Shape conditionals: a slot needs `max` or `scale_to`; `core_all` needs `of`; `electives` needs
-  `count`; `stage_transition` needs `to_stage`; `threshold` needs `conditions` and `else`;
-  `class_council` needs `suggest`; `weighted_mean` needs `weights`; `best_n` needs `n`, `value`
-  and `groups`; `best_of` needs `best_of` or `n`; `papers: best_of` needs `best_of`; an enabled
-  ranking needs `scope`, `by` and `ties`; a non-draft verification needs at least one reviewer;
-  numeric band scales need `bands`.
+- Codes carry the identifier the source prints. `common.code` allows `*`, `+` and a leading
+  `-` (with at least one alphanumeric character), so a grade is written as published (`A*`,
+  `A-`, `B+`, `9`) rather than spelled out. Codes are data: anything building a path or URL
+  from one must percent-encode it, because `*` is illegal in a Windows file name.
+- Shape conditionals: a slot needs `max` or `scale_to`; `core_all` needs `of`; `electives`
+  needs `count`; `group` needs `group` and `min`; `stage_transition` needs `to_stage`;
+  `threshold` needs `conditions` and `else`; `class_council` needs `suggest`;
+  `weighted_mean` needs `weights`; `best_n` needs `n`, `value` and `groups`; `best_of` needs
+  `best_of` or `n`; `papers: best_of` needs `best_of`; `multipliers` needs `divisor`; an
+  enabled ranking needs `scope`, `by` and `ties`; a `reviewed` or `verified` pack needs at
+  least one reviewer; numeric band scales need `bands`.
 - Mutual exclusion: a scheme is either a marks scheme or a formative-evidence scheme, never a
   mixture of both (`oneOf` with closed branches).
+- Optional shapes: `summative_slots` is optional on a formative scheme (an observational
+  scheme computes a best-fit rubric level and no numeric total); `calendar_template` is one
+  template or `{ default, variants }`.
+
+## Vocabulary decisions
+
+- **Grade codes** are the printed symbols (see above); `label` stays human text and may
+  repeat the symbol or spell it out.
+- **Rounding modes** use the assessment engine's vocabulary (P2-B01) as canonical:
+  `half_up`, `half_down`, `half_even`, `up`, `down`. `up` moves away from zero and `down`
+  towards it, so on a non-negative mark `up` is a ceiling and `down` a truncation. The
+  earlier spelling `floor`/`ceil`/`truncate` is refused; the mapping was floor -> `down`,
+  ceil -> `up`, truncate -> `down`, and no shipped pack used it.
+- **`mark_out_of_20`** is the canonical grading-scale kind, matching spec 02 §8
+  `grading_scale.kind`. `out_of_20` is accepted as a deprecated alias and the loader
+  projects it as `mark_out_of_20`. `descriptor` is a pack-only reporting kind for a scale
+  whose bands are descriptor levels with no numeric input, so it never values a mark.
+- **`outcomes_ref`** is a relative path inside the pack directory. The loader validates the
+  shape (relative, `.json`, no `..`) and projects it; the file itself is not read while
+  loading, so a pack that ships no outcomes files is valid.
 
 ## Constraints JSON Schema cannot express
 
@@ -109,6 +134,14 @@ below to be refused.
 | A report template repeats no single-instance block (header, summary and similar) | Counts of a property value across items |
 | A `best_n` value does not exceed the learning areas in scope | Requires counting another section |
 | Each level has at most one progression rule | A property value must be unique across array items |
+| Two components of one learning area share a code only when their level sets do not overlap | Uniqueness of a pair of properties across items |
+| A `weighted` policy resolves a weight for every component of every learning area it covers, from `component_policy.weights` or the component, and the resolved weights sum to 1 | Summing a resolved map across two documents |
+| Policy weights name learning areas and components that exist | Cross-section lookup of map keys |
+| Every calendar variant declares the default's period keys, and `default` names a declared variant | Set comparison across array items |
+| A combination-rule group exists and has enough learning areas at the rule's levels; `max` is not below `count` or `min`; an elective count plus the core fits the subjects on offer | Counting another section and comparing sibling numbers |
+| Every aggregation multiplier names a learning area in scope, and no distribution carries multipliers | Cross-section lookup |
+| A learning area assigns at most one grade scale per level, and every scale exists | Cross-property uniqueness plus a cross-section reference |
+| Bands do not leave a hole larger than one point on a whole-number ladder, and an exclusive upper bound leaves none | Comparing two sibling numbers |
 
 Two further checks belong to the loader and pack review, not to this schema:
 
@@ -127,6 +160,11 @@ domain contract the loader will reuse.
 - `spec03Examples.ts` copies every JSON block in spec 03 verbatim (11 fixtures).
 - `packSchema.test.ts` validates those fixtures, the documented example pack, a minimal pack and
   seven schema-invalid packs, plus six packs that are schema-valid but violate a runtime rule.
+- `schemaRevision.test.ts` pins the P2-A01a revision: one positive and one negative case for
+  each gap (grade symbols, component level scope, policy weights, optional summative slots,
+  calendar variants, combination minimums and maximums, per-area multipliers, per-level grade
+  scales, structured vector inputs, the reviewed status, the rounding vocabulary,
+  `mark_out_of_20` and its alias, `outcomes_ref`), plus the loader projection of every new field.
 - `packSemantics.ts` implements the runtime checks listed above.
 
 Run it with:

@@ -23,10 +23,11 @@
         "points",
         "division",
         "gpa",
+        "mark_out_of_20",
         "out_of_20",
         "descriptor"
       ],
-      "description": "Scale kind from spec 03 §5. out_of_20 is the Francophone mark scale; spec 02 §8 calls the same concept mark_out_of_20."
+      "description": "Scale kind. mark_out_of_20 is canonical: it is the mark valuation of spec 02 §8 grading_scale.kind, a /20 mark mapped to mentions. out_of_20 is the spelling earlier drafts used and is accepted as a deprecated alias; the loader projects it as mark_out_of_20. descriptor is a pack-only reporting kind for a scale whose bands are descriptor levels with no numeric input; it is not in spec 02's entity enum because it never values a mark."
     },
     "input": {
       "type": "string",

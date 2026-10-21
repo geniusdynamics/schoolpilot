@@ -19,6 +19,35 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "inputValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/inputValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/inputValue"
+          }
+        }
+      ],
+      "description": "One vector input value: a scalar (string, number, boolean or null), or an array or object of further inputs. Recursive so a nested paper set needs no dotted key name."
+    },
     "vector": {
       "type": "object",
       "required": [
@@ -39,19 +68,9 @@
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/$defs/inputValue"
           },
-          "description": "Input by learning-area code, for example a grade string or a raw score. null represents an absent mark (spec 03 §12)."
+          "description": "Input by learning-area code, for example a grade string or a raw score. The flat form stays valid: `{\"ENG\": \"B+\", \"MAT\": 74}`. A structured value is allowed where the engine input is nested, so a vector need not encode structure into dotted key names: `{\"MOCK.MAT\": {\"papers\": [{\"code\": \"P1\", \"score\": 72, \"max\": 80}]}}`. null represents an absent mark (spec 03 §12)."
         },
         "expect": {
           "$ref": "#/$defs/expectation"

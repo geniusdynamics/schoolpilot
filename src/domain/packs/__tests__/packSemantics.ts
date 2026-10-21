@@ -143,15 +143,56 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
     }
   }
 
-  const periods = items(asObject(structure.calendar_template).periods);
-  const periodKeys = new Set<string>();
-  for (const period of periods) {
-    const code = asString(period.code);
-    const name = asString(period.name);
-    const sequence = asNumber(period.sequence);
-    if (code !== undefined) periodKeys.add(code);
-    if (name !== undefined) periodKeys.add(name);
-    if (sequence !== undefined) periodKeys.add(`T${sequence}`);
+  // Calendar variants: named templates with a default. The period keys (code, name and
+  // T{sequence}) feed annual weights, so every variant must agree on them.
+  const calendarNode = asObject(structure.calendar_template);
+  const calendarVariants = Array.isArray(calendarNode.variants)
+    ? items(calendarNode.variants)
+    : [calendarNode];
+  const variantCodes = calendarVariants
+    .map((variant) => asString(variant.code))
+    .filter((code): code is string => code !== undefined);
+  unique('structure.calendar_template.variants', variantCodes);
+  const defaultCalendarCode = asString(calendarNode.default);
+  const defaultCalendar =
+    defaultCalendarCode === undefined
+      ? calendarVariants[0]
+      : calendarVariants.find((variant) => asString(variant.code) === defaultCalendarCode);
+  if (defaultCalendar === undefined) {
+    issue(
+      'structure.calendar_template.default',
+      `default variant "${defaultCalendarCode}" is not declared`,
+    );
+  }
+
+  const periodKeysOf = (template: JsonObject | undefined): Set<string> => {
+    const keys = new Set<string>();
+    for (const period of items(asObject(template).periods)) {
+      const code = asString(period.code);
+      const name = asString(period.name);
+      const sequence = asNumber(period.sequence);
+      if (code !== undefined) keys.add(code);
+      if (name !== undefined) keys.add(name);
+      if (sequence !== undefined) keys.add(`T${sequence}`);
+    }
+    return keys;
+  };
+
+  const periodKeys = periodKeysOf(defaultCalendar);
+  if (calendarVariants.length > 1) {
+    for (const variant of calendarVariants) {
+      const code = asString(variant.code) ?? '?';
+      const keys = periodKeysOf(variant);
+      const differs =
+        [...periodKeys].some((key) => !keys.has(key)) ||
+        [...keys].some((key) => !periodKeys.has(key));
+      if (differs) {
+        issue(
+          `structure.calendar_template.variants[${code}].periods`,
+          'period keys differ from the default variant, so annual weights cannot resolve',
+        );
+      }
+    }
   }
 
   for (const area of learningAreas) {
@@ -166,8 +207,50 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
       expectArea(`learning_areas.learning_areas[${code}].alternatives`, asString(alternative));
     }
 
+    const scaleByLevel = new Map<string, string>();
+    for (const choice of items(area.grade_scales)) {
+      const at = `learning_areas.learning_areas[${code}].grade_scales`;
+      const scale = asString(choice.scale);
+      expectScale(at, scale);
+      for (const level of asArray(choice.levels)) {
+        const levelCode = asString(level);
+        if (levelCode === undefined) continue;
+        expectLevel(at, levelCode);
+        const previous = scaleByLevel.get(levelCode);
+        if (previous !== undefined && previous !== scale) {
+          issue(at, `level "${levelCode}" is assigned both "${previous}" and "${scale ?? '?'}"`);
+        }
+        if (scale !== undefined) scaleByLevel.set(levelCode, scale);
+      }
+    }
+
+    const areaLevels = asArray(area.levels)
+      .map(asString)
+      .filter((level): level is string => level !== undefined);
     const components = items(area.components);
-    unique(`learning_areas.learning_areas[${code}].components`, codesOf(components));
+    const scoped = components.map((component) => {
+      const componentCode = asString(component.code) ?? '?';
+      const declared = asArray(component.levels)
+        .map(asString)
+        .filter((level): level is string => level !== undefined);
+      for (const level of declared) {
+        expectLevel(`learning_areas.learning_areas[${code}].components[${componentCode}].levels`, level);
+      }
+      return { code: componentCode, scope: new Set(declared.length > 0 ? declared : areaLevels) };
+    });
+    for (let left = 0; left < scoped.length; left += 1) {
+      for (let right = left + 1; right < scoped.length; right += 1) {
+        const a = scoped[left];
+        const b = scoped[right];
+        if (a === undefined || b === undefined || a.code !== b.code) continue;
+        if (a.scope.size > 0 && b.scope.size > 0 && [...a.scope].some((level) => b.scope.has(level))) {
+          issue(
+            `learning_areas.learning_areas[${code}].components`,
+            `component "${a.code}" is declared twice for an overlapping level set`,
+          );
+        }
+      }
+    }
     const weights = components
       .map((component) => asNumber(component.weight))
       .filter((weight): weight is number => weight !== undefined);
@@ -179,10 +262,16 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
     }
   }
 
+  const areasAtLevel = (level: string): JsonObject[] =>
+    learningAreas.filter((area) => asArray(area.levels).some((candidate) => asString(candidate) === level));
+
   for (const rule of combinationRules) {
     const summary = asString(rule.rule) ?? '?';
-    for (const level of asArray(rule.levels)) {
-      expectLevel(`learning_areas.combination_rules[${summary}].levels`, asString(level));
+    const levels = asArray(rule.levels)
+      .map(asString)
+      .filter((level): level is string => level !== undefined);
+    for (const level of levels) {
+      expectLevel(`learning_areas.combination_rules[${summary}].levels`, level);
     }
     for (const required of asArray(rule.of)) {
       const alternatives = asString(required)?.split('|') ?? [];
@@ -196,20 +285,96 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
         'rule takes electives from a pathway but the structure declares no pathways',
       );
     }
+
+    const at = `learning_areas.combination_rules[${summary}]`;
+    if (summary === 'group') {
+      const group = asString(rule.group);
+      const least = asNumber(rule.min);
+      const most = asNumber(rule.max);
+      if (group !== undefined && !areaGroups.has(group)) {
+        issue(`${at}.group`, `unknown learning-area group "${group}"`);
+      } else if (group !== undefined && least !== undefined) {
+        for (const level of levels) {
+          const members = areasAtLevel(level).filter((area) => asString(area.group) === group).length;
+          if (least > members) {
+            issue(
+              `${at}.min`,
+              `needs ${least} results from group "${group}" at ${level} but only ${members} learning areas are offered there`,
+            );
+          }
+        }
+      }
+      if (least !== undefined && most !== undefined && most < least) {
+        issue(`${at}.max`, `max ${most} is below min ${least}`);
+      }
+    }
+
+    if (summary === 'electives') {
+      const count = asNumber(rule.count);
+      const most = asNumber(rule.max);
+      if (count !== undefined && most !== undefined && most < count) {
+        issue(`${at}.max`, `max ${most} is below count ${count}`);
+      }
+      if (count !== undefined) {
+        for (const level of levels) {
+          const required = combinationRules
+            .filter((candidate) => asString(candidate.rule) === 'core_all')
+            .filter((candidate) => asArray(candidate.levels).some((entry) => asString(entry) === level))
+            .reduce((total, candidate) => total + asArray(candidate.of).length, 0);
+          const offered = areasAtLevel(level).length;
+          if (count + required > offered) {
+            issue(
+              `${at}.count`,
+              `asks for ${count} electives after ${required} core choices but only ${offered} learning areas are offered at ${level}`,
+            );
+          }
+        }
+      }
+    }
   }
 
-  const usesComponentWeights = schemes.some(
-    (scheme) => asString(asObject(scheme.component_policy).papers) === 'weighted',
-  );
-  if (usesComponentWeights) {
+  // The resolved component weights of a weighted scheme: the policy's per-area map wins over
+  // each component's own weight, and the resolved weights must sum to 1.
+  for (const scheme of schemes) {
+    const policy = asObject(scheme.component_policy);
+    if (asString(policy.papers) !== 'weighted') continue;
+    const schemeCode = asString(scheme.code) ?? '?';
+    const schemeLevels = new Set(asArray(scheme.levels).map(asString));
+    const policyWeights = asObject(policy.weights);
+    for (const key of Object.keys(policyWeights)) {
+      if (!areaCodes.has(key)) {
+        issue(`assessment.schemes[${schemeCode}].component_policy.weights`, `unknown learning area "${key}"`);
+      }
+    }
     for (const area of learningAreas) {
-      const components = items(area.components);
-      if (components.length > 0 && components.every((component) => asNumber(component.weight) === undefined)) {
-        const code = asString(area.code) ?? '?';
+      const areaCode = asString(area.code) ?? '?';
+      const areaLevels = asArray(area.levels).map(asString);
+      const components = items(area.components).filter((component) => {
+        const declared = asArray(component.levels).map(asString);
+        const scope = declared.length > 0 ? declared : areaLevels;
+        return scope.some((level) => level !== undefined && schemeLevels.has(level));
+      });
+      if (components.length === 0) continue;
+      const areaWeights = asObject(policyWeights[areaCode]);
+      const at = `assessment.schemes[${schemeCode}].component_policy.weights[${areaCode}]`;
+      for (const code of Object.keys(areaWeights)) {
+        if (!components.some((component) => asString(component.code) === code)) {
+          issue(at, `unknown component "${code}" on learning area "${areaCode}"`);
+        }
+      }
+      const resolved = components.map(
+        (component) => asNumber(areaWeights[asString(component.code) ?? '?']) ?? asNumber(component.weight),
+      );
+      const missing = components
+        .filter((_component, index) => resolved[index] === undefined)
+        .map((component) => asString(component.code) ?? '?');
+      if (missing.length > 0) {
         issue(
-          `learning_areas.learning_areas[${code}].components`,
-          'a scheme uses component_policy weighted but this learning area declares no component weights',
+          `learning_areas.learning_areas[${areaCode}].components`,
+          `a scheme uses component_policy weighted but no weight is declared for ${missing.join(', ')}`,
         );
+      } else if (!sumsToOne(resolved as readonly number[])) {
+        issue(at, 'the weights resolved for this learning area must sum to 1');
       }
     }
   }
@@ -292,6 +457,14 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
           `assessment.grading_scales[${code}].bands`,
           `bands "${previous.code}" and "${current.code}" overlap`,
         );
+        continue;
+      }
+      const hole = current.min - previous.max;
+      if (hole > 1 || (!inclusiveUpper && hole > 0)) {
+        issue(
+          `assessment.grading_scales[${code}].bands`,
+          `bands "${previous.code}" and "${current.code}" leave a gap between ${previous.max} and ${current.min}`,
+        );
       }
     }
   }
@@ -354,6 +527,28 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
         `assessment.aggregations[${code}].weights`,
         'explicit aggregation weights must sum to 1',
       );
+    }
+
+    const multipliers = asObject(aggregation.multipliers);
+    const multiplierKeys = Object.keys(multipliers);
+    if (multiplierKeys.length > 0) {
+      const scope = new Set(asArray(aggregation.over).map(asString));
+      for (const key of multiplierKeys) {
+        if (!areaCodes.has(key)) {
+          issue(`assessment.aggregations[${code}].multipliers`, `unknown learning area "${key}"`);
+        } else if (scope.size > 0 && !scope.has(key)) {
+          issue(
+            `assessment.aggregations[${code}].multipliers`,
+            `counting "${key}" twice but it is not among the aggregation's over list`,
+          );
+        }
+      }
+      if (asString(aggregation.op) === 'count_where' || asString(aggregation.op) === 'rubric_profile') {
+        issue(
+          `assessment.aggregations[${code}].multipliers`,
+          'a distribution has no single value to multiply',
+        );
+      }
     }
   }
 
@@ -466,6 +661,14 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
   for (const rule of graduationRules) {
     for (const level of asArray(rule.levels)) {
       expectLevel('progression.graduation.levels', asString(level));
+    }
+  }
+
+  // A pack cannot claim it was reviewed without naming who reviewed it (spec 03 §2.2, §12).
+  const status = asString(asObject(manifest.verification).status);
+  if (status === 'reviewed' || status === 'verified') {
+    if (asArray(asObject(manifest.verification).verified_by).length === 0) {
+      issue('pack.verification.verified_by', `a ${status} pack names at least one reviewer`);
     }
   }
 

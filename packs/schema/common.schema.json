@@ -16,8 +16,8 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 50,
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
-      "description": "A pack-local code for a level, stage, pathway, learning area, slot, competency or band. Packs reference entities by code, never by database row id (spec 03 §2.1, §3)."
+      "pattern": "^(?=.*[A-Za-z0-9])[A-Za-z0-9*+-][A-Za-z0-9._*+-]*$",
+      "description": "A pack-local code for a level, stage, pathway, learning area, slot, competency or band. Packs reference entities by code, never by database row id (spec 03 §2.1, §3). A code is the identifier the source prints, so a grade keeps its published symbol and `A*`, `A-`, `B+` and `9` are all codes; the human wording belongs in `label` or `name`. Codes are data, not file names: `*` is illegal in a Windows path and reserved in a URL, so anything that builds a path or URL from a code must percent-encode the segment (RFC 3986 encodes `*` as `%2A`) and must never use the raw code as a file name."
     },
     "name": {
       "type": "string",

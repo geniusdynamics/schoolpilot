@@ -79,6 +79,30 @@
         }
       ]
     },
+    "multipliers": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "common.schema.json#/$defs/code"
+      },
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 1
+      },
+      "description": "Per learning-area multipliers applied to each result before the aggregate is formed, for a rule that counts one subject more than once: DfE Attainment 8 doubles English and mathematics within the best eight. A multiplier of 2 counts the result twice and 1 is the default. Every key must be a learning area in scope (runtime check)."
+    },
+    "divisor": {
+      "oneOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "const": "sum_of_multipliers"
+        }
+      ],
+      "description": "What the multiplied aggregate is divided by, so the divisor is declared rather than implied: Attainment 8 divides by ten, though only eight subjects count. sum_of_multipliers divides by the total of the multipliers, which is the weighted mean over the selected results. Required whenever multipliers is declared; without multipliers the operator's natural divisor applies (the number of selected results for mean and best_n, one for sum)."
+    },
     "precision": {
       "$ref": "common.schema.json#/$defs/precision",
       "description": "Decimal places kept on the aggregate before lookup (spec 03 §6 examples: 2 and 3)."
@@ -124,6 +148,41 @@
         "required": [
           "weights"
         ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "multipliers"
+        ]
+      },
+      "then": {
+        "required": [
+          "divisor"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "op": {
+            "enum": [
+              "count_where",
+              "rubric_profile"
+            ]
+          }
+        },
+        "required": [
+          "op"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "multipliers"
+          ]
+        },
+        "description": "count_where and rubric_profile produce distributions, not a single value, so there is nothing to multiply into an aggregate."
       }
     }
   ],

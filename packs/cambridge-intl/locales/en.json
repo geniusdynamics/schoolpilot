@@ -31,7 +31,7 @@
       "BE": "Below the expectation for the stage."
     },
     "igcse_a_star_g": {
-      "A_STAR": "Exceptional performance.",
+      "A*": "Exceptional performance.",
       "A": "Excellent performance.",
       "B": "Good performance.",
       "C": "Satisfactory performance.",
@@ -62,7 +62,7 @@
       "U": "Ungraded."
     },
     "cambridge_a_level": {
-      "A_STAR": "Exceptional performance.",
+      "A*": "Exceptional performance.",
       "A": "Excellent performance.",
       "B": "Good performance.",
       "C": "Satisfactory performance.",

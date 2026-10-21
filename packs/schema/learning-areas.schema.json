@@ -109,12 +109,20 @@
           "$ref": "common.schema.json#/$defs/codeList",
           "description": "Learning areas that may be taken instead of this one, for example KSL in place of Kiswahili (spec 03 §3, Appendix A)."
         },
+        "grade_scales": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/gradeScaleChoice"
+          },
+          "description": "Which grade set this learning area's result uses at a set of levels, for a pack where one subject is examined on two syllabuses with different grade sets (Cambridge IGCSE A* to G and 9-1). A level not named here uses the grading scale of the scheme that covers it. At most one entry per level (runtime check)."
+        },
         "outcomes_ref": {
           "type": "string",
           "minLength": 1,
           "maxLength": 500,
-          "pattern": "^(?:\\./)?[A-Za-z0-9._/-]+\\.json$",
-          "description": "Relative path to the outcomes file for this learning area, for example outcomes/eng-js.json (spec 03 §3)."
+          "pattern": "^(?!.*\\.\\.)(?:\\./)?[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.json$",
+          "description": "Relative path, inside the pack directory, of the outcomes file this learning area's observations are recorded against, for example outcomes/eng-js.json (spec 03 §3). The path is a reference, not content: the loader validates that it is relative, ends in .json and cannot escape the pack root through a .. segment, and a pack that declares none is valid. A pack that ships the file places it beside learning-areas.json (spec 03 §2.1) and cites it here so a later outcomes import can resolve it."
         }
       },
       "additionalProperties": false
@@ -145,9 +153,13 @@
           ],
           "description": "Component kind from spec 02 §4: paper, practical, coursework, oral, project or strand."
         },
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels at which this component is offered. When omitted the component applies at every level the learning area is offered; declare `levels` when one subject is examined in two paper sets, for example GCSE papers at Y10-Y11 and A Level papers at Y12-Y13. Two components of one learning area may share a code only when their level sets do not overlap (runtime check): uniqueness is (learning area, level set, code)."
+        },
         "weight": {
           "$ref": "common.schema.json#/$defs/weight",
-          "description": "Share of the learning area score when component_policy is weighted. Components of one learning area must sum to 1 (runtime check; JSON Schema cannot sum)."
+          "description": "Share of the learning area score when component_policy is weighted. This is the fallback: a weight declared in the scheme's component_policy.weights for this learning area and component takes precedence (see assessment.schema.json). Components of one learning area must sum to 1 (runtime check; JSON Schema cannot sum)."
         },
         "max_score": {
           "type": "number",
@@ -209,9 +221,10 @@
           "type": "string",
           "enum": [
             "core_all",
-            "electives"
+            "electives",
+            "group"
           ],
-          "description": "core_all requires every listed subject (or one member of each alternative set); electives requires count choices, optionally from the learner's pathway (spec 03 §3)."
+          "description": "core_all requires every listed subject (or one member of each alternative set); electives requires `count` choices, optionally from the learner's pathway, and may cap the total with `max`; group requires at least `min` and at most `max` choices from a named subject group (spec 03 §3)."
         },
         "of": {
           "type": "array",
@@ -219,14 +232,28 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9._-]+(?:\\|[A-Za-z0-9._-]+)*$"
+            "pattern": "^[A-Za-z0-9.*+-][A-Za-z0-9._*+-]*(?:\\|[A-Za-z0-9.*+-][A-Za-z0-9._*+-]*)*$"
           },
-          "description": "Learning-area codes required by core_all. A pipe separates alternatives, for example KIS|KSL: at least one member must be taken (spec 03 §3)."
+          "description": "Learning-area codes the rule is about. For core_all every entry is required and a pipe separates alternatives, for example KIS|KSL: at least one member must be taken. For electives it restricts the pool the count is drawn from. For group it is ignored, because the group names the pool (spec 03 §3)."
         },
         "count": {
           "type": "integer",
           "minimum": 1,
-          "description": "Number of electives a learner must choose (spec 03 §3 example: count 3)."
+          "description": "Number of electives a learner must choose (spec 03 §3 example: count 3). Required by the electives rule."
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Upper bound on the choices this rule counts: for electives the most a learner may take alongside the core (KCSE allows nine subjects), for group the most from the group. Must be at least `count` or `min` (runtime check)."
+        },
+        "group": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Learning-area group the rule counts, as declared by `group` on learning areas, for example humanities. Required by the group rule; the group must declare enough learning areas at these levels to satisfy `min` (runtime check)."
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Least number of choices the group rule requires, for example at least one humanity. Required by the group rule."
         },
         "from_pathway": {
           "type": "boolean",
@@ -268,8 +295,44 @@
               "count"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {
+                "const": "group"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          },
+          "then": {
+            "required": [
+              "group",
+              "min"
+            ]
+          }
         }
       ]
+    },
+    "gradeScaleChoice": {
+      "type": "object",
+      "required": [
+        "levels",
+        "scale"
+      ],
+      "properties": {
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels this grade set applies to, for example Y10 and Y11 for the 9-1 syllabus."
+        },
+        "scale": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Grading scale code, declared in assessment.grading_scales (runtime check), for example igcse_9_1."
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

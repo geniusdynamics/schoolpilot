@@ -184,42 +184,90 @@
     }
   ],
   "calendar_template": {
-    "year_kind": "academic_year",
-    "periods": [
+    "default": "northern",
+    "variants": [
       {
-        "code": "T1",
-        "kind": "term",
-        "sequence": 1,
-        "name": "Term 1",
-        "typical": [
-          "08-25",
-          "12-12"
+        "code": "northern",
+        "name": "Northern academic year (August to July)",
+        "year_kind": "academic_year",
+        "periods": [
+          {
+            "code": "T1",
+            "kind": "term",
+            "sequence": 1,
+            "name": "Term 1",
+            "typical": [
+              "08-25",
+              "12-12"
+            ],
+            "half_term": true
+          },
+          {
+            "code": "T2",
+            "kind": "term",
+            "sequence": 2,
+            "name": "Term 2",
+            "typical": [
+              "01-05",
+              "03-27"
+            ],
+            "half_term": true
+          },
+          {
+            "code": "T3",
+            "kind": "term",
+            "sequence": 3,
+            "name": "Term 3",
+            "typical": [
+              "04-13",
+              "07-03"
+            ],
+            "half_term": true
+          }
         ],
-        "half_term": true
+        "note": "Academic year with three terms, each with a half-term break. Cambridge exam series fall in the May/June window of Term 3 and in the October/November series; the school confirms the exact term dates each year."
       },
       {
-        "code": "T2",
-        "kind": "term",
-        "sequence": 2,
-        "name": "Term 2",
-        "typical": [
-          "01-05",
-          "03-27"
+        "code": "southern",
+        "name": "Southern academic year (January to November)",
+        "year_kind": "academic_year",
+        "periods": [
+          {
+            "code": "T1",
+            "kind": "term",
+            "sequence": 1,
+            "name": "Term 1",
+            "typical": [
+              "01-08",
+              "04-03"
+            ],
+            "half_term": true
+          },
+          {
+            "code": "T2",
+            "kind": "term",
+            "sequence": 2,
+            "name": "Term 2",
+            "typical": [
+              "04-21",
+              "07-10"
+            ],
+            "half_term": true
+          },
+          {
+            "code": "T3",
+            "kind": "term",
+            "sequence": 3,
+            "name": "Term 3",
+            "typical": [
+              "08-25",
+              "11-27"
+            ],
+            "half_term": true
+          }
         ],
-        "half_term": true
-      },
-      {
-        "code": "T3",
-        "kind": "term",
-        "sequence": 3,
-        "name": "Term 3",
-        "typical": [
-          "04-13",
-          "07-03"
-        ],
-        "half_term": true
+        "note": "January to November, the variant spec 03 Appendix C names for international schools in the southern hemisphere. Period codes, names and sequences match the northern variant so annual weights and conformance vectors resolve under either; only the dates differ."
       }
-    ],
-    "note": "Academic year with three terms, each with a half-term break. Cambridge exam series fall in the May/June window of Term 3 and in the October/November series; the school confirms the exact term dates each year. A southern-hemisphere school inverts the template through structure.calendar_template.periods, which the manifest declares overridable."
+    ]
   }
 }

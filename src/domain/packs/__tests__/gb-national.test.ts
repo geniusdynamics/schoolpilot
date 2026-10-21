@@ -63,13 +63,28 @@ interface Level {
   readonly national_assessment: string | null;
 }
 
+interface CalendarPeriod {
+  readonly code?: string;
+  readonly kind: string;
+  readonly sequence: number;
+  readonly name: string;
+  readonly half_term?: boolean;
+}
+
+interface CalendarTemplate {
+  readonly code?: string;
+  readonly name?: string;
+  readonly year_kind: string;
+  readonly periods: readonly CalendarPeriod[];
+}
+
 interface Structure {
   readonly stages: readonly { readonly code: string; readonly levels: readonly string[] }[];
   readonly levels: readonly Level[];
   readonly pathways?: readonly { readonly code: string; readonly levels: readonly string[] }[];
-  readonly calendar_template: {
-    readonly year_kind: string;
-    readonly periods: readonly { readonly code?: string; readonly kind: string; readonly sequence: number; readonly name: string; readonly half_term?: boolean }[];
+  readonly calendar_template: CalendarTemplate | {
+    readonly default: string;
+    readonly variants: readonly CalendarTemplate[];
   };
 }
 
@@ -306,14 +321,20 @@ describe('gb-national pack: schema and runtime contract', () => {
     expect(levelByCode.get('Y13')?.next).toBeNull();
   });
 
-  it('uses an academic year with three terms, each with a half-term', () => {
-    expect(structure.calendar_template.year_kind).toBe('academic_year');
-    expect(structure.calendar_template.periods.map((period) => period.code)).toEqual(['T1', 'T2', 'T3']);
-    for (const period of structure.calendar_template.periods) {
-      expect(period.kind).toBe('term');
-      expect(period.half_term).toBe(true);
+  it('declares both British academic-year variants, each with three terms and a half-term', () => {
+    const template = structure.calendar_template;
+    const variants = 'variants' in template ? template.variants : [template];
+    expect('variants' in template ? template.default : template.code).toBe('northern');
+    expect(variants.map((variant) => variant.code)).toEqual(['northern', 'southern']);
+    for (const variant of variants) {
+      expect(variant.year_kind, variant.code).toBe('academic_year');
+      expect(variant.periods.map((period) => period.code), variant.code).toEqual(['T1', 'T2', 'T3']);
+      for (const period of variant.periods) {
+        expect(period.kind, `${variant.code}.${period.code}`).toBe('term');
+        expect(period.half_term, `${variant.code}.${period.code}`).toBe(true);
+      }
     }
-    expect(manifest.overridable).toContain('structure.calendar_template.periods');
+    expect(manifest.overridable).toContain('structure.calendar_template.variants.*.periods');
   });
 
   it('declares learning areas that resolve to declared levels and pathways', () => {
@@ -483,15 +504,17 @@ describe('gb-national grading scales', () => {
     expect(bandAt(gcse, '89')?.label).toBe('8');
   });
 
-  it('spells the printed sign in the band code and keeps the printed grade in the label', () => {
+  it('uses the printed grade as the band code and keeps it in the label too', () => {
     const alevel = assessment.grading_scales.find((scale) => scale.code === 'alevel_a_star_e');
     expect(alevel).toBeDefined();
     const star = bandForGrade(alevel as GradingScaleDefinition, 'A*');
-    expect(star.code).toBe('A_STAR');
+    expect(star.code).toBe('A*');
     expect(star.label).toBe('A*');
     expect(star.points).toBe(56);
     for (const band of alevel?.bands ?? []) {
-      expect(band.code, band.label).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
+      // The schema's code alphabet now carries * and a leading -, so a grade code is the
+      // printed symbol rather than a spelled-out substitute.
+      expect(band.code, band.label).toMatch(/^(?=.*[A-Za-z0-9])[A-Za-z0-9*+-][A-Za-z0-9._*+-]*$/);
     }
   });
 

@@ -6,6 +6,7 @@ import {
   CODE,
   CODE_LIST,
   DATE,
+  JSON_VALUE,
   NAME,
   NULL,
   SEMVER,
@@ -49,7 +50,7 @@ const CITATION: Shape = object([
 ]);
 
 const VERIFICATION: Shape = object([
-  required('status', text({ values: ['draft', 'verified'] })),
+  required('status', text({ values: ['draft', 'reviewed', 'verified'] })),
   required('verified_by', array(NAME, { unique: true })),
   optional('notes', text({ min: 1, max: 2000 })),
 ]);
@@ -102,17 +103,42 @@ const CALENDAR_PERIOD: Shape = object([
   optional('half_term', BOOLEAN),
 ]);
 
-const CALENDAR: Shape = object([
+const CALENDAR_FIELDS = [
+  optional('code', CODE),
+  optional('name', NAME),
+  required('year_kind', text({ values: ['calendar_year', 'academic_year'] })),
+  required('periods', array(CALENDAR_PERIOD, { min: 1 })),
+  optional('note', text({ min: 1, max: 1000 })),
+] as const;
+
+const CALENDAR: Shape = object(CALENDAR_FIELDS);
+
+/** A variant inside `calendar_template.variants`: the same template with a code. */
+const CALENDAR_VARIANT: Shape = object([
+  required('code', CODE),
+  optional('name', NAME),
   required('year_kind', text({ values: ['calendar_year', 'academic_year'] })),
   required('periods', array(CALENDAR_PERIOD, { min: 1 })),
   optional('note', text({ min: 1, max: 1000 })),
 ]);
 
+const CALENDAR_VARIANTS: Shape = object([
+  required('default', CODE),
+  required('variants', array(CALENDAR_VARIANT, { min: 2 })),
+]);
+
+/** One template or a set of named variants: `structure.schema.json#/properties/calendar_template`. */
+const CALENDAR_TEMPLATE: Shape = {
+  of: 'object',
+  fields: [],
+  variants: [CALENDAR, CALENDAR_VARIANTS],
+};
+
 const STRUCTURE: Shape = object([
   required('stages', array(STAGE, { min: 1 })),
   required('levels', array(LEVEL, { min: 1 })),
   optional('pathways', array(PATHWAY, { min: 1 })),
-  required('calendar_template', CALENDAR),
+  required('calendar_template', CALENDAR_TEMPLATE),
 ]);
 
 // -------------------------------------------------------------- learning areas
@@ -121,8 +147,14 @@ const COMPONENT: Shape = object([
   required('code', CODE),
   required('name', NAME),
   required('kind', text({ values: ['paper', 'practical', 'coursework', 'oral', 'project', 'strand'] })),
+  optional('levels', CODE_LIST),
   optional('weight', WEIGHT),
   optional('max_score', count({ above: 0 })),
+]);
+
+const GRADE_SCALE_CHOICE: Shape = object([
+  required('levels', CODE_LIST),
+  required('scale', CODE),
 ]);
 
 const LEARNING_AREA: Shape = object([
@@ -137,8 +169,9 @@ const LEARNING_AREA: Shape = object([
   optional('components', array(COMPONENT)),
   optional('pathways', CODE_LIST),
   optional('alternatives', CODE_LIST),
+  optional('grade_scales', array(GRADE_SCALE_CHOICE, { min: 1 })),
   optional('outcomes_ref', text({
-    pattern: /^(?:\.\/)?[A-Za-z0-9._/-]+\.json$/,
+    pattern: /^(?!.*\.\.)(?:\.\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*\.json$/,
     min: 1,
     max: 500,
   })),
@@ -154,18 +187,24 @@ const COMPETENCY: Shape = object([
 const COMBINATION_RULE: Shape = object(
   [
     required('levels', CODE_LIST),
-    required('rule', text({ values: ['core_all', 'electives'] })),
-    optional('of', array(text({ pattern: /^[A-Za-z0-9._-]+(?:\|[A-Za-z0-9._-]+)*$/ }), {
-      min: 1,
-      unique: true,
-    })),
+    required('rule', text({ values: ['core_all', 'electives', 'group'] })),
+    optional('of', array(
+      text({
+        pattern: /^[A-Za-z0-9.*+-][A-Za-z0-9._*+-]*(?:\|[A-Za-z0-9.*+-][A-Za-z0-9._*+-]*)*$/,
+      }),
+      { min: 1, unique: true }
+    )),
     optional('count', count({ integer: true, min: 1 })),
+    optional('max', count({ integer: true, min: 1 })),
+    optional('group', CODE),
+    optional('min', count({ integer: true, min: 1 })),
     optional('from_pathway', BOOLEAN),
   ],
   {
     when: [
       { key: 'rule', equals: 'core_all', required: ['of'] },
       { key: 'rule', equals: 'electives', required: ['count'] },
+      { key: 'rule', equals: 'group', required: ['group', 'min'] },
     ],
   }
 );
@@ -216,6 +255,7 @@ const COMPONENT_POLICY: Shape = object(
   [
     required('papers', text({ values: ['sum', 'scale_each_then_sum', 'weighted', 'best_of'] })),
     required('out_of', PLUS),
+    optional('weights', record(record(WEIGHT, { min: 1 }), { min: 1 })),
     optional('best_of', count({ integer: true, min: 1 })),
   ],
   { when: [{ key: 'papers', equals: 'best_of', required: ['best_of'] }] }
@@ -224,7 +264,7 @@ const COMPONENT_POLICY: Shape = object(
 const ROUNDING_RULE: Shape = object([
   required('stage', text({ pattern: /^[a-z][a-z0-9_]*$/ })),
   required('precision', count({ integer: true, min: 0, max: 6 })),
-  required('mode', text({ values: ['half_up', 'half_even', 'floor', 'ceil', 'truncate'] })),
+  required('mode', text({ values: ['half_up', 'half_down', 'half_even', 'up', 'down'] })),
 ]);
 
 const SUMMATIVE_SLOT: Shape = object([
@@ -255,8 +295,7 @@ const FORMATIVE_SCHEME: Shape = object([
     required('op', literal('teacher_best_fit')),
     optional('suggest', text({ min: 1, max: 100 })),
   ])),
-  required('summative_slots', array(SUMMATIVE_SLOT, { min: 1 })),
-  required('report_shows', array(text({ values: ['rubric_level', 'descriptor', 'teacher_comment'] }), {
+  optional('summative_slots', array(SUMMATIVE_SLOT, { min: 1 })),  required('report_shows', array(text({ values: ['rubric_level', 'descriptor', 'teacher_comment'] }), {
     min: 1,
     unique: true,
   })),
@@ -285,6 +324,7 @@ const GRADING_SCALE: Shape = object(
         'points',
         'division',
         'gpa',
+        'mark_out_of_20',
         'out_of_20',
         'descriptor',
       ],
@@ -343,6 +383,8 @@ const AGGREGATION: Shape = object(
     optional('over', CODE_LIST),
     optional('fail_if', FAIL_CONDITION),
     optional('weights', union(record(WEIGHT, { min: 1 }), literal('coefficient'))),
+    optional('multipliers', record(count({ min: 1 }), { min: 1 })),
+    optional('divisor', union(count({ above: 0 }), literal('sum_of_multipliers'))),
     optional('precision', count({ integer: true, min: 0, max: 6 })),
     optional('result_scale', CODE),
   ],
@@ -350,10 +392,11 @@ const AGGREGATION: Shape = object(
     when: [
       { key: 'op', equals: 'best_n', required: ['n', 'value', 'groups'] },
       { key: 'op', equals: 'weighted_mean', required: ['weights'] },
+      // `aggregation.schema.json` states `if required multipliers then required divisor`.
+      { key: 'multipliers', required: ['divisor'] },
     ],
   }
 );
-
 const RANKING: Shape = object(
   [
     required('enabled', BOOLEAN),
@@ -511,7 +554,7 @@ const EXPECTATION_VALUE: Shape = object(
 const VECTOR: Shape = object([
   required('name', NAME),
   optional('programme', PACK_CODE),
-  required('input', record(union(text(), count(), NULL), { min: 1 })),
+  required('input', record(JSON_VALUE, { min: 1 })),
   required('expect', object([optional('selected', array(CODE, { min: 1, unique: true }))], {
     open: EXPECTATION_VALUE,
     closed: false,

@@ -325,7 +325,7 @@
       "upper": "inclusive",
       "bands": [
         {
-          "code": "A_STAR",
+          "code": "A*",
           "label": "A*",
           "min": 90,
           "max": 100,

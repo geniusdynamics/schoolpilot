@@ -95,7 +95,13 @@
       },
       "component_policy": {
         "papers": "weighted",
-        "out_of": 100
+        "out_of": 100,
+        "weights": {
+          "MAT": {
+            "P1": 0.5,
+            "P2": 0.5
+          }
+        }
       },
       "grading_scale": "international_gcse_9_1",
       "missing": {
@@ -145,7 +151,13 @@
       },
       "component_policy": {
         "papers": "weighted",
-        "out_of": 100
+        "out_of": 100,
+        "weights": {
+          "MAT": {
+            "P1": 0.5,
+            "P2": 0.5
+          }
+        }
       },
       "grading_scale": "international_gcse_a_star_g",
       "missing": {
@@ -392,7 +404,7 @@
       "upper": "inclusive",
       "bands": [
         {
-          "code": "A_STAR",
+          "code": "A*",
           "label": "A*",
           "min": 90,
           "max": 100,
@@ -515,7 +527,7 @@
       "upper": "inclusive",
       "bands": [
         {
-          "code": "A_STAR",
+          "code": "A*",
           "label": "A*",
           "min": 90,
           "max": 100,

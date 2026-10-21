@@ -43,7 +43,7 @@
       "U": "Ungraded."
     },
     "international_gcse_a_star_g": {
-      "A_STAR": "Exceptional performance.",
+      "A*": "Exceptional performance.",
       "A": "Excellent performance.",
       "B": "Good performance.",
       "C": "Satisfactory performance.",
@@ -62,7 +62,7 @@
       "U": "Ungraded."
     },
     "international_a_level": {
-      "A_STAR": "Exceptional performance.",
+      "A*": "Exceptional performance.",
       "A": "Excellent performance.",
       "B": "Good performance.",
       "C": "Satisfactory performance.",

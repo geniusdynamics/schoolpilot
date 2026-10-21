@@ -120,7 +120,6 @@
         "evidence",
         "observation_scale",
         "term_judgement",
-        "summative_slots",
         "report_shows"
       ],
       "properties": {
@@ -148,7 +147,7 @@
           "items": {
             "$ref": "#/$defs/summativeSlot"
           },
-          "description": "Optional marks-based slots inside a formative scheme, such as an end-of-term test mapped onto the rubric (spec 03 §4)."
+          "description": "Optional marks-based slots inside a formative scheme, such as an end-of-term test mapped onto the rubric (spec 03 §4). Omit it for a purely observational scheme: with no slots the term result is the teacher's best-fit rubric level over the observed outcomes for each learning area, mapped from observation_scale, and report_shows selects which parts of that judgement are printed. Nothing numeric is computed, so no marks need to be invented."
         },
         "report_shows": {
           "type": "array",
@@ -337,6 +336,24 @@
           "exclusiveMinimum": 0,
           "description": "Denominator the combined paper result is expressed out of, for example 100 (spec 03 §4)."
         },
+        "weights": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "common.schema.json#/$defs/code"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "common.schema.json#/$defs/code"
+            },
+            "additionalProperties": {
+              "$ref": "common.schema.json#/$defs/weight"
+            }
+          },
+          "description": "Per learning-area component weights, keyed by learning-area code and then component code. Declaring the share here keeps it inside the scheme, where two learning areas that both call a paper P1 cannot collide. Merge rule: a weight declared here wins for that learning area and component; a component's own weight applies when this map does not name it. The resolved weights for one learning area must sum to 1 (runtime check)."
+        },
         "best_of": {
           "type": "integer",
           "minimum": 1,
@@ -384,12 +401,12 @@
           "type": "string",
           "enum": [
             "half_up",
+            "half_down",
             "half_even",
-            "floor",
-            "ceil",
-            "truncate"
+            "up",
+            "down"
           ],
-          "description": "Rounding mode. Spec 03 §4 names half_up; the other modes are accepted for engine parity and must be applied identically by every implementation."
+          "description": "Rounding mode, in the assessment engine's vocabulary (P2-B01), which is canonical: up and down move away from and towards zero, half_up and half_down break a tie away from and towards zero, and half_even picks the even digit. Marks are non-negative, so up is a ceiling and down a truncation. Earlier drafts of this schema said floor, ceil and truncate; the mapping is floor -> down, ceil -> up and truncate -> down, and no pack used them."
         }
       },
       "additionalProperties": false

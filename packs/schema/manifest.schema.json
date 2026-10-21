@@ -123,9 +123,10 @@
           "type": "string",
           "enum": [
             "draft",
+            "reviewed",
             "verified"
           ],
-          "description": "draft means every list and band still needs checking against the cited source; verified means it was reviewed and has conformance vectors (spec 03 §12)."
+          "description": "draft means every list and band still needs checking against the cited source; reviewed means a named reviewer checked this version against its sources but the pack is not released; verified means it was reviewed, carries conformance vectors and is ready for schools (spec 03 §12). A pack cannot claim reviewed or verified without a named reviewer."
         },
         "verified_by": {
           "type": "array",
@@ -144,6 +145,26 @@
       },
       "additionalProperties": false,
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "reviewed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "verified_by": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {

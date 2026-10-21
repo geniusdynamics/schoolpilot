@@ -86,15 +86,30 @@
           "code": "P1",
           "name": "Paper 1",
           "kind": "paper",
-          "weight": 0.5,
+          "levels": [
+            "Y10",
+            "Y11"
+          ],
           "max_score": 100
         },
         {
           "code": "P2",
           "name": "Paper 2",
           "kind": "paper",
-          "weight": 0.5,
+          "levels": [
+            "Y10",
+            "Y11"
+          ],
           "max_score": 100
+        }
+      ],
+      "grade_scales": [
+        {
+          "levels": [
+            "Y10",
+            "Y11"
+          ],
+          "scale": "international_gcse_9_1"
         }
       ],
       "pathways": [

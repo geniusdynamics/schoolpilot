@@ -21,13 +21,13 @@ return.
 | KS4 | Y10, Y11 | GCSE at Y11 |
 | KS5 | Y12, Y13 | A Level at Y13 |
 
-`ordinal` runs 0 to 14 across the programme. The calendar is an academic year,
-September to July, with three terms and a half-term inside each.
-
-The structure schema allows **one** calendar template per pack, so the southern
-(January to November) variant that spec 03 Appendix C names for some international
-schools is not a second template. It is a declared override:
-`structure.calendar_template.periods` is in the manifest's `overridable` list.
+`ordinal` runs 0 to 14 across the programme. The calendar declares both British
+academic-year variants spec 03 Appendix C names: **northern** (September to July,
+the default) and **southern** (January to November). Both declare the same period
+codes, names and sequences, so annual weights and conformance vectors resolve
+whichever variant a school picks; only the dates differ, and
+`structure.calendar_template.variants.*.periods` stays overridable for a school
+whose term dates fall outside the typical window.
 
 Year 2 has no national assessment because KS1 SATs are no longer statutory; Year 12
 has none because AS levels are decoupled and optional. A school that still enters
@@ -60,14 +60,17 @@ throughout rather than a DfE census code invented for this pack.
 Only English and mathematics declare papers, and both have **equal** paper maxima
 (two of 80, three of 80). That is what makes `component_policy: scale_each_then_sum`
 fair here: summing raw marks weights each paper equally. A subject whose papers have
-different maxima would need `weighted`, and the component weight lives on the
-component in `learning-areas.json` because `component_policy` has no `weights` field
-of its own.
+different maxima would need `weighted`, and the share is declared in
+`component_policy.weights` under the learning area's code, so two subjects can both
+call a paper `P1` with different shares. A component's own `weight` remains as the
+fallback when the policy names no entry for it.
 
-The `component` schema is scoped to the learning area, not to a level, so a subject
-cannot declare one paper set for GCSE and another for A Level. Mathematics therefore
-declares its GCSE papers only; the A Level scheme has no component policy and
-records a single mock mark. That is a schema gap, recorded below.
+Components carry a level scope: `component.levels` says which levels a paper set is
+examined at, and the uniqueness rule is (learning area, level set, code). Mathematics
+could therefore declare a GCSE paper set at Y10-Y11 and an A Level paper set at
+Y12-Y13 under the same paper codes. This pack does not do that, because no A Level
+paper maxima were verified; it declares the GCSE papers only and the A Level scheme
+records a single mock mark.
 
 ## Assessment
 
@@ -79,9 +82,10 @@ records a single mock mark. That is a schema gap, recorded below.
 | `gb-alevel` | Y12, Y13 | classwork 50 + mock 50 | `alevel_a_star_e` |
 
 - EYFS is a teacher judgement against the 17 Early Learning Goals, recorded as
-  Expected or Emerging. The schema **requires** a `summative_slots` entry in a
-  formative scheme, so the pack carries one slot (the share of the 17 goals met) even
-  though the EYFS Profile itself is not a marks-based test. That is a schema gap.
+  Expected or Emerging. `gb-eyfs-profile` also declares the share of the 17 goals met
+  as an end-of-term assessment, because a school records one; the schema no longer
+  requires a marks-based slot, so a purely observational scheme can omit
+  `summative_slots` and compute a best-fit rubric level per learning area instead.
 - Key stage 1 to 3 attainment is a four-level judgement (greater depth, expected,
   working towards, below) because England has had no statutory level scale since
   2015. It is the school's rubric, declared so it is reported consistently.
@@ -116,14 +120,16 @@ taken. The pack does not model BTEC or other tariff-bearing qualifications, and 
 does not claim AS points, because the post-2017 tariff treatment of AS levels was not
 verified here.
 
-### Attainment 8 is not modelled
+### Attainment 8 is expressible; this pack reports the total
 
-`gcse_points_total` is a plain sum of GCSE points. The DfE Attainment 8 average
-takes the best eight subjects, counts English and mathematics twice, and divides by
-ten. This schema cannot express "count this subject twice" or "take the best eight
-with two slots reserved for English and mathematics", so the pack reports the total
-and not an Attainment 8 score. A school can compute the average from the total only
-if it knows the basket; the pack does not pretend to.
+`gcse_points_total` is a plain sum of GCSE points. The DfE Attainment 8 average takes
+the best eight subjects, counts English and mathematics twice, and divides by ten.
+The aggregation schema now expresses that directly: `multipliers` counts a selected
+result more than once and `divisor` declares what the multiplied aggregate is divided
+by (Attainment 8 declares 10, though only eight subjects count). This pack does not
+ship the Attainment 8 aggregation, because the grade bands it would read are
+placeholders and an Attainment 8 figure computed from unverified boundaries would
+look authoritative when it is not. It reports the points total instead.
 
 ## Conformance vectors
 
@@ -154,27 +160,23 @@ whose maximum must match the declared component, and `"MAT": "A*"` is a subject 
 for a points total. Progression vectors use `"leaving_level": "Y6"` to name the level
 being left.
 
-## Known gaps in the pack schema
+## Known gaps in this pack
 
-1. **Grade codes cannot hold `+`, `-` or `*`.** `common.code` allows letters, digits,
-   dot, underscore and hyphen and forbids a leading hyphen, so A* is `A_STAR`. The
-   printed grade is the band `label`. This is the second pack to hit it (after
-   `ke-844`) and the first with an asterisk.
-2. **Components are scoped to a learning area, not a level.** One subject cannot
-   declare a GCSE paper set and an A Level paper set under the same code.
-3. **`component_policy` cannot declare weights.** A `weighted` policy reads the
-   weights from the components, and the engine's policy map is keyed by component
-   code only, so two learning areas that both use `P1` with different weights would
-   collide.
-4. **A formative scheme must declare a `summative_slots` entry.** A purely
-   observational EYFS scheme cannot be expressed without one.
-5. **One calendar template per pack.** The northern and southern British variants
-   cannot both be declared.
-6. **`combination_rules` cannot express a minimum from a group or a maximum count.**
-   "Four options, at least one humanity" is not expressible; the pack declares the
-   core and a count of four and leaves the basket to the school.
-7. **Aggregations cannot double-weight a subject**, so Attainment 8 cannot be
-   modelled; `best_n` cannot select the same learning area twice.
+The pack-schema gaps the first version of this README listed are closed by the
+schema revision (P2-A01a): grade codes carry the printed symbol (`A*`, `A-`, `B+`),
+components carry a level scope, `component_policy` declares per-area weights,
+`summative_slots` is optional, the calendar declares named variants, combination
+rules express a group minimum and a maximum, and aggregations carry per-area
+multipliers and a divisor. What remains is about this pack, not the format:
+
+1. **No A Level paper sets.** Only the GCSE English and mathematics papers were
+   verified, so the A Level schemes record a single mock mark rather than a paper
+   breakdown that would be invented.
+2. **Attainment 8 is not shipped.** The format expresses it, but the grade bands are
+   placeholders, so an Attainment 8 figure would rest on unverified boundaries.
+3. **Option blocks are not constrained.** England's option-block structure is a
+   school choice, not a national rule, so the pack declares no combination rules for
+   key stage 4.
 
 ## Sources
 

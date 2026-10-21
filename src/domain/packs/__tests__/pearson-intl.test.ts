@@ -38,6 +38,7 @@ interface Component {
   readonly code: string;
   readonly name: string;
   readonly kind: string;
+  readonly levels?: readonly string[];
   readonly max_score: number;
   readonly weight?: number;
 }
@@ -51,6 +52,7 @@ interface LearningArea {
   readonly national_code: string | null;
   readonly pathways?: readonly string[];
   readonly components?: readonly Component[];
+  readonly grade_scales?: readonly { readonly levels: readonly string[]; readonly scale: string }[];
 }
 
 interface Level {
@@ -67,10 +69,25 @@ interface Structure {
   readonly stages: readonly { readonly code: string; readonly levels: readonly string[] }[];
   readonly levels: readonly Level[];
   readonly pathways?: readonly { readonly code: string; readonly levels: readonly string[] }[];
-  readonly calendar_template: {
-    readonly year_kind: string;
-    readonly periods: readonly { readonly code?: string; readonly kind: string; readonly sequence: number; readonly name: string; readonly half_term?: boolean }[];
+  readonly calendar_template: CalendarTemplate | {
+    readonly default: string;
+    readonly variants: readonly CalendarTemplate[];
   };
+}
+
+interface CalendarPeriod {
+  readonly code?: string;
+  readonly kind: string;
+  readonly sequence: number;
+  readonly name: string;
+  readonly half_term?: boolean;
+}
+
+interface CalendarTemplate {
+  readonly code?: string;
+  readonly name?: string;
+  readonly year_kind: string;
+  readonly periods: readonly CalendarPeriod[];
 }
 
 interface SchemeSlot {
@@ -91,7 +108,11 @@ interface Scheme {
   readonly observation_scale?: string;
   readonly summative_slots?: readonly { readonly code: string; readonly max: number; readonly maps_to: string }[];
   readonly learning_area_score?: { readonly op: string; readonly of: readonly string[]; readonly out_of: number };
-  readonly component_policy?: { readonly papers: string; readonly out_of?: number };
+  readonly component_policy?: {
+    readonly papers: string;
+    readonly out_of?: number;
+    readonly weights?: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  };
   readonly grading_scale?: string;
   readonly missing?: Readonly<Record<string, string>>;
   readonly rounding?: readonly { readonly stage: string; readonly precision: number; readonly mode: string }[];
@@ -302,14 +323,20 @@ describe('pearson-intl pack: schema and runtime contract', () => {
     expect(levelByCode.get('Y13')?.next).toBeNull();
   });
 
-  it('uses an academic year with three terms, each with a half-term', () => {
-    expect(structure.calendar_template.year_kind).toBe('academic_year');
-    expect(structure.calendar_template.periods.map((period) => period.code)).toEqual(['T1', 'T2', 'T3']);
-    for (const period of structure.calendar_template.periods) {
-      expect(period.kind).toBe('term');
-      expect(period.half_term).toBe(true);
+  it('declares both academic-year variants, each with three terms and a half-term', () => {
+    const template = structure.calendar_template;
+    const variants = 'variants' in template ? template.variants : [template];
+    expect('variants' in template ? template.default : template.code).toBe('northern');
+    expect(variants.map((variant) => variant.code)).toEqual(['northern', 'southern']);
+    for (const variant of variants) {
+      expect(variant.year_kind, variant.code).toBe('academic_year');
+      expect(variant.periods.map((period) => period.code), variant.code).toEqual(['T1', 'T2', 'T3']);
+      for (const period of variant.periods) {
+        expect(period.kind, `${variant.code}.${period.code}`).toBe('term');
+        expect(period.half_term, `${variant.code}.${period.code}`).toBe(true);
+      }
     }
-    expect(manifest.overridable).toContain('structure.calendar_template.periods');
+    expect(manifest.overridable).toContain('structure.calendar_template.variants.*.periods');
   });
 
   it('declares learning areas that resolve to declared levels and pathways', () => {
@@ -331,14 +358,21 @@ describe('pearson-intl pack: schema and runtime contract', () => {
     const withPapers = learningAreas.filter((area) => (area.components ?? []).length > 0);
     expect(withPapers.map((area) => area.code)).toEqual(['MAT']);
     const papers = withPapers[0]?.components ?? [];
-    expect(papers.map((component) => [component.code, component.max_score, component.weight])).toEqual([
-      ['P1', 100, 0.5],
-      ['P2', 100, 0.5],
+    expect(papers.map((component) => [component.code, component.max_score, component.levels])).toEqual([
+      ['P1', 100, ['Y10', 'Y11']],
+      ['P2', 100, ['Y10', 'Y11']],
     ]);
     const weighted = assessment.schemes.filter((scheme) => scheme.component_policy?.papers === 'weighted');
     expect(weighted.map((scheme) => scheme.code)).toEqual([
       'pearson-international-gcse-9-1',
       'pearson-international-gcse-legacy',
+    ]);
+    for (const scheme of weighted) {
+      const declared = scheme.component_policy?.weights?.MAT ?? {};
+      expect(Object.values(declared).reduce((sum, weight) => sum + weight, 0), scheme.code).toBeCloseTo(1, 9);
+    }
+    expect(withPapers[0]?.grade_scales).toEqual([
+      { levels: ['Y10', 'Y11'], scale: 'international_gcse_9_1' },
     ]);
   });
 
@@ -476,16 +510,17 @@ describe('pearson-intl grading scales', () => {
     expect(bandAt(igcse, '89')?.label).toBe('8');
   });
 
-  it('spells A* as A_STAR and stops the International AS scale at A', () => {
+  it('uses the printed A* as the band code and stops the International AS scale at A', () => {
     const alevel = scaleNamed('international_a_level');
     const star = bandForGrade(alevel, 'A*');
-    expect(star.code).toBe('A_STAR');
+    expect(star.code).toBe('A*');
     expect(star.label).toBe('A*');
     expect(star.points).toBe(56);
     for (const band of [...alevel.bands, ...scaleNamed('international_as').bands]) {
-      expect(band.code, band.label).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
+      // The schema carries the printed symbol, so the code is the grade itself.
+      expect(band.code, band.label).toMatch(/^(?=.*[A-Za-z0-9])[A-Za-z0-9*+-][A-Za-z0-9._*+-]*$/);
     }
-    expect(scaleNamed('international_as').bands.some((band) => band.code === 'A_STAR')).toBe(false);
+    expect(scaleNamed('international_as').bands.some((band) => band.code === 'A*')).toBe(false);
   });
 
   it('does not invent a tariff for International AS or legacy A*-G grades', () => {
@@ -536,31 +571,41 @@ function schemeNamed(code: string): Scheme {
 /**
  * The component weights a weighted policy needs.
  *
- * `component_policy` in the pack schema has no `weights` field, so the share is declared on each
- * component in `learning-areas.json` and the loader joins it into the engine's policy map. The map
- * is keyed by component code, so two learning areas sharing a paper code with different shares
- * would collide; this pack has one component-bearing area and the test refuses the ambiguity.
+ * The share is declared in `component_policy.weights` under the learning-area code, so two areas
+ * that both call a paper P1 cannot collide; the engine's policy map is keyed by component code
+ * and is built here for the area the vector is about.
  */
-function componentWeights(): Readonly<Record<string, string>> {
-  const weights = new Map<string, string>();
-  for (const area of learningAreas) {
-    for (const component of area.components ?? []) {
-      if (component.weight === undefined) continue;
-      if (weights.has(component.code)) {
-        throw new Error(`component code ${component.code} is declared by more than one learning area`);
-      }
-      weights.set(component.code, String(component.weight));
-    }
+function componentWeights(areaCode: string): Readonly<Record<string, string>> {
+  const weights: Record<string, string> = {};
+  for (const scheme of assessment.schemes) {
+    const policy = scheme.component_policy;
+    const declared = policy?.weights?.[areaCode];
+    if (declared === undefined) continue;
+    for (const [code, weight] of Object.entries(declared)) weights[code] = String(weight);
   }
-  return Object.fromEntries(weights);
+  if (Object.keys(weights).length === 0) {
+    throw new Error(`no component_policy.weights are declared for ${areaCode}`);
+  }
+  return weights;
 }
 
-function engineScheme(scheme: Scheme): SchemeDefinition {
+/** The learning area a vector's `slot.AREA.COMPONENT` keys are about, if it names one. */
+function weightedArea(vector: Vector | undefined): string | undefined {
+  for (const key of Object.keys(vector?.input ?? {})) {
+    const [, area, component] = key.split('.');
+    if (area !== undefined && component !== undefined) return area;
+  }
+  return undefined;
+}
+
+function engineScheme(scheme: Scheme, vector?: Vector): SchemeDefinition {
   const score = scheme.learning_area_score;
   if (score === undefined || scheme.slots === undefined) {
     throw new Error(`${scheme.code} is not a marks scheme`);
   }
   if (score.op !== 'sum') throw new Error(`${scheme.code}: the engine does not support op ${score.op}`);
+  const weightedFor =
+    scheme.component_policy?.papers === 'weighted' ? weightedArea(vector) : undefined;
   return {
     code: scheme.code,
     slots: scheme.slots.map((slot) => ({
@@ -582,7 +627,7 @@ function engineScheme(scheme: Scheme): SchemeDefinition {
           component_policy: {
             papers: paperCombine(scheme.component_policy.papers),
             ...(scheme.component_policy.out_of === undefined ? {} : { out_of: String(scheme.component_policy.out_of) }),
-            ...(scheme.component_policy.papers === 'weighted' ? { weights: componentWeights() } : {}),
+            ...(weightedFor === undefined ? {} : { weights: componentWeights(weightedFor) }),
           },
         }),
     ...(scheme.missing === undefined
@@ -758,7 +803,7 @@ function expectedRecord(vector: Vector, code: string): Readonly<Record<string, n
 
 function expectSchemeVector(vector: Vector, schemeCode: string): void {
   const scheme = schemeNamed(schemeCode);
-  const evaluation = evaluateScheme({ scheme: engineScheme(scheme), marks: marksFromInput(vector.input) });
+  const evaluation = evaluateScheme({ scheme: engineScheme(scheme, vector), marks: marksFromInput(vector.input) });
   expect(evaluation.ok, JSON.stringify(evaluation.ok ? [] : evaluation.issues)).toBe(true);
   if (!evaluation.ok) return;
 
@@ -815,7 +860,11 @@ describe('pearson-intl arithmetic sanity', () => {
   it('combines the two equal 100-mark papers at their declared shares', () => {
     // 80/100 and 90/100 are 0.5 * 0.8 + 0.5 * 0.9 = 0.85 of the mock, so 51 of the 60 marks.
     const evaluation = evaluateScheme({
-      scheme: engineScheme(schemeNamed('pearson-international-gcse-9-1')),
+      scheme: engineScheme(schemeNamed('pearson-international-gcse-9-1'), {
+        name: 'weights',
+        input: { 'MOCK.MAT.P1': '80/100', 'MOCK.MAT.P2': '90/100' },
+        expect: {},
+      }),
       marks: marksFromInput({ 'CW.CW1': '27/30', 'MOCK.MAT.P1': '80/100', 'MOCK.MAT.P2': '90/100' }),
     });
     expect(evaluation.ok).toBe(true);

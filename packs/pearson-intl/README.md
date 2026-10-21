@@ -25,9 +25,10 @@ optional school assessments and calling them board or national assessments would
 overclaim. The other two British packs in this repository do declare a checkpoint at
 those levels; this one deliberately does not.
 
-The calendar is an academic year with three terms, each with a half-term. A
-southern-hemisphere school overrides `structure.calendar_template.periods`, which the
-manifest declares overridable.
+The calendar declares both academic-year variants spec 03 Appendix C names: northern
+(August to July, the default) and southern (January to November). Both use the same
+period codes, names and sequences, so annual weights resolve under either; only the
+dates differ, and `structure.calendar_template.variants.*.periods` is overridable.
 
 ## Subjects
 
@@ -48,11 +49,15 @@ Sixteen learning areas across the four stages.
 | COMP | Computing | Y1 to Y13 |
 
 The International GCSE Mathematics A papers are both 100 marks and half the
-qualification each; the share is declared on each component (0.5) because
-`component_policy` has no `weights` field. As in the other British packs, the
-`component` schema is scoped to the learning area and not to a level, so Mathematics
-declares its International GCSE papers only and the AS and A Level schemes carry no
-component policy.
+qualification each; the share is declared in `component_policy.weights` under `MAT`,
+so a second subject that also calls a paper `P1` cannot collide. Components carry a
+level scope (`component.levels`), so one subject can declare a GCSE paper set and an
+advanced paper set under the same paper codes; this pack declares the International
+GCSE papers only, because no International A Level paper maxima were verified, and
+the AS and A Level schemes carry no component policy.
+
+Mathematics declares its grade set per level: `grade_scales` names
+`international_gcse_9_1` at Y10-Y11, the 4MA1 syllabus the modelled papers belong to.
 
 ## Assessment
 
@@ -119,19 +124,22 @@ test-local reference over the declared `sum_points` aggregation because P2-B03 h
 not landed. Vectors 8 to 10 use a test-local reference over the declared progression
 rule. No expected value is hard-coded that the code does not produce.
 
-## Known gaps in the pack schema
+## Known gaps in this pack
 
-1. **Grade codes cannot hold `+`, `-` or `*`.** A* is spelled `A_STAR`; the printed
-   grade is the band label.
-2. **Components are scoped to a learning area, not a level.**
-3. **`component_policy` cannot declare weights**; the share lives on the component and
-   the engine's weight map is keyed by component code only.
-4. **A formative scheme must declare `summative_slots`**, which an observation-only
-   iPrimary scheme does not need.
-5. **One calendar template per pack.**
-6. **`combination_rules` cannot express a minimum from a group or a maximum count.**
-7. **No per-level grade scale choice**, so two International GCSE schemes sit side by
-   side with nothing declaring which subject uses which grade set.
+The pack-schema gaps the first version of this README listed are closed by the schema
+revision (P2-A01a): grade codes carry the printed symbol, components carry a level
+scope, `component_policy` declares per-area weights, `summative_slots` is optional,
+the calendar declares named variants, combination rules express a group minimum and a
+maximum, and a learning area declares its grade scale per level. What remains is about
+this pack:
+
+1. **No advanced paper sets.** Only the International GCSE Mathematics A papers were
+   verified, so the International AS and A Level schemes record a single mock mark.
+2. **One grade set per subject.** Mathematics is declared on the 9-1 syllabus because
+   that is the paper set modelled; a school on the legacy A*-G qualification uses the
+   legacy scheme and records the choice as a programme override.
+3. **Option-block constraints are not declared.** Pearson's combinations are a school
+   timetable decision, so the pack leaves them to the school.
 
 ## Sources
 

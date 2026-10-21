@@ -23,10 +23,10 @@ because that is how a school places learners; the stage name in brackets is the
 Cambridge equivalent. Year 12 carries no required board assessment because AS is a
 separate, optional qualification.
 
-The calendar is an academic year with three terms, each with a half-term. A
-southern-hemisphere school overrides `structure.calendar_template.periods`, which the
-manifest declares overridable; the structure schema allows one template per pack.
-
+The calendar declares both academic-year variants spec 03 Appendix C names: northern
+(August to July, the default) and southern (January to November). Both use the same
+period codes, names and sequences, so annual weights resolve under either; only the
+dates differ, and `structure.calendar_template.variants.*.periods` is overridable.
 ## Subjects
 
 Sixteen learning areas. Cambridge Primary and Lower Secondary offer English,
@@ -53,15 +53,20 @@ Cambridge syllabus numbers are not modelled as `national_code`; they differ per
 syllabus and per 9-1 variant, and a learning area spans several syllabuses.
 
 The extended-tier IGCSE Mathematics papers carry the published weights (0.35 and
-0.65) on the components themselves, because `component_policy` has no `weights`
-field. Those weights are proportional to the paper marks (70 and 130), so
-`weighted` and `scale_each_then_sum` agree for this subject; the vector pins the
-combine either way.
+0.65) in the IGCSE schemes' `component_policy.weights`, keyed by the learning area
+and then the paper, so a second subject that also calls a paper `P2` cannot collide.
+Those weights are proportional to the paper marks (70 and 130), so `weighted` and
+`scale_each_then_sum` agree for this subject; the vector pins the combine either way.
 
-As in every British pack here, the `component` schema is scoped to the learning area
-and not to a level, so Mathematics cannot declare one paper set for IGCSE and another
-for A Level. The IGCSE schemes declare the component policy; the AS and A Level
-schemes do not.
+Mathematics declares its grade set per level: `grade_scales` on the learning area
+names `igcse_a_star_g` at Y10-Y11, because the modelled 0580 papers are the A*-G
+syllabus. A school on the 9-1 syllabus declares that through the scheme it uses and
+the override path, rather than the pack guessing.
+
+Components carry a level scope (`component.levels`), so one subject can declare a
+GCSE paper set and an advanced paper set under the same paper codes; uniqueness is
+(learning area, level set, code). This pack declares the IGCSE papers only, because
+no A Level paper maxima were verified.
 
 ## Assessment
 
@@ -83,9 +88,10 @@ The primary and lower-secondary attainment levels (exceeding, meeting, approachi
 below) are the school's rubric. Cambridge's Checkpoint reports are board scores, not
 school levels, and the pack does not pretend otherwise.
 
-A formative scheme must carry at least one `summative_slots` entry in this schema, so
-each of the two observational schemes declares the end-of-term assessment that maps
-onto its rubric. That is a schema gap, not a Cambridge requirement.
+A purely observational scheme needs no marks slot: `summative_slots` is optional, and
+with none the term result is the teacher's best-fit rubric level per learning area.
+Both observational schemes here also declare the end-of-term assessment a school
+actually records, mapped onto the same rubric.
 
 ### Grade thresholds are placeholders, and say so
 
@@ -136,25 +142,22 @@ use a test-local reference over the declared `sum_points` aggregation because
 P2-B03 has not landed. Vectors 8 to 10 use a test-local reference over the declared
 progression rule. No expected value is hard-coded that the code does not produce.
 
-## Known gaps in the pack schema
+## Known gaps in this pack
 
-1. **Grade codes cannot hold `+`, `-` or `*`.** A* is spelled `A_STAR` and the printed
-   grade is the band label. Four packs have now hit this (`ke-844`, `gb-national`,
-   `cambridge-intl`, `pearson-intl`).
-2. **Components are scoped to a learning area, not a level**, so one subject cannot
-   carry an IGCSE paper set and an advanced paper set.
-3. **`component_policy` cannot declare weights**; the share is declared on the
-   component, and the engine's weight map is keyed by component code only, so two
-   learning areas that both use `P2` with different shares would collide.
-4. **A formative scheme must declare `summative_slots`**, which a purely
-   observational scheme (EYFS, Cambridge Primary) does not have.
-5. **One calendar template per pack**, so the northern and southern variants cannot
-   both be declared.
-6. **`combination_rules` cannot express a minimum from a group or a maximum count**,
-   so "three or four electives including at least one humanity" is not expressible.
-7. **No per-level grade scale choice**: a school running A* to G and 9-1 syllabuses
-   side by side needs both schemes, and nothing in the pack declares which subject
-   uses which.
+The pack-schema gaps the first version of this README listed are closed by the schema
+revision (P2-A01a): grade codes carry the printed symbol, components carry a level
+scope, `component_policy` declares per-area weights, `summative_slots` is optional,
+the calendar declares named variants, combination rules express a group minimum and a
+maximum, and a learning area declares its grade scale per level. What remains is about
+this pack:
+
+1. **No advanced paper sets.** Only the 0580 paper maxima were verified, so the AS and
+   A Level schemes record a single mock mark rather than a paper breakdown.
+2. **One grade set per subject.** Mathematics is declared on the A*-G syllabus because
+   that is the paper set modelled; a school on a 9-1 syllabus uses the 9-1 scheme and
+   records the choice as a programme override.
+3. **Option-block constraints are not declared.** Cambridge's advanced combinations
+   are a school timetable decision, so the pack leaves them to the school.
 
 ## Sources
 
