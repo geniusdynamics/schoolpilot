@@ -1,0 +1,55 @@
+{
+  "code": "pearson-iprimary-term",
+  "name": "iPrimary term report",
+  "levels": [
+    "Y1",
+    "Y2",
+    "Y3",
+    "Y4",
+    "Y5",
+    "Y6"
+  ],
+  "page": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "blocks": [
+    {
+      "type": "header",
+      "label_key": "block.header"
+    },
+    {
+      "type": "learner",
+      "label_key": "block.learner"
+    },
+    {
+      "type": "attendance",
+      "label_key": "block.attendance"
+    },
+    {
+      "type": "rubric_table",
+      "label_key": "block.rubric"
+    },
+    {
+      "type": "competencies",
+      "label_key": "block.competencies"
+    },
+    {
+      "type": "summary",
+      "label_key": "block.summary"
+    },
+    {
+      "type": "comments",
+      "label_key": "block.comments"
+    },
+    {
+      "type": "signatures",
+      "label_key": "block.signatures"
+    },
+    {
+      "type": "verification",
+      "label_key": "block.verification"
+    }
+  ],
+  "comment_max_length": 500
+}

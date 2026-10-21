@@ -1,0 +1,67 @@
+{
+  "code": "cambridge-intl",
+  "name": "Cambridge International - Primary to A Level (Year 1 to Year 13)",
+  "version": "1.0.0",
+  "country": "GB",
+  "issuers": [
+    "Cambridge International",
+    "Cambridge University Press & Assessment"
+  ],
+  "effective_from": "2026-09-01",
+  "languages": [
+    "en"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Cambridge IGCSE (14-16 year olds), including the 9-1 syllabus list",
+      "issuer": "Cambridge International",
+      "url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-upper-secondary/cambridge-igcse/",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Cambridge IGCSE Mathematics (0580)",
+      "issuer": "Cambridge International",
+      "url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-mathematics-0580/",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Cambridge Advanced (Cambridge International AS & A Level)",
+      "issuer": "Cambridge International",
+      "url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-advanced/",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Cambridge Primary curriculum and assessment",
+      "issuer": "Cambridge International",
+      "url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-primary/",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Cambridge Lower Secondary curriculum and assessment",
+      "issuer": "Cambridge International",
+      "url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-lower-secondary/",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "UCAS Tariff points",
+      "issuer": "UCAS",
+      "url": "https://www.ucas.com/applying/before-you-apply/what-and-where-to-study/entry-requirements/ucas-tariff-points",
+      "retrieved": "2026-10-21"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft: no Cambridge International examiner or school reviewer has checked this pack. Source links: all six URLs resolved to the named pages on 2026-10-21 (titles matched). The IGCSE subject list on the Cambridge IGCSE page confirms that the board runs both A*-G syllabuses (for example Accounting 0452) and 9-1 syllabuses (Accounting (9-1) 0985), which is why this pack ships both scales. What is a placeholder, not a claim: every percentage-to-grade band. Cambridge sets grade thresholds for each syllabus option and each exam series after marking, so igcse_a_star_g, igcse_9_1 and cambridge_a_level are school defaults and are declared overridable (grading_scales.<code>.bands); a school must replace them with the board's thresholds for the session. What is structured but unverified: the 0580 extended-tier paper maxima (Paper 2 = 70 marks, Paper 4 = 130 marks, weights 0.35/0.65) follow the published syllabus and were not re-read from the syllabus PDF in this environment; AS and A Level subjects declare no papers, because components are scoped to the learning area and cannot carry both an IGCSE and an advanced paper set. UCAS: the A Level tariff is per grade, not per grade and subject: A* 56, A 48, B 40, C 32, D 24, E 16, U 0, summed over the qualifications the candidate takes. The tariff table itself is rendered client-side on the UCAS page and was not read off it, so the figures come from platform spec 03 Appendix C, and no AS or IGCSE tariff is modelled because none could be verified. Grade codes: an asterisk cannot appear in a pack code, so A* is A_STAR with the printed grade as the label. Calendar: one template per pack, so the southern variant is an override of structure.calendar_template.periods. Locale: English only; other languages are a translation task, not a pack version."
+  },
+  "overridable": [
+    "grading_scales.igcse_a_star_g.bands",
+    "grading_scales.igcse_9_1.bands",
+    "grading_scales.cambridge_a_level.bands",
+    "grading_scales.cambridge_attainment.bands",
+    "structure.calendar_template.periods",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

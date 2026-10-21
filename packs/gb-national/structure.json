@@ -1,0 +1,257 @@
+{
+  "stages": [
+    {
+      "code": "EYFS",
+      "name": "Early Years Foundation Stage (Nursery and Reception)",
+      "levels": [
+        "N1",
+        "N2"
+      ]
+    },
+    {
+      "code": "KS1",
+      "name": "Key Stage 1",
+      "levels": [
+        "Y1",
+        "Y2"
+      ]
+    },
+    {
+      "code": "KS2",
+      "name": "Key Stage 2",
+      "levels": [
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6"
+      ]
+    },
+    {
+      "code": "KS3",
+      "name": "Key Stage 3",
+      "levels": [
+        "Y7",
+        "Y8",
+        "Y9"
+      ]
+    },
+    {
+      "code": "KS4",
+      "name": "Key Stage 4 (GCSE)",
+      "levels": [
+        "Y10",
+        "Y11"
+      ]
+    },
+    {
+      "code": "KS5",
+      "name": "Key Stage 5 (AS and A Level)",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "N1",
+      "name": "Nursery (FS1)",
+      "ordinal": 0,
+      "typical_age": 3,
+      "next": "N2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "N2",
+      "name": "Reception (FS2)",
+      "ordinal": 1,
+      "typical_age": 4,
+      "next": "Y1",
+      "is_stage_exit": true,
+      "national_assessment": "EYFS_PROFILE"
+    },
+    {
+      "code": "Y1",
+      "name": "Year 1",
+      "ordinal": 2,
+      "typical_age": 5,
+      "next": "Y2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y2",
+      "name": "Year 2",
+      "ordinal": 3,
+      "typical_age": 6,
+      "next": "Y3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y3",
+      "name": "Year 3",
+      "ordinal": 4,
+      "typical_age": 7,
+      "next": "Y4",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y4",
+      "name": "Year 4",
+      "ordinal": 5,
+      "typical_age": 8,
+      "next": "Y5",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y5",
+      "name": "Year 5",
+      "ordinal": 6,
+      "typical_age": 9,
+      "next": "Y6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y6",
+      "name": "Year 6",
+      "ordinal": 7,
+      "typical_age": 10,
+      "next": "Y7",
+      "is_stage_exit": true,
+      "national_assessment": "KS2_SATS"
+    },
+    {
+      "code": "Y7",
+      "name": "Year 7",
+      "ordinal": 8,
+      "typical_age": 11,
+      "next": "Y8",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y8",
+      "name": "Year 8",
+      "ordinal": 9,
+      "typical_age": 12,
+      "next": "Y9",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y9",
+      "name": "Year 9",
+      "ordinal": 10,
+      "typical_age": 13,
+      "next": "Y10",
+      "is_stage_exit": true,
+      "national_assessment": null
+    },
+    {
+      "code": "Y10",
+      "name": "Year 10",
+      "ordinal": 11,
+      "typical_age": 14,
+      "next": "Y11",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y11",
+      "name": "Year 11",
+      "ordinal": 12,
+      "typical_age": 15,
+      "next": "Y12",
+      "is_stage_exit": true,
+      "national_assessment": "GCSE"
+    },
+    {
+      "code": "Y12",
+      "name": "Year 12",
+      "ordinal": 13,
+      "typical_age": 16,
+      "next": "Y13",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y13",
+      "name": "Year 13",
+      "ordinal": 14,
+      "typical_age": 17,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "A_LEVEL"
+    }
+  ],
+  "pathways": [
+    {
+      "code": "SCI",
+      "name": "Science and mathematics",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    },
+    {
+      "code": "HUM",
+      "name": "Humanities and social sciences",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    },
+    {
+      "code": "ART",
+      "name": "Arts and creative subjects",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Autumn term",
+        "typical": [
+          "09-01",
+          "12-19"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Spring term",
+        "typical": [
+          "01-05",
+          "03-27"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Summer term",
+        "typical": [
+          "04-13",
+          "07-17"
+        ],
+        "half_term": true
+      }
+    ],
+    "note": "Northern-hemisphere academic year, September to July, with a half-term break inside each term. The exact dates are set by the school each year. Spec 03 Appendix C also names a southern (January) variant used by some international schools; the structure schema allows one calendar template per pack, so that variant is a declared override of this template (structure.calendar_template.periods) rather than a second template."
+  }
+}

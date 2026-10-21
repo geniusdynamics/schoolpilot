@@ -1,0 +1,419 @@
+{
+  "schemes": [
+    {
+      "code": "gb-eyfs-profile",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "evidence": "rubric_observations",
+      "observation_scale": "eyfs_emerging_expected",
+      "term_judgement": {
+        "op": "teacher_best_fit",
+        "suggest": "mode_of_latest_per_outcome"
+      },
+      "summative_slots": [
+        {
+          "code": "ELG",
+          "label": "Early Learning Goal profile check (share of the 17 goals met)",
+          "max": 100,
+          "maps_to": "eyfs_emerging_expected"
+        }
+      ],
+      "report_shows": [
+        "rubric_level",
+        "descriptor",
+        "teacher_comment"
+      ],
+      "overridable": [
+        "summative_slots.*.max"
+      ]
+    },
+    {
+      "code": "gb-attainment",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9"
+      ],
+      "evidence": "rubric_observations",
+      "observation_scale": "attainment_4_level",
+      "term_judgement": {
+        "op": "teacher_best_fit",
+        "suggest": "mode_of_latest_per_outcome"
+      },
+      "summative_slots": [
+        {
+          "code": "ET",
+          "label": "End-of-term assessment",
+          "max": 100,
+          "maps_to": "attainment_4_level"
+        }
+      ],
+      "report_shows": [
+        "rubric_level",
+        "descriptor",
+        "teacher_comment"
+      ],
+      "overridable": [
+        "summative_slots.*.max"
+      ]
+    },
+    {
+      "code": "gb-gcse",
+      "levels": [
+        "Y10",
+        "Y11"
+      ],
+      "slots": [
+        {
+          "code": "CW",
+          "label": "Classwork and assessed homework",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 50
+        },
+        {
+          "code": "MOCK",
+          "label": "Mock examination",
+          "kind": "mock",
+          "scale_to": 50
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CW",
+          "MOCK"
+        ],
+        "out_of": 100
+      },
+      "component_policy": {
+        "papers": "scale_each_then_sum",
+        "out_of": 100
+      },
+      "grading_scale": "gcse_9_1",
+      "missing": {
+        "CW": "exclude",
+        "MOCK": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    },
+    {
+      "code": "gb-alevel",
+      "levels": [
+        "Y12",
+        "Y13"
+      ],
+      "slots": [
+        {
+          "code": "CW",
+          "label": "Classwork and assessed homework",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 50
+        },
+        {
+          "code": "MOCK",
+          "label": "Mock examination",
+          "kind": "mock",
+          "scale_to": 50
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CW",
+          "MOCK"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "alevel_a_star_e",
+      "missing": {
+        "CW": "exclude",
+        "MOCK": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "eyfs_emerging_expected",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "EX",
+          "label": "Expected",
+          "min": 2,
+          "max": 2,
+          "points": 2,
+          "descriptor": "The child meets the Early Learning Goal."
+        },
+        {
+          "code": "EM",
+          "label": "Emerging",
+          "min": 1,
+          "max": 1,
+          "points": 1,
+          "descriptor": "The child is still working towards the Early Learning Goal."
+        }
+      ],
+      "verification": "Two-level judgement from the EYFS statutory framework: at the end of Reception each Early Learning Goal is recorded as met (Expected) or not yet met (Emerging). This is a teacher judgement against the ELG descriptors, not a percentage cut-off."
+    },
+    {
+      "code": "attainment_4_level",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "GD",
+          "label": "Greater depth",
+          "min": 4,
+          "max": 4,
+          "points": 4,
+          "descriptor": "Applies the knowledge securely and explains it in unfamiliar contexts."
+        },
+        {
+          "code": "EX",
+          "label": "Expected",
+          "min": 3,
+          "max": 3,
+          "points": 3,
+          "descriptor": "Meets the age-related expectation for the year group."
+        },
+        {
+          "code": "WT",
+          "label": "Working towards",
+          "min": 2,
+          "max": 2,
+          "points": 2,
+          "descriptor": "Working towards the age-related expectation and needs support to close the gap."
+        },
+        {
+          "code": "BE",
+          "label": "Below expectation",
+          "min": 1,
+          "max": 1,
+          "points": 1,
+          "descriptor": "Working well below the age-related expectation and needs a modified curriculum."
+        }
+      ],
+      "verification": "Four-level attainment judgement (greater depth, expected, working towards, below) as used for primary and key stage 3 reports against age-related expectations. The DfE abolished statutory levels in 2015 and does not prescribe a replacement scale, so this is the school's reporting rubric, declared here so it can be reported and overridden consistently. It is not a national cut-off."
+    },
+    {
+      "code": "gcse_9_1",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "9",
+          "label": "9",
+          "min": 90,
+          "max": 100,
+          "points": 9,
+          "descriptor": "Exceptional performance."
+        },
+        {
+          "code": "8",
+          "label": "8",
+          "min": 80,
+          "max": 89,
+          "points": 8,
+          "descriptor": "Very strong performance."
+        },
+        {
+          "code": "7",
+          "label": "7",
+          "min": 70,
+          "max": 79,
+          "points": 7,
+          "descriptor": "Strong performance."
+        },
+        {
+          "code": "6",
+          "label": "6",
+          "min": 60,
+          "max": 69,
+          "points": 6,
+          "descriptor": "Secure performance above the good pass."
+        },
+        {
+          "code": "5",
+          "label": "5",
+          "min": 50,
+          "max": 59,
+          "points": 5,
+          "descriptor": "Good pass."
+        },
+        {
+          "code": "4",
+          "label": "4",
+          "min": 40,
+          "max": 49,
+          "points": 4,
+          "descriptor": "Standard pass."
+        },
+        {
+          "code": "3",
+          "label": "3",
+          "min": 30,
+          "max": 39,
+          "points": 3,
+          "descriptor": "Below the standard pass."
+        },
+        {
+          "code": "2",
+          "label": "2",
+          "min": 20,
+          "max": 29,
+          "points": 2,
+          "descriptor": "Weak performance."
+        },
+        {
+          "code": "1",
+          "label": "1",
+          "min": 10,
+          "max": 19,
+          "points": 1,
+          "descriptor": "Minimal performance."
+        },
+        {
+          "code": "U",
+          "label": "U",
+          "min": 0,
+          "max": 9,
+          "points": 0,
+          "descriptor": "Ungraded: below the lowest permitted standard."
+        }
+      ],
+      "verification": "Placeholder school scale, not a published grade boundary. Ofqual sets GCSE grade boundaries for each subject and each exam series after the papers are marked, so no fixed percentage-to-grade table exists and this pack must not claim one. The ten-point ladder is a school default for mocks and internal tests; grading_scales.gcse_9_1.bands is declared overridable so a school replaces it with the board's boundaries for the session. The points are the DfE 9-1 points used in Attainment 8 (grade 9 is 9 points, grade 1 is 1 point, U is 0), which are fixed national values."
+    },
+    {
+      "code": "alevel_a_star_e",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "A_STAR",
+          "label": "A*",
+          "min": 90,
+          "max": 100,
+          "points": 56,
+          "descriptor": "Exceptional performance."
+        },
+        {
+          "code": "A",
+          "label": "A",
+          "min": 80,
+          "max": 89,
+          "points": 48,
+          "descriptor": "Excellent performance."
+        },
+        {
+          "code": "B",
+          "label": "B",
+          "min": 70,
+          "max": 79,
+          "points": 40,
+          "descriptor": "Good performance."
+        },
+        {
+          "code": "C",
+          "label": "C",
+          "min": 60,
+          "max": 69,
+          "points": 32,
+          "descriptor": "Satisfactory performance."
+        },
+        {
+          "code": "D",
+          "label": "D",
+          "min": 50,
+          "max": 59,
+          "points": 24,
+          "descriptor": "Marginal performance."
+        },
+        {
+          "code": "E",
+          "label": "E",
+          "min": 40,
+          "max": 49,
+          "points": 16,
+          "descriptor": "Minimum performance for a pass."
+        },
+        {
+          "code": "U",
+          "label": "U",
+          "min": 0,
+          "max": 39,
+          "points": 0,
+          "descriptor": "Ungraded: below the minimum standard."
+        }
+      ],
+      "verification": "Placeholder school scale, not a published grade boundary: A level grade boundaries are set by each board for each subject and series. The A* grade is awarded above the A boundary by a rule the board applies within the subject, so no percentage table is fixed. The seven-band ladder is a school default for mocks; grading_scales.alevel_a_star_e.bands is overridable. The points are the UCAS Tariff for a UK A level (A* 56, A 48, B 40, C 32, D 24, E 16, U 0), which is a per-grade tariff: a candidate's tariff is the sum over the A levels taken, not a per-subject weighting."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "gcse_points_total",
+      "op": "sum_points",
+      "value": "grade_points",
+      "precision": 0
+    },
+    {
+      "code": "ucas_tariff",
+      "op": "sum_points",
+      "value": "grade_points",
+      "precision": 0
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "gcse_points_total",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": false
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

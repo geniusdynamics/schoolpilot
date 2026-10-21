@@ -1,0 +1,91 @@
+{
+  "labels": {
+    "report.title": "School report",
+    "report.term": "Term",
+    "report.year": "Academic year",
+    "block.header": "School report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.rubric": "Learning areas and attainment",
+    "block.competencies": "Learning behaviours",
+    "block.summary": "Summary",
+    "block.progression": "Progression",
+    "block.comments": "Comments",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "column.slots": "Assessments",
+    "column.components": "Papers",
+    "column.total": "Total",
+    "column.grade": "Grade",
+    "column.points": "Points",
+    "column.class_mean": "Class mean",
+    "column.teacher_initials": "Teacher",
+    "column.remark": "Comment"
+  },
+  "descriptors": {
+    "eyfs_emerging_expected": {
+      "EX": "Meeting the Early Learning Goal.",
+      "EM": "Still working towards the Early Learning Goal."
+    },
+    "attainment_4_level": {
+      "GD": "Working at greater depth within the age-related expectation.",
+      "EX": "Meeting the age-related expectation.",
+      "WT": "Working towards the age-related expectation.",
+      "BE": "Working below the age-related expectation."
+    },
+    "gcse_9_1": {
+      "9": "Exceptional performance.",
+      "8": "Very strong performance.",
+      "7": "Strong performance.",
+      "6": "Secure performance above the good pass.",
+      "5": "Good pass.",
+      "4": "Standard pass.",
+      "3": "Below the standard pass.",
+      "2": "Weak performance.",
+      "1": "Minimal performance.",
+      "U": "Ungraded."
+    },
+    "alevel_a_star_e": {
+      "A_STAR": "Exceptional performance.",
+      "A": "Excellent performance.",
+      "B": "Good performance.",
+      "C": "Satisfactory performance.",
+      "D": "Marginal performance.",
+      "E": "Minimum performance for a pass.",
+      "U": "Ungraded."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "GD",
+      "text": "An excellent term. The work is consistently secure and applied confidently to new problems."
+    },
+    {
+      "scope": "overall",
+      "band": "EX",
+      "text": "A solid term at the expected standard. Reading and regular practice at home will keep the momentum."
+    },
+    {
+      "scope": "overall",
+      "band": "WT",
+      "text": "Steady progress towards the expected standard. Two small targets for next term are agreed with the class teacher."
+    },
+    {
+      "scope": "learning_area",
+      "band": "GD",
+      "text": "Explains reasoning clearly and supports others in group work."
+    },
+    {
+      "scope": "learning_area",
+      "band": "WT",
+      "text": "Needs to check work before handing it in and to ask for help earlier."
+    },
+    {
+      "scope": "conduct",
+      "band": "EX",
+      "text": "Courteous, punctual and a positive member of the class."
+    }
+  ]
+}

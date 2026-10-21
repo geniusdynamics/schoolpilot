@@ -1,0 +1,225 @@
+{
+  "stages": [
+    {
+      "code": "CP",
+      "name": "Cambridge Primary",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6"
+      ]
+    },
+    {
+      "code": "CLS",
+      "name": "Cambridge Lower Secondary",
+      "levels": [
+        "Y7",
+        "Y8",
+        "Y9"
+      ]
+    },
+    {
+      "code": "IGCSE",
+      "name": "Cambridge Upper Secondary (IGCSE)",
+      "levels": [
+        "Y10",
+        "Y11"
+      ]
+    },
+    {
+      "code": "ADV",
+      "name": "Cambridge Advanced (AS and A Level)",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "Y1",
+      "name": "Year 1 (Primary stage 1)",
+      "ordinal": 0,
+      "typical_age": 5,
+      "next": "Y2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y2",
+      "name": "Year 2 (Primary stage 2)",
+      "ordinal": 1,
+      "typical_age": 6,
+      "next": "Y3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y3",
+      "name": "Year 3 (Primary stage 3)",
+      "ordinal": 2,
+      "typical_age": 7,
+      "next": "Y4",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y4",
+      "name": "Year 4 (Primary stage 4)",
+      "ordinal": 3,
+      "typical_age": 8,
+      "next": "Y5",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y5",
+      "name": "Year 5 (Primary stage 5)",
+      "ordinal": 4,
+      "typical_age": 9,
+      "next": "Y6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y6",
+      "name": "Year 6 (Primary stage 6)",
+      "ordinal": 5,
+      "typical_age": 10,
+      "next": "Y7",
+      "is_stage_exit": true,
+      "national_assessment": "CAMBRIDGE_PRIMARY_CHECKPOINT"
+    },
+    {
+      "code": "Y7",
+      "name": "Year 7 (Lower Secondary stage 7)",
+      "ordinal": 6,
+      "typical_age": 11,
+      "next": "Y8",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y8",
+      "name": "Year 8 (Lower Secondary stage 8)",
+      "ordinal": 7,
+      "typical_age": 12,
+      "next": "Y9",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y9",
+      "name": "Year 9 (Lower Secondary stage 9)",
+      "ordinal": 8,
+      "typical_age": 13,
+      "next": "Y10",
+      "is_stage_exit": true,
+      "national_assessment": "CAMBRIDGE_LOWER_SECONDARY_CHECKPOINT"
+    },
+    {
+      "code": "Y10",
+      "name": "Year 10 (IGCSE first year)",
+      "ordinal": 9,
+      "typical_age": 14,
+      "next": "Y11",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y11",
+      "name": "Year 11 (IGCSE second year)",
+      "ordinal": 10,
+      "typical_age": 15,
+      "next": "Y12",
+      "is_stage_exit": true,
+      "national_assessment": "IGCSE"
+    },
+    {
+      "code": "Y12",
+      "name": "Year 12 (AS Level)",
+      "ordinal": 11,
+      "typical_age": 16,
+      "next": "Y13",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y13",
+      "name": "Year 13 (A Level)",
+      "ordinal": 12,
+      "typical_age": 17,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "A_LEVEL"
+    }
+  ],
+  "pathways": [
+    {
+      "code": "SCI",
+      "name": "Mathematics and sciences",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    },
+    {
+      "code": "HUM",
+      "name": "Humanities",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    },
+    {
+      "code": "BUS",
+      "name": "Business and social sciences",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term 1",
+        "typical": [
+          "08-25",
+          "12-12"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Term 2",
+        "typical": [
+          "01-05",
+          "03-27"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Term 3",
+        "typical": [
+          "04-13",
+          "07-03"
+        ],
+        "half_term": true
+      }
+    ],
+    "note": "Academic year with three terms, each with a half-term break. Cambridge exam series fall in the May/June window of Term 3 and in the October/November series; the school confirms the exact term dates each year. A southern-hemisphere school inverts the template through structure.calendar_template.periods, which the manifest declares overridable."
+  }
+}

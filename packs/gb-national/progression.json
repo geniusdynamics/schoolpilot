@@ -1,0 +1,81 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "N1"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "N2"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "KS1",
+      "requires": [
+        "national_assessment_recorded"
+      ]
+    },
+    {
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "Y6"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "KS3"
+    },
+    {
+      "levels": [
+        "Y7",
+        "Y8"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "Y9"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "KS4"
+    },
+    {
+      "levels": [
+        "Y10"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "Y11"
+      ],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.gcse_points_total",
+        "gte": 20
+      }
+    },
+    {
+      "levels": [
+        "Y12"
+      ],
+      "rule": "automatic"
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "Y13"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

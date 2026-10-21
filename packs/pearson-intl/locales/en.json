@@ -1,0 +1,106 @@
+{
+  "labels": {
+    "report.title": "School report",
+    "report.term": "Term",
+    "report.year": "Academic year",
+    "block.header": "School report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.rubric": "Subjects and attainment",
+    "block.competencies": "Learning behaviours",
+    "block.summary": "Summary",
+    "block.progression": "Progression",
+    "block.comments": "Comments",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "column.slots": "Assessments",
+    "column.components": "Papers",
+    "column.total": "Total",
+    "column.grade": "Grade",
+    "column.points": "Points",
+    "column.class_mean": "Class mean",
+    "column.teacher_initials": "Teacher",
+    "column.remark": "Comment"
+  },
+  "descriptors": {
+    "pearson_attainment": {
+      "EE": "Exceeding the expectation for the year.",
+      "ME": "Meeting the expectation for the year.",
+      "AP": "Approaching the expectation for the year.",
+      "BE": "Below the expectation for the year."
+    },
+    "international_gcse_9_1": {
+      "9": "Exceptional performance.",
+      "8": "Very strong performance.",
+      "7": "Strong performance.",
+      "6": "Secure performance above the good pass.",
+      "5": "Good pass.",
+      "4": "Standard pass.",
+      "3": "Below the standard pass.",
+      "2": "Weak performance.",
+      "1": "Minimal performance.",
+      "U": "Ungraded."
+    },
+    "international_gcse_a_star_g": {
+      "A_STAR": "Exceptional performance.",
+      "A": "Excellent performance.",
+      "B": "Good performance.",
+      "C": "Satisfactory performance.",
+      "D": "Marginal performance.",
+      "E": "Minimum performance for a pass.",
+      "F": "Below a pass.",
+      "G": "Very weak performance.",
+      "U": "Ungraded."
+    },
+    "international_as": {
+      "A": "Excellent performance.",
+      "B": "Good performance.",
+      "C": "Satisfactory performance.",
+      "D": "Marginal performance.",
+      "E": "Minimum performance for a pass.",
+      "U": "Ungraded."
+    },
+    "international_a_level": {
+      "A_STAR": "Exceptional performance.",
+      "A": "Excellent performance.",
+      "B": "Good performance.",
+      "C": "Satisfactory performance.",
+      "D": "Marginal performance.",
+      "E": "Minimum performance for a pass.",
+      "U": "Ungraded."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "EE",
+      "text": "An excellent term. The work is consistently secure and applied confidently to new contexts."
+    },
+    {
+      "scope": "overall",
+      "band": "ME",
+      "text": "A solid term at the expected standard. Regular reading and practice at home will keep the momentum."
+    },
+    {
+      "scope": "overall",
+      "band": "AP",
+      "text": "Steady progress towards the expected standard; two small targets are agreed for next term."
+    },
+    {
+      "scope": "learning_area",
+      "band": "EE",
+      "text": "Explains reasoning clearly and supports others in group work."
+    },
+    {
+      "scope": "learning_area",
+      "band": "AP",
+      "text": "Needs to check work before handing it in and to ask for help earlier."
+    },
+    {
+      "scope": "conduct",
+      "band": "ME",
+      "text": "Courteous, punctual and a positive member of the class."
+    }
+  ]
+}

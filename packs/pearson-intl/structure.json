@@ -1,0 +1,225 @@
+{
+  "stages": [
+    {
+      "code": "IPRIMARY",
+      "name": "Pearson Edexcel iPrimary",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6"
+      ]
+    },
+    {
+      "code": "ILOWER",
+      "name": "Pearson Edexcel iLowerSecondary",
+      "levels": [
+        "Y7",
+        "Y8",
+        "Y9"
+      ]
+    },
+    {
+      "code": "IGCSE",
+      "name": "Pearson Edexcel International GCSE",
+      "levels": [
+        "Y10",
+        "Y11"
+      ]
+    },
+    {
+      "code": "IAL",
+      "name": "Pearson Edexcel International Advanced Level",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "Y1",
+      "name": "Year 1",
+      "ordinal": 0,
+      "typical_age": 5,
+      "next": "Y2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y2",
+      "name": "Year 2",
+      "ordinal": 1,
+      "typical_age": 6,
+      "next": "Y3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y3",
+      "name": "Year 3",
+      "ordinal": 2,
+      "typical_age": 7,
+      "next": "Y4",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y4",
+      "name": "Year 4",
+      "ordinal": 3,
+      "typical_age": 8,
+      "next": "Y5",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y5",
+      "name": "Year 5",
+      "ordinal": 4,
+      "typical_age": 9,
+      "next": "Y6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y6",
+      "name": "Year 6",
+      "ordinal": 5,
+      "typical_age": 10,
+      "next": "Y7",
+      "is_stage_exit": true,
+      "national_assessment": null
+    },
+    {
+      "code": "Y7",
+      "name": "Year 7",
+      "ordinal": 6,
+      "typical_age": 11,
+      "next": "Y8",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y8",
+      "name": "Year 8",
+      "ordinal": 7,
+      "typical_age": 12,
+      "next": "Y9",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y9",
+      "name": "Year 9",
+      "ordinal": 8,
+      "typical_age": 13,
+      "next": "Y10",
+      "is_stage_exit": true,
+      "national_assessment": null
+    },
+    {
+      "code": "Y10",
+      "name": "Year 10 (International GCSE first year)",
+      "ordinal": 9,
+      "typical_age": 14,
+      "next": "Y11",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y11",
+      "name": "Year 11 (International GCSE second year)",
+      "ordinal": 10,
+      "typical_age": 15,
+      "next": "Y12",
+      "is_stage_exit": true,
+      "national_assessment": "INTERNATIONAL_GCSE"
+    },
+    {
+      "code": "Y12",
+      "name": "Year 12 (International AS)",
+      "ordinal": 11,
+      "typical_age": 16,
+      "next": "Y13",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "Y13",
+      "name": "Year 13 (International A Level)",
+      "ordinal": 12,
+      "typical_age": 17,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "INTERNATIONAL_A_LEVEL"
+    }
+  ],
+  "pathways": [
+    {
+      "code": "SCI",
+      "name": "Sciences and mathematics",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    },
+    {
+      "code": "HUM",
+      "name": "Humanities",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    },
+    {
+      "code": "BUS",
+      "name": "Business and social sciences",
+      "levels": [
+        "Y12",
+        "Y13"
+      ]
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Autumn term",
+        "typical": [
+          "08-25",
+          "12-12"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Spring term",
+        "typical": [
+          "01-05",
+          "03-27"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Summer term",
+        "typical": [
+          "04-13",
+          "07-03"
+        ],
+        "half_term": true
+      }
+    ],
+    "note": "Academic year with three terms, each with a half-term break. Pearson's international exam series fall in January, June and October; the school confirms its own term dates each year. A southern-hemisphere school inverts the template through structure.calendar_template.periods, which the manifest declares overridable."
+  }
+}
