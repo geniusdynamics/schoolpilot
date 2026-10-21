@@ -314,12 +314,12 @@ export function useAdministrationData() {
           if (classStreamId === undefined || periodId === undefined) return [];
           const studentIdsInStream = new Set(
             students
-              .filter(student => Number(student.current_class_stream_id) === Number(classStreamId))
+              .filter(student => String(student.current_class_stream_id) === String(classStreamId))
               .map(student => student.id)
           );
           return attendanceRecords.filter(record =>
             record.date === dateOrFilters &&
-            Number(record.period_id) === Number(periodId) &&
+            String(record.period_id) === String(periodId) &&
             studentIdsInStream.has(record.student_id)
           );
         }

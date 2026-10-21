@@ -219,7 +219,7 @@ describe('demo seed integrity in memory (SO-35)', () => {
         .sort((left, right) => String(left.start_date).localeCompare(String(right.start_date)));
 
       expect(yearTerms, `year ${year.name} must have Term 1-3`).toHaveLength(3);
-      expect(yearTerms.map((term) => Number(term.period_definition_id))).toEqual([1, 2, 3]);
+      expect(yearTerms.map((term) => String(term.period_definition_id))).toEqual(['1', '2', '3']);
 
       for (const term of yearTerms) {
         expect(String(term.start_date) >= String(year.start_date), `${term.name} starts before its year`).toBe(true);

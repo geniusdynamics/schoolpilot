@@ -139,7 +139,7 @@ export const AccountLedgerPageContent: React.FC = () => {
         width: 100,
         sortable: true,
         render: (value) => {
-          const account = chartOfAccounts?.find((a) => a.id === value);
+          const account = chartOfAccounts?.find((a) => String(a.id) === String(value));
           return account?.name || `ACCT-${value}`;
         },
       },

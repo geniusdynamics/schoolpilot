@@ -23,7 +23,7 @@ export interface AccountLedgerRow {
   /** Credit amount (null if debit) */
   credit: number | null;
   /** Chart of accounts ID */
-  accountId: number;
+  accountId: string;
 }
 
 /**
@@ -103,7 +103,7 @@ export function useAccountLedger() {
       const description = String(entry.description ?? '');
       const debit = entry.debit != null ? Number(entry.debit) : null;
       const credit = entry.credit != null ? Number(entry.credit) : null;
-      const accountId = Number(entry.account_id) || 0;
+      const accountId = entry.account_id == null ? '' : String(entry.account_id);
       const sourceTable = String(entry.source_table ?? '');
       const sourceId = String(entry.source_id ?? '');
 

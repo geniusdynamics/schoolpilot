@@ -159,7 +159,7 @@ export function useAcademicData() {
   }, [timetablePeriodDefsCollection]);
 
   const getTimetableEntries = useCallback((classStreamId: number) => {
-    return timetableEntriesCollection.data.filter(entry => Number(entry.class_stream_id) === Number(classStreamId));
+    return timetableEntriesCollection.data.filter(entry => String(entry.class_stream_id) === String(classStreamId));
   }, [timetableEntriesCollection.data]);
 
   const addTimetableEntry = useCallback(async (data: Omit<allTypes.TimetableEntry, 'id'>) => {
