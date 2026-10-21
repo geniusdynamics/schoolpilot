@@ -26,10 +26,22 @@ page.on('console', (m) => consoleLines.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => consoleLines.push(`[pageerror] ${e.message}`));
 
 const wait = (ms) => page.waitForTimeout(ms);
+/** Evaluate in the page, retrying when an app reload destroys the execution context mid-call. */
+const evaluate = async (fn, arg) => {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await page.evaluate(fn, arg);
+    } catch (error) {
+      const reloaded = /Execution context was destroyed|navigat/i.test(error.message);
+      if (!reloaded || attempt >= 3) throw error;
+      await wait(2000);
+    }
+  }
+};
 const mainText = async () => (await page.locator('main').innerText().catch(() => '')) || '';
-const dismissOverlay = () => page.evaluate(() => document.querySelectorAll('vite-error-overlay').forEach((e) => e.remove()));
+const dismissOverlay = () => evaluate(() => document.querySelectorAll('vite-error-overlay').forEach((e) => e.remove()));
 const go = async (hashPath) => {
-  await page.evaluate((p) => { window.location.hash = p; }, hashPath);
+  await evaluate((p) => { window.location.hash = p; }, hashPath);
   await wait(2500);
   await dismissOverlay();
 };
@@ -42,6 +54,111 @@ const count = (collection) => page.evaluate(async (name) => {
 }, collection);
 const dialog = () => page.locator('[role=dialog]').last();
 const dialogText = async () => (await page.locator('[role=dialog]').count()) ? dialog().innerText() : '';
+
+/** Open a route with a real document load, so a reload proves the write reached SQLite. */
+const goFresh = async (hashPath) => {
+  const origin = new URL(BASE_URL).origin;
+  await page.goto(`${origin}/?probe=${Date.now()}#${hashPath}`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 120000,
+  });
+  await page.locator('main').first().waitFor({ timeout: 120000 });
+  await wait(1500);
+  await dismissOverlay();
+};
+/** Open an EntityPicker and choose the one option that matches. */
+const chooseFromPicker = async (trigger, option) => {
+  await trigger.first().waitFor({ timeout: 30000 });
+  await trigger.first().click();
+  const listbox = page.getByRole('listbox').last();
+  await listbox.waitFor({ state: 'visible', timeout: 30000 });
+  const options = listbox.getByRole('option');
+  await options.first().waitFor({ timeout: 30000 });
+  const choice = typeof option === 'string'
+    ? listbox.getByRole('option', { name: option, exact: true })
+    : listbox.getByRole('option', { name: option });
+  if ((await choice.count()) === 0) {
+    throw new Error(`no picker option matching ${option}: ${(await options.allInnerTexts()).join(' | ')}`);
+  }
+  await choice.first().click();
+};
+/** Open an EntityPicker, choose its first option and return the option's label. */
+const chooseFirstFromPicker = async (trigger) => {
+  await trigger.first().waitFor({ timeout: 30000 });
+  await trigger.first().click();
+  const listbox = page.getByRole('listbox').last();
+  await listbox.waitFor({ state: 'visible', timeout: 30000 });
+  const first = listbox.getByRole('option').first();
+  await first.waitFor({ timeout: 30000 });
+  const label = (await first.innerText()).trim();
+  await first.click();
+  return label;
+};
+/**
+ * Ensure one canonical fee item exists.
+ *
+ * A fee line must name a fee item; a production school starts with none and the fee-item
+ * register has no page yet. This seeds the prerequisite through the same repository the
+ * pages write to, then the check drives the real fee-schedule UI.
+ */
+const ensureFeeItem = () => page.evaluate(async () => {
+  const module = await import('/src/data/canonicalRepository.tsx');
+  const repository = await module.openCanonicalRepository();
+  const institutions = await repository.list('institution', { limit: 1 });
+  const institution = institutions.items[0];
+  if (!institution) return { error: 'the school profile does not exist' };
+  const code = 'PROBE-TUITION';
+  const existing = await repository.list('fee_item', {
+    where: { institution_id: institution.id, code },
+    limit: 1,
+  });
+  const item = existing.items[0] ?? await repository.create('fee_item', {
+    institution_id: institution.id,
+    code,
+    name: 'Probe Tuition',
+    category: 'tuition',
+    refundable: false,
+    taxable: false,
+    priority: 1,
+    funding_source: 'parent',
+  });
+  return { label: `${item.code} ${item.name}` };
+});
+/** The canonical learner, its guardian links and the school's guardians, for a failure detail. */
+const canonicalLearnerSummary = (admissionNo) => page.evaluate(async (number) => {
+  try {
+    const module = await import('/src/data/canonicalRepository.tsx');
+    const repository = await module.openCanonicalRepository();
+    const learners = await repository.list('learner', {
+      where: { admission_number: number },
+      limit: 2,
+    });
+    const learner = learners.items[0];
+    if (!learner) return { learner: null };
+    const links = await repository.list('learner_guardian', {
+      where: { learner_id: learner.id },
+      limit: 10,
+    });
+    const guardians = await repository.list('guardian', {
+      where: { institution_id: learner.institution_id },
+      limit: 50,
+    });
+    return {
+      learner: learner.id,
+      links: links.items.map((link) => ({
+        guardian_id: link.guardian_id,
+        is_primary: link.is_primary,
+        relationship: link.relationship,
+      })),
+      guardians: guardians.items.map((row) => ({
+        id: row.id,
+        name: `${row.given_name} ${row.family_name}`,
+      })),
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+}, admissionNo);
 
 async function check(id, title, fn) {
   const mark = consoleLines.length;
@@ -67,18 +184,50 @@ await check('C01', 'Database storage is persistent (no in-memory fallback)', asy
   return /IN-MEMORY DATABASE/.test(log) ? { fail: 'SQLite WASM fell back to an in-memory database' } : {};
 });
 
+// The probe's own administrator, created in the setup wizard.
+const PROBE_ADMIN = { username: 'probe-admin', displayName: 'Probe Administrator', password: 'probe-admin-pass-1' };
+
 await check('C02', 'Production setup wizard saves the school profile step', async () => {
   const start = page.getByRole('button', { name: /Get Started/i });
   if (!(await start.count())) return { skip: 'onboarding already completed in this browser profile' };
   await start.click(); await wait(1200);
   await page.getByRole('button', { name: /Go Direct to Production/i }).click();
   await page.getByRole('button', { name: /^Continue$/ }).click(); await wait(1200);
-  await page.getByRole('button', { name: /Initialize Production/i }).click(); await wait(3500);
-  await page.locator('input').first().fill('Probe Academy');
-  await page.getByRole('button', { name: /^Next$/ }).click(); await wait(2500);
+  await page.getByRole('button', { name: /Initialize Production/i }).click();
+  await page.getByText('Set up your school').waitFor({ timeout: 90000 });
+  await page.getByPlaceholder('e.g. Greenfields Academy').fill('Probe Academy');
+  await page.getByRole('button', { name: /^Next$/ }).click();
+  await page.getByText(/Step 2 of/).waitFor({ timeout: 90000 });
   const body = await page.locator('body').innerText();
   if (/not found|failed|could not/i.test(body)) return { fail: (body.match(/[^\n]*(not found|failed|could not)[^\n]*/i) || [''])[0] };
-  return /Step 2 of/.test(body) ? {} : { fail: 'wizard did not advance to step 2' };
+
+  // The migrated pages read the canonical school, which the wizard writes from the classes step
+  // and the finish, not from step 1. Finish the wizard the way a real production install does:
+  // curriculum, default year and terms, one class with its streams, no sample data, first admin.
+  await page.getByText(/8-4-4/).first().click();
+  await page.getByRole('button', { name: /^Next$/ }).click();
+  await page.getByText(/Step 3 of/).waitFor({ timeout: 90000 });
+  await page.getByRole('button', { name: /^Next$/ }).click();
+  await page.getByText(/Step 4 of/).waitFor({ timeout: 90000 });
+  await page.getByPlaceholder(/^Class \d+$/).fill('Form 1');
+  await page.getByRole('button', { name: /^Next$/ }).click();
+  await page.getByText(/Step 5 of/).waitFor({ timeout: 90000 });
+  await page.getByRole('button', { name: /^Next$/ }).click();
+  await page.getByText(/Step 6 of/).waitFor({ timeout: 90000 });
+  // Sample data stays off: C03 proves a production install seeds none.
+  await page.getByRole('button', { name: /^Next$/ }).click();
+  await page.getByText(/Step 7 of/).waitFor({ timeout: 90000 });
+  await page.locator('#setup-admin-username').fill(PROBE_ADMIN.username);
+  await page.locator('#setup-admin-display-name').fill(PROBE_ADMIN.displayName);
+  await page.locator('#setup-admin-password').fill(PROBE_ADMIN.password);
+  await page.locator('#setup-admin-confirm').fill(PROBE_ADMIN.password);
+  await page.getByRole('button', { name: 'Finish setup' }).click();
+  await page.locator('#username').waitFor({ timeout: 90000 });
+  const setupText = await page.locator('body').innerText();
+  if (/could not|failed/i.test(setupText) && !/Sign in/i.test(setupText)) {
+    return { fail: (setupText.match(/[^\n]*(could not|failed)[^\n]*/i) || [''])[0] };
+  }
+  return { note: 'school profile, structure and administrator saved' };
 });
 
 await page.reload({ waitUntil: 'domcontentloaded' });
@@ -88,9 +237,6 @@ await check('C03', 'Production database is not auto-seeded with demo data', asyn
   const students = await count('students');
   return students > 0 ? { fail: `${students} demo students present after choosing production` } : {};
 });
-
-// The probe's own administrator, created through the first-run "Create administrator" form.
-const PROBE_ADMIN = { username: 'probe-admin', displayName: 'Probe Administrator', password: 'probe-admin-pass-1' };
 
 await check('C04', 'Login rejects a wrong password and accepts the right one', async (mark) => {
   const createForm = page.getByTestId('create-administrator-form');
@@ -122,6 +268,10 @@ await check('C04', 'Login rejects a wrong password and accepts the right one', a
 if (!/#\/dashboard/.test(page.url())) {
   record('C00', 'Signed in as the probe administrator', 'FAIL', 'could not reach the dashboard; remaining checks skipped');
 } else {
+  // Values one check writes and a later check reads back from the app.
+  const probeStudent = { admissionNo: '', guardianName: 'Probe Guardian', className: '' };
+  const probePayment = { receipt: '' };
+
   // -------------------------------------------------------------------------
   // Academic structure
   // -------------------------------------------------------------------------
@@ -144,29 +294,52 @@ if (!/#\/dashboard/.test(page.url())) {
   // -------------------------------------------------------------------------
   await check('C07', 'Adding a student persists the guardian', async () => {
     await go('/administration/students');
-    const before = await count('parents_guardians');
+    const admissionNo = `PROBE-${Date.now()}`;
     await page.locator('main').getByRole('button', { name: 'Add Student' }).click(); await wait(1200);
     const d = dialog();
-    await d.locator('[name=admission_no]').fill(`PROBE-${Date.now()}`);
+    await d.locator('[name=admission_no]').fill(admissionNo);
     await d.locator('[name=first_name]').fill('Probe');
     await d.locator('[name=last_name]').fill('Learner');
     await d.getByRole('button', { name: 'Next', exact: true }).click(); await wait(500);
-    await d.locator('[name=primary_guardian_name]').fill('Probe Guardian');
+    await d.locator('[name=primary_guardian_name]').fill(probeStudent.guardianName);
     await d.locator('[name=primary_guardian_relationship_type]').selectOption('Mother');
     await d.locator('[name=primary_guardian_phone]').fill('0700000000');
     await d.getByRole('button', { name: 'Next', exact: true }).click(); await wait(500);
-    await d.getByRole('button', { name: 'Add Student' }).click(); await wait(2500);
-    const after = await count('parents_guardians');
-    return after > before ? {} : { fail: 'student saved but guardian was dropped' };
+    // Placing the learner gives the roll-call check a class to read them back from.
+    const classPicker = d.getByTestId('student-class-group-picker');
+    if ((await classPicker.count()) && (await classPicker.isEnabled())) {
+      try {
+        const label = await chooseFirstFromPicker(classPicker);
+        if (label) probeStudent.className = label;
+      } catch { /* no class groups yet: the learner is still admitted without a placement */ }
+    }
+    await d.getByRole('button', { name: 'Add Student' }).click();
+    await d.waitFor({ state: 'hidden', timeout: 60000 }).catch(() => {});
+    if (await page.locator('[role=dialog]').count()) {
+      return { fail: `student dialog still open after submit: ${(await dialogText()).slice(0, 500)}` };
+    }
+    probeStudent.admissionNo = admissionNo;
+    // A fresh document load proves the learner and the guardian reached storage.
+    await goFresh('/administration/students');
+    const row = page.getByRole('row', { name: new RegExp(admissionNo) });
+    await row.first().waitFor({ timeout: 60000 }).catch(() => {});
+    if (!(await row.count())) return { fail: 'student saved but the directory does not list them after a reload' };
+    // The guardians are their own queries; wait for the cell rather than the row.
+    await row.first().getByText(probeStudent.guardianName).first().waitFor({ timeout: 30000 }).catch(() => {});
+    const text = await row.first().innerText();
+    if (!text.includes(probeStudent.guardianName)) {
+      const canonical = await canonicalLearnerSummary(admissionNo);
+      return { fail: `student saved but the guardian was dropped (row: ${text}; canonical: ${JSON.stringify(canonical)})` };
+    }
+    return { note: probeStudent.className ? `${admissionNo} in ${probeStudent.className}` : admissionNo };
   });
 
   await check('C08', 'Student detail page opens', async () => {
-    const id = await page.evaluate(async () => {
-      const m = await import('/src/services/database/databaseService.ts');
-      const db = await m.databaseService.getDatabase();
-      const docs = await db.databaseManager.getCollection('students').find({});
-      return docs[0] ? docs[0].id : null;
-    });
+    await go('/administration/students');
+    const link = page.locator('main a[href*="/administration/students/"]').first();
+    await link.waitFor({ timeout: 30000 }).catch(() => {});
+    const href = await link.getAttribute('href').catch(() => null);
+    const id = href ? href.split('/administration/students/')[1]?.split(/[/?#]/)[0] : '';
     if (!id) return { skip: 'no students available' };
     await go(`/administration/students/${id}`);
     return /Page not found/.test(await mainText()) ? { fail: '/administration/students/:studentId is not registered' } : {};
@@ -174,50 +347,106 @@ if (!/#\/dashboard/.test(page.url())) {
 
   await check('C09', 'Staff can be added', async () => {
     await go('/administration/staff');
+    const staffNo = `PRB-${Date.now()}`;
     await page.locator('main').getByRole('button', { name: /Add Staff/i }).click(); await wait(1200);
-    const inputs = dialog().locator('input[type=text], input:not([type])');
-    const values = [`PRB-${Date.now()}`, 'Probe', 'Teacher', '0711000000'];
-    for (let i = 0; i < Math.min(values.length, await inputs.count()); i++) await inputs.nth(i).fill(values[i]);
-    await dialog().getByRole('button', { name: /Add Staff Member/i }).click(); await wait(2000);
+    const d = dialog();
+    await d.locator('[name=employee_number]').fill(staffNo);
+    await d.locator('[name=given_name]').fill('Probe');
+    await d.locator('[name=family_name]').fill('Teacher');
+    await d.locator('[name=phone]').fill('0711000000');
+    await d.getByRole('button', { name: /Add Staff Member/i }).click();
+    await d.waitFor({ state: 'hidden', timeout: 60000 }).catch(() => {});
     const text = await dialogText();
     if (/is not a function/.test(text)) return { fail: (text.match(/\w+ is not a function/) || [''])[0] };
-    return text ? { fail: 'dialog still open after submit' } : {};
+    if (text) return { fail: `dialog still open after submit: ${text.slice(0, 700)}` };
+    // A fresh document load proves the staff member reached storage.
+    await goFresh('/administration/staff');
+    const row = page.getByRole('row', { name: new RegExp(staffNo) });
+    await row.first().waitFor({ timeout: 60000 }).catch(() => {});
+    if (!(await row.count())) return { fail: 'staff dialog closed but the directory does not list the member after a reload' };
+    if (!(await row.first().innerText()).includes('Probe Teacher')) {
+      return { fail: `staff saved with the wrong name (row: ${await row.first().innerText()})` };
+    }
+    return { note: staffNo };
   });
 
   // -------------------------------------------------------------------------
   // Finance
   // -------------------------------------------------------------------------
-  await check('C10', 'Fee structure items can be added to a template', async (mark) => {
-    await go('/finance/fee-configuration');
-    await page.locator('main').getByRole('button', { name: 'Add Fee Template' }).first().click(); await wait(1200);
+  await check('C10', 'Fee structure items can be added to a template', async () => {
+    const fixture = await ensureFeeItem();
+    if (fixture.error) return { fail: fixture.error };
+    await goFresh('/finance/fee-configuration');
+    await page.locator('main').getByRole('button', { name: 'Add Fee Schedule' }).click(); await wait(1200);
     const d = dialog();
-    await d.locator('input').first().fill(`Probe Template ${Date.now()}`);
-    if ((await d.locator('[name=school_period_id] option').count()) < 2) return { skip: 'no terms available' };
-    await d.locator('[name=school_period_id]').selectOption({ index: 1 });
-    await d.getByRole('button', { name: /Add Template/i }).click(); await wait(2000);
-    await page.locator('main tr', { hasText: 'Probe Template' }).getByRole('button', { name: 'Items' }).first().click(); await wait(1200);
-    const items = dialog();
-    await items.locator('[name=description]').fill('Tuition');
-    await items.locator('[name=amount]').fill('1000');
-    await items.locator('[name=revenue_account_id]').selectOption({ index: 1 });
-    await items.getByRole('button', { name: 'Add Item' }).last().click(); await wait(2000);
-    const log = consoleSince(mark);
+    await d.locator('[name=name]').fill(`Probe Template ${Date.now()}`);
+    const yearPicker = d.locator('[name=academic_year_id]');
+    if (!(await yearPicker.count())) return { fail: 'the fee schedule form has no academic-year field' };
+    const yearLabel = await chooseFirstFromPicker(yearPicker).catch(() => null);
+    if (!yearLabel) return { skip: 'no academic years available to bill' };
+    await d.getByRole('button', { name: /Create schedule/i }).click();
+    await d.waitFor({ state: 'hidden', timeout: 60000 }).catch(() => {});
+    if (await page.locator('[role=dialog]').count()) {
+      return { fail: `fee schedule dialog still open after submit: ${(await dialogText()).slice(0, 500)}` };
+    }
+    const scheduleRow = page.getByRole('row', { name: /Probe Template/ }).first();
+    await scheduleRow.waitFor({ timeout: 60000 }).catch(() => {});
+    if (!(await scheduleRow.count())) return { fail: 'fee schedule was not listed after submit' };
+    await scheduleRow.getByRole('button', { name: 'Lines' }).click(); await wait(1000);
+    const lines = dialog();
+    await lines.getByRole('button', { name: /Add fee line/i }).click(); await wait(1000);
+    const itemForm = dialog();
+    await chooseFromPicker(itemForm.locator('[name=fee_item_id]'), fixture.label);
+    await itemForm.locator('[name=amount]').fill('1000');
+    await itemForm.getByRole('button', { name: /Add line/i }).click();
+    await itemForm.waitFor({ state: 'hidden', timeout: 60000 }).catch(() => {});
+    if (await page.locator('[role=dialog]').count() > 1) {
+      return { fail: `fee line form still open after submit: ${(await dialogText()).slice(0, 500)}` };
+    }
+    const lineRow = page.getByRole('row', { name: /Probe Tuition/ }).first();
+    await lineRow.waitFor({ timeout: 60000 }).catch(() => {});
+    if (!(await lineRow.count())) return { fail: 'fee line was not listed in the schedule after submit' };
+    if (!/1,000\.00/.test(await lineRow.innerText())) {
+      return { fail: `fee line saved with the wrong amount (row: ${await lineRow.innerText()})` };
+    }
     await page.keyboard.press('Escape');
-    return /Unsupported bind\(\) argument type|Update failed/.test(log) ? { fail: 'updateFeeTemplate called with one argument; SQLite bind error' } : {};
+    return { note: `${fixture.label} @ KES 1,000.00` };
   });
 
   await check('C11', 'A student fee payment can be recorded', async () => {
-    await go('/finance/payments');
-    const before = await count('student_payments');
-    await page.locator('main').getByRole('button', { name: 'Record Payment' }).click(); await wait(1200);
+    await goFresh('/finance/payments');
+    await page.locator('main').getByRole('button', { name: 'Record payment' }).click(); await wait(1200);
     const d = dialog();
-    await d.locator('[name=student_id]').selectOption({ index: 1 });
-    await d.locator('[name=receipt_no]').fill(`PRB-${Date.now()}`);
-    await d.locator('[name=total_amount_paid]').fill('500');
-    await d.getByRole('button', { name: 'Record Payment' }).click(); await wait(2000);
-    const after = await count('student_payments');
-    await page.keyboard.press('Escape');
-    return after > before ? {} : { fail: 'payment not saved (addStudentPayment is not provided by useAppData)' };
+    const learnerPicker = d.locator('[name=learner_id]');
+    if (!(await learnerPicker.count())) return { fail: 'the payment form has no learner picker' };
+    if (probeStudent.admissionNo) {
+      await chooseFromPicker(learnerPicker, new RegExp(probeStudent.admissionNo));
+    } else {
+      await chooseFirstFromPicker(learnerPicker);
+    }
+    await d.locator('[name=amount]').fill('500');
+    await d.locator('[name=reference]').fill(`PRB-${Date.now()}`);
+    await d.getByRole('button', { name: 'Record payment' }).click();
+    await d.waitFor({ state: 'hidden', timeout: 60000 }).catch(() => {});
+    if (await page.locator('[role=dialog]').count()) {
+      return { fail: `payment dialog still open after submit: ${(await dialogText()).slice(0, 500)}` };
+    }
+    const toast = page.getByText(/Payment recorded\. Receipt RCT-\d+\./);
+    await toast.waitFor({ timeout: 60000 }).catch(() => {});
+    const toastText = (await toast.count()) ? await toast.first().innerText() : '';
+    const match = /RCT-\d+/.exec(toastText);
+    if (!match) return { fail: 'payment saved but no receipt number was issued' };
+    probePayment.receipt = match[0];
+    const row = page.getByRole('row', { name: new RegExp(probePayment.receipt) }).first();
+    await row.waitFor({ timeout: 60000 }).catch(() => {});
+    if (!(await row.count())) return { fail: 'payment saved but the payments grid does not list the receipt' };
+    // A fresh document load proves the posted payment reached storage.
+    await goFresh('/finance/payments');
+    const saved = page.getByRole('row', { name: new RegExp(probePayment.receipt) }).first();
+    await saved.waitFor({ timeout: 60000 }).catch(() => {});
+    if (!(await saved.count())) return { fail: 'payment is not listed after a reload' };
+    if (!/500\.00/.test(await saved.innerText())) return { fail: `payment reloaded with the wrong amount (row: ${await saved.innerText()})` };
+    return { note: `${probePayment.receipt} · KES 500.00` };
   });
 
   // -------------------------------------------------------------------------
@@ -225,20 +454,51 @@ if (!/#\/dashboard/.test(page.url())) {
   // -------------------------------------------------------------------------
   await check('C12', 'Marks entry lists the students of a stream', async () => {
     await go('/academics/marks-entry');
-    const selects = page.locator('main select');
-    if ((await selects.nth(0).locator('option').count()) < 2) return { skip: 'no exam sessions' };
-    await selects.nth(0).selectOption({ index: 1 }); await wait(500);
-    await selects.nth(1).selectOption({ index: 1 }); await wait(2000);
-    return /No students in selected class stream/.test(await mainText()) ? { fail: 'stream filter compares number to string id' } : {};
+    const assessmentPicker = page.locator('main').getByRole('combobox', { name: /^Assessment/ });
+    if (!(await assessmentPicker.count())) return { fail: 'the assessment picker is not rendered' };
+    await assessmentPicker.click();
+    const listbox = page.getByRole('listbox').last();
+    await listbox.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+    const assessmentOptions = listbox.getByRole('option');
+    if ((await assessmentOptions.count()) === 0) {
+      await page.keyboard.press('Escape');
+      return {
+        skip:
+          'this fresh production school has no assessment to mark; the canonical marks entry is driven by tests/e2e/gp1-lite.spec.ts with the sample school',
+      };
+    }
+    await assessmentOptions.first().click();
+    const groupPicker = page.locator('main').getByRole('combobox', { name: /^Teaching group/ });
+    if (!(await groupPicker.count())) return { fail: 'the teaching-group picker is not rendered' };
+    await groupPicker.click();
+    const groups = page.getByRole('listbox').last().getByRole('option');
+    await groups.first().waitFor({ timeout: 15000 }).catch(() => {});
+    if ((await groups.count()) === 0) {
+      await page.keyboard.press('Escape');
+      return { skip: 'no teaching group is available for the assessment' };
+    }
+    await groups.first().click();
+    await wait(1500);
+    const scores = await page.locator('main input[aria-label^="Score for"]').count();
+    if (scores > 0) return { note: `${scores} learner(s)` };
+    if (/This teaching group has no members/.test(await mainText())) {
+      return { fail: 'the chosen teaching group has no members, so marks entry lists no students' };
+    }
+    return { fail: 'marks entry lists no learners after choosing an assessment and teaching group' };
   });
 
   await check('C13', 'Attendance roll-call lists students after choosing a class', async () => {
     await go('/administration/attendance');
-    const select = page.locator('main select').first();
-    if ((await select.locator('option').count()) < 2) return { fail: 'class filter has no options' };
-    await select.selectOption({ index: 1 }); await wait(1500);
+    const picker = page.locator('main').getByTestId('attendance-class-picker');
+    if (!(await picker.count())) return { fail: 'the class filter is not rendered' };
+    if (!probeStudent.className) return { skip: 'the learner admitted by C07 was not placed in a class group' };
+    await chooseFromPicker(picker, probeStudent.className);
+    await wait(1500);
     const rows = await page.locator('main').getByRole('button', { name: 'Absent', exact: true }).count();
-    return rows > 0 ? {} : { fail: 'roll-call is empty after choosing a class (name vs id filter)' };
+    if (rows === 0) return { fail: `roll-call is empty after choosing ${probeStudent.className}` };
+    const row = page.getByRole('row', { name: new RegExp(probeStudent.admissionNo) }).first();
+    if (!(await row.count())) return { fail: `roll-call does not list ${probeStudent.admissionNo} in ${probeStudent.className}` };
+    return { note: `${rows} learner(s) in ${probeStudent.className}` };
   });
 
   await check('C14', 'Admissions application form renders input fields', async () => {
@@ -260,7 +520,7 @@ if (!/#\/dashboard/.test(page.url())) {
   // -------------------------------------------------------------------------
   await check('C16', 'Every navigation page and hub tab renders without crashing', async () => {
     const modules = ['administration', 'academics', 'admissions', 'finance', 'hr', 'library', 'nutrition', 'reports', 'settings'];
-    const paths = await page.evaluate(async (mods) => {
+    const paths = await evaluate(async (mods) => {
       const out = [];
       for (const m of mods) {
         const mod = await import(`/src/modules/${m}/moduleDefinition.tsx`);

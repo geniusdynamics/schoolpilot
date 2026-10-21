@@ -427,24 +427,27 @@ describe('DynamicRoutes', () => {
   });
 
   describe('RBAC Integration', () => {
-    it('should use RBAC hook with provided user info', () => {
+    it('does not gate the route table on RBAC; access is enforced per route', () => {
+      // The route table used to be filtered by accessibleModules, so a module the RBAC list did not
+      // name produced a 404 instead of the access-denied page. Access belongs to ProtectedRoute,
+      // which wraps every generated route.
       render(
         <MemoryRouter>
           <DynamicRoutes modulesInitialized={true} userId="user-1" userRole="admin" />
         </MemoryRouter>
       );
 
-      expect(useRBACModule.useRBAC).toHaveBeenCalledWith('user-1', 'admin');
+      expect(useRBACModule.useRBAC).not.toHaveBeenCalled();
     });
 
-    it('should work without user info', () => {
+    it('works without user info, because the route table does not need it', () => {
       render(
         <MemoryRouter>
           <DynamicRoutes modulesInitialized={true} />
         </MemoryRouter>
       );
 
-      expect(useRBACModule.useRBAC).toHaveBeenCalledWith(undefined, undefined);
+      expect(useRBACModule.useRBAC).not.toHaveBeenCalled();
     });
   });
 
