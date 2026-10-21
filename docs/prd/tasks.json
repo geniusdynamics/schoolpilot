@@ -2707,6 +2707,34 @@
       "completed_at": "2026-10-21"
     },
     {
+      "id": "P2-A01a",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "A",
+      "title": "Pack schema revision: grade codes, component scope and weights, combination minimums, structured vectors",
+      "size": "L",
+      "depends_on": [
+        "P2-A01"
+      ],
+      "files": [
+        "packs/schema/*.json",
+        "src/domain/curriculum/registry/packShape.ts",
+        "src/domain/curriculum/registry/shape.ts",
+        "src/domain/curriculum/registry/rules.ts"
+      ],
+      "acceptance": [
+        "Every gap reported by the five packs is closed or explicitly documented as a loader rule",
+        "The five existing packs still validate"
+      ],
+      "test": "Schema tests + the five packs",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "notes": "Opened at P2-W3 after ke-cbe, ke-844, gb-national, cambridge-intl and pearson-intl hit the same walls: codes cannot hold A*/A-/B+; components are scoped to a learning area not a level; component_policy has no weights map though the engine requires one; formative schemes must invent a summative slot; one calendar template; combination rules cannot express minimums; aggregations cannot double-weight a subject; no per-level grade-scale choice; vector inputs are flat scalars; verification.status has no reviewed state; rounding vocabularies disagree. The loader transcribes the schema and must change in lockstep."
+    },
+    {
       "id": "P2-A02",
       "phase": "P2",
       "wave": "P2-W2",
