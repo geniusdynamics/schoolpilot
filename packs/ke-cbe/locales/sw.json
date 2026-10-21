@@ -1,0 +1,67 @@
+{
+  "labels": {
+    "block.header": "Ripoti ya shule",
+    "block.learner": "Mwanafunzi",
+    "block.attendance": "Mahudhurio",
+    "block.results": "Matokeo",
+    "block.rubric": "Masomo na viwango",
+    "block.competencies": "Umahiri na maadili",
+    "block.co_curricular": "Shughuli za nje ya darasa",
+    "block.summary": "Muhtasari",
+    "block.progression": "Maendeleo",
+    "block.comments": "Maoni",
+    "block.calendar": "Kalenda",
+    "block.signatures": "Sahihi",
+    "block.verification": "Uthibitisho"
+  },
+  "descriptors": {
+    "cbe_8_level": {
+      "EE1": "Anazidi matarajio ya ngazi kwa uthabiti na anatumia umahiri kwa kujitegemea katika hali mpya.",
+      "EE2": "Anazidi matarajio ya ngazi na anaeleza sababu za majibu yake.",
+      "ME1": "Anafikia matarajio ya ngazi kwa kujitegemea.",
+      "ME2": "Anafikia matarajio ya ngazi kwa msaada wa mara kwa mara.",
+      "AE1": "Anakaribia matarajio ya ngazi na anahitaji msaada kukamilisha kazi.",
+      "AE2": "Anakaribia matarajio ya ngazi katika kazi anazozifahamu tu.",
+      "BE1": "Yuko chini ya matarajio ya ngazi na anahitaji msaada uliopangwa kuanza kazi.",
+      "BE2": "Yuko chini ya matarajio ya ngazi na anahitaji msaada mkubwa na mazoezi yanayoongozwa."
+    },
+    "cbe_4_level": {
+      "EE": "Anazidi matarajio: anatumia umahiri kwa kujitegemea na anaeleza mawazo yake.",
+      "ME": "Anafikia matarajio: anatumia umahiri kwa kujitegemea katika kazi anazozifahamu.",
+      "AE": "Anakaribia matarajio: anatumia umahiri kwa msaada na uangalizi.",
+      "BE": "Yuko chini ya matarajio: anahitaji msaada uliopangwa kuonyesha umahiri."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "EE1",
+      "text": "Muhula mzuri sana. Endelea kufanya kazi kwa bidii katika masomo yote."
+    },
+    {
+      "scope": "overall",
+      "band": "ME1",
+      "text": "Muhula mzuri. Jitihada zaidi katika masomo dhaifu itainua matokeo."
+    },
+    {
+      "scope": "overall",
+      "band": "AE1",
+      "text": "Maendeleo ya taratibu. Kusoma na kufanya mazoezi kila siku kutafunga pengo."
+    },
+    {
+      "scope": "overall",
+      "band": "BE1",
+      "text": "Anahitaji msaada wa mara kwa mara nyumbani na shuleni; kubaliani malengo mawili madogo."
+    },
+    {
+      "scope": "learning_area",
+      "band": "EE2",
+      "text": "Anaeleza mawazo kwa uwazi na anawasaidia wenzake katika kazi za vikundi."
+    },
+    {
+      "scope": "conduct",
+      "band": "ME",
+      "text": "Ana adabu na ushirikiano; ni mwanachama mzuri wa darasa."
+    }
+  ]
+}

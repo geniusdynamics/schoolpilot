@@ -1,0 +1,790 @@
+{
+  "learning_areas": [
+    {
+      "code": "LANG",
+      "name": "Language Activities",
+      "short_name": "Language",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "PP1",
+        "PP2"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "MATHACT",
+      "name": "Mathematical Activities",
+      "short_name": "Maths act",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": [
+        "PP1",
+        "PP2"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "PCA",
+      "name": "Psychomotor and Creative Activities",
+      "short_name": "Psychomotor",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "PP1",
+        "PP2"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "ENV",
+      "name": "Environmental Activities",
+      "short_name": "Environment",
+      "kind": "core",
+      "group": "sciences",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "ENG",
+      "name": "English",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "KIS",
+      "name": "Kiswahili",
+      "short_name": "Kis",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "alternatives": [
+        "KSL"
+      ]
+    },
+    {
+      "code": "KSL",
+      "name": "Kenyan Sign Language",
+      "short_name": "KSL",
+      "kind": "optional",
+      "group": "languages",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "IND",
+      "name": "Indigenous Language",
+      "short_name": "Indigenous",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "HYN",
+      "name": "Hygiene and Nutrition Activities",
+      "short_name": "Hygiene",
+      "kind": "core",
+      "group": "applied",
+      "levels": [
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "MCA",
+      "name": "Movement and Creative Activities",
+      "short_name": "Movement",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "MAT",
+      "name": "Mathematics",
+      "short_name": "Math",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "alternatives": [
+        "EMAT"
+      ]
+    },
+    {
+      "code": "EMAT",
+      "name": "Essential Mathematics",
+      "short_name": "Ess Math",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "RE",
+      "name": "Religious Education",
+      "short_name": "RE",
+      "kind": "core",
+      "group": "humanities",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": [],
+      "alternatives": [
+        "CRE",
+        "IRE",
+        "HRE"
+      ]
+    },
+    {
+      "code": "CRE",
+      "name": "Christian Religious Education",
+      "short_name": "CRE",
+      "kind": "optional",
+      "group": "humanities",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "IRE",
+      "name": "Islamic Religious Education",
+      "short_name": "IRE",
+      "kind": "optional",
+      "group": "humanities",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "HRE",
+      "name": "Hindu Religious Education",
+      "short_name": "HRE",
+      "kind": "optional",
+      "group": "humanities",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "SCI",
+      "name": "Science and Technology",
+      "short_name": "Sci & Tech",
+      "kind": "core",
+      "group": "sciences",
+      "levels": [
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "AGN",
+      "name": "Agriculture and Nutrition",
+      "short_name": "Agri & Nut",
+      "kind": "core",
+      "group": "applied",
+      "levels": [
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "SST",
+      "name": "Social Studies",
+      "short_name": "SST",
+      "kind": "core",
+      "group": "humanities",
+      "levels": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "CRA",
+      "name": "Creative Arts",
+      "short_name": "Creative",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "INT-SCI",
+      "name": "Integrated Science",
+      "short_name": "Int Sci",
+      "kind": "core",
+      "group": "sciences",
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": [
+        {
+          "code": "P1",
+          "name": "Theory paper",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "PR",
+          "name": "Practical",
+          "kind": "practical",
+          "max_score": 20
+        }
+      ]
+    },
+    {
+      "code": "AGR",
+      "name": "Agriculture",
+      "short_name": "Agri",
+      "kind": "core",
+      "group": "applied",
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "PTS",
+      "name": "Pre-Technical Studies",
+      "short_name": "Pre-Tech",
+      "kind": "core",
+      "group": "applied",
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "CAS",
+      "name": "Creative Arts and Sports",
+      "short_name": "Arts & Sport",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "CSL",
+      "name": "Community Service Learning",
+      "short_name": "Community",
+      "kind": "core",
+      "group": "applied",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "PE",
+      "name": "Physical Education",
+      "short_name": "PE",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Bio",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "STEM"
+      ]
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chem",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "STEM"
+      ]
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Phys",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "STEM"
+      ]
+    },
+    {
+      "code": "HIS",
+      "name": "History",
+      "short_name": "Hist",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "SOC"
+      ]
+    },
+    {
+      "code": "GEO",
+      "name": "Geography",
+      "short_name": "Geog",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "SOC"
+      ]
+    },
+    {
+      "code": "BST",
+      "name": "Business Studies",
+      "short_name": "Bus",
+      "kind": "elective",
+      "group": "applied",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "SOC"
+      ]
+    },
+    {
+      "code": "ART",
+      "name": "Art and Design",
+      "short_name": "Art",
+      "kind": "elective",
+      "group": "arts",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "ASS"
+      ]
+    },
+    {
+      "code": "MUS",
+      "name": "Music",
+      "short_name": "Mus",
+      "kind": "elective",
+      "group": "arts",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "ASS"
+      ]
+    },
+    {
+      "code": "SPT",
+      "name": "Sports Science",
+      "short_name": "Sport",
+      "kind": "elective",
+      "group": "arts",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "national_code": null,
+      "components": [],
+      "pathways": [
+        "ASS"
+      ]
+    }
+  ],
+  "competencies": [
+    {
+      "code": "CC",
+      "name": "Communication and Collaboration",
+      "kind": "core_competency"
+    },
+    {
+      "code": "CTPS",
+      "name": "Critical Thinking and Problem Solving",
+      "kind": "core_competency"
+    },
+    {
+      "code": "CI",
+      "name": "Creativity and Imagination",
+      "kind": "core_competency"
+    },
+    {
+      "code": "CIT",
+      "name": "Citizenship",
+      "kind": "core_competency"
+    },
+    {
+      "code": "DL",
+      "name": "Digital Literacy",
+      "kind": "core_competency"
+    },
+    {
+      "code": "LL",
+      "name": "Learning to Learn",
+      "kind": "core_competency"
+    },
+    {
+      "code": "SE",
+      "name": "Self-efficacy",
+      "kind": "core_competency"
+    },
+    {
+      "code": "VAL-LOVE",
+      "name": "Love",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-RESP",
+      "name": "Responsibility",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-RESPECT",
+      "name": "Respect",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-UNITY",
+      "name": "Unity",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-PEACE",
+      "name": "Peace",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-PATRIOTISM",
+      "name": "Patriotism",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-SOCJUST",
+      "name": "Social Justice",
+      "kind": "value"
+    },
+    {
+      "code": "VAL-INT",
+      "name": "Integrity",
+      "kind": "value"
+    }
+  ],
+  "combination_rules": [
+    {
+      "levels": [
+        "PP1",
+        "PP2"
+      ],
+      "rule": "core_all",
+      "of": [
+        "LANG",
+        "MATHACT",
+        "ENV",
+        "PCA",
+        "RE|CRE|IRE|HRE"
+      ]
+    },
+    {
+      "levels": [
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "KIS|KSL",
+        "IND",
+        "MAT",
+        "RE|CRE|IRE|HRE",
+        "ENV",
+        "HYN",
+        "MCA"
+      ]
+    },
+    {
+      "levels": [
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "KIS|KSL",
+        "MAT",
+        "RE|CRE|IRE|HRE",
+        "SCI",
+        "AGN",
+        "SST",
+        "CRA"
+      ]
+    },
+    {
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "KIS|KSL",
+        "MAT",
+        "RE|CRE|IRE|HRE",
+        "INT-SCI",
+        "AGR",
+        "SST",
+        "PTS",
+        "CAS"
+      ]
+    },
+    {
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "KIS|KSL",
+        "MAT|EMAT",
+        "CSL",
+        "PE"
+      ]
+    },
+    {
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "rule": "electives",
+      "count": 3,
+      "from_pathway": true
+    }
+  ]
+}

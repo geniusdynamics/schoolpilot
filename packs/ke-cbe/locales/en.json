@@ -1,0 +1,67 @@
+{
+  "labels": {
+    "block.header": "School report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.rubric": "Learning areas and levels",
+    "block.competencies": "Core competencies and values",
+    "block.co_curricular": "Co-curricular activities",
+    "block.summary": "Summary",
+    "block.progression": "Progression",
+    "block.comments": "Comments",
+    "block.calendar": "Calendar",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification"
+  },
+  "descriptors": {
+    "cbe_8_level": {
+      "EE1": "Consistently exceeds the expected level for the strand and applies the competency independently in new situations.",
+      "EE2": "Exceeds the expected level for the strand and explains the reasoning behind the work.",
+      "ME1": "Meets the expected level for the strand independently.",
+      "ME2": "Meets the expected level for the strand with occasional prompting.",
+      "AE1": "Approaches the expected level and needs prompting to complete the task.",
+      "AE2": "Approaches the expected level in familiar tasks only.",
+      "BE1": "Below the expected level and needs structured support to begin the task.",
+      "BE2": "Below the expected level and requires intensive support and guided practice."
+    },
+    "cbe_4_level": {
+      "EE": "Exceeding expectations: applies the competency independently and explains the thinking.",
+      "ME": "Meeting expectations: applies the competency independently in familiar tasks.",
+      "AE": "Approaching expectations: applies the competency with prompting and support.",
+      "BE": "Below expectations: needs structured support to demonstrate the competency."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "EE1",
+      "text": "An excellent term. Keep up the consistent effort across all learning areas."
+    },
+    {
+      "scope": "overall",
+      "band": "ME1",
+      "text": "A solid term. One more push in the weaker learning areas will lift the result."
+    },
+    {
+      "scope": "overall",
+      "band": "AE1",
+      "text": "Steady progress. Daily reading and practice will close the gap."
+    },
+    {
+      "scope": "overall",
+      "band": "BE1",
+      "text": "Needs regular support at home and at school; agree two small targets for next term."
+    },
+    {
+      "scope": "learning_area",
+      "band": "EE2",
+      "text": "Explains ideas clearly and helps others in group work."
+    },
+    {
+      "scope": "conduct",
+      "band": "ME",
+      "text": "Courteous and cooperative; a positive member of the class."
+    }
+  ]
+}

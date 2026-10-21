@@ -1,0 +1,59 @@
+{
+  "code": "ke-cbe",
+  "name": "Kenya Competency-Based Education (CBE), PP1 to Grade 12",
+  "version": "2026.1.0",
+  "country": "KE",
+  "issuers": [
+    "KICD",
+    "KNEC",
+    "Ministry of Education"
+  ],
+  "effective_from": "2026-01-01",
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Basic Education Curriculum Framework (2019)",
+      "issuer": "KICD",
+      "url": "https://kicd.ac.ke/wp-content/uploads/2019/08/BASIC-EDUCATION-CURRICULUM-FRAMEWORK-2019.pdf",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "National Curriculum Policy (2019)",
+      "issuer": "KICD",
+      "url": "https://kicd.ac.ke/wp-content/uploads/2019/05/National-curriculum-policy-revised-on-may-9-2019.pdf",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Competency Based Assessment Framework (age-based, regular learners)",
+      "issuer": "KNEC",
+      "url": "https://www.knec.ac.ke/wp-content/uploads/2021/06/CBA-Age-Based-Regular-Framework.pdf",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "KJSEA Regulations",
+      "issuer": "KNEC",
+      "url": "https://www.knec.ac.ke/wp-content/uploads/2026/02/KJSEA-REGULATIONS.pdf",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "PP1 Curriculum Designs (December 2017)",
+      "issuer": "KICD",
+      "url": "https://kicd.ac.ke/wp-content/uploads/2018/02/PP-1-Curriculum-Designs-Dec-2017C-1-min.pdf",
+      "retrieved": "2026-10-21"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft: no curriculum officer has reviewed this pack. Unverified items: (1) the cbe_8_level percentage cut-offs are the bands printed in platform spec 03 section 5, which itself asks for confirmation against the current KNEC circular; (2) the Grade 12 exit assessment code KSSEA is the KNEC senior-school assessment name used here pending written confirmation; (3) senior-school subject combinations per pathway are illustrative, not the published KICD combination list; (4) pre-primary and primary learning-area names follow the KICD designs but were not checked line by line; (5) the 60/40 SBA/end-term weighting is a school default, not a KNEC composite. All five source URLs returned a live document on 2026-10-21, but their contents were not certified by a curriculum officer."
+  },
+  "overridable": [
+    "grading_scales.cbe_8_level.bands",
+    "assessment.schemes.ke-cbe-terminal.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

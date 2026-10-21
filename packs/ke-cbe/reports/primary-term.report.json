@@ -1,0 +1,65 @@
+{
+  "code": "primary-term",
+  "name": "Primary term report (PP1 to G6)",
+  "levels": [
+    "PP1",
+    "PP2",
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6"
+  ],
+  "page": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "blocks": [
+    {
+      "type": "header",
+      "label_key": "block.header"
+    },
+    {
+      "type": "learner",
+      "label_key": "block.learner"
+    },
+    {
+      "type": "attendance",
+      "label_key": "block.attendance"
+    },
+    {
+      "type": "rubric_table",
+      "label_key": "block.rubric"
+    },
+    {
+      "type": "competencies",
+      "label_key": "block.competencies"
+    },
+    {
+      "type": "co_curricular",
+      "label_key": "block.co_curricular"
+    },
+    {
+      "type": "summary",
+      "label_key": "block.summary"
+    },
+    {
+      "type": "comments",
+      "label_key": "block.comments"
+    },
+    {
+      "type": "calendar",
+      "label_key": "block.calendar"
+    },
+    {
+      "type": "signatures",
+      "label_key": "block.signatures"
+    },
+    {
+      "type": "verification",
+      "label_key": "block.verification"
+    }
+  ],
+  "comment_max_length": 500
+}

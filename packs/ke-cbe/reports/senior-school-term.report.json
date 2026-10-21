@@ -1,0 +1,73 @@
+{
+  "code": "senior-school-term",
+  "name": "Senior School term report (G10 to G12)",
+  "levels": [
+    "G10",
+    "G11",
+    "G12"
+  ],
+  "page": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "blocks": [
+    {
+      "type": "header",
+      "label_key": "block.header"
+    },
+    {
+      "type": "learner",
+      "label_key": "block.learner"
+    },
+    {
+      "type": "attendance",
+      "label_key": "block.attendance"
+    },
+    {
+      "type": "results_table",
+      "label_key": "block.results",
+      "columns": [
+        "components",
+        "slots",
+        "total",
+        "grade",
+        "points",
+        "position",
+        "class_mean",
+        "highest",
+        "lowest",
+        "teacher_initials",
+        "remark"
+      ]
+    },
+    {
+      "type": "co_curricular",
+      "label_key": "block.co_curricular"
+    },
+    {
+      "type": "summary",
+      "label_key": "block.summary"
+    },
+    {
+      "type": "progression",
+      "label_key": "block.progression"
+    },
+    {
+      "type": "comments",
+      "label_key": "block.comments"
+    },
+    {
+      "type": "calendar",
+      "label_key": "block.calendar"
+    },
+    {
+      "type": "signatures",
+      "label_key": "block.signatures"
+    },
+    {
+      "type": "verification",
+      "label_key": "block.verification"
+    }
+  ],
+  "comment_max_length": 500
+}
