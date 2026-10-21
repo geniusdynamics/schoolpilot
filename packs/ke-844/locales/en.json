@@ -1,0 +1,54 @@
+{
+  "labels": {
+    "block.header": "School report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.summary": "Summary",
+    "block.comments": "Class teacher's comments",
+    "block.progression": "Progression",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.term-f1-f3": "Term report",
+    "report.kcse-candidate-f4": "KCSE candidate report"
+  },
+  "descriptors": {
+    "kcse_subject": {
+      "A": "Excellent: every paper secure.",
+      "A_MINUS": "Very good: strong across the papers.",
+      "B_PLUS": "Good: above the credit standard.",
+      "B": "Good: at the credit standard.",
+      "B_MINUS": "Fair: close to the credit standard.",
+      "C_PLUS": "Fair: secure in the stronger papers.",
+      "C": "Average: inconsistent across the papers.",
+      "C_MINUS": "Below average: key topics need revision.",
+      "D_PLUS": "Weak: revise the core topics.",
+      "D": "Weak: significant gaps.",
+      "D_MINUS": "Very weak: intensive support needed.",
+      "E": "Poor: foundational revision needed."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A",
+      "text": "An excellent term. Keep the same consistency across every subject."
+    },
+    {
+      "scope": "overall",
+      "band": "B_PLUS",
+      "text": "A strong term. Polish the weaker papers to move into the top band."
+    },
+    {
+      "scope": "overall",
+      "band": "E",
+      "text": "A difficult term. Agree a revision plan with the class teacher and use the holiday assignments."
+    },
+    {
+      "scope": "learning_area",
+      "band": "C_PLUS",
+      "learning_area": "BIO",
+      "text": "The theory papers are secure; spend more time on the practical write-ups."
+    }
+  ]
+}

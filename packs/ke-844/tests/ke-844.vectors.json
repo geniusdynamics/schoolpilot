@@ -1,0 +1,105 @@
+{
+  "vectors": [
+    {
+      "name": "KCSE best-7 with 3 sciences",
+      "programme": "ke-844",
+      "input": {
+        "ENG": "B+",
+        "KIS": "B",
+        "MAT": "A-",
+        "BIO": "B",
+        "CHE": "C+",
+        "PHY": "B-",
+        "HIS": "A",
+        "CRE": "B+",
+        "BST": "C"
+      },
+      "expect": {
+        "selected": [
+          "ENG",
+          "KIS",
+          "MAT",
+          "BIO",
+          "PHY",
+          "HIS",
+          "CRE"
+        ],
+        "kcse_mean_grade": {
+          "total_points": 69,
+          "points": 9.857,
+          "grade": "B+"
+        }
+      }
+    },
+    {
+      "name": "Best-7 lower B+ boundary at 64 aggregate points",
+      "programme": "ke-844",
+      "input": {
+        "ENG": "B+",
+        "KIS": "B+",
+        "MAT": "B+",
+        "BIO": "B",
+        "PHY": "B",
+        "HIS": "B",
+        "CRE": "C+",
+        "BST": "C"
+      },
+      "expect": {
+        "selected": [
+          "ENG",
+          "KIS",
+          "MAT",
+          "BIO",
+          "PHY",
+          "HIS",
+          "CRE"
+        ],
+        "kcse_mean_grade": {
+          "total_points": 64,
+          "points": 9.143,
+          "grade": "B+"
+        }
+      }
+    },
+    {
+      "name": "Biology papers combine to 74.5 and round up to the A- boundary",
+      "programme": "ke-844",
+      "input": {
+        "CAT.CAT1": "24/30",
+        "CAT.CAT2": "27/30",
+        "ET.BIO.P1": "60/80",
+        "ET.BIO.P2": "50/80",
+        "ET.BIO.P3": "30/40"
+      },
+      "expect": {
+        "ke-844-internal": {
+          "exact_total": 74.5,
+          "total": 75,
+          "percent": 75,
+          "grade": "A-",
+          "points": 11
+        }
+      }
+    },
+    {
+      "name": "Biology papers combine to 74.4 and stay in B+",
+      "programme": "ke-844",
+      "input": {
+        "CAT.CAT1": "24/30",
+        "CAT.CAT2": "24/30",
+        "ET.BIO.P1": "64/80",
+        "ET.BIO.P2": "50/80",
+        "ET.BIO.P3": "30/40"
+      },
+      "expect": {
+        "ke-844-internal": {
+          "exact_total": 74.4,
+          "total": 74,
+          "percent": 74,
+          "grade": "B+",
+          "points": 10
+        }
+      }
+    }
+  ]
+}

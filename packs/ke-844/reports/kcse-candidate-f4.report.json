@@ -1,0 +1,57 @@
+{
+  "code": "kcse-candidate-f4",
+  "name": "Form 4 KCSE candidate report",
+  "levels": [
+    "F4"
+  ],
+  "page": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "blocks": [
+    {
+      "type": "header",
+      "label_key": "block.header"
+    },
+    {
+      "type": "learner",
+      "label_key": "block.learner"
+    },
+    {
+      "type": "results_table",
+      "label_key": "block.results",
+      "columns": [
+        "components",
+        "total",
+        "grade",
+        "points",
+        "class_mean",
+        "highest",
+        "lowest",
+        "teacher_initials",
+        "remark"
+      ]
+    },
+    {
+      "type": "summary",
+      "label_key": "block.summary"
+    },
+    {
+      "type": "progression",
+      "label_key": "block.progression"
+    },
+    {
+      "type": "comments",
+      "label_key": "block.comments"
+    },
+    {
+      "type": "signatures",
+      "label_key": "block.signatures"
+    },
+    {
+      "type": "verification",
+      "label_key": "block.verification"
+    }
+  ],
+  "comment_max_length": 500
+}
