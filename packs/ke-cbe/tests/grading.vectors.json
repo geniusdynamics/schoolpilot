@@ -1,0 +1,345 @@
+{
+  "vectors": [
+    {
+      "name": "100 percent is the top of EE1",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 100
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 100,
+          "grade": "EE1",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "90 percent is the EE1 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 90
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 90,
+          "grade": "EE1",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "89 percent falls to EE2",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 89
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 89,
+          "grade": "EE2",
+          "points": 7
+        }
+      }
+    },
+    {
+      "name": "75 percent is the EE2 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 75
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 75,
+          "grade": "EE2",
+          "points": 7
+        }
+      }
+    },
+    {
+      "name": "74 percent falls to ME1",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 74
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 74,
+          "grade": "ME1",
+          "points": 6
+        }
+      }
+    },
+    {
+      "name": "58 percent is the ME1 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 58
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 58,
+          "grade": "ME1",
+          "points": 6
+        }
+      }
+    },
+    {
+      "name": "57 percent falls to ME2",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 57
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 57,
+          "grade": "ME2",
+          "points": 5
+        }
+      }
+    },
+    {
+      "name": "41 percent is the ME2 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 41
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 41,
+          "grade": "ME2",
+          "points": 5
+        }
+      }
+    },
+    {
+      "name": "40 percent falls to AE1",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 40
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 40,
+          "grade": "AE1",
+          "points": 4
+        }
+      }
+    },
+    {
+      "name": "31 percent is the AE1 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 31
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 31,
+          "grade": "AE1",
+          "points": 4
+        }
+      }
+    },
+    {
+      "name": "30 percent falls to AE2",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 30
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 30,
+          "grade": "AE2",
+          "points": 3
+        }
+      }
+    },
+    {
+      "name": "21 percent is the AE2 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 21
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 21,
+          "grade": "AE2",
+          "points": 3
+        }
+      }
+    },
+    {
+      "name": "20 percent falls to BE1",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 20
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 20,
+          "grade": "BE1",
+          "points": 2
+        }
+      }
+    },
+    {
+      "name": "11 percent is the BE1 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 11
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 11,
+          "grade": "BE1",
+          "points": 2
+        }
+      }
+    },
+    {
+      "name": "10 percent falls to BE2",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 10
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 10,
+          "grade": "BE2",
+          "points": 1
+        }
+      }
+    },
+    {
+      "name": "0 percent still grades as BE2",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 0
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 0,
+          "grade": "BE2",
+          "points": 1
+        }
+      }
+    },
+    {
+      "name": "Mean of two learning areas rounds half up to a whole percent",
+      "programme": "ke-cbe",
+      "input": {
+        "MAT": 91,
+        "ENG": 82
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 87,
+          "grade": "EE2",
+          "points": 7
+        }
+      }
+    },
+    {
+      "name": "Mean of two learning areas rounds half up at the EE2 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 74,
+        "KIS": 75
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 75,
+          "grade": "EE2",
+          "points": 7
+        }
+      }
+    },
+    {
+      "name": "Mean of three learning areas rounds down below the EE2 floor",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 74,
+        "KIS": 74,
+        "MAT": 75
+      },
+      "expect": {
+        "cbe_mean_percent": {
+          "value": 74,
+          "grade": "ME1",
+          "points": 6
+        }
+      }
+    },
+    {
+      "name": "Rubric level 4 is EE",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 4
+      },
+      "expect": {
+        "cbe_primary_mean_level": {
+          "value": 4,
+          "grade": "EE",
+          "points": 4
+        }
+      }
+    },
+    {
+      "name": "Rubric level 3 is ME",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 3
+      },
+      "expect": {
+        "cbe_primary_mean_level": {
+          "value": 3,
+          "grade": "ME",
+          "points": 3
+        }
+      }
+    },
+    {
+      "name": "Rubric level 2 is AE",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 2
+      },
+      "expect": {
+        "cbe_primary_mean_level": {
+          "value": 2,
+          "grade": "AE",
+          "points": 2
+        }
+      }
+    },
+    {
+      "name": "Rubric level 1 is BE",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 1
+      },
+      "expect": {
+        "cbe_primary_mean_level": {
+          "value": 1,
+          "grade": "BE",
+          "points": 1
+        }
+      }
+    },
+    {
+      "name": "Mean rubric level 3.5 rounds half up to EE",
+      "programme": "ke-cbe",
+      "input": {
+        "ENG": 4,
+        "MAT": 3
+      },
+      "expect": {
+        "cbe_primary_mean_level": {
+          "value": 4,
+          "grade": "EE",
+          "points": 4
+        }
+      }
+    }
+  ]
+}

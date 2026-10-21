@@ -1,0 +1,20 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "rule": "automatic"
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "F4"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

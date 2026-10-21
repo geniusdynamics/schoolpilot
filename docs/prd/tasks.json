@@ -2728,10 +2728,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "0e4dadd",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-B01",
@@ -2782,10 +2782,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "e82f8ec",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-B03",
@@ -2862,10 +2862,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "5ea4cfe",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-C02",
@@ -2888,10 +2888,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "400e803",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-C03",

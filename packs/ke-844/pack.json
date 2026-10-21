@@ -1,0 +1,54 @@
+{
+  "code": "ke-844",
+  "name": "Kenya 8-4-4 Secondary (KCSE) - Forms 1 to 4",
+  "version": "1.0.0",
+  "country": "KE",
+  "issuers": [
+    "KNEC",
+    "KICD",
+    "Ministry of Education"
+  ],
+  "effective_from": "2026-01-01",
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "KCSE Regulations 2024 (Kenya Certificate of Secondary Education)",
+      "issuer": "KNEC",
+      "url": "https://knec.ac.ke/wp-content/uploads/2026/01/KCSE_Regulations_2024.pdf",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "KCSE Grading System: 12-point scale and aggregate points for the best seven subjects",
+      "issuer": "KNEC (table reproduced by Africa Check)",
+      "url": "https://africacheck.org/sites/default/files/media/documents/2021-07/KCSE%20Grading%20System.pdf",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Kenya National Examinations Council (Kenya Certificate of Secondary Education) Rules, Legal Notice 176 of 2009",
+      "issuer": "National Council for Law Reporting",
+      "url": "https://new.kenyalaw.org/akn/ke/act/ln/2009/176/eng@2022-12-31",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Kenya Institute of Curriculum Development: secondary school curriculum",
+      "issuer": "KICD",
+      "url": "https://kicd.ac.ke/",
+      "retrieved": "2026-10-21"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not yet reviewed by a KNEC or KICD curriculum officer. Codes, papers and maxima follow the KNEC subject catalogue and published paper fronts. The 12-point subject bands and the best-7 aggregate table follow KNEC's published grading table. Open items: (1) only the sighted Option A route is modelled; Mathematics Alternative B (122) with General Science (237), Biology for the Blind (236) and Kenyan Sign Language (504) for hearing-impaired candidates are not modelled. (2) Paper maxima were cross-checked where a paper front was available (English 60/80/60, Agriculture 90/90/20, Biology and Chemistry 80 per theory paper); the remaining maxima follow the standard 100-per-paper or 80/80/40 shapes and must be confirmed against the current KNEC regulations before release. (3) The mean-points scale is derived from KNEC's aggregate-points table: grade k covers aggregates 7(k-1)+1 to 7k, so the mean-points band for grade k is (k-1, k]. (4) The KNEC regulations PDF was cited from the search index because the file did not download in this environment. (5) Band codes spell the sign (A_MINUS, B_PLUS) because the schema's code alphabet excludes + and a leading -; the printed grade is the band label."
+  },
+  "overridable": [
+    "grading_scales.kcse_subject.bands",
+    "grading_scales.kcse_mean_grade.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "PP1"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "PP2"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "LP"
+    },
+    {
+      "levels": [
+        "G1",
+        "G2"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "G3"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "UP"
+    },
+    {
+      "levels": [
+        "G4",
+        "G5"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "G6"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "JS",
+      "requires": [
+        "national_assessment_recorded"
+      ]
+    },
+    {
+      "levels": [
+        "G7",
+        "G8"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "G9"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "SS",
+      "requires": [
+        "national_assessment_recorded",
+        "pathway_placement"
+      ]
+    },
+    {
+      "levels": [
+        "G10",
+        "G11"
+      ],
+      "rule": "automatic"
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "G12"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

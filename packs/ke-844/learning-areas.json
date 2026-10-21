@@ -1,0 +1,431 @@
+{
+  "learning_areas": [
+    {
+      "code": "ENG",
+      "name": "English",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "101",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1: Functional Skills",
+          "kind": "paper",
+          "max_score": 60
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2: Comprehension, Literary Appreciation and Grammar",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P3",
+          "name": "Paper 3: Creative Composition and Essays based on Set Texts",
+          "kind": "paper",
+          "max_score": 60
+        }
+      ]
+    },
+    {
+      "code": "KIS",
+      "name": "Kiswahili",
+      "short_name": "Kis",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "102",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Karatasi ya 1: Insha",
+          "kind": "paper",
+          "max_score": 40
+        },
+        {
+          "code": "P2",
+          "name": "Karatasi ya 2: Lugha",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P3",
+          "name": "Karatasi ya 3: Fasihi",
+          "kind": "paper",
+          "max_score": 80
+        }
+      ]
+    },
+    {
+      "code": "MAT",
+      "name": "Mathematics (Alternative A)",
+      "short_name": "Math",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "121",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Bio",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "231",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P3",
+          "name": "Paper 3: Practical",
+          "kind": "practical",
+          "max_score": 40
+        }
+      ]
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Phys",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "232",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P3",
+          "name": "Paper 3: Practical",
+          "kind": "practical",
+          "max_score": 40
+        }
+      ]
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chem",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "233",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P3",
+          "name": "Paper 3: Practical",
+          "kind": "practical",
+          "max_score": 40
+        }
+      ]
+    },
+    {
+      "code": "HIS",
+      "name": "History and Government",
+      "short_name": "Hist",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "311",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    },
+    {
+      "code": "GEO",
+      "name": "Geography",
+      "short_name": "Geog",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "312",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    },
+    {
+      "code": "CRE",
+      "name": "Christian Religious Education",
+      "short_name": "CRE",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "313",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    },
+    {
+      "code": "IRE",
+      "name": "Islamic Religious Education",
+      "short_name": "IRE",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "314",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    },
+    {
+      "code": "HRE",
+      "name": "Hindu Religious Education",
+      "short_name": "HRE",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "315",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    },
+    {
+      "code": "AGR",
+      "name": "Agriculture",
+      "short_name": "Agri",
+      "kind": "elective",
+      "group": "applied",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "443",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1: Theory",
+          "kind": "paper",
+          "max_score": 90
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2: Theory",
+          "kind": "paper",
+          "max_score": 90
+        },
+        {
+          "code": "P3",
+          "name": "Paper 3: Project",
+          "kind": "project",
+          "max_score": 20
+        }
+      ]
+    },
+    {
+      "code": "BST",
+      "name": "Business Studies",
+      "short_name": "Bus",
+      "kind": "elective",
+      "group": "applied",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "national_code": "565",
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1",
+          "kind": "paper",
+          "max_score": 100
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2",
+          "kind": "paper",
+          "max_score": 100
+        }
+      ]
+    }
+  ],
+  "competencies": [],
+  "combination_rules": [
+    {
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "KIS",
+        "MAT"
+      ]
+    },
+    {
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "rule": "electives",
+      "count": 4
+    }
+  ]
+}

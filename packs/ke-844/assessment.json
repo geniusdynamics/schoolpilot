@@ -1,0 +1,295 @@
+{
+  "schemes": [
+    {
+      "code": "ke-844-internal",
+      "levels": [
+        "F1",
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "slots": [
+        {
+          "code": "CAT",
+          "label": "Continuous assessment tests",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 30
+        },
+        {
+          "code": "ET",
+          "label": "End-of-term examination",
+          "kind": "end_term",
+          "scale_to": 70
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CAT",
+          "ET"
+        ],
+        "out_of": 100
+      },
+      "component_policy": {
+        "papers": "scale_each_then_sum",
+        "out_of": 100
+      },
+      "grading_scale": "kcse_subject",
+      "missing": {
+        "CAT": "exclude",
+        "ET": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "kcse_subject",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "A",
+          "label": "A",
+          "min": 80,
+          "max": 100,
+          "points": 12
+        },
+        {
+          "code": "A_MINUS",
+          "label": "A-",
+          "min": 75,
+          "max": 79,
+          "points": 11
+        },
+        {
+          "code": "B_PLUS",
+          "label": "B+",
+          "min": 70,
+          "max": 74,
+          "points": 10
+        },
+        {
+          "code": "B",
+          "label": "B",
+          "min": 65,
+          "max": 69,
+          "points": 9
+        },
+        {
+          "code": "B_MINUS",
+          "label": "B-",
+          "min": 60,
+          "max": 64,
+          "points": 8
+        },
+        {
+          "code": "C_PLUS",
+          "label": "C+",
+          "min": 55,
+          "max": 59,
+          "points": 7
+        },
+        {
+          "code": "C",
+          "label": "C",
+          "min": 50,
+          "max": 54,
+          "points": 6
+        },
+        {
+          "code": "C_MINUS",
+          "label": "C-",
+          "min": 45,
+          "max": 49,
+          "points": 5
+        },
+        {
+          "code": "D_PLUS",
+          "label": "D+",
+          "min": 40,
+          "max": 44,
+          "points": 4
+        },
+        {
+          "code": "D",
+          "label": "D",
+          "min": 35,
+          "max": 39,
+          "points": 3
+        },
+        {
+          "code": "D_MINUS",
+          "label": "D-",
+          "min": 30,
+          "max": 34,
+          "points": 2
+        },
+        {
+          "code": "E",
+          "label": "E",
+          "min": 0,
+          "max": 29,
+          "points": 1
+        }
+      ],
+      "verification": "KNEC 12-point subject scale: A is 80-100, A- 75-79, B+ 70-74, B 65-69, B- 60-64, C+ 55-59, C 50-54, C- 45-49, D+ 40-44, D 35-39, D- 30-34 and E 0-29. Band codes spell the sign (A_MINUS, B_PLUS) because the pack schema's code alphabet excludes + and a leading -; the label is the grade printed on a transcript. KNEC publishes integer boundaries, so the scheme rounds the learning-area total half-up to a whole percent before lookup. Bands are the school-overridable default."
+    },
+    {
+      "code": "kcse_mean_grade",
+      "kind": "numeric_bands",
+      "input": "mean_points",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "A",
+          "label": "A",
+          "min": 11.01,
+          "max": 12,
+          "points": 12
+        },
+        {
+          "code": "A_MINUS",
+          "label": "A-",
+          "min": 10.01,
+          "max": 11,
+          "points": 11
+        },
+        {
+          "code": "B_PLUS",
+          "label": "B+",
+          "min": 9.01,
+          "max": 10,
+          "points": 10
+        },
+        {
+          "code": "B",
+          "label": "B",
+          "min": 8.01,
+          "max": 9,
+          "points": 9
+        },
+        {
+          "code": "B_MINUS",
+          "label": "B-",
+          "min": 7.01,
+          "max": 8,
+          "points": 8
+        },
+        {
+          "code": "C_PLUS",
+          "label": "C+",
+          "min": 6.01,
+          "max": 7,
+          "points": 7
+        },
+        {
+          "code": "C",
+          "label": "C",
+          "min": 5.01,
+          "max": 6,
+          "points": 6
+        },
+        {
+          "code": "C_MINUS",
+          "label": "C-",
+          "min": 4.01,
+          "max": 5,
+          "points": 5
+        },
+        {
+          "code": "D_PLUS",
+          "label": "D+",
+          "min": 3.01,
+          "max": 4,
+          "points": 4
+        },
+        {
+          "code": "D",
+          "label": "D",
+          "min": 2.01,
+          "max": 3,
+          "points": 3
+        },
+        {
+          "code": "D_MINUS",
+          "label": "D-",
+          "min": 1.01,
+          "max": 2,
+          "points": 2
+        },
+        {
+          "code": "E",
+          "label": "E",
+          "min": 0,
+          "max": 1,
+          "points": 1
+        }
+      ],
+      "verification": "Derived from KNEC's published aggregate-points table for the best seven subjects (A 78-84, A- 71-77, B+ 64-70, B 57-63, B- 50-56, C+ 43-49, C 36-42, C- 29-35, D+ 22-28, D 15-21, D- 8-14, E 1-7) divided by seven: grade k covers mean points above k-1 up to k, which is 11.01-12 for A down to 1.01-2 for D- and 0-1 for E. Confirm against the current KNEC circular; the table, not a nearest-point rounding, governs the boundary at e.g. 64 aggregate points."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "kcse_mean_grade",
+      "op": "best_n",
+      "n": 7,
+      "value": "points",
+      "groups": [
+        {
+          "require_all": [
+            "ENG",
+            "KIS",
+            "MAT"
+          ]
+        },
+        {
+          "group": "sciences",
+          "min": 2
+        },
+        {
+          "group": "humanities",
+          "min": 1
+        },
+        {
+          "fill_from": "any"
+        }
+      ],
+      "then": {
+        "op": "mean",
+        "precision": 3
+      },
+      "result_scale": "kcse_mean_grade"
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "kcse_mean_grade.points",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

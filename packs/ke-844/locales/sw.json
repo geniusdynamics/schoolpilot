@@ -1,0 +1,32 @@
+{
+  "labels": {
+    "block.header": "Ripoti ya shule",
+    "block.learner": "Mwanafunzi",
+    "block.attendance": "Mahudhurio",
+    "block.results": "Matokeo",
+    "block.summary": "Muhtasari",
+    "block.comments": "Maoni ya mwalimu wa darasa",
+    "block.progression": "Maendeleo",
+    "block.signatures": "Sahihi",
+    "block.verification": "Uthibitisho",
+    "report.term-f1-f3": "Ripoti ya muhula",
+    "report.kcse-candidate-f4": "Ripoti ya mtihani wa KCSE"
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A",
+      "text": "Muhula bora. Endelea kufanya kazi kwa bidii katika masomo yote."
+    },
+    {
+      "scope": "overall",
+      "band": "B_PLUS",
+      "text": "Muhula mzuri. Jitahidi zaidi katika karatasi zilizo dhaifu ili kupanda daraja."
+    },
+    {
+      "scope": "overall",
+      "band": "E",
+      "text": "Muhula mgumu. Panga ratiba ya marudio pamoja na mwalimu wa darasa."
+    }
+  ]
+}

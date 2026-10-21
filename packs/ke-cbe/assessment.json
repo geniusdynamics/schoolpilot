@@ -1,0 +1,222 @@
+{
+  "schemes": [
+    {
+      "code": "ke-cbe-formative",
+      "levels": [
+        "PP1",
+        "PP2",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "evidence": "rubric_observations",
+      "observation_scale": "cbe_4_level",
+      "term_judgement": {
+        "op": "teacher_best_fit",
+        "suggest": "mode_of_latest_per_outcome"
+      },
+      "summative_slots": [
+        {
+          "code": "ET",
+          "label": "End-of-term assessment",
+          "max": 100,
+          "maps_to": "cbe_4_level"
+        }
+      ],
+      "report_shows": [
+        "rubric_level",
+        "descriptor",
+        "teacher_comment"
+      ]
+    },
+    {
+      "code": "ke-cbe-terminal",
+      "levels": [
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "slots": [
+        {
+          "code": "SBA",
+          "label": "School-based assessment",
+          "kind": "portfolio",
+          "scale_to": 60
+        },
+        {
+          "code": "ET",
+          "label": "End-of-term assessment",
+          "kind": "end_term",
+          "scale_to": 40
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "SBA",
+          "ET"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "cbe_8_level",
+      "missing": {
+        "SBA": "zero",
+        "ET": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "cbe_8_level",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "EE1",
+          "label": "Exceeding Expectations 1",
+          "min": 90,
+          "max": 100,
+          "points": 8
+        },
+        {
+          "code": "EE2",
+          "label": "Exceeding Expectations 2",
+          "min": 75,
+          "max": 89,
+          "points": 7
+        },
+        {
+          "code": "ME1",
+          "label": "Meeting Expectations 1",
+          "min": 58,
+          "max": 74,
+          "points": 6
+        },
+        {
+          "code": "ME2",
+          "label": "Meeting Expectations 2",
+          "min": 41,
+          "max": 57,
+          "points": 5
+        },
+        {
+          "code": "AE1",
+          "label": "Approaching Expectations 1",
+          "min": 31,
+          "max": 40,
+          "points": 4
+        },
+        {
+          "code": "AE2",
+          "label": "Approaching Expectations 2",
+          "min": 21,
+          "max": 30,
+          "points": 3
+        },
+        {
+          "code": "BE1",
+          "label": "Below Expectations 1",
+          "min": 11,
+          "max": 20,
+          "points": 2
+        },
+        {
+          "code": "BE2",
+          "label": "Below Expectations 2",
+          "min": 0,
+          "max": 10,
+          "points": 1
+        }
+      ],
+      "verification": "Cut-offs are the bands printed for Junior School and KJSEA reporting in platform spec 03 section 5. The spec itself asks for confirmation against the current KNEC circular before release, so this scale stays draft. The bands are whole percentages, so a fractional result must be rounded before lookup; cbe_mean_percent declares precision 0 for that reason. BE2 starts at 0 so that a zero score still grades; the spec example printed 1 and left 0 unbanded."
+    },
+    {
+      "code": "cbe_4_level",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "EE",
+          "label": "Exceeding Expectations",
+          "min": 4,
+          "max": 4,
+          "points": 4
+        },
+        {
+          "code": "ME",
+          "label": "Meeting Expectations",
+          "min": 3,
+          "max": 3,
+          "points": 3
+        },
+        {
+          "code": "AE",
+          "label": "Approaching Expectations",
+          "min": 2,
+          "max": 2,
+          "points": 2
+        },
+        {
+          "code": "BE",
+          "label": "Below Expectations",
+          "min": 1,
+          "max": 1,
+          "points": 1
+        }
+      ],
+      "verification": "Four rubric levels EE (4) to BE (1) from the primary reporting guidance in platform spec 03 section 5 and the KNEC competency-based assessment framework. The level is a teacher judgement against descriptors, not a percentage cut-off; the schema has no place to declare percentage thresholds for the optional end-of-term test, which is a reported schema gap."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "cbe_mean_percent",
+      "op": "mean",
+      "value": "score",
+      "precision": 0,
+      "result_scale": "cbe_8_level"
+    },
+    {
+      "code": "cbe_primary_mean_level",
+      "op": "mean",
+      "value": "rubric_level",
+      "precision": 0,
+      "result_scale": "cbe_4_level"
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "cbe_mean_percent",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

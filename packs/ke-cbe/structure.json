@@ -1,0 +1,244 @@
+{
+  "stages": [
+    {
+      "code": "PP",
+      "name": "Pre-primary",
+      "levels": [
+        "PP1",
+        "PP2"
+      ]
+    },
+    {
+      "code": "LP",
+      "name": "Lower Primary",
+      "levels": [
+        "G1",
+        "G2",
+        "G3"
+      ]
+    },
+    {
+      "code": "UP",
+      "name": "Upper Primary",
+      "levels": [
+        "G4",
+        "G5",
+        "G6"
+      ]
+    },
+    {
+      "code": "JS",
+      "name": "Junior School",
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ]
+    },
+    {
+      "code": "SS",
+      "name": "Senior School",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "PP1",
+      "name": "Pre-primary 1",
+      "ordinal": 1,
+      "typical_age": 4,
+      "next": "PP2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "PP2",
+      "name": "Pre-primary 2",
+      "ordinal": 2,
+      "typical_age": 5,
+      "next": "G1",
+      "is_stage_exit": true,
+      "national_assessment": null
+    },
+    {
+      "code": "G1",
+      "name": "Grade 1",
+      "ordinal": 3,
+      "typical_age": 6,
+      "next": "G2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G2",
+      "name": "Grade 2",
+      "ordinal": 4,
+      "typical_age": 7,
+      "next": "G3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G3",
+      "name": "Grade 3",
+      "ordinal": 5,
+      "typical_age": 8,
+      "next": "G4",
+      "is_stage_exit": true,
+      "national_assessment": null
+    },
+    {
+      "code": "G4",
+      "name": "Grade 4",
+      "ordinal": 6,
+      "typical_age": 9,
+      "next": "G5",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G5",
+      "name": "Grade 5",
+      "ordinal": 7,
+      "typical_age": 10,
+      "next": "G6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G6",
+      "name": "Grade 6",
+      "ordinal": 8,
+      "typical_age": 11,
+      "next": "G7",
+      "is_stage_exit": true,
+      "national_assessment": "KPSEA"
+    },
+    {
+      "code": "G7",
+      "name": "Grade 7",
+      "ordinal": 9,
+      "typical_age": 12,
+      "next": "G8",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G8",
+      "name": "Grade 8",
+      "ordinal": 10,
+      "typical_age": 13,
+      "next": "G9",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G9",
+      "name": "Grade 9",
+      "ordinal": 11,
+      "typical_age": 14,
+      "next": "G10",
+      "is_stage_exit": true,
+      "national_assessment": "KJSEA"
+    },
+    {
+      "code": "G10",
+      "name": "Grade 10",
+      "ordinal": 12,
+      "typical_age": 15,
+      "next": "G11",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G11",
+      "name": "Grade 11",
+      "ordinal": 13,
+      "typical_age": 16,
+      "next": "G12",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "G12",
+      "name": "Grade 12",
+      "ordinal": 14,
+      "typical_age": 17,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "KSSEA"
+    }
+  ],
+  "pathways": [
+    {
+      "code": "STEM",
+      "name": "Science, Technology, Engineering and Mathematics",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ]
+    },
+    {
+      "code": "SOC",
+      "name": "Social Sciences",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ]
+    },
+    {
+      "code": "ASS",
+      "name": "Arts and Sports Science",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ]
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "calendar_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term 1",
+        "typical": [
+          "01-06",
+          "04-04"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Term 2",
+        "typical": [
+          "04-28",
+          "08-01"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Term 3",
+        "typical": [
+          "08-25",
+          "10-31"
+        ],
+        "half_term": false
+      }
+    ],
+    "note": "The Ministry publishes the exact term dates each year; the setup wizard pre-fills these typical dates and the school confirms them."
+  }
+}
