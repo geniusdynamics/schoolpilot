@@ -114,6 +114,20 @@ export const getPageComponent = (
     return React.lazy(modulePages[matchingKey] as () => Promise<{ default: React.ComponentType<any> }>);
   }
 
+  // Cross-module fallback: a navigation entry can point at a page that lives in ANOTHER module —
+  // the reports hub links the finance ledger, and the page name alone never resolves under the
+  // path's module. Without this the route is silently omitted and the catch-all renders 404.
+  const crossModuleKey = Object.keys(pageModules).find(
+    (key) =>
+      key.endsWith(`/pages/${navItem.page}.tsx`) ||
+      key.endsWith(`/pages/${navItem.page}/index.tsx`) ||
+      key.endsWith(`/pages/${navItem.page}`)
+  );
+  if (crossModuleKey) {
+    logger.debug('✅ [pageLoader] Found component in another module:', crossModuleKey);
+    return React.lazy(pageModules[crossModuleKey] as () => Promise<{ default: React.ComponentType<any> }>);
+  }
+
   // Debug: List all available keys for this module
   logger.debug('❌ [pageLoader] Component not found for:', navItem.page);
   logger.debug('❌ [pageLoader] Tried keys:', possibleKeys);

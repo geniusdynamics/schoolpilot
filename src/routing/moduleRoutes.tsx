@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { moduleRegistry } from '../core/moduleRegistry';
 
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useRBAC } from '../hooks/useRBAC';
 import { logger } from '../utils/logging';
 import Spinner from '../components/ui/Spinner';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -90,13 +89,10 @@ interface DynamicRoutesProps {
  */
 export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
   modulesInitialized,
-  userId,
-  userRole,
 }) => {
   logger.debug('🔍 [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
 
   const { navigationItems } = useDynamicNavigation(true);
-  const { accessibleModules } = useRBAC(userId, userRole);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -264,9 +260,11 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         });
       })}
 
-      {/* Dynamic Navigation Routes */}
+      {/* Dynamic Navigation Routes — registered for every enabled module.
+          Access is enforced per route by ProtectedRoute; it must not decide which routes EXIST,
+          because a filtered-out route renders 404 instead of the access-denied page. That is what
+          made ten navigation paths unreachable while their module was simply not in the RBAC list. */}
       {navigationItems
-        .filter(item => item && (!item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))))
         .flatMap(module => {
           return (module.children || []).filter(nav => nav && nav.path && !nav.deprecated).map(nav => {
             const PageComponent = getPageComponent(nav);
