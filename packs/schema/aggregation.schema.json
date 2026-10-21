@@ -1,0 +1,225 @@
+{
+  "$comment": "Implements spec 03 §6 (aggregation operators: sum, mean, weighted_mean, best_n with groups, points_mean, sum_points, gpa, count_where, rubric_profile; fail_if escape hatch) and §6.1 (ranking policy). One aggregation per document; a pack lists them under aggregations.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/aggregation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Result aggregation",
+  "description": "A composable operator that computes a period-level value from learning-area results and stores an explanation trace (spec 03 §6).",
+  "type": "object",
+  "required": [
+    "code",
+    "op"
+  ],
+  "properties": {
+    "code": {
+      "$ref": "common.schema.json#/$defs/code"
+    },
+    "op": {
+      "type": "string",
+      "enum": [
+        "sum",
+        "mean",
+        "weighted_mean",
+        "best_n",
+        "points_mean",
+        "sum_points",
+        "gpa",
+        "count_where",
+        "rubric_profile"
+      ],
+      "description": "Operator from spec 03 §6. weighted_mean uses each learning area's coefficient; points_mean and sum_points feed a lookup scale; count_where and rubric_profile produce distributions rather than a single mark."
+    },
+    "n": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "How many results to keep, for best_n (spec 03 §6: KCSE best 7)."
+    },
+    "value": {
+      "type": "string",
+      "enum": [
+        "points",
+        "grade_points",
+        "score",
+        "score_20",
+        "grade",
+        "rubric_level"
+      ],
+      "description": "Which value of each learning-area result the operator consumes, for example points for KCSE best-7 and grade_points for the Uganda PLE aggregate (spec 03 §6)."
+    },
+    "groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/groupConstraint"
+      },
+      "description": "Constraints a best_n selection must satisfy: required areas, minimum counts from a group, and where remaining places come from (spec 03 §6)."
+    },
+    "then": {
+      "$ref": "#/$defs/postStep"
+    },
+    "over": {
+      "$ref": "common.schema.json#/$defs/codeList",
+      "description": "The exact learning areas the operator covers, for example the four PLE subjects (spec 03 §6). When omitted the learner's learning areas in scope are used."
+    },
+    "fail_if": {
+      "$ref": "#/$defs/failCondition",
+      "description": "Escape hatch for national special cases such as a compulsory subject failure capping the division (spec 03 §6). Every such rule must cite its source and have test vectors."
+    },
+    "weights": {
+      "description": "How weighted_mean obtains its weights: coefficient uses each learning area's coefficient (spec 03 §6 Francophone moyenne), or an explicit map of code to fraction.",
+      "oneOf": [
+        {
+          "const": "coefficient"
+        },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "common.schema.json#/$defs/weight"
+          }
+        }
+      ]
+    },
+    "precision": {
+      "$ref": "common.schema.json#/$defs/precision",
+      "description": "Decimal places kept on the aggregate before lookup (spec 03 §6 examples: 2 and 3)."
+    },
+    "result_scale": {
+      "$ref": "common.schema.json#/$defs/code",
+      "description": "Grading scale code used to turn the aggregate into a grade, division, mention or mean grade (spec 03 §6). The scale must be declared in the pack (runtime check)."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "op": {
+            "const": "best_n"
+          }
+        },
+        "required": [
+          "op"
+        ]
+      },
+      "then": {
+        "required": [
+          "n",
+          "value",
+          "groups"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "op": {
+            "const": "weighted_mean"
+          }
+        },
+        "required": [
+          "op"
+        ]
+      },
+      "then": {
+        "required": [
+          "weights"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "groupConstraint": {
+      "description": "One best_n constraint: require every listed area, take at least min from a named group, or fill remaining places from any area (spec 03 §6).",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "require_all"
+          ],
+          "properties": {
+            "require_all": {
+              "$ref": "common.schema.json#/$defs/codeList"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "group",
+            "min"
+          ],
+          "properties": {
+            "group": {
+              "$ref": "common.schema.json#/$defs/code",
+              "description": "Learning-area group as declared on learning areas, for example sciences or humanities."
+            },
+            "min": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum number of results from the group."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "fill_from"
+          ],
+          "properties": {
+            "fill_from": {
+              "type": "string",
+              "const": "any",
+              "description": "Remaining best_n places may come from any learning area."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "postStep": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "mean",
+            "sum",
+            "lookup"
+          ],
+          "description": "Post-processing applied to the operator result, for example mean of the selected points (spec 03 §6 KCSE example)."
+        },
+        "precision": {
+          "$ref": "common.schema.json#/$defs/precision"
+        }
+      },
+      "additionalProperties": false
+    },
+    "failCondition": {
+      "type": "object",
+      "required": [
+        "any_grade",
+        "then_max_division"
+      ],
+      "properties": {
+        "any_grade": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Grade code that triggers the cap, for example F9."
+        },
+        "in": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Learning areas the trigger is limited to. When omitted it applies to all areas in the aggregation."
+        },
+        "then_max_division": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Highest division the learner may be awarded once the trigger fires, for example IV (spec 03 §6 PLE example)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

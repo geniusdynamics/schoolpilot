@@ -1,0 +1,170 @@
+{
+  "$comment": "Implements spec 03 §2.2 (pack.json: code, name, version, country, issuers, effective_from, supersedes, languages, requires_engine, sources, verification) and §2.3 (semantic versioning and the overridable path list).",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack manifest (pack.json)",
+  "description": "Identity, provenance and verification of one immutable pack version.",
+  "type": "object",
+  "required": [
+    "code",
+    "name",
+    "version",
+    "country",
+    "issuers",
+    "effective_from",
+    "languages",
+    "requires_engine",
+    "sources",
+    "verification"
+  ],
+  "properties": {
+    "code": {
+      "$ref": "common.schema.json#/$defs/packCode"
+    },
+    "name": {
+      "$ref": "common.schema.json#/$defs/name"
+    },
+    "version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "ISO 3166-1 alpha-2 country code such as KE, GB, NG, UG or TZ (spec 03 §2.2)."
+    },
+    "issuers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/name"
+      },
+      "description": "Issuing bodies such as KICD, KNEC and the Ministry of Education. The first entry is the primary issuer (spec 03 §2.2)."
+    },
+    "effective_from": {
+      "$ref": "common.schema.json#/$defs/date"
+    },
+    "supersedes": {
+      "$ref": "common.schema.json#/$defs/packRef",
+      "description": "The exact pack version this one replaces, for example ke-cbc@2024.2.0. Upgrading a programme to this pack is an explicit admin action (spec 03 §2.3)."
+    },
+    "languages": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/localeTag"
+      },
+      "description": "Locale tags this pack ships translations for. Each entry must have a matching key under locales in the pack document (spec 03 §2.1, §8.2)."
+    },
+    "requires_engine": {
+      "$ref": "common.schema.json#/$defs/semverRange",
+      "description": "The engine range that can evaluate this pack, for example >=1.0.0 (spec 03 §2.2)."
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "description": "One or more cited source documents. Community packs are reviewed against a cited source (spec 03 §2.1); every national special case must cite its source (spec 03 §6)."
+    },
+    "verification": {
+      "$ref": "#/$defs/verification"
+    },
+    "overridable": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/overridePath"
+      },
+      "description": "Paths a school may override within limits declared by the pack (spec 03 §2.3). Overrides are stored on the programme and shown on report footers."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": [
+        "title",
+        "issuer",
+        "url",
+        "retrieved"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "issuer": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "Link to the published source document (spec 03 §2.2). The spec example uses a placeholder ellipsis until the reviewer supplies the exact URL, so only the presence of a value is checked; the registry review verifies the link."
+        },
+        "retrieved": {
+          "$ref": "common.schema.json#/$defs/date",
+          "description": "The date the source was retrieved, so a later review can tell whether the citation is stale."
+        }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "status",
+        "verified_by"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "verified"
+          ],
+          "description": "draft means every list and band still needs checking against the cited source; verified means it was reviewed and has conformance vectors (spec 03 §12)."
+        },
+        "verified_by": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/name"
+          },
+          "description": "People or bodies that reviewed this version. Empty is allowed only while the status is draft."
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "Open questions for the reviewer, such as a circular that must be checked before release (spec 03 §2.2)."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "verified_by": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

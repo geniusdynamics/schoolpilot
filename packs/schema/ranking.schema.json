@@ -1,0 +1,76 @@
+{
+  "$comment": "Implements spec 03 §6.1 (ranking policy: enabled, scope, by, ties, only_complete, show_on_report, show_out_of). Ranking is a policy rather than a pack constant; CBE packs declare it disabled by default.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/ranking.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ranking policy",
+  "description": "Whether and how positions are computed for a programme (spec 03 §6.1).",
+  "type": "object",
+  "required": [
+    "enabled"
+  ],
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Off by default for CBE programmes; a school may enable it per report (spec 03 §6.1)."
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "class_group",
+        "level",
+        "programme"
+      ],
+      "description": "The population a position is computed within, for example class_group (spec 03 §6.1)."
+    },
+    "by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "The aggregate or aggregate field ranked on, for example kcse_mean_grade.points (spec 03 §6.1)."
+    },
+    "ties": {
+      "type": "string",
+      "enum": [
+        "competition_1224",
+        "dense_1223",
+        "shared_average"
+      ],
+      "description": "Tie method: competition 1-2-2-4, dense 1-2-2-3, or a shared average position (spec 03 §6.1)."
+    },
+    "only_complete": {
+      "type": "boolean",
+      "description": "When true, learners with incomplete results are listed but not ranked (spec 03 §6.1)."
+    },
+    "show_on_report": {
+      "type": "boolean",
+      "description": "Whether the position is printed on the report card (spec 03 §6.1, §8.1)."
+    },
+    "show_out_of": {
+      "type": "boolean",
+      "description": "Whether the report prints the position as N/M rather than N (spec 03 §6.1, §8.1 summary block)."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "then": {
+        "required": [
+          "scope",
+          "by",
+          "ties"
+        ],
+        "description": "An enabled policy must state the population, the value ranked on and the tie rule; otherwise a position cannot be explained (spec 03 §6.1)."
+      }
+    }
+  ]
+}

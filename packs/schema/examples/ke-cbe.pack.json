@@ -1,0 +1,1002 @@
+{
+  "pack": {
+    "code": "ke-cbe",
+    "name": "Kenya Competency-Based Education (CBE) - Junior and Senior School example",
+    "version": "2026.1.0",
+    "country": "KE",
+    "issuers": [
+      "KICD",
+      "KNEC",
+      "Ministry of Education"
+    ],
+    "effective_from": "2026-01-01",
+    "supersedes": "ke-cbc@2024.2.0",
+    "languages": [
+      "en",
+      "sw"
+    ],
+    "requires_engine": ">=1.0.0",
+    "sources": [
+      {
+        "title": "Basic Education Curriculum Framework",
+        "issuer": "KICD",
+        "url": "https://kicd.ac.ke/",
+        "retrieved": "2026-09-01"
+      }
+    ],
+    "verification": {
+      "status": "draft",
+      "verified_by": [],
+      "notes": "Example only. Bands and learning-area lists are illustrative and must be checked against the current KICD/KNEC circular before release."
+    },
+    "overridable": [
+      "grading_scales.cbe_8_level.bands",
+      "reports.*.page"
+    ]
+  },
+  "structure": {
+    "stages": [
+      {
+        "code": "JS",
+        "name": "Junior School",
+        "levels": [
+          "G7",
+          "G8",
+          "G9"
+        ]
+      },
+      {
+        "code": "SS",
+        "name": "Senior School",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ]
+      }
+    ],
+    "levels": [
+      {
+        "code": "G7",
+        "name": "Grade 7",
+        "ordinal": 7,
+        "typical_age": 12,
+        "next": "G8",
+        "is_stage_exit": false,
+        "national_assessment": null
+      },
+      {
+        "code": "G8",
+        "name": "Grade 8",
+        "ordinal": 8,
+        "typical_age": 13,
+        "next": "G9",
+        "is_stage_exit": false,
+        "national_assessment": null
+      },
+      {
+        "code": "G9",
+        "name": "Grade 9",
+        "ordinal": 9,
+        "typical_age": 14,
+        "next": "G10",
+        "is_stage_exit": true,
+        "national_assessment": "KJSEA"
+      },
+      {
+        "code": "G10",
+        "name": "Grade 10",
+        "ordinal": 10,
+        "typical_age": 15,
+        "next": "G11",
+        "is_stage_exit": false,
+        "national_assessment": null
+      },
+      {
+        "code": "G11",
+        "name": "Grade 11",
+        "ordinal": 11,
+        "typical_age": 16,
+        "next": "G12",
+        "is_stage_exit": false,
+        "national_assessment": null
+      },
+      {
+        "code": "G12",
+        "name": "Grade 12",
+        "ordinal": 12,
+        "typical_age": 17,
+        "next": null,
+        "is_stage_exit": true,
+        "national_assessment": null
+      }
+    ],
+    "pathways": [
+      {
+        "code": "STEM",
+        "name": "STEM",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ]
+      },
+      {
+        "code": "SOC",
+        "name": "Social Sciences",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ]
+      },
+      {
+        "code": "ASS",
+        "name": "Arts and Sports Science",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ]
+      }
+    ],
+    "calendar_template": {
+      "year_kind": "calendar_year",
+      "periods": [
+        {
+          "code": "T1",
+          "kind": "term",
+          "sequence": 1,
+          "name": "Term 1",
+          "typical": [
+            "01-06",
+            "04-04"
+          ],
+          "half_term": true
+        },
+        {
+          "code": "T2",
+          "kind": "term",
+          "sequence": 2,
+          "name": "Term 2",
+          "typical": [
+            "04-28",
+            "08-01"
+          ],
+          "half_term": true
+        },
+        {
+          "code": "T3",
+          "kind": "term",
+          "sequence": 3,
+          "name": "Term 3",
+          "typical": [
+            "08-25",
+            "10-31"
+          ],
+          "half_term": false
+        }
+      ],
+      "note": "Exact dates are published annually by the Ministry; the wizard pre-fills these and the school confirms."
+    }
+  },
+  "learning_areas": {
+    "learning_areas": [
+      {
+        "code": "ENG",
+        "name": "English",
+        "short_name": "Eng",
+        "kind": "core",
+        "group": "languages",
+        "levels": [
+          "G7",
+          "G8",
+          "G9",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "outcomes_ref": "outcomes/eng-js.json"
+      },
+      {
+        "code": "KIS",
+        "name": "Kiswahili",
+        "short_name": "Kis",
+        "kind": "core",
+        "group": "languages",
+        "levels": [
+          "G7",
+          "G8",
+          "G9",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "alternatives": [
+          "KSL"
+        ]
+      },
+      {
+        "code": "KSL",
+        "name": "Kenyan Sign Language",
+        "short_name": "KSL",
+        "kind": "optional",
+        "group": "languages",
+        "levels": [
+          "G7",
+          "G8",
+          "G9",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "MAT",
+        "name": "Mathematics",
+        "short_name": "Math",
+        "kind": "core",
+        "group": "mathematics",
+        "levels": [
+          "G7",
+          "G8",
+          "G9",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "INT-SCI",
+        "name": "Integrated Science",
+        "short_name": "Int Sci",
+        "kind": "core",
+        "group": "sciences",
+        "levels": [
+          "G7",
+          "G8",
+          "G9"
+        ],
+        "national_code": null,
+        "components": [
+          {
+            "code": "P1",
+            "name": "Theory paper",
+            "kind": "paper",
+            "max_score": 80
+          },
+          {
+            "code": "PR",
+            "name": "Practical",
+            "kind": "practical",
+            "max_score": 20
+          }
+        ]
+      },
+      {
+        "code": "AGR",
+        "name": "Agriculture",
+        "short_name": "Agri",
+        "kind": "core",
+        "group": "applied",
+        "levels": [
+          "G7",
+          "G8",
+          "G9"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "SST",
+        "name": "Social Studies",
+        "short_name": "SST",
+        "kind": "core",
+        "group": "humanities",
+        "levels": [
+          "G7",
+          "G8",
+          "G9"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "PTS",
+        "name": "Pre-Technical Studies",
+        "short_name": "PTS",
+        "kind": "core",
+        "group": "applied",
+        "levels": [
+          "G7",
+          "G8",
+          "G9"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "CAS",
+        "name": "Creative Arts and Sports",
+        "short_name": "CAS",
+        "kind": "elective",
+        "group": "arts",
+        "levels": [
+          "G7",
+          "G8",
+          "G9"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "CSL",
+        "name": "Community Service Learning",
+        "short_name": "CSL",
+        "kind": "core",
+        "group": "applied",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "PE",
+        "name": "Physical Education",
+        "short_name": "PE",
+        "kind": "core",
+        "group": "arts",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": []
+      },
+      {
+        "code": "BIO",
+        "name": "Biology",
+        "short_name": "Bio",
+        "kind": "elective",
+        "group": "sciences",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "STEM"
+        ]
+      },
+      {
+        "code": "CHE",
+        "name": "Chemistry",
+        "short_name": "Chem",
+        "kind": "elective",
+        "group": "sciences",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "STEM"
+        ]
+      },
+      {
+        "code": "PHY",
+        "name": "Physics",
+        "short_name": "Phys",
+        "kind": "elective",
+        "group": "sciences",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "STEM"
+        ]
+      },
+      {
+        "code": "HIS",
+        "name": "History",
+        "short_name": "Hist",
+        "kind": "elective",
+        "group": "humanities",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "SOC"
+        ]
+      },
+      {
+        "code": "GEO",
+        "name": "Geography",
+        "short_name": "Geog",
+        "kind": "elective",
+        "group": "humanities",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "SOC"
+        ]
+      },
+      {
+        "code": "BST",
+        "name": "Business Studies",
+        "short_name": "Bus",
+        "kind": "elective",
+        "group": "applied",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "SOC"
+        ]
+      },
+      {
+        "code": "ART",
+        "name": "Art and Design",
+        "short_name": "Art",
+        "kind": "elective",
+        "group": "arts",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "ASS"
+        ]
+      },
+      {
+        "code": "MUS",
+        "name": "Music",
+        "short_name": "Mus",
+        "kind": "elective",
+        "group": "arts",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "ASS"
+        ]
+      },
+      {
+        "code": "SPT",
+        "name": "Sports Science",
+        "short_name": "Sport",
+        "kind": "elective",
+        "group": "arts",
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "national_code": null,
+        "components": [],
+        "pathways": [
+          "ASS"
+        ]
+      }
+    ],
+    "competencies": [
+      {
+        "code": "CC",
+        "name": "Communication and Collaboration",
+        "kind": "core_competency"
+      },
+      {
+        "code": "CTPS",
+        "name": "Critical Thinking and Problem Solving",
+        "kind": "core_competency"
+      },
+      {
+        "code": "CIT",
+        "name": "Citizenship",
+        "kind": "core_competency"
+      },
+      {
+        "code": "DL",
+        "name": "Digital Literacy",
+        "kind": "core_competency"
+      },
+      {
+        "code": "LL",
+        "name": "Learning to Learn",
+        "kind": "core_competency"
+      },
+      {
+        "code": "SE",
+        "name": "Self-efficacy",
+        "kind": "core_competency"
+      },
+      {
+        "code": "VAL-RESP",
+        "name": "Responsibility",
+        "kind": "value"
+      },
+      {
+        "code": "VAL-INT",
+        "name": "Integrity",
+        "kind": "value"
+      }
+    ],
+    "combination_rules": [
+      {
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "rule": "core_all",
+        "of": [
+          "ENG",
+          "KIS|KSL",
+          "MAT",
+          "CSL",
+          "PE"
+        ]
+      },
+      {
+        "levels": [
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "rule": "electives",
+        "count": 3,
+        "from_pathway": true
+      }
+    ]
+  },
+  "assessment": {
+    "schemes": [
+      {
+        "code": "ke-cbe-terminal",
+        "levels": [
+          "G7",
+          "G8",
+          "G9",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "slots": [
+          {
+            "code": "SBA",
+            "label": "School-based assessment",
+            "kind": "portfolio",
+            "scale_to": 60
+          },
+          {
+            "code": "ET",
+            "label": "End-of-term assessment",
+            "kind": "end_term",
+            "scale_to": 40
+          }
+        ],
+        "learning_area_score": {
+          "op": "sum",
+          "of": [
+            "SBA",
+            "ET"
+          ],
+          "out_of": 100
+        },
+        "grading_scale": "cbe_8_level",
+        "missing": {
+          "SBA": "zero",
+          "ET": "incomplete"
+        },
+        "rounding": [
+          {
+            "stage": "learning_area_score",
+            "precision": 0,
+            "mode": "half_up"
+          }
+        ],
+        "overridable": [
+          "slots.*.scale_to"
+        ]
+      }
+    ],
+    "grading_scales": [
+      {
+        "code": "cbe_8_level",
+        "kind": "numeric_bands",
+        "input": "percent",
+        "upper": "inclusive",
+        "bands": [
+          {
+            "code": "EE1",
+            "label": "Exceeding Expectations 1",
+            "min": 90,
+            "max": 100,
+            "points": 8
+          },
+          {
+            "code": "EE2",
+            "label": "Exceeding Expectations 2",
+            "min": 75,
+            "max": 89,
+            "points": 7
+          },
+          {
+            "code": "ME1",
+            "label": "Meeting Expectations 1",
+            "min": 58,
+            "max": 74,
+            "points": 6
+          },
+          {
+            "code": "ME2",
+            "label": "Meeting Expectations 2",
+            "min": 41,
+            "max": 57,
+            "points": 5
+          },
+          {
+            "code": "AE1",
+            "label": "Approaching Expectations 1",
+            "min": 31,
+            "max": 40,
+            "points": 4
+          },
+          {
+            "code": "AE2",
+            "label": "Approaching Expectations 2",
+            "min": 21,
+            "max": 30,
+            "points": 3
+          },
+          {
+            "code": "BE1",
+            "label": "Below Expectations 1",
+            "min": 11,
+            "max": 20,
+            "points": 2
+          },
+          {
+            "code": "BE2",
+            "label": "Below Expectations 2",
+            "min": 1,
+            "max": 10,
+            "points": 1
+          }
+        ],
+        "verification": "Bands as commonly published for Junior School/KJSEA reporting; confirm against the current KNEC circular."
+      },
+      {
+        "code": "cbe_4_level",
+        "kind": "rubric",
+        "upper": "inclusive",
+        "bands": [
+          {
+            "code": "EE",
+            "label": "Exceeding Expectations",
+            "min": 4,
+            "max": 4,
+            "points": 4
+          },
+          {
+            "code": "ME",
+            "label": "Meeting Expectations",
+            "min": 3,
+            "max": 3,
+            "points": 3
+          },
+          {
+            "code": "AE",
+            "label": "Approaching Expectations",
+            "min": 2,
+            "max": 2,
+            "points": 2
+          },
+          {
+            "code": "BE",
+            "label": "Below Expectations",
+            "min": 1,
+            "max": 1,
+            "points": 1
+          }
+        ],
+        "verification": "Rubric levels from the CBE primary reporting guidance; the 4-to-1 level values are illustrative."
+      }
+    ],
+    "aggregations": [
+      {
+        "code": "cbe_mean_percent",
+        "op": "mean",
+        "value": "score",
+        "precision": 1,
+        "result_scale": "cbe_8_level"
+      }
+    ],
+    "ranking": {
+      "enabled": false,
+      "scope": "class_group",
+      "by": "cbe_mean_percent",
+      "ties": "competition_1224",
+      "only_complete": true,
+      "show_on_report": false,
+      "show_out_of": true
+    },
+    "annual": {
+      "op": "weighted_mean",
+      "of": {
+        "T1": 0.3,
+        "T2": 0.3,
+        "T3": 0.4
+      },
+      "missing": "renormalise"
+    }
+  },
+  "progression": {
+    "progression": [
+      {
+        "levels": [
+          "G7",
+          "G8"
+        ],
+        "rule": "automatic"
+      },
+      {
+        "levels": [
+          "G9"
+        ],
+        "rule": "stage_transition",
+        "to_stage": "SS",
+        "requires": [
+          "national_assessment_recorded",
+          "pathway_placement"
+        ]
+      }
+    ],
+    "graduation": [
+      {
+        "levels": [
+          "G12"
+        ],
+        "rule": "graduate"
+      }
+    ]
+  },
+  "reports": [
+    {
+      "code": "js-term",
+      "name": "Junior School term report",
+      "levels": [
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "page": {
+        "size": "A4",
+        "orientation": "portrait"
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "label_key": "block.header"
+        },
+        {
+          "type": "learner",
+          "label_key": "block.learner"
+        },
+        {
+          "type": "attendance",
+          "label_key": "block.attendance"
+        },
+        {
+          "type": "results_table",
+          "label_key": "block.results",
+          "columns": [
+            "slots",
+            "total",
+            "grade",
+            "points",
+            "teacher_initials",
+            "remark"
+          ]
+        },
+        {
+          "type": "rubric_table",
+          "label_key": "block.rubric"
+        },
+        {
+          "type": "competencies",
+          "label_key": "block.competencies"
+        },
+        {
+          "type": "comments",
+          "label_key": "block.comments"
+        },
+        {
+          "type": "summary",
+          "label_key": "block.summary"
+        },
+        {
+          "type": "signatures",
+          "label_key": "block.signatures"
+        },
+        {
+          "type": "verification",
+          "label_key": "block.verification"
+        }
+      ],
+      "comment_max_length": 500
+    },
+    {
+      "code": "ss-term",
+      "name": "Senior School term report",
+      "levels": [
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "page": {
+        "size": "A4",
+        "orientation": "portrait"
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "label_key": "block.header"
+        },
+        {
+          "type": "learner",
+          "label_key": "block.learner"
+        },
+        {
+          "type": "results_table",
+          "label_key": "block.results",
+          "columns": [
+            "components",
+            "slots",
+            "total",
+            "grade",
+            "points",
+            "position",
+            "class_mean",
+            "highest",
+            "lowest",
+            "teacher_initials",
+            "remark"
+          ]
+        },
+        {
+          "type": "summary",
+          "label_key": "block.summary"
+        },
+        {
+          "type": "progression",
+          "label_key": "block.progression"
+        },
+        {
+          "type": "comments",
+          "label_key": "block.comments"
+        },
+        {
+          "type": "signatures",
+          "label_key": "block.signatures"
+        },
+        {
+          "type": "verification",
+          "label_key": "block.verification"
+        }
+      ],
+      "comment_max_length": 500
+    }
+  ],
+  "locales": {
+    "en": {
+      "labels": {
+        "block.header": "School report",
+        "block.learner": "Learner",
+        "block.attendance": "Attendance",
+        "block.results": "Results",
+        "block.rubric": "Learning area rubric",
+        "block.competencies": "Core competencies and values",
+        "block.summary": "Summary",
+        "block.comments": "Comments",
+        "block.progression": "Progression",
+        "block.signatures": "Signatures",
+        "block.verification": "Verification"
+      },
+      "descriptors": {
+        "cbe_8_level": {
+          "EE1": "Exceeding Expectations 1",
+          "EE2": "Exceeding Expectations 2"
+        }
+      },
+      "comment_bank": [
+        {
+          "scope": "overall",
+          "band": "EE1",
+          "text": "An excellent term. Keep up the consistent effort across all learning areas."
+        }
+      ]
+    },
+    "sw": {
+      "labels": {
+        "block.header": "Ripoti ya shule",
+        "block.learner": "Mwanafunzi",
+        "block.attendance": "Mahudhurio",
+        "block.results": "Matokeo",
+        "block.rubric": "Viwango vya masomo",
+        "block.competencies": "Umahiri na maadili",
+        "block.summary": "Muhtasari",
+        "block.comments": "Maoni",
+        "block.progression": "Maendeleo",
+        "block.signatures": "Sahihi",
+        "block.verification": "Uthibitisho"
+      },
+      "comment_bank": [
+        {
+          "scope": "overall",
+          "band": "EE1",
+          "text": "Muhula bora. Endelea kufanya kazi kwa bidii katika masomo yote."
+        }
+      ]
+    }
+  },
+  "tests": {
+    "vectors": [
+      {
+        "name": "CBE mean percent 86.5 maps to EE2",
+        "programme": "ke-cbe",
+        "input": {
+          "MAT": 91,
+          "ENG": 82
+        },
+        "expect": {
+          "cbe_mean_percent": {
+            "value": 86.5,
+            "grade": "EE2",
+            "points": 7
+          }
+        }
+      }
+    ]
+  }
+}

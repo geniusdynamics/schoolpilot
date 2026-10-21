@@ -1,0 +1,187 @@
+{
+  "$comment": "Implements spec 03 §7 (progression and promotion: automatic, stage_transition, threshold, class_council, graduation; the compute -> review -> approve -> commit workflow of spec 04 §6). This file is the schema for progression.json.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/progression.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack progression rules (progression.json)",
+  "description": "Declarative promotion and graduation rules evaluated by the year-end promotion run (spec 03 §7).",
+  "type": "object",
+  "required": [
+    "progression"
+  ],
+  "properties": {
+    "progression": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/promotionRule"
+      },
+      "description": "Promotion rules by level. Each level appears in at most one rule (runtime check)."
+    },
+    "graduation": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/graduationRule"
+      },
+      "description": "Levels that end the programme and graduate the learner (spec 03 §7). Optional for a pack that stops before a terminal year."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "promotionRule": {
+      "type": "object",
+      "required": [
+        "levels",
+        "rule"
+      ],
+      "properties": {
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels the rule applies to (spec 03 §7)."
+        },
+        "rule": {
+          "type": "string",
+          "enum": [
+            "automatic",
+            "stage_transition",
+            "threshold",
+            "class_council"
+          ],
+          "description": "Promotion method from spec 03 §7 (C-9): automatic, stage_transition, threshold or class_council."
+        },
+        "to_stage": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Stage the learner enters after this level, for example SS after G9 (spec 03 §7)."
+        },
+        "requires": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "national_assessment_recorded",
+              "pathway_placement"
+            ]
+          },
+          "description": "Records that must exist before the transition, for example the KJSEA result and a pathway placement (spec 03 §7, Appendix A)."
+        },
+        "conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "description": "Threshold conditions that must all hold, for example annual average and English and Mathematics at 40 or above (spec 03 §7)."
+        },
+        "else": {
+          "type": "string",
+          "enum": [
+            "repeat",
+            "repeat_or_council"
+          ],
+          "description": "Decision when a threshold condition fails: repeat, or refer the case to the class council (spec 03 §7). The promotion run records the outcome as a promotion_decision (spec 02 §7)."
+        },
+        "suggest": {
+          "$ref": "#/$defs/condition",
+          "description": "The metric the engine uses to suggest a decision, while the class council decides, for example annual.moyenne at 10 or above (spec 03 §7)."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "rule": {
+                "const": "stage_transition"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          },
+          "then": {
+            "required": [
+              "to_stage"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {
+                "const": "threshold"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          },
+          "then": {
+            "required": [
+              "conditions",
+              "else"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {
+                "const": "class_council"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          },
+          "then": {
+            "required": [
+              "suggest"
+            ]
+          }
+        }
+      ]
+    },
+    "graduationRule": {
+      "type": "object",
+      "required": [
+        "levels",
+        "rule"
+      ],
+      "properties": {
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Terminal levels at which a learner graduates (spec 03 §7 example: G12, F4, Y13, SS3, Terminale)."
+        },
+        "rule": {
+          "type": "string",
+          "const": "graduate",
+          "description": "The only graduation action named in spec 03 §7."
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "metric",
+        "gte"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+$",
+          "description": "A computed result path, for example annual.average, annual.ENG or annual.moyenne (spec 03 §7). The first segment names the period scope, the rest a result field or learning-area code."
+        },
+        "gte": {
+          "type": "number",
+          "description": "Minimum value the metric must reach (spec 03 §7 examples: 40, 10)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

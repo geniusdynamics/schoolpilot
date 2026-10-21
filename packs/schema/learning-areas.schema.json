@@ -1,0 +1,275 @@
+{
+  "$comment": "Implements spec 03 §3 (learning areas, components, competencies and combination rules) and the canonical entity names in spec 02 §4 (learning_area.kind, component.kind, competency.kind). This file is the schema for learning-areas.json.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/learning-areas.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum pack learning areas (learning-areas.json)",
+  "description": "Learning areas (subjects), their components, competencies and the rules that constrain learner combinations (spec 03 §3).",
+  "type": "object",
+  "required": [
+    "learning_areas",
+    "competencies"
+  ],
+  "properties": {
+    "learning_areas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/learningArea"
+      },
+      "description": "Every learning area the pack offers. Codes are unique within the pack (runtime check)."
+    },
+    "competencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/competency"
+      },
+      "description": "Core competencies, values, pertinent issues and attitudes reported alongside results (spec 03 §3, Appendix A). May be empty for a pack that reports only marks."
+    },
+    "combination_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/combinationRule"
+      },
+      "description": "Rules that validate a learner's subject choices, for example the Kenya Senior School core set plus three pathway electives (spec 03 §3)."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "learningArea": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "kind",
+        "levels"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "short_name": {
+          "$ref": "common.schema.json#/$defs/name",
+          "description": "Abbreviated label for narrow report columns (spec 02 §4 learning_area.short_name)."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "core",
+            "optional",
+            "elective",
+            "co_curricular",
+            "pastoral"
+          ],
+          "description": "Learning area kind from spec 02 §4: core, optional, elective, co_curricular or pastoral."
+        },
+        "group": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Subject group used by aggregation constraints, for example languages, sciences or humanities (spec 03 §6 best_n groups)."
+        },
+        "coefficient": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Subject coefficient used by weighted_mean aggregations (spec 03 §6: weighted_mean by coefficient, and Appendix J subject coefficients for the Francophone moyenne). Required by the runtime check when an aggregation weights by coefficient."
+        },
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels in which the learning area is offered. Every code must be a declared level (runtime check)."
+        },
+        "national_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Official subject code used by national exports, for example the KNEC code (spec 03 §3, Appendix B; spec 02 §4 learning_area.national_code). null when the system has none."
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/component"
+          },
+          "description": "Papers, practicals, coursework, orals, projects or strands that make up the learning area score (spec 03 §4, Appendix B). May be empty."
+        },
+        "pathways": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Pathways this learning area belongs to, used when a combination rule says from_pathway (spec 03 §3; spec 02 §4 learning_area.pathway_ids)."
+        },
+        "alternatives": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Learning areas that may be taken instead of this one, for example KSL in place of Kiswahili (spec 03 §3, Appendix A)."
+        },
+        "outcomes_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "^(?:\\./)?[A-Za-z0-9._/-]+\\.json$",
+          "description": "Relative path to the outcomes file for this learning area, for example outcomes/eng-js.json (spec 03 §3)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "component": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "paper",
+            "practical",
+            "coursework",
+            "oral",
+            "project",
+            "strand"
+          ],
+          "description": "Component kind from spec 02 §4: paper, practical, coursework, oral, project or strand."
+        },
+        "weight": {
+          "$ref": "common.schema.json#/$defs/weight",
+          "description": "Share of the learning area score when component_policy is weighted. Components of one learning area must sum to 1 (runtime check; JSON Schema cannot sum)."
+        },
+        "max_score": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Raw maximum for this paper or component. Scores are stored raw and scaled by the engine (spec 03 §4)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "competency": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "core_competency",
+            "value",
+            "pertinent_issue",
+            "attitude"
+          ],
+          "description": "Competency kind from spec 02 §4 competency.kind."
+        },
+        "descriptors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "description": "Observable descriptors for the competency (spec 02 §4 competency.descriptors). Translated text lives in the locale files."
+        }
+      },
+      "additionalProperties": false
+    },
+    "combinationRule": {
+      "type": "object",
+      "required": [
+        "levels",
+        "rule"
+      ],
+      "properties": {
+        "levels": {
+          "$ref": "common.schema.json#/$defs/codeList",
+          "description": "Levels the rule applies to, for example G10 to G12 (spec 03 §3)."
+        },
+        "rule": {
+          "type": "string",
+          "enum": [
+            "core_all",
+            "electives"
+          ],
+          "description": "core_all requires every listed subject (or one member of each alternative set); electives requires count choices, optionally from the learner's pathway (spec 03 §3)."
+        },
+        "of": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]+(?:\\|[A-Za-z0-9._-]+)*$"
+          },
+          "description": "Learning-area codes required by core_all. A pipe separates alternatives, for example KIS|KSL: at least one member must be taken (spec 03 §3)."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of electives a learner must choose (spec 03 §3 example: count 3)."
+        },
+        "from_pathway": {
+          "type": "boolean",
+          "description": "True when the electives must come from the learner's chosen pathway (spec 03 §3)."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "rule": {
+                "const": "core_all"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          },
+          "then": {
+            "required": [
+              "of"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {
+                "const": "electives"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          },
+          "then": {
+            "required": [
+              "count"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

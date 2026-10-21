@@ -1,0 +1,127 @@
+{
+  "$comment": "Implements spec 03 §12 (conformance test vectors: name, programme, input, expect) and C-10 (every pack ships vectors that CI runs). This file is the schema for tests/*.vectors.json.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/tests.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pack conformance vectors",
+  "description": "Worked examples that pin the engine's results for this pack (spec 03 §12). A pack cannot be marked verified without them.",
+  "type": "object",
+  "required": [
+    "vectors"
+  ],
+  "properties": {
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/vector"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "vector": {
+      "type": "object",
+      "required": [
+        "name",
+        "input",
+        "expect"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "common.schema.json#/$defs/name",
+          "description": "What the vector demonstrates, for example KCSE best-7 with 3 sciences (spec 03 §12)."
+        },
+        "programme": {
+          "$ref": "common.schema.json#/$defs/packCode",
+          "description": "Pack code the vector belongs to, for example ke-844 (spec 03 §12)."
+        },
+        "input": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": "Input by learning-area code, for example a grade string or a raw score. null represents an absent mark (spec 03 §12)."
+        },
+        "expect": {
+          "$ref": "#/$defs/expectation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "expectation": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "selected": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/code"
+          },
+          "description": "Learning areas the aggregation selected, for example the KCSE best-7 set (spec 03 §12)."
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/aggregateExpectation"
+      },
+      "description": "Expected outcome keyed by aggregation code, plus an optional selected list (spec 03 §12)."
+    },
+    "aggregateExpectation": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "total_points": {
+          "type": "number",
+          "description": "Sum of points before the mean (spec 03 §12 example: 69)."
+        },
+        "points": {
+          "type": "number",
+          "description": "Mean or aggregate points (spec 03 §12 example: 9.857)."
+        },
+        "value": {
+          "type": "number",
+          "description": "The operator's numeric result before lookup."
+        },
+        "grade": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resulting grade or band code (spec 03 §12 example: B+)."
+        },
+        "division": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resulting division where the pack uses one, for example II."
+        }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "description": "Expected values for one aggregation. Known fields are typed; additional scalar fields are allowed so a pack can pin engine-specific outputs without a schema change."
+    }
+  }
+}

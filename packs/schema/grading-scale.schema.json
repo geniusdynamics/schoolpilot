@@ -1,0 +1,118 @@
+{
+  "$comment": "Implements spec 03 §5 (grading scales: kinds, bands, inclusive min, upper-bound convention). One scale per document; a pack's assessment section holds them in grading_scales.",
+  "$id": "https://schemas.schoolpilot.app/curriculum-pack/v1/grading-scale.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Grading scale",
+  "description": "A named scale that turns a mark, percent, points total or aggregate into a band (spec 03 §5).",
+  "type": "object",
+  "required": [
+    "code",
+    "kind"
+  ],
+  "properties": {
+    "code": {
+      "$ref": "common.schema.json#/$defs/code",
+      "description": "Scale code referenced by schemes, aggregations and national assessment definitions, for example cbe_8_level or kcse_subject."
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "numeric_bands",
+        "rubric",
+        "letter",
+        "points",
+        "division",
+        "gpa",
+        "out_of_20",
+        "descriptor"
+      ],
+      "description": "Scale kind from spec 03 §5. out_of_20 is the Francophone mark scale; spec 02 §8 calls the same concept mark_out_of_20."
+    },
+    "input": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "The value space the bands are stated in, for example percent (spec 03 §5). Bands may instead be stated in points, a /20 mark or a raw aggregate."
+    },
+    "upper": {
+      "type": "string",
+      "enum": [
+        "inclusive",
+        "exclusive"
+      ],
+      "description": "Whether a band's max is inclusive. The convention is declared once per scale, not per band (spec 03 §5). When omitted the engine treats max as exclusive."
+    },
+    "bands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/band"
+      },
+      "description": "Ordered bands or levels. Numeric band scales must declare them. A runtime check rejects overlapping bands, duplicate band codes and min greater than max; JSON Schema cannot compare two sibling numbers."
+    },
+    "verification": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "How the scale was established and what still needs checking, as in the spec 03 §5 example."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "numeric_bands"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "bands"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "band": {
+      "type": "object",
+      "required": [
+        "code",
+        "label",
+        "min",
+        "max"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code"
+        },
+        "label": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "min": {
+          "type": "number",
+          "description": "Inclusive lower bound of the band (spec 03 §5)."
+        },
+        "max": {
+          "type": "number",
+          "description": "Upper bound of the band; inclusive or exclusive according to the scale's upper property (spec 03 §5)."
+        },
+        "points": {
+          "type": "number",
+          "description": "Points awarded for the band, for example EE1 is 8 and BE2 is 1 on the CBE 8-level scale (spec 03 §5)."
+        },
+        "descriptor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "Optional standard descriptor for the band (spec 03 §5 band shape). Translated descriptors belong in the locale files."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
