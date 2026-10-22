@@ -42,6 +42,7 @@ export type {
   ConsumedValue,
   CountPart,
   CountPredicate,
+  DivisorSource,
   FailIfRule,
   GroupConstraint,
   LearningAreaResult,

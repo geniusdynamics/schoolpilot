@@ -133,8 +133,8 @@ describe('weighted_mean', () => {
     );
     expect(result.value).toBe('17.5');
     expect(result.consumed).toEqual([
-      { code: 'A', value: '10', weight: '1' },
-      { code: 'B', value: '20', weight: '3' },
+      { code: 'A', value: '10', weight: '1', multiplier: '1', multiplied: '10' },
+      { code: 'B', value: '20', weight: '3', multiplier: '1', multiplied: '20' },
     ]);
   });
 
@@ -342,6 +342,12 @@ describe('fail_if', () => {
       then_max_division: 'LOW',
       source: 'UNEB circular 2026/3 paragraph 4',
     });
+
+    const cap = result.trace.steps.find((step) => step.kind === 'fail_if');
+    if (cap?.kind !== 'fail_if') throw new Error('the trace must record the cap');
+    expect(cap.rule.source).toBe('UNEB circular 2026/3 paragraph 4');
+    expect(cap.capped).toBe('LOW');
+    expect(replayAggregate(result.trace).value).toBe(result.value);
   });
 
   it('needs a scale whose band it can name', () => {
@@ -354,6 +360,221 @@ describe('fail_if', () => {
     expect(
       issueCodesOf({ code: 'capped', op: 'sum', value: 'points', fail_if: { any_grade: 'F', then_max_division: 'LOW' } })
     ).toEqual(['fail_if_without_scale']);
+  });
+});
+
+describe('rounding and the declared mode', () => {
+  it('rounds with the declared mode rather than only the default', () => {
+    const halfUp = resultOf({ code: 'm', op: 'sum', value: 'score', precision: 0 }, areas({ code: 'A', score: '2.5' }));
+    const halfEven = resultOf(
+      { code: 'm', op: 'sum', value: 'score', precision: 0, mode: 'half_even' },
+      areas({ code: 'A', score: '2.5' })
+    );
+    const down = resultOf(
+      { code: 'm', op: 'sum', value: 'score', precision: 0, mode: 'down' },
+      areas({ code: 'A', score: '2.9' })
+    );
+
+    expect(halfUp.value).toBe('3');
+    expect(halfEven.value).toBe('2');
+    expect(halfEven.rounding).toEqual({ precision: 0, mode: 'half_even', input: '2.5', output: '2' });
+    expect(down.value).toBe('2');
+    expect(down.trace.steps.find((step) => step.kind === 'round')).toMatchObject({ mode: 'down' });
+  });
+
+  it('refuses an unknown rounding mode', () => {
+    expect(issueCodesOf({ code: 'm', op: 'sum', value: 'score', mode: 'nearest' as never })).toEqual([
+      'invalid_rounding_mode',
+    ]);
+  });
+});
+
+describe('multipliers and divisor', () => {
+  it('scales a sum before the aggregate is formed and divides by the declared divisor', () => {
+    // 10*2 + 8 + 6 = 34, divided by 10
+    const result = resultOf(
+      {
+        code: 'weighted_total',
+        op: 'sum',
+        value: 'score',
+        multipliers: { A: 2 },
+        divisor: 10,
+      },
+      areas({ code: 'A', score: '10' }, { code: 'B', score: '8' }, { code: 'C', score: '6' })
+    );
+
+    expect(result.subtotal).toBe('34');
+    expect(result.divisor).toBe('10');
+    expect(result.value).toBe('3.4');
+    expect(result.consumed).toEqual([
+      { code: 'A', value: '10', weight: null, multiplier: '2', multiplied: '20' },
+      { code: 'B', value: '8', weight: null, multiplier: '1', multiplied: '8' },
+      { code: 'C', value: '6', weight: null, multiplier: '1', multiplied: '6' },
+    ]);
+    expect(result.trace.steps[0]).toMatchObject({
+      kind: 'sum',
+      divisor: '10',
+      divisor_from: 'declared',
+      value: '3.4',
+    });
+  });
+
+  it('divides by the total of the multipliers actually applied', () => {
+    // (10*2 + 8 + 6) / (2 + 1 + 1) = 34 / 4
+    const result = resultOf(
+      {
+        code: 'weighted_total',
+        op: 'sum',
+        value: 'score',
+        multipliers: { A: 2 },
+        divisor: 'sum_of_multipliers',
+      },
+      areas({ code: 'A', score: '10' }, { code: 'B', score: '8' }, { code: 'C', score: '6' })
+    );
+
+    expect(result.divisor).toBe('4');
+    expect(result.value).toBe('8.5');
+    expect(result.trace.steps[0]).toMatchObject({ divisor_from: 'sum_of_multipliers' });
+  });
+
+  it('falls back to the operator\'s natural divisor only when none is declared', () => {
+    // no multipliers and no divisor: a mean divides by the number of results, a sum by one
+    const mean = resultOf(
+      { code: 'm', op: 'mean', value: 'score' },
+      areas({ code: 'A', score: '10' }, { code: 'B', score: '8' })
+    );
+    const sum = resultOf({ code: 's', op: 'sum', value: 'score' }, areas({ code: 'A', score: '10' }));
+    const weighted = resultOf(
+      { code: 'w', op: 'weighted_mean', value: 'score', weights: { A: 1, B: 3 } },
+      areas({ code: 'A', score: '10' }, { code: 'B', score: '8' })
+    );
+
+    expect(mean.value).toBe('9');
+    expect(mean.trace.steps[0]).toMatchObject({ divisor: '2', divisor_from: 'count' });
+    expect(sum.trace.steps[0]).toMatchObject({ divisor: '1', divisor_from: 'one' });
+    expect(weighted.value).toBe('8.5');
+    expect(weighted.trace.steps[0]).toMatchObject({ max: '4', divisor: '4', divisor_from: 'weights' });
+  });
+
+  it('divides a multiplied weighted mean by whatever the definition declares', () => {
+    // (10*2*1 + 8*1*3) / 3 = 44 / 3, because the declaration names the multiplier total
+    const byMultipliers = resultOf(
+      {
+        code: 'w',
+        op: 'weighted_mean',
+        value: 'score',
+        weights: { A: 1, B: 3 },
+        multipliers: { A: 2 },
+        divisor: 'sum_of_multipliers',
+      },
+      areas({ code: 'A', score: '10' }, { code: 'B', score: '8' })
+    );
+    // the same numerator over the weight total, which is the natural divisor
+    const byWeight = resultOf(
+      {
+        code: 'w',
+        op: 'weighted_mean',
+        value: 'score',
+        weights: { A: 1, B: 3 },
+        multipliers: { A: 2 },
+        divisor: 4,
+      },
+      areas({ code: 'A', score: '10' }, { code: 'B', score: '8' })
+    );
+
+    expect(byMultipliers.value).toBe('44/3');
+    expect(byMultipliers.trace.steps[0]).toMatchObject({ kind: 'weighted_mean', max: '4', divisor: '3' });
+    expect(byWeight.value).toBe('11');
+    expect(byWeight.trace.steps[0]).toMatchObject({ divisor: '4', divisor_from: 'declared' });
+  });
+
+  it('requires the divisor when multipliers are declared', () => {
+    expect(
+      issueCodesOf({ code: 's', op: 'sum', value: 'score', multipliers: { A: 2 } }, [{ code: 'A', score: '10' }])
+    ).toEqual(['missing_divisor']);
+  });
+
+  it('refuses a multiplier below one and a divisor that is not positive', () => {
+    expect(
+      issueCodesOf({ code: 's', op: 'sum', value: 'score', multipliers: { A: 0.5 }, divisor: 2 }, [
+        { code: 'A', score: '10' },
+      ])
+    ).toEqual(['invalid_multiplier']);
+    expect(
+      issueCodesOf({ code: 's', op: 'sum', value: 'score', multipliers: { A: 'two' }, divisor: 2 }, [
+        { code: 'A', score: '10' },
+      ])
+    ).toEqual(['invalid_multiplier']);
+    expect(issueCodesOf({ code: 's', op: 'sum', value: 'score', divisor: 0 }, [])).toEqual(['invalid_divisor']);
+    expect(issueCodesOf({ code: 's', op: 'sum', value: 'score', divisor: 'ten' }, [])).toEqual(['invalid_divisor']);
+  });
+
+  it('refuses both fields on a distribution, as the contract does', () => {
+    expect(
+      issueCodesOf({ code: 'c', op: 'count_where', value: 'grade', where: { op: 'eq', value: 'EE' }, multipliers: { A: 2 }, divisor: 2 })
+    ).toEqual(['unsupported_option', 'unsupported_option']);
+    expect(issueCodesOf({ code: 'p', op: 'rubric_profile', divisor: 10 }, [])).toEqual(['unsupported_option']);
+  });
+
+  it('refuses a multiplier on an area the run did not count', () => {
+    const evaluation = evaluateAggregation(
+      {
+        code: 'best',
+        op: 'best_n',
+        n: 2,
+        value: 'points',
+        groups: [{ require_all: ['A'] }, { fill_from: 'any' }],
+        multipliers: { A: 2, C: 2 },
+        divisor: 2,
+      },
+      areas({ code: 'A', points: '10' }, { code: 'B', points: '9' }, { code: 'C', points: '8' })
+    );
+
+    expect(evaluation.ok).toBe(false);
+    if (evaluation.ok) throw new Error('unreachable');
+    expect(evaluation.issues.map((entry) => entry.code)).toEqual(['multiplier_not_consumed']);
+    expect(evaluation.issues[0].path).toBe('multipliers.C');
+  });
+
+  it('refuses a multiplier naming an area the run does not cover at all', () => {
+    expect(
+      issueCodesOf(
+        { code: 's', op: 'sum', value: 'score', over: ['A'], multipliers: { Z: 2 }, divisor: 2 },
+        [{ code: 'A', score: '10' }]
+      )
+    ).toEqual(['multiplier_not_consumed']);
+  });
+
+  it('does not repeat the multiplier complaint when the area simply has no result', () => {
+    const result = resultOf(
+      { code: 's', op: 'sum', value: 'score', multipliers: { A: 2, B: 2 }, divisor: 4 },
+      areas({ code: 'A', score: '10' }, { code: 'B' })
+    );
+    expect(result.status).toBe('incomplete');
+    expect(result.flags).toEqual([{ code: 'missing_value', area: 'B' }]);
+  });
+});
+
+describe('count_where predicate shape', () => {
+  it('accepts the declared op, value and values', () => {
+    const eq = resultOf(
+      { code: 'c', op: 'count_where', value: 'grade', where: { op: 'eq', value: 'EE' } },
+      areas({ code: 'A', grade: 'EE' }, { code: 'B', grade: 'ME' })
+    );
+    const within = resultOf(
+      { code: 'c', op: 'count_where', value: 'rubric_level', where: { op: 'gte', value: '3' } },
+      areas({ code: 'A', rubric_level: '4' }, { code: 'B', rubric_level: '2' })
+    );
+
+    expect(eq.value).toBe('1');
+    expect(within.value).toBe('1');
+    expect(eq.trace.steps[0]).toMatchObject({ kind: 'count', predicate: { op: 'eq', value: 'EE' } });
+  });
+
+  it('still refuses a relational predicate against a grade code', () => {
+    expect(
+      issueCodesOf({ code: 'c', op: 'count_where', value: 'grade', where: { op: 'lte', value: 'ME' } })
+    ).toEqual(['relational_predicate_on_code']);
   });
 });
 

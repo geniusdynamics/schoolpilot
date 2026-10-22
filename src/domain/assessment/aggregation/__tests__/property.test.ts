@@ -170,6 +170,41 @@ describe('the trace', () => {
   });
 });
 
+describe('multipliers', () => {
+  const definition: AggregationDefinition = {
+    code: 'attainment',
+    op: 'best_n',
+    n: 3,
+    value: 'points',
+    groups: [{ require_all: ['A'] }, { fill_from: 'any' }],
+    then: { op: 'sum' },
+    multipliers: { A: 2 },
+    divisor: 'sum_of_multipliers',
+  };
+
+  it('replays a multiplied result, its divisor and its per-part products', () => {
+    fc.assert(
+      fc.property(areas, (entries) => {
+        // A is compulsory, so the multiplier always has an area to apply to
+        const withA: readonly LearningAreaResult[] = [
+          { code: 'A', group: 'sci', points: '10' },
+          ...entries.filter((entry) => entry.code !== 'A'),
+        ];
+        const result = run(definition, withA);
+        const replayed = replayAggregate(JSON.parse(JSON.stringify(result.trace)) as AggregateTrace);
+        if (replayed.value !== result.value) return false;
+        const step = result.trace.steps.find((entry) => entry.kind === 'sum');
+        if (step?.kind !== 'sum') return false;
+        const doubles = step.parts.filter((part) => part.multiplier === '2').map((part) => part.code);
+        if (doubles.length !== 1 || doubles[0] !== 'A') return false;
+        const again = evaluateAggregation(result.trace.definition, result.trace.inputs);
+        return again.ok && again.result.value === result.value;
+      }),
+      OPTIONS
+    );
+  });
+});
+
 describe('ranking', () => {
   it('keeps positions non-decreasing down the ranked list and counts only the ranked', () => {
     fc.assert(

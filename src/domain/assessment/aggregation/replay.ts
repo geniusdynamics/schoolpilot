@@ -3,6 +3,7 @@
 // ABOUTME: audit fails loudly instead of being trusted.
 
 import {
+  ONE,
   TraceMismatchError,
   compareExact,
   divideExact,
@@ -19,8 +20,10 @@ import type {
   AggregateTrace,
   AggregateTraceStep,
   CountPredicate,
+  DivisorSource,
   LearningAreaResult,
   LevelCount,
+  PreparedAggregation,
   ProfilePart,
   ReplayedAggregate,
   ResultValueField,
@@ -57,6 +60,46 @@ function checkBoolean(path: string, recorded: boolean, recomputed: boolean): voi
 
 function sameList(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((entry, index) => entry === right[index]);
+}
+
+/** The multiplier the recorded definition declares for one area, one when it declares none. */
+function multiplierFor(definition: PreparedAggregation, code: string): Exact {
+  const text = definition.multipliers?.[code];
+  return text === undefined ? ONE : (parseExact(text) as Exact);
+}
+
+/**
+ * Checks the divisor a combine step recorded against the definition that produced it.
+ *
+ * A declared divisor must be the definition's own; `sum_of_multipliers` must be the total of the
+ * multipliers the parts actually carry; a natural divisor (`count`, `one` or `weights`) must be the
+ * operator's own and must not be claimed when the definition declared one.
+ */
+function checkDivisor(
+  path: string,
+  recorded: string,
+  source: DivisorSource,
+  multipliers: readonly Exact[],
+  natural: Exact,
+  definition: PreparedAggregation
+): Exact {
+  if (source === 'declared') {
+    const declared = definition.divisor;
+    if (declared === undefined || declared === 'sum_of_multipliers') {
+      throw new TraceMismatchError(`${path}.divisor_from`, 'a declared divisor', source);
+    }
+    return checkValue(`${path}.divisor`, recorded, readExact(`${path}.divisor`, declared));
+  }
+  if (source === 'sum_of_multipliers') {
+    if (definition.divisor !== 'sum_of_multipliers') {
+      throw new TraceMismatchError(`${path}.divisor_from`, 'sum_of_multipliers', String(definition.divisor));
+    }
+    return checkValue(`${path}.divisor`, recorded, sumExact(multipliers));
+  }
+  if (definition.divisor !== undefined) {
+    throw new TraceMismatchError(`${path}.divisor_from`, 'no declared divisor', String(definition.divisor));
+  }
+  return checkValue(`${path}.divisor`, recorded, natural);
 }
 
 /** The value the input carries for the field the definition names, as exact text. */
@@ -166,8 +209,13 @@ export function replayAggregate(trace: AggregateTrace): ReplayedAggregate {
       }
       case 'sum':
       case 'mean': {
-        const values = step.parts.map((part, at) => readExact(`${path}.parts[${at}].value`, part.value));
-        const total = sumExact(values);
+        const bases = step.parts.map((part, at) => readExact(`${path}.parts[${at}].value`, part.value));
+        const multipliers = step.parts.map((part, at) => readExact(`${path}.parts[${at}].multiplier`, part.multiplier));
+        const multiplied = step.parts.map((part, at) => {
+          const expected = multiplyExact(bases[at], multipliers[at]);
+          checkValue(`${path}.parts[${at}].multiplied`, part.multiplied, expected);
+          return expected;
+        });
         for (const [at, part] of step.parts.entries()) {
           const input = byCode.get(part.code);
           if (input === undefined) {
@@ -176,32 +224,45 @@ export function replayAggregate(trace: AggregateTrace): ReplayedAggregate {
           if (field !== undefined) {
             checkText(`${path}.parts[${at}].value`, part.value, recordedValue(input, field));
           }
+          checkValue(`${path}.parts[${at}].multiplier`, part.multiplier, multiplierFor(trace.definition, part.code));
         }
+        // The select step's value is the sum of the selected areas' own values, so the check that
+        // the combine matches the selection uses the base values, never the multiplied ones.
+        const total = sumExact(bases);
         if (running !== null) checkValue(`${path}.input`, formatExact(running), total);
-        if (step.kind === 'sum') {
-          running = checkValue(`${path}.value`, step.value, total);
-          return;
-        }
-        if (values.length === 0) {
+        if (step.kind === 'mean' && step.parts.length === 0) {
           throw new TraceMismatchError(`${path}.parts`, 'at least one part', 'none');
         }
-        running = checkValue(`${path}.value`, step.value, divideExact(total, { numerator: BigInt(values.length), denominator: 1n }));
+        const natural =
+          step.kind === 'mean'
+            ? { numerator: BigInt(step.parts.length), denominator: 1n }
+            : { numerator: 1n, denominator: 1n };
+        const divisor = checkDivisor(path, step.divisor, step.divisor_from, multipliers, natural, trace.definition);
+        running = checkValue(`${path}.value`, step.value, divideExact(sumExact(multiplied), divisor));
         return;
       }
       case 'weighted_mean': {
+        const bases = step.parts.map((part, at) => readExact(`${path}.parts[${at}].value`, part.value));
+        const multipliers = step.parts.map((part, at) => readExact(`${path}.parts[${at}].multiplier`, part.multiplier));
         const weights = step.parts.map((part, at) => readExact(`${path}.parts[${at}].weight`, part.weight));
-        const values = step.parts.map((part, at) => readExact(`${path}.parts[${at}].value`, part.value));
+        const multiplied = step.parts.map((part, at) => {
+          const expected = multiplyExact(bases[at], multipliers[at]);
+          checkValue(`${path}.parts[${at}].multiplied`, part.multiplied, expected);
+          return expected;
+        });
         for (const [at, part] of step.parts.entries()) {
           const input = byCode.get(part.code);
           if (input === undefined) {
             throw new TraceMismatchError(`${path}.parts[${at}].code`, 'a recorded input', part.code);
           }
           if (field !== undefined) checkText(`${path}.parts[${at}].value`, part.value, recordedValue(input, field));
+          checkValue(`${path}.parts[${at}].multiplier`, part.multiplier, multiplierFor(trace.definition, part.code));
         }
         const max = sumExact(weights);
         checkValue(`${path}.max`, step.max, max);
-        const numerator = sumExact(values.map((value, at) => multiplyExact(value, weights[at])));
-        running = checkValue(`${path}.value`, step.value, divideExact(numerator, max));
+        const numerator = sumExact(multiplied.map((value, at) => multiplyExact(value, weights[at])));
+        const divisor = checkDivisor(path, step.divisor, step.divisor_from, multipliers, max, trace.definition);
+        running = checkValue(`${path}.value`, step.value, divideExact(numerator, divisor));
         return;
       }
       case 'count': {

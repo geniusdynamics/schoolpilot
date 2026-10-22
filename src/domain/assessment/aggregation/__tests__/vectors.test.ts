@@ -18,7 +18,7 @@ import {
   pleAreas,
   resultOf,
 } from './fixtures';
-import type { AggregationDefinition, LearningAreaResult, RankingCandidate } from '..';
+import type { AggregateTrace, AggregationDefinition, LearningAreaResult, RankingCandidate } from '..';
 
 const KCSE = { scales: KE_844.grading_scales };
 
@@ -415,6 +415,117 @@ describe('ranking policy, from spec 03 section 6.1', () => {
     expect(ranking.ok).toBe(false);
     if (ranking.ok) throw new Error('unreachable');
     expect(ranking.issues.map((entry) => entry.path)).toEqual(['scope', 'by']);
+  });
+});
+
+describe('Attainment 8: multipliers and divisor', () => {
+  /**
+   * The rule the schema names: eight results, English and mathematics counted twice, the total
+   * divided by ten even though only eight results carry it.
+   *
+   *   selected   ENG 9, MAT 8, BIO 7, HIS 7, CHE 6, FRE 6, PHY 6, GEO 5   (ART 4 is the ninth)
+   *   doubled    9*2 + 8*2 + 7 + 7 + 6 + 6 + 6 + 5 = 18 + 16 + 37 = 71
+   *   divisor    71 / 10 = 7.1
+   *   credits    the eight multipliers total 2+2+1+1+1+1+1+1 = 10, so sum_of_multipliers agrees
+   */
+  const definition: AggregationDefinition = {
+    code: 'attainment_8',
+    op: 'best_n',
+    n: 8,
+    value: 'points',
+    groups: [{ require_all: ['ENG', 'MAT'] }, { fill_from: 'any' }],
+    then: { op: 'sum' },
+    multipliers: { ENG: 2, MAT: 2 },
+    divisor: 10,
+    precision: 1,
+  };
+
+  const areas: readonly LearningAreaResult[] = [
+    { code: 'ENG', points: '9' },
+    { code: 'MAT', points: '8' },
+    { code: 'BIO', points: '7' },
+    { code: 'HIS', points: '7' },
+    { code: 'CHE', points: '6' },
+    { code: 'PHY', points: '6' },
+    { code: 'FRE', points: '6' },
+    { code: 'GEO', points: '5' },
+    { code: 'ART', points: '4' },
+  ];
+
+  it('doubles English and mathematics inside the best eight and divides by ten', () => {
+    const result = resultOf(definition, areas);
+
+    expect(result.selected).toEqual(['ENG', 'MAT', 'BIO', 'HIS', 'CHE', 'FRE', 'PHY', 'GEO']);
+    expect(result.subtotal).toBe('71');
+    expect(result.divisor).toBe('10');
+    expect(result.value).toBe('7.1');
+    expect(result.consumed.filter((entry) => entry.multiplier === '2').map((entry) => entry.code)).toEqual([
+      'ENG',
+      'MAT',
+    ]);
+
+    const sum = result.trace.steps.find((step) => step.kind === 'sum');
+    if (sum?.kind !== 'sum') throw new Error('the trace must record the combine');
+    expect(sum.divisor).toBe('10');
+    expect(sum.divisor_from).toBe('declared');
+    expect(sum.parts.find((part) => part.code === 'ENG')).toEqual({
+      code: 'ENG',
+      value: '9',
+      multiplier: '2',
+      multiplied: '18',
+    });
+    expect(sum.parts.find((part) => part.code === 'ART')).toBeUndefined();
+
+    const replayed = replayAggregate(JSON.parse(JSON.stringify(result.trace)) as AggregateTrace);
+    expect(replayed.value).toBe('7.1');
+  });
+
+  it('reaches the same total from the multiplier total', () => {
+    const result = resultOf({ ...definition, divisor: 'sum_of_multipliers' }, areas);
+    const sum = result.trace.steps.find((step) => step.kind === 'sum');
+    if (sum?.kind !== 'sum') throw new Error('the trace must record the combine');
+
+    expect(sum.divisor).toBe('10');
+    expect(sum.divisor_from).toBe('sum_of_multipliers');
+    expect(result.value).toBe('7.1');
+  });
+
+  it('refuses a multiplier on an area the best eight did not take', () => {
+    const evaluation = evaluateAggregation({ ...definition, multipliers: { ENG: 2, MAT: 2, ART: 2 } }, areas);
+
+    expect(evaluation.ok).toBe(false);
+    if (evaluation.ok) throw new Error('unreachable');
+    expect(evaluation.issues.map((entry) => `${entry.code} at ${entry.path}`)).toEqual([
+      'multiplier_not_consumed at multipliers.ART',
+    ]);
+  });
+
+  /**
+   * A plain total divided by the multipliers it applied:
+   *   (10*2 + 8*3 + 6*1) / (2 + 3 + 1) = 50 / 6 = 25/3 = 8.33 at two places
+   */
+  it('divides a total by the multipliers it actually applied', () => {
+    const result = resultOf(
+      {
+        code: 'weighted_sum',
+        op: 'sum',
+        value: 'points',
+        multipliers: { A: 2, B: 3 },
+        divisor: 'sum_of_multipliers',
+        precision: 2,
+      },
+      [
+        { code: 'A', points: '10' },
+        { code: 'B', points: '8' },
+        { code: 'C', points: '6' },
+      ]
+    );
+
+    expect(result.subtotal).toBe('50');
+    expect(result.divisor).toBe('6');
+    expect(result.exact_value).toBe('25/3');
+    expect(result.value).toBe('8.33');
+    expect(replayAggregate(result.trace).value).toBe('8.33');
   });
 });
 

@@ -2,13 +2,13 @@
 // ABOUTME: prepared form the operators and the trace read, refusing a definition whose operator
 // ABOUTME: cannot run with the fields it declared, and nothing else.
 
-import { MAX_PRECISION, ROUNDING_MODES, parseExact, type RoundingMode } from '../engine';
+import { ROUNDING_MODES, parseExact, type RoundingMode } from '../engine';
+import { issue, readDivisor, readMultipliers, readPrecision, readWeights, textOf } from './fields';
 import {
   AGGREGATION_OPERATORS,
   RESULT_VALUE_FIELDS,
   type AggregationDefinition,
   type AggregationIssue,
-  type AggregationIssueCode,
   type AggregationOperator,
   type CountPredicate,
   type FailIfRule,
@@ -23,6 +23,22 @@ const NUMERIC_FIELDS: readonly ResultValueField[] = ['points', 'grade_points', '
 
 /** Operators whose `result_scale` is the whole point of the operator, not an optional extra. */
 const SCALE_REQUIRED: readonly AggregationOperator[] = ['points_mean', 'sum_points'];
+
+/**
+ * Operators that form a single aggregate a multiplier can scale and a divisor can divide.
+ *
+ * A distribution has no such value, so the contract refuses multipliers on it and this list refuses
+ * both fields on it: a divisor on a count would be a declaration nobody could honour.
+ */
+const DIVISIBLE_OPS: readonly AggregationOperator[] = [
+  'sum',
+  'mean',
+  'weighted_mean',
+  'best_n',
+  'points_mean',
+  'sum_points',
+  'gpa',
+];
 
 const PREDICATE_OPS: readonly CountPredicate['op'][] = ['eq', 'in', 'gte', 'gt', 'lte', 'lt'];
 
@@ -39,30 +55,6 @@ const isResultValueField = (value: unknown): value is ResultValueField =>
   RESULT_VALUE_FIELDS.some((field) => field === value);
 
 const isRoundingMode = (value: unknown): value is RoundingMode => ROUNDING_MODES.some((mode) => mode === value);
-
-/** A non-empty string, or null when the value cannot be a code. */
-function textOf(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value : null;
-}
-
-/** A decimal or exact-fraction string that parses, or null. */
-function exactText(value: unknown): string | null {
-  const text = textOf(value);
-  return text !== null && parseExact(text) !== null ? text : null;
-}
-
-function issue(code: AggregationIssueCode, path: string, detail: string): AggregationIssue {
-  return { code, path, detail };
-}
-
-function readPrecision(value: unknown, path: string, issues: AggregationIssue[]): number | null {
-  if (value === undefined) return null;
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > MAX_PRECISION) {
-    issues.push(issue('invalid_precision', path, `precision must be an integer between 0 and ${MAX_PRECISION}`));
-    return null;
-  }
-  return value;
-}
 
 function readGroup(raw: unknown, index: number, issues: AggregationIssue[]): GroupConstraint | null {
   const path = `groups[${index}]`;
@@ -126,33 +118,6 @@ function readThen(raw: unknown, issues: AggregationIssue[]): PostStep | null {
   }
   const precision = readPrecision(record.precision, 'then.precision', issues);
   return { op: op as PostStep['op'], ...(precision === null ? {} : { precision }) };
-}
-
-function readWeights(
-  raw: unknown,
-  issues: AggregationIssue[]
-): 'coefficient' | Readonly<Record<string, string>> | null {
-  if (raw === 'coefficient') return 'coefficient';
-  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
-    issues.push(issue('invalid_weights', 'weights', 'weights must be "coefficient" or a map of area code to weight'));
-    return null;
-  }
-  const entries = Object.entries(raw as Record<string, unknown>);
-  if (entries.length === 0) {
-    issues.push(issue('invalid_weights', 'weights', 'an explicit weights map must name at least one area'));
-    return null;
-  }
-  const weights: Record<string, string> = {};
-  for (const [code, value] of entries) {
-    const text = exactText(value);
-    const parsed = text === null ? null : parseExact(text);
-    if (text === null || parsed === null || parsed.numerator < 0n) {
-      issues.push(issue('invalid_weight', `weights.${code}`, 'a weight must be a non-negative decimal'));
-      return null;
-    }
-    weights[code] = text;
-  }
-  return weights;
 }
 
 function readPredicate(raw: unknown, issues: AggregationIssue[]): CountPredicate | null {
@@ -347,6 +312,33 @@ export function prepareAggregation(definition: AggregationDefinition): Aggregati
     }
   }
 
+  let mults: Readonly<Record<string, string>> | null = null;
+  let divisor: string | null = null;
+  if (definition.multipliers !== undefined || definition.divisor !== undefined) {
+    if (!DIVISIBLE_OPS.includes(op)) {
+      if (definition.multipliers !== undefined) {
+        issues.push(
+          issue('unsupported_option', 'multipliers', `operator "${op}" produces no aggregate to multiply`)
+        );
+      }
+      if (definition.divisor !== undefined) {
+        issues.push(issue('unsupported_option', 'divisor', `operator "${op}" produces no aggregate to divide`));
+      }
+    } else {
+      if (definition.multipliers !== undefined) mults = readMultipliers(definition.multipliers, issues);
+      if (definition.divisor !== undefined) divisor = readDivisor(definition.divisor, issues);
+      if (definition.multipliers !== undefined && definition.divisor === undefined) {
+        issues.push(
+          issue(
+            'missing_divisor',
+            'divisor',
+            'multipliers must declare the divisor the multiplied aggregate is divided by'
+          )
+        );
+      }
+    }
+  }
+
   let over: readonly string[] | null = null;
   if (definition.over !== undefined) {
     if (!Array.isArray(definition.over) || definition.over.length === 0) {
@@ -437,6 +429,8 @@ export function prepareAggregation(definition: AggregationDefinition): Aggregati
       ...(over === null ? {} : { over }),
       ...(failIf === null ? {} : { fail_if: failIf }),
       ...(weights === null ? {} : { weights }),
+      ...(mults === null ? {} : { multipliers: mults }),
+      ...(divisor === null ? {} : { divisor }),
       ...(precision === null ? {} : { precision }),
       ...(resultScale === null ? {} : { result_scale: resultScale }),
       ...(where === null ? {} : { where }),

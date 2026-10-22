@@ -2,7 +2,7 @@
 // ABOUTME: weights, scoping them to the areas the definition covers, resolving the result scale, and
 // ABOUTME: turning each one into the exact value the operator combines or the reason it has none.
 
-import { formatExact, parseExact, type Exact } from '../engine';
+import { parseExact, type Exact } from '../engine';
 import { prepareGradingScale } from '../scales';
 import type { GradingScaleDefinition, PreparedGradingScale } from '../scales';
 import type {
@@ -11,11 +11,9 @@ import type {
   AggregationContext,
   AggregationIssue,
   AggregationIssueCode,
-  ConsumedValue,
   LearningAreaResult,
   PreparedAggregation,
   ResultValueField,
-  TracePart,
 } from './types';
 
 // ----------------------------------------------------------------- diagnostics
@@ -203,13 +201,3 @@ export function scopedAreas(
 }
 
 export const hasValue = (entry: ScopedArea): entry is ScopedArea & { readonly exact: Exact } => entry.exact !== null;
-
-// -------------------------------------------------------------------- trace parts
-
-export function traceParts(scoped: readonly (ScopedArea & { readonly exact: Exact })[]): readonly TracePart[] {
-  return scoped.map((entry) => ({ code: entry.code, value: formatExact(entry.exact) }));
-}
-
-export function consumedOf(scoped: readonly (ScopedArea & { readonly exact: Exact })[]): readonly ConsumedValue[] {
-  return scoped.map((entry) => ({ code: entry.code, value: formatExact(entry.exact), weight: null }));
-}

@@ -2,21 +2,20 @@
 // ABOUTME: module read, round once at the declared precision, look the result up in its scale and
 // ABOUTME: apply the declared fail_if cap, recording every step as a replayable trace.
 
-import { compareExact, divideExact, formatExact, multiplyExact, parseExact, roundExact, sumExact, type Exact } from '../engine';
+import { compareExact, divideExact, formatExact, multiplyExact, parseExact, roundExact, sumExact, ONE, type Exact } from '../engine';
 import { givenScore, lookupScaleBand } from '../scales';
 import type { PreparedGradingScale, ScaleLookupTrace } from '../scales';
 import {
-  consumedOf,
   flag,
   hasValue,
   issue,
   qualityOrder,
   resolveScale,
   scopedAreas,
-  traceParts,
   validateInputs,
   type ScopedArea,
 } from './inputs';
+import { countedArea, consumedOfArea, divisorOf, tracePartOf, weightedPartOf, type CountedArea } from './combine';
 import { prepareAggregation } from './prepare';
 import { selectBest, type SelectionCandidate } from './select';
 import type {
@@ -37,7 +36,6 @@ import type {
   LevelCount,
   PreparedAggregation,
   ProfilePart,
-  WeightedTracePart,
 } from './types';
 
 // --------------------------------------------------------- operator helpers
@@ -114,6 +112,8 @@ function profileLevels(
   return [...ordered, ...rest.map((level) => ({ level, label: null }))];
 }
 
+/** One consumed area with its multiplier, its multiplied value and its weight. */
+
 // -------------------------------------------------------------------- engine
 
 /**
@@ -153,6 +153,7 @@ export function evaluateAggregation(
   const steps: AggregateTraceStep[] = [];
   let value: Exact | null = null;
   let subtotal: Exact | null = null;
+  let divisorUsed: Exact | null = null;
   let consumed: readonly ConsumedValue[] = [];
   let selected: readonly string[] | null = null;
   let distribution: readonly LevelCount[] | null = null;
@@ -172,7 +173,13 @@ export function evaluateAggregation(
     }));
     steps.push({ kind: 'profile', parts, counts });
     distribution = counts;
-    consumed = parts.map((part) => ({ code: part.code, value: profileKey(part), weight: null }));
+    consumed = parts.map((part) => ({
+      code: part.code,
+      value: profileKey(part),
+      weight: null,
+      multiplier: '1',
+      multiplied: profileKey(part),
+    }));
     status = parts.length === 0 ? 'empty' : 'complete';
   } else if (aggregation.op === 'count_where') {
     const parts: CountPart[] = scoped.map((entry) => ({
@@ -188,7 +195,13 @@ export function evaluateAggregation(
       parts,
       value: formatExact(value),
     });
-    consumed = matched.map((part) => ({ code: part.code, value: part.value as string, weight: null }));
+    consumed = matched.map((part) => ({
+      code: part.code,
+      value: part.value as string,
+      weight: null,
+      multiplier: '1',
+      multiplied: part.value as string,
+    }));
     status = scoped.length === 0 ? 'empty' : 'complete';
   } else if (aggregation.op === 'best_n') {
     const candidates: SelectionCandidate[] = scoped.map((entry) => ({
@@ -207,7 +220,6 @@ export function evaluateAggregation(
       value: formatExact(selection.value),
     });
     selected = selection.selected;
-    subtotal = selection.value;
     if (selection.status === 'required_missing') flags.push(flag('required_area_missing', null));
     if (selection.status === 'group_minimum_unmet') flags.push(flag('group_minimum_unmet', null));
     if (selection.status === 'insufficient') flags.push(flag('insufficient_candidates', null));
@@ -215,15 +227,33 @@ export function evaluateAggregation(
     const chosen = selection.selected
       .map((code) => scoped.find((entry) => entry.code === code))
       .filter((entry): entry is ScopedArea & { readonly exact: Exact } => entry !== undefined && hasValue(entry));
-    consumed = consumedOf(chosen);
-    const parts = traceParts(chosen);
+    // The selection is made on the areas' own values; a multiplier scales what is counted, never
+    // which areas are chosen.
+    const counted = chosen.map((entry) => countedArea(aggregation, entry, null));
+    consumed = counted.map(consumedOfArea);
+    const parts = counted.map(tracePartOf);
     const step = aggregation.then ?? { op: 'mean' };
-    if (step.op === 'mean') {
-      value = chosen.length === 0 ? null : divideExact(selection.value, { numerator: BigInt(chosen.length), denominator: 1n });
-      if (value !== null) steps.push({ kind: 'mean', parts, value: formatExact(value) });
+    if (counted.length === 0) {
+      value = null;
     } else {
-      value = selection.value;
-      steps.push({ kind: 'sum', parts, value: formatExact(value) });
+      const total = sumExact(counted.map((area) => area.multiplied));
+      subtotal = total;
+      const divisor = divisorOf(
+        aggregation,
+        counted,
+        step.op === 'mean'
+          ? { value: { numerator: BigInt(counted.length), denominator: 1n }, from: 'count' }
+          : { value: ONE, from: 'one' }
+      );
+      divisorUsed = divisor.value;
+      value = divideExact(total, divisor.value);
+      steps.push({
+        kind: step.op === 'mean' ? 'mean' : 'sum',
+        parts,
+        divisor: formatExact(divisor.value),
+        divisor_from: divisor.from,
+        value: formatExact(value),
+      });
     }
     status = scoped.length === 0 ? 'empty' : selection.status === 'ok' ? 'complete' : 'incomplete';
   } else {
@@ -234,43 +264,87 @@ export function evaluateAggregation(
       // the learner has areas, but none of them carries a value this operator can combine
       status = 'incomplete';
     } else if (aggregation.op === 'weighted_mean' || aggregation.op === 'gpa') {
-      const weighted: (ScopedArea & { readonly exact: Exact; readonly weight: Exact })[] = [];
+      const counted: CountedArea[] = [];
       for (const entry of available.filter(hasValue)) {
         const index = inputs.findIndex((area) => area.code === entry.code);
         const weight = weightOf(aggregation, index < 0 ? null : inputs[index], index, issues, flags);
         if (weight === null) continue;
-        weighted.push({ ...entry, weight });
+        counted.push(countedArea(aggregation, entry, weight));
       }
       if (issues.length > 0) return { ok: false, issues };
-      const max = sumExact(weighted.map((entry) => entry.weight));
+      const max = sumExact(counted.map((entry) => entry.weight as Exact));
       if (max.numerator === 0n) {
         return { ok: false, issues: [issue('zero_total_weight', 'weights', 'the consumed weights sum to zero')] };
       }
-      const numerator = sumExact(weighted.map((entry) => multiplyExact(entry.exact, entry.weight)));
-      const parts: WeightedTracePart[] = weighted.map((entry) => ({
-        code: entry.code,
-        value: formatExact(entry.exact),
-        weight: formatExact(entry.weight),
-      }));
-      if (weighted.length !== available.length) status = 'incomplete';
-      value = divideExact(numerator, max);
-      steps.push({ kind: 'weighted_mean', parts, max: formatExact(max), value: formatExact(value) });
-      consumed = weighted.map((entry) => ({ code: entry.code, value: formatExact(entry.exact), weight: formatExact(entry.weight) }));
+      const numerator = sumExact(
+        counted.map((entry) => multiplyExact(entry.multiplied, entry.weight as Exact))
+      );
+      const divisor = divisorOf(aggregation, counted, { value: max, from: 'weights' });
+      divisorUsed = divisor.value;
+      value = divideExact(numerator, divisor.value);
+      if (counted.length !== available.length) status = 'incomplete';
+      steps.push({
+        kind: 'weighted_mean',
+        parts: counted.map(weightedPartOf),
+        max: formatExact(max),
+        divisor: formatExact(divisor.value),
+        divisor_from: divisor.from,
+        value: formatExact(value),
+      });
+      consumed = counted.map(consumedOfArea);
     } else {
-      const numeric = available.filter(hasValue);
-      const parts = traceParts(numeric);
-      const total = sumExact(numeric.map((entry) => entry.exact));
-      if (aggregation.op === 'sum' || aggregation.op === 'sum_points') {
-        value = total;
-        steps.push({ kind: 'sum', parts, value: formatExact(total) });
-      } else {
-        value = divideExact(total, { numerator: BigInt(numeric.length), denominator: 1n });
-        steps.push({ kind: 'mean', parts, value: formatExact(value) });
-      }
+      const counted = available.filter(hasValue).map((entry) => countedArea(aggregation, entry, null));
+      const averaging = aggregation.op === 'mean' || aggregation.op === 'points_mean';
+      const total = sumExact(counted.map((area) => area.multiplied));
       subtotal = total;
-      consumed = consumedOf(numeric);
+      const divisor = divisorOf(
+        aggregation,
+        counted,
+        averaging
+          ? { value: { numerator: BigInt(counted.length), denominator: 1n }, from: 'count' }
+          : { value: ONE, from: 'one' }
+      );
+      divisorUsed = divisor.value;
+      value = divideExact(total, divisor.value);
+      steps.push({
+        kind: averaging ? 'mean' : 'sum',
+        parts: counted.map(tracePartOf),
+        divisor: formatExact(divisor.value),
+        divisor_from: divisor.from,
+        value: formatExact(value),
+      });
+      consumed = counted.map(consumedOfArea);
     }
     if (status === 'complete' && missing.length > 0) status = 'incomplete';
+  }
+
+  // ---- every declared multiplier must have scaled something
+  //
+  // An area whose result is absent is already reported as incomplete, so it is not repeated here;
+  // an area that had a value and was still not counted is the silent no-op this refuses, because a
+  // school that thinks it doubled mathematics must never be handed an undoubled total.
+  const declaredMultipliers = aggregation.multipliers;
+  if (declaredMultipliers !== undefined) {
+    const consumedCodes = new Set(consumed.map((entry) => entry.code));
+    const inScope = new Set(scoped.map((entry) => entry.code));
+    const availableCodes = new Set(available.map((entry) => entry.code));
+    const unconsumed = Object.keys(declaredMultipliers).filter(
+      (code) => !consumedCodes.has(code) && (availableCodes.has(code) || !inScope.has(code))
+    );
+    if (unconsumed.length > 0) {
+      return {
+        ok: false,
+        issues: unconsumed.map((code) =>
+          issue(
+            'multiplier_not_consumed',
+            `multipliers.${code}`,
+            inScope.has(code)
+              ? `area "${code}" was not counted by "${aggregation.code}", so its multiplier was never applied`
+              : `area "${code}" is not one of the areas "${aggregation.code}" covers`
+          )
+        ),
+      };
+    }
   }
 
   if (status !== 'complete') value = null;
@@ -364,6 +438,7 @@ export function evaluateAggregation(
     value: value === null ? null : formatExact(value),
     exact_value: value === null ? null : rounding === null ? formatExact(value) : rounding.input,
     subtotal: subtotal === null ? null : formatExact(subtotal),
+    divisor: divisorUsed === null ? null : formatExact(divisorUsed),
     consumed,
     selected,
     precision: rounding === null ? null : rounding.precision,

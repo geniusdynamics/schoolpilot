@@ -143,7 +143,19 @@ export interface AggregationDefinition {
   /** The learning areas the operator covers, in the order a report shows them. */
   readonly over?: readonly string[];
   readonly fail_if?: FailIfRule;
-  readonly weights?: 'coefficient' | Readonly<Record<string, string>>;
+  readonly weights?: 'coefficient' | Readonly<Record<string, number | string>>;
+  /**
+   * Per learning-area multipliers applied to a consumed value before the aggregate is formed, for a
+   * rule that counts one subject more than once (DfE Attainment 8 doubles English and mathematics).
+   * One is the default; every key must be an area the run actually consumed.
+   */
+  readonly multipliers?: Readonly<Record<string, number | string>>;
+  /**
+   * What the multiplied aggregate is divided by: a number, or `sum_of_multipliers` for the total of
+   * the multipliers actually applied. Absent, the operator's natural divisor applies (the number of
+   * consumed results for a mean, one for a sum, the weight total for a weighted mean).
+   */
+  readonly divisor?: number | 'sum_of_multipliers' | string;
   /** Decimal places kept on the aggregate before lookup. */
   readonly precision?: number;
   /** Rounding mode; defaults to `half_up`, the mode the spec's examples use. */
@@ -169,6 +181,8 @@ export interface PreparedAggregation {
   readonly over?: readonly string[];
   readonly fail_if?: FailIfRule;
   readonly weights?: 'coefficient' | Readonly<Record<string, string>>;
+  readonly multipliers?: Readonly<Record<string, string>>;
+  readonly divisor?: string | 'sum_of_multipliers';
   readonly precision?: number;
   readonly mode: RoundingMode;
   readonly result_scale?: string;
@@ -185,15 +199,34 @@ export interface AggregationContext {
 /** One value the operator consumed, after selection. */
 export interface TracePart {
   readonly code: string;
+  /** The value as the area's result carried it, before any multiplier. */
   readonly value: string;
+  /** The multiplier applied to `value`; `1` when the definition declares none. */
+  readonly multiplier: string;
+  /** `value` times `multiplier`: what the aggregate actually counts for this area. */
+  readonly multiplied: string;
 }
 
 /** One weighed value of a weighted mean or a GPA. */
 export interface WeightedTracePart {
   readonly code: string;
+  /** The value as the area's result carried it, before any multiplier. */
   readonly value: string;
   readonly weight: string;
+  /** The multiplier applied to `value`; `1` when the definition declares none. */
+  readonly multiplier: string;
+  /** `value` times `multiplier`, which the weight then scales. */
+  readonly multiplied: string;
 }
+
+/**
+ * Why the divisor of a combine step is what it is.
+ *
+ * `declared` is the definition's own `divisor`; `sum_of_multipliers` is the total of the
+ * multipliers the step applied; `count`, `one` and `weights` are the operator's natural divisor for
+ * a mean, a sum and a weighted mean respectively.
+ */
+export type DivisorSource = 'declared' | 'sum_of_multipliers' | 'count' | 'one' | 'weights';
 
 /** Why a candidate of a `best_n` selection was kept or dropped. */
 export type SelectionReason =
@@ -255,12 +288,28 @@ export type AggregateTraceStep =
       /** The sum of the selected values, before the post-step divides it. */
       readonly value: string;
     }
-  | { readonly kind: 'sum'; readonly parts: readonly TracePart[]; readonly value: string }
-  | { readonly kind: 'mean'; readonly parts: readonly TracePart[]; readonly value: string }
+  | {
+      readonly kind: 'sum';
+      readonly parts: readonly TracePart[];
+      /** The divisor applied to the summed multiplied values, and where it came from. */
+      readonly divisor: string;
+      readonly divisor_from: DivisorSource;
+      readonly value: string;
+    }
+  | {
+      readonly kind: 'mean';
+      readonly parts: readonly TracePart[];
+      readonly divisor: string;
+      readonly divisor_from: DivisorSource;
+      readonly value: string;
+    }
   | {
       readonly kind: 'weighted_mean';
       readonly parts: readonly WeightedTracePart[];
+      /** The sum of the weights, which is the natural divisor of a weighted mean. */
       readonly max: string;
+      readonly divisor: string;
+      readonly divisor_from: DivisorSource;
       readonly value: string;
     }
   | {
@@ -352,11 +401,15 @@ export interface AggregateGrade {
   readonly capped_by: FailIfRule | null;
 }
 
-/** One value the operator consumed, with the weight it carried. */
+/** One value the operator consumed, with the weight and multiplier it carried. */
 export interface ConsumedValue {
   readonly code: string;
+  /** The value as the area's result carried it. */
   readonly value: string;
   readonly weight: string | null;
+  readonly multiplier: string;
+  /** `value` times `multiplier`. */
+  readonly multiplied: string;
 }
 
 /** The rounding applied to the aggregate, exactly once. */
@@ -376,8 +429,10 @@ export interface AggregateResult {
   readonly value: string | null;
   /** The same value before that rounding. */
   readonly exact_value: string | null;
-  /** The sum of the consumed values before any division: the KCSE aggregate points. */
+  /** The sum of the multiplied values before the division: the KCSE aggregate points. */
   readonly subtotal: string | null;
+  /** The divisor applied to the subtotal, when the operator divides one. */
+  readonly divisor: string | null;
   readonly consumed: readonly ConsumedValue[];
   /** The areas a `best_n` selected, in the order it selected them. */
   readonly selected: readonly string[] | null;
@@ -406,6 +461,10 @@ export type AggregationIssueCode =
   | 'missing_weights'
   | 'invalid_weights'
   | 'invalid_weight'
+  | 'invalid_multiplier'
+  | 'invalid_divisor'
+  | 'missing_divisor'
+  | 'multiplier_not_consumed'
   | 'invalid_precision'
   | 'invalid_rounding_mode'
   | 'missing_result_scale'
