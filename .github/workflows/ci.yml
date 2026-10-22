@@ -56,6 +56,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Pack conformance vectors (every pack through the real engines)
+        run: node scripts/packs/run-vectors.mjs
+
       - name: PRD task gate (vs PR base)
         id: gate
         env:

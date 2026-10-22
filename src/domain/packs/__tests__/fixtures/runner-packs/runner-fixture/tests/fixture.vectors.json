@@ -1,0 +1,67 @@
+{
+  "vectors": [
+    {
+      "name": "A flat mark reaches the scheme",
+      "programme": "runner-fixture",
+      "input": {
+        "ET": "75/100"
+      },
+      "expect": {
+        "fixture-scheme": {
+          "exact_total": 75,
+          "total": 75,
+          "percent": 75,
+          "grade": "Pass",
+          "points": 2
+        }
+      }
+    },
+    {
+      "name": "A nested mark reaches the scheme",
+      "programme": "runner-fixture",
+      "input": {
+        "ET": {
+          "score": 75,
+          "max": 100
+        }
+      },
+      "expect": {
+        "fixture-scheme": {
+          "exact_total": 75,
+          "total": 75,
+          "percent": 75,
+          "grade": "Pass",
+          "points": 2
+        }
+      }
+    },
+    {
+      "name": "A mean of one score grades through the declared scale",
+      "programme": "runner-fixture",
+      "input": {
+        "MAT": 75
+      },
+      "expect": {
+        "fixture_mean": {
+          "value": 75,
+          "grade": "P",
+          "points": 2
+        }
+      }
+    },
+    {
+      "name": "L1 promotes automatically into L2",
+      "programme": "runner-fixture",
+      "input": {
+        "leaving_level": "L1"
+      },
+      "expect": {
+        "progression": {
+          "level": "L1",
+          "rule": "automatic",
+          "next_level": "L2"
+        }
+      }
+    }
+  ]
+}

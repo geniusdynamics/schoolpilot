@@ -1,0 +1,14 @@
+{
+  "learning_areas": [
+    {
+      "code": "MAT",
+      "name": "Mathematics",
+      "kind": "core",
+      "levels": [
+        "L1",
+        "L2"
+      ]
+    }
+  ],
+  "competencies": []
+}

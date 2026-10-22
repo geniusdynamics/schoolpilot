@@ -1,0 +1,26 @@
+{
+  "code": "runner-fixture",
+  "name": "Conformance runner fixture",
+  "version": "2026.1.0",
+  "country": "XX",
+  "issuers": [
+    "Fixture Board"
+  ],
+  "effective_from": "2026-01-01",
+  "languages": [
+    "en"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Conformance runner fixture",
+      "issuer": "Fixture Board",
+      "url": "https://example.org/schoolpilot/fixture",
+      "retrieved": "2026-01-01"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": []
+  }
+}
