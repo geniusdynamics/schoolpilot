@@ -3392,8 +3392,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "notes": "Owner decision 2026-10-22: add a schema-migration path rather than moving the module tables into the canonical registry or applying their DDL ad hoc at startup. P3-A03 (sequence_counter/number/block), P3-A02 (journal_entry/journal_line/ledger_period) and P3-D04 (reconciliation_statement/line/match) all define their DDL in-module and expose ensureSchema; none is applied in production, so none of those modules can write. This task gives the repo a numbered schema-migration path and converts the three module schemas into migrations that run on startup and roll back."
+      "status": "done",
+      "notes": "Owner decision 2026-10-22: add a schema-migration path rather than moving the module tables into the canonical registry or applying their DDL ad hoc at startup. P3-A03 (sequence_counter/number/block), P3-A02 (journal_entry/journal_line/ledger_period) and P3-D04 (reconciliation_statement/line/match) all define their DDL in-module and expose ensureSchema; none is applied in production, so none of those modules can write. This task gives the repo a numbered schema-migration path and converts the three module schemas into migrations that run on startup and roll back.",
+      "commit": "3f6e1f1",
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-B01",
