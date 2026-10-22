@@ -49,6 +49,30 @@ export {
 } from './guardianService';
 
 export {
+  PromotionService,
+  PROMOTION_APPROVER_ROLES,
+  canApprovePromotion,
+  type ArchivedClassList,
+  type ClosedEnrolment,
+  type GraduatedLearner,
+  type PromotionComputeInput,
+  type PromotionConflict,
+  type PromotionContextSource,
+  type PromotionCounts,
+  type PromotionDecisionAction,
+  type PromotionLearnerContext,
+  type PromotionOverride,
+  type PromotionPlacement,
+  type PromotionPlan,
+  type PromotionRow,
+  type PromotionRules,
+  type PromotionRun,
+  type PromotionRunRecord,
+  type PromotionServiceOptions,
+  type PromotionUndoResult,
+} from './PromotionService';
+
+export {
   ServiceError,
   isServiceError,
   type ServiceErrorCode,
