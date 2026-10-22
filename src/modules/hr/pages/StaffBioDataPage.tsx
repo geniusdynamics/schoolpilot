@@ -7,7 +7,8 @@ import type { StaffBioData } from '../data/types';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
-import { formatKES, formatDate } from '@/utils/format';
+import { formatDate } from '@/utils/format';
+import { formatMoney } from '@/domain/money';
 export const StaffBioDataPageContent: React.FC = () => {
 
   const { staff, isLoading } = useCanonicalStaff();
@@ -303,7 +304,7 @@ export const StaffBioDataPageContent: React.FC = () => {
                         <p className="text-sm text-surface-muted-fg">
                           {formatDate(contract.start_date)} - {formatDate(contract.end_date)}
                         </p>
-                        <p className="text-sm text-surface-foreground font-semibold">{formatKES(contract.salary)}</p>
+                        <p className="text-sm text-surface-foreground font-semibold">{formatMoney(contract.salary, 'KES')}</p>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           contract.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-surface-accent text-surface-foreground'
                         }`}>

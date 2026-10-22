@@ -21,7 +21,8 @@ import { logger } from '@/utils/logging';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
-import { formatKES, formatDate } from '@/utils/format';
+import { formatDate } from '@/utils/format';
+import { formatMoney } from '@/domain/money';
 
 export const STAFF_SALARY_COMPONENTS_COLLECTION = 'staff_salary_components';
 
@@ -215,7 +216,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
     { 
       header: t('tableHeaders.amount'), 
       key: 'amount' as keyof StaffSalaryComponent,
-      render: (value: number) => formatKES(value)
+      render: (value: number) => formatMoney(value, 'KES')
     },
     { 
       header: t('tableHeaders.effectiveFrom'), 

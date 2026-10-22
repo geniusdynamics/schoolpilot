@@ -9,6 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { usePortalData } from '../data/usePortalData';
 import { PortalAccessNotice, shouldShowAccessNotice } from '../components/PortalAccessNotice';
 import type { PortalFeeSummary } from '../data/types';
+import { formatMoney } from '@/domain/money';
 import {
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
@@ -31,8 +32,6 @@ interface PaymentRow {
   amount: number;
   paymentMethod: string;
 }
-
-const formatKES = (amount: number) => `KES ${amount.toLocaleString()}`;
 
 const statusBadgeClass: Record<string, string> = {
   'Paid': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700',
@@ -136,7 +135,7 @@ export const PortalFeesContent: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: number) => <span className="font-mono text-sm text-surface-foreground">{formatKES(value)}</span>,
+      render: (value: number) => <span className="font-mono text-sm text-surface-foreground">{formatMoney(value, 'KES')}</span>,
     },
     {
       key: 'amountPaid',
@@ -145,7 +144,7 @@ export const PortalFeesContent: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: number) => <span className="font-mono text-sm text-emerald-600">{formatKES(value)}</span>,
+      render: (value: number) => <span className="font-mono text-sm text-emerald-600">{formatMoney(value, 'KES')}</span>,
     },
     {
       key: 'balance',
@@ -156,7 +155,7 @@ export const PortalFeesContent: React.FC = () => {
       align: 'right',
       render: (value: number, row) => (
         <span className={`font-mono text-sm ${row.status === 'Paid' ? 'text-surface-muted-fg' : 'text-rose-600 font-medium'}`}>
-          {formatKES(value)}
+          {formatMoney(value, 'KES')}
         </span>
       ),
     },
@@ -201,7 +200,7 @@ export const PortalFeesContent: React.FC = () => {
       filterable: true,
       width: 140,
       align: 'right',
-      render: (value: number) => <span className="font-mono text-sm font-semibold text-emerald-600">{formatKES(value)}</span>,
+      render: (value: number) => <span className="font-mono text-sm font-semibold text-emerald-600">{formatMoney(value, 'KES')}</span>,
     },
     {
       key: 'paymentMethod',
