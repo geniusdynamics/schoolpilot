@@ -10,7 +10,9 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
+import { useAuth } from '@/contexts/AuthContext';
 import { useEntityQuery, useLookup } from '@/data/query';
+import { resolveCanonicalActor } from '@/data/sessionActor';
 import type { Repository } from '@/data/repository';
 import { asId } from '@/domain/ids';
 import type { Role } from '@/data/auth';
@@ -78,6 +80,52 @@ function pendingLabel(action: string): string | null {
 /** The message of a thrown value, for the failure banner. */
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * The canonical roles a signed-in login holds.
+ *
+ * The platform's own login carries one legacy role name (`super_admin`, `headteacher`, ...) while
+ * the domain gates a promotion run on the catalogue of spec 06 section 5.2, so the name is mapped
+ * onto the catalogue here. An unrecognised login role holds no canonical role, and the run then
+ * refuses the approval rather than granting it.
+ */
+const LOGIN_ROLE_TO_CANONICAL: Readonly<Record<string, Role>> = {
+  super_admin: 'administrator',
+  superadmin: 'administrator',
+  admin: 'administrator',
+  administrator: 'administrator',
+  head_teacher: 'head_teacher',
+  headteacher: 'head_teacher',
+  principal: 'head_teacher',
+  registrar: 'registrar',
+  class_teacher: 'class_teacher',
+  teacher: 'teacher',
+  accountant: 'accountant',
+  finance_officer: 'accountant',
+  bursar: 'accountant',
+  nurse: 'nurse',
+  auditor: 'auditor',
+};
+
+function canonicalRolesFor(loginRole: string | null | undefined): readonly Role[] {
+  const key = (loginRole ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const role = LOGIN_ROLE_TO_CANONICAL[key];
+  return role === undefined ? [] : [role];
+}
+
+/** The signed-in login; a page rendered outside the app shell has no session. */
+function useSessionActor(): { actorId: string; username: string | null; role: string | null } {
+  try {
+    const auth = useAuth();
+    return {
+      actorId: auth.user?.id ?? '',
+      username: auth.user?.username ?? null,
+      role: auth.user?.role ?? null,
+    };
+  } catch {
+    return { actorId: '', username: null, role: null };
+  }
 }
 
 export const PromotionRunPageContent: React.FC<PromotionRunPageContentProps> = ({
@@ -522,12 +570,34 @@ const PromotionRunPageWithRepository: React.FC<{
 }> = ({ rules, approver, now }) => {
   const repository = useWritableRepository();
   const programmes = useEntityQuery(repository, 'programme');
+  // The approval is recorded under a canonical identity: a promotion decision names its decider by
+  // a canonical `user` reference, and the commit's audit trail names the same actor, so the actor
+  // has to be a canonical row rather than the login's own UUIDv4 id.
+  const users = useEntityQuery(repository, 'user');
+  const session = useSessionActor();
+  // The school runs more than one programme (the demo programme, then one per installed pack), and
+  // only a pack that ships with the application has rules the page can read. The first programme
+  // whose pack is bundled is the one the run is computed with; a programme whose pack is not in the
+  // library is skipped rather than making the run impossible.
   const resolvedRules = useMemo(() => {
     if (rules) return rules;
-    const code = programmes.data?.items.find((programme) => programme.curriculum_pack_code)
-      ?.curriculum_pack_code;
-    return code ? promotionRulesForPack(code) : null;
+    for (const programme of programmes.data?.items ?? []) {
+      const code = programme.curriculum_pack_code;
+      if (!code) continue;
+      const candidate = promotionRulesForPack(code);
+      if (candidate) return candidate;
+    }
+    return null;
   }, [rules, programmes.data]);
+
+  const resolvedApprover = useMemo<PromotionApprover>(
+    () =>
+      approver ?? {
+        actor: resolveCanonicalActor(users.data?.items ?? [], session)?.id ?? session.actorId,
+        roles: canonicalRolesFor(session.role),
+      },
+    [approver, users.data, session]
+  );
 
   if (!resolvedRules) {
     return (
@@ -545,7 +615,7 @@ const PromotionRunPageWithRepository: React.FC<{
       <PromotionRunPageContent
         repository={repository}
         rules={resolvedRules}
-        approver={approver ?? { actor: '', roles: [] }}
+        approver={resolvedApprover}
         {...(now ? { now } : {})}
       />
     </div>

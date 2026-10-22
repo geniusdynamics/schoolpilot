@@ -438,6 +438,10 @@ export class PromotionService {
    */
   async plan(run: PromotionRun): Promise<PromotionPlan> {
     const targetLevels = await this.levelsByCode();
+    const levelsByProgramme = await this.levelsByProgrammeCode();
+    const programmeOfClassGroup = await this.programmeByClassGroup(
+      run.rows.map((row) => row.classGroupId)
+    );
     const groups = await this.nextYearGroups(run.nextAcademicYearId, run.institutionId);
     const placements: PromotionPlacement[] = [];
     const graduates: PromotionRow[] = [];
@@ -463,7 +467,15 @@ export class PromotionService {
       }
 
       const levelCode = action === 'repeat' ? row.levelCode : row.suggestion.to_level;
-      const targetLevelId = levelCode === null ? null : targetLevels.get(levelCode)?.id ?? null;
+      const targetLevelId =
+        levelCode === null
+          ? null
+          : this.levelIdFor(
+              targetLevels,
+              levelsByProgramme,
+              levelCode,
+              programmeOfClassGroup.get(row.classGroupId)
+            );
       if (targetLevelId === null) {
         conflicts.push({
           learnerId: row.learnerId,
@@ -870,6 +882,48 @@ export class PromotionService {
   private async levelsByCode(): Promise<Map<string, LevelRow>> {
     const levels = await this.all<'level'>('level', {});
     return new Map(levels.map((level) => [level.code, level] as const));
+  }
+
+  /**
+   * The levels of the institution, by the programme they belong to and their code.
+   *
+   * A level belongs to a programme through its stage. Two programmes may declare the same level
+   * code — a transitional school runs 8-4-4 beside CBE — so a code alone does not identify a level,
+   * and a run must read the code inside the learner's own programme.
+   */
+  private async levelsByProgrammeCode(): Promise<Map<string, LevelRow>> {
+    const levels = await this.all<'level'>('level', {});
+    const stages = await this.all<'stage'>('stage', {});
+    const programmeOfStage = new Map(stages.map((stage) => [stage.id, stage.programme_id] as const));
+    const map = new Map<string, LevelRow>();
+    for (const level of levels) {
+      const programmeId = programmeOfStage.get(level.stage_id);
+      if (programmeId === undefined) continue;
+      map.set(`${programmeId}|${level.code}`, level);
+    }
+    return map;
+  }
+
+  /** The programme each class group belongs to, so a level code is read inside its own programme. */
+  private async programmeByClassGroup(
+    classGroupIds: readonly Id<'class_group'>[]
+  ): Promise<Map<string, string>> {
+    const groups = await this.rowsById('class_group', classGroupIds);
+    return new Map([...groups.values()].map((group) => [group.id, group.programme_id] as const));
+  }
+
+  /** The level a code names, inside the learner's programme when the school runs more than one. */
+  private levelIdFor(
+    byCode: Map<string, LevelRow>,
+    byProgrammeCode: Map<string, LevelRow>,
+    levelCode: string,
+    programmeId: string | undefined
+  ): Id<'level'> | null {
+    if (programmeId !== undefined) {
+      const own = byProgrammeCode.get(`${programmeId}|${levelCode}`);
+      if (own) return own.id;
+    }
+    return byCode.get(levelCode)?.id ?? null;
   }
 
   /** The class groups of the next year, keyed by level and stream name. */

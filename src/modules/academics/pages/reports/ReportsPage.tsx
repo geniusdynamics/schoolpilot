@@ -12,7 +12,8 @@ import { EntityPicker } from '@/components/ui/EntityPicker';
 import Spinner from '@/components/ui/Spinner';
 import { ReportDocument, ReportPrintSurface, printReport } from '@/components/reports';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLookup } from '@/data/query';
+import { useEntityQuery, useLookup } from '@/data/query';
+import { resolveCanonicalActor } from '@/data/sessionActor';
 import type { AggregationDefinition } from '@/domain/assessment/aggregation';
 import type { GradingScaleDefinition } from '@/domain/assessment/scales';
 import type { ReportSchool } from '@/domain/reports/types';
@@ -50,12 +51,16 @@ function envText(name: string): string | null {
 }
 
 /** The login the page acts for; a page rendered outside the app shell has no session. */
-function useSessionActor(): { actorId: string; role: string | null } {
+function useSessionActor(): { actorId: string; username: string | null; role: string | null } {
   try {
     const auth = useAuth();
-    return { actorId: auth.user?.id ?? '', role: auth.user?.role ?? null };
+    return {
+      actorId: auth.user?.id ?? '',
+      username: auth.user?.username ?? null,
+      role: auth.user?.role ?? null,
+    };
   } catch {
-    return { actorId: '', role: null };
+    return { actorId: '', username: null, role: null };
   }
 }
 
@@ -92,10 +97,16 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
 }) => {
   const { t } = useTranslation('academics');
   const session = useSessionActor();
-  const actorId = givenActorId ?? session.actorId;
-  const role = givenRole === undefined ? session.role : givenRole;
 
   const repository = useWritableRepository();
+  // The canonical identity the publish is recorded under. A published report card names its
+  // publisher by a canonical `user` reference, so the actor has to be a canonical row, not the
+  // login's own UUIDv4 id.
+  const users = useEntityQuery(repository, 'user');
+  const canonicalActor = resolveCanonicalActor(users.data?.items ?? [], session);
+  const actorId = givenActorId ?? canonicalActor?.id ?? session.actorId;
+  const role = givenRole === undefined ? session.role : givenRole;
+
   const canonical = useCanonicalAcademics();
   const periodLookup = useLookup(repository, 'academic_period', { label: (row) => row.name });
   const classLookup = useLookup(repository, 'class_group', { label: (row) => row.name });
