@@ -208,12 +208,12 @@ would miss.
 | --- | --- | --- |
 | 100 | sequences | `sequence_counter`, `sequence_number`, `sequence_block`, the unique number and block-range indexes and the outstanding-block index. |
 | 101 | ledger | `journal_entry`, `journal_line`, `ledger_period`, their eight indexes (three of them partial and unique), and the four triggers that make a posted entry and its lines immutable. |
+| 102 | reconciliation | `reconciliation_statement`, `reconciliation_line`, `reconciliation_match`, their nine indexes (three unique, two of those partial) and the two triggers that make a match record history. |
 
-Version 102 is reserved for the reconciliation module (P3-D04: `reconciliation_statement`,
-`reconciliation_line`, `reconciliation_match`, its unique indexes and its immutable-match
-triggers). It joins the registry when that module lands on this branch. Adding a module is adding
-its migration to `SCHEMA_MIGRATIONS`: the startup path, the rollback and the version surface all
-read that list.
+Adding a module is adding its migration to `SCHEMA_MIGRATIONS`: the startup path, the rollback and
+the version surface all read that list. Every statement the three modules declare is a
+`CREATE TABLE`, `CREATE INDEX`, `CREATE UNIQUE INDEX` or `CREATE TRIGGER` with an
+`IF NOT EXISTS` head, quoted or unquoted, which is what the reader covers.
 
 ### Startup
 
@@ -415,7 +415,7 @@ databases, and the canonical schema of A03 is applied to them.
 | `dump.test.ts` | The atomic restore, a failed restore that changes nothing, and a table whose definition carries comments. |
 | `nodeBackup.test.ts` | The node file copy strategy on a real database file: the copy, the restore and the discard. |
 | `canonical.test.ts` | The framework over the canonical schema of A03, and a dump and restore of it. |
-| `schema.test.ts` | The module schemas on a real database: a fresh one, one that already holds the tables, the no-op re-run, the rollback, the shared ledger with a data migration, a version from a newer build, and a migration that fails part-way. |
+| `schema.test.ts` | The module schemas on a real database: a fresh one, one that already holds the tables, the no-op re-run, the rollback, reconciliation's own tables, indexes and triggers, the shared ledger with a data migration, a version from a newer build, and a migration that fails part-way. |
 | `schemaStartup.test.ts` | The canonical start-up path applies them: the repository the app opens, then the tables read back from the adapter it opened. |
 
 ## Module layout

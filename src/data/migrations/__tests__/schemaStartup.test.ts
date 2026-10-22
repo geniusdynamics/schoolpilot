@@ -49,11 +49,14 @@ describe('the canonical start-up path', () => {
         'journal_entry',
         'journal_line',
         'ledger_period',
+        'reconciliation_statement',
+        'reconciliation_line',
+        'reconciliation_match',
       ])
     );
 
     const version = await readSchemaVersion(adapter);
     expect(version.complete).toBe(true);
-    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101]);
+    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102]);
   });
 });

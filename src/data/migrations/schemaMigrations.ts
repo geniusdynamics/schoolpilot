@@ -2,6 +2,7 @@
 // ABOUTME: migrations that declare the module's own DDL, so the tables have one source of truth.
 
 import { LEDGER_DDL } from '@/domain/finance/ledger/store';
+import { RECONCILIATION_DDL } from '@/domain/finance/reconciliation/store';
 import { SEQUENCE_DDL } from '@/domain/sequences/store';
 
 import { dropStatementsFor, schemaObjectsOf, type SchemaObject } from './schemaDdl';
@@ -86,12 +87,13 @@ export const ledgerSchemaMigration: ModuleSchemaMigration = moduleSchemaMigratio
   ddl: LEDGER_DDL,
 });
 
-// Version 102 belongs to the reconciliation module (P3-D04: reconciliation_statement,
-// reconciliation_line and reconciliation_match, its unique indexes and its immutable-match
-// triggers). Its DDL is not on this branch yet: P3-D04 lives on `prd/P3-D04`. When it lands,
-// add `moduleSchemaMigration({ version: 102, module: 'reconciliation', ddl: RECONCILIATION_DDL
-// })` to this list and nothing else: the startup path, the rollback and the version surface
-// all read the registry.
+/** The reconciliation module: imported statements, their lines and the match history. */
+export const reconciliationSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 102,
+  module: 'reconciliation',
+  name: 'reconciliation: statements, their lines, the matches and the immutable-match triggers',
+  ddl: RECONCILIATION_DDL,
+});
 
 /**
  * The module schema migrations this build applies at startup, in version order.
@@ -102,6 +104,7 @@ export const ledgerSchemaMigration: ModuleSchemaMigration = moduleSchemaMigratio
 export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   sequencesSchemaMigration,
   ledgerSchemaMigration,
+  reconciliationSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */

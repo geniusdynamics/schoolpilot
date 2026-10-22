@@ -37,6 +37,7 @@ export {
   LEGACY_DATA_MIGRATION_VERSIONS,
   ledgerSchemaMigration,
   moduleSchemaMigration,
+  reconciliationSchemaMigration,
   SCHEMA_MIGRATION_FLOOR,
   SCHEMA_MIGRATION_VERSIONS,
   SCHEMA_MIGRATIONS,
