@@ -324,4 +324,33 @@ describe('AdmitLearnerPage', () => {
     expect(within(failure).getByText(/First name/)).toBeInTheDocument();
     expect((repository.rows.learner ?? []).length).toBe(1);
   });
+
+  it('offers only the levels the chosen programme declares', async () => {
+    // A school that runs two programmes may declare a level in each; the picker must not offer the
+    // other programme's level. The level's programme is its stage's programme.
+    const STAGE_A = '01930000-0000-7000-8000-00000000000e';
+    const STAGE_B = '01930000-0000-7000-8000-00000000000f';
+    const levels = repository.rows.level ?? [];
+    act(() => {
+      repository.publish('stage', [
+        { id: STAGE_A, institution_id: INSTITUTION, programme_id: PROGRAMME, code: 'JS', name: 'Junior School', sequence: 1 },
+        { id: STAGE_B, institution_id: INSTITUTION, programme_id: OTHER_PROGRAMME, code: 'SEC', name: 'Secondary', sequence: 1 },
+      ]);
+      repository.publish('level', [
+        { ...levels[0], stage_id: STAGE_A },
+        { ...levels[1], stage_id: STAGE_B },
+      ]);
+    });
+
+    renderPage();
+    await choose('programme-picker', /844 Secondary/);
+    fireEvent.click(screen.getByTestId('level-picker'));
+
+    const listbox = (await screen.findAllByRole('listbox')).at(-1) as HTMLElement;
+    const names = within(listbox)
+      .getAllByRole('option')
+      .map((option) => option.textContent ?? '');
+    expect(names).toContain('Grade 8');
+    expect(names).not.toContain('Grade 7');
+  });
 });

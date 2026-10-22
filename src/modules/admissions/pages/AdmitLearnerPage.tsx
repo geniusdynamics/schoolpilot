@@ -144,6 +144,30 @@ export const AdmitLearnerPageContent: React.FC = () => {
       (levelId === '' || row.level_id === levelId);
   }, [values.programme_id, values.level_id]);
 
+  /**
+   * The levels the chosen programme declares, or null when no programme is chosen yet.
+   *
+   * A level belongs to a programme through its stage. Two programmes may both declare a "Form 1"
+   * (a transitional 8-4-4 secondary beside a CBE primary), so the level picker is scoped to the
+   * chosen programme and the placement can never land on the other programme's level.
+   */
+  const programmeLevelIds = useMemo(() => {
+    if (values.programme_id === '') return null;
+    const ids = new Set<string>();
+    for (const level of lookups.levels.options) {
+      const stage = lookups.stages.resolve(asId<'stage'>(level.stage_id));
+      // A level whose stage is not loaded yet stays visible: the filter must not hide the whole
+      // picker while the stage read is still in flight.
+      if (stage === undefined || stage.programme_id === values.programme_id) ids.add(level.id);
+    }
+    return ids;
+  }, [values.programme_id, lookups.levels.options, lookups.stages]);
+
+  const levelFilter = useCallback(
+    (row: RepositoryRow<'level'>) => programmeLevelIds === null || programmeLevelIds.has(row.id),
+    [programmeLevelIds]
+  );
+
   const classGroupLabel = values.class_group_id
     ? lookups.classGroups.label(asId<'class_group'>(values.class_group_id), '')
     : '';
@@ -467,6 +491,7 @@ export const AdmitLearnerPageContent: React.FC = () => {
                   value={values.level_id ? asId<'level'>(values.level_id) : null}
                   onChange={(id) => setField('level_id')(id ?? '')}
                   lookup={lookups.levels}
+                  filter={levelFilter}
                   placeholder="Choose a level"
                   disabled={submitting}
                   data-testid="level-picker"

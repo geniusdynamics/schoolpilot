@@ -152,11 +152,16 @@ export function useCanonicalAdmissions() {
 /**
  * The lookups the admission form's pickers bind to: the programmes and levels of the school,
  * the class groups of the year, and the guardians a registrar can link instead of copying.
+ *
+ * The stages are here so the level picker can be scoped to the chosen programme: a school that
+ * runs more than one programme may have a "Form 1" in each, and the level a registrar picks must
+ * be the one the programme declares.
  */
 export function useAdmissionLookups() {
   const repository = useCanonicalRepository();
   return {
     programmes: useLookup(repository, 'programme', {}),
+    stages: useLookup(repository, 'stage', {}),
     levels: useLookup(repository, 'level', {}),
     classGroups: useLookup(repository, 'class_group', {}),
     guardians: useLookup(repository, 'guardian', {}),

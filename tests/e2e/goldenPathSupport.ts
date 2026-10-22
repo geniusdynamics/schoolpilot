@@ -38,6 +38,11 @@ export interface SetupOptions {
   readonly admin: AdminAccount;
   /** Ticks the wizard's optional sample-data step: demo learners, staff, fees, an assessment and a register. */
   readonly sampleData: boolean;
+  /**
+   * The pack codes the wizard installs. The first is chosen on the curriculum step; the rest are
+   * added beside it, so a school can end up with more than one programme.
+   */
+  readonly packs?: readonly string[];
 }
 
 /** Wait for the authenticated shell after a document load. */
@@ -84,6 +89,7 @@ export async function navigate(page: Page, path: string): Promise<void> {
 /** Complete the first-run onboarding and the seven-step setup wizard, then stop on the login page. */
 export async function completeSetup(page: Page, options: SetupOptions): Promise<void> {
   const { school, classes, admin, sampleData } = options;
+  const packs = options.packs ?? ['ke-844'];
 
   await page.goto('/', { waitUntil: 'domcontentloaded', timeout: COLD_LOAD_TIMEOUT });
   await expect(page.getByRole('heading', { name: 'Welcome to SchoolPilot 3' })).toBeVisible({
@@ -106,8 +112,17 @@ export async function completeSetup(page: Page, options: SetupOptions): Promise<
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByText('Step 2 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
 
-  // Step 2 of 7 — education system.
-  await page.getByText('8-4-4 — Secondary (Form 1–4, KCSE)').click();
+  // Step 2 of 7 — curriculum packs. The pack is chosen from the registry, one card per pack; a
+  // school may choose more than one, and each becomes its own programme.
+  for (const code of packs) {
+    const pack = page.getByTestId(`pack-option-${code}`);
+    await expect(pack).toBeVisible({ timeout: UI_TIMEOUT });
+    await pack.click();
+  }
+  // Every chosen pack shows a ticked checkbox before the step is left.
+  for (const code of packs) {
+    await expect(page.getByTestId(`pack-card-${code}`).getByRole('checkbox')).toBeChecked();
+  }
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByText('Step 3 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
 
