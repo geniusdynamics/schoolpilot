@@ -18,7 +18,7 @@ import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import type { SchoolProfile } from '@/hooks/useSchoolProfile';
 import { openCanonicalRepository } from '@/data/canonicalRepository';
 import type { Repository } from '@/data/repository';
-import { generateUuidv7 } from '@/domain/ids';
+import { asId, generateUuidv7 } from '@/domain/ids';
 import { logger } from '@/utils/logging';
 import {
   KENYAN_CURRICULUM_PRESETS,
@@ -43,6 +43,7 @@ import {
   saveEducationSystem,
   saveSchoolProfile,
   saveSubjects,
+  type WizardStore,
 } from './steps/writers';
 import { saveCanonicalSchool } from './steps/canonicalSetup';
 import { PackSelection } from './packs/PackSelection';
@@ -149,6 +150,44 @@ interface AdminForm {
 
 const EMPTY_ADMIN: AdminForm = { username: '', displayName: '', password: '', confirm: '' };
 
+/**
+ * Gives the administrator the wizard just created a canonical identity.
+ *
+ * The login lives in the legacy `users` collection; the canonical model keeps its own `user` entity,
+ * and a canonical write that names an actor — a published report card's publisher, a promotion
+ * decision's decider, the audit columns of any write made for a named actor — references that entity.
+ * The login's own id is a UUIDv4 while the canonical model stores UUIDv7, so the login id can never
+ * be written into one: the canonical identity is a row of its own, linked by the username both rows
+ * carry. The school structure is written before this step, so the institution exists; a wizard whose
+ * structure step failed leaves no canonical row behind rather than a user with no institution.
+ */
+async function linkCanonicalAdministrator(store: WizardStore): Promise<void> {
+  const opened = await openCanonicalRepository();
+  if (!isCanonicalRepository(opened)) return;
+
+  const institution = (await opened.list('institution', { limit: 1 })).items[0];
+  if (!institution) return;
+
+  const login = (await store.find('users'))[0];
+  const username = typeof login?.username === 'string' ? login.username.trim() : '';
+  if (!username) return;
+
+  const existing = await opened.list('user', { where: { username }, limit: 1 });
+  if (existing.items.length > 0) return;
+
+  const passwordHash =
+    typeof login.hashed_password === 'string' && login.hashed_password !== ''
+      ? login.hashed_password
+      : 'external-login';
+  await opened.create('user', {
+    institution_id: asId<'institution'>(institution.id),
+    username,
+    password_hash: passwordHash,
+    status: 'active',
+    mfa: false,
+  });
+}
+
 export interface SetupWizardProps {
   onComplete: () => void;
   /** Shown as a Cancel button, e.g. when the wizard is re-opened from Settings. */
@@ -245,6 +284,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       password: admin.password,
     });
     if (!result.success) throw new Error(result.message);
+    await linkCanonicalAdministrator(store);
     setAdmin(EMPTY_ADMIN);
     setAdminExists(true);
   }, [admin, t]);

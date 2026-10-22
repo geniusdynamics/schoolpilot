@@ -42,6 +42,9 @@ export type Role = (typeof ROLES)[number];
  *   row of every role that does not hold this permission.
  * - `invoice.post`, `payment.void` and `fee_schedule.approve` name transitions no repository
  *   action carries; the finance services judge them.
+ * - `workflow.manage` owns the workflow catalogue of `src/domain/workflows`: it gates who may add,
+ *   edit or remove a workflow definition. A transition of a workflow names its own permission,
+ *   which is one of the entity permissions above; this one is about the definitions themselves.
  */
 export const PERMISSIONS = [
   'learner.read',
@@ -79,6 +82,7 @@ export const PERMISSIONS = [
   'attendance.write',
   'pastoral.read',
   'pastoral.write',
+  'workflow.manage',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -207,6 +211,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'institution.read',
     'reference.read',
     'audit.read',
+    'workflow.manage',
   ],
   registrar: [
     'learner.read',

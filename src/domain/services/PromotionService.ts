@@ -19,7 +19,7 @@ import {
   type ProgressionStage,
   type ProgressionSuggestion,
 } from '@/domain/assessment/progression';
-import { hasPermission, type Role } from '@/data/auth';
+import { type Role } from '@/data/auth';
 import {
   RepositoryPermissionError,
   type CreateInput,
@@ -29,6 +29,15 @@ import {
 } from '@/data/repository';
 import { asId, generateUuidv7, type Id } from '@/domain/ids';
 import type { EntityName, JsonValue, Money } from '@/domain/schema';
+
+import {
+  PROMOTION_RUN_KEY,
+  WorkflowEngine,
+  createMemoryWorkflowStore,
+  promotionRun as promotionRunWorkflow,
+  resolveMove,
+  type WorkflowStore,
+} from '@/domain/workflows';
 
 import {
   inTransaction,
@@ -59,17 +68,22 @@ const CARRY_PREFIX = 'CARRY/';
  *
  * The catalogue of spec 06 section 5.2 maps the deputy (academics), the director of studies and the
  * exams officer onto `head_teacher`, and the administrator holds every permission. The gate is the
- * repository's own role model: a role that does not hold `enrolment.write` cannot approve at all,
- * and of the roles that do, only the head's own role may.
+ * engine's own transition (`enrolment.promotion_run`, `approve`): the roles and the permission live
+ * on the workflow, so a change to who may approve is a change to the catalogue rather than to this
+ * service.
  */
-export const PROMOTION_APPROVER_ROLES: readonly Role[] = ['head_teacher', 'administrator'];
+export const PROMOTION_APPROVER_ROLES: readonly Role[] =
+  promotionRunWorkflow.transitions.find((transition) => transition.key === 'approve')
+    ?.allowed_roles ?? [];
 
 /** True when the roles own the approval of a promotion run (spec 04 section 6.2 step 4). */
 export function canApprovePromotion(roles: readonly Role[]): boolean {
-  return (
-    hasPermission(roles, 'enrolment.write') &&
-    roles.some((role) => PROMOTION_APPROVER_ROLES.includes(role))
-  );
+  return resolveMove(promotionRunWorkflow, {
+    recordKey: '',
+    from: 'computed',
+    to: 'approved',
+    actor: { id: '', roles },
+  }).allowed;
 }
 
 /** The structural facts a promotion run reads from a pack. */
@@ -251,6 +265,8 @@ export interface PromotionUndoResult {
 export interface PromotionServiceOptions extends ServiceDependencies {
   /** The repository every read and write goes through. */
   readonly repository: Repository;
+  /** Where the run's transitions are audited. Defaults to a store private to this service. */
+  readonly workflows?: WorkflowStore;
 }
 
 type EnrolmentRow = RepositoryRow<'enrolment'>;
@@ -271,11 +287,22 @@ export class PromotionService {
   private readonly repository: Repository;
   private readonly actor: string | undefined;
   private readonly now: () => Date;
+  /** The run's own transitions: `enrolment.promotion_run`, guarded by the engine. */
+  private readonly workflows: WorkflowEngine;
 
   constructor(options: PromotionServiceOptions) {
     this.repository = options.repository;
     this.actor = options.actor;
     this.now = options.now ?? (() => new Date());
+    this.workflows = new WorkflowEngine({
+      store: options.workflows ?? createMemoryWorkflowStore(),
+      definitions: [promotionRunWorkflow],
+    });
+  }
+
+  /** The transitions of one run, oldest first, as the engine recorded them. */
+  runHistory(runId: string): ReturnType<WorkflowEngine['history']> {
+    return this.workflows.history(runId);
   }
 
   // ------------------------------------------------------------------ compute
@@ -410,18 +437,42 @@ export class PromotionService {
     if (run.committedAt) {
       throw new ServiceError('invalid_request', 'a committed promotion run cannot be approved again');
     }
-    if (!canApprovePromotion(approver.roles)) {
-      throw new RepositoryPermissionError('promotion_decision', 'approve', {
-        id: run.runId,
-        cause: new ServiceError(
-          'invalid_request',
-          `the roles [${approver.roles.join(', ')}] do not own the approval of a promotion run`
-        ),
-      });
+    const actor = { id: approver.actor, roles: approver.roles };
+    const decision = this.workflows.evaluate(PROMOTION_RUN_KEY, {
+      recordKey: run.runId,
+      from: 'computed',
+      to: 'approved',
+      actor,
+    });
+    if (!decision.allowed) {
+      if (decision.code === 'forbidden') {
+        throw new RepositoryPermissionError('promotion_decision', decision.transition ?? 'approve', {
+          id: run.runId,
+          cause: new ServiceError(
+            'invalid_request',
+            `the roles [${approver.roles.join(', ')}] do not own the approval of a promotion run`
+          ),
+        });
+      }
+      throw new ServiceError(
+        'invalid_request',
+        `the promotion run cannot be approved: ${decision.message}`
+      );
     }
+
+    const approvedAt = this.timestamp();
+    // The engine records the move: who approved, when, and from which state. A run already approved
+    // is in `approved` already, so the engine leaves the record alone and writes no second entry.
+    this.workflows.apply(PROMOTION_RUN_KEY, {
+      recordKey: run.runId,
+      from: 'computed',
+      to: 'approved',
+      actor,
+      at: approvedAt,
+    });
     return {
       ...run,
-      approvedAt: this.timestamp(),
+      approvedAt,
       approvedBy: approver.actor,
       approvedRoles: [...approver.roles],
     };
@@ -438,6 +489,10 @@ export class PromotionService {
    */
   async plan(run: PromotionRun): Promise<PromotionPlan> {
     const targetLevels = await this.levelsByCode();
+    const levelsByProgramme = await this.levelsByProgrammeCode();
+    const programmeOfClassGroup = await this.programmeByClassGroup(
+      run.rows.map((row) => row.classGroupId)
+    );
     const groups = await this.nextYearGroups(run.nextAcademicYearId, run.institutionId);
     const placements: PromotionPlacement[] = [];
     const graduates: PromotionRow[] = [];
@@ -463,7 +518,15 @@ export class PromotionService {
       }
 
       const levelCode = action === 'repeat' ? row.levelCode : row.suggestion.to_level;
-      const targetLevelId = levelCode === null ? null : targetLevels.get(levelCode)?.id ?? null;
+      const targetLevelId =
+        levelCode === null
+          ? null
+          : this.levelIdFor(
+              targetLevels,
+              levelsByProgramme,
+              levelCode,
+              programmeOfClassGroup.get(row.classGroupId)
+            );
       if (targetLevelId === null) {
         conflicts.push({
           learnerId: row.learnerId,
@@ -732,6 +795,18 @@ export class PromotionService {
       archivedClassLists: this.archivedClassLists(run, plan),
     };
 
+    // The rows are written; the engine records that the run moved from `approved` to `committed`,
+    // with the actor and the instant. The transition is declared in the catalogue and cannot be
+    // refused here, so a recorded move cannot leave the committed rows without their audit entry.
+    this.workflows.apply(PROMOTION_RUN_KEY, {
+      recordKey: run.runId,
+      from: 'approved',
+      to: 'committed',
+      actor: { id: actor, roles: run.approvedRoles },
+      at: committedAt,
+      reason: `promotion run ${run.runId}`,
+    });
+
     return { ...run, committedAt, committedBy: actor, record };
   }
 
@@ -838,6 +913,15 @@ export class PromotionService {
       }
     });
 
+    this.workflows.apply(PROMOTION_RUN_KEY, {
+      recordKey: run.runId,
+      from: 'committed',
+      to: 'undone',
+      actor: { id: actor, roles: run.approvedRoles },
+      at: this.timestamp(),
+      reason: `undo promotion run ${run.runId}`,
+    });
+
     return { ...run, committedAt: null, committedBy: null, record: null };
   }
 
@@ -870,6 +954,48 @@ export class PromotionService {
   private async levelsByCode(): Promise<Map<string, LevelRow>> {
     const levels = await this.all<'level'>('level', {});
     return new Map(levels.map((level) => [level.code, level] as const));
+  }
+
+  /**
+   * The levels of the institution, by the programme they belong to and their code.
+   *
+   * A level belongs to a programme through its stage. Two programmes may declare the same level
+   * code — a transitional school runs 8-4-4 beside CBE — so a code alone does not identify a level,
+   * and a run must read the code inside the learner's own programme.
+   */
+  private async levelsByProgrammeCode(): Promise<Map<string, LevelRow>> {
+    const levels = await this.all<'level'>('level', {});
+    const stages = await this.all<'stage'>('stage', {});
+    const programmeOfStage = new Map(stages.map((stage) => [stage.id, stage.programme_id] as const));
+    const map = new Map<string, LevelRow>();
+    for (const level of levels) {
+      const programmeId = programmeOfStage.get(level.stage_id);
+      if (programmeId === undefined) continue;
+      map.set(`${programmeId}|${level.code}`, level);
+    }
+    return map;
+  }
+
+  /** The programme each class group belongs to, so a level code is read inside its own programme. */
+  private async programmeByClassGroup(
+    classGroupIds: readonly Id<'class_group'>[]
+  ): Promise<Map<string, string>> {
+    const groups = await this.rowsById('class_group', classGroupIds);
+    return new Map([...groups.values()].map((group) => [group.id, group.programme_id] as const));
+  }
+
+  /** The level a code names, inside the learner's programme when the school runs more than one. */
+  private levelIdFor(
+    byCode: Map<string, LevelRow>,
+    byProgrammeCode: Map<string, LevelRow>,
+    levelCode: string,
+    programmeId: string | undefined
+  ): Id<'level'> | null {
+    if (programmeId !== undefined) {
+      const own = byProgrammeCode.get(`${programmeId}|${levelCode}`);
+      if (own) return own.id;
+    }
+    return byCode.get(levelCode)?.id ?? null;
   }
 
   /** The class groups of the next year, keyed by level and stream name. */

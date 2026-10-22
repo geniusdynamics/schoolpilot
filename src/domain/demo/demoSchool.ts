@@ -642,11 +642,15 @@ async function seedDemoPeople(
       programme_id: programmeId,
       code: 'demo_numeric',
       kind: 'numeric_bands',
+      // The bands tile the range exactly. The canonical `grading_scale` carries no upper-bound
+      // convention, so the engine reads the bands half-open (min inclusive, max exclusive): a
+      // published whole-mark range such as 60-79.99 leaves a gap the engine refuses, and the school
+      // then has no band at all. The bound a band is named with is therefore the next band's floor.
       bands: [
         { code: 'EE', label: 'Exceeding expectations', min: 80, max: 100 },
-        { code: 'ME', label: 'Meeting expectations', min: 60, max: 79.99 },
-        { code: 'AEP', label: 'Approaching expectations', min: 40, max: 59.99 },
-        { code: 'BE', label: 'Below expectations', min: 0, max: 39.99 },
+        { code: 'ME', label: 'Meeting expectations', min: 60, max: 80 },
+        { code: 'AEP', label: 'Approaching expectations', min: 40, max: 60 },
+        { code: 'BE', label: 'Below expectations', min: 0, max: 40 },
       ],
       version: '1',
     }),

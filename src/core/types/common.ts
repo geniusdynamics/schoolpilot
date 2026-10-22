@@ -78,11 +78,41 @@ export interface AuditLog {
     user_name?: string | null;
 }
 
+/**
+ * One allowed move of a workflow: from a set of states to a state, for a set of roles.
+ *
+ * This is the row form of the engine's `WorkflowTransitionDefinition`; the engine's catalogue holds
+ * the same shape in code. It exists so a workflow a school keeps in the settings collections can
+ * carry its moves as well as its states.
+ */
+export interface WorkflowTransition {
+    id: number;
+    workflow_id: number;
+    /** The action name, e.g. `approve`. */
+    name: string;
+    /** The state the move leaves; 0 means any state. */
+    from_state_id: number;
+    /** The state the move enters. */
+    to_state_id: number;
+    /** The roles one of which may make the move, when it is role-guarded. */
+    allowed_roles?: string[];
+    /** True when the move is an exception and needs a reason. */
+    requires_reason?: boolean;
+}
+
 export interface WorkflowState {
     id: number;
     workflow_id: number;
     name: string;
     sequence_order: number;
+    /** The stable key the engine stores on a record; the name when absent. */
+    key?: string;
+    /** The state a record with no stored state is in. */
+    is_initial?: boolean;
+    /** A state a record does not leave by the ordinary path. */
+    is_terminal?: boolean;
+    /** True when changing the record in this state is an override and needs a reason. */
+    requires_reason_on_leave?: boolean;
 }
 
 export interface Workflow {
@@ -91,6 +121,15 @@ export interface Workflow {
     created_at: string;
     updated_at: string;
     states?: WorkflowState[];
+    /** The stable key the engine names the workflow by, e.g. `academics.marks_lifecycle`. */
+    key?: string;
+    description?: string;
+    /** A system workflow cannot be deleted or disabled, and may only be added to. */
+    is_system?: boolean;
+    /** False when the workflow is switched off; absent means enabled. */
+    is_active?: boolean;
+    /** The moves, for a workflow that names them; absent for a plain ordered state list. */
+    transitions?: WorkflowTransition[];
 }
 
 // Navigation and Module Types

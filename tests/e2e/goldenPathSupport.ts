@@ -32,6 +32,13 @@ export interface SetupClass {
   readonly streams: string;
 }
 
+/** The academic year the wizard records: the name on the year, and its start and end dates. */
+export interface SetupYear {
+  readonly name: string;
+  readonly start: string;
+  readonly end: string;
+}
+
 export interface SetupOptions {
   readonly school: SchoolSetup;
   readonly classes: readonly SetupClass[];
@@ -43,6 +50,12 @@ export interface SetupOptions {
    * added beside it, so a school can end up with more than one programme.
    */
   readonly packs?: readonly string[];
+  /**
+   * The academic year to record. The wizard's own default is the calendar year the suite runs in;
+   * a suite that needs a second year (a year-end rollover) names it here, and the term dates follow
+   * the default Kenyan calendar for the start year.
+   */
+  readonly year?: SetupYear;
 }
 
 /** Wait for the authenticated shell after a document load. */
@@ -127,17 +140,12 @@ export async function completeSetup(page: Page, options: SetupOptions): Promise<
   await expect(page.getByText('Step 3 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
 
   // Step 3 of 7 — academic year and terms (validated defaults).
+  if (options.year) await fillYearStep(page, options.year);
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByText('Step 4 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
 
   // Step 4 of 7 — classes and streams.
-  const classNames = page.getByPlaceholder(/^Class \d+$/);
-  const streams = page.getByPlaceholder(/Streams, comma-separated/);
-  for (const [index, klass] of classes.entries()) {
-    if (index > 0) await page.getByRole('button', { name: 'Add class' }).click();
-    await classNames.nth(index).fill(klass.name);
-    await streams.nth(index).fill(klass.streams);
-  }
+  await fillClassStep(page, classes);
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByText('Step 5 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
 
@@ -165,6 +173,78 @@ export async function completeSetup(page: Page, options: SetupOptions): Promise<
   await page.waitForTimeout(2000);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: LOAD_TIMEOUT });
   await expect(page.getByTestId('login-page')).toBeVisible({ timeout: LOAD_TIMEOUT });
+}
+
+/** The wizard's year step: the name on the year, its start and end, and the term dates that follow. */
+async function fillYearStep(page: Page, year: SetupYear): Promise<void> {
+  await page.getByLabel('Year name', { exact: true }).fill(year.name);
+  await page.getByLabel('Academic year start', { exact: true }).fill(year.start);
+  await page.getByLabel('Academic year end', { exact: true }).fill(year.end);
+}
+
+/** The wizard's class step: one row per class, with its comma-separated streams. */
+async function fillClassStep(page: Page, classes: readonly SetupClass[]): Promise<void> {
+  const classNames = page.getByPlaceholder(/^Class \d+$/);
+  const streams = page.getByPlaceholder(/Streams, comma-separated/);
+  for (const [index, klass] of classes.entries()) {
+    if (index > 0) await page.getByRole('button', { name: 'Add class' }).click();
+    await classNames.nth(index).fill(klass.name);
+    await streams.nth(index).fill(klass.streams);
+  }
+}
+
+/**
+ * Run the setup wizard a second time, from Settings › School Profile.
+ *
+ * The wizard is re-entrant: it reuses the institution it finds and writes only what is missing. A
+ * re-run that names a different academic year therefore creates that year and its class groups —
+ * the only way the shipped UI can give a school a second year to roll into, because the wizard's
+ * class step is the only place a class group is created.
+ */
+export async function rerunSetupWizard(
+  page: Page,
+  options: { readonly packs: readonly string[]; readonly year: SetupYear; readonly classes: readonly SetupClass[] }
+): Promise<void> {
+  await go(page, '/settings/school-profile');
+  await page.getByRole('button', { name: /Re-run setup wizard/ }).click();
+  await expect(page.getByText('Set up your school')).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Step 1 of 7 — school profile, prefilled from the stored school details.
+  await expect(page.getByPlaceholder('e.g. Greenfields Academy')).not.toHaveValue('');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Step 2 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Step 2 of 7 — the packs; a re-run starts from the default draft, so they are chosen again.
+  for (const code of options.packs) {
+    const pack = page.getByTestId(`pack-option-${code}`);
+    await expect(pack).toBeVisible({ timeout: UI_TIMEOUT });
+    await pack.click();
+    await expect(page.getByTestId(`pack-card-${code}`).getByRole('checkbox')).toBeChecked();
+  }
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Step 3 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Step 3 of 7 — the new academic year.
+  await fillYearStep(page, options.year);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Step 4 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Step 4 of 7 — the classes; the class groups of the new year are created from these rows.
+  await fillClassStep(page, options.classes);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Step 5 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Steps 5 to 7 — subjects, sample data and the administrator (already created, so it is skipped).
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Step 6 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Step 7 of 7')).toBeVisible({ timeout: UI_TIMEOUT });
+  await page.getByRole('button', { name: 'Finish setup' }).click();
+
+  // The wizard returns to the school profile page when it finishes.
+  await expect(page.getByRole('button', { name: /Re-run setup wizard/ })).toBeVisible({
+    timeout: COLD_LOAD_TIMEOUT,
+  });
 }
 
 export async function signIn(page: Page, admin: AdminAccount): Promise<void> {
@@ -196,4 +276,15 @@ export async function chooseFromPicker(
 /** A DataGrid row identified by one unique value it must contain (an admission number, receipt, name). */
 export function gridRow(page: Page, value: string | RegExp): Locator {
   return page.getByRole('row', { name: value instanceof RegExp ? value : new RegExp(value) });
+}
+
+/** Open an EntityPicker trigger and read the options it offers, without choosing one. */
+export async function pickerOptions(page: Page, trigger: Locator): Promise<string[]> {
+  await expect(trigger).toBeVisible({ timeout: UI_TIMEOUT });
+  await trigger.click();
+  const listbox = page.getByRole('listbox').last();
+  await expect(listbox).toBeVisible({ timeout: UI_TIMEOUT });
+  const texts = await listbox.getByRole('option').allInnerTexts();
+  await page.keyboard.press('Escape');
+  return texts.map((text) => text.trim());
 }

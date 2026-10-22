@@ -1,17 +1,34 @@
-// ABOUTME: GP-2 setup portion: a transitional Kenyan secondary school sets up ke-844 beside ke-cbe in
-// ABOUTME: one wizard run and comes out with two programmes, each pinned to its pack with its levels,
-// ABOUTME: learning areas, schemes and scales installed and readable on the programme management page.
+// ABOUTME: GP-2 setup portion (spec 08 section 3, "GP-2 Transitional secondary"): a school picks the
+// ABOUTME: Kenyan 8-4-4 and CBE packs in one wizard run and comes out with two programmes, each pinned
+// ABOUTME: to its pack with the pack's levels, learning areas, schemes and report templates installed,
+// ABOUTME: readable on the programme management page, usable from the admission form, and disclosed as
+// ABOUTME: unreviewed until a curriculum officer signs the pack off.
 // ABOUTME:
-// ABOUTME: SCOPED OUT (the rest of GP-2, owned by later tasks):
-// ABOUTME: - pathway elective choice for Grade 10 learners and its combination rules (P2-E04 promotion and
-// ABOUTME:   the admissions pathway picker);
-// ABOUTME: - Form 4 mark entry with papers, the KCSE best-7 mean grade on F4 reports, separate fee
-// ABOUTME:   schedules and one billing run across both programmes (P2-D03 report publishing, P3 billing).
-// ABOUTME: This suite proves the setup half the card owns: the packs are installed and the programmes are real.
+// ABOUTME: SCOPE. The spec's GP-2 continues into Grade 10 pathway electives (combination rules enforced),
+// ABOUTME: Form 4 mark entry with papers, the KCSE best-7 mean grade on F4 reports, separate fee
+// ABOUTME: schedules and one billing run across both programmes. None of that is reachable from a fresh
+// ABOUTME: school yet: the pathway/combination picker is not wired into admission (P2-E04 owns promotion,
+// ABOUTME: not admission), the paper-level mark entry is the legacy exam-session page (GAP P1-E02), the
+// ABOUTME: reports page resolves its template from the bundled ke-cbe pack rather than the installed
+// ABOUTME: programme, and billing across two programmes is P3. This suite proves the half the phase built
+// ABOUTME: and names the rest in the report.
+// ABOUTME: - the aggregate "usable" proof here is the pack's own levels reaching the admission form's
+// ABOUTME:   level picker, scoped to the programme the pack was installed as. A learner cannot be placed
+// ABOUTME:   into a pack programme's class group yet, because class groups are created by the wizard's
+// ABOUTME:   class step under the school's own programme and no canonical page creates one.
 
 import playwright from '@playwright/test';
 
-import { COLD_LOAD_TIMEOUT, LOAD_TIMEOUT, UI_TIMEOUT, completeSetup, go, signIn } from './goldenPathSupport';
+import {
+  COLD_LOAD_TIMEOUT,
+  LOAD_TIMEOUT,
+  UI_TIMEOUT,
+  chooseFromPicker,
+  completeSetup,
+  go,
+  pickerOptions,
+  signIn,
+} from './goldenPathSupport';
 
 const { test } = playwright;
 const expect = playwright.expect.configure({ timeout: UI_TIMEOUT });
@@ -53,7 +70,7 @@ test.describe('GP-2 golden path (setup)', () => {
       await expect(page.locator('header')).toContainText(SCHOOL.name);
     });
 
-    await test.step('the programme management page lists both programmes', async () => {
+    await test.step('the programme management page lists both programmes with their installed structure', async () => {
       await go(page, '/academics/programmes');
       await expect(page.getByRole('heading', { name: 'Programmes' })).toBeVisible({ timeout: LOAD_TIMEOUT });
 
@@ -62,19 +79,46 @@ test.describe('GP-2 golden path (setup)', () => {
       await expect(table).toContainText('ke-844@1.0.0');
       await expect(table).toContainText('ke-cbe@2026.1.0');
 
-      // The transitional 8-4-4 programme: Forms 1-4, the KCSE learning areas and both KCSE scales.
+      // The transitional 8-4-4 programme: Forms 1-4, the KCSE learning areas, both scales, its scheme
+      // and its two report templates.
       const secondary = page.getByTestId(/^programme-row-/).filter({ hasText: 'ke-844@1.0.0' });
       await expect(secondary).toContainText('4 levels');
       await expect(secondary).toContainText('13 learning areas');
       await expect(secondary).toContainText('2 grading scales');
+      await expect(secondary).toContainText('1 scheme');
+      await expect(secondary).toContainText('2 report templates');
 
-      // The CBE programme sits beside it, not instead of it.
-      const primary = page.getByTestId(/^programme-row-/).filter({ hasText: 'ke-cbe@2026.1.0' });
-      await expect(primary).toContainText('14 levels');
-      await expect(primary).toContainText('35 learning areas');
+      // The CBE programme sits beside it, not instead of it: PP1-G12, its own areas, schemes and reports.
+      const cbe = page.getByTestId(/^programme-row-/).filter({ hasText: 'ke-cbe@2026.1.0' });
+      await expect(cbe).toContainText('14 levels');
+      await expect(cbe).toContainText('35 learning areas');
+      await expect(cbe).toContainText('2 grading scales');
+      await expect(cbe).toContainText('2 schemes');
+      await expect(cbe).toContainText('3 report templates');
+    });
+
+    await test.step('the pack levels the wizard installed are the levels the admission form offers', async () => {
+      // The admission form scopes its level picker to the chosen programme, so the levels offered for
+      // the 8-4-4 programme are the ones its pack installed (Forms 1-4), not the school's own two.
+      await go(page, '/admissions/admit');
+      await expect(page.getByRole('heading', { name: 'Admit learner' })).toBeVisible({ timeout: LOAD_TIMEOUT });
+
+      await chooseFromPicker(
+        page,
+        page.getByTestId('programme-picker'),
+        'Kenya 8-4-4 Secondary (KCSE) - Forms 1 to 4'
+      );
+      const levels = await pickerOptions(page, page.getByTestId('level-picker'));
+      expect(levels, `the 8-4-4 pack's levels:\n${levels.join('\n')}`).toEqual([
+        'Form 1',
+        'Form 2',
+        'Form 3',
+        'Form 4',
+      ]);
     });
 
     await test.step('each unreviewed pack is disclosed as unreviewed', async () => {
+      await go(page, '/academics/programmes');
       await expect(page.getByText('Not reviewed by a curriculum officer').first()).toBeVisible({
         timeout: LOAD_TIMEOUT,
       });
