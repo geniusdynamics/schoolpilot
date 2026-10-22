@@ -269,22 +269,24 @@ test.describe('GP-1 golden path', () => {
     await test.step('enter and save the learner mark for the published assessment', async () => {
       await go(page, '/academics/marks-entry');
       await expect(page.getByText('Marks entry')).toBeVisible();
-      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Assessment' }), /End of term English/);
+      // The hub's default tab is the v2 grid: the scheme is derived from the period's
+      // assessments, so the assessment is a column rather than a picker, and the grid autosaves.
+      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
 
-      const score = page.getByLabel(`Score for ${STUDENT_NAME}`);
+      const score = page.getByLabel(`End of term English for ${STUDENT_NAME}`);
       await expect(score).toBeVisible();
       await score.fill(MARK);
-      await page.getByRole('button', { name: 'Save marks' }).click();
-      await expect(page.getByText('Marks saved through the canonical repository.')).toBeVisible();
+      await page.getByRole('button', { name: 'Save now' }).click();
+      await expect(page.getByText(/unsaved edits?/)).toHaveCount(0);
     });
 
     await test.step('reload: the mark and the placement are still stored for the learner', async () => {
       await reloadAndWait(page);
       await go(page, '/academics/marks-entry');
-      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Assessment' }), /End of term English/);
+      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
-      await expect(page.getByLabel(`Score for ${STUDENT_NAME}`)).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
+      await expect(page.getByLabel(`End of term English for ${STUDENT_NAME}`)).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
       const row = gridRow(page, admissionNumber);
       await expect(row).toContainText('Stored revision');
 
