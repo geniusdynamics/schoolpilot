@@ -293,8 +293,12 @@ test.describe('GP-1 golden path', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
       await expect(page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true })).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
-      const row = gridRow(page, admissionNumber);
-      await expect(row).toContainText('Stored revision');
+      // The v2 grid has no revision column (that was the legacy results page). The equivalent
+      // evidence is the engine's status for the cell: it reads Valid only when a stored mark is
+      // present and inside the scheme's range, so it cannot pass on an empty cell.
+      await expect(
+        page.getByLabel(`Status for End of term English for ${STUDENT_NAME}`, { exact: true })
+      ).toContainText('Valid');
 
       await go(page, '/administration/students');
       const directoryRow = gridRow(page, admissionNumber);
