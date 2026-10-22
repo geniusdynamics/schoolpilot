@@ -335,6 +335,17 @@ export const PROGRESSION_ACTIONS = ['promote', 'repeat', 'council', 'graduate', 
 export type ProgressionAction = (typeof PROGRESSION_ACTIONS)[number];
 
 /**
+ * What a rule tells the class council to consider.
+ *
+ * `refer_to_council` is not a recommendation: it records that the rule's own condition did not
+ * settle the outcome and the council decides (spec 03 §7 `repeat or council`). Stating `repeat`
+ * there would take a decision the council owns.
+ */
+export const COUNCIL_SUGGESTIONS = ['promote', 'repeat', 'refer_to_council'] as const;
+
+export type CouncilSuggestionOutcome = (typeof COUNCIL_SUGGESTIONS)[number];
+
+/**
  * One declared threshold condition.
  *
  * `gte` is a JSON number in `progression.schema.json`; an exact decimal string is accepted here
@@ -481,7 +492,7 @@ export type ProgressionReasonCode =
   | 'threshold_met'
   | 'threshold_failed'
   | 'else_repeat'
-  | 'else_council'
+  | 'else_refer_to_council'
   | 'requirement_met'
   | 'requirement_unmet'
   | 'metric_resolved'
@@ -513,8 +524,8 @@ export interface ProgressionFlag {
 export interface CouncilSuggestion {
   readonly metric: MetricTrace;
   readonly gte: string;
-  /** `promote` or `repeat` when the metric resolved, null when it did not. */
-  readonly suggested: 'promote' | 'repeat' | null;
+  /** The outcome when the metric resolved, null when it did not. */
+  readonly suggested: CouncilSuggestionOutcome | null;
 }
 
 /** The facts a progression trace records, enough to replay the decision without the pack. */
@@ -534,7 +545,7 @@ export interface ProgressionTrace {
   readonly to_level: string | null;
   /** The stage a stage transition would enter; null for every other rule. */
   readonly to_stage: string | null;
-  readonly council_suggested: 'promote' | 'repeat' | null;
+  readonly council_suggested: CouncilSuggestionOutcome | null;
   readonly flags: readonly ProgressionFlag[];
   readonly complete: boolean;
 }
@@ -608,6 +619,6 @@ export interface ReplayedProgression {
   readonly action: ProgressionAction;
   readonly to_level: string | null;
   readonly to_stage: string | null;
-  readonly council_suggested: 'promote' | 'repeat' | null;
+  readonly council_suggested: CouncilSuggestionOutcome | null;
   readonly complete: boolean;
 }

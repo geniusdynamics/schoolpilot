@@ -47,6 +47,22 @@ const COUNCIL: ProgressionDefinition = {
   progression: [{ levels: ['L1'], rule: 'class_council', suggest: { metric: 'annual.average', gte: 50 } }],
 };
 
+/** The same conditions as THRESHOLD, with the fallback that repeats without asking the council. */
+const REPEAT_ONLY: ProgressionDefinition = {
+  progression: [
+    {
+      levels: ['L3'],
+      rule: 'threshold',
+      conditions: [
+        { metric: 'annual.average', gte: 40 },
+        { metric: 'annual.ENG', gte: 40 },
+        { metric: 'annual.MAT', gte: 40 },
+      ],
+      else: 'repeat',
+    },
+  ],
+};
+
 const STAGE: ProgressionDefinition = {
   progression: [
     {
@@ -186,25 +202,30 @@ describe('threshold', () => {
       expect(suggestion.action, key).toBe('council');
       expect(suggestion.to_level, key).toBe('L4');
       expect(suggestion.reasons.map((entry) => entry.code), key).toContain('threshold_failed');
-      expect(suggestion.reasons.map((entry) => entry.code), key).toContain('else_council');
+      expect(suggestion.reasons.map((entry) => entry.code), key).toContain('else_refer_to_council');
     }
   });
 
   it('repeats rather than referring when the pack says repeat', () => {
-    const repeat: ProgressionDefinition = {
-      progression: [
-        {
-          levels: ['L3'],
-          rule: 'threshold',
-          conditions: [{ metric: 'annual.average', gte: 40 }],
-          else: 'repeat',
-        },
-      ],
-    };
-    const suggestion = suggestionOf(repeat, learnerAt('L3'), contextWith(annualWith('30', '60', '60')));
+    const suggestion = suggestionOf(REPEAT_ONLY, learnerAt('L3'), contextWith(annualWith('30', '60', '60')));
     expect(suggestion.action).toBe('repeat');
     expect(suggestion.to_level).toBeNull();
     expect(suggestion.reasons.map((entry) => entry.code)).toContain('else_repeat');
+  });
+
+  it('refers to the council rather than repeating when the pack says repeat_or_council', () => {
+    const referred = suggestionOf(THRESHOLD, learnerAt('L3'), contextWith(annualWith('30', '60', '60')));
+    expect(referred.action).toBe('council');
+    expect(referred.to_level).toBe('L4');
+    expect(referred.reasons.map((entry) => entry.code)).toContain('else_refer_to_council');
+    expect(referred.reasons.map((entry) => entry.code)).not.toContain('else_repeat');
+
+    const repeated = suggestionOf(REPEAT_ONLY, learnerAt('L3'), contextWith(annualWith('30', '60', '60')));
+    expect(repeated.action).toBe('repeat');
+    expect(referred.action).not.toBe(repeated.action);
+    expect(referred.to_level).not.toBe(repeated.to_level);
+    expect(replayProgression(referred.trace).action).toBe('council');
+    expect(replayProgression(repeated.trace).action).toBe('repeat');
   });
 
   it('decides on a definite failure even when a sibling metric is unknown', () => {
@@ -293,10 +314,12 @@ describe('class_council', () => {
     expect(suggestion.trace.council_suggested).toBe('promote');
   });
 
-  it('suggests repeat when the metric is below the bound, still without deciding', () => {
+  it('refers a below-threshold metric to the council without stating repeat', () => {
     const suggestion = suggestionOf(COUNCIL, learnerAt('L1'), contextWith(annualWith('40', '60', '60')));
     expect(suggestion.action).toBe('council');
-    expect(suggestion.council?.suggested).toBe('repeat');
+    expect(suggestion.council?.suggested).toBe('refer_to_council');
+    expect(suggestion.trace.council_suggested).toBe('refer_to_council');
+    expect(suggestion.reasons.map((entry) => entry.code)).not.toContain('else_repeat');
   });
 
   it('gives the council no suggestion when the metric is unknown', () => {

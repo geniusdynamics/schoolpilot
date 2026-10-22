@@ -114,11 +114,11 @@ for a UK A level (A* 56, A 48, B 40, C 32, D 24, E 16, U 0).
 
 ### UCAS Tariff
 
-`ucas_tariff` is `sum_points` over the A Level grades: the tariff is **per grade**,
-not per grade and subject, so a candidate's total is the sum over the qualifications
-taken. The pack does not model BTEC or other tariff-bearing qualifications, and it
-does not claim AS points, because the post-2017 tariff treatment of AS levels was not
-verified here.
+`ucas_tariff` is a plain `sum` of the A Level grades' grade points: the tariff is
+**per grade**, not per grade and subject, so a candidate's total is the sum over the
+qualifications taken. The pack does not model BTEC or other tariff-bearing
+qualifications, and it does not claim AS points, because the post-2017 tariff
+treatment of AS levels was not verified here.
 
 ### Attainment 8 is expressible; this pack reports the total
 
@@ -148,11 +148,10 @@ look authoritative when it is not. It reports the points total instead.
 10. Year 11 with 19 points is referred to the class council.
 
 Vectors 1 to 5 run through the assessment engine (P2-B01) and the grading-scale
-lookup (P2-B02). Vectors 6 and 7 use a test-local reference over the pack's declared
-`sum_points` aggregation, because the aggregation engine (P2-B03) has not landed yet.
-Vectors 8 to 10 use a test-local reference over the declared progression rule. None of
-them hard-codes a value the code does not produce: change a band's points, a paper
-maximum or a threshold and the vector fails.
+lookup (P2-B02). Vectors 6 and 7 run through the aggregation engine (P2-B03) over the
+grade points this pack's scales declare, and vectors 8 to 10 run through the
+progression engine (P2-B04). None of them hard-codes a value the code does not
+produce: change a band's points, a paper maximum or a threshold and the vector fails.
 
 The `input` map is flat because the vector schema allows only scalar values:
 `"CW.CW1": "27/30"` is one classwork mark, `"MOCK.MAT.P1": "72/80"` is a paper mark

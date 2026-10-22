@@ -1,7 +1,7 @@
 // ABOUTME: Validates the pearson-intl (Pearson Edexcel iPrimary to International A Level) pack against
 // ABOUTME: the curriculum pack schemas, runs the runtime checks, prepares every grading scale with the
-// ABOUTME: scale engine and executes the conformance vectors, using the assessment engine for scheme
-// ABOUTME: results and a test-local reference for the point totals and progression rules.
+// ABOUTME: scale engine and executes the conformance vectors through the assessment, aggregation and
+// ABOUTME: progression engines themselves.
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
@@ -12,9 +12,7 @@ import { describe, expect, it } from 'vitest';
 import {
   compareExact,
   evaluateScheme,
-  formatExact,
   parseExact,
-  sumExact,
   type ComponentCombine,
   type Exact,
   type RoundingMode,
@@ -23,6 +21,8 @@ import {
   type SchemeMark,
   type SlotCombine,
 } from '../../assessment/engine';
+import { evaluateAggregation, type LearningAreaResult } from '../../assessment/aggregation';
+import { evaluateProgression } from '../../assessment/progression';
 import {
   lookupScaleBand,
   prepareGradingScale,
@@ -30,6 +30,7 @@ import {
   type GradingScaleDefinition,
   type PreparedGradingScale,
 } from '../../assessment/scales';
+import { engineAggregation, progressionDefinition, suppliedMetrics } from './engineVectors';
 import { checkPackSemantics } from './packSemantics';
 
 // ============================================================== pack on disk
@@ -674,27 +675,20 @@ function marksFromInput(input: Vector['input']): SchemeMark[] {
 // ========================================================== points aggregation
 
 /**
- * The reference evaluator for the pack's point totals.
+ * The learning-area results a points vector states: each grade with the points its band declares.
  *
- * P2-B03 owns the aggregation engine; until it lands this reads each grade against the scale the
- * pack declares for the learning area's level, applies the operator's `value`, and sums. It is not
- * a hard-coded expectation: change a band's points or a subject's level and the vectors fail.
+ * The grade-to-points lookup is the pack's own declaration; the operator that consumes the points
+ * (sum here, with the pack's precision) is the real aggregation engine.
  */
-function evaluatePoints(aggregation: Aggregation, grades: ReadonlyMap<string, string>): Exact {
-  if (aggregation.op !== 'sum_points') throw new Error(`${aggregation.code} is not a points sum`);
-  const codes = aggregation.over === undefined ? [...grades.keys()] : [...aggregation.over];
-  const points: Exact[] = [];
-  for (const code of codes) {
-    const grade = grades.get(code);
-    if (grade === undefined) throw new Error(`${aggregation.code} has no grade for ${code}`);
+function pointsInputs(grades: ReadonlyMap<string, string>): LearningAreaResult[] {
+  return [...grades].map(([code, grade]) => {
     const area = areaByCode.get(code);
-    if (!area) throw new Error(`${aggregation.code} names no learning area ${code}`);
+    if (!area) throw new Error(`the points vector names no learning area ${code}`);
     const scale = scaleForGrade(area, grade);
     const band = bandForGrade(scale, grade);
     if (band.points === undefined) throw new Error(`${scale.code} has no points for ${grade}`);
-    points.push(exactOf(String(band.points)));
-  }
-  return sumExact(points);
+    return { code, grade, points: String(band.points), grade_points: String(band.points) };
+  });
 }
 
 /**
@@ -727,37 +721,6 @@ function scaleForGrade(area: LearningArea, grade: string): GradingScaleDefinitio
 }
 
 // ============================================================ progression run
-
-/**
- * The reference evaluator for a promotion rule: it reads the rule the pack declares for the level
- * being left and applies only the decision the schema states (a stage transition, or a council
- * suggestion against the declared metric).
- */
-function evaluateProgression(levelCode: string, input: Vector['input']): Record<string, string> {
-  const rule = progression.progression.find((candidate) => candidate.levels.includes(levelCode));
-  if (!rule) throw new Error(`no progression rule for ${levelCode}`);
-  const level = levelByCode.get(levelCode);
-  if (!level) throw new Error(`no level ${levelCode}`);
-  const nextLevel = level.next ?? '';
-
-  if (rule.rule === 'automatic') return { rule: rule.rule, next_level: nextLevel };
-  if (rule.rule === 'stage_transition') {
-    if (rule.to_stage === undefined) throw new Error(`${levelCode} stage transition names no stage`);
-    return { rule: rule.rule, to_stage: rule.to_stage, next_level: nextLevel };
-  }
-  if (rule.rule === 'class_council') {
-    if (rule.suggest === undefined) throw new Error(`${levelCode} council rule names no metric`);
-    const field = rule.suggest.metric.split('.').at(-1) ?? '';
-    const supplied = input[field];
-    if (typeof supplied !== 'number') throw new Error(`${levelCode} needs a numeric ${field}`);
-    return {
-      rule: rule.rule,
-      suggest: supplied >= rule.suggest.gte ? 'promote' : 'refer_to_council',
-      next_level: nextLevel,
-    };
-  }
-  throw new Error(`${levelCode} uses a rule this reference does not evaluate: ${rule.rule}`);
-}
 
 // =================================================================== vectors
 
@@ -835,22 +798,41 @@ function expectPointsVector(vector: Vector, aggregationCode: string): void {
       return [code, grade] as const;
     })
   );
-  const total = evaluatePoints(aggregation, grades);
-  expect(formatExact(total)).toBe(String(expectedRecord(vector, aggregationCode).value));
+  const evaluation = evaluateAggregation(engineAggregation(aggregation), pointsInputs(grades));
+  expect(evaluation.ok, JSON.stringify(evaluation.ok ? [] : evaluation.issues)).toBe(true);
+  if (!evaluation.ok) return;
+  expect(evaluation.result.status).toBe('complete');
+  expect(evaluation.result.value).toBe(String(expectedRecord(vector, aggregationCode).value));
 }
 
 function expectProgressionVector(vector: Vector): void {
   const leaving = vector.input.leaving_level;
   if (typeof leaving !== 'string') throw new Error('a progression vector needs a leaving_level');
-  const actual = evaluateProgression(leaving, vector.input);
+  const evaluation = evaluateProgression(
+    progressionDefinition(progression),
+    [{ learner: 'vector', level: leaving }],
+    {
+      metrics: suppliedMetrics(vector.input),
+      levels: structure.levels,
+      stages: structure.stages,
+    }
+  );
+  expect(evaluation.ok, JSON.stringify(evaluation.ok ? [] : evaluation.issues)).toBe(true);
+  if (!evaluation.ok) return;
+  const suggestion = evaluation.suggestions[0];
+  if (suggestion === undefined) throw new Error('the progression engine returned no suggestion');
+
   const expected = expectedRecord(vector, 'progression');
-  expect(String(expected.level)).toBe(leaving);
-  for (const [key, value] of Object.entries(actual)) {
-    expect(value, key).toBe(String(expected[key]));
-  }
-  for (const key of Object.keys(expected)) {
+  expect(suggestion.level).toBe(String(expected.level));
+  const actual: Readonly<Record<string, string | null>> = {
+    rule: suggestion.rule?.rule ?? null,
+    to_stage: suggestion.to_stage,
+    next_level: suggestion.to_level,
+    suggest: suggestion.council?.suggested ?? null,
+  };
+  for (const [key, value] of Object.entries(expected)) {
     if (key === 'level') continue;
-    expect(actual[key], `expected ${key}`).toBeDefined();
+    expect(actual[key], key).toBe(String(value));
   }
 }
 

@@ -131,15 +131,19 @@ function suggestionAt(
   pack: Pack,
   level: string,
   learner: ProgressionLearner,
-  metrics?: Readonly<Record<string, { readonly value?: string; readonly complete?: boolean }>>
+  options: {
+    readonly metrics?: Readonly<Record<string, { readonly value?: string; readonly complete?: boolean }>>;
+    /** False for the case the pack's own annual result cannot resolve the metric. */
+    readonly annual?: boolean;
+  } = {}
 ): ProgressionSuggestion {
   const evaluation = evaluateProgression(pack.progression, [learner], {
     levels: pack.structure.levels,
     stages: pack.structure.stages,
-    annual: annualFor(pack, level),
+    ...(options.annual === false ? {} : { annual: annualFor(pack, level) }),
     aggregations: pack.assessment.aggregations,
     scales: pack.assessment.grading_scales,
-    ...(metrics === undefined ? {} : { metrics }),
+    ...(options.metrics === undefined ? {} : { metrics: options.metrics }),
   });
   if (!evaluation.ok) {
     throw new Error(`${pack.code} ${level}: ${evaluation.issues.map((entry) => `${entry.code} at ${entry.path}`).join(', ')}`);
@@ -265,7 +269,7 @@ describe('the packs class-council rules', () => {
         if (metric === undefined) throw new Error(`${pack.code} ${level} has no suggestion metric`);
 
         it(`${pack.code} ${level} refers ${metric} to the council without deciding`, () => {
-          const without = suggestionAt(pack, level, learner(level));
+          const without = suggestionAt(pack, level, learner(level), { annual: false });
           expect(without.action).toBe('council');
           expect(without.council?.suggested).toBeNull();
           expect(without.flags.map((flag) => flag.code)).toContain('metric_unknown');
@@ -273,7 +277,8 @@ describe('the packs class-council rules', () => {
           expect(without.trace.council_suggested).toBeNull();
 
           const withMetric = suggestionAt(pack, level, learner(level), {
-            [metric]: { value: '55', complete: true },
+            annual: false,
+            metrics: { [metric]: { value: '55', complete: true } },
           });
           expect(withMetric.action).toBe('council');
           expect(withMetric.council?.suggested).toBe('promote');

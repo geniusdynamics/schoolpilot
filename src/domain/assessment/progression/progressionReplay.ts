@@ -6,6 +6,7 @@ import { replayAggregate } from '../aggregation';
 import { TraceMismatchError, compareExact, parseExact } from '../engine';
 import { replayAnnual } from './annualReplay';
 import type {
+  CouncilSuggestionOutcome,
   MetricTrace,
   PreparedCondition,
   PreparedPromotionRule,
@@ -115,7 +116,7 @@ interface Decision {
   readonly action: ProgressionAction;
   readonly to_level: string | null;
   readonly to_stage: string | null;
-  readonly council_suggested: 'promote' | 'repeat' | null;
+  readonly council_suggested: CouncilSuggestionOutcome | null;
   readonly complete: boolean;
 }
 
@@ -138,7 +139,7 @@ function decide(rule: PreparedPromotionRule, trace: ProgressionTrace): Decision 
   const target = rule.rule === 'stage_transition' ? trace.targets.stage : trace.targets.next;
   const flags: ProgressionFlag[] = [];
   let action: ProgressionAction = 'council';
-  let councilSuggested: 'promote' | 'repeat' | null = null;
+  let councilSuggested: CouncilSuggestionOutcome | null = null;
 
   if (!trace.learner_complete) flags.push({ code: 'data_incomplete', metric: null, requirement: null });
   if (rule.rule !== 'stage_transition' && Object.keys(trace.requirements).length > 0) {
@@ -165,7 +166,8 @@ function decide(rule: PreparedPromotionRule, trace: ProgressionTrace): Decision 
     if (condition !== undefined) {
       const metric = metrics.get(condition.metric) as MetricTrace;
       const result = outcome(condition, metric);
-      councilSuggested = result === 'unknown' ? null : result === 'met' ? 'promote' : 'repeat';
+      councilSuggested =
+        result === 'unknown' ? null : result === 'met' ? 'promote' : 'refer_to_council';
       if (metric.status === 'unknown') flags.push({ code: 'metric_unknown', metric: condition.metric, requirement: null });
     }
   } else {

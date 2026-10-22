@@ -141,8 +141,9 @@ function evaluateOne(
           action = 'repeat';
           state.reasons.push(reason('else_repeat'));
         } else {
+          // `repeat_or_council` leaves the choice to the council, so the engine refers the case.
           action = 'council';
-          state.reasons.push(reason('else_council'));
+          state.reasons.push(reason('else_refer_to_council'));
         }
       } else if (unknown) {
         action = 'council';
@@ -167,7 +168,8 @@ function evaluateOne(
       council = {
         metric,
         gte: condition.gte,
-        suggested: outcome === 'unknown' ? null : outcome === 'met' ? 'promote' : 'repeat',
+        suggested:
+          outcome === 'unknown' ? null : outcome === 'met' ? 'promote' : 'refer_to_council',
       };
       action = 'council';
       break;

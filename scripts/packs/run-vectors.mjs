@@ -93,6 +93,7 @@ async function loadEngine() {
     givenScore: scales.givenScore,
     evaluateAggregation: aggregation.evaluateAggregation,
     evaluateProgression: progression.evaluateProgression,
+    councilSuggestions: progression.COUNCIL_SUGGESTIONS,
   };
 }
 
@@ -738,7 +739,7 @@ function suppliedMetrics(input) {
   return metrics;
 }
 
-function checkProgressionExpectation(expectation, suggestion) {
+function checkProgressionExpectation(engine, expectation, suggestion) {
   const allowed = ['level', 'rule', 'to_stage', 'next_level', 'suggest'];
   if (Object.keys(expectation).length === 0) {
     throw new SkipVector('progression expectation states no values to compare');
@@ -753,12 +754,12 @@ function checkProgressionExpectation(expectation, suggestion) {
   }
   if (
     expectation.suggest !== undefined &&
-    expectation.suggest !== 'promote' &&
-    expectation.suggest !== 'repeat'
+    !engine.councilSuggestions.includes(expectation.suggest)
   ) {
     throw new SkipVector(
-      `the B04 evaluator states a council suggestion as "promote" or "repeat"; ` +
-        `${JSON.stringify(expectation.suggest)} is the pack test's reference vocabulary, not an engine result`
+      `the B04 evaluator states a council suggestion as ${engine.councilSuggestions
+        .map((outcome) => JSON.stringify(outcome))
+        .join(', ')}; ${JSON.stringify(expectation.suggest)} is not in that vocabulary`
     );
   }
 
@@ -873,7 +874,7 @@ function executeVector(engine, pack, vector) {
         if (suggestion === undefined) {
           throw new SkipVector('the progression engine returned no suggestion');
         }
-        problems.push(...checkProgressionExpectation(expectation, suggestion));
+        problems.push(...checkProgressionExpectation(engine, expectation, suggestion));
         continue;
       }
 

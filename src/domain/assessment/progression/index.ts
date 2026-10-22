@@ -19,6 +19,7 @@ export { resolveMetric } from './metrics';
 export {
   ANNUAL_MISSING_POLICIES,
   ANNUAL_OPERATORS,
+  COUNCIL_SUGGESTIONS,
   PROGRESSION_ACTIONS,
   PROMOTION_RULES,
   THRESHOLD_FALLBACKS,
@@ -54,6 +55,7 @@ export type {
   AnnualRoundStep,
   AnnualValueStep,
   CouncilSuggestion,
+  CouncilSuggestionOutcome,
   GraduationRuleDefinition,
   MetricSource,
   MetricTrace,

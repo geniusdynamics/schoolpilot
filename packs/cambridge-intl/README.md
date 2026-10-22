@@ -112,9 +112,9 @@ England-registered GCSEs and not to Cambridge IGCSE.
 
 ### UCAS
 
-`a_level_ucas_tariff` is `sum_points` over A Level grades: the tariff is **per
-grade** (A* 56, A 48, B 40, C 32, D 24, E 16, U 0), not per grade and subject, so a
-candidate's total is the sum over the qualifications taken.
+`a_level_ucas_tariff` is a plain `sum` of the A Level grades' grade points: the
+tariff is **per grade** (A* 56, A 48, B 40, C 32, D 24, E 16, U 0), not per grade and
+subject, so a candidate's total is the sum over the qualifications taken.
 
 No tariff is modelled for AS or for IGCSE. The post-2017 treatment of AS
 qualifications and any IGCSE tariff could not be verified for this pack, so neither
@@ -137,10 +137,10 @@ scale carries points rather than carrying invented ones.
 10. Year 11 with 19 points is referred to the class council.
 
 Vectors 1 to 5 run through the assessment engine (P2-B01) and the grading-scale
-lookup (P2-B02), including the weighted paper combine. Vectors 6 and 7
-use a test-local reference over the declared `sum_points` aggregation because
-P2-B03 has not landed. Vectors 8 to 10 use a test-local reference over the declared
-progression rule. No expected value is hard-coded that the code does not produce.
+lookup (P2-B02), including the weighted paper combine. Vectors 6 and 7 run through the
+aggregation engine (P2-B03) over the grade points this pack's scales declare, and
+vectors 8 to 10 run through the progression engine (P2-B04). No expected value is
+hard-coded that the code does not produce.
 
 ## Known gaps in this pack
 

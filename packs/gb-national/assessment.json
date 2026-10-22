@@ -387,13 +387,13 @@
   "aggregations": [
     {
       "code": "gcse_points_total",
-      "op": "sum_points",
+      "op": "sum",
       "value": "grade_points",
       "precision": 0
     },
     {
       "code": "ucas_tariff",
-      "op": "sum_points",
+      "op": "sum",
       "value": "grade_points",
       "precision": 0
     }

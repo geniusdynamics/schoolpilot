@@ -589,13 +589,13 @@
   "aggregations": [
     {
       "code": "igcse_points_total",
-      "op": "sum_points",
+      "op": "sum",
       "value": "grade_points",
       "precision": 0
     },
     {
       "code": "a_level_ucas_tariff",
-      "op": "sum_points",
+      "op": "sum",
       "value": "grade_points",
       "precision": 0
     }
