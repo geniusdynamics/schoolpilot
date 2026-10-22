@@ -292,13 +292,12 @@ test.describe('GP-1 golden path', () => {
       await go(page, '/academics/marks-entry');
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
-      await expect(page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true })).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
-      // The v2 grid has no revision column (that was the legacy results page). The equivalent
-      // evidence is the engine's status for the cell: it reads Valid only when a stored mark is
-      // present and inside the scheme's range, so it cannot pass on an empty cell.
-      await expect(
-        page.getByLabel(`Status for End of term English for ${STUDENT_NAME}`, { exact: true })
-      ).toContainText('Valid');
+      const cell = page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true });
+      await expect(cell).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
+      // The v2 grid has no revision column (that was the legacy results page). Its equivalent evidence
+      // is the engine's own verdict on the cell: the input is aria-invalid only when the stored mark
+      // falls outside the scheme's range, so it cannot pass on a rejected value.
+      await expect(cell).toHaveAttribute('aria-invalid', 'false');
 
       await go(page, '/administration/students');
       const directoryRow = gridRow(page, admissionNumber);
