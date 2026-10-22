@@ -24,6 +24,7 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.financialYears', path: '/finance/financial-years', icon: CalendarIcon, page: 'FinancialYearsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingOps', path: '/finance/accounting-ops', icon: BookOpenIcon, page: 'AccountingOperationsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.financialStatements', path: '/finance/financial-statements', icon: ScaleIcon, page: 'FinancialStatementsPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.accountingReports', path: '/finance/accounting-reports', icon: DocumentReportIcon, page: 'accounting/AccountingReportsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.payments', path: '/finance/payments', icon: CreditCardIcon, page: 'PaymentsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.studentFeeHistory', path: '/finance/student-fee-history', icon: BanknotesIcon, page: 'StudentFeeHistoryPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Finance reports hub relocated to /reports/finance (see reports/moduleDefinition.tsx).
@@ -104,6 +105,7 @@ export const financeModule: ModuleDefinition = {
     { path: '/finance/financial-years', page: 'FinancialYearsPage' },
     { path: '/finance/accounting-ops', page: 'AccountingOperationsPage' },
     { path: '/finance/financial-statements', page: 'FinancialStatementsPage' },
+    { path: '/finance/accounting-reports', page: 'accounting/AccountingReportsPage' },
     { path: '/finance/payments', page: 'PaymentsPage' },
     { path: '/finance/student-fee-history', page: 'StudentFeeHistoryPage' },
     // M3: /finance/reports removed; redirected to /reports/finance via redirectMap.
