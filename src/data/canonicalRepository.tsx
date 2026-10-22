@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-import { createNodeSqliteAdapter, createWasmSqliteAdapter } from '@/data/adapters/sqlite';
+import { createNodeSqliteAdapter, createWasmSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
 import { applySchemaMigrations } from '@/data/migrations';
 import { createRepository } from '@/data/repository';
 import type { QueryRepository } from '@/data/query';
@@ -16,6 +16,15 @@ const REPOSITORY_SLOT = '__schoolpilotCanonicalRepository';
 interface RepositorySlot {
   repository?: QueryRepository;
   opening?: Promise<QueryRepository>;
+  /**
+   * The adapter the canonical tables live on.
+   *
+   * A domain module that keeps its own tables beside the canonical ones - the posting engine, the
+   * document-number sequences, the cashier sessions - needs the same connection, not a second one
+   * over the same file. The adapter is handed out through {@link canonicalAdapter} for exactly
+   * that, and for nothing else.
+   */
+  adapter?: SqliteAdapter;
 }
 
 interface RepositoryScope {
@@ -58,11 +67,12 @@ export async function openCanonicalRepository(): Promise<QueryRepository> {
     try {
       const repository = createRepository({ adapter });
       await repository.setup();
-      // The module-owned tables (sequences, the ledger) are not in the canonical registry: their
-      // migrations are applied here, before the repository reaches a page, so a page can never
-      // write a table this database does not have. A failure fails the open: the caller shows it
-      // and the app does not run against a database it could not prepare.
+      // The module-owned tables (sequences, the ledger, reconciliation) are not in the canonical
+      // registry: their migrations are applied here, before the repository reaches a page, so a
+      // page can never write a table this database does not have. A failure fails the open: the
+      // caller shows it and the app does not run against a database it could not prepare.
       await applySchemaMigrations(adapter);
+      shared.adapter = adapter;
       shared.repository = repository;
       return repository;
     } catch (error) {
@@ -71,6 +81,16 @@ export async function openCanonicalRepository(): Promise<QueryRepository> {
     }
   })();
   return shared.opening;
+}
+
+/**
+ * The adapter the canonical database is open on, or null before it is opened.
+ *
+ * A domain module with tables of its own uses this to apply its DDL and to run its own statements
+ * on the same connection, so there is never a second connection over the canonical file.
+ */
+export function canonicalAdapter(): SqliteAdapter | null {
+  return slot().adapter ?? null;
 }
 
 const CanonicalRepositoryContext = createContext<QueryRepository | null>(null);
