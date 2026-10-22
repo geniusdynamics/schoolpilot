@@ -401,7 +401,9 @@ export function useCanonicalLearners() {
   const placementByLearner = useMemo(() => {
     const map = new Map<string, EnrolmentRow>();
     for (const row of enrolmentsQuery.data?.items ?? []) {
-      if (row.status !== 'active') continue;
+      // A learner who is repeating is still placed: `repeating` is an enrolment of the school, the
+      // same status the promotion run and the financial summary count as in-school.
+      if (row.status !== 'active' && row.status !== 'repeating') continue;
       map.set(row.learner_id, row);
     }
     return map;

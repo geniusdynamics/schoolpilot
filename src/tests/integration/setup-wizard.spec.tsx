@@ -94,6 +94,14 @@ const onStep = (n: number) => screen.findByText(`Step ${n} of ${TOTAL_STEPS}`, {
 const click = (name: RegExp) => fireEvent.click(screen.getByRole('button', { name }));
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
+/**
+ * Chooses a curriculum pack on the wizard's second step. The packs come from the registry; the CBC
+ * primary pack keeps this suite on the same curriculum it has always set up, and the wizard installs
+ * the pack as a programme when it completes.
+ */
+const choosePack = (name: RegExp = /Kenya Competency-Based Education/) =>
+  fireEvent.click(screen.getByRole('checkbox', { name }));
+
 /** Advances from step `n`, then goes Back and Next again twice so step n's writer runs three times. */
 async function nextWithBackAndForth(n: number) {
   click(/^Next$/);
@@ -113,7 +121,7 @@ async function walkWizard(onComplete = vi.fn()) {
   fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Greenfields Academy' } });
   await nextWithBackAndForth(1);
 
-  fireEvent.click(screen.getAllByRole('radio')[0]); // CBC primary
+  choosePack(); // CBC primary
   await nextWithBackAndForth(2);
 
   type('Year name', '2027');
@@ -228,7 +236,7 @@ describe('SetupWizard on the real provider', () => {
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Edit Academy' } });
     click(/^Next$/);
     await onStep(2);
-    fireEvent.click(screen.getAllByRole('radio')[0]);
+    choosePack();
     click(/^Next$/);
     await onStep(3);
     type('Year name', '2027');
@@ -255,7 +263,7 @@ describe('SetupWizard on the real provider', () => {
     render(<SetupWizard onComplete={() => {}} />);
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Subject Academy' } });
     for (let step = 1; step <= 6; step++) {
-      if (step === 2) fireEvent.click(screen.getAllByRole('radio')[0]);
+      if (step === 2) choosePack();
       if (step === 3) {
         type('Academic year start', '2027-01-04');
         type('Academic year end', '2027-11-26');
@@ -289,7 +297,7 @@ describe('SetupWizard on the real provider', () => {
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Fiscal Academy' } });
     click(/^Next$/);
     await onStep(2);
-    fireEvent.click(screen.getAllByRole('radio')[0]);
+    choosePack();
     click(/^Next$/);
     await onStep(3);
     type('Year name', '2027');
@@ -318,7 +326,7 @@ describe('SetupWizard on the real provider', () => {
     await waitFor(() => expect(screen.getByPlaceholderText('e.g. Greenfields Academy')).toHaveValue('Greenfields Academy'));
     click(/^Next$/);
     await onStep(2);
-    fireEvent.click(screen.getAllByRole('radio')[0]);
+    choosePack();
     click(/^Next$/);
     await onStep(3);
 
@@ -349,7 +357,7 @@ describe('SetupWizard on the real provider', () => {
     await waitFor(() => expect(screen.getByPlaceholderText('e.g. Greenfields Academy')).toHaveValue('Greenfields Academy'));
     click(/^Next$/);
     await onStep(2);
-    fireEvent.click(screen.getAllByRole('radio')[0]);
+    choosePack();
     await nextWithBackAndForth(2);
     type('Year name', '2027');
     type('Academic year start', '2027-01-04');
@@ -380,7 +388,7 @@ describe('SetupWizard on the real provider', () => {
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Rules Academy' } });
     click(/^Next$/);
     await onStep(2);
-    fireEvent.click(screen.getAllByRole('radio')[0]);
+    choosePack();
     click(/^Next$/);
     await onStep(3);
     type('Year name', '2027');
@@ -398,7 +406,7 @@ describe('SetupWizard on the real provider', () => {
     render(<SetupWizard onComplete={() => {}} />);
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Admin Academy' } });
     for (let step = 1; step <= 6; step++) {
-      if (step === 2) fireEvent.click(screen.getAllByRole('radio')[0]);
+      if (step === 2) choosePack();
       click(/^Next$/);
       await onStep(step + 1);
     }
@@ -427,7 +435,7 @@ describe('SetupWizard on the real provider', () => {
     render(<SetupWizard onComplete={onComplete} />);
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Existing Academy' } });
     for (let step = 1; step <= 6; step++) {
-      if (step === 2) fireEvent.click(screen.getAllByRole('radio')[0]);
+      if (step === 2) choosePack();
       click(/^Next$/);
       await onStep(step + 1);
     }
@@ -446,7 +454,7 @@ describe('SetupWizard on the real provider', () => {
     render(<SetupWizard onComplete={onComplete} />);
     fireEvent.change(screen.getByPlaceholderText('e.g. Greenfields Academy'), { target: { value: 'Canon Academy' } });
     for (let step = 1; step <= 6; step++) {
-      if (step === 2) fireEvent.click(screen.getAllByRole('radio')[0]);
+      if (step === 2) choosePack();
       if (step === 3) {
         type('Academic year start', '2027-01-04');
         type('Academic year end', '2027-11-26');

@@ -16,6 +16,9 @@ import Checkbox from '@/components/ui/Checkbox';
 import { useToast } from '@/hooks/useToast';
 import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import type { SchoolProfile } from '@/hooks/useSchoolProfile';
+import { openCanonicalRepository } from '@/data/canonicalRepository';
+import type { Repository } from '@/data/repository';
+import { asId, generateUuidv7 } from '@/domain/ids';
 import { logger } from '@/utils/logging';
 import {
   KENYAN_CURRICULUM_PRESETS,
@@ -40,16 +43,103 @@ import {
   saveEducationSystem,
   saveSchoolProfile,
   saveSubjects,
+  type WizardStore,
 } from './steps/writers';
 import { saveCanonicalSchool } from './steps/canonicalSetup';
+import { PackSelection } from './packs/PackSelection';
+import {
+  calendarVariantOf,
+  listAvailablePacks,
+  type AvailablePack,
+} from './packs/packLibrary';
+import { installPackProgramme, isCanonicalRepository } from './steps/programmeInstall';
 
 export { clearWizardDraft };
 
-const CURRICULUM_OPTIONS = Object.values(KENYAN_CURRICULUM_PRESETS).map(p => ({
-  key: p.key,
-  label: p.label,
-  subjectCount: p.subjects.length,
-}));
+/** The legacy education-system key a Kenyan pack mirrors; a pack outside the presets has none. */
+const LEGACY_CURRICULUM_BY_PACK: Readonly<Record<string, keyof typeof KENYAN_CURRICULUM_PRESETS>> = {
+  'ke-cbe': 'CBC_PRIMARY',
+  'ke-844': 'KCSE_SECONDARY',
+};
+
+/** The packs the registry discovers. Loaded once, at module scope, because they never change. */
+const AVAILABLE_PACKS: readonly AvailablePack[] = listAvailablePacks();
+
+const packByCode = new Map(AVAILABLE_PACKS.map((pack) => [pack.code, pack]));
+
+/**
+ * The legacy education-system key the chosen packs mirror.
+ *
+ * The education-system and subject writers predate the pack registry and read one curriculum
+ * key; the first chosen pack that names one wins, and a school that runs only non-Kenyan packs
+ * leaves it null so those writers do nothing. The canonical programme is created from the pack
+ * itself, not from this key.
+ */
+function legacyCurriculumFor(packCodes: readonly string[]): WizardDraft['curriculum'] {
+  for (const code of packCodes) {
+    const legacy = LEGACY_CURRICULUM_BY_PACK[code];
+    if (legacy) return legacy;
+  }
+  return null;
+}
+
+/** A UUIDv7, the only id format the canonical model accepts. */
+function generatedActorId(): string {
+  return generateUuidv7();
+}
+
+/**
+ * The acting user the pack installs are audited under.
+ *
+ * The administrator the wizard creates lives in the legacy `users` collection, whose ids are not
+ * UUIDs, and the canonical `user` entity has no row for them yet (the platform user model is
+ * P1-B03). A canonical user is used when one exists; otherwise the install is audited under a
+ * generated actor id, so the trail carries a valid actor instead of a rejected one.
+ */
+async function actorForInstall(repository: Repository): Promise<string> {
+  const users = await repository.list('user', { limit: 1 });
+  return users.items[0]?.id ?? generatedActorId();
+}
+
+/**
+ * Installs every pack the school chose, one programme each.
+ *
+ * The packs are installed in the order the registry lists them, and each install is its own
+ * transaction: a failure on the second pack leaves the first programme whole and no partial
+ * second one. Re-running the wizard reuses each programme by name.
+ */
+async function installSelectedProgrammes(
+  draft: WizardDraft,
+  institutionId: string
+): Promise<Readonly<Record<string, string>>> {
+  const installed: Record<string, string> = {};
+  if (draft.packCodes.length === 0) return installed;
+
+  const opened = await openCanonicalRepository();
+  if (!isCanonicalRepository(opened)) {
+    throw new Error('The canonical data layer is unavailable, so the curriculum packs cannot be installed.');
+  }
+  const actor = await actorForInstall(opened);
+
+  for (const code of draft.packCodes) {
+    const pack = packByCode.get(code);
+    // A pack the installation no longer ships cannot be installed; the wizard drops it rather
+    // than failing the whole setup over a pack that was removed between runs.
+    if (!pack) continue;
+    const calendar = calendarVariantOf(pack, draft.packCalendars[code]);
+    const result = await installPackProgramme({
+      repository: opened,
+      actor,
+      pack,
+      institutionId,
+      ...(calendar?.code === undefined
+        ? {}
+        : { calendar: { code: calendar.code, name: calendar.name ?? calendar.code } }),
+    });
+    installed[code] = result.programmeId;
+  }
+  return installed;
+}
 
 interface AdminForm {
   username: string;
@@ -59,6 +149,44 @@ interface AdminForm {
 }
 
 const EMPTY_ADMIN: AdminForm = { username: '', displayName: '', password: '', confirm: '' };
+
+/**
+ * Gives the administrator the wizard just created a canonical identity.
+ *
+ * The login lives in the legacy `users` collection; the canonical model keeps its own `user` entity,
+ * and a canonical write that names an actor — a published report card's publisher, a promotion
+ * decision's decider, the audit columns of any write made for a named actor — references that entity.
+ * The login's own id is a UUIDv4 while the canonical model stores UUIDv7, so the login id can never
+ * be written into one: the canonical identity is a row of its own, linked by the username both rows
+ * carry. The school structure is written before this step, so the institution exists; a wizard whose
+ * structure step failed leaves no canonical row behind rather than a user with no institution.
+ */
+async function linkCanonicalAdministrator(store: WizardStore): Promise<void> {
+  const opened = await openCanonicalRepository();
+  if (!isCanonicalRepository(opened)) return;
+
+  const institution = (await opened.list('institution', { limit: 1 })).items[0];
+  if (!institution) return;
+
+  const login = (await store.find('users'))[0];
+  const username = typeof login?.username === 'string' ? login.username.trim() : '';
+  if (!username) return;
+
+  const existing = await opened.list('user', { where: { username }, limit: 1 });
+  if (existing.items.length > 0) return;
+
+  const passwordHash =
+    typeof login.hashed_password === 'string' && login.hashed_password !== ''
+      ? login.hashed_password
+      : 'external-login';
+  await opened.create('user', {
+    institution_id: asId<'institution'>(institution.id),
+    username,
+    password_hash: passwordHash,
+    status: 'active',
+    mfa: false,
+  });
+}
 
 export interface SetupWizardProps {
   onComplete: () => void;
@@ -156,6 +284,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       password: admin.password,
     });
     if (!result.success) throw new Error(result.message);
+    await linkCanonicalAdministrator(store);
     setAdmin(EMPTY_ADMIN);
     setAdminExists(true);
   }, [admin, t]);
@@ -180,10 +309,12 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
   }), [draft, presetSubjects, recordCreated, saveAdministrator]);
 
   const handleWizardComplete = useCallback(async () => {
+    let institutionId: string;
     try {
       // The canonical school is what the migrated pages read; the step above already wrote it,
       // so this run is a cheap idempotent safety net for a wizard resumed on its last step.
-      await saveCanonicalSchool(draft);
+      const result = await saveCanonicalSchool(draft);
+      institutionId = result.institutionId;
     } catch (error) {
       logger.error('[SetupWizard] could not save the canonical school:', error);
       const detail =
@@ -196,6 +327,19 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       toast.showError(
         `${detail} Setup is not complete; correct the problem and finish again.`
       );
+      return;
+    }
+    try {
+      await installSelectedProgrammes(draft, institutionId);
+    } catch (error) {
+      logger.error('[SetupWizard] could not install the chosen curriculum packs:', error);
+      const detail =
+        error instanceof Error
+          ? error.message
+          : t('setupWizard.packError', 'The curriculum packs could not be installed.');
+      // A pack install is one transaction per pack, so a failure leaves no partial programme. The
+      // wizard stays open rather than marking setup complete over a school with no curriculum.
+      toast.showError(`${detail} Setup is not complete; correct the problem and finish again.`);
       return;
     }
     try {
@@ -246,34 +390,27 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     },
     {
       id: 'system',
-      title: 'Education System',
-      description: 'Pick the curriculum your school follows',
+      title: 'Curriculum Packs',
+      description: 'Pick the packs your school follows',
       content: (
         <div className="space-y-3">
-          {CURRICULUM_OPTIONS.map(opt => (
-            <label
-              key={opt.key}
-              className={`flex items-center justify-between border rounded-lg p-4 cursor-pointer transition-colors ${
-                draft.curriculum === opt.key ? 'border-indigo-500 bg-indigo-50' : 'border-surface-border hover:bg-surface-muted'
-              }`}
-            >
-              <div>
-                <p className="font-medium text-surface-foreground">{opt.label}</p>
-                <p className="text-sm text-surface-muted-fg">{opt.subjectCount} subjects pre-loaded</p>
-              </div>
-              <input
-                type="radio"
-                name="curriculum"
-                checked={draft.curriculum === opt.key}
-                onChange={() => update({ curriculum: opt.key })}
-                className="h-4 w-4 text-indigo-600"
-              />
-            </label>
-          ))}
-          <p className="text-xs text-surface-muted-fg">You can customise subjects in the next steps.</p>
+          <PackSelection
+            packs={AVAILABLE_PACKS}
+            selected={draft.packCodes}
+            calendars={draft.packCalendars}
+            onToggle={(code, chosen) => {
+              const packCodes = chosen
+                ? [...draft.packCodes, code].filter((value, index, all) => all.indexOf(value) === index)
+                : draft.packCodes.filter((value) => value !== code);
+              update({ packCodes, curriculum: legacyCurriculumFor(packCodes) });
+            }}
+            onCalendar={(packCode, variant) =>
+              update({ packCalendars: { ...draft.packCalendars, [packCode]: variant } })
+            }
+          />
         </div>
       ),
-      validate: () => draft.curriculum !== null,
+      validate: () => draft.packCodes.length > 0,
     },
     {
       id: 'year',

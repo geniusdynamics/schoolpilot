@@ -42,12 +42,23 @@ export interface CreatedRecords {
   streamIds: string[];
   /** subject_code → subject id */
   subjectIds: Record<string, string>;
+  /** pack code → the programme the pack was installed as, so a resumed run reuses it. */
+  programmeIds: Record<string, string>;
 }
 
 export interface WizardDraft {
   stepIndex: number;
   school: SchoolProfileDraft;
+  /**
+   * The curriculum the wizard picked, as the legacy education-system key. Derived from the
+   * selected packs so the education-system and subject writers keep working; a pack outside
+   * the Kenyan presets leaves it null.
+   */
   curriculum: CurriculumKey | null;
+  /** The packs the school is installing, in the order the registry lists them. */
+  packCodes: string[];
+  /** pack code → the calendar variant the school chose, for a pack that declares variants. */
+  packCalendars: Record<string, string>;
   yearName: string;
   yearStart: string;
   yearEnd: string;
@@ -111,6 +122,8 @@ export function defaultDraft(today: Date = new Date()): WizardDraft {
     stepIndex: 0,
     school: { name: '', motto: '', address: '', phone: '', email: '' },
     curriculum: null,
+    packCodes: [],
+    packCalendars: {},
     yearName: `${year}`,
     yearStart: `${year}-01-06`,
     yearEnd: `${year}-11-30`,
@@ -122,7 +135,7 @@ export function defaultDraft(today: Date = new Date()): WizardDraft {
     classes: [{ name: '', streams: 'North, South' }],
     selectedSubjects: {},
     includeDemoData: false,
-    created: { classIds: [], streamIds: [], subjectIds: {} },
+    created: { classIds: [], streamIds: [], subjectIds: {}, programmeIds: {} },
   };
 }
 
@@ -136,6 +149,9 @@ export function loadDraft(): WizardDraft {
       ...base,
       ...saved,
       school: { ...base.school, ...saved.school },
+      packCodes: Array.isArray(saved.packCodes) ? saved.packCodes.filter((code) => typeof code === 'string') : base.packCodes,
+      packCalendars:
+        saved.packCalendars && typeof saved.packCalendars === 'object' ? { ...saved.packCalendars } : base.packCalendars,
       terms: Array.isArray(saved.terms) && saved.terms.length === TERM_NAMES.length ? saved.terms : base.terms,
       created: { ...base.created, ...saved.created },
     };

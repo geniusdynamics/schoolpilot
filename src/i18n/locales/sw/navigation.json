@@ -6,6 +6,7 @@
     "dashboard": "Dashibodi ya Utawala",
     "applications": "Maombi",
     "students": "Wanafunzi",
+    "promotionRun": "Promotion Run",
     "newsletters": "Jarida",
     "studentMasterlist": "Orodha Kuu ya Wanafunzi",
     "studentPromotion": "Uendelezaji wa Wanafunzi",
@@ -235,6 +236,7 @@
     "profile": "Wasifu"
   },
   "reports": {
+    "analysisV2": "Analysis v2",
     "title": "Ripoti",
     "description": "Tathmini na ripoti",
     "dashboard": "Dashibodi ya Ripoti",

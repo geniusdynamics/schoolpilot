@@ -41,6 +41,7 @@ export const administrationModule: ModuleDefinition = {
     // Hub pages (visible in BOTH standard and fullwidth modes)
     { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: AcademicCapIcon, page: 'AdministrationDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentDirectoryPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.promotionRun', path: '/administration/promotion', icon: AcademicCapIcon, page: 'PromotionRunPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffDirectoryPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.configuration', path: '/administration/configuration', icon: CogIcon, page: 'SchoolConfigurationPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/organization' },
     // M5: Split SchoolConfigurationPage (6 tabs) into two hubs (≤5 tabs each)
@@ -109,6 +110,7 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/staff/operations', page: 'StaffOperationsPage' },
     { path: '/administration/students/bulk-ops', page: 'StudentBulkOperationsPage' },
     { path: '/administration/students/promotion', page: 'StudentPromotionPage' },
+    { path: '/administration/promotion', page: 'PromotionRunPage' },
     // Existing routes
     { path: '/administration/entry-marks', page: 'EntryMarksPage' },
     { path: '/administration/classes', page: 'ClassesPage' },

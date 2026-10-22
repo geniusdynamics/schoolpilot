@@ -17,6 +17,7 @@ export { default as TeacherAssignmentsPage } from './TeacherAssignmentsPage';
 
 // Hub pages
 export { default as AnalyticsHubPage } from './AnalyticsHubPage';
+export { default as AnalysisV2Page } from './AnalysisV2Page';
 
 // Analytics sub-feature pages (merged from analytics module)
 export { default as AnalyticsTeacherDashboardPage } from './analytics/AnalyticsTeacherDashboardPage';
