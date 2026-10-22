@@ -29,7 +29,23 @@ export const FEE_ITEM_CATEGORIES = [
   'fine',
   'other',
 ] as const;
-export const FEE_FUNDING_SOURCES = ['parent', 'government_capitation', 'sponsor'] as const;
+/**
+ * Who funds a fee item (spec 05 §2.1).
+ *
+ * `parent` is the learner's family paying, `government_capitation` the government's per-learner
+ * grant (Free Primary Education, Free Day Secondary Education), `sponsor` a sponsor or
+ * scholarship body. `bursary` and `government` were added by P3-B01: a fee item may be funded by
+ * a bursary, and a government grant that is not a per-learner capitation (a county or
+ * constituency fund) is not the same source as capitation. The column is TEXT with no CHECK
+ * constraint, so widening this list changes no table and no stored row.
+ */
+export const FEE_FUNDING_SOURCES = [
+  'parent',
+  'bursary',
+  'sponsor',
+  'government_capitation',
+  'government',
+] as const;
 export const FEE_SCHEDULE_STATUSES = [
   'draft',
   'submitted',

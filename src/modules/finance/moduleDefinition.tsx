@@ -96,6 +96,9 @@ export const financeModule: ModuleDefinition = {
   routes: [
     { path: '/finance/dashboard', page: 'FinanceDashboardPage' },
     { path: '/finance/fee-configuration', page: 'FeeConfigurationPage' },
+    // Fee items (vote heads) live in their own nested page, surfaced as a tab of the fee
+    // configuration hub; the route is the deep link the hub tab points at.
+    { path: '/finance/fee-items', page: 'feeItems/FeeItemsPage' },
     { path: '/finance/fee-rules', page: 'FeeRulesPage' },
     { path: '/finance/accounting-config', page: 'AccountingConfigPage' },
     { path: '/finance/financial-years', page: 'FinancialYearsPage' },
