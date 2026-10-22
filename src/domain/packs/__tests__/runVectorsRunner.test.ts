@@ -6,7 +6,11 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } 
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+// Each case spawns the runner as a child Node process (tsx compiles the engines on a cold start);
+// on a busy machine that exceeds vitest's 20 s default even though the runner itself is quick.
+vi.setConfig({ testTimeout: 120_000 });
 
 const ROOT = process.cwd();
 const RUNNER = resolve(ROOT, 'scripts', 'packs', 'run-vectors.mjs');
