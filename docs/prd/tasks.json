@@ -3252,8 +3252,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "notes": "Opened after P2-Q01: 9 of 58 vectors were skipped. Six British-pack aggregations are declared op sum_points while their vectors expect a plain points total (spec 03 defines sum_points as aggregate-then-lookup, so B03 refuses it without a result_scale; the correct operator is sum). Three council vectors expect refer_to_council, but B04 collapses else repeat_or_council into repeat - the spec leaves the decision to the council, so the engine must not state repeat as its suggestion."
+      "status": "done",
+      "notes": "Opened after P2-Q01: 9 of 58 vectors were skipped. Six British-pack aggregations are declared op sum_points while their vectors expect a plain points total (spec 03 defines sum_points as aggregate-then-lookup, so B03 refuses it without a result_scale; the correct operator is sum). Three council vectors expect refer_to_council, but B04 collapses else repeat_or_council into repeat - the spec leaves the decision to the council, so the engine must not state repeat as its suggestion.",
+      "commit": "a498999",
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-Q02",
