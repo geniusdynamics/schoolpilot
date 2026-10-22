@@ -749,6 +749,160 @@ describe('gap 13: outcomes_ref is defined, not a trap', () => {
   });
 });
 
+describe('the aggregation and credit fields the engine reads', () => {
+  it('accepts an aggregation rounding mode and projects it', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [
+      { code: 'mean_score', op: 'mean', precision: 2, mode: 'down' },
+    ];
+    expectValid(pack);
+    expect(checkPackSemantics(pack)).toEqual([]);
+    const result = loadPack(pack);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.pack.assessment.aggregations[0].mode).toBe('down');
+  });
+
+  it('refuses a rounding mode outside the shared vocabulary', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [{ code: 'mean_score', op: 'mean', mode: 'floor' }];
+    expectSchemaError(pack, 'enum');
+  });
+
+  it('accepts a count_where predicate and projects it', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [
+      {
+        code: 'merit_count',
+        op: 'count_where',
+        value: 'grade',
+        where: { op: 'in', values: ['A*', 'A'] },
+      },
+    ];
+    expectValid(pack);
+    expect(checkPackSemantics(pack)).toEqual([]);
+    const result = loadPack(pack);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.pack.assessment.aggregations[0].where).toEqual({ op: 'in', values: ['A*', 'A'] });
+  });
+
+  it('requires where on count_where and refuses it on every other operator', () => {
+    const missing = basePack();
+    child(missing, 'assessment').aggregations = [
+      { code: 'merit_count', op: 'count_where', value: 'grade' },
+    ];
+    expectSchemaError(missing, 'required');
+
+    const misplaced = basePack();
+    child(misplaced, 'assessment').aggregations = [
+      { code: 'mean_score', op: 'mean', where: { op: 'eq', value: 'A' } },
+    ];
+    expectSchemaError(misplaced, 'not');
+  });
+
+  it('requires value for eq and values for in', () => {
+    const eq = basePack();
+    child(eq, 'assessment').aggregations = [
+      { code: 'merit_count', op: 'count_where', value: 'grade', where: { op: 'eq' } },
+    ];
+    expectSchemaError(eq, 'required');
+
+    const list = basePack();
+    child(list, 'assessment').aggregations = [
+      { code: 'merit_count', op: 'count_where', value: 'grade', where: { op: 'in' } },
+    ];
+    expectSchemaError(list, 'required');
+  });
+
+  it('refuses a relational predicate against a grade code, which has no declared order', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [
+      { code: 'merit_count', op: 'count_where', value: 'grade', where: { op: 'gte', value: 'A' } },
+    ];
+    expectValid(pack);
+    expect(checkPackSemantics(pack).map((issue) => issue.path)).toContain(
+      'assessment.aggregations[merit_count].where.op'
+    );
+  });
+
+  it('accepts a citation on a fail_if rule and projects it', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [
+      {
+        code: 'mean_score',
+        op: 'mean',
+        fail_if: {
+          any_grade: 'B',
+          in: ['MAT'],
+          then_max_division: 'IV',
+          source: 'KNEC KCSE Regulations 2024, regulation 4.5.2',
+        },
+      },
+    ];
+    expectValid(pack);
+    expect(checkPackSemantics(pack)).toEqual([]);
+    const result = loadPack(pack);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.pack.assessment.aggregations[0].fail_if?.source).toBe(
+      'KNEC KCSE Regulations 2024, regulation 4.5.2'
+    );
+  });
+
+  it('refuses a blank citation', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [
+      {
+        code: 'mean_score',
+        op: 'mean',
+        fail_if: { any_grade: 'B', then_max_division: 'IV', source: '   ' },
+      },
+    ];
+    expectSchemaError(pack, 'pattern');
+  });
+
+  it('accepts a positive learning-area credit for a credit-weighted gpa and projects it', () => {
+    const pack = basePack();
+    area(pack, 'MAT').credit = 3;
+    expectValid(pack);
+    expect(checkPackSemantics(pack)).toEqual([]);
+    const result = loadPack(pack);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.pack.learningAreas.find((entry) => entry.code === 'MAT')?.credit).toBe(3);
+  });
+
+  it('refuses a zero or negative credit', () => {
+    for (const credit of [0, -1]) {
+      const pack = basePack();
+      area(pack, 'MAT').credit = credit;
+      expectSchemaError(pack, 'exclusiveMinimum');
+    }
+  });
+
+  it('keeps both divisor spellings: a number and sum_of_multipliers', () => {
+    const pack = basePack();
+    child(pack, 'assessment').aggregations = [
+      {
+        code: 'doubled_mean',
+        op: 'mean',
+        multipliers: { MAT: 2 },
+        divisor: 'sum_of_multipliers',
+      },
+    ];
+    expectValid(pack);
+    expect(checkPackSemantics(pack)).toEqual([]);
+    const result = loadPack(pack);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.pack.assessment.aggregations[0]).toMatchObject({
+      multipliers: { MAT: 2 },
+      divisor: 'sum_of_multipliers',
+    });
+  });
+});
+
 describe('negative controls that must stay refused', () => {
   it('refuses non-contiguous bands, a lower bound above the upper, and overlapping bands', () => {
     const gap = basePack();

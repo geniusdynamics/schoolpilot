@@ -45,6 +45,10 @@
       ],
       "description": "Which value of each learning-area result the operator consumes, for example points for KCSE best-7 and grade_points for the Uganda PLE aggregate (spec 03 §6)."
     },
+    "where": {
+      "$ref": "#/$defs/countPredicate",
+      "description": "The predicate count_where counts matches of, for example a count of learning areas at grade A* to A. Required when op is count_where, and refused on every other operator because only that operator consumes it."
+    },
     "groups": {
       "type": "array",
       "minItems": 1,
@@ -89,7 +93,7 @@
         "type": "number",
         "minimum": 1
       },
-      "description": "Per learning-area multipliers applied to each result before the aggregate is formed, for a rule that counts one subject more than once: DfE Attainment 8 doubles English and mathematics within the best eight. A multiplier of 2 counts the result twice and 1 is the default. Every key must be a learning area in scope (runtime check)."
+      "description": "Per learning-area multipliers applied to the selected areas' values before the aggregate is formed, for a rule that counts one subject more than once: DfE Attainment 8 doubles English and mathematics within the best eight, so each selected area's value is multiplied by its entry and the total is divided by the declared divisor. A multiplier of 2 counts the result twice and 1 is the default. Every key must be a learning area in scope (runtime check)."
     },
     "divisor": {
       "oneOf": [
@@ -101,7 +105,11 @@
           "const": "sum_of_multipliers"
         }
       ],
-      "description": "What the multiplied aggregate is divided by, so the divisor is declared rather than implied: Attainment 8 divides by ten, though only eight subjects count. sum_of_multipliers divides by the total of the multipliers, which is the weighted mean over the selected results. Required whenever multipliers is declared; without multipliers the operator's natural divisor applies (the number of selected results for mean and best_n, one for sum)."
+      "description": "What the multiplied aggregate is divided by, so the divisor is declared rather than implied: Attainment 8 divides by ten, though only eight subjects count. Either a positive number or the literal sum_of_multipliers, which divides by the total of the multipliers and so expresses the weighted mean over the selected results. Required whenever multipliers is declared; without multipliers the operator's natural divisor applies (the number of selected results for mean and best_n, one for sum)."
+    },
+    "mode": {
+      "$ref": "common.schema.json#/$defs/roundingMode",
+      "description": "Rounding mode applied to the aggregate before lookup; defaults to half_up, the mode spec 03 §6 examples use, and the engine records the resolved mode in the trace. The vocabulary is shared with a scheme's rounding rules."
     },
     "precision": {
       "$ref": "common.schema.json#/$defs/precision",
@@ -184,9 +192,137 @@
         },
         "description": "count_where and rubric_profile produce distributions, not a single value, so there is nothing to multiply into an aggregate."
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "op": {
+            "const": "count_where"
+          }
+        },
+        "required": [
+          "op"
+        ]
+      },
+      "then": {
+        "required": [
+          "where"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "op": {
+            "enum": [
+              "sum",
+              "mean",
+              "weighted_mean",
+              "best_n",
+              "points_mean",
+              "sum_points",
+              "gpa",
+              "rubric_profile"
+            ]
+          }
+        },
+        "required": [
+          "op"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "where"
+          ]
+        },
+        "description": "Only count_where consumes a predicate; a `where` on another operator would silently do nothing."
+      }
     }
   ],
   "$defs": {
+    "countPredicate": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "eq",
+            "in",
+            "gte",
+            "gt",
+            "lte",
+            "lt"
+          ],
+          "description": "Comparison: eq and in compare codes or exact values; gte, gt, lte and lt compare exact values only and are refused against a grade code, which has no declared order (runtime check)."
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "\\S",
+          "description": "The value compared for eq, gte, gt, lte and lt, as text: a grade code such as A* or a decimal such as 12.5."
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "\\S"
+          },
+          "description": "The accepted values for the in predicate."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "in"
+              }
+            },
+            "required": [
+              "op"
+            ]
+          },
+          "then": {
+            "required": [
+              "values"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": [
+                  "eq",
+                  "gte",
+                  "gt",
+                  "lte",
+                  "lt"
+                ]
+              }
+            },
+            "required": [
+              "op"
+            ]
+          },
+          "then": {
+            "required": [
+              "value"
+            ]
+          }
+        }
+      ]
+    },
     "groupConstraint": {
       "description": "One best_n constraint: require every listed area, take at least min from a named group, or fill remaining places from any area (spec 03 §6).",
       "oneOf": [
@@ -276,6 +412,13 @@
         "then_max_division": {
           "$ref": "common.schema.json#/$defs/code",
           "description": "Highest division the learner may be awarded once the trigger fires, for example IV (spec 03 §6 PLE example)."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "\\S",
+          "description": "Citation of the rule this escape hatch implements, for example KNEC KCSE Regulations 2024, regulation 4.5.2. Spec 03 §6 requires every national special case to cite its source in the pack README and ship test vectors; this closes the contract side, and the review checks the citation against the manifest's sources. Optional so a draft pack can record the rule before the citation is confirmed, but a pack that ships a fail_if rule is expected to name one."
         }
       },
       "additionalProperties": false

@@ -619,6 +619,30 @@ export function checkPackRules(document: unknown): PackIssue[] {
         );
       }
     }
+
+    // `where` belongs to count_where alone, and a relational predicate cannot compare a grade
+    // code, which has no declared order (the engine refuses both; aggregation.schema.json states
+    // the first as a `not` the shape vocabulary cannot express).
+    const predicate = rec(aggregation.where);
+    const predicateKeys = Object.keys(predicate);
+    if (predicateKeys.length > 0) {
+      if (str(aggregation.op) !== 'count_where') {
+        fail(
+          'predicate_scope',
+          `assessment.aggregations[${code}].where`,
+          'only count_where consumes a predicate'
+        );
+      } else if (str(aggregation.value) === 'grade') {
+        const comparison = str(predicate.op);
+        if (comparison === 'gte' || comparison === 'gt' || comparison === 'lte' || comparison === 'lt') {
+          fail(
+            'predicate_scope',
+            `assessment.aggregations[${code}].where.op`,
+            'a grade code has no declared order; compare it by eq or in'
+          );
+        }
+      }
+    }
   }
 
   const annual = rec(assessment.annual);

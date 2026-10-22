@@ -88,10 +88,12 @@ parent object's properties. Every other Ajv strict check is enabled.
 - Shape conditionals: a slot needs `max` or `scale_to`; `core_all` needs `of`; `electives`
   needs `count`; `group` needs `group` and `min`; `stage_transition` needs `to_stage`;
   `threshold` needs `conditions` and `else`; `class_council` needs `suggest`;
-  `weighted_mean` needs `weights`; `best_n` needs `n`, `value` and `groups`; `best_of` needs
-  `best_of` or `n`; `papers: best_of` needs `best_of`; `multipliers` needs `divisor`; an
-  enabled ranking needs `scope`, `by` and `ties`; a `reviewed` or `verified` pack needs at
-  least one reviewer; numeric band scales need `bands`.
+  `weighted_mean` needs `weights`; `best_n` needs `n`, `value` and `groups`; `count_where`
+  needs `where`, and `where` is refused on every other operator; an `in` predicate needs
+  `values` and the other predicates need `value`; `best_of` needs `best_of` or `n`;
+  `papers: best_of` needs `best_of`; `multipliers` needs `divisor`; an enabled ranking needs
+  `scope`, `by` and `ties`; a `reviewed` or `verified` pack needs at least one reviewer;
+  numeric band scales need `bands`.
 - Mutual exclusion: a scheme is either a marks scheme or a formative-evidence scheme, never a
   mixture of both (`oneOf` with closed branches).
 - Optional shapes: `summative_slots` is optional on a formative scheme (an observational
@@ -105,8 +107,13 @@ parent object's properties. Every other Ajv strict check is enabled.
 - **Rounding modes** use the assessment engine's vocabulary (P2-B01) as canonical:
   `half_up`, `half_down`, `half_even`, `up`, `down`. `up` moves away from zero and `down`
   towards it, so on a non-negative mark `up` is a ceiling and `down` a truncation. The
-  earlier spelling `floor`/`ceil`/`truncate` is refused; the mapping was floor -> `down`,
-  ceil -> `up`, truncate -> `down`, and no shipped pack used it.
+  same enum is one shared definition (`common.schema.json#/$defs/roundingMode`) for a
+  scheme's rounding rules and for `aggregation.mode`. The earlier spelling
+  `floor`/`ceil`/`truncate` is refused; the mapping was floor -> `down`, ceil -> `up`,
+  truncate -> `down`, and no shipped pack used it.
+- **`credit` and `coefficient` are different weights.** `coefficient` is the subject
+  coefficient a `weighted_mean` divides by (Francophone moyenne); `credit` is the credit a
+  credit-weighted `gpa` multiplies grade points by, defaulting to one.
 - **`mark_out_of_20`** is the canonical grading-scale kind, matching spec 02 §8
   `grading_scale.kind`. `out_of_20` is accepted as a deprecated alias and the loader
   projects it as `mark_out_of_20`. `descriptor` is a pack-only reporting kind for a scale
@@ -140,6 +147,7 @@ below to be refused.
 | Every calendar variant declares the default's period keys, and `default` names a declared variant | Set comparison across array items |
 | A combination-rule group exists and has enough learning areas at the rule's levels; `max` is not below `count` or `min`; an elective count plus the core fits the subjects on offer | Counting another section and comparing sibling numbers |
 | Every aggregation multiplier names a learning area in scope, and no distribution carries multipliers | Cross-section lookup |
+| A relational `count_where` predicate does not compare a grade code, which has no declared order | Cross-field condition between `value` and `where.op` |
 | A learning area assigns at most one grade scale per level, and every scale exists | Cross-property uniqueness plus a cross-section reference |
 | Bands do not leave a hole larger than one point on a whole-number ladder, and an exclusive upper bound leaves none | Comparing two sibling numbers |
 

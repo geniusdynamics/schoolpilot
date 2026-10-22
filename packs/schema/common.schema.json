@@ -63,6 +63,17 @@
       "maximum": 6,
       "description": "Number of decimal places kept at a computation stage (spec 03 §4 rounding, §6 aggregation precision)."
     },
+    "roundingMode": {
+      "type": "string",
+      "enum": [
+        "half_up",
+        "half_down",
+        "half_even",
+        "up",
+        "down"
+      ],
+      "description": "Rounding mode, in the assessment engine's vocabulary (P2-B01), canonical for every stage and every operator: up and down move away from and towards zero, half_up and half_down break a tie away from and towards zero, and half_even picks the even digit. Marks are non-negative, so up is a ceiling and down a truncation. Earlier drafts of the pack schema said floor, ceil and truncate; the mapping is floor -> down, ceil -> up and truncate -> down, and no shipped pack used them."
+    },
     "codeList": {
       "type": "array",
       "minItems": 1,

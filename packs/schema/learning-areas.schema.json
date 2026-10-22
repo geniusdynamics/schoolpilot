@@ -77,6 +77,11 @@
           "exclusiveMinimum": 0,
           "description": "Subject coefficient used by weighted_mean aggregations (spec 03 §6: weighted_mean by coefficient, and Appendix J subject coefficients for the Francophone moyenne). Required by the runtime check when an aggregation weights by coefficient."
         },
+        "credit": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Credit the learning area carries in a credit-weighted gpa, for example three credit hours for a major subject (spec 03 §6 gpa: credit-weighted grade points). The engine multiplies the area's grade points by it and divides by the total credit; a learning area that declares none counts as one credit."
+        },
         "levels": {
           "$ref": "common.schema.json#/$defs/codeList",
           "description": "Levels in which the learning area is offered. Every code must be a declared level (runtime check)."

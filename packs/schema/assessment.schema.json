@@ -398,15 +398,8 @@
           "$ref": "common.schema.json#/$defs/precision"
         },
         "mode": {
-          "type": "string",
-          "enum": [
-            "half_up",
-            "half_down",
-            "half_even",
-            "up",
-            "down"
-          ],
-          "description": "Rounding mode, in the assessment engine's vocabulary (P2-B01), which is canonical: up and down move away from and towards zero, half_up and half_down break a tie away from and towards zero, and half_even picks the even digit. Marks are non-negative, so up is a ceiling and down a truncation. Earlier drafts of this schema said floor, ceil and truncate; the mapping is floor -> down, ceil -> up and truncate -> down, and no pack used them."
+          "$ref": "common.schema.json#/$defs/roundingMode",
+          "description": "Rounding mode for this stage. The vocabulary is shared with aggregation.mode; see common.schema.json#/$defs/roundingMode for the canonical meanings and the floor/ceil/truncate mapping."
         }
       },
       "additionalProperties": false

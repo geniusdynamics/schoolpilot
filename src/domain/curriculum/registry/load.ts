@@ -28,6 +28,7 @@ import type {
   PackCompetency,
   PackComponent,
   PackCondition,
+  PackCountPredicate,
   PackGradingScale,
   PackIssue,
   PackLearningArea,
@@ -247,6 +248,7 @@ function learningArea(value: unknown, index: number): PackLearningArea {
     ...(entry.coefficient === undefined
       ? {}
       : { coefficient: number(entry.coefficient, `${where}.coefficient`) }),
+    ...(entry.credit === undefined ? {} : { credit: number(entry.credit, `${where}.credit`) }),
     levels: strings(entry.levels, `${where}.levels`),
     ...(entry.national_code === undefined
       ? {}
@@ -328,6 +330,9 @@ const MISSING_POLICIES: readonly MissingPolicy[] = [
   'incomplete',
   'carry_previous',
 ];
+
+/** The engine's rounding vocabulary, shared by a scheme's rounding rules and an aggregation. */
+const ROUNDING_MODES = ['half_up', 'half_down', 'half_even', 'up', 'down'] as const;
 
 function slot(value: unknown, index: number, schemeCode: string): PackSlot {
   const where = `assessment.schemes[${schemeCode}].slots[${index}]`;
@@ -444,7 +449,7 @@ function scheme(value: unknown, index: number): PackScheme {
           precision: number(rule.precision, `${where}.rounding[${at}].precision`),
           mode: oneOf(
             rule.mode,
-            ['half_up', 'half_down', 'half_even', 'up', 'down'] as const,
+            ROUNDING_MODES,
             `${where}.rounding[${at}].mode`
           ),
         };
@@ -543,6 +548,20 @@ function multipliers(value: unknown, where: string): Readonly<Record<string, num
   return result;
 }
 
+/** `aggregation.where`: the predicate a count_where counts matches of. */
+function countPredicate(value: unknown, where: string): PackCountPredicate {
+  const entry = asObject(value, where);
+  const op = oneOf(
+    entry.op,
+    ['eq', 'in', 'gte', 'gt', 'lte', 'lt'] as const,
+    `${where}.op`
+  );
+  if (op === 'in') {
+    return { op, values: strings(entry.values, `${where}.values`) };
+  }
+  return { op, value: text(entry.value, `${where}.value`) };
+}
+
 function aggregation(value: unknown, index: number): PackAggregation {
   const where = `assessment.aggregations[${index}]`;
   const entry = asObject(value, where);
@@ -594,6 +613,12 @@ function aggregation(value: unknown, index: number): PackAggregation {
               ? ('sum_of_multipliers' as const)
               : number(entry.divisor, `${where}.divisor`),
         }),
+    ...(entry.where === undefined
+      ? {}
+      : { where: countPredicate(entry.where, `${where}.where`) }),
+    ...(entry.mode === undefined
+      ? {}
+      : { mode: oneOf(entry.mode, ROUNDING_MODES, `${where}.mode`) }),
     ...(entry.precision === undefined
       ? {}
       : { precision: number(entry.precision, `${where}.precision`) }),
@@ -629,6 +654,7 @@ function failCondition(
       any_grade: text(entry.any_grade, `${at}.any_grade`),
       in: strings(entry.in ?? [], `${at}.in`),
       then_max_division: text(entry.then_max_division, `${at}.then_max_division`),
+      ...(entry.source === undefined ? {} : { source: text(entry.source, `${at}.source`) }),
     },
   };
 }

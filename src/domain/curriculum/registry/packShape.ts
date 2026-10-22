@@ -164,6 +164,7 @@ const LEARNING_AREA: Shape = object([
   required('kind', text({ values: ['core', 'optional', 'elective', 'co_curricular', 'pastoral'] })),
   optional('group', text({ min: 1, max: 100 })),
   optional('coefficient', count({ above: 0 })),
+  optional('credit', count({ above: 0 })),
   required('levels', CODE_LIST),
   optional('national_code', union(text({ min: 1, max: 100 }), NULL)),
   optional('components', array(COMPONENT)),
@@ -261,10 +262,12 @@ const COMPONENT_POLICY: Shape = object(
   { when: [{ key: 'papers', equals: 'best_of', required: ['best_of'] }] }
 );
 
+const ROUNDING_MODE = text({ values: ['half_up', 'half_down', 'half_even', 'up', 'down'] });
+
 const ROUNDING_RULE: Shape = object([
   required('stage', text({ pattern: /^[a-z][a-z0-9_]*$/ })),
   required('precision', count({ integer: true, min: 0, max: 6 })),
-  required('mode', text({ values: ['half_up', 'half_down', 'half_even', 'up', 'down'] })),
+  required('mode', ROUNDING_MODE),
 ]);
 
 const SUMMATIVE_SLOT: Shape = object([
@@ -351,7 +354,26 @@ const FAIL_CONDITION: Shape = object([
   required('any_grade', CODE),
   optional('in', CODE_LIST),
   required('then_max_division', CODE),
+  optional('source', text({ min: 1, max: 500, pattern: /\S/ })),
 ]);
+
+const COUNT_PREDICATE: Shape = object(
+  [
+    required('op', text({ values: ['eq', 'in', 'gte', 'gt', 'lte', 'lt'] })),
+    optional('value', text({ min: 1, max: 200, pattern: /\S/ })),
+    optional('values', array(text({ min: 1, max: 200, pattern: /\S/ }), { min: 1, unique: true })),
+  ],
+  {
+    when: [
+      { key: 'op', equals: 'in', required: ['values'] },
+      { key: 'op', equals: 'eq', required: ['value'] },
+      { key: 'op', equals: 'gte', required: ['value'] },
+      { key: 'op', equals: 'gt', required: ['value'] },
+      { key: 'op', equals: 'lte', required: ['value'] },
+      { key: 'op', equals: 'lt', required: ['value'] },
+    ],
+  }
+);
 
 const POST_STEP: Shape = object([
   required('op', text({ values: ['mean', 'sum', 'lookup'] })),
@@ -385,6 +407,8 @@ const AGGREGATION: Shape = object(
     optional('weights', union(record(WEIGHT, { min: 1 }), literal('coefficient'))),
     optional('multipliers', record(count({ min: 1 }), { min: 1 })),
     optional('divisor', union(count({ above: 0 }), literal('sum_of_multipliers'))),
+    optional('where', COUNT_PREDICATE),
+    optional('mode', ROUNDING_MODE),
     optional('precision', count({ integer: true, min: 0, max: 6 })),
     optional('result_scale', CODE),
   ],
@@ -392,6 +416,7 @@ const AGGREGATION: Shape = object(
     when: [
       { key: 'op', equals: 'best_n', required: ['n', 'value', 'groups'] },
       { key: 'op', equals: 'weighted_mean', required: ['weights'] },
+      { key: 'op', equals: 'count_where', required: ['where'] },
       // `aggregation.schema.json` states `if required multipliers then required divisor`.
       { key: 'multipliers', required: ['divisor'] },
     ],

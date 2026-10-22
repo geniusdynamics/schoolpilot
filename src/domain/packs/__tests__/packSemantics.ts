@@ -550,6 +550,21 @@ export function checkPackSemantics(document: unknown): SemanticIssue[] {
         );
       }
     }
+
+    const predicate = asObject(aggregation.where);
+    if (Object.keys(predicate).length > 0) {
+      if (asString(aggregation.op) !== 'count_where') {
+        issue(`assessment.aggregations[${code}].where`, 'only count_where consumes a predicate');
+      } else if (asString(aggregation.value) === 'grade') {
+        const comparison = asString(predicate.op);
+        if (comparison === 'gte' || comparison === 'gt' || comparison === 'lte' || comparison === 'lt') {
+          issue(
+            `assessment.aggregations[${code}].where.op`,
+            'a grade code has no declared order; compare it by eq or in',
+          );
+        }
+      }
+    }
   }
 
   const annual = asObject(assessment.annual);

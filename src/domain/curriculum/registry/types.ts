@@ -60,6 +60,7 @@ export type PackCheckName =
   | 'calendar_variant'
   | 'unsatisfiable_rule'
   | 'multiplier_scope'
+  | 'predicate_scope'
   | 'grade_scale_conflict';
 
 /** One reason a pack was refused, with the check that caught it and the path at fault. */
@@ -172,6 +173,8 @@ export interface PackLearningArea {
   readonly group?: string;
   /** Required when an aggregation weights by coefficient (spec 03 §6). */
   readonly coefficient?: number;
+  /** Credit a credit-weighted gpa multiplies the area's grade points by; absent counts as one. */
+  readonly credit?: number;
   readonly levels: readonly string[];
   readonly national_code?: string | null;
   readonly components: readonly PackComponent[];
@@ -348,6 +351,15 @@ export type GroupConstraint =
   | { readonly group: string; readonly min: number }
   | { readonly fill_from: 'any' };
 
+/** The predicate a `count_where` aggregation counts matches of (spec 03 §6). */
+export interface PackCountPredicate {
+  readonly op: 'eq' | 'in' | 'gte' | 'gt' | 'lte' | 'lt';
+  /** The compared value for eq, gte, gt, lte and lt. */
+  readonly value?: string;
+  /** The accepted values for `in`. */
+  readonly values?: readonly string[];
+}
+
 export interface PackAggregation {
   readonly code: string;
   readonly op: AggregationOp;
@@ -360,6 +372,8 @@ export interface PackAggregation {
     readonly any_grade: string;
     readonly in: readonly string[];
     readonly then_max_division: string;
+    /** Citation of the rule the escape hatch implements (spec 03 §6). */
+    readonly source?: string;
   };
   /** `'coefficient'` or an explicit map of learning-area code to fraction. */
   readonly weights?: 'coefficient' | Readonly<Record<string, number>>;
@@ -367,6 +381,10 @@ export interface PackAggregation {
   readonly multipliers?: Readonly<Record<string, number>>;
   /** What a multiplied aggregate is divided by, declared rather than implied. */
   readonly divisor?: number | 'sum_of_multipliers';
+  /** The predicate count_where counts; absent for every other operator. */
+  readonly where?: PackCountPredicate;
+  /** Rounding mode for the aggregate; absent means half_up (the engine's default). */
+  readonly mode?: RoundingMode;
   readonly precision?: number;
   readonly result_scale?: string;
 }
