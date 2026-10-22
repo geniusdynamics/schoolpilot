@@ -3228,6 +3228,34 @@
       "completed_at": "2026-10-22"
     },
     {
+      "id": "P2-Q01a",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "Q",
+      "title": "Vector coverage: execute every shipped vector through the engines",
+      "size": "M",
+      "depends_on": [
+        "P2-Q01"
+      ],
+      "files": [
+        "packs/gb-national/assessment.json",
+        "packs/cambridge-intl/assessment.json",
+        "packs/pearson-intl/assessment.json",
+        "src/domain/assessment/progression/*",
+        "src/domain/packs/__tests__/*"
+      ],
+      "acceptance": [
+        "The conformance runner executes all 58 vectors with zero skips and zero failures"
+      ],
+      "test": "Runner + pack and progression tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "todo",
+      "notes": "Opened after P2-Q01: 9 of 58 vectors were skipped. Six British-pack aggregations are declared op sum_points while their vectors expect a plain points total (spec 03 defines sum_points as aggregate-then-lookup, so B03 refuses it without a result_scale; the correct operator is sum). Three council vectors expect refer_to_council, but B04 collapses else repeat_or_council into repeat - the spec leaves the decision to the council, so the engine must not state repeat as its suggestion."
+    },
+    {
       "id": "P2-Q02",
       "phase": "P2",
       "wave": "P2-W5",
