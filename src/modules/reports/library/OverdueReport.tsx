@@ -25,6 +25,8 @@ interface OverdueItem {
 }
 
 const OverdueReport: React.FC = () => {
+  // GAP(P1-E05): this report still reads the legacy `loans` and `books` collections through
+  // useAppData; the canonical library model has no loan-read path for an overdue report yet.
   const { loans, books, loading } = useAppData();
 
   const [selectedBorrowerType, setSelectedBorrowerType] = useState<'all' | 'user'>('all');
