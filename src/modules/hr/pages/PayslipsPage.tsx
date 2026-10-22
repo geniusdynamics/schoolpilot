@@ -18,7 +18,8 @@ import { logger } from '@/utils/logging';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { useCanonicalStaff } from '../data/useCanonicalStaff';
 
-import { formatKES, formatDate } from '@/utils/format';
+import { formatDate } from '@/utils/format';
+import { formatMoney } from '@/domain/money';
 interface GeneratePayslipFormData {
   staff_id: Id<'staff'> | null;
   period_id: number | null;
@@ -173,7 +174,7 @@ export const PayslipsPageContent: React.FC = () => {
     { 
       header: t('tableHeaders.netSalary'), 
       key: 'net_salary' as keyof Payslip,
-      render: (value: number) => formatKES(value)
+      render: (value: number) => formatMoney(value, 'KES')
     },
     { 
       header: t('tableHeaders.paymentDate'), 
@@ -312,19 +313,19 @@ export const PayslipsPageContent: React.FC = () => {
               </div>
               <div>
                 <span className="text-sm text-surface-muted-fg">{t('fields.basicSalary')}:</span>
-                <p className="font-medium">{formatKES(selectedPayslip.basic_salary)}</p>
+                <p className="font-medium">{formatMoney(selectedPayslip.basic_salary, 'KES')}</p>
               </div>
               <div>
                 <span className="text-sm text-surface-muted-fg">{t('fields.totalEarnings')}:</span>
-                <p className="font-medium text-green-600">{formatKES(selectedPayslip.total_earnings)}</p>
+                <p className="font-medium text-green-600">{formatMoney(selectedPayslip.total_earnings, 'KES')}</p>
               </div>
               <div>
                 <span className="text-sm text-surface-muted-fg">{t('fields.totalDeductions')}:</span>
-                <p className="font-medium text-red-600">{formatKES(selectedPayslip.total_deductions)}</p>
+                <p className="font-medium text-red-600">{formatMoney(selectedPayslip.total_deductions, 'KES')}</p>
               </div>
               <div>
                 <span className="text-sm text-surface-muted-fg">{t('fields.netSalary')}:</span>
-                <p className="font-medium text-primary-600">{formatKES(selectedPayslip.net_salary)}</p>
+                <p className="font-medium text-primary-600">{formatMoney(selectedPayslip.net_salary, 'KES')}</p>
               </div>
             </div>
             {selectedPayslip.notes && (

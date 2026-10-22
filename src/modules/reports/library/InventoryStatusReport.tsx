@@ -9,7 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { formatKES } from '@/utils/format';
+import { formatMoney } from '@/domain/money';
 
 interface InventoryStatusItem {
   itemId: string;
@@ -134,9 +134,9 @@ const InventoryStatusReport: React.FC = () => {
     // Keys must match the camelCase fields so DataGrid sorting/filtering works
     { header: 'Current Stock', key: 'currentStock', render: (_v: any, item: InventoryStatusItem) => `${item.currentStock} ${item.unitOfMeasure}` },
     { header: 'Unit Cost', key: 'unitCost', align: 'right' as const, render: (_v: any, item: InventoryStatusItem) =>
-      item.unitCost ? formatKES(item.unitCost) : 'N/A'
+      item.unitCost ? formatMoney(item.unitCost, 'KES') : 'N/A'
     },
-    { header: 'Total Value', key: 'totalValue', align: 'right' as const, render: (_v: any, item: InventoryStatusItem) => formatKES(item.totalValue) },
+    { header: 'Total Value', key: 'totalValue', align: 'right' as const, render: (_v: any, item: InventoryStatusItem) => formatMoney(item.totalValue, 'KES') },
     { header: 'Status', key: 'status', render: (_v: any, item: InventoryStatusItem) => getStatusBadge(item.status) },
   ];
 
@@ -248,7 +248,7 @@ const InventoryStatusReport: React.FC = () => {
           </Card>
           <Card className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{formatKES(totalValue)}</p>
+              <p className="text-2xl font-bold text-green-600">{formatMoney(totalValue, 'KES')}</p>
               <p className="text-sm text-surface-muted-fg">Total Value</p>
             </div>
           </Card>

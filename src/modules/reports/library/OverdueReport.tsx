@@ -9,7 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { formatKES } from '@/utils/format';
+import { formatMoney } from '@/domain/money';
 
 interface OverdueItem {
   loanId: string;
@@ -25,7 +25,9 @@ interface OverdueItem {
 }
 
 const OverdueReport: React.FC = () => {
-  const { loans, books, students, staff, loading } = useAppData();
+  // GAP(P1-E05): this report still reads the legacy `loans` and `books` collections through
+  // useAppData; the canonical library model has no loan-read path for an overdue report yet.
+  const { loans, books, loading } = useAppData();
 
   const [selectedBorrowerType, setSelectedBorrowerType] = useState<'all' | 'user'>('all');
   const [minDaysOverdue, setMinDaysOverdue] = useState<number>(1);
@@ -49,7 +51,7 @@ const OverdueReport: React.FC = () => {
       
       // Determine borrower details - the Loan interface uses user_id and user_name
       const borrowerName = loan.user_name || 'Unknown User';
-      const borrowerType: 'user' = 'user';
+      const borrowerType = 'user' as const;
 
       // Calculate potential fine (assuming 10 per day - this should be configurable)
       const finePerDay = 10;
@@ -70,7 +72,7 @@ const OverdueReport: React.FC = () => {
     });
 
     return overdueItems.sort((a, b) => b.daysOverdue - a.daysOverdue);
-  }, [loans, books, students, staff]);
+  }, [loans, books]);
 
   const handleGenerateReport = useCallback(() => {
     setIsGenerating(true);
@@ -114,7 +116,7 @@ const OverdueReport: React.FC = () => {
         {item.daysOverdue} days
       </span>
     )},
-    { header: 'Potential Fine', key: 'fineAmount', align: 'right' as const, render: (_v: any, item: OverdueItem) => formatKES(item.fineAmount ?? 0) },
+    { header: 'Potential Fine', key: 'fineAmount', align: 'right' as const, render: (_v: any, item: OverdueItem) => formatMoney(item.fineAmount ?? 0, 'KES') },
   ];
 
   const isLoadingPage = loading.loans || loading.books || loading.students || loading.staff;
@@ -133,7 +135,7 @@ const OverdueReport: React.FC = () => {
       new Date(item.loanDate).toLocaleDateString(),
       new Date(item.dueDate).toLocaleDateString(),
       item.daysOverdue?.toString() ?? '',
-      formatKES(item.fineAmount ?? 0)
+      formatMoney(item.fineAmount ?? 0, 'KES')
     ]);
 
     const csvContent = [headers, ...rows]
@@ -214,7 +216,7 @@ const OverdueReport: React.FC = () => {
           </Card>
           <Card className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{formatKES(totalFineAmount)}</p>
+              <p className="text-2xl font-bold text-green-600">{formatMoney(totalFineAmount, 'KES')}</p>
               <p className="text-sm text-surface-muted-fg">Total Potential Fines</p>
             </div>
           </Card>

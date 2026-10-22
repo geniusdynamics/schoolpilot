@@ -1,5 +1,5 @@
-// ABOUTME: Document-number sequences of the form <PREFIX>/<YEAR>/<SEQ> (e.g. receipts RCT/2027/000123).
-// ABOUTME: Pure helpers to format, parse and compute the next unique, gap-free number per prefix and year.
+// ABOUTME: The original single-file document-number helpers, kept so callers that still import
+// ABOUTME: them keep working; new code uses the named sequences in this directory instead.
 
 export const RECEIPT_PREFIX = 'RCT';
 export const DEFAULT_SEQUENCE_WIDTH = 6;
@@ -45,6 +45,11 @@ export function parseSequenceNumber(value: string | null | undefined, prefix: st
 /**
  * Next number for `spec`: one past the highest sequence already issued for that prefix and year.
  * Numbers issued only through this function are therefore unique and contiguous (gap-free).
+ *
+ * @deprecated Reads the numbers it is given and writes the next one back, so two callers that
+ * read at the same time issue the same number, and a caller that sees only a page of rows can
+ * miss the highest one. Use `SequenceService.issue`, which takes the number from the store's
+ * atomic counter.
  */
 export function nextSequenceNumber(existing: Iterable<string | null | undefined>, spec: SequenceSpec): string {
   let highest = 0;
@@ -65,7 +70,11 @@ export function sequenceYear(date?: string | Date | null): number {
   return new Date().getFullYear();
 }
 
-/** Next receipt number (RCT/<year>/<seq>) for the year of `date`. */
+/**
+ * Next receipt number (RCT/<year>/<seq>) for the year of `date`.
+ *
+ * @deprecated See {@link nextSequenceNumber}; use `SequenceService.issue('receipt', …)`.
+ */
 export function nextReceiptNumber(existing: Iterable<string | null | undefined>, date?: string | Date | null): string {
   return nextSequenceNumber(existing, { prefix: RECEIPT_PREFIX, year: sequenceYear(date) });
 }

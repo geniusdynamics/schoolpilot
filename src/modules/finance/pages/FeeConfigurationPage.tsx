@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import {
+  BanknotesIcon,
   DocumentDuplicateIcon,
   DocumentTextIcon,
   TableCellsIcon,
@@ -15,6 +16,8 @@ import {
 import { FeeTemplatesContent } from './FeeTemplatesPage';
 import { EffectFeeStructuresPageContent } from './EffectFeeStructuresPage';
 import { FeesReceiptTemplatePageContent } from './FeesReceiptTemplatePage';
+import { FeeItemsPageContent } from './feeItems/FeeItemsPage';
+import { FeeSchedulesPageContent } from './schedules/FeeSchedulesPage';
 
 interface HubTab {
   id: string;
@@ -36,10 +39,22 @@ const FeeConfigurationPage: React.FC = () => {
       component: <FeeTemplatesContent />,
     },
     {
+      id: 'fee-items',
+      label: t('feeItems.title', 'Fee items (vote heads)'),
+      icon: <BanknotesIcon className="w-4 h-4" />,
+      component: <FeeItemsPageContent />,
+    },
+    {
       id: 'structures',
       label: t('effectFeeStructures.title', 'Structures'),
       icon: <TableCellsIcon className="w-4 h-4" />,
       component: <EffectFeeStructuresPageContent />,
+    },
+    {
+      id: 'schedules',
+      label: t('feeSchedules.title', 'Fee schedules'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <FeeSchedulesPageContent />,
     },
     {
       id: 'receipt-template',

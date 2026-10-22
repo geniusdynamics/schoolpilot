@@ -24,6 +24,7 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.financialYears', path: '/finance/financial-years', icon: CalendarIcon, page: 'FinancialYearsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingOps', path: '/finance/accounting-ops', icon: BookOpenIcon, page: 'AccountingOperationsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.financialStatements', path: '/finance/financial-statements', icon: ScaleIcon, page: 'FinancialStatementsPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.accountingReports', path: '/finance/accounting-reports', icon: DocumentReportIcon, page: 'accounting/AccountingReportsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.payments', path: '/finance/payments', icon: CreditCardIcon, page: 'PaymentsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.studentFeeHistory', path: '/finance/student-fee-history', icon: BanknotesIcon, page: 'StudentFeeHistoryPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Finance reports hub relocated to /reports/finance (see reports/moduleDefinition.tsx).
@@ -96,11 +97,17 @@ export const financeModule: ModuleDefinition = {
   routes: [
     { path: '/finance/dashboard', page: 'FinanceDashboardPage' },
     { path: '/finance/fee-configuration', page: 'FeeConfigurationPage' },
+    // Fee items (vote heads) live in their own nested page, surfaced as a tab of the fee
+    // configuration hub; the route is the deep link the hub tab points at.
+    { path: '/finance/fee-items', page: 'feeItems/FeeItemsPage' },
+    // The fee-schedule matrix editor is the same shape: a nested page and a hub tab.
+    { path: '/finance/fee-schedules', page: 'schedules/FeeSchedulesPage' },
     { path: '/finance/fee-rules', page: 'FeeRulesPage' },
     { path: '/finance/accounting-config', page: 'AccountingConfigPage' },
     { path: '/finance/financial-years', page: 'FinancialYearsPage' },
     { path: '/finance/accounting-ops', page: 'AccountingOperationsPage' },
     { path: '/finance/financial-statements', page: 'FinancialStatementsPage' },
+    { path: '/finance/accounting-reports', page: 'accounting/AccountingReportsPage' },
     { path: '/finance/payments', page: 'PaymentsPage' },
     { path: '/finance/student-fee-history', page: 'StudentFeeHistoryPage' },
     // M3: /finance/reports removed; redirected to /reports/finance via redirectMap.

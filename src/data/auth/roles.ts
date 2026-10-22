@@ -45,6 +45,8 @@ export type Role = (typeof ROLES)[number];
  * - `workflow.manage` owns the workflow catalogue of `src/domain/workflows`: it gates who may add,
  *   edit or remove a workflow definition. A transition of a workflow names its own permission,
  *   which is one of the entity permissions above; this one is about the definitions themselves.
+ *   The administrator holds every permission, so it is the administrator alone who curates the
+ *   catalogue.
  */
 export const PERMISSIONS = [
   'learner.read',

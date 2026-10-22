@@ -29,7 +29,23 @@ export const FEE_ITEM_CATEGORIES = [
   'fine',
   'other',
 ] as const;
-export const FEE_FUNDING_SOURCES = ['parent', 'government_capitation', 'sponsor'] as const;
+/**
+ * Who funds a fee item (spec 05 §2.1).
+ *
+ * `parent` is the learner's family paying, `government_capitation` the government's per-learner
+ * grant (Free Primary Education, Free Day Secondary Education), `sponsor` a sponsor or
+ * scholarship body. `bursary` and `government` were added by P3-B01: a fee item may be funded by
+ * a bursary, and a government grant that is not a per-learner capitation (a county or
+ * constituency fund) is not the same source as capitation. The column is TEXT with no CHECK
+ * constraint, so widening this list changes no table and no stored row.
+ */
+export const FEE_FUNDING_SOURCES = [
+  'parent',
+  'bursary',
+  'sponsor',
+  'government_capitation',
+  'government',
+] as const;
 export const FEE_SCHEDULE_STATUSES = [
   'draft',
   'submitted',
@@ -188,6 +204,17 @@ export const feeScheduleLineSchema = z.strictObject({
   ...tenancyShape,
   fee_schedule_id: uuid(),
   fee_item_id: uuid(),
+  /**
+   * The matrix cell the line prices (spec 05 §2.2). A schedule's header names the dimensions it
+   * spans (`level_ids`, `residence_statuses`, `fee_category_ids`, `campus_id`); these three columns
+   * say which point of that space the line belongs to, so the same fee item can be priced
+   * differently for a Grade 10 boarder and a Form 3 day learner. All three are optional: a line of
+   * a single-point schedule (the shape the fee migration and the demo seed write) carries none, and
+   * a null column means "the schedule's only value for that dimension".
+   */
+  level_id: uuid().optional(),
+  residence_status: z.enum(RESIDENCE_STATUSES).optional(),
+  fee_category_id: uuid().optional(),
   amount: moneySchema,
   mandatory: z.boolean(),
   frequency: z.enum(FEE_LINE_FREQUENCIES),
@@ -205,13 +232,22 @@ export const feeScheduleLineEntity = defineEntity({
   storage: {
     table: 'fee_schedule_line',
     primaryKey: 'id',
-    indexes: ['institution_id', 'fee_schedule_id', 'fee_item_id', 'installment_plan_id'],
+    indexes: [
+      'institution_id',
+      'fee_schedule_id',
+      'fee_item_id',
+      'installment_plan_id',
+      'level_id',
+      'fee_category_id',
+    ],
     unique: [],
     refs: {
       institution_id: 'institution',
       fee_schedule_id: 'fee_schedule',
       fee_item_id: 'fee_item',
       installment_plan_id: 'installment_plan',
+      level_id: 'level',
+      fee_category_id: 'fee_category',
     },
     encrypted: [],
   },

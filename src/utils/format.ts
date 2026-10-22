@@ -1,30 +1,26 @@
-// ABOUTME: Shared formatting utilities — Kenyan currency (KES) and dates.
-// ABOUTME: Adopt these instead of ad-hoc toLocaleString/toLocaleDateString in pages.
+// ABOUTME: Shared formatting utilities — money and dates. Money formatting delegates to the money
+// ABOUTME: module (src/domain/money) so a value's currency decides its decimals; formatKES is a
+// ABOUTME: deprecated wrapper. Adopt these instead of ad-hoc toLocaleString/toLocaleDateString.
 
-const kesFormatter = new Intl.NumberFormat('en-KE', {
-  style: 'currency',
-  currency: 'KES',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+import { formatMoney, formatMoneyCompact } from '@/domain/money';
 
-const kesCompactFormatter = new Intl.NumberFormat('en-KE', {
-  style: 'currency',
-  currency: 'KES',
-  notation: 'compact',
-  maximumFractionDigits: 1,
-});
-
-/** Format a number as Kenyan Shillings, e.g. formatKES(1500) → "KSh 1,500.00". */
+/**
+ * Format a number of Kenyan Shillings, e.g. formatKES(1500) → "Ksh 1,500.00".
+ *
+ * @deprecated Use `formatMoney(amount, 'KES')` from `@/domain/money`, which names the currency
+ * explicitly. A KES amount in major units is no longer the only money the app holds.
+ */
 export function formatKES(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined || Number.isNaN(amount)) return '—';
-  return kesFormatter.format(amount);
+  return formatMoney(amount, 'KES');
 }
 
-/** Compact KES for tight columns/charts, e.g. formatKESCompact(1250000) → "KSh 1.3M". */
+/**
+ * Compact KES for tight columns/charts, e.g. formatKESCompact(1250000) → "Ksh 1.3M".
+ *
+ * @deprecated Use `formatMoneyCompact(amount, 'KES')` from `@/domain/money`.
+ */
 export function formatKESCompact(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined || Number.isNaN(amount)) return '—';
-  return kesCompactFormatter.format(amount);
+  return formatMoneyCompact(amount, 'KES');
 }
 
 const defaultDateOptions: Intl.DateTimeFormatOptions = {

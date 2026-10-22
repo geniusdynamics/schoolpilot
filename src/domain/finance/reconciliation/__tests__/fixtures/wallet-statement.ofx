@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?OFX OFXHEADER="200" VERSION="211" SECURITY="NONE" OLDFILEUID="NONE" NEWFILEUID="NONE"?>
+<OFX>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <STMTRS>
+        <CURDEF>KES</CURDEF>
+        <BANKTRANLIST>
+          <STMTTRN>
+            <TRNTYPE>CREDIT</TRNTYPE>
+            <DTPOSTED>20270110091422</DTPOSTED>
+            <TRNAMT>1500.00</TRNAMT>
+            <FITID>QK12AB34CD</FITID>
+            <REFNUM>QK12AB34CD</REFNUM>
+            <NAME>AMINA OTIENO</NAME>
+            <MEMO>Fees payment</MEMO>
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT</TRNTYPE>
+            <DTPOSTED>20270110110201</DTPOSTED>
+            <TRNAMT>2500.00</TRNAMT>
+            <FITID>QK12AB34CE</FITID>
+            <REFNUM>QK12AB34CE</REFNUM>
+            <NAME>BRIAN MWANGI</NAME>
+            <MEMO>Fees payment</MEMO>
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER</TRNTYPE>
+            <DTPOSTED>20270111083000</DTPOSTED>
+            <TRNAMT>-5000.00</TRNAMT>
+            <FITID>QK12AB34CF</FITID>
+            <REFNUM>QK12AB34CF</REFNUM>
+            <NAME>BANK TRANSFER</NAME>
+            <MEMO>Transfer to bank</MEMO>
+          </STMTTRN>
+        </BANKTRANLIST>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>
