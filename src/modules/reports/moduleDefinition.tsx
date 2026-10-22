@@ -39,6 +39,7 @@ const reportsModule: ModuleDefinition = {
     { name: 'navigation:reports.financeReports', path: '/reports/finance', icon: CurrencyDollarIcon, page: 'FinancialReportsHubPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Analytics hub (consolidates teacher/subject/class analytics + exports + trends)
     { name: 'navigation:reports.analytics', path: '/reports/analytics', icon: ChartPieIcon, page: 'AnalyticsHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:reports.analysisV2', path: '/reports/analysis-v2', icon: ChartBarIcon, page: 'AnalysisV2Page', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:reports.accountLedger', path: '/reports/account-ledger', icon: BookOpenIcon as React.FC<any>, page: 'AccountLedgerPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:reports.examResultsHorizontal', path: '/reports/exam-results-horizontal', icon: ChartPieIcon as React.FC<any>, page: 'ExamResultsHorizontalPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:reports.feeCollectionSummary', path: '/reports/fee-collection-summary', icon: CurrencyDollarIcon as React.FC<any>, page: 'FeeCollectionSummaryPage', showInModes: ['standard', 'fullwidth'] },
@@ -57,6 +58,7 @@ const reportsModule: ModuleDefinition = {
     { path: '/reports/student-reports', page: 'StudentReportsHubPage' },
     { path: '/reports/finance', page: 'FinancialReportsHubPage' },
     { path: '/reports/analytics', page: 'AnalyticsHubPage' },
+    { path: '/reports/analysis-v2', page: 'AnalysisV2Page' },
   ],
   features: ['reporting', 'analytics', 'data-export', 'teacher-analytics', 'subject-analytics', 'class-analytics']
 };

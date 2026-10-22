@@ -207,6 +207,7 @@
     "kitchenManagement": "Kitchen Management"
   },
   "reports": {
+    "analysisV2": "Analysis v2",
     "title": "Reports",
     "description": "Analytics and reporting",
     "dashboard": "Reports Dashboard",
