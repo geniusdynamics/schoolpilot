@@ -31,7 +31,9 @@ const HARNESS = '/tests/e2e/reports/report-harness.html';
 
 async function openHarness(page: Page, variant: string, size: string): Promise<void> {
   await page.setViewportSize({ width: 1100, height: 1400 });
-  await page.goto(`${HARNESS}?variant=${variant}&page=${size}`);
+  // The first navigation to the harness compiles the Vite module graph; on a cold server that exceeds
+  // Playwright's 30 s navigation default, so give it the same budget as the readiness wait below.
+  await page.goto(`${HARNESS}?variant=${variant}&page=${size}`, { timeout: 120_000 });
   await page.waitForFunction(() => window.__report?.ready === true, undefined, { timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready.then(() => true));
   // One more layout pass after the fit check has applied its density.
