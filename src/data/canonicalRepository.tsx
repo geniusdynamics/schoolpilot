@@ -4,6 +4,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { createNodeSqliteAdapter, createWasmSqliteAdapter } from '@/data/adapters/sqlite';
+import { applySchemaMigrations } from '@/data/migrations';
 import { createRepository } from '@/data/repository';
 import type { QueryRepository } from '@/data/query';
 
@@ -54,10 +55,20 @@ export async function openCanonicalRepository(): Promise<QueryRepository> {
       ? createWasmSqliteAdapter({ dbName: 'schoolpilot-canonical', foreignKeys: true })
       : createNodeSqliteAdapter({ filename: ':memory:', foreignKeys: true });
     await adapter.open();
-    const repository = createRepository({ adapter });
-    await repository.setup();
-    shared.repository = repository;
-    return repository;
+    try {
+      const repository = createRepository({ adapter });
+      await repository.setup();
+      // The module-owned tables (sequences, the ledger) are not in the canonical registry: their
+      // migrations are applied here, before the repository reaches a page, so a page can never
+      // write a table this database does not have. A failure fails the open: the caller shows it
+      // and the app does not run against a database it could not prepare.
+      await applySchemaMigrations(adapter);
+      shared.repository = repository;
+      return repository;
+    } catch (error) {
+      await adapter.close().catch(() => undefined);
+      throw error;
+    }
   })();
   return shared.opening;
 }

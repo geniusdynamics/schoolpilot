@@ -25,6 +25,38 @@ export {
 export { compactSql, dumpDatabase, restoreDatabase, validateDump } from './dump';
 
 export {
+  dropStatementFor,
+  dropStatementsFor,
+  schemaObjectsOf,
+  type SchemaObject,
+  type SchemaObjectKind,
+} from './schemaDdl';
+
+export {
+  KNOWN_MIGRATION_VERSIONS,
+  LEGACY_DATA_MIGRATION_VERSIONS,
+  ledgerSchemaMigration,
+  moduleSchemaMigration,
+  SCHEMA_MIGRATION_FLOOR,
+  SCHEMA_MIGRATION_VERSIONS,
+  SCHEMA_MIGRATIONS,
+  schemaMigrationFor,
+  sequencesSchemaMigration,
+  type ModuleSchemaMigration,
+} from './schemaMigrations';
+
+export {
+  applySchemaMigrations,
+  createSchemaMigrationRunner,
+  readSchemaVersion,
+  rollbackSchemaMigrations,
+  type AppliedSchemaMigration,
+  type SchemaApplyResult,
+  type SchemaMigrationOptions,
+  type SchemaVersion,
+} from './schemaStartup';
+
+export {
   ATTEMPTS_TABLE,
   BACKUPS_TABLE,
   MIGRATIONS_TABLE,

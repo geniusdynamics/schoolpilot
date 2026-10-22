@@ -26,12 +26,13 @@ export interface RollbackHost {
 }
 
 /**
- * Undoes every applied migration above `version`.
+ * Undoes every applied migration above `version` that this runner knows.
  *
  * The migrations are undone newest first. Each `down` runs in its own transaction, and the
  * ledger row goes with it, so a `down` that throws leaves the database exactly as it was.
  * A migration above the target without a `down` refuses the whole rollback: nothing
- * changes. A rollback to `0` undoes every migration.
+ * changes. A rollback to `0` undoes every migration this runner owns; a ledger row from a
+ * band the runner does not run is left where it is.
  */
 export async function rollbackTo(
   host: RollbackHost,
@@ -40,8 +41,10 @@ export async function rollbackTo(
   await ensureLedgerTables(host.adapter);
 
   const applied = await readApplied(host.adapter);
+  // The ledger is shared with the migrations of the other band. A runner undoes what it owns:
+  // a data migration the ledger records is not this runner's to drop, and it has no body here.
   const targets = applied
-    .filter((entry) => entry.version > version)
+    .filter((entry) => entry.version > version && host.migrations.has(entry.version))
     .sort((left, right) => right.version - left.version);
 
   if (version !== 0 && !applied.some((entry) => entry.version === version)) {

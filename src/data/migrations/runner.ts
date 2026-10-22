@@ -46,6 +46,14 @@ export interface MigrationRunnerOptions {
   readonly adapter: SqliteAdapter;
   /** The migrations to run, in any order; the runner sorts them by version. */
   readonly migrations: readonly Migration[];
+  /**
+   * The versions this build knows, including ones this runner does not run.
+   *
+   * The ledger is shared by every band of migration, so a runner that runs one band has to know
+   * the others: a row it did not write must not be refused as a database written by a newer
+   * build. Defaults to the versions of `migrations`, which is the one-band case.
+   */
+  readonly knownVersions?: readonly number[];
   /** How the database is exported before a destructive migration runs. */
   readonly backup?: MigrationBackupStrategy;
   /** When a backup is taken. Defaults to `destructive`. */
@@ -78,12 +86,18 @@ export class MigrationRunner implements BackupHost, RollbackHost {
   readonly state: RunnerState = createRunnerState();
 
   private readonly list: readonly Migration[];
+  /** The versions this runner applies. */
+  private readonly owned: ReadonlySet<number>;
+  /** The versions this build knows, including the bands this runner does not apply. */
+  private readonly known: ReadonlySet<number>;
   private readonly listeners = new Set<(event: MigrationEvent) => void>();
 
   constructor(options: MigrationRunnerOptions) {
     this.adapter = options.adapter;
     this.list = sortMigrations(options.migrations);
     this.migrations = new Map(this.list.map((migration) => [migration.version, migration]));
+    this.owned = new Set(this.list.map((migration) => migration.version));
+    this.known = new Set(options.knownVersions ?? this.owned);
     this.backup = options.backup;
     this.policy = options.backupPolicy ?? 'destructive';
     this.retention = Math.max(0, options.backupRetention ?? DEFAULT_RETENTION);
@@ -125,7 +139,11 @@ export class MigrationRunner implements BackupHost, RollbackHost {
   /** Reads the ledger and reports where the database stands. */
   async status(): Promise<MigrationStatus> {
     await ensureLedgerTables(this.adapter);
-    const applied = await readApplied(this.adapter);
+    // The ledger is shared, so a runner reports only the migrations it owns: a data migration
+    // from the other band is not part of this runner's count.
+    const applied = (await readApplied(this.adapter)).filter((entry) =>
+      this.owned.has(entry.version)
+    );
     const attempts = await readAttempts(this.adapter);
     const appliedVersions = new Set(applied.map((entry) => entry.version));
 
@@ -134,7 +152,7 @@ export class MigrationRunner implements BackupHost, RollbackHost {
       .filter((migration) => !appliedVersions.has(migration.version))
       .map(descriptorOf);
     this.state.interrupted = attempts
-      .filter((attempt) => !appliedVersions.has(attempt.version))
+      .filter((attempt) => this.owned.has(attempt.version) && !appliedVersions.has(attempt.version))
       .map(descriptorOf);
     return this.current;
   }
@@ -162,7 +180,7 @@ export class MigrationRunner implements BackupHost, RollbackHost {
       }
     }
 
-    const unknown = applied.filter((entry) => !this.migrations.has(entry.version));
+    const unknown = applied.filter((entry) => !this.known.has(entry.version));
     if (unknown.length > 0) {
       return this.fail(
         new MigrationError(
@@ -211,14 +229,14 @@ export class MigrationRunner implements BackupHost, RollbackHost {
       }
     }
 
-    const appliedList = [...appliedByVersion.values()].sort(
-      (left, right) => left.version - right.version
-    );
+    const appliedList = [...appliedByVersion.values()]
+      .filter((entry) => this.owned.has(entry.version))
+      .sort((left, right) => left.version - right.version);
     const pending = this.list.filter(
       (migration) => !appliedVersions.has(migration.version)
     );
     const interrupted = attempts
-      .filter((attempt) => !appliedVersions.has(attempt.version))
+      .filter((attempt) => this.owned.has(attempt.version) && !appliedVersions.has(attempt.version))
       .map(descriptorOf);
 
     this.state.phase = 'running';
