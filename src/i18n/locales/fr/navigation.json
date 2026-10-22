@@ -1,6 +1,7 @@
 {
   "dashboard": "Dashboard",
   "administration": {
+    "promotionRun": "Promotion Run",
     "title": "Administration",
     "description": "Gestion des ├®tudiants et du personnel",
     "dashboard": "Tableau de bord Administration",

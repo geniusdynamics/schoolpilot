@@ -71,6 +71,7 @@ export const SchoolOrganizationPage = withCanonicalRepository(SchoolOrganization
 export const StudentLifePage = withCanonicalRepository(StudentLifePageImpl);
 export const AcademicCalendarPage = withCanonicalRepository(AcademicCalendarPageImpl);
 export const StudentAttendancePage = withCanonicalRepository(StudentAttendancePageImpl);
+export { default as PromotionRunPage } from './PromotionRunPage';
 export const CommunicationPage = withCanonicalRepository(CommunicationPageImpl);
 export const SecurityPage = withCanonicalRepository(SecurityPageImpl);
 export const CertificatesPage = withCanonicalRepository(CertificatesPageImpl);
