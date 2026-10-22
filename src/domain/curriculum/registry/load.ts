@@ -28,6 +28,7 @@ import type {
   PackCompetency,
   PackComponent,
   PackCondition,
+  PackCountPredicate,
   PackGradingScale,
   PackIssue,
   PackLearningArea,
@@ -159,10 +160,11 @@ function pathway(value: unknown, index: number): PackPathway {
   };
 }
 
-function calendar(value: unknown): PackCalendar {
-  const where = 'structure.calendar_template';
+function calendarTemplate(value: unknown, where: string): PackCalendar {
   const entry = asObject(value, where);
   return {
+    ...(entry.code === undefined ? {} : { code: text(entry.code, `${where}.code`) }),
+    ...(entry.name === undefined ? {} : { name: text(entry.name, `${where}.name`) }),
     year_kind: oneOf(entry.year_kind, ['calendar_year', 'academic_year'] as const, `${where}.year_kind`),
     periods: array(entry.periods, `${where}.periods`).map((item, index) => {
       const at = `${where}.periods[${index}]`;
@@ -186,6 +188,26 @@ function calendar(value: unknown): PackCalendar {
   };
 }
 
+/**
+ * Projects `structure.calendar_template`: one template, or named variants with a default.
+ * `calendar` is the template a programme starts from; `calendars` keeps declaration order.
+ */
+function calendars(value: unknown): { calendar: PackCalendar; calendars: readonly PackCalendar[] } {
+  const where = 'structure.calendar_template';
+  const entry = asObject(value, where);
+  if (entry.variants === undefined) {
+    const single = calendarTemplate(entry, where);
+    return { calendar: single, calendars: [single] };
+  }
+  const variants = array(entry.variants, `${where}.variants`).map((item, index) =>
+    calendarTemplate(item, `${where}.variants[${index}]`)
+  );
+  const defaultCode = text(entry.default, `${where}.default`);
+  const chosen = variants.find((variant) => variant.code === defaultCode);
+  if (chosen === undefined) return lost(`${where}.default`);
+  return { calendar: chosen, calendars: variants };
+}
+
 // -------------------------------------------------------------- learning areas
 
 function component(value: unknown, index: number, areaCode: string): PackComponent {
@@ -199,6 +221,7 @@ function component(value: unknown, index: number, areaCode: string): PackCompone
       ['paper', 'practical', 'coursework', 'oral', 'project', 'strand'],
       `${where}.kind`
     ),
+    ...(entry.levels === undefined ? {} : { levels: strings(entry.levels, `${where}.levels`) }),
     ...(entry.weight === undefined ? {} : { weight: number(entry.weight, `${where}.weight`) }),
     ...(entry.max_score === undefined
       ? {}
@@ -225,6 +248,7 @@ function learningArea(value: unknown, index: number): PackLearningArea {
     ...(entry.coefficient === undefined
       ? {}
       : { coefficient: number(entry.coefficient, `${where}.coefficient`) }),
+    ...(entry.credit === undefined ? {} : { credit: number(entry.credit, `${where}.credit`) }),
     levels: strings(entry.levels, `${where}.levels`),
     ...(entry.national_code === undefined
       ? {}
@@ -239,6 +263,14 @@ function learningArea(value: unknown, index: number): PackLearningArea {
     ),
     pathways: strings(entry.pathways ?? [], `${where}.pathways`),
     alternatives: strings(entry.alternatives ?? [], `${where}.alternatives`),
+    grade_scales: array(entry.grade_scales ?? [], `${where}.grade_scales`).map((item, index) => {
+      const at = `${where}.grade_scales[${index}]`;
+      const choice = asObject(item, at);
+      return {
+        levels: strings(choice.levels, `${at}.levels`),
+        scale: text(choice.scale, `${at}.scale`),
+      };
+    }),
     ...(entry.outcomes_ref === undefined
       ? {}
       : { outcomes_ref: text(entry.outcomes_ref, `${where}.outcomes_ref`) }),
@@ -265,9 +297,12 @@ function combinationRule(value: unknown, index: number): PackCombinationRule {
   const entry = asObject(value, where);
   return {
     levels: strings(entry.levels, `${where}.levels`),
-    rule: oneOf(entry.rule, ['core_all', 'electives'] as const, `${where}.rule`),
+    rule: oneOf(entry.rule, ['core_all', 'electives', 'group'] as const, `${where}.rule`),
     of: strings(entry.of ?? [], `${where}.of`),
     ...(entry.count === undefined ? {} : { count: number(entry.count, `${where}.count`) }),
+    ...(entry.max === undefined ? {} : { max: number(entry.max, `${where}.max`) }),
+    ...(entry.group === undefined ? {} : { group: text(entry.group, `${where}.group`) }),
+    ...(entry.min === undefined ? {} : { min: number(entry.min, `${where}.min`) }),
     ...(entry.from_pathway === undefined
       ? {}
       : { from_pathway: bool(entry.from_pathway, `${where}.from_pathway`) }),
@@ -295,6 +330,9 @@ const MISSING_POLICIES: readonly MissingPolicy[] = [
   'incomplete',
   'carry_previous',
 ];
+
+/** The engine's rounding vocabulary, shared by a scheme's rounding rules and an aggregation. */
+const ROUNDING_MODES = ['half_up', 'half_down', 'half_even', 'up', 'down'] as const;
 
 function slot(value: unknown, index: number, schemeCode: string): PackSlot {
   const where = `assessment.schemes[${schemeCode}].slots[${index}]`;
@@ -334,10 +372,31 @@ function componentPolicy(value: unknown, schemeCode: string): ComponentPolicyEnt
       `${where}.papers`
     ),
     out_of: number(entry.out_of, `${where}.out_of`),
+    ...(entry.weights === undefined
+      ? {}
+      : { weights: componentWeights(entry.weights, `${where}.weights`) }),
     ...(entry.best_of === undefined
       ? {}
       : { best_of: number(entry.best_of, `${where}.best_of`) }),
   };
+}
+
+/** `component_policy.weights`: learning-area code -> component code -> share. */
+function componentWeights(
+  value: unknown,
+  where: string
+): Readonly<Record<string, Readonly<Record<string, number>>>> {
+  const areas = asObject(value, where);
+  const result: Record<string, Readonly<Record<string, number>>> = {};
+  for (const area of Object.keys(areas)) {
+    const weights = asObject(areas[area], `${where}.${area}`);
+    const mapped: Record<string, number> = {};
+    for (const code of Object.keys(weights)) {
+      mapped[code] = number(weights[code], `${where}.${area}.${code}`);
+    }
+    result[area] = mapped;
+  }
+  return result;
 }
 
 type ComponentPolicyEntry = NonNullable<PackMarksScheme['component_policy']>;
@@ -390,7 +449,7 @@ function scheme(value: unknown, index: number): PackScheme {
           precision: number(rule.precision, `${where}.rounding[${at}].precision`),
           mode: oneOf(
             rule.mode,
-            ['half_up', 'half_even', 'floor', 'ceil', 'truncate'] as const,
+            ROUNDING_MODES,
             `${where}.rounding[${at}].mode`
           ),
         };
@@ -412,8 +471,8 @@ function scheme(value: unknown, index: number): PackScheme {
         ? {}
         : { suggest: text(judgement.suggest, `${where}.term_judgement.suggest`) }),
     },
-    summative_slots: array(entry.summative_slots, `${where}.summative_slots`).map((item, at) =>
-      summativeSlot(item, at, code)
+    summative_slots: array(entry.summative_slots ?? [], `${where}.summative_slots`).map(
+      (item, at) => summativeSlot(item, at, code)
     ),
     report_shows: strings(entry.report_shows, `${where}.report_shows`),
   };
@@ -438,13 +497,15 @@ function gradingScale(value: unknown, index: number): PackGradingScale {
   const where = `assessment.grading_scales[${index}]`;
   const entry = asObject(value, where);
   const code = text(entry.code, `${where}.code`);
+  // `out_of_20` is the deprecated spelling of the entity's `mark_out_of_20` (spec 02 §8).
+  const kind = oneOf<GradingScaleKind | 'out_of_20'>(
+    entry.kind,
+    ['numeric_bands', 'rubric', 'letter', 'points', 'division', 'gpa', 'mark_out_of_20', 'out_of_20', 'descriptor'],
+    `${where}.kind`
+  );
   return {
     code,
-    kind: oneOf<GradingScaleKind>(
-      entry.kind,
-      ['numeric_bands', 'rubric', 'letter', 'points', 'division', 'gpa', 'out_of_20', 'descriptor'],
-      `${where}.kind`
-    ),
+    kind: kind === 'out_of_20' ? 'mark_out_of_20' : kind,
     ...(entry.input === undefined ? {} : { input: text(entry.input, `${where}.input`) }),
     ...(entry.upper === undefined
       ? {}
@@ -477,6 +538,28 @@ function explicitWeights(
   const result: Record<string, number> = {};
   for (const key of Object.keys(entry)) result[key] = number(entry[key], `${where}.${key}`);
   return result;
+}
+
+/** `aggregation.multipliers`: learning-area code -> multiplier. */
+function multipliers(value: unknown, where: string): Readonly<Record<string, number>> {
+  const entry = asObject(value, where);
+  const result: Record<string, number> = {};
+  for (const key of Object.keys(entry)) result[key] = number(entry[key], `${where}.${key}`);
+  return result;
+}
+
+/** `aggregation.where`: the predicate a count_where counts matches of. */
+function countPredicate(value: unknown, where: string): PackCountPredicate {
+  const entry = asObject(value, where);
+  const op = oneOf(
+    entry.op,
+    ['eq', 'in', 'gte', 'gt', 'lte', 'lt'] as const,
+    `${where}.op`
+  );
+  if (op === 'in') {
+    return { op, values: strings(entry.values, `${where}.values`) };
+  }
+  return { op, value: text(entry.value, `${where}.value`) };
 }
 
 function aggregation(value: unknown, index: number): PackAggregation {
@@ -519,6 +602,23 @@ function aggregation(value: unknown, index: number): PackAggregation {
     ...(entry.weights === undefined
       ? {}
       : { weights: explicitWeights(entry.weights, `${where}.weights`) }),
+    ...(entry.multipliers === undefined
+      ? {}
+      : { multipliers: multipliers(entry.multipliers, `${where}.multipliers`) }),
+    ...(entry.divisor === undefined
+      ? {}
+      : {
+          divisor:
+            entry.divisor === 'sum_of_multipliers'
+              ? ('sum_of_multipliers' as const)
+              : number(entry.divisor, `${where}.divisor`),
+        }),
+    ...(entry.where === undefined
+      ? {}
+      : { where: countPredicate(entry.where, `${where}.where`) }),
+    ...(entry.mode === undefined
+      ? {}
+      : { mode: oneOf(entry.mode, ROUNDING_MODES, `${where}.mode`) }),
     ...(entry.precision === undefined
       ? {}
       : { precision: number(entry.precision, `${where}.precision`) }),
@@ -554,6 +654,7 @@ function failCondition(
       any_grade: text(entry.any_grade, `${at}.any_grade`),
       in: strings(entry.in ?? [], `${at}.in`),
       then_max_division: text(entry.then_max_division, `${at}.then_max_division`),
+      ...(entry.source === undefined ? {} : { source: text(entry.source, `${at}.source`) }),
     },
   };
 }
@@ -794,6 +895,12 @@ function locale(localeTag: string, value: unknown): PackLocale {
 
 type Scalar = string | number | boolean | null;
 
+/** A JSON value at any depth; `tests.schema.json#/$defs/inputValue` accepts the same. */
+type JsonValue =
+  | Scalar
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+
 function scalarMap(value: unknown, where: string): Readonly<Record<string, Scalar>> {
   const entry = asObject(value, where);
   const result: Record<string, Scalar> = {};
@@ -806,15 +913,25 @@ function scalarMap(value: unknown, where: string): Readonly<Record<string, Scala
   return result;
 }
 
+function jsonValue(value: unknown, where: string): JsonValue {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (Array.isArray(value)) return value.map((item, index) => jsonValue(item, `${where}[${index}]`));
+  if (isRecord(value)) {
+    const result: Record<string, JsonValue> = {};
+    for (const key of Object.keys(value)) result[key] = jsonValue(value[key], `${where}.${key}`);
+    return result;
+  }
+  return lost(where);
+}
+
 function vector(value: unknown, index: number): PackVector {
   const where = `tests.vectors[${index}]`;
   const entry = asObject(value, where);
   const input = asObject(entry.input, `${where}.input`);
-  const inputValues: Record<string, string | number | null> = {};
+  const inputValues: Record<string, JsonValue> = {};
   for (const key of Object.keys(input)) {
-    const raw = input[key];
-    if (raw === null || typeof raw === 'number') inputValues[key] = raw;
-    else inputValues[key] = text(raw, `${where}.input.${key}`);
+    inputValues[key] = jsonValue(input[key], `${where}.input.${key}`);
   }
 
   const expect = asObject(entry.expect, `${where}.expect`);
@@ -878,7 +995,11 @@ export function loadPack(document: unknown): PackLoadResult {
     languages: strings(manifest.languages, 'pack.languages'),
     citations: citations(manifest.sources),
     verification: {
-      status: oneOf(verification.status, ['draft', 'verified'] as const, 'pack.verification.status'),
+      status: oneOf(
+        verification.status,
+        ['draft', 'reviewed', 'verified'] as const,
+        'pack.verification.status'
+      ),
       verified_by: strings(verification.verified_by, 'pack.verification.verified_by'),
       ...(verification.notes === undefined
         ? {}
@@ -891,7 +1012,7 @@ export function loadPack(document: unknown): PackLoadResult {
       pathways: array(structure.pathways ?? [], 'structure.pathways').map((item, at) =>
         pathway(item, at)
       ),
-      calendar: calendar(structure.calendar_template),
+      ...calendars(structure.calendar_template),
     },
     learningAreas: array(learningAreas.learning_areas, 'learning_areas.learning_areas').map(
       (item, at) => learningArea(item, at)

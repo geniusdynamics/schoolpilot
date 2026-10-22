@@ -1,0 +1,164 @@
+{
+  "vectors": [
+    {
+      "name": "International GCSE 9-1 mock at 90 percent is grade 9",
+      "programme": "pearson-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "pearson-international-gcse-9-1": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "9",
+          "points": 9
+        }
+      }
+    },
+    {
+      "name": "International GCSE mock at 89 percent is grade 8",
+      "programme": "pearson-intl",
+      "input": {
+        "CW.CW1": "24/30",
+        "MOCK": "95/100"
+      },
+      "expect": {
+        "pearson-international-gcse-9-1": {
+          "exact_total": 89,
+          "total": 89,
+          "percent": 89,
+          "grade": "8",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "Legacy A* to G scale still grades a 90 percent mock as A*",
+      "programme": "pearson-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "pearson-international-gcse-legacy": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "A*"
+        }
+      }
+    },
+    {
+      "name": "Two 100-mark papers at 80 and 90 percent combine to 85 percent",
+      "programme": "pearson-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK.MAT.P1": "80/100",
+        "MOCK.MAT.P2": "90/100"
+      },
+      "expect": {
+        "pearson-international-gcse-9-1": {
+          "exact_total": 87,
+          "total": 87,
+          "percent": 87,
+          "grade": "8",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "International A Level mock at 90 percent is A* with 56 tariff points",
+      "programme": "pearson-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "pearson-ial": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "A*",
+          "points": 56
+        }
+      }
+    },
+    {
+      "name": "UCAS tariff for a three A level combination is the per-grade sum",
+      "programme": "pearson-intl",
+      "input": {
+        "MAT": "A*",
+        "PHY": "A",
+        "HIS": "B"
+      },
+      "expect": {
+        "ial_ucas_tariff": {
+          "value": 144
+        }
+      }
+    },
+    {
+      "name": "International GCSE internal points total over three 9-1 subjects",
+      "programme": "pearson-intl",
+      "input": {
+        "ENG": "9",
+        "MAT": "8",
+        "SCI": "7"
+      },
+      "expect": {
+        "igcse_points_total": {
+          "value": 24
+        }
+      }
+    },
+    {
+      "name": "Leaving Year 6 is a stage transition into iLowerSecondary",
+      "programme": "pearson-intl",
+      "input": {
+        "leaving_level": "Y6"
+      },
+      "expect": {
+        "progression": {
+          "level": "Y6",
+          "rule": "stage_transition",
+          "to_stage": "ILOWER",
+          "next_level": "Y7"
+        }
+      }
+    },
+    {
+      "name": "Year 11 with 24 International GCSE points is steered towards the sixth form",
+      "programme": "pearson-intl",
+      "input": {
+        "leaving_level": "Y11",
+        "igcse_points_total": 24
+      },
+      "expect": {
+        "progression": {
+          "level": "Y11",
+          "rule": "class_council",
+          "suggest": "promote",
+          "next_level": "Y12"
+        }
+      }
+    },
+    {
+      "name": "Year 11 below the suggestion threshold is referred to the council",
+      "programme": "pearson-intl",
+      "input": {
+        "leaving_level": "Y11",
+        "igcse_points_total": 19
+      },
+      "expect": {
+        "progression": {
+          "level": "Y11",
+          "rule": "class_council",
+          "suggest": "refer_to_council",
+          "next_level": "Y12"
+        }
+      }
+    }
+  ]
+}

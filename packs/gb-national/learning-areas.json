@@ -1,0 +1,556 @@
+{
+  "learning_areas": [
+    {
+      "code": "EY_CL",
+      "name": "Communication and language",
+      "short_name": "C&L",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "EY_PD",
+      "name": "Physical development",
+      "short_name": "PD",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "EY_PSED",
+      "name": "Personal, social and emotional development",
+      "short_name": "PSED",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "EY_LIT",
+      "name": "Literacy",
+      "short_name": "Lit",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "EY_MAT",
+      "name": "Mathematics (early years)",
+      "short_name": "Maths",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "EY_UW",
+      "name": "Understanding the world",
+      "short_name": "UW",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "EY_EAD",
+      "name": "Expressive arts and design",
+      "short_name": "EAD",
+      "kind": "core",
+      "group": "early_years",
+      "levels": [
+        "N1",
+        "N2"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "ENG",
+      "name": "English",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null,
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1: explorations in creative reading and writing",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2: writers' viewpoints and perspectives",
+          "kind": "paper",
+          "max_score": 80
+        }
+      ]
+    },
+    {
+      "code": "ENG_LIT",
+      "name": "English Literature",
+      "short_name": "Eng Lit",
+      "kind": "elective",
+      "group": "languages",
+      "levels": [
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "HUM"
+      ]
+    },
+    {
+      "code": "LANG",
+      "name": "Modern foreign languages",
+      "short_name": "MFL",
+      "kind": "core",
+      "group": "languages",
+      "levels": [
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "MAT",
+      "name": "Mathematics",
+      "short_name": "Maths",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "components": [
+        {
+          "code": "P1",
+          "name": "Paper 1: non-calculator",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P2",
+          "name": "Paper 2: calculator",
+          "kind": "paper",
+          "max_score": 80
+        },
+        {
+          "code": "P3",
+          "name": "Paper 3: calculator",
+          "kind": "paper",
+          "max_score": 80
+        }
+      ],
+      "pathways": [
+        "SCI"
+      ]
+    },
+    {
+      "code": "SCI",
+      "name": "Science (combined)",
+      "short_name": "Science",
+      "kind": "core",
+      "group": "sciences",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Bio",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "SCI"
+      ]
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chem",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "SCI"
+      ]
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Phys",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "SCI"
+      ]
+    },
+    {
+      "code": "HIS",
+      "name": "History",
+      "short_name": "Hist",
+      "kind": "core",
+      "group": "humanities",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "HUM"
+      ]
+    },
+    {
+      "code": "GEO",
+      "name": "Geography",
+      "short_name": "Geog",
+      "kind": "core",
+      "group": "humanities",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "HUM"
+      ]
+    },
+    {
+      "code": "RE",
+      "name": "Religious education",
+      "short_name": "RE",
+      "kind": "optional",
+      "group": "humanities",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "CIT",
+      "name": "Citizenship",
+      "short_name": "Cit",
+      "kind": "core",
+      "group": "humanities",
+      "levels": [
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "ECO",
+      "name": "Economics",
+      "short_name": "Econ",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "HUM"
+      ]
+    },
+    {
+      "code": "ART",
+      "name": "Art and design",
+      "short_name": "Art",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "ART"
+      ]
+    },
+    {
+      "code": "MUS",
+      "name": "Music",
+      "short_name": "Music",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null,
+      "pathways": [
+        "ART"
+      ]
+    },
+    {
+      "code": "PE",
+      "name": "Physical education",
+      "short_name": "PE",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "DT",
+      "name": "Design and technology",
+      "short_name": "D&T",
+      "kind": "core",
+      "group": "arts",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "national_code": null
+    },
+    {
+      "code": "COMP",
+      "name": "Computing",
+      "short_name": "Computing",
+      "kind": "core",
+      "group": "applied",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6",
+        "Y7",
+        "Y8",
+        "Y9",
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "national_code": null,
+      "pathways": [
+        "SCI"
+      ]
+    }
+  ],
+  "competencies": [
+    {
+      "code": "EFFORT",
+      "name": "Effort",
+      "kind": "attitude",
+      "descriptors": [
+        "Works with sustained concentration and completes tasks to the best of their ability.",
+        "Needs reminders to begin work and to check it before handing it in."
+      ]
+    },
+    {
+      "code": "INDEPENDENCE",
+      "name": "Independent learning",
+      "kind": "core_competency",
+      "descriptors": [
+        "Chooses appropriate resources and strategies without prompting.",
+        "Relies on adult direction to structure a task."
+      ]
+    },
+    {
+      "code": "RESILIENCE",
+      "name": "Resilience",
+      "kind": "core_competency",
+      "descriptors": [
+        "Persists with a difficult task and learns from a first attempt.",
+        "Gives up when the first attempt does not succeed."
+      ]
+    }
+  ],
+  "combination_rules": [
+    {
+      "levels": [
+        "Y10",
+        "Y11"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "MAT",
+        "SCI"
+      ]
+    },
+    {
+      "levels": [
+        "Y10",
+        "Y11"
+      ],
+      "rule": "electives",
+      "count": 4
+    },
+    {
+      "levels": [
+        "Y12",
+        "Y13"
+      ],
+      "rule": "electives",
+      "count": 3,
+      "from_pathway": true
+    }
+  ]
+}

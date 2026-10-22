@@ -1,0 +1,65 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "Y6"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "CLS"
+    },
+    {
+      "levels": [
+        "Y7",
+        "Y8"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "Y9"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "IGCSE"
+    },
+    {
+      "levels": [
+        "Y10"
+      ],
+      "rule": "automatic"
+    },
+    {
+      "levels": [
+        "Y11"
+      ],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.igcse_points_total",
+        "gte": 20
+      }
+    },
+    {
+      "levels": [
+        "Y12"
+      ],
+      "rule": "automatic"
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "Y13"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

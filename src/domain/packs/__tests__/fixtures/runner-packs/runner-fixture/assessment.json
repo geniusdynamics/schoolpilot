@@ -1,0 +1,86 @@
+{
+  "schemes": [
+    {
+      "code": "fixture-scheme",
+      "levels": [
+        "L1",
+        "L2"
+      ],
+      "slots": [
+        {
+          "code": "ET",
+          "label": "End-of-term assessment",
+          "kind": "end_term",
+          "scale_to": 100
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "ET"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "fixture_scale",
+      "missing": {
+        "ET": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "fixture_scale",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "P",
+          "label": "Pass",
+          "min": 50,
+          "max": 100,
+          "points": 2
+        },
+        {
+          "code": "F",
+          "label": "Fail",
+          "min": 0,
+          "max": 49,
+          "points": 1
+        }
+      ]
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "fixture_mean",
+      "op": "mean",
+      "value": "score",
+      "precision": 0,
+      "result_scale": "fixture_scale"
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "fixture_mean",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 1
+    },
+    "missing": "renormalise"
+  }
+}

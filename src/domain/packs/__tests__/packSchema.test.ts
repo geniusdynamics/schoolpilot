@@ -203,6 +203,7 @@ const MINIMAL_PACK: Shape = {
       {
         code: 'demo_scale',
         kind: 'letter',
+        upper: 'inclusive',
         bands: [
           { code: 'A', label: 'A', min: 80, max: 100 },
           { code: 'B', label: 'B', min: 0, max: 79 },

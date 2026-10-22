@@ -1,0 +1,621 @@
+{
+  "schemes": [
+    {
+      "code": "cambridge-primary",
+      "levels": [
+        "Y1",
+        "Y2",
+        "Y3",
+        "Y4",
+        "Y5",
+        "Y6"
+      ],
+      "evidence": "rubric_observations",
+      "observation_scale": "cambridge_attainment",
+      "term_judgement": {
+        "op": "teacher_best_fit",
+        "suggest": "mode_of_latest_per_outcome"
+      },
+      "summative_slots": [
+        {
+          "code": "ET",
+          "label": "End-of-term assessment",
+          "max": 100,
+          "maps_to": "cambridge_attainment"
+        }
+      ],
+      "report_shows": [
+        "rubric_level",
+        "descriptor",
+        "teacher_comment"
+      ],
+      "overridable": [
+        "summative_slots.*.max"
+      ]
+    },
+    {
+      "code": "cambridge-lower-secondary",
+      "levels": [
+        "Y7",
+        "Y8",
+        "Y9"
+      ],
+      "evidence": "rubric_observations",
+      "observation_scale": "cambridge_attainment",
+      "term_judgement": {
+        "op": "teacher_best_fit",
+        "suggest": "mode_of_latest_per_outcome"
+      },
+      "summative_slots": [
+        {
+          "code": "ET",
+          "label": "End-of-term assessment",
+          "max": 100,
+          "maps_to": "cambridge_attainment"
+        }
+      ],
+      "report_shows": [
+        "rubric_level",
+        "descriptor",
+        "teacher_comment"
+      ],
+      "overridable": [
+        "summative_slots.*.max"
+      ]
+    },
+    {
+      "code": "cambridge-igcse-a-star-g",
+      "levels": [
+        "Y10",
+        "Y11"
+      ],
+      "slots": [
+        {
+          "code": "CW",
+          "label": "Coursework and assessed classwork",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 20
+        },
+        {
+          "code": "MOCK",
+          "label": "Mock examination",
+          "kind": "mock",
+          "scale_to": 80
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CW",
+          "MOCK"
+        ],
+        "out_of": 100
+      },
+      "component_policy": {
+        "papers": "weighted",
+        "out_of": 100,
+        "weights": {
+          "MAT": {
+            "P2": 0.35,
+            "P4": 0.65
+          }
+        }
+      },
+      "grading_scale": "igcse_a_star_g",
+      "missing": {
+        "CW": "exclude",
+        "MOCK": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    },
+    {
+      "code": "cambridge-igcse-9-1",
+      "levels": [
+        "Y10",
+        "Y11"
+      ],
+      "slots": [
+        {
+          "code": "CW",
+          "label": "Coursework and assessed classwork",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 20
+        },
+        {
+          "code": "MOCK",
+          "label": "Mock examination",
+          "kind": "mock",
+          "scale_to": 80
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CW",
+          "MOCK"
+        ],
+        "out_of": 100
+      },
+      "component_policy": {
+        "papers": "weighted",
+        "out_of": 100,
+        "weights": {
+          "MAT": {
+            "P2": 0.35,
+            "P4": 0.65
+          }
+        }
+      },
+      "grading_scale": "igcse_9_1",
+      "missing": {
+        "CW": "exclude",
+        "MOCK": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    },
+    {
+      "code": "cambridge-as",
+      "levels": [
+        "Y12"
+      ],
+      "slots": [
+        {
+          "code": "CW",
+          "label": "Coursework and assessed classwork",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 20
+        },
+        {
+          "code": "MOCK",
+          "label": "Mock examination",
+          "kind": "mock",
+          "scale_to": 80
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CW",
+          "MOCK"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "cambridge_as_level",
+      "missing": {
+        "CW": "exclude",
+        "MOCK": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    },
+    {
+      "code": "cambridge-a-level",
+      "levels": [
+        "Y13"
+      ],
+      "slots": [
+        {
+          "code": "CW",
+          "label": "Coursework and assessed classwork",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 20
+        },
+        {
+          "code": "MOCK",
+          "label": "Mock examination",
+          "kind": "mock",
+          "scale_to": 80
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CW",
+          "MOCK"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "cambridge_a_level",
+      "missing": {
+        "CW": "exclude",
+        "MOCK": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "cambridge_attainment",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "EE",
+          "label": "Exceeding expectations",
+          "min": 4,
+          "max": 4,
+          "points": 4,
+          "descriptor": "Applies the skill independently and explains the thinking."
+        },
+        {
+          "code": "ME",
+          "label": "Meeting expectations",
+          "min": 3,
+          "max": 3,
+          "points": 3,
+          "descriptor": "Meets the expectation for the stage."
+        },
+        {
+          "code": "AP",
+          "label": "Approaching expectations",
+          "min": 2,
+          "max": 2,
+          "points": 2,
+          "descriptor": "Approaching the expectation and needs prompting to apply the skill."
+        },
+        {
+          "code": "BE",
+          "label": "Below expectations",
+          "min": 1,
+          "max": 1,
+          "points": 1,
+          "descriptor": "Below the expectation and needs structured support."
+        }
+      ],
+      "verification": "The school's four-level attainment rubric for Cambridge Primary and Lower Secondary reports. Cambridge does not prescribe a level scale for internal reporting, and its Checkpoint reports are board scores rather than school levels, so this rubric is declared by the pack and is not a Cambridge scale."
+    },
+    {
+      "code": "igcse_a_star_g",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "A*",
+          "label": "A*",
+          "min": 90,
+          "max": 100,
+          "descriptor": "Exceptional performance."
+        },
+        {
+          "code": "A",
+          "label": "A",
+          "min": 80,
+          "max": 89,
+          "descriptor": "Excellent performance."
+        },
+        {
+          "code": "B",
+          "label": "B",
+          "min": 70,
+          "max": 79,
+          "descriptor": "Good performance."
+        },
+        {
+          "code": "C",
+          "label": "C",
+          "min": 60,
+          "max": 69,
+          "descriptor": "Satisfactory performance."
+        },
+        {
+          "code": "D",
+          "label": "D",
+          "min": 50,
+          "max": 59,
+          "descriptor": "Marginal performance."
+        },
+        {
+          "code": "E",
+          "label": "E",
+          "min": 40,
+          "max": 49,
+          "descriptor": "Minimum performance for a pass."
+        },
+        {
+          "code": "F",
+          "label": "F",
+          "min": 30,
+          "max": 39,
+          "descriptor": "Weak performance; the grade is below a pass."
+        },
+        {
+          "code": "G",
+          "label": "G",
+          "min": 20,
+          "max": 29,
+          "descriptor": "Very weak performance."
+        },
+        {
+          "code": "U",
+          "label": "U",
+          "min": 0,
+          "max": 19,
+          "descriptor": "Ungraded: below the standard required for grade G."
+        }
+      ],
+      "verification": "Placeholder school scale, not a published grade boundary. Cambridge International sets grade thresholds for each syllabus option and each exam series, so no fixed percentage-to-grade table exists and this pack must not claim one. The ten-band ladder is a school default for mocks; grading_scales.igcse_a_star_g.bands is overridable. No points are declared, because this pack could not verify a UCAS Tariff table for Cambridge IGCSE and will not invent one."
+    },
+    {
+      "code": "igcse_9_1",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "9",
+          "label": "9",
+          "min": 90,
+          "max": 100,
+          "points": 9,
+          "descriptor": "Exceptional performance."
+        },
+        {
+          "code": "8",
+          "label": "8",
+          "min": 80,
+          "max": 89,
+          "points": 8,
+          "descriptor": "Very strong performance."
+        },
+        {
+          "code": "7",
+          "label": "7",
+          "min": 70,
+          "max": 79,
+          "points": 7,
+          "descriptor": "Strong performance."
+        },
+        {
+          "code": "6",
+          "label": "6",
+          "min": 60,
+          "max": 69,
+          "points": 6,
+          "descriptor": "Secure performance above the good pass."
+        },
+        {
+          "code": "5",
+          "label": "5",
+          "min": 50,
+          "max": 59,
+          "points": 5,
+          "descriptor": "Good pass."
+        },
+        {
+          "code": "4",
+          "label": "4",
+          "min": 40,
+          "max": 49,
+          "points": 4,
+          "descriptor": "Standard pass."
+        },
+        {
+          "code": "3",
+          "label": "3",
+          "min": 30,
+          "max": 39,
+          "points": 3,
+          "descriptor": "Below the standard pass."
+        },
+        {
+          "code": "2",
+          "label": "2",
+          "min": 20,
+          "max": 29,
+          "points": 2,
+          "descriptor": "Weak performance."
+        },
+        {
+          "code": "1",
+          "label": "1",
+          "min": 10,
+          "max": 19,
+          "points": 1,
+          "descriptor": "Minimal performance."
+        },
+        {
+          "code": "U",
+          "label": "U",
+          "min": 0,
+          "max": 9,
+          "points": 0,
+          "descriptor": "Ungraded."
+        }
+      ],
+      "verification": "Placeholder school scale for the Cambridge IGCSE syllabuses that are graded 9-1 (syllabus numbers in the 09xx range). Cambridge sets the thresholds per option and series; the bands here are a school default and grading_scales.igcse_9_1.bands is overridable. The points are the school's internal points equal to the grade number, not a DfE performance score: DfE Attainment 8 points apply to England-registered GCSEs, not to Cambridge IGCSE."
+    },
+    {
+      "code": "cambridge_as_level",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "A",
+          "label": "A",
+          "min": 80,
+          "max": 100,
+          "descriptor": "Excellent performance."
+        },
+        {
+          "code": "B",
+          "label": "B",
+          "min": 70,
+          "max": 79,
+          "descriptor": "Good performance."
+        },
+        {
+          "code": "C",
+          "label": "C",
+          "min": 60,
+          "max": 69,
+          "descriptor": "Satisfactory performance."
+        },
+        {
+          "code": "D",
+          "label": "D",
+          "min": 50,
+          "max": 59,
+          "descriptor": "Marginal performance."
+        },
+        {
+          "code": "E",
+          "label": "E",
+          "min": 40,
+          "max": 49,
+          "descriptor": "Minimum performance for a pass."
+        },
+        {
+          "code": "U",
+          "label": "U",
+          "min": 0,
+          "max": 39,
+          "descriptor": "Ungraded."
+        }
+      ],
+      "verification": "AS Level has no A* grade, so this scale stops at A. Placeholder bands for internal mocks; Cambridge sets the thresholds per subject and series. No points are declared: the post-2017 UCAS Tariff treatment of AS levels was not verified for this pack, so the pack neither awards nor totals AS points."
+    },
+    {
+      "code": "cambridge_a_level",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "A*",
+          "label": "A*",
+          "min": 90,
+          "max": 100,
+          "points": 56,
+          "descriptor": "Exceptional performance."
+        },
+        {
+          "code": "A",
+          "label": "A",
+          "min": 80,
+          "max": 89,
+          "points": 48,
+          "descriptor": "Excellent performance."
+        },
+        {
+          "code": "B",
+          "label": "B",
+          "min": 70,
+          "max": 79,
+          "points": 40,
+          "descriptor": "Good performance."
+        },
+        {
+          "code": "C",
+          "label": "C",
+          "min": 60,
+          "max": 69,
+          "points": 32,
+          "descriptor": "Satisfactory performance."
+        },
+        {
+          "code": "D",
+          "label": "D",
+          "min": 50,
+          "max": 59,
+          "points": 24,
+          "descriptor": "Marginal performance."
+        },
+        {
+          "code": "E",
+          "label": "E",
+          "min": 40,
+          "max": 49,
+          "points": 16,
+          "descriptor": "Minimum performance for a pass."
+        },
+        {
+          "code": "U",
+          "label": "U",
+          "min": 0,
+          "max": 39,
+          "points": 0,
+          "descriptor": "Ungraded."
+        }
+      ],
+      "verification": "Placeholder percentage bands for internal mocks: Cambridge sets the grade thresholds per syllabus option and series, and the A* rule is applied within the subject. The points are the UCAS Tariff for a UK A level (A* 56, A 48, B 40, C 32, D 24, E 16, U 0), a per-grade tariff summed over the qualifications taken."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "igcse_points_total",
+      "op": "sum",
+      "value": "grade_points",
+      "precision": 0
+    },
+    {
+      "code": "a_level_ucas_tariff",
+      "op": "sum",
+      "value": "grade_points",
+      "precision": 0
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "igcse_points_total",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": false
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

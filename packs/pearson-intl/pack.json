@@ -1,0 +1,72 @@
+{
+  "code": "pearson-intl",
+  "name": "Pearson Edexcel international - iPrimary to International A Level (Year 1 to Year 13)",
+  "version": "1.0.0",
+  "country": "GB",
+  "issuers": [
+    "Pearson Education (Edexcel)"
+  ],
+  "effective_from": "2026-09-01",
+  "languages": [
+    "en"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Pearson Edexcel International GCSEs",
+      "issuer": "Pearson Education",
+      "url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses.html",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "The 9-1 grading scale explained (International GCSE)",
+      "issuer": "Pearson Education",
+      "url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/the-9-1-grading-scale-explained.html",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Edexcel International GCSE Mathematics A (2016)",
+      "issuer": "Pearson Education",
+      "url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-mathematics-a-2016.html",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Pearson Edexcel International Advanced Levels (IAL)",
+      "issuer": "Pearson Education",
+      "url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-advanced-levels.html",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "International Primary Curriculum (iPrimary)",
+      "issuer": "Pearson Education",
+      "url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-primary-curriculum.html",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "International Lower Secondary Curriculum (iLowerSecondary)",
+      "issuer": "Pearson Education",
+      "url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-lower-secondary-curriculum.html",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "UCAS Tariff points",
+      "issuer": "UCAS",
+      "url": "https://www.ucas.com/applying/before-you-apply/what-and-where-to-study/entry-requirements/ucas-tariff-points",
+      "retrieved": "2026-10-21"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft: no Pearson Edexcel examiner or school reviewer has checked this pack. Source links: all seven URLs resolved to the named pages on 2026-10-21 (titles matched). What is a placeholder, not a claim: every percentage-to-grade band. Pearson sets grade boundaries for each qualification and each exam series after marking, so international_gcse_9_1, international_gcse_a_star_g and international_a_level are school defaults and are declared overridable (grading_scales.<code>.bands); a school must replace them with the board's boundaries for the session. What is structured but unverified: the International GCSE Mathematics A paper structure (two papers of 100 marks, half the qualification each) follows the published specification and was not re-read from it; International AS and A Level subjects declare no papers, and the International A Level Mathematics paper set is not modelled, because only the International GCSE papers and no A Level maxima were verified. The two International GCSE papers carry their 0.5 shares in component_policy.weights under MAT, and Mathematics declares international_gcse_9_1 at Y10-Y11 (the 4MA1 syllabus the modelled papers belong to). No board assessment is declared at Year 6 or Year 9: the iPrimary and iLowerSecondary assessments are optional school assessments, and calling them national would overclaim. UCAS: the A Level tariff is per grade, not per grade and subject: A* 56, A 48, B 40, C 32, D 24, E 16, U 0, summed over the qualifications taken. The tariff table is rendered client-side and was not read off the live page, so the figures come from spec 03 Appendix C; no AS or International GCSE tariff is modelled. Grade codes are the printed grades, so A* is the band code and the label repeats it. Calendar: the pack declares both the northern (August) and the southern (January) academic year as named variants, northern by default. Locale: English only; other languages are a translation task, not a pack version."
+  },
+  "overridable": [
+    "grading_scales.international_gcse_9_1.bands",
+    "grading_scales.international_gcse_a_star_g.bands",
+    "grading_scales.international_a_level.bands",
+    "grading_scales.pearson_attainment.bands",
+    "structure.calendar_template.variants.*.periods",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

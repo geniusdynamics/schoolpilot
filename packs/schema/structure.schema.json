@@ -36,7 +36,15 @@
       "description": "Senior-school pathways or A-Level combinations (spec 03 §3, Appendix A). Optional: a primary-only pack has none."
     },
     "calendar_template": {
-      "$ref": "#/$defs/calendarTemplate"
+      "description": "The calendar a programme instantiates. Either one template, or a set of named variants with a default, for a pack whose schools run both the northern and the southern academic year (spec 03 Appendix C).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/calendarTemplate"
+        },
+        {
+          "$ref": "#/$defs/calendarVariants"
+        }
+      ]
     }
   },
   "additionalProperties": false,
@@ -144,6 +152,14 @@
         "periods"
       ],
       "properties": {
+        "code": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Variant code, required inside calendar_variants and echoed by the container's default. Absent on a single template."
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name",
+          "description": "Display name of the variant, for example Northern or Southern."
+        },
         "year_kind": {
           "type": "string",
           "enum": [
@@ -158,13 +174,39 @@
           "items": {
             "$ref": "#/$defs/calendarPeriod"
           },
-          "description": "Reporting periods in sequence. Half-terms nest inside terms (spec 02 §3)."
+          "description": "Reporting periods in sequence. Half-terms nest inside terms (spec 02 §3). Every variant must declare the same period codes, names and sequences as the default, so the annual weights resolve whichever variant a school chooses (runtime check)."
         },
         "note": {
           "type": "string",
           "minLength": 1,
           "maxLength": 1000,
           "description": "Free text for the setup wizard, for example that exact dates are published annually by the ministry (spec 03 §3)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "calendarVariants": {
+      "type": "object",
+      "required": [
+        "default",
+        "variants"
+      ],
+      "properties": {
+        "default": {
+          "$ref": "common.schema.json#/$defs/code",
+          "description": "Code of the variant a programme starts from; the school may pick another when it creates the programme. Must name a declared variant (runtime check)."
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "$ref": "#/$defs/calendarTemplate",
+            "required": [
+              "code"
+            ]
+          },
+          "description": "Named calendar templates. Codes are unique (runtime check)."
         }
       },
       "additionalProperties": false

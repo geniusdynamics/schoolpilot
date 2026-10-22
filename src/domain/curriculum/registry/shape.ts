@@ -25,6 +25,8 @@ export type Shape =
       readonly above?: number;
     }
   | { readonly of: 'literal'; readonly value: string }
+  /** Any JSON value, at any depth, as a recursive `anyOf` of scalar, array and object states it. */
+  | { readonly of: 'json' }
   | { readonly of: 'union'; readonly shapes: readonly Shape[] }
   | {
       readonly of: 'array';
@@ -62,7 +64,8 @@ export interface Field {
 
 export interface Conditional {
   readonly key: string;
-  readonly equals: string | boolean;
+  /** Value that activates the rule. Omitted when the rule fires on the key's presence alone. */
+  readonly equals?: string | boolean;
   readonly required: readonly string[];
 }
 
@@ -111,11 +114,23 @@ export function literal(value: string): Shape {
 export const ANY: Shape = { of: 'any' };
 export const NULL: Shape = { of: 'null' };
 export const BOOLEAN: Shape = { of: 'boolean' };
+/** Any JSON value; `tests.schema.json#/$defs/inputValue` accepts the same, recursively. */
+export const JSON_VALUE: Shape = { of: 'json' };
 
 // ------------------------------------------------------------------ vocabulary
 
-/** `common.schema.json#/$defs/code`: a pack-local code. */
-export const CODE = text({ pattern: /^[A-Za-z0-9][A-Za-z0-9._-]*$/, min: 1, max: 50 });
+/**
+ * `common.schema.json#/$defs/code`: a pack-local code.
+ *
+ * The pattern carries the source's printed identifier, so a grade keeps its symbol: `A*`, `A-`,
+ * `B+` and `9` all pass. At least one alphanumeric character is required, which the lookahead
+ * states; a code is data and is never used as a raw file name or URL segment.
+ */
+export const CODE = text({
+  pattern: /^(?=.*[A-Za-z0-9])[A-Za-z0-9*+-][A-Za-z0-9._*+-]*$/,
+  min: 1,
+  max: 50,
+});
 /** `common.schema.json#/$defs/name`: a display name. */
 export const NAME = text({ min: 1, max: 200 });
 /** `common.schema.json#/$defs/date`: the shape of a calendar date. */
@@ -164,6 +179,9 @@ export function checkShape(
       return;
     case 'literal':
       if (value !== shape.value) report(issues, 'const', path, `must be "${shape.value}"`);
+      return;
+    case 'json':
+      checkJsonValue(value, path, issues);
       return;
     case 'string':
       if (typeof value !== 'string') {
@@ -286,16 +304,44 @@ export function checkShape(
         report(issues, 'anyOf', path, `must include ${groups}`);
       }
       for (const rule of shape.when ?? []) {
-        if (value[rule.key] !== rule.equals) continue;
+        const present = Object.prototype.hasOwnProperty.call(value, rule.key);
+        const active = rule.equals === undefined ? present : present && value[rule.key] === rule.equals;
+        if (!active) continue;
         for (const key of rule.required) {
           if (!Object.prototype.hasOwnProperty.call(value, key)) {
-            report(issues, 'required', at(path, key), `is required when ${rule.key} is "${rule.equals}"`);
+            report(
+              issues,
+              'required',
+              at(path, key),
+              rule.equals === undefined
+                ? `is required when ${rule.key} is present`
+                : `is required when ${rule.key} is "${rule.equals}"`
+            );
           }
         }
       }
       return;
     }
   }
+}
+
+function checkJsonValue(value: unknown, path: string, issues: PackIssue[]): void {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) report(issues, 'type', path, 'must be a finite number');
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => checkJsonValue(item, atIndex(path, index), issues));
+    return;
+  }
+  if (isRecord(value)) {
+    for (const key of Object.keys(value)) {
+      checkJsonValue(value[key], at(path, key), issues);
+    }
+    return;
+  }
+  report(issues, 'type', path, 'must be a JSON value');
 }
 
 function checkVariants(

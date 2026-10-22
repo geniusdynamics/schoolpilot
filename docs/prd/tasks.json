@@ -2707,6 +2707,36 @@
       "completed_at": "2026-10-21"
     },
     {
+      "id": "P2-A01a",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "A",
+      "title": "Pack schema revision: grade codes, component scope and weights, combination minimums, structured vectors",
+      "size": "L",
+      "depends_on": [
+        "P2-A01"
+      ],
+      "files": [
+        "packs/schema/*.json",
+        "src/domain/curriculum/registry/packShape.ts",
+        "src/domain/curriculum/registry/shape.ts",
+        "src/domain/curriculum/registry/rules.ts"
+      ],
+      "acceptance": [
+        "Every gap reported by the five packs is closed or explicitly documented as a loader rule",
+        "The five existing packs still validate"
+      ],
+      "test": "Schema tests + the five packs",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "notes": "Opened at P2-W3 after ke-cbe, ke-844, gb-national, cambridge-intl and pearson-intl hit the same walls: codes cannot hold A*/A-/B+; components are scoped to a learning area not a level; component_policy has no weights map though the engine requires one; formative schemes must invent a summative slot; one calendar template; combination rules cannot express minimums; aggregations cannot double-weight a subject; no per-level grade-scale choice; vector inputs are flat scalars; verification.status has no reviewed state; rounding vocabularies disagree. The loader transcribes the schema and must change in lockstep.",
+      "commit": "bf4dbba",
+      "completed_at": "2026-10-21"
+    },
+    {
       "id": "P2-A02",
       "phase": "P2",
       "wave": "P2-W2",
@@ -2808,10 +2838,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "f8f078b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-B04",
@@ -2836,10 +2866,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "0d70010",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-C01",
@@ -2916,10 +2946,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "17f7455",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-D01",
@@ -2940,10 +2970,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "2c8fc7b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-21"
     },
     {
       "id": "P2-D02",
@@ -2970,10 +3000,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "0051b05",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-D03",
@@ -3025,10 +3055,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "832753b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-E02",
@@ -3051,10 +3081,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "687d022",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-E03",
@@ -3077,10 +3107,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "219a36e",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-E04",
@@ -3192,10 +3222,40 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "43fbe5d",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-22"
+    },
+    {
+      "id": "P2-Q01a",
+      "phase": "P2",
+      "wave": "P2-W3",
+      "lane": "Q",
+      "title": "Vector coverage: execute every shipped vector through the engines",
+      "size": "M",
+      "depends_on": [
+        "P2-Q01"
+      ],
+      "files": [
+        "packs/gb-national/assessment.json",
+        "packs/cambridge-intl/assessment.json",
+        "packs/pearson-intl/assessment.json",
+        "src/domain/assessment/progression/*",
+        "src/domain/packs/__tests__/*"
+      ],
+      "acceptance": [
+        "The conformance runner executes all 58 vectors with zero skips and zero failures"
+      ],
+      "test": "Runner + pack and progression tests",
+      "reqs": [],
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "done",
+      "notes": "Opened after P2-Q01: 9 of 58 vectors were skipped. Six British-pack aggregations are declared op sum_points while their vectors expect a plain points total (spec 03 defines sum_points as aggregate-then-lookup, so B03 refuses it without a result_scale; the correct operator is sum). Three council vectors expect refer_to_council, but B04 collapses else repeat_or_council into repeat - the spec leaves the decision to the council, so the engine must not state repeat as its suggestion.",
+      "commit": "a498999",
+      "completed_at": "2026-10-22"
     },
     {
       "id": "P2-Q02",

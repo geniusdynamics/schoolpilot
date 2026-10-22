@@ -48,13 +48,20 @@ export type PackCheckName =
   | 'weight_sum'
   | 'band_order'
   | 'band_overlap'
+  | 'band_gap'
   | 'locale_coverage'
   | 'impossible_date'
   | 'single_instance_block'
   | 'out_of_scope'
   | 'duplicate_rule'
   | 'programme_mismatch'
-  | 'coefficient_missing';
+  | 'coefficient_missing'
+  | 'component_collision'
+  | 'calendar_variant'
+  | 'unsatisfiable_rule'
+  | 'multiplier_scope'
+  | 'predicate_scope'
+  | 'grade_scale_conflict';
 
 /** One reason a pack was refused, with the check that caught it and the path at fault. */
 export interface PackIssue {
@@ -79,7 +86,8 @@ export interface PackCitation {
 }
 
 export interface PackVerification {
-  readonly status: 'draft' | 'verified';
+  /** `draft` is unreviewed; `reviewed` had a named reviewer; `verified` is reviewed and released. */
+  readonly status: 'draft' | 'reviewed' | 'verified';
   readonly verified_by: readonly string[];
   readonly notes?: string;
 }
@@ -117,6 +125,9 @@ export interface PackCalendarPeriod {
 }
 
 export interface PackCalendar {
+  /** Variant code; absent on a single template. */
+  readonly code?: string;
+  readonly name?: string;
   readonly year_kind: 'calendar_year' | 'academic_year';
   readonly periods: readonly PackCalendarPeriod[];
   readonly note?: string;
@@ -126,7 +137,10 @@ export interface PackStructure {
   readonly stages: readonly PackStage[];
   readonly levels: readonly PackLevel[];
   readonly pathways: readonly PackPathway[];
+  /** The template a programme starts from: the only one, or the default variant. */
   readonly calendar: PackCalendar;
+  /** Every declared template in declaration order. One entry for a single-template pack. */
+  readonly calendars: readonly PackCalendar[];
 }
 
 export type LearningAreaKind = 'core' | 'optional' | 'elective' | 'co_curricular' | 'pastoral';
@@ -137,9 +151,17 @@ export interface PackComponent {
   readonly code: string;
   readonly name: string;
   readonly kind: ComponentKind;
-  /** Share of the learning-area score when the scheme weights its papers. */
+  /** Levels the component is offered at; absent means every level of the learning area. */
+  readonly levels?: readonly string[];
+  /** Share of the learning-area score when the scheme weights its papers; a policy weight wins. */
   readonly weight?: number;
   readonly max_score?: number;
+}
+
+export interface PackGradeScaleChoice {
+  readonly levels: readonly string[];
+  /** Grading scale code used for this learning area at those levels. */
+  readonly scale: string;
 }
 
 export interface PackLearningArea {
@@ -151,11 +173,16 @@ export interface PackLearningArea {
   readonly group?: string;
   /** Required when an aggregation weights by coefficient (spec 03 §6). */
   readonly coefficient?: number;
+  /** Credit a credit-weighted gpa multiplies the area's grade points by; absent counts as one. */
+  readonly credit?: number;
   readonly levels: readonly string[];
   readonly national_code?: string | null;
   readonly components: readonly PackComponent[];
   readonly pathways: readonly string[];
   readonly alternatives: readonly string[];
+  /** Per-level grade-scale choice, for a subject examined on two syllabuses. */
+  readonly grade_scales: readonly PackGradeScaleChoice[];
+  /** Relative path to the outcomes file the pack ships for this learning area (spec 03 §3). */
   readonly outcomes_ref?: string;
 }
 
@@ -166,14 +193,20 @@ export interface PackCompetency {
   readonly descriptors: readonly string[];
 }
 
-export type CombinationRule = 'core_all' | 'electives';
+export type CombinationRule = 'core_all' | 'electives' | 'group';
 
 export interface PackCombinationRule {
   readonly levels: readonly string[];
   readonly rule: CombinationRule;
-  /** Required learning areas, `|` separating alternatives (spec 03 §3). */
+  /** Learning areas the rule is about, `|` separating alternatives (spec 03 §3). */
   readonly of: readonly string[];
   readonly count?: number;
+  /** Upper bound on the choices the rule counts. */
+  readonly max?: number;
+  /** Learning-area group the `group` rule counts. */
+  readonly group?: string;
+  /** Least number of choices the `group` rule requires. */
+  readonly min?: number;
   readonly from_pathway?: boolean;
 }
 
@@ -212,13 +245,18 @@ export type ComponentCombine = 'sum' | 'scale_each_then_sum' | 'weighted' | 'bes
 export interface PackComponentPolicy {
   readonly papers: ComponentCombine;
   readonly out_of: number;
+  /** Per learning-area component weights, keyed by area code then component code. */
+  readonly weights?: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly best_of?: number;
 }
+
+/** The assessment engine's rounding vocabulary, which the pack schema adopts (P2-B01). */
+export type RoundingMode = 'half_up' | 'half_down' | 'half_even' | 'up' | 'down';
 
 export interface PackRoundingRule {
   readonly stage: string;
   readonly precision: number;
-  readonly mode: 'half_up' | 'half_even' | 'floor' | 'ceil' | 'truncate';
+  readonly mode: RoundingMode;
 }
 
 export interface PackSummativeSlot {
@@ -253,6 +291,7 @@ export interface PackFormativeScheme extends PackSchemeCommon {
   readonly evidence: 'rubric_observations';
   readonly observation_scale: string;
   readonly term_judgement: { readonly op: 'teacher_best_fit'; readonly suggest?: string };
+  /** Empty for a purely observational scheme, which computes a best-fit rubric level instead. */
   readonly summative_slots: readonly PackSummativeSlot[];
   readonly report_shows: readonly string[];
 }
@@ -266,7 +305,7 @@ export type GradingScaleKind =
   | 'points'
   | 'division'
   | 'gpa'
-  | 'out_of_20'
+  | 'mark_out_of_20'
   | 'descriptor';
 
 export interface PackBand {
@@ -312,6 +351,15 @@ export type GroupConstraint =
   | { readonly group: string; readonly min: number }
   | { readonly fill_from: 'any' };
 
+/** The predicate a `count_where` aggregation counts matches of (spec 03 §6). */
+export interface PackCountPredicate {
+  readonly op: 'eq' | 'in' | 'gte' | 'gt' | 'lte' | 'lt';
+  /** The compared value for eq, gte, gt, lte and lt. */
+  readonly value?: string;
+  /** The accepted values for `in`. */
+  readonly values?: readonly string[];
+}
+
 export interface PackAggregation {
   readonly code: string;
   readonly op: AggregationOp;
@@ -324,9 +372,19 @@ export interface PackAggregation {
     readonly any_grade: string;
     readonly in: readonly string[];
     readonly then_max_division: string;
+    /** Citation of the rule the escape hatch implements (spec 03 §6). */
+    readonly source?: string;
   };
   /** `'coefficient'` or an explicit map of learning-area code to fraction. */
   readonly weights?: 'coefficient' | Readonly<Record<string, number>>;
+  /** Per learning-area multipliers, for a rule that counts a subject twice (Attainment 8). */
+  readonly multipliers?: Readonly<Record<string, number>>;
+  /** What a multiplied aggregate is divided by, declared rather than implied. */
+  readonly divisor?: number | 'sum_of_multipliers';
+  /** The predicate count_where counts; absent for every other operator. */
+  readonly where?: PackCountPredicate;
+  /** Rounding mode for the aggregate; absent means half_up (the engine's default). */
+  readonly mode?: RoundingMode;
   readonly precision?: number;
   readonly result_scale?: string;
 }
@@ -441,10 +499,19 @@ export interface PackExpectation {
   readonly aggregates: Readonly<Record<string, Readonly<Record<string, string | number | boolean | null>>>>;
 }
 
+/** One vector input value: a scalar, or an array or object of further values (spec 03 §12). */
+export type PackInputValue =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly PackInputValue[]
+  | { readonly [key: string]: PackInputValue };
+
 export interface PackVector {
   readonly name: string;
   readonly programme?: string;
-  readonly input: Readonly<Record<string, string | number | null>>;
+  readonly input: Readonly<Record<string, PackInputValue>>;
   readonly expect: PackExpectation;
 }
 

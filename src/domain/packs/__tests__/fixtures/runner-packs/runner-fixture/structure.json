@@ -1,0 +1,41 @@
+{
+  "stages": [
+    {
+      "code": "S1",
+      "name": "Stage one",
+      "levels": [
+        "L1",
+        "L2"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "L1",
+      "name": "Level one",
+      "ordinal": 1,
+      "next": "L2"
+    },
+    {
+      "code": "L2",
+      "name": "Level two",
+      "ordinal": 2,
+      "next": null
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term one",
+        "typical": [
+          "09-01",
+          "12-01"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": "gb-national",
+  "name": "England national curriculum - EYFS to A Level (Nursery to Year 13)",
+  "version": "1.0.0",
+  "country": "GB",
+  "issuers": [
+    "Department for Education",
+    "Ofqual",
+    "UCAS"
+  ],
+  "effective_from": "2026-09-01",
+  "languages": [
+    "en"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Early years foundation stage statutory framework (EYFS)",
+      "issuer": "Department for Education",
+      "url": "https://www.gov.uk/government/publications/early-years-foundation-stage-framework--2",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "National curriculum in England: framework for key stages 1 to 4",
+      "issuer": "Department for Education",
+      "url": "https://www.gov.uk/government/publications/national-curriculum-in-england-framework-for-key-stages-1-to-4",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "GCSE (9 to 1) qualification-level conditions and requirements",
+      "issuer": "Ofqual",
+      "url": "https://www.gov.uk/government/publications/gcse-9-to-1-qualification-level-conditions",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "Secondary accountability measures (including Progress 8 and Attainment 8)",
+      "issuer": "Department for Education",
+      "url": "https://www.gov.uk/government/publications/progress-8-school-performance-measure",
+      "retrieved": "2026-10-21"
+    },
+    {
+      "title": "UCAS Tariff points",
+      "issuer": "UCAS",
+      "url": "https://www.ucas.com/applying/before-you-apply/what-and-where-to-study/entry-requirements/ucas-tariff-points",
+      "retrieved": "2026-10-21"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft: no DfE, Ofqual or school reviewer has checked this pack. Source links: the four gov.uk URLs and the UCAS URL all resolved to the named pages on 2026-10-21 (titles matched); the UCAS Tariff table itself is rendered client-side and was not read off the live page, so the per-grade tariff in this pack is taken from platform spec 03 Appendix C and still needs checking against the published table. The tariff is per grade, not per grade and subject: a candidate's total is the sum over the A levels taken. What is a placeholder, not a claim: the gcse_9_1 and alevel_a_star_e percentage bands. Ofqual sets grade boundaries per subject and per exam series after marking, and the A* is awarded by a subject-level rule above the A boundary, so no fixed percentage-to-grade table exists; both scales are declared overridable (grading_scales.<code>.bands) and a school must replace them with the board's boundaries for each session. The primary and key stage 3 attainment levels are a school rubric because England has had no statutory level scale since 2015. What is structured but unverified: the GCSE paper counts and maxima (English two papers of 80; mathematics three papers of 80) follow the published GCSE subject structures but were not read from a specification PDF in this environment; A level subjects declare no papers, and the Mathematics A level paper set is not modelled, because the pack declares only the GCSE papers at Y10-Y11 and no A level paper maxima were verified. Grade codes are the printed grades, so A* is the band code and the label repeats it. Calendar: the pack declares both the northern (September) and the southern (January) academic year as named variants, with the northern one as default, as spec 03 Appendix C asks. Year 2 SATs are not modelled as a national assessment because they became non-statutory; Year 12 has none because AS levels are decoupled and optional."
+  },
+  "overridable": [
+    "grading_scales.gcse_9_1.bands",
+    "grading_scales.alevel_a_star_e.bands",
+    "grading_scales.attainment_4_level.bands",
+    "structure.calendar_template.variants.*.periods",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

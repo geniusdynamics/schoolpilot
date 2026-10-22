@@ -1,0 +1,163 @@
+{
+  "vectors": [
+    {
+      "name": "IGCSE mock at 90 percent is A*",
+      "programme": "cambridge-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "cambridge-igcse-a-star-g": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "A*"
+        }
+      }
+    },
+    {
+      "name": "IGCSE mock at 89 percent is A",
+      "programme": "cambridge-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "88.75/100"
+      },
+      "expect": {
+        "cambridge-igcse-a-star-g": {
+          "exact_total": 89,
+          "total": 89,
+          "percent": 89,
+          "grade": "A"
+        }
+      }
+    },
+    {
+      "name": "IGCSE 9-1 mock at 90 percent is grade 9 with 9 points",
+      "programme": "cambridge-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "cambridge-igcse-9-1": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "9",
+          "points": 9
+        }
+      }
+    },
+    {
+      "name": "Extended papers 70/70 and 104/130 weight to 87 percent, 88 overall and grade 8",
+      "programme": "cambridge-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK.MAT.P2": "70/70",
+        "MOCK.MAT.P4": "104/130"
+      },
+      "expect": {
+        "cambridge-igcse-9-1": {
+          "exact_total": 87.6,
+          "total": 88,
+          "percent": 88,
+          "grade": "8",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "A level mock at 90 percent is A* with 56 tariff points",
+      "programme": "cambridge-intl",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "cambridge-a-level": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "A*",
+          "points": 56
+        }
+      }
+    },
+    {
+      "name": "UCAS tariff for a three A level combination is the per-grade sum",
+      "programme": "cambridge-intl",
+      "input": {
+        "MAT": "A*",
+        "PHY": "A",
+        "HIS": "B"
+      },
+      "expect": {
+        "a_level_ucas_tariff": {
+          "value": 144
+        }
+      }
+    },
+    {
+      "name": "IGCSE internal points total over three 9-1 subjects",
+      "programme": "cambridge-intl",
+      "input": {
+        "ENG": "9",
+        "MAT": "8",
+        "SCI": "7"
+      },
+      "expect": {
+        "igcse_points_total": {
+          "value": 24
+        }
+      }
+    },
+    {
+      "name": "Leaving Year 6 is a stage transition into lower secondary",
+      "programme": "cambridge-intl",
+      "input": {
+        "leaving_level": "Y6"
+      },
+      "expect": {
+        "progression": {
+          "level": "Y6",
+          "rule": "stage_transition",
+          "to_stage": "CLS",
+          "next_level": "Y7"
+        }
+      }
+    },
+    {
+      "name": "Year 11 with 24 IGCSE points is steered towards the sixth form",
+      "programme": "cambridge-intl",
+      "input": {
+        "leaving_level": "Y11",
+        "igcse_points_total": 24
+      },
+      "expect": {
+        "progression": {
+          "level": "Y11",
+          "rule": "class_council",
+          "suggest": "promote",
+          "next_level": "Y12"
+        }
+      }
+    },
+    {
+      "name": "Year 11 below the suggestion threshold is referred to the council",
+      "programme": "cambridge-intl",
+      "input": {
+        "leaving_level": "Y11",
+        "igcse_points_total": 19
+      },
+      "expect": {
+        "progression": {
+          "level": "Y11",
+          "rule": "class_council",
+          "suggest": "refer_to_council",
+          "next_level": "Y12"
+        }
+      }
+    }
+  ]
+}

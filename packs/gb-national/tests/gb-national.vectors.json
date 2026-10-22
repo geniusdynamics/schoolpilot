@@ -1,0 +1,172 @@
+{
+  "vectors": [
+    {
+      "name": "GCSE mathematics mock at 90 percent is grade 9",
+      "programme": "gb-national",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK.MAT.P1": "72/80",
+        "MOCK.MAT.P2": "72/80",
+        "MOCK.MAT.P3": "72/80"
+      },
+      "expect": {
+        "gb-gcse": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "9",
+          "points": 9
+        }
+      }
+    },
+    {
+      "name": "GCSE mock at 89.5 rounds half-up to grade 9",
+      "programme": "gb-national",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "89/100"
+      },
+      "expect": {
+        "gb-gcse": {
+          "exact_total": 89.5,
+          "total": 90,
+          "percent": 90,
+          "grade": "9",
+          "points": 9
+        }
+      }
+    },
+    {
+      "name": "GCSE mock at 89 stays grade 8",
+      "programme": "gb-national",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "88/100"
+      },
+      "expect": {
+        "gb-gcse": {
+          "exact_total": 89,
+          "total": 89,
+          "percent": 89,
+          "grade": "8",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "English papers 64/80 and 56/80 combine to 75 percent inside the mock slot",
+      "programme": "gb-national",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK.ENG.P1": "64/80",
+        "MOCK.ENG.P2": "56/80"
+      },
+      "expect": {
+        "gb-gcse": {
+          "exact_total": 82.5,
+          "total": 83,
+          "percent": 83,
+          "grade": "8",
+          "points": 8
+        }
+      }
+    },
+    {
+      "name": "A level mock at 90 percent is A* with 56 tariff points",
+      "programme": "gb-national",
+      "input": {
+        "CW.CW1": "27/30",
+        "MOCK": "90/100"
+      },
+      "expect": {
+        "gb-alevel": {
+          "exact_total": 90,
+          "total": 90,
+          "percent": 90,
+          "grade": "A*",
+          "points": 56
+        }
+      }
+    },
+    {
+      "name": "GCSE points total across eight subjects is a plain sum",
+      "programme": "gb-national",
+      "input": {
+        "ENG": "7",
+        "MAT": "6",
+        "SCI": "6",
+        "HIS": "5",
+        "GEO": "5",
+        "LANG": "4",
+        "ART": "4",
+        "MUS": "3"
+      },
+      "expect": {
+        "gcse_points_total": {
+          "value": 40
+        }
+      }
+    },
+    {
+      "name": "UCAS tariff for a three A level combination is the per-grade sum",
+      "programme": "gb-national",
+      "input": {
+        "MAT": "A*",
+        "PHY": "A",
+        "HIS": "B"
+      },
+      "expect": {
+        "ucas_tariff": {
+          "value": 144
+        }
+      }
+    },
+    {
+      "name": "Leaving Year 6 is a stage transition into key stage 3",
+      "programme": "gb-national",
+      "input": {
+        "leaving_level": "Y6"
+      },
+      "expect": {
+        "progression": {
+          "level": "Y6",
+          "rule": "stage_transition",
+          "to_stage": "KS3",
+          "next_level": "Y7"
+        }
+      }
+    },
+    {
+      "name": "Year 11 with 24 GCSE points is steered towards the sixth form",
+      "programme": "gb-national",
+      "input": {
+        "leaving_level": "Y11",
+        "gcse_points_total": 24
+      },
+      "expect": {
+        "progression": {
+          "level": "Y11",
+          "rule": "class_council",
+          "suggest": "promote",
+          "next_level": "Y12"
+        }
+      }
+    },
+    {
+      "name": "Year 11 below the suggestion threshold is referred to the council",
+      "programme": "gb-national",
+      "input": {
+        "leaving_level": "Y11",
+        "gcse_points_total": 19
+      },
+      "expect": {
+        "progression": {
+          "level": "Y11",
+          "rule": "class_council",
+          "suggest": "refer_to_council",
+          "next_level": "Y12"
+        }
+      }
+    }
+  ]
+}

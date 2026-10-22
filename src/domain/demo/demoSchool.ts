@@ -842,7 +842,11 @@ async function seedDemoPeople(
         component_ids: [],
         max_score: 100,
         date_window: { start_date: assessmentDate, end_date: assessmentDate },
-        status: 'published',
+        // Open, not published: this assessment is seeded with the marks the school entered, and the
+        // canonical lifecycle is draft -> open -> closed -> moderated -> published. Seeding it as
+        // published would put every demo assessment past moderation, where mark entry correctly
+        // requires an audited override - a sample school nobody could mark.
+        status: 'open',
         grading_scale_id: asId<'grading_scale'>(gradingScale.id),
       },
       options

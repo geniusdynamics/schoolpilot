@@ -8,9 +8,11 @@ import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   ClipboardDocumentListIcon,
   DocumentDuplicateIcon,
+  TableCellsIcon,
 } from '@/components/ui/icons';
 import { StudentExamResultsEntryPageContent } from './StudentExamResultsEntryPage';
 import { MarksEntryByTokenPageContent } from './MarksEntryByTokenPage';
+import { MarkEntryV2PageContent } from './marks';
 
 interface HubTab {
   id: string;
@@ -26,6 +28,12 @@ const MarksEntryPage: React.FC = () => {
 
   const tabs: HubTab[] = [
     {
+      id: 'grid',
+      label: t('marksEntry.grid.tab', 'Mark Entry v2'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <MarkEntryV2PageContent />,
+    },
+    {
       id: 'student-results',
       label: t('studentExamResultsEntry.title', 'Student Results'),
       icon: <ClipboardDocumentListIcon className="w-4 h-4" />,
@@ -39,13 +47,13 @@ const MarksEntryPage: React.FC = () => {
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'student-results';
+  const activeTabFromUrl = searchParams.get('tab') || 'grid';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'student-results') {
+      if (tabId === 'grid') {
         navigate('/academics/marks-entry', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });

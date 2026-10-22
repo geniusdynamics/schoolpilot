@@ -1,0 +1,14 @@
+{
+  "code": "term",
+  "name": "Term report",
+  "levels": [
+    "L1",
+    "L2"
+  ],
+  "blocks": [
+    {
+      "type": "header",
+      "label_key": "report.title"
+    }
+  ]
+}

@@ -64,10 +64,8 @@ The 12-point subject scale (`kcse_subject`) is the KNEC one: A 80-100, A- 75-79,
 B+ 70-74, B 65-69, B- 60-64, C+ 55-59, C 50-54, C- 45-49, D+ 40-44, D 35-39,
 D- 30-34, E 0-29, with points 12 down to 1. Bands are a school-overridable default.
 
-Band **codes** spell the sign (`A_MINUS`, `B_PLUS`) because the pack schema's code
-alphabet allows letters, digits, dot, underscore and hyphen, but not `+`, and forbids
-a leading hyphen. Each band's `label` carries the grade a transcript prints, and the
-conformance vectors state the printed grade.
+Band **codes** are the grades as KNEC prints them (`A-`, `B+`), so the code a result
+carries is the grade on the transcript; `label` repeats it for display.
 
 ## The best-7 rule
 
@@ -119,9 +117,10 @@ The vector `input` is flat because the schema allows only scalar values:
 - Only the sighted Option A route is modelled. Mathematics Alternative B (122) with
   General Science (237), Biology for the Blind (236) and Kenyan Sign Language (504)
   for hearing-impaired candidates are not represented.
-- `combination_rules` can express `core_all` and a count of electives but not the
-  KCSE minimum of two sciences and one humanities, nor the maximum of nine subjects.
-  The best-7 aggregation enforces the selection rule that matters for results.
+- `combination_rules` can express the KCSE minimum of two sciences and one humanities
+  as `group` rules with `min`, and the maximum of nine subjects as `max` on the
+  elective count. This pack keeps its combination rules to `core_all` plus the best-7
+  aggregation, which enforces the selection rule that matters for results.
 - No outcomes files ship with this pack; the 8-4-4 syllabus is content, not assessment
   structure, and is out of scope for this version.
 

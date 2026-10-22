@@ -1,0 +1,617 @@
+/**
+ * ABOUTME: The printable report surface: static Inter print cuts, the document's structure and ink
+ * ABOUTME: palette on screen, and the DR-05 print baseline (page breaks, repeated headers, ink rules).
+ *
+ * Page geometry is NOT declared here. `ReportDocument` injects one `@page` rule per document from the
+ * template (see `src/domain/reports/printCss.ts`), so no global rule can override it.
+ */
+
+/* ------------------------------------------------------------------ print fonts */
+
+@font-face {
+  font-family: 'Inter Print';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('./assets/fonts/inter-print-400-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter Print';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('./assets/fonts/inter-print-600-semibold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter Print';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('./assets/fonts/inter-print-700-bold.woff2') format('woff2');
+}
+
+/* ---------------------------------------------------------------------- surface */
+
+.report-print-surface {
+  background: #e5e7eb;
+  padding: 8mm 4mm 12mm;
+  min-height: 100%;
+}
+
+.report-document {
+  --report-ink: #111827;
+  --report-muted: #4b5563;
+  --report-rule: #1f2937;
+  --report-hairline: #d1d5db;
+  --report-tint: #f3f4f6;
+  --report-tint-alt: #fafafa;
+  --report-font: 'Inter Print', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --report-base: 8.5pt;
+  --report-table-size: max(7.2pt, calc(var(--report-base) - 0.5pt));
+  --report-meta-size: max(7.2pt, calc(var(--report-base) - 1.3pt));
+  --report-sheet-width: 186mm;
+  --report-sheet-height: 267mm;
+  --report-space: 1;
+  --report-gap: calc(1.7mm * var(--report-space));
+  --report-pad: calc(0.85mm * var(--report-space));
+  --report-line: 1.34;
+
+  color: var(--report-ink);
+  font-family: var(--report-font);
+  font-size: var(--report-base);
+  line-height: var(--report-line);
+}
+
+/* The toolbar is the only interactive part, and it never prints. */
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3mm;
+  max-width: 210mm;
+  margin: 0 auto 4mm;
+  font-size: 10pt;
+  color: var(--report-muted);
+}
+
+.report-toolbar__button {
+  padding: 1.6mm 4mm;
+  border: 0.3mm solid var(--report-rule);
+  border-radius: 1mm;
+  background: #ffffff;
+  color: var(--report-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.report-toolbar__hint {
+  font-size: 9pt;
+}
+
+/* A sheet is one page at 1:1 on screen; on paper the page box comes from `@page`. */
+.report-sheet {
+  display: flex;
+  flex-direction: column;
+  width: var(--report-sheet-width);
+  min-height: var(--report-sheet-height);
+  margin: 0 auto;
+  padding: 0;
+  background: #ffffff;
+  color: var(--report-ink);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.report-sheet--flow {
+  display: block;
+}
+
+/* Measurement pass: the sheet's min-height and the footer's auto margin would otherwise hide the real
+   content height, so the fit check removes both for one synchronous layout read. */
+.report-sheet[data-measuring='true'] {
+  min-height: 0;
+}
+
+.report-sheet[data-measuring='true'] .report-sheet__footer {
+  margin-top: 0;
+}
+
+.report-document[dir='rtl'] {
+  direction: rtl;
+}
+
+/* ----------------------------------------------------------------------- header */
+
+.report-header {
+  display: grid;
+  grid-template-columns: 16mm minmax(0, 1fr) 26mm;
+  align-items: center;
+  gap: 3.5mm;
+  padding-bottom: 1.6mm;
+  border-bottom: 0.6mm solid var(--report-rule);
+}
+
+.report-header__logo {
+  display: block;
+  width: 15mm;
+  height: 15mm;
+  object-fit: contain;
+}
+
+.report-header__name {
+  margin: 0;
+  font-size: 1.55em;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.report-header__motto {
+  margin: 0.4mm 0 0;
+  font-size: 0.86em;
+  font-style: italic;
+  color: var(--report-muted);
+}
+
+.report-header__contact {
+  margin: 0.4mm 0 0;
+  font-size: 0.82em;
+  color: var(--report-muted);
+}
+
+.report-header__term {
+  text-align: right;
+  font-size: 0.85em;
+}
+
+.report-header__term strong {
+  display: block;
+  font-size: 1.1em;
+}
+
+.report-doc-title {
+  margin: 1.2mm 0 0;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.report-preview-banner {
+  margin: 1.2mm 0 0;
+  padding: 1mm 2mm;
+  border: 0.4mm solid var(--report-rule);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ----------------------------------------------------------------------- blocks */
+
+.report-block {
+  margin-top: var(--report-gap);
+}
+
+/* The header block is the first block of every pack template; the sheet starts at the page edge. */
+.report-block:first-child {
+  margin-top: 0;
+}
+
+.report-block__title {
+  margin: 0 0 0.7mm;
+  padding-bottom: 0.3mm;
+  border-bottom: 0.25mm solid var(--report-hairline);
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--report-muted);
+}
+
+.report-empty {
+  margin: 0;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--report-muted);
+}
+
+/* learner identity */
+
+.report-identity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15mm;
+  gap: 3mm;
+}
+
+.report-identity__fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6mm 3mm;
+}
+
+.report-field__key {
+  display: block;
+  font-size: 0.72em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--report-muted);
+}
+
+.report-field__value {
+  font-weight: 600;
+}
+
+.report-photo {
+  display: grid;
+  place-items: center;
+  width: 15mm;
+  height: 17mm;
+  border: 0.25mm solid var(--report-hairline);
+  font-size: 0.68em;
+  color: var(--report-muted);
+  text-align: center;
+}
+
+.report-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* stat boxes: attendance, summary, calendar */
+
+.report-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.5mm;
+}
+
+.report-stats--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.report-stat {
+  padding: calc(0.7mm * var(--report-space)) 1.4mm;
+  border: 0.25mm solid var(--report-hairline);
+  border-radius: 1mm;
+  background: var(--report-tint);
+}
+
+.report-stat__key {
+  display: block;
+  font-size: 0.7em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--report-muted);
+}
+
+.report-stat__value {
+  font-size: 1.05em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* tables */
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--report-table-size);
+}
+
+.report-table th,
+.report-table td {
+  padding: var(--report-pad) 1.1mm;
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.report-table thead th {
+  border-bottom: 0.45mm solid var(--report-rule);
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.report-table tbody td {
+  border-bottom: 0.2mm solid var(--report-hairline);
+}
+
+.report-table tbody tr:nth-child(even) td {
+  background: var(--report-tint-alt);
+}
+
+/* Totals are a row in `tbody`, never a `tfoot`: a footer group repeats on every page. */
+.report-table__total td {
+  border-top: 0.45mm solid var(--report-rule);
+  border-bottom: 0.45mm solid var(--report-rule);
+  font-weight: 700;
+}
+
+.report-cell--end {
+  text-align: end !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-cell--center {
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-code {
+  color: var(--report-muted);
+  font-size: 0.92em;
+}
+
+.report-descriptor {
+  color: var(--report-muted);
+}
+
+.report-descriptor--block {
+  display: block;
+}
+
+/* comments */
+
+.report-comment {
+  margin: 0 0 1.6mm;
+}
+
+.report-comment:last-child {
+  margin-bottom: 0;
+}
+
+.report-comment__role {
+  margin: 0 0 0.4mm;
+  font-size: 0.84em;
+  font-weight: 700;
+}
+
+.report-comment__body {
+  margin: 0;
+  padding-bottom: 0.4mm;
+  border-bottom: 0.2mm dotted var(--report-hairline);
+  min-height: 3.8mm;
+}
+
+/* signatures */
+
+.report-signatures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8mm;
+}
+
+.report-signature {
+  padding-top: 0.8mm;
+  border-top: 0.25mm solid var(--report-rule);
+  font-size: 0.8em;
+}
+
+.report-signature__role {
+  color: var(--report-muted);
+}
+
+.report-signature__name {
+  min-height: 4mm;
+}
+
+/* fee and progression detail lists */
+
+.report-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8mm 4mm;
+  margin: 0;
+}
+
+.report-detail__row {
+  display: contents;
+}
+
+.report-detail dt {
+  color: var(--report-muted);
+}
+
+.report-detail dd {
+  margin: 0;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.report-list {
+  margin: 0;
+  padding-left: 4mm;
+}
+
+.report-document[dir='rtl'] .report-list {
+  padding-left: 0;
+  padding-right: 4mm;
+}
+
+.report-progression__decision {
+  margin: 0 0 1mm;
+}
+
+.report-progression__value {
+  display: block;
+  font-weight: 600;
+}
+
+/* footer: document identity and the verification QR */
+
+.report-sheet__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 3mm;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 1.4mm;
+  border-top: 0.25mm solid var(--report-hairline);
+}
+
+.report-document--flow .report-sheet__footer {
+  margin-top: 3mm;
+}
+
+.report-verify {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2mm;
+  align-items: center;
+}
+
+.report-qr svg {
+  display: block;
+  width: 16mm;
+  height: 16mm;
+}
+
+.report-qr--large svg {
+  width: 18mm;
+  height: 18mm;
+}
+
+.report-verify__label {
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.report-verify__label--preview {
+  text-transform: uppercase;
+  border: 0.3mm solid var(--report-rule);
+  padding: 0.4mm 1mm;
+  display: inline-block;
+}
+
+.report-verify__url {
+  font-size: var(--report-meta-size);
+  color: var(--report-muted);
+  overflow-wrap: anywhere;
+}
+
+.report-meta {
+  font-size: var(--report-meta-size);
+  color: var(--report-muted);
+  text-align: right;
+}
+
+.report-document[dir='rtl'] .report-header__term,
+.report-document[dir='rtl'] .report-meta,
+.report-document[dir='rtl'] .report-detail dd {
+  text-align: left;
+}
+
+.report-document[dir='rtl'] .report-field,
+.report-document[dir='rtl'] .report-stat,
+.report-document[dir='rtl'] .report-signature {
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------------ print */
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  /* Measured: `visibility: hidden` keeps the shell's layout box and adds blank pages; `display: none`
+     removes it from pagination entirely. Set by the print entry point, cleared on `afterprint`. */
+  html[data-printing] #root {
+    display: none !important;
+  }
+
+  .report-screen-only,
+  .report-toolbar {
+    display: none !important;
+  }
+
+  .report-print-surface {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    min-height: 0;
+  }
+
+  .report-document {
+    background: #ffffff;
+  }
+
+  .report-sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    break-after: page;
+    orphans: 2;
+    widows: 2;
+  }
+
+  .report-sheet:last-of-type {
+    break-after: auto;
+  }
+
+  /* A multi-page sheet stays in normal flow: a flex column fragments a table unpredictably. */
+  .report-sheet--flow {
+    display: block;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  .report-row {
+    break-inside: avoid;
+  }
+
+  .report-block,
+  .report-signature,
+  .report-keep,
+  .report-comment {
+    break-inside: avoid;
+  }
+
+  /* A block holding a table that can exceed a page must be allowed to break, or it pushes the whole
+     table to the next page and leaves the previous one blank (measured). */
+  .report-block--flow {
+    break-inside: auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  .report-block__title {
+    break-after: avoid;
+  }
+
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+  }
+}

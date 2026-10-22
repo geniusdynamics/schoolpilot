@@ -15,16 +15,16 @@
   "descriptors": {
     "kcse_subject": {
       "A": "Excellent: every paper secure.",
-      "A_MINUS": "Very good: strong across the papers.",
-      "B_PLUS": "Good: above the credit standard.",
+      "A-": "Very good: strong across the papers.",
+      "B+": "Good: above the credit standard.",
       "B": "Good: at the credit standard.",
-      "B_MINUS": "Fair: close to the credit standard.",
-      "C_PLUS": "Fair: secure in the stronger papers.",
+      "B-": "Fair: close to the credit standard.",
+      "C+": "Fair: secure in the stronger papers.",
       "C": "Average: inconsistent across the papers.",
-      "C_MINUS": "Below average: key topics need revision.",
-      "D_PLUS": "Weak: revise the core topics.",
+      "C-": "Below average: key topics need revision.",
+      "D+": "Weak: revise the core topics.",
       "D": "Weak: significant gaps.",
-      "D_MINUS": "Very weak: intensive support needed.",
+      "D-": "Very weak: intensive support needed.",
       "E": "Poor: foundational revision needed."
     }
   },
@@ -36,7 +36,7 @@
     },
     {
       "scope": "overall",
-      "band": "B_PLUS",
+      "band": "B+",
       "text": "A strong term. Polish the weaker papers to move into the top band."
     },
     {
@@ -46,7 +46,7 @@
     },
     {
       "scope": "learning_area",
-      "band": "C_PLUS",
+      "band": "C+",
       "learning_area": "BIO",
       "text": "The theory papers are secure; spend more time on the practical write-ups."
     }

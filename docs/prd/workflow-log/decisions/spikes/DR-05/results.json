@@ -1,0 +1,99 @@
+{
+  "$comment": "DR-05 spike measurements, 2026-10-21. Chromium 140.0.7339.16 via Playwright 1.54; page.pdf({ preferCSSPageSize: true, printBackground: true }). Bytes are raw file sizes. See results.md for how each figure was produced.",
+  "machine": {
+    "cpu": "Intel Core i7-8550U",
+    "ram_gib": 23.9,
+    "os": "Windows 11 Pro 10.0.22631 x64",
+    "node": "24.21.0"
+  },
+  "print_runs": {
+    "cards-a4": { "query": "?", "pages": 30, "ready_ms": 1082, "render_ms": 305.6, "layout_ms": 401.9, "pdf_ms": [2945, 1091, 1156], "bytes": 1152192, "page_mm": [209.9, 297.0] },
+    "cards-a4-1": { "query": "?n=1", "pages": 1, "ready_ms": 348, "render_ms": 24.0, "layout_ms": 194.1, "pdf_ms": [1871, 134, 128], "bytes": 312435, "page_mm": [209.9, 297.0] },
+    "cards-a4-ar": { "query": "?lang=ar", "pages": 30, "ready_ms": 1309, "render_ms": 346.8, "layout_ms": 593.6, "pdf_ms": [3512, 1370, 1662], "bytes": 1212235, "page_mm": [209.9, 297.0] },
+    "cards-a4-landscape": { "query": "?orientation=landscape", "pages": 60, "ready_ms": 1168, "render_ms": 348.1, "layout_ms": 433.6, "pdf_ms": [3652, 1296, 1330], "bytes": 1029985, "page_mm": [297.0, 209.9] },
+    "cards-a5": { "query": "?size=A5", "pages": 60, "ready_ms": 1092, "render_ms": 300.1, "layout_ms": 396.4, "pdf_ms": [3580, 1438, 1317], "bytes": 986398, "page_mm": [148.2, 209.9] },
+    "cards-a5-min": { "query": "?size=A5&cols=min", "pages": 60, "ready_ms": 1007, "render_ms": 319.5, "layout_ms": 413.4, "pdf_ms": [3397, 1132, 1184], "bytes": 938988, "page_mm": [148.2, 209.9] },
+    "statement-a4": { "query": "?doc=statement", "pages": 2, "ready_ms": 377, "render_ms": 61.0, "layout_ms": 182.5, "pdf_ms": [1559, 219, 145], "bytes": 258004, "page_mm": [209.9, 297.0] },
+    "statement-fixed": { "query": "?doc=statement&furniture=fixed", "pages": 2, "bytes": 255811, "note": "fixed footer prints 'Page 0 of 0' and overprints the last two rows" },
+    "statement-marginbox": { "query": "?doc=statement&marginbox=1", "pages": 2, "bytes": 270852, "note": "adds a third page-number box; margin boxes themselves work" }
+  },
+  "fonts": {
+    "cards-a4_variable_inter": { "type3": 1080, "type0": 0, "fonts_per_page": [36, 36, 36], "embedded": [], "bytes": 1152192 },
+    "cards-a4_static_inter_400": { "type3": 0, "type0": 60, "fonts_per_page": [2, 2, 2], "embedded": ["/AAAAAA+Inter-Regular:/FontFile2"], "bytes": 829773, "delta_percent": -28.0 },
+    "cards-a4-ar": { "type3": 810, "type0": 180, "embedded": ["/BAAAAA+Tahoma:/FontFile2", "/GAAAAA+SegoeUI-Bold:/FontFile2", "/IAAAAA+SegoeUI:/FontFile2", "/TAAAAA+SegoeUI-Semibold:/FontFile2"] },
+    "isolation_test_395_chars": {
+      "inter_variable_woff2": { "bytes": 19772, "fonts": "2 Type3" },
+      "segoe_ui_static_ttf": { "bytes": 13359, "fonts": "1 Type0" },
+      "arial_static_ttf": { "bytes": 22033, "fonts": "1 Type0" }
+    }
+  },
+  "text_extraction": {
+    "cards-a4_page1_chars": 1923,
+    "cards-a4-ar_page1_chars": 1822,
+    "cards-a4-ar_arabic_chars": 208,
+    "cards-a4-ar_title_logical_match": false,
+    "cards-a4-ar_title_reversed_match": false,
+    "statement_rows_total": 40,
+    "statement_rows_unique": 40
+  },
+  "fit": {
+    "a4_portrait_content_mm": [186, 267],
+    "a4_portrait_8_5pt_max_card_mm": 267.0,
+    "a4_portrait_9pt_max_card_mm": 275.5,
+    "a4_portrait_500_char_comment_8_5pt_max_card_mm": 275.13,
+    "a4_landscape_8_2pt_max_card_mm": 244.5,
+    "a5_portrait_7_6pt_max_card_mm": 260.5,
+    "a5_portrait_7_6pt_min_columns_max_card_mm": 238.52,
+    "a5_sweep": [
+      { "base_pt": 8.0, "overflow_mm": 80.34 },
+      { "base_pt": 7.5, "overflow_mm": 70.53 },
+      { "base_pt": 7.0, "overflow_mm": 58.26 },
+      { "base_pt": 6.5, "overflow_mm": 46.21 },
+      { "base_pt": 6.0, "overflow_mm": 34.18 },
+      { "base_pt": 5.5, "overflow_mm": 23.09 },
+      { "base_pt": 5.0, "overflow_mm": 9.2 }
+    ]
+  },
+  "qr": {
+    "payload_chars": 68,
+    "version": 5,
+    "size_modules": 37,
+    "ec": "M",
+    "module_mm_at_16mm": 0.36,
+    "decoded_from_pdf_at_150dpi": true,
+    "encoder_min_bytes": 4644,
+    "encoder_gzip_bytes": 2311,
+    "validated_payloads": 14,
+    "zxing_decode_pass": "14/14"
+  },
+  "css": {
+    "spike_stylesheet_raw_bytes": 7319,
+    "spike_stylesheet_gzip_bytes": 2233,
+    "print_block_raw_bytes": 620,
+    "print_block_gzip_bytes": 316
+  },
+  "rejected_libraries_bundlephobia": {
+    "date": "2026-10-21",
+    "jspdf": { "version": "4.2.1", "min_bytes": 403814, "gzip_bytes": 129768 },
+    "pdf-lib": { "version": "1.17.1", "min_bytes": 429058, "gzip_bytes": 177487 },
+    "@react-pdf/renderer": { "version": "4.9.0", "min_bytes": 1200522, "gzip_bytes": 442267 },
+    "qrcode": { "version": "1.5.4", "min_bytes": 23456, "gzip_bytes": 8750 }
+  },
+  "server_path": {
+    "electron_dependency": false,
+    "src_print_code": false,
+    "puppeteer_declared": "^24.16.2",
+    "puppeteer_imports_in_src": 0,
+    "puppeteer_package_bytes": 76938,
+    "puppeteer_browser_cache_bytes": 1196215688,
+    "playwright_headless_shell_bytes": 290918251,
+    "playwright_full_chromium_bytes": 457625672
+  },
+  "current_pattern_reproduction": {
+    "visibility_30_cards_1000px": { "pages": 30, "pages_with_text": 30 },
+    "visibility_30_cards_1050px": { "pages": 60, "pages_with_text": 30 },
+    "visibility_3_cards_9000px_shell": { "pages": 9, "pages_with_text": 3 },
+    "display_none_30_cards_1050px": { "pages": 60, "pages_with_text": 30 },
+    "display_none_3_cards_9000px_shell": { "pages": 6, "pages_with_text": 3 }
+  }
+}

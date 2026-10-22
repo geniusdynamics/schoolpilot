@@ -68,14 +68,14 @@
           "points": 12
         },
         {
-          "code": "A_MINUS",
+          "code": "A-",
           "label": "A-",
           "min": 75,
           "max": 79,
           "points": 11
         },
         {
-          "code": "B_PLUS",
+          "code": "B+",
           "label": "B+",
           "min": 70,
           "max": 74,
@@ -89,14 +89,14 @@
           "points": 9
         },
         {
-          "code": "B_MINUS",
+          "code": "B-",
           "label": "B-",
           "min": 60,
           "max": 64,
           "points": 8
         },
         {
-          "code": "C_PLUS",
+          "code": "C+",
           "label": "C+",
           "min": 55,
           "max": 59,
@@ -110,14 +110,14 @@
           "points": 6
         },
         {
-          "code": "C_MINUS",
+          "code": "C-",
           "label": "C-",
           "min": 45,
           "max": 49,
           "points": 5
         },
         {
-          "code": "D_PLUS",
+          "code": "D+",
           "label": "D+",
           "min": 40,
           "max": 44,
@@ -131,7 +131,7 @@
           "points": 3
         },
         {
-          "code": "D_MINUS",
+          "code": "D-",
           "label": "D-",
           "min": 30,
           "max": 34,
@@ -145,7 +145,7 @@
           "points": 1
         }
       ],
-      "verification": "KNEC 12-point subject scale: A is 80-100, A- 75-79, B+ 70-74, B 65-69, B- 60-64, C+ 55-59, C 50-54, C- 45-49, D+ 40-44, D 35-39, D- 30-34 and E 0-29. Band codes spell the sign (A_MINUS, B_PLUS) because the pack schema's code alphabet excludes + and a leading -; the label is the grade printed on a transcript. KNEC publishes integer boundaries, so the scheme rounds the learning-area total half-up to a whole percent before lookup. Bands are the school-overridable default."
+      "verification": "KNEC 12-point subject scale: A is 80-100, A- 75-79, B+ 70-74, B 65-69, B- 60-64, C+ 55-59, C 50-54, C- 45-49, D+ 40-44, D 35-39, D- 30-34 and E 0-29. Each band's code is the grade as KNEC prints it (A-, B+), so a code and its label agree. KNEC publishes integer boundaries, so the scheme rounds the learning-area total half-up to a whole percent before lookup. Bands are the school-overridable default."
     },
     {
       "code": "kcse_mean_grade",
@@ -161,14 +161,14 @@
           "points": 12
         },
         {
-          "code": "A_MINUS",
+          "code": "A-",
           "label": "A-",
           "min": 10.01,
           "max": 11,
           "points": 11
         },
         {
-          "code": "B_PLUS",
+          "code": "B+",
           "label": "B+",
           "min": 9.01,
           "max": 10,
@@ -182,14 +182,14 @@
           "points": 9
         },
         {
-          "code": "B_MINUS",
+          "code": "B-",
           "label": "B-",
           "min": 7.01,
           "max": 8,
           "points": 8
         },
         {
-          "code": "C_PLUS",
+          "code": "C+",
           "label": "C+",
           "min": 6.01,
           "max": 7,
@@ -203,14 +203,14 @@
           "points": 6
         },
         {
-          "code": "C_MINUS",
+          "code": "C-",
           "label": "C-",
           "min": 4.01,
           "max": 5,
           "points": 5
         },
         {
-          "code": "D_PLUS",
+          "code": "D+",
           "label": "D+",
           "min": 3.01,
           "max": 4,
@@ -224,7 +224,7 @@
           "points": 3
         },
         {
-          "code": "D_MINUS",
+          "code": "D-",
           "label": "D-",
           "min": 1.01,
           "max": 2,

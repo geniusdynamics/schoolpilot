@@ -6,6 +6,8 @@ export { default as SubjectsHubPage } from './SubjectsHubPage';
 export { default as CurriculumAllocationsPage } from './CurriculumAllocationsPage';
 export { default as ExamSetupPage } from './ExamSetupPage';
 export { default as MarksEntryPage } from './MarksEntryPage';
+export { default as ObservationsCapturePage } from './ObservationsCapturePage';
+export { default as ResultsPage } from './ResultsPage';
 export { default as MarksVerificationPage } from './MarksVerificationPage';
 export { default as ExamAnalysisPage } from './ExamAnalysisPage';
 export { default as ResultsDistributionPage } from './ResultsDistributionPage';
