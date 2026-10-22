@@ -274,10 +274,16 @@ test.describe('GP-1 golden path', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
 
-      const score = page.getByLabel(`End of term English for ${STUDENT_NAME}`);
+      // exact: the status element beside the cell is labelled 'Status for <assessment> for <learner>',
+      // so a substring match resolves to two elements.
+      const score = page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true });
       await expect(score).toBeVisible();
       await score.fill(MARK);
-      await page.getByRole('button', { name: 'Save now' }).click();
+      // The grid autosaves after a debounce; the button is only enabled while an edit is pending.
+      const saveNow = page.getByRole('button', { name: 'Save now' });
+      if (await saveNow.isEnabled()) {
+        await saveNow.click();
+      }
       await expect(page.getByText(/unsaved edits?/)).toHaveCount(0);
     });
 
@@ -286,9 +292,13 @@ test.describe('GP-1 golden path', () => {
       await go(page, '/academics/marks-entry');
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
-      await expect(page.getByLabel(`End of term English for ${STUDENT_NAME}`)).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
-      const row = gridRow(page, admissionNumber);
-      await expect(row).toContainText('Stored revision');
+      await expect(page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true })).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
+      // The v2 grid has no revision column (that was the legacy results page). The equivalent
+      // evidence is the engine's status for the cell: it reads Valid only when a stored mark is
+      // present and inside the scheme's range, so it cannot pass on an empty cell.
+      await expect(
+        page.getByLabel(`Status for End of term English for ${STUDENT_NAME}`, { exact: true })
+      ).toContainText('Valid');
 
       await go(page, '/administration/students');
       const directoryRow = gridRow(page, admissionNumber);
