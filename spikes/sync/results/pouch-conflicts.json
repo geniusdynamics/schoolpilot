@@ -1,0 +1,40 @@
+{
+  "name": "pouch-conflicts",
+  "generatedAt": "2026-10-23T16:39:36.415Z",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "measurements": [
+    {
+      "name": "trials",
+      "value": 100,
+      "unit": "count",
+      "note": "the same row created offline on two replicas"
+    },
+    {
+      "name": "conflicts",
+      "value": 100,
+      "unit": "count",
+      "note": "documents PouchDB kept two revisions of"
+    },
+    {
+      "name": "winnerAgreesWithHlc",
+      "value": 50,
+      "unit": "count",
+      "note": "the winning revision is the later clock"
+    },
+    {
+      "name": "winnerDisagreesWithHlc",
+      "value": 50,
+      "unit": "count",
+      "note": "the winning revision is the earlier clock"
+    },
+    {
+      "name": "winnerAgreementRate",
+      "value": 0.5,
+      "unit": "ratio"
+    }
+  ]
+}
