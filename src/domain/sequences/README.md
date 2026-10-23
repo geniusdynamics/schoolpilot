@@ -98,8 +98,10 @@ await sequences.outstandingBlocks({ sequence: 'receipt' });   // what the hub re
 
 `SEQUENCE_DDL` creates `sequence_counter`, `sequence_number` and `sequence_block`. Nothing here
 references a domain table, so the module can be adopted before the document tables grow their own
-columns. **A canonical migration must apply `SEQUENCE_DDL`** (or call `ensureSequenceSchema`) —
-there is no migration for these tables yet.
+columns. **Schema migration 100 applies `SEQUENCE_DDL`** at startup
+(`src/data/migrations/schemaMigrations.ts`, applied by `applySchemaMigrations` while the app opens
+the canonical database); `ensureSequenceSchema` remains the path the module's own tests take, and
+is safe to call alongside the migration.
 
 ## Migrating the call sites
 

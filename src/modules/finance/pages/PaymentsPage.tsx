@@ -10,6 +10,7 @@ import {
   ChartBarIcon,
   WalletIcon,
   ClipboardDocumentListIcon,
+  BanknotesIcon,
 } from '@/components/ui/icons';
 import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import { StudentPaymentsPageContent } from './StudentPaymentsPage';
@@ -17,6 +18,7 @@ import { FeeCollectionSummaryPageContent } from './FeeCollectionSummaryPage';
 import { StudentFinancialSummaryPageContent } from './StudentFinancialSummaryPage';
 import { PaymentAllocationPageContent } from './PaymentAllocationPage';
 import { GeneralReceiptsPageContent } from './GeneralReceiptsPage';
+import { CashierPageContent } from './cashier/CashierPage';
 
 interface HubTab {
   id: string;
@@ -60,6 +62,12 @@ const PaymentsPage: React.FC = () => {
       label: t('generalReceipts.title', 'General Receipts'),
       icon: <ClipboardDocumentListIcon className="w-4 h-4" />,
       component: <GeneralReceiptsPageContent />,
+    },
+    {
+      id: 'cashier',
+      label: t('cashier.title', 'Cashier'),
+      icon: <BanknotesIcon className="w-4 h-4" />,
+      component: <CashierPageContent />,
     },
   ];
 

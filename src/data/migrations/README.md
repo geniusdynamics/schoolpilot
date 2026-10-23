@@ -4,8 +4,10 @@ The numbered migration framework the P1 module migrations (C01–C05) run on. It
 SQLite adapter of P1-A04, so the same code migrates a browser database (OPFS through the
 wasm worker) and a node database (a file, or a test fixture).
 
-The framework is opt-in. Nothing in the legacy start-up path calls it; a caller creates a
-runner and runs it.
+The framework is opt-in for the data migrations: nothing in the legacy start-up path calls it; a
+caller creates a runner and runs it. The **module schema migrations** are the exception - the app
+applies them while it opens the canonical database, so a module's tables exist before a page can
+read them (see [Schema migrations](#schema-migrations)).
 
 ```ts
 const runner = createMigrationRunner({
@@ -37,7 +39,7 @@ export const addTheWidgetTable: Migration = {
 
 | Field | Meaning |
 | --- | --- |
-| `version` | The order and the identity of the migration. Whole number, unique, never reused. |
+| `version` | The order and the identity of the migration. Whole number, unique, never reused. The data migrations own 1-99 and the module schemas 100-199. |
 | `name` | What the progress screen shows. |
 | `statements` | The SQL the migration runs. The framework hashes it and holds the body to it. |
 | `checksum` | The identity of a migration whose SQL cannot be declared. |
@@ -137,14 +139,15 @@ and the migration that failed. The error is in the result and in the progress ev
 
 ### Rollback semantics
 
-`rollbackTo(version)` undoes the migrations above `version`, newest first. Each `down` runs
-in its own transaction, and the ledger row goes with it, so a `down` that throws leaves the
-database exactly as it was. The attempt row of a migration that was rolled back goes with
-it as well, so a rolled-back migration is not reported as interrupted.
+`rollbackTo(version)` undoes the migrations above `version` that the runner owns, newest first.
+Each `down` runs in its own transaction, and the ledger row goes with it, so a `down` that throws
+leaves the database exactly as it was. The attempt row of a migration that was rolled back goes
+with it as well, so a rolled-back migration is not reported as interrupted.
 
 The whole rollback is refused when a migration above the target has no `down`: nothing is
 undone, and the result says which migration cannot be rolled back. A rollback to `0` undoes
-every migration.
+every migration the runner owns. A ledger row from a band the runner does not run is left where
+it is: the ledger is shared, and one band's runner is not the other band's to undo.
 
 ### Checksums and their kinds
 
@@ -167,6 +170,110 @@ The kind is recorded so the identity can move in one direction only:
 | `explicit` | `explicit` | The checksums have to match. |
 | `explicit` | `declared` | Accepted: the migration states its SQL after it had shipped, which is stronger. The ledger follows and records the declared identity. |
 | `declared` | `explicit` | Refused: the identity of a shipped migration cannot be weakened. |
+
+## Schema migrations
+
+The framework carries two bands of migration in one ledger:
+
+| Band | Versions | What it does | Who applies it |
+| --- | --- | --- | --- |
+| Data | 1-99 | Migrates legacy rows into the canonical tables (P1 C01-C05). | The migration screen, when an operator runs it. |
+| Schema | 100-199 | Creates the tables a module owns: sequences, the ledger, reconciliation. | The app, while it opens the canonical database. |
+
+A version is an identity in one ledger, so the bands never overlap. A migration of either band is
+recorded in `_migrations` the same way, and the ledger stays the single truth about what has been
+applied, whichever band applied it.
+
+### The module schemas are the modules' own DDL
+
+A module declares its DDL (`SEQUENCE_DDL`, `LEDGER_DDL`, ...) and an `ensureSchema` function that
+applies it - the path the module's own tests take. The migration does not copy that text:
+
+```ts
+export const sequencesSchemaMigration = moduleSchemaMigration({
+  version: 100,
+  module: 'sequences',
+  name: 'the sequence store: counters, issued numbers and device blocks',
+  ddl: SEQUENCE_DDL,
+});
+```
+
+The `up` is the module's declared DDL, unchanged, so the migration and `ensureSchema` cannot
+disagree and a copy cannot drift. The `down` is read out of the same text: every `CREATE TABLE`,
+`CREATE INDEX` and `CREATE TRIGGER` is found and dropped in reverse. A statement the reader does
+not understand refuses the registry when it is built, rather than leaving an object a rollback
+would miss.
+
+| Migration | Module | Creates |
+| --- | --- | --- |
+| 100 | sequences | `sequence_counter`, `sequence_number`, `sequence_block`, the unique number and block-range indexes and the outstanding-block index. |
+| 101 | ledger | `journal_entry`, `journal_line`, `ledger_period`, their eight indexes (three of them partial and unique), and the four triggers that make a posted entry and its lines immutable. |
+| 102 | reconciliation | `reconciliation_statement`, `reconciliation_line`, `reconciliation_match`, their nine indexes (three unique, two of those partial) and the two triggers that make a match record history. |
+
+Adding a module is adding its migration to `SCHEMA_MIGRATIONS`: the startup path, the rollback and
+the version surface all read that list. Every statement the three modules declare is a
+`CREATE TABLE`, `CREATE INDEX`, `CREATE UNIQUE INDEX` or `CREATE TRIGGER` with an
+`IF NOT EXISTS` head, quoted or unquoted, which is what the reader covers.
+
+### Startup
+
+`openCanonicalRepository()` - the one place the app opens the canonical database - applies them
+after `repository.setup()` and before it hands the repository to a page:
+
+```ts
+await applySchemaMigrations(adapter);
+```
+
+A migration that throws is rolled back with its ledger row (each migration is one transaction),
+so the database keeps the position it had before that migration. `applySchemaMigrations` then
+throws: the open fails, the canonical data layer reports itself unavailable, and the app does not
+run against a database it could not prepare. The adapter is closed on the way out.
+
+**DDL is transactional in SQLite, and the suite proves it.** The failure test creates a table and
+then runs a statement that fails, and asserts the first table is gone afterwards: inside the
+adapter's `BEGIN IMMEDIATE` transaction, `CREATE TABLE` is rolled back by the adapter's `ROLLBACK`
+like a row write. The same test asserts the ledger has no row for the failed migration.
+
+**An existing database.** The module DDL is `CREATE ... IF NOT EXISTS` throughout, so a database
+where `ensureSequenceSchema` or `ensureLedgerSchema` already ran records the migration and keeps
+its rows: the objects are the ones the same constant created. What `IF NOT EXISTS` cannot do is
+notice a *different* definition of the same table - a table with the right name and the wrong
+columns is left alone. The migration's identity is the hash of that DDL, so a later change to a
+module's DDL is refused as a `checksum_mismatch` on the next start instead of being applied
+silently; the fix is a new migration version.
+
+### Rolling back
+
+`rollbackSchemaMigrations(adapter)` undoes every schema migration, newest first, and returns the
+database to the state before them: the tables, their indexes and their triggers are gone, and the
+tables of the other band are untouched. `to` stops above a schema version; the default `0` undoes
+the whole band.
+
+A rollback is **not lossless for the rows the module tables held**: `down` drops the tables, and
+the rows go with them. The migrations declare themselves `destructive` for that reason, so a
+caller that hands the runner a backup strategy gets the framework's backup before a rollback that
+would destroy data. Startup passes no strategy: it only runs `up`, where there is nothing to lose.
+
+A data migration's ledger row is never undone by this runner - a runner undoes the migrations it
+owns. It is also given the whole known catalog (`knownVersions`), so a row written by a data
+migration is not mistaken for one written by a newer build.
+
+### The schema version surface
+
+`readSchemaVersion(adapter)` is what a diagnostics screen reads:
+
+```ts
+{
+  current: 101,
+  latest: 101,
+  complete: true,
+  applied: [{ version: 100, module: 'sequences', name: '...', appliedAt: '...' }, ...],
+  pending: [],
+}
+```
+
+It only reads: on a database that never opened the framework it reports version 0 instead of
+creating a ledger table from a screen that asked a question.
 
 ## Backups
 
@@ -308,6 +415,8 @@ databases, and the canonical schema of A03 is applied to them.
 | `dump.test.ts` | The atomic restore, a failed restore that changes nothing, and a table whose definition carries comments. |
 | `nodeBackup.test.ts` | The node file copy strategy on a real database file: the copy, the restore and the discard. |
 | `canonical.test.ts` | The framework over the canonical schema of A03, and a dump and restore of it. |
+| `schema.test.ts` | The module schemas on a real database: a fresh one, one that already holds the tables, the no-op re-run, the rollback, reconciliation's own tables, indexes and triggers, the shared ledger with a data migration, a version from a newer build, and a migration that fails part-way. |
+| `schemaStartup.test.ts` | The canonical start-up path applies them: the repository the app opens, then the tables read back from the adapter it opened. |
 
 ## Module layout
 
@@ -325,4 +434,7 @@ databases, and the canonical schema of A03 is applied to them.
 | `dump.ts` | The SQL export, the comment handling and the atomic restore. |
 | `checksum.ts` | The identity of a migration and how it compares with the recorded one. |
 | `state.ts` | The state the runner and the rollback share. |
+| `schemaMigrations.ts` | The registry: the module DDL turned into numbered migrations, their bands and their versions. |
+| `schemaDdl.ts` | The objects a DDL statement creates, and the statements that drop them again. |
+| `schemaStartup.ts` | The startup runner, the apply, the rollback and the schema version surface. |
 | `nodeBackup.ts` | The node-only file copy strategy. Not in the barrel. |

@@ -26,6 +26,8 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.financialStatements', path: '/finance/financial-statements', icon: ScaleIcon, page: 'FinancialStatementsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingReports', path: '/finance/accounting-reports', icon: DocumentReportIcon, page: 'accounting/AccountingReportsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.payments', path: '/finance/payments', icon: CreditCardIcon, page: 'PaymentsPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.cashier', path: '/finance/cashier', icon: CashIcon, page: 'cashier/CashierPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.cashierSessions', path: '/finance/cashier-sessions', icon: ClipboardDocumentListIcon, page: 'cashier/CashierSessionsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.studentFeeHistory', path: '/finance/student-fee-history', icon: BanknotesIcon, page: 'StudentFeeHistoryPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Finance reports hub relocated to /reports/finance (see reports/moduleDefinition.tsx).
     // Old /finance/reports path is now handled by redirectMap.
@@ -109,6 +111,9 @@ export const financeModule: ModuleDefinition = {
     { path: '/finance/financial-statements', page: 'FinancialStatementsPage' },
     { path: '/finance/accounting-reports', page: 'accounting/AccountingReportsPage' },
     { path: '/finance/payments', page: 'PaymentsPage' },
+    // The cashier screens: the counter and the sessions with their Z-reports.
+    { path: '/finance/cashier', page: 'cashier/CashierPage' },
+    { path: '/finance/cashier-sessions', page: 'cashier/CashierSessionsPage' },
     { path: '/finance/student-fee-history', page: 'StudentFeeHistoryPage' },
     // M3: /finance/reports removed; redirected to /reports/finance via redirectMap.
     { path: '/finance/invoicing', page: 'InvoicingPage' },

@@ -168,10 +168,11 @@ same table's SQL. The rows it writes are ordinary `audit_event` rows.
 | `ledger_period` | the periods, their range and their open/closed state |
 
 `LEDGER_DDL` creates them, `ensureLedgerSchema(adapter)` applies them (and the repository's
-`AUDIT_DDL`) and is safe to call repeatedly. **A canonical migration must apply `LEDGER_DDL`** (or
-call `ensureLedgerSchema`) - there is no migration for these tables yet, the same posture the
-sequences module of P3-A03 takes. Turn `PRAGMA foreign_keys` on (the Node adapter's
-`foreignKeys: true`): `journal_line` and the reversal links are foreign keys.
+`AUDIT_DDL`) and is safe to call repeatedly. **Schema migration 101 applies `LEDGER_DDL`** at
+startup (`src/data/migrations/schemaMigrations.ts`, applied by `applySchemaMigrations` while the
+app opens the canonical database), so production no longer depends on `ensureLedgerSchema`; that
+function remains the path the module's own tests take. Turn `PRAGMA foreign_keys` on (the Node
+adapter's `foreignKeys: true`): `journal_line` and the reversal links are foreign keys.
 
 The three partial unique indexes are the invariants in the database:
 
