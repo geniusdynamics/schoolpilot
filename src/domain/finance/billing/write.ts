@@ -19,7 +19,7 @@ import { SEQUENCE_DDL, SequenceService, createSqliteSequenceStore } from '@/doma
 import { BillingError } from './errors';
 import type { RunFacts } from './facts';
 import type { PlannedItem, PlannedLearner } from './plan';
-import type { BillingRunStore, PostedBillingRun, SchedulePin } from './types';
+import type { BillingRunStore, PostedBillingRun, SchedulePin, WrittenInvoice } from './types';
 
 /** The entity name a posted run is recorded under in the audit trail. */
 export const BILLING_RUN_AUDIT_ENTITY = 'billing_run';
@@ -144,6 +144,8 @@ export interface WriteRunResult {
   readonly ledgerEntries: number;
   readonly amount: Money;
   readonly runId: string;
+  /** Every invoice this run wrote, so the caller can name what it just posted. */
+  readonly invoices: readonly WrittenInvoice[];
 }
 
 const itemsOf = (line: PlannedLearner, source: PlannedItem['source']): readonly PlannedItem[] =>
@@ -188,6 +190,7 @@ export async function writeRunPlan(
   let supplementaryInvoices = 0;
   let ledgerEntries = 0;
   let amount = zero(currency);
+  const invoices: WrittenInvoice[] = [];
 
   for (const line of plan.lines) {
     const feeItems = itemsOf(line, 'schedule').concat(itemsOf(line, 'adhoc'));
@@ -241,6 +244,7 @@ export async function writeRunPlan(
       });
       invoicesCreated += 1;
       if (line.supplementary) supplementaryInvoices += 1;
+      invoices.push({ learnerId: line.learnerId, number, supplementary: line.supplementary });
       ledgerEntries += 1;
       amount = add(amount, total);
     }
@@ -290,6 +294,7 @@ export async function writeRunPlan(
         ...(options.actor === undefined ? {} : { postedBy: options.actor }),
       });
       invoicesCreated += 1;
+      invoices.push({ learnerId: line.learnerId, number, supplementary: false });
       ledgerEntries += 1;
       amount = add(amount, item.amount);
     }
@@ -305,6 +310,7 @@ export async function writeRunPlan(
     ledgerEntries,
     amount,
     runId: generateUuidv7(),
+    invoices,
   };
 }
 

@@ -85,6 +85,8 @@ export class BillingRunService {
           supplementaryInvoices: 0,
           ledgerEntries: 0,
           amount: zero(facts.currency),
+          // A replay wrote nothing, so it names no invoice.
+          invoices: [],
           preview,
         };
       }
@@ -123,6 +125,7 @@ export class BillingRunService {
         supplementaryInvoices: written.supplementaryInvoices,
         ledgerEntries: written.ledgerEntries,
         amount: written.amount,
+        invoices: written.invoices,
         preview,
       };
     });

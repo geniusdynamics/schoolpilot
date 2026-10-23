@@ -7,6 +7,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
+import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -59,7 +60,7 @@ const NOT_CONNECTED_REASON =
  * the range and the tab. The range's end is also the date the trial balance and the balance sheet
  * are as of, so a period chosen here filters the statement and sets the position date.
  */
-const AccountingReportsPage: React.FC<AccountingReportsPageProps> = (props) => {
+export const AccountingReportsPageContent: React.FC<AccountingReportsPageProps> = (props) => {
   const { t } = useTranslation('finance');
 
   const [from, setFrom] = useState<string>('');
@@ -226,5 +227,19 @@ const AccountingReportsPage: React.FC<AccountingReportsPageProps> = (props) => {
     </div>
   );
 };
+
+/**
+ * The routed page.
+ *
+ * It mounts the canonical repository itself, as the statements page does, because the ledger is
+ * opened over the canonical adapter and the adapter is only there once the repository is. Without
+ * this, a direct load of the route (a bookmark, a reload, a fresh navigation) finds no adapter and
+ * the page says "The ledger is not connected" instead of showing the figures it exists to show.
+ */
+const AccountingReportsPage: React.FC<AccountingReportsPageProps> = (props) => (
+  <CanonicalRepositoryProvider>
+    <AccountingReportsPageContent {...props} />
+  </CanonicalRepositoryProvider>
+);
 
 export default AccountingReportsPage;

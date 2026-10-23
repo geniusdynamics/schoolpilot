@@ -12,6 +12,9 @@ import { FormSection, FormActions } from '@/components/ui/forms';
 import { useTranslation } from 'react-i18next';
 import { databaseService } from '@/services/database/databaseService';
 import { hashPassword, checkPasswordComplexity } from '@/utils/passwordHash';
+import { openCanonicalRepository } from '@/data/canonicalRepository';
+import { ensureCanonicalUser } from '@/data/canonicalIdentity';
+import { Repository } from '@/data/repository';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logging';
 
@@ -30,7 +33,7 @@ export const SettingsUsersContent: React.FC = () => {
     refreshCollection
   } = context;
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess, showWarning } = useToast();
 
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -210,9 +213,11 @@ export const SettingsUsersContent: React.FC = () => {
             throw new Error('Users collection not available');
           }
 
+          const username = String(values.username ?? '').trim();
+          let passwordHash: string | undefined;
           if (editingUser) {
             const updateData: Partial<User> = {
-              username: String(values.username ?? ''),
+              username,
               email: String(values.email ?? ''),
               userType: String(values.userType ?? ''),
               isActive: Boolean(values.isActive),
@@ -220,20 +225,43 @@ export const SettingsUsersContent: React.FC = () => {
             };
             if (values.password) {
               const hashedPassword = await hashPassword(String(values.password));
-              (updateData as any).hashed_password = hashedPassword.hash + ':' + hashedPassword.salt + ':' + hashedPassword.iterations;
+              passwordHash = hashedPassword.hash + ':' + hashedPassword.salt + ':' + hashedPassword.iterations;
+              (updateData as any).hashed_password = passwordHash;
             }
             await usersCollection.update(editingUser.id, updateData);
           } else {
             const hashedPassword = await hashPassword(String(values.password ?? ''));
+            passwordHash = hashedPassword.hash + ':' + hashedPassword.salt + ':' + hashedPassword.iterations;
             const newUser: Omit<User, 'id'> = {
-              username: String(values.username ?? ''),
+              username,
               email: String(values.email ?? ''),
               userType: String(values.userType ?? ''),
               isActive: Boolean(values.isActive),
               role_id: values.role_id || undefined,
-              hashed_password: hashedPassword.hash + ':' + hashedPassword.salt + ':' + hashedPassword.iterations,
+              hashed_password: passwordHash,
             };
             await usersCollection.insert(newUser);
+          }
+          // The login is the platform's; the canonical model keeps its own `user` row, and a canonical
+          // write that names an actor references that row. Without this the login has no canonical
+          // identity at all, and nothing can link it to a staff record.
+          try {
+            const canonical = await openCanonicalRepository();
+            if (canonical instanceof Repository) {
+              await ensureCanonicalUser(canonical, {
+                username,
+                passwordHash:
+                  passwordHash ??
+                  (typeof editingUser?.hashed_password === 'string' ? editingUser.hashed_password : ''),
+              });
+            }
+          } catch (error) {
+            // The login itself is written; a missing canonical identity is a gap the school can see,
+            // so it is reported rather than swallowed.
+            logger.error('Could not create the canonical identity for the login:', error);
+            showWarning(
+              t('The login was saved, but its canonical identity could not be created; staff records cannot be linked to it yet.')
+            );
           }
           await refreshCollection('users');
         }}

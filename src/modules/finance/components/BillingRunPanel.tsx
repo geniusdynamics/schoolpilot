@@ -156,6 +156,19 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
   };
 
   const shown = outcome?.preview ?? preview;
+  /**
+   * The number each learner's invoice carries, for the run that just posted.
+   *
+   * The table below is the run's plan, and a plan is written before the invoices exist, so a new
+   * invoice has no number of its own there. Once the run has posted, the numbers it issued are known
+   * and a bursar needs them - they are what the school quotes when it collects the money - so they
+   * are shown in place of "new" rather than left for the reader to hunt down.
+   */
+  const numbersWritten = useMemo(() => {
+    const byLearner = new Map<string, string>();
+    for (const invoice of outcome?.invoices ?? []) byLearner.set(invoice.learnerId, invoice.number);
+    return byLearner;
+  }, [outcome]);
   const skipsByCode = useMemo(() => {
     const groups = new Map<BillingSkipCode, BillingSkip[]>();
     for (const skip of shown?.skips ?? []) {
@@ -413,7 +426,7 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
                       <td className="py-1 font-mono">
                         {line.existingInvoiceNumber
                           ? `${line.existingInvoiceNumber} + supplementary`
-                          : 'new'}
+                          : numbersWritten.get(line.learnerId) ?? 'new'}
                       </td>
                       <td className="py-1 text-right font-mono">{formatMoney(line.amount)}</td>
                       <td className="py-1">

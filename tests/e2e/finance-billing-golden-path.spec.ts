@@ -4,11 +4,12 @@
 // ABOUTME: receipt back, and states plainly where the ledger-backed reports stand.
 // ABOUTME:
 // ABOUTME: SCOPE. Spec 05 §6/§8 want the statement to equal the ledger, the trial balance to balance and
-// ABOUTME: the aging total to tie to receivables. The routed StatementsPage and AccountingReportsPage are
-// ABOUTME: handed no ledger by the shell — the ledger's tables have no canonical migration yet, and both
-// ABOUTME: pages say so on screen — so those three ties cannot be made through the routed UI from this
-// ABOUTME: suite. They are proven against the same SQLite store by the modules' own tests
-// ABOUTME: (src/domain/finance/{ledger,statements,reconciliation}/__tests__). What this suite proves is
+// ABOUTME: the aging total to tie to receivables. The ledger's tables now have a canonical migration and the
+// ABOUTME: routed StatementsPage and AccountingReportsPage are wired to the canonical adapter, so the last
+// ABOUTME: step of this suite drives both pages and reads their own tie badges - the statement's "agrees
+// ABOUTME: with the ledger" and the trial balance's "ties to the journal" - rather than taking a figure on
+// ABOUTME: trust. The ties themselves are also proven against the same SQLite store by the modules' own
+// ABOUTME: tests (src/domain/finance/{ledger,statements,reconciliation}/__tests__). What this suite proves is
 // ABOUTME: the wiring: the documents the UI writes, the money the UI moves, and what survives a reload.
 // ABOUTME:
 // ABOUTME: THE DATABASE IS SEEDED, NOT EMPTY. Spec 08 §3 asks every golden path to start from an empty
@@ -21,12 +22,14 @@
 // ABOUTME: a live detector for that gap: when session-aware RBAC lands, it fails and this suite is
 // ABOUTME: extended to create its own vote head on an empty database.
 // ABOUTME:
-// ABOUTME: GAP P3-Q01-a: no UI and no seed creates a `fee_category`, and the schedule matrix's cells carry
-// ABOUTME: a residence while the Templates form writes none, so no schedule the app itself can create is
-// ABOUTME: resolvable by the billing run's matrix. The run is therefore driven by its one-off charges (a
-// ABOUTME: supported path: a learner the fee run cannot price still carries their charge), which post real
-// ABOUTME: invoices and real journal entries. The suite asserts the fee pricing reports its honest refusal
-// ABOUTME: rather than silently guessing a cell.
+// ABOUTME: GAP P3-Q01-a, half closed: a schedule prices a cell of level x residence x fee category, and
+// ABOUTME: the Templates form writes neither a residence nor a fee category, so a schedule a user creates
+// ABOUTME: through the UI still cannot be priced by the run's matrix. The sample school now can - its seed
+// ABOUTME: creates a fee category and each line carries the residence and category it prices - so the run
+// ABOUTME: reads every learner's cell. Those learners already hold a posted invoice for the term, so the
+// ABOUTME: schedule adds nothing to them and the one-off charge this suite adds is what the run writes, as
+// ABOUTME: a supplementary invoice. The suite therefore still asserts the run's own account of what it did
+// ABOUTME: rather than a guessed cell, and the pricing path itself is covered by the module's tests.
 
 import playwright from '@playwright/test';
 
@@ -306,16 +309,35 @@ test.describe('the finance golden path', () => {
       await expect(page.getByTestId('cashier-session-report-variance')).toContainText('KES 0.00');
     });
 
-    await test.step('the ledger-backed reports state what the shell gives them', async () => {
-      // The shell renders these pages without a ledger, so both say so rather than showing a figure
-      // they cannot derive. Asserted so a silent change of that wiring is noticed, not hidden.
+    await test.step('the ledger-backed reports read the ledger the app opens', async () => {
+      // This step used to assert the opposite - that both pages said "The ledger is not connected" -
+      // because the shell rendered them without one. That was true while the ledger's tables had no
+      // migration and the pages took a ledger prop; it stopped being true when the migration landed
+      // and both pages were wired to the canonical adapter. The assertions are inverted rather than
+      // deleted, so the wiring stays covered: each page must now derive from the ledger the app
+      // opened, and neither may fall back to the refusal.
       await go(page, '/finance/statements');
-      await expect(page.getByText('The ledger is not connected')).toBeVisible({
-        timeout: LOAD_TIMEOUT,
-      });
+      await expect(page.getByText('The ledger is not connected')).toHaveCount(0);
+
+      // A statement is derived for a subject, so one is chosen the way a bursar chooses it: by the
+      // learner in the list. The tie badge is the page's own verdict that what it shows agrees with
+      // the ledger, which is the wiring this step exists to prove.
+      const subject = page.getByTestId('statements-subject');
+      const option = subject.locator('option', { hasText: new RegExp(DEMO_LEARNER) }).first();
+      const subjectId = await option.getAttribute('value');
+      expect(
+        subjectId,
+        `no option for ${DEMO_LEARNER} on the statements page`
+      ).toBeTruthy();
+      await subject.selectOption(subjectId!);
+      await expect(page.getByTestId('statement-tie')).toBeVisible({ timeout: LOAD_TIMEOUT });
+      await expect(page.getByTestId('statement-movements')).toBeVisible();
 
       await go(page, '/finance/accounting-reports');
-      await expect(page.getByText('The ledger is not connected')).toBeVisible({
+      await expect(page.getByText('The ledger is not connected')).toHaveCount(0);
+      // The trial balance is the default tab, and its badge is rendered from the report's own tie
+      // flags rather than from the figures on screen.
+      await expect(page.getByTestId('tie-trial-balance')).toContainText('Ties to the journal', {
         timeout: LOAD_TIMEOUT,
       });
     });

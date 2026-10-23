@@ -20,10 +20,13 @@ Two things make the "retain" verdict the safe one as well as the honest one:
    legacy pages carry filters (account type, category, status, payment method, free-text search), derived
    ratios (profit margin, working capital, debt ratio, % of total) and per-row columns the hub does not
    render. None of those are covered.
-2. **The ledger is not connected yet.** The accounting hub takes the ledger as a prop and, in the running
-   app, renders *"The ledger is not connected"* (`accounting/AccountingReportsPage.tsx:130-139`). Retiring
-   a book now would replace a page showing **wrong** numbers with a page showing **no** numbers. See
-   [The ledger dependency](#the-ledger-dependency).
+2. **The ledger was not connected when this review was written.** The accounting hub took the ledger as a
+   prop, and the routing shell rendered it without one, so it showed *"The ledger is not connected"*.
+   **That has since been fixed**: the ledger's tables now have a canonical migration (P3-A04) and both the
+   accounting hub and the statements page fall back to the canonical adapter when no ledger is handed in
+   (P3-ledger), so in the running app they read the real ledger. The verdict below is unchanged — the
+   feature gaps are what retain the pages — but the sequencing argument in
+   [The ledger dependency](#the-ledger-dependency) no longer applies.
 
 ---
 
@@ -357,18 +360,22 @@ Grouped so the owner can walk them:
 
 ## The ledger dependency
 
-The accounting hub is ledger-backed, but **the app does not open the ledger on its own**. The ledger's DDL
-has no canonical migration yet, so `AccountingReportsPage` takes the ledger (or the SQLite adapter) as a
-prop and the routing shell renders it without one, showing *"The ledger is not connected"* with the reason
-(`AccountingReportsPage.tsx:48-53`, `:130-139`; `accounting/README.md:113-121`). Opening the ledger is
-P3-A04's migration path, outside this task's files.
+**Resolved after this review.** When the review was written, the accounting hub was ledger-backed but **the
+app did not open the ledger on its own**: the ledger's DDL had no canonical migration, so
+`AccountingReportsPage` took the ledger (or the SQLite adapter) as a prop and the routing shell rendered it
+without one, showing *"The ledger is not connected"* with the reason.
 
-**Consequence for any future retirement:** retiring a book (trial balance, income statement, balance
-sheet, cash book) replaces a page showing **wrong (mock)** numbers with a page showing **no** numbers until
-P3-A04 lands. If the owner wants the mock books gone before then, that is a sequencing decision: either
-retire them *after* P3-A04 wires the ledger, or accept an empty accounting hub for the interim. The feature
-gaps above (account type, profit margin, working capital, payment method, search) are independent of that
-sequencing and remain open regardless.
+Two later tasks closed that: **P3-A04** put the ledger's tables in the migration registry, and
+**P3-ledger** made `AccountingReportsPage` and `statements/StatementsPage` fall back to
+`canonicalAdapter()` when no ledger is handed in. Both now derive real figures in the running app — the
+finance golden path drives both pages and reads their own tie badges ("ties to the journal", the
+statement's tie), and the pages' wiring is covered by
+`pages/accounting/__tests__/canonicalAdapterWiring.test.tsx` and
+`pages/statements/__tests__/canonicalAdapterWiring.test.tsx`.
+
+**Consequence for any future retirement:** the sequencing argument is gone — a retired book is no longer
+replaced by an empty page. The feature gaps above (account type, profit margin, working capital, payment
+method, search) are what still retain these pages, and they remain open.
 
 ---
 

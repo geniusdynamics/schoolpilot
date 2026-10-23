@@ -1,5 +1,30 @@
 # Continuing the PRD on your own machine (local Claude Code)
 
+## 0a. Current state — P3 complete, paused before P4 (2026-10-23)
+
+**Phases P0 (52), P1 (28), P2 (22) and P3 (20) are done and merged.** Read
+[`workflow-log/P3-W4-2026-10-23.md`](./workflow-log/P3-W4-2026-10-23.md) and the newest P3 log for the
+finance phase; [`../architecture/finance-reporting-coverage.md`](../architecture/finance-reporting-coverage.md)
+records which finance reports are real and which are placeholders.
+
+**Where the work stands.** P3 was integrated on one branch, `prd/P3-W1`, with a PR opened from it per
+wave (#37 W1/W2, #38 W3, #39 W4-W6). The UI-density sweep is on `prd/ui-density`, which **descends from
+`prd/P3-W1`**, so P3 must merge first or the cosmetic PR would drag the finance work with it.
+
+**Paused at the owner's request** (tooling update, credits, laptop restart). Resume with **P4**:
+`docs/prd/tasks.json` has P4 (12 tasks), P5 (13) and P6 (11) open; `node scripts/prd/status.mjs` lists
+what is runnable. Branch P4 from `consolidation` after the P3 and ui-density PRs are merged.
+
+**Two things a resume must know:**
+
+1. **The local gate cannot verify a diff this size on Windows.** `gate.mjs`'s G3 batches
+   `vitest related` because of the ~8k command-line cap, and on Windows the batched run fails for
+   reasons that are not the code: four suites fail locally that pass on CI (two load-sensitive, two
+   gate-tooling tests that are Windows-only). **CI is the authority for a large diff.**
+2. **The browser golden paths need one tab only.** Two same-origin tabs fight over the OPFS handle and
+   the app refuses to start; use a private `GP1_PORT` because Playwright reuses a running dev server
+   outside CI.
+
 Everything needed is in the repository. Wave **P0-W1** is being finished on branch
 **`prd/P0-W1`** (PR into `consolidation`). Read the newest log first:
 [`workflow-log/P0-W1-2026-10-10.md`](./workflow-log/P0-W1-2026-10-10.md).
