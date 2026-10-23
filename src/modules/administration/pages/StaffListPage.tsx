@@ -19,6 +19,8 @@ import { DeleteIcon, EditIcon, EyeIcon, PlusIcon, UserGroupIcon } from '@/compon
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { createSchemaFor, updateSchemaFor } from '@/data/repository';
 import { asId } from '@/domain/ids';
+import { useLookup } from '@/data/query';
+import { linkCanonicalPersonRef } from '@/data/canonicalIdentity';
 
 import { useWritableRepository } from '../data/useWritableRepository';
 import { useInstitutionId } from '../data/useCanonicalStaff';
@@ -48,6 +50,8 @@ interface StaffFormState {
   is_active: boolean;
   national_id: string;
   employer_number: string;
+  /** The canonical login the staff member signs in with, or null when they have none. */
+  user_id: string | null;
 }
 
 const emptyForm = (): StaffFormState => ({
@@ -65,6 +69,7 @@ const emptyForm = (): StaffFormState => ({
   is_active: true,
   national_id: '',
   employer_number: '',
+  user_id: null,
 });
 
 function formOf(member: CanonicalStaffMember): StaffFormState {
@@ -83,6 +88,7 @@ function formOf(member: CanonicalStaffMember): StaffFormState {
     is_active: member.is_active,
     national_id: member.national_id,
     employer_number: member.employer_number,
+    user_id: member.user_id,
   };
 }
 
@@ -93,6 +99,9 @@ export const StaffListContent: React.FC = () => {
   const institutionId = useInstitutionId();
   const { staff, isLoading } = useCanonicalStaff();
   const { departments, jobTitles, departmentRows, jobTitleRows } = useCanonicalOrganisation();
+  // The canonical logins a staff member may be linked to. The link is `staff.user_id`, the column a
+  // teaching scope resolves a signed-in teacher through.
+  const logins = useLookup(repository, 'user', { label: (row) => row.username });
   const confirm = useConfirm();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -295,6 +304,7 @@ export const StaffListContent: React.FC = () => {
                   department_ids: [...editing.department_ids],
                   start_date: editing.start_date,
                   ...(editing.job_title_id ? { job_title_id: editing.job_title_id } : {}),
+                  ...(editing.user_id ? { user_id: editing.user_id } : {}),
                   ...(editing.end_date ? { end_date: editing.end_date } : {}),
                 }
               : {
@@ -335,8 +345,15 @@ export const StaffListContent: React.FC = () => {
               lookupKey: 'job_title_id',
             },
             { path: 'start_date', label: 'Start Date', order: 7, widget: 'date', required: true },
+            {
+              path: 'user_id',
+              label: t('staff.form.login', 'Login'),
+              order: 8,
+              widget: 'entity',
+              lookupKey: 'user_id',
+            },
           ]}
-          lookups={{ job_title_id: jobTitles }}
+          lookups={{ job_title_id: jobTitles, user_id: logins }}
           onSubmit={async (values) => {
             const gender =
               values.gender === 'female' || values.gender === 'male' || values.gender === 'other'
@@ -365,6 +382,7 @@ export const StaffListContent: React.FC = () => {
               is_active: form.is_active,
               national_id: form.national_id,
               employer_number: form.employer_number,
+              user_id: typeof values.user_id === 'string' && values.user_id ? values.user_id : null,
             };
             setSaving(true);
             setError(null);
@@ -378,6 +396,11 @@ export const StaffListContent: React.FC = () => {
                 : (
                     await repository.create('staff', staffCreateInput(mapped, institutionId ?? ''))
                   ).id;
+              // A staff row that carries a login is linked both ways: the row points at the canonical
+              // user, and the canonical user points back at the person.
+              if (mapped.user_id) {
+                await linkCanonicalPersonRef(repository, { userId: mapped.user_id, staffId });
+              }
               await saveStaffIdentifiers(repository, {
                 staffId,
                 institutionId: institutionId ?? '',

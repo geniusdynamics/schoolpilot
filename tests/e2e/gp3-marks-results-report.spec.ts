@@ -90,7 +90,9 @@ test.describe('GP-3 marks, results and the published report', () => {
 
     await test.step('enter the mark in the v2 grid and save it', async () => {
       await go(page, '/academics/marks-entry');
-      await expect(page.getByText('Marks entry')).toBeVisible({ timeout: LOAD_TIMEOUT });
+      // The page heading, not a text match: the module sub-navigation item carries the same words,
+      // so getByText('Marks entry') resolved to two elements depending on which mounted first.
+      await expect(page.getByRole('heading', { name: 'Marks Entry' })).toBeVisible({ timeout: LOAD_TIMEOUT });
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), TEACHING_GROUP);
 

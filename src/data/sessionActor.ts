@@ -36,3 +36,20 @@ export function resolveCanonicalActor(
   }
   return users.length === 1 ? users[0] : null;
 }
+
+/**
+ * The canonical user a login names, by username alone.
+ *
+ * Unlike {@link resolveCanonicalActor} this never falls back to the school's only canonical user.
+ * A page resolves its teaching scope through this: the fallback is right for a write that needs *an*
+ * actor, but for a scope it would hand one person another person's groups. A login with no canonical
+ * row of its own resolves to none, and the scope then reaches nothing rather than someone else's work.
+ */
+export function resolveNamedCanonicalActor(
+  users: readonly RepositoryRow<'user'>[],
+  session: SessionIdentity
+): RepositoryRow<'user'> | null {
+  const username = session.username?.trim().toLowerCase();
+  if (!username) return null;
+  return users.find((row) => row.username.trim().toLowerCase() === username) ?? null;
+}

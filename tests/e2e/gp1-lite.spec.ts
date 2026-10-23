@@ -271,7 +271,9 @@ test.describe('GP-1 golden path', () => {
 
     await test.step('enter and save the learner mark for the published assessment', async () => {
       await go(page, '/academics/marks-entry');
-      await expect(page.getByText('Marks entry')).toBeVisible();
+      // The page heading, not a text match: the module sub-navigation item carries the same words,
+      // so getByText('Marks entry') resolved to two elements depending on which mounted first.
+      await expect(page.getByRole('heading', { name: 'Marks Entry' })).toBeVisible();
       // The hub's default tab is the v2 grid: the scheme is derived from the period's
       // assessments, so the assessment is a column rather than a picker, and the grid autosaves.
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);

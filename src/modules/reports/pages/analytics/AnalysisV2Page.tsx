@@ -9,6 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import type { AggregationDefinition, RankingPolicy } from '@/domain/assessment/aggregation';
 import type { GradingScaleDefinition } from '@/domain/assessment/scales';
 import type { Id } from '@/domain/ids';
+import { useCanonicalSessionActor } from '@/data/useCanonicalSessionActor';
 import type { ObservationPack } from '@/modules/academics/pages/observations';
 import { displayNumber } from '@/modules/academics/pages/results';
 
@@ -22,7 +23,8 @@ import TrendChart from './components/TrendChart';
 export type AnalysisTab = 'subject' | 'group' | 'teacher' | 'trends' | 'heatmap';
 
 export interface AnalysisV2PageProps {
-  readonly actorId: string;
+  /** Overrides the session, so a page test can act as a named teacher. */
+  readonly actorId?: string;
   readonly role?: string | null;
   readonly periodId?: Id<'academic_period'> | null;
   readonly classGroupId?: Id<'class_group'> | null;
@@ -97,8 +99,8 @@ const TeacherTable: React.FC<{ readonly rows: readonly TeacherAnalysisRow[] }> =
 );
 
 export const AnalysisV2PageContent: React.FC<AnalysisV2PageProps> = ({
-  actorId,
-  role = null,
+  actorId: givenActorId,
+  role: givenRole,
   periodId = null,
   classGroupId = null,
   aggregation,
@@ -111,6 +113,12 @@ export const AnalysisV2PageContent: React.FC<AnalysisV2PageProps> = ({
   const [tab, setTab] = useState<AnalysisTab>(initialTab);
   const [metricKey, setMetricKey] = useState<string | null>(null);
   const [mode, setMode] = useState<HeatmapMode>('competency');
+
+  // The page is mounted by the router without props, so the actor and the role come from the
+  // session: without them the scope resolves to no group and the page claims no staff record exists.
+  const session = useCanonicalSessionActor();
+  const actorId = givenActorId ?? session.actorId;
+  const role = givenRole === undefined ? session.role : givenRole;
 
   const analysis = useAnalysis({
     actorId,
