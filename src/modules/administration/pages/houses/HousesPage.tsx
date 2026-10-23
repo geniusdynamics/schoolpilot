@@ -242,10 +242,10 @@ const HousesPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('houses.title')}
-        subtitle={t('description')}
+        info={t('description')}
         actions={
           <Button onClick={openCreateModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('houses.create')}

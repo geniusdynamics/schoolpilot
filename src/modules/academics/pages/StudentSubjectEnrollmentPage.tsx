@@ -231,7 +231,7 @@ const MembershipContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {institutionId === null && (
         <p role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
           The canonical database holds no institution row, so a membership cannot be saved yet.
@@ -305,7 +305,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => (
 );
 
 const StudentSubjectEnrollmentPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StudentSubjectEnrollmentPageContent />
   </div>
 );

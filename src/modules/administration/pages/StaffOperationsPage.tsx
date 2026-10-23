@@ -85,7 +85,7 @@ const StaffOperationsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('staffOperations.title', 'Staff Operations')}
-        subtitle={t(
+        info={t(
           'staffOperations.subtitle',
           'Manage staff directory, attendance, ID cards, wallet transactions, and bulk updates'
         )}

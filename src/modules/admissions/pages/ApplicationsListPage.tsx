@@ -110,7 +110,7 @@ export const ApplicationsListPageContent: React.FC = () => {
           type: 'success',
           message: 'Application deleted successfully.',
         });
-      } catch (error) {
+      } catch {
         showToast({
           type: 'error',
           message: 'Failed to delete application.',
@@ -238,10 +238,10 @@ export const ApplicationsListPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Applications"
-        subtitle="Manage and track all admission applications"
+        info="Manage and track all admission applications"
         actions={
           <div className="flex space-x-2">
             <Button
@@ -374,7 +374,7 @@ export const ApplicationsListPageContent: React.FC = () => {
   );
 };
 const ApplicationsListPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ApplicationsListPageContent />
   </div>
 );

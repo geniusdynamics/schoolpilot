@@ -4,7 +4,7 @@ import { useCanonicalStaff } from '../data/useCanonicalStaff';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import { IdentificationIcon, UserIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
+import { UserIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { logger } from '@/utils/logging';
 
@@ -143,26 +143,16 @@ const StaffIDCardsPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Staff ID Cards</h1>
-        <Button onClick={handlePrintAll} variant="primary">
-          <PrinterIcon className="w-4 h-4 mr-2" />
-          Print All
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-cyan-50 border border-cyan-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <IdentificationIcon className="w-5 h-5 text-cyan-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-cyan-800">Generate Printable Staff ID Cards</h3>
-              <p className="text-sm text-cyan-700 mt-1">
-                Generate and print staff ID cards with photos, department information, and contact details.
-                Print individual cards or bulk print for entire departments.
-              </p>
-            </div>
-          </div>
-        </div>
+      <Card
+        title="Staff ID Cards"
+        info="Generate and print staff ID cards with photos, department information, and contact details. Print individual cards or bulk print for entire departments."
+        actions={
+          <Button onClick={handlePrintAll} variant="primary">
+            <PrinterIcon className="w-4 h-4 mr-2" />
+            Print All
+          </Button>
+        }
+      >
 
         {/* ID Card Preview */}
         {selectedStaff && (

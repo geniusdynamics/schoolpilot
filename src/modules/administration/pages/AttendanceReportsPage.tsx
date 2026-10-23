@@ -192,20 +192,8 @@ export const AttendanceReportsContent: React.FC = () => {
             <span>Attendance Reports</span>
           </div>
         }
+        info="View comprehensive attendance reports including monthly summaries, class-wise attendance, and individual student attendance records with detailed statistics."
       >
-        <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-violet-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-violet-800">Monthly/Class-wise/Individual Attendance Summaries</h3>
-              <p className="text-sm text-violet-700 mt-1">
-                View comprehensive attendance reports including monthly summaries, class-wise attendance,
-                and individual student attendance records with detailed statistics.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-surface-card border border-surface-border rounded-lg p-4">
@@ -292,7 +280,7 @@ export const AttendanceReportsContent: React.FC = () => {
 };
 
 const AttendanceReportsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AttendanceReportsContent />
   </div>
 );

@@ -180,11 +180,11 @@ const BulkStreamCreationPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {repairPlan.corrupt.length > 0 && (
         <Card
           title={t('administration:bulkStreams.repair.title', 'Corrupt streams')}
-          subtitle={t(
+          info={t(
             'administration:bulkStreams.repair.subtitle',
             'These streams have no name or no class. Move their students to a valid stream, then remove them.',
           )}
@@ -240,7 +240,7 @@ const BulkStreamCreationPage: React.FC = () => {
 
       <Card
         title={t('administration:bulkStreams.title', 'Bulk Stream Creation')}
-        subtitle={t('administration:bulkStreams.subtitle', 'Add multiple streams to a class at once')}
+        info={t('administration:bulkStreams.subtitle', 'Add multiple streams to a class at once')}
         actions={
           <Button onClick={handleAddStreamField} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('administration:bulkStreams.addField', 'Add Stream Field')}

@@ -148,20 +148,8 @@ export const JournalRegisterPageContent: React.FC = () => {
             <span>Journal Register</span>
           </div>
         }
+        info="The Journal Register provides a chronological record of all journal vouchers with debit and credit entries. Use this to track all accounting transactions, verify double-entry compliance, and maintain an audit trail."
       >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <BookOpenIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">Chronological Journal Voucher Listing</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                The Journal Register provides a chronological record of all journal vouchers with debit and credit entries. 
-                Use this to track all accounting transactions, verify double-entry compliance, and maintain an audit trail.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
@@ -258,7 +246,7 @@ export const JournalRegisterPageContent: React.FC = () => {
   );
 };
 const JournalRegisterPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <JournalRegisterPageContent />
   </div>
 );

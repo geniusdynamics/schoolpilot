@@ -121,12 +121,9 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
   const isLoadingPage = loading.students || loading.classes || loading.classStreams || loading.schoolPeriods || loading.studentInvoices || loading.studentPayments || loading.feeAdjustments;
 
   return (
-    <div className="space-y-6">
-      <Card title="Student Financial Summary Report">
+    <div className="space-y-3">
+      <Card title="Student Financial Summary Report" info="Summary of student fee balances for a selected period.">
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
-            <p className="text-sm text-surface-muted-fg mb-4">
-                Summary of student fee balances for a selected period.
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                  <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">All Periods</option>
@@ -164,7 +161,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
   );
 };
 const StudentFinancialSummaryPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StudentFinancialSummaryPageContent />
   </div>
 );

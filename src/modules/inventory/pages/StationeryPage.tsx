@@ -158,27 +158,16 @@ export const StationeryPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Stationery Supply Management</h1>
-        <Button onClick={() => openModal()} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Item
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CubeIcon className="w-5 h-5 text-teal-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-teal-800">Department-wise Stationery Allocation</h3>
-              <p className="text-sm text-teal-700 mt-1">
-                Manage stationery supplies with department-wise allocation, consumable tracking, 
-                and low stock alerts. Monitor inventory levels and restock as needed.
-              </p>
-            </div>
-          </div>
-        </div>
-
+      <Card
+        title="Stationery Supply Management"
+        info="Manage stationery supplies with department-wise allocation, consumable tracking, and low stock alerts. Monitor inventory levels and restock as needed."
+        actions={
+          <Button onClick={() => openModal()} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Item
+          </Button>
+        }
+      >
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-surface-card border border-surface-border rounded-lg p-4">
@@ -447,7 +436,7 @@ export const StationeryPageContent: React.FC = () => {
   );
 };
 const StationeryPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StationeryPageContent />
   </div>
 );

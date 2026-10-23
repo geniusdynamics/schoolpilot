@@ -40,7 +40,7 @@ const SchoolOrganizationPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t(hubConfig.titleKey, hubConfig.titleDefault)}
-        subtitle={t(hubConfig.subtitleKey, hubConfig.subtitleDefault)}
+        info={t(hubConfig.subtitleKey, hubConfig.subtitleDefault)}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}

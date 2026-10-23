@@ -75,19 +75,19 @@ const AssignmentGradingPage: React.FC = () => {
 
   // Initialize grading state for new submissions
   useEffect(() => {
-    const newGradingState: Record<string, GradingState> = {};
-    submissionsToGrade.forEach(sub => {
-      if (!gradingState[sub.id]) {
-        newGradingState[sub.id] = {
-          score: '',
-          grade: '',
-          feedback: '',
-        };
-      }
+    setGradingState(prev => {
+      const newGradingState: Record<string, GradingState> = {};
+      submissionsToGrade.forEach(sub => {
+        if (!prev[sub.id]) {
+          newGradingState[sub.id] = {
+            score: '',
+            grade: '',
+            feedback: '',
+          };
+        }
+      });
+      return Object.keys(newGradingState).length > 0 ? { ...prev, ...newGradingState } : prev;
     });
-    if (Object.keys(newGradingState).length > 0) {
-      setGradingState(prev => ({ ...prev, ...newGradingState }));
-    }
   }, [submissionsToGrade]);
 
   // Update grading state
@@ -122,7 +122,7 @@ const AssignmentGradingPage: React.FC = () => {
         type: 'success',
         message: `Saved grade for ${submission.studentName || 'student'}.`,
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to save grade.',
@@ -157,7 +157,7 @@ const AssignmentGradingPage: React.FC = () => {
         type: 'success',
         message: `Grade saved for ${submission.studentName || 'student'}.`,
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to save grade.',
@@ -200,7 +200,7 @@ const AssignmentGradingPage: React.FC = () => {
           gradedByName: 'Current User',
         });
         successCount++;
-      } catch (error) {
+      } catch {
         logger.error('Failed to grade submission:', subId);
       }
     }
@@ -321,10 +321,13 @@ const AssignmentGradingPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-3">
+      {/* Progress Bar */}
+      <Card
+        variant="compact"
+        title="Grade Submissions"
+        info={`${assignment.title} - ${assignment.subjectName}`}
+        actions={
           <Button
             variant="ghost"
             onClick={() => navigate(`/assignments/${id}`)}
@@ -332,19 +335,8 @@ const AssignmentGradingPage: React.FC = () => {
           >
             {t('common.back')}
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-foreground">
-              Grade Submissions
-            </h1>
-            <p className="text-sm text-surface-muted-fg mt-1">
-              {assignment.title} - {assignment.subjectName}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <Card variant="compact">
+        }
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -368,7 +360,7 @@ const AssignmentGradingPage: React.FC = () => {
 
       {/* Bulk Actions */}
       {submissionsToGrade.length > 0 && (
-        <Card title="Bulk Grading" subtitle="Select submissions and grade them all at once">
+        <Card title="Bulk Grading" info="Select submissions and grade them all at once">
           <DataGrid
             columns={[
               {

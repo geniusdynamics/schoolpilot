@@ -72,33 +72,8 @@ export const SettingsWorkflowsContent: React.FC = () => {
     isDeleting: false
   });
 
-  // Show access denied if user doesn't have view permission
-  if (!canViewWorkflows) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Access Denied</h2>
-          <p className="text-surface-muted-fg mb-4">
-            You don't have permission to view workflow settings.
-          </p>
-          <button
-            onClick={() => window.history.back()}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Validation functions
-  const validateWorkflowForm = (): boolean => {
+  const validateWorkflowForm = useCallback((): boolean => {
     const errors: ValidationErrors = {};
     
     if (!workflowFormData.name || workflowFormData.name.trim() === '') {
@@ -109,9 +84,9 @@ export const SettingsWorkflowsContent: React.FC = () => {
     
     setWorkflowErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+  }, [workflowFormData.name, t]);
 
-  const validateStateForm = (): boolean => {
+  const validateStateForm = useCallback((): boolean => {
     const errors: ValidationErrors = {};
     
     if (!stateFormData.name || stateFormData.name.trim() === '') {
@@ -130,7 +105,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
     
     setStateErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+  }, [stateFormData.name, stateFormData.sequence_order, t]);
 
   // Workflow Modal handlers
   const openWorkflowModal = useCallback((workflow?: Workflow) => {
@@ -233,7 +208,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [dbManager, editingWorkflow, workflowFormData, refreshCollection, closeWorkflowModal, toast, t]);
+  }, [dbManager, editingWorkflow, workflowFormData, refreshCollection, closeWorkflowModal, toast, t, validateWorkflowForm]);
 
   const handleStateSubmit = useCallback(async () => {
     if (!currentWorkflowForStates || !validateStateForm()) {
@@ -283,7 +258,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [dbManager, currentWorkflowForStates, editingState, stateFormData, refreshCollection, closeStateModal, toast, t]);
+  }, [dbManager, currentWorkflowForStates, editingState, stateFormData, refreshCollection, closeStateModal, toast, t, validateStateForm]);
 
   const handleDeleteWorkflow = useCallback(async (id: number) => {
     setDeleteModalConfig({
@@ -466,11 +441,38 @@ export const SettingsWorkflowsContent: React.FC = () => {
     },
   ];
 
+  // Show access denied if user doesn't have view permission. Every hook above has run, so the
+  // permission check cannot change the order the hooks are called in between renders.
+  if (!canViewWorkflows) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold text-surface-foreground mb-2">Access Denied</h2>
+          <p className="text-surface-muted-fg mb-4">
+            You don't have permission to view workflow settings.
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Workflows Card */}
       <Card 
         title={t('workflows.title')} 
+        info={t('workflows.description')}
         actions={canCreateWorkflows ? (
           <Button 
             onClick={() => openWorkflowModal()} 
@@ -481,7 +483,6 @@ export const SettingsWorkflowsContent: React.FC = () => {
           </Button>
         ) : null}
       >
-        <p className="text-sm text-surface-muted-fg mb-4">{t('workflows.description')}</p>
         {appDataLoading.workflows ? (
           <div className="flex justify-center py-8">
             <Spinner />

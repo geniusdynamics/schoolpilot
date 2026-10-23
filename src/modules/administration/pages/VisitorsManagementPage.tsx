@@ -178,7 +178,7 @@ const VisitorsManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="grid grid-cols-4 gap-4">
         <Card className="bg-primary-50 border-primary-200">
           <div className="text-2xl font-bold text-primary-700">{stats.total}</div>
@@ -200,7 +200,7 @@ const VisitorsManagementPage: React.FC = () => {
 
       <Card
         title={t('visitors.title')}
-        description={t('visitors.description')}
+        info={t('visitors.description')}
         actions={
           <Button onClick={openModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('visitors.checkIn')}

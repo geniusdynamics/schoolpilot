@@ -3,7 +3,7 @@ import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
+import { PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { StudentStatus } from '@/core/types';
 import type { Student } from '@/core/types';
@@ -96,24 +96,11 @@ export const TransferCertificateContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Transfer Certificate (T.C.)</h1>
-      </div>
-      
       {!selectedStudent ? (
-        <Card>
-          <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <DocumentTextIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-primary-800">Transfer Certificate Generation</h3>
-                <p className="text-sm text-primary-700 mt-1">
-                  Generate official transfer certificates for students leaving the school. 
-                  Select a student to preview and print their transfer certificate.
-                </p>
-              </div>
-            </div>
-          </div>
+        <Card
+          title="Transfer Certificate (T.C.)"
+          info="Generate official transfer certificates for students leaving the school. Select a student to preview and print their transfer certificate."
+        >
 
           {/* Filters */}
           <div className="mb-6 flex gap-4 flex-wrap">
@@ -164,7 +151,7 @@ export const TransferCertificateContent: React.FC = () => {
           </div>
         </Card>
       ) : (
-        <Card>
+        <Card title="Transfer Certificate (T.C.)">
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
               ← Back to Students
@@ -271,7 +258,7 @@ export const TransferCertificateContent: React.FC = () => {
 };
 
 const TransferCertificatePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <TransferCertificateContent />
   </div>
 );

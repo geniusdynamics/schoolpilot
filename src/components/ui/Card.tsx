@@ -5,6 +5,7 @@
 import React, { ReactNode, forwardRef, HTMLAttributes } from 'react';
 import { useTransition } from '@/utils/animations';
 import { useReducedMotion } from '@/utils/accessibility';
+import { InfoHint } from '@/components/ui/feedback';
 
 export type CardVariant = 'default' | 'elevated' | 'outlined' | 'filled' | 'interactive' | 'compact';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -12,6 +13,12 @@ export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
 interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   title?: React.ReactNode;
   subtitle?: string; // Optional secondary line rendered under the title
+  /**
+   * An explanation shown on demand from an icon beside the title, instead of a permanent
+   * introductory box in the body. The box cost roughly 70px on every visit and repeated what the
+   * title already said; the sentence is read once, so it belongs behind the icon.
+   */
+  info?: string;
   children: ReactNode;
   className?: string;
   actions?: ReactNode; // For buttons or links in the header
@@ -32,6 +39,7 @@ interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
 const Card = forwardRef<HTMLDivElement, CardProps>(({
   title,
   subtitle,
+  info,
   children,
   className = '',
   actions,
@@ -179,7 +187,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
       {loading && <LoadingOverlay />}
       
       {/* Header Section */}
-      {(title || subtitle || actions || icon) && (
+      {(title || subtitle || actions || icon || info) && (
         <div className={`
           border-b border-surface-border flex justify-between items-center
           ${sizeStyles.header}
@@ -191,13 +199,16 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
                 {icon}
               </span>
             )}
-            {(title || subtitle) && (
+            {(title || subtitle || info) && (
               <div className="min-w-0">
-                {title && (
-                  <h3 className="text-base leading-5 font-semibold text-surface-foreground truncate group-hover:text-surface-foreground transition-colors duration-200">
-                    {title}
-                  </h3>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {title && (
+                    <h3 className="text-base leading-5 font-semibold text-surface-foreground truncate group-hover:text-surface-foreground transition-colors duration-200">
+                      {title}
+                    </h3>
+                  )}
+                  {info && <InfoHint text={info} />}
+                </div>
                 {subtitle && (
                   <p className="mt-0.5 text-sm text-surface-muted-fg truncate">
                     {subtitle}

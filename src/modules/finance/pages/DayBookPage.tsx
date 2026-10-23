@@ -104,20 +104,8 @@ export const DayBookPageContent: React.FC = () => {
             <span>Day Book</span>
           </div>
         }
+        info="The Day Book records all daily financial transactions with debit and credit entries. Use this to track all money in and out on a daily basis for reconciliation purposes."
       >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <BookOpenIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">Daily Transaction Log</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                The Day Book records all daily financial transactions with debit and credit entries.
-                Use this to track all money in and out on a daily basis for reconciliation purposes.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
@@ -193,7 +181,7 @@ export const DayBookPageContent: React.FC = () => {
   );
 };
 const DayBookPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <DayBookPageContent />
   </div>
 );

@@ -23,7 +23,6 @@ import { useLessonPlansData, PlanStatus, WeeklyPlan } from '../../data/lessonpla
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { formatDate } from '@/utils/format';
 
 const statusColors: Record<PlanStatus, string> = {
   [PlanStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
@@ -95,7 +94,7 @@ const ApprovalPage: React.FC = () => {
         type: 'success',
         message: `Plan ${plan.id} approved successfully.`,
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to approve plan.',
@@ -129,7 +128,7 @@ const ApprovalPage: React.FC = () => {
       setRejectModalOpen(false);
       setPlanToReject(null);
       setRejectionReason('');
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to reject plan.',
@@ -375,18 +374,15 @@ const ApprovalPage: React.FC = () => {
     { id: 'rejected', label: `Rejected (${rejectedPlans.length})` },
   ];
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-surface-foreground">
-          {t('approval.title', 'Approval Queue')}
-        </h1>
-        <p className="text-sm text-surface-muted-fg mt-1">
-          Review and approve weekly lesson plans submitted by teachers.
-        </p>
-      </div>
+  // The sentence that explains this tab. It rides on whichever list card is shown, so the tab
+  // body does not spend a row repeating the hub's own heading.
+  const approvalInfo = t(
+    'approval.subtitle',
+    'Review and approve weekly lesson plans submitted by teachers.'
+  );
 
+  return (
+    <div className="space-y-3">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
@@ -426,6 +422,7 @@ const ApprovalPage: React.FC = () => {
         <Card
           title={t('approval.pending', 'Pending Review')}
           subtitle={`${submittedPlans.length} plan(s) waiting for approval`}
+          info={approvalInfo}
         >
           {loading ? (
             <div className="p-8 text-center text-surface-muted-fg">Loading plans...</div>
@@ -452,6 +449,7 @@ const ApprovalPage: React.FC = () => {
         <Card
           title={t('approval.approved', 'Approved Plans')}
           subtitle={`${approvedPlans.length} plan(s) approved`}
+          info={approvalInfo}
         >
           {approvedPlans.length === 0 ? (
             <div className="text-center py-12">
@@ -476,6 +474,7 @@ const ApprovalPage: React.FC = () => {
         <Card
           title={t('approval.rejected', 'Rejected Plans')}
           subtitle={`${rejectedPlans.length} plan(s) rejected`}
+          info={approvalInfo}
         >
           {rejectedPlans.length === 0 ? (
             <div className="text-center py-12">

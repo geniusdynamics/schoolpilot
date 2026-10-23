@@ -61,17 +61,6 @@ const PickupLogsPage: React.FC = () => {
       });
   }, [pickupLogs]);
 
-  // Unique persons for filter
-  const uniquePersons = useMemo(() => {
-    const seen = new Set<string>();
-    return pickupLogs
-      .filter(l => l.authorizedPersonName && !seen.has(l.authorizedPersonId))
-      .map(l => {
-        seen.add(l.authorizedPersonId);
-        return { id: l.authorizedPersonId, name: l.authorizedPersonName };
-      });
-  }, [pickupLogs]);
-
   // Filtered logs
   const filteredLogs = useMemo(() => {
     return pickupLogs.filter(log => {
@@ -182,7 +171,7 @@ const PickupLogsPage: React.FC = () => {
       showToast({ variant: 'success', message: 'Manual pickup log recorded successfully.' });
       setAddLogModalOpen(false);
       resetLogForm();
-    } catch (error) {
+    } catch {
       showToast({ variant: 'error', message: 'Failed to record pickup log.' });
     } finally {
       setSaving(false);
@@ -281,7 +270,7 @@ const PickupLogsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('pickupLog.plural')}
         

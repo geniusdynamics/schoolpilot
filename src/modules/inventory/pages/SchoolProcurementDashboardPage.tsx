@@ -109,7 +109,7 @@ export const SchoolProcurementDashboardPageContent: React.FC = () => {
   );
 };
 const SchoolProcurementDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <SchoolProcurementDashboardPageContent />
   </div>
 );

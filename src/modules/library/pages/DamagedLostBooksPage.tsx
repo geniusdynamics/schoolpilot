@@ -7,10 +7,10 @@ import { useBookData } from '../data/useBookData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { ExclamationTriangleIcon, EditIcon, CheckIcon, XMarkIcon } from '@/components/ui/icons';
@@ -55,13 +55,14 @@ export const DamagedLostBooksPageContent: React.FC = () => {
         case 'lost':
           filtered = await getLostBooks();
           break;
-        case 'both':
+        case 'both': {
           const damaged = await getDamagedBooks();
           const lost = await getLostBooks();
           filtered = [...damaged, ...lost].filter((book, index, arr) => 
             arr.findIndex(b => b.id === book.id) === index
           );
           break;
+        }
         default:
           filtered = books.filter(book => book.damaged_status || book.lost_status);
       }
@@ -251,9 +252,10 @@ export const DamagedLostBooksPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card 
         title="Damaged & Lost Books Management" 
+        info="Manage books with damaged or lost status. Filter by condition type and update book statuses."
         actions={
           <div className="flex items-center space-x-2">
             <Select
@@ -265,10 +267,6 @@ export const DamagedLostBooksPageContent: React.FC = () => {
           </div>
         }
       >
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Manage books with damaged or lost status. Filter by condition type and update book statuses.
-        </p>
-        
         <div className="mb-4 grid grid-cols-4 gap-4 text-sm">
           <div className="bg-surface-muted p-3 rounded">
             <div className="font-medium">Total Issues</div>
@@ -409,7 +407,7 @@ export const DamagedLostBooksPageContent: React.FC = () => {
   );
 };
 const DamagedLostBooksPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <DamagedLostBooksPageContent />
   </div>
 );

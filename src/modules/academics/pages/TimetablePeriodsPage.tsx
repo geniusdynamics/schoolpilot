@@ -115,15 +115,12 @@ export const TimetablePeriodsContent: React.FC = () => {
   // Data and loading state come from the timetable_period_definitions collection
 
   return (
-    <div className="space-y-6">
-      <Card title="Timetable Periods Definition" actions={
+    <div className="space-y-3">
+      <Card title="Timetable Periods Definition" info="Define standard lesson periods for the school day (e.g., Lesson 1, Break) along with their start and end times." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Period
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Define standard lesson periods for the school day (e.g., Lesson 1, Break) along with their start and end times.
-        </p>
         <DataGrid columns={columns} data={timetablePeriodDefs} />
       </Card>
 

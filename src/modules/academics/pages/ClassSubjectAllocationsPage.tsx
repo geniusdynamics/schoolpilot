@@ -276,7 +276,7 @@ const TeachingGroupsContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('classSubjectAllocations.title', 'Teaching groups')}
         bodyClassName="p-0"

@@ -13,6 +13,7 @@ import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { PuzzlePieceIcon, CloudArrowDownIcon, CogIcon, ShieldCheckIcon, StopIcon, TrashIcon, InformationCircleIcon, CheckCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { usePlugins } from '@/plugins/usePlugins';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import type {
   LoadedPlugin,
   AdminPluginConfig,
@@ -121,17 +122,10 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
     <div className="min-h-screen bg-surface-muted dark:bg-gray-900">
       <PageContainer>
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3">
-            <PuzzlePieceIcon className="h-8 w-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-surface-foreground dark:text-white">
-              {t('plugins.title', 'Plugin Management')}
-            </h1>
-          </div>
-          <p className="mt-2 text-surface-muted-fg dark:text-gray-400">
-            {t('plugins.description', 'Manage, install, and configure plugins to extend SchoolPilot3 functionality')}
-          </p>
-        </div>
+        <PageHeaderWithTabs
+          title={t('plugins.title', 'Plugin Management')}
+          info={t('plugins.description', 'Manage, install, and configure plugins to extend SchoolPilot3 functionality')}
+        />
 
         {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

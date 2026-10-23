@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { ReactNode } from 'react';
+import { InfoHint } from '@/components/ui/feedback';
 
 interface PageHeaderProps {
   title: string;
@@ -61,14 +62,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-surface-foreground">
-              {title}
-            </h1>
-            {description && (
-              <p className="text-surface-muted-fg mt-1">
-                {description}
-              </p>
-            )}
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-2xl font-bold text-surface-foreground">
+                {title}
+              </h1>
+              {description && <InfoHint text={description} label="About this page" />}
+            </div>
           </div>
         </div>
 

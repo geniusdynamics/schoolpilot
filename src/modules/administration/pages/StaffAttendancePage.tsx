@@ -149,24 +149,15 @@ const StaffAttendancePage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Staff Attendance</h1>
-        <Button onClick={handleSaveAttendance} variant="primary">
-          Save Attendance
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-indigo-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-indigo-800">Daily Staff Attendance Tracking</h3>
-              <p className="text-sm text-indigo-700 mt-1">
-                Record daily staff attendance with check-in/check-out times. Mark staff as Present, Absent, Late, or On Leave with optional notes.
-              </p>
-            </div>
-          </div>
-        </div>
+      <Card
+        title="Staff Attendance"
+        info="Record daily staff attendance with check-in/check-out times. Mark staff as Present, Absent, Late, or On Leave with optional notes."
+        actions={
+          <Button onClick={handleSaveAttendance} variant="primary">
+            Save Attendance
+          </Button>
+        }
+      >
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">

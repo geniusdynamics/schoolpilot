@@ -166,7 +166,7 @@ export const PartnersContent: React.FC = () => {
   // Remove loading check since data is immediately available
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Partners Management" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Partner
@@ -261,7 +261,7 @@ export const PartnersContent: React.FC = () => {
 };
 
 const PartnersPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <PartnersContent />
   </div>
 );

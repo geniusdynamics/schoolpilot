@@ -77,7 +77,7 @@ const StudentBulkOperationsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('studentBulkOperations.title', 'Student Bulk Operations')}
-        subtitle={t(
+        info={t(
           'studentBulkOperations.subtitle',
           'Perform bulk updates, import student data, and assign roll numbers'
         )}

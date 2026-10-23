@@ -303,11 +303,11 @@ const AwardPointsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Award Points Form */}
       <Card
         title={t('transactions.award')}
-        subtitle="Award merit or demerit points to a student"
+        info="Award merit or demerit points to a student"
         actions={
           <Button
             onClick={() => setShowAwardForm(!showAwardForm)}
@@ -417,7 +417,7 @@ const AwardPointsPage: React.FC = () => {
       {/* Transactions Table */}
       <Card
         title={t('transactions.title')}
-        subtitle="All point transactions"
+        info="All point transactions"
       >
         {/* Filters */}
         <div className="flex items-center gap-4 mb-4">

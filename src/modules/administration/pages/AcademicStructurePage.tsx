@@ -115,7 +115,7 @@ const AcademicStructurePage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Academic Year Structures" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Structure

@@ -193,10 +193,10 @@ const StudentPointsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('houses.studentPoints', 'Student Points')}
-        subtitle="View individual student point summaries"
+        info="View individual student point summaries"
       >
         {/* Search and Filter */}
         <div className="flex items-center gap-4 mb-4">

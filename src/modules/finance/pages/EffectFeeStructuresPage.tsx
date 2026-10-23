@@ -20,7 +20,7 @@ export const EffectFeeStructuresPageContent: React.FC = () => {
 
 const EffectFeeStructuresPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <EffectFeeStructuresPageContent />
     </div>
   </CanonicalRepositoryProvider>

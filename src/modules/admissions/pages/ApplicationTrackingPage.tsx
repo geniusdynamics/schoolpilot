@@ -155,7 +155,6 @@ export const ApplicationTrackingPageContent: React.FC = () => {
         {timelineSteps.map((step, idx) => {
           const isComplete = idx < currentIdx || (idx === currentIdx && !isRejected);
           const isCurrent = idx === currentIdx;
-          const isFuture = idx > currentIdx;
           const isRejectedStep = isRejected && idx === currentIdx;
           const IconComponent = step.icon;
 
@@ -569,7 +568,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
   );
 };
 const ApplicationTrackingPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ApplicationTrackingPageContent />
   </div>
 );

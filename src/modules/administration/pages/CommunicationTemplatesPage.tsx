@@ -171,7 +171,7 @@ const CommunicationTemplatesPage: React.FC = () => {
   // Remove loading check since data is immediately available
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Communication Templates Management" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Template

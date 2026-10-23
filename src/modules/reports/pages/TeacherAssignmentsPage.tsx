@@ -61,12 +61,9 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   const isLoadingPage = loading;
 
   return (
-    <div className="space-y-6">
-      <Card title={t('teacherAssignmentsPage.title')}>
+    <div className="space-y-3">
+      <Card title={t('teacherAssignmentsPage.title')} info={t('teacherAssignmentsPage.description')}>
          <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
-            <p className="text-sm text-surface-muted-fg mb-4">
-                {t('teacherAssignmentsPage.description')}
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(e.target.value || undefined)}>
                     <option value="">{t('teacherAssignmentsPage.allYears')}</option>
@@ -101,7 +98,7 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
 };
 const TeacherAssignmentsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <TeacherAssignmentsPageContent />
     </div>
   </CanonicalRepositoryProvider>

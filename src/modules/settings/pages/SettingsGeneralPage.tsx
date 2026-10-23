@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, IdentificationIcon, UserGroupIcon, CalendarDaysIcon, ShieldCheckIcon } from '@/components/ui/icons';
+import { IdentificationIcon, UserGroupIcon, CalendarDaysIcon, ShieldCheckIcon } from '@/components/ui/icons';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { useAppData } from '@/hooks/useAppData';
 import { Link } from 'react-router-dom';
 
@@ -10,14 +11,11 @@ export const SettingsGeneralContent: React.FC = () => {
   const { schoolDetails, users, isDatabaseModeActive } = useAppData();
 
   return (
-    <div className="space-y-6">
-      <Card title={t('general.title')}>
-        <div className="text-center py-8">
-          <CogIcon className="w-16 h-16 text-surface-muted-fg mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-surface-foreground">{t('general.appSettingsHeader')}</h2>
-          <p className="text-surface-muted-fg">{t('general.appSettingsDescription')}</p>
-        </div>
-      </Card>
+    <div className="space-y-3">
+      <PageHeaderWithTabs
+        title={t('general.title')}
+        info={t('general.appSettingsDescription')}
+      />
 
       {/* School Profile Overview */}
       <Card title={t('schoolProfile.title')}>

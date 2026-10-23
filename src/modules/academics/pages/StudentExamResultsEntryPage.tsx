@@ -297,14 +297,11 @@ const MarksEntryContent: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <Card title={t('studentExamResultsEntry.title', 'Marks entry')}>
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A mark belongs to one learner enrolment, one assessment and one learning area. The
-          repository refuses a second mark for the same three, a learner outside the chosen
-          teaching group, and a write made against a version someone else has moved on.
-        </p>
-
+    <div className="space-y-3">
+      <Card
+        title={t('studentExamResultsEntry.title', 'Marks entry')}
+        info="A mark belongs to one learner enrolment, one assessment and one learning area. The repository refuses a second mark for the same three, a learner outside the chosen teaching group, and a write made against a version someone else has moved on."
+      >
         <div className="grid grid-cols-1 gap-4 border rounded-md bg-surface-muted p-4 md:grid-cols-2">
           <EntityPicker
             label="Assessment"
@@ -444,7 +441,7 @@ export const StudentExamResultsEntryPageContent: React.FC = () => (
 );
 
 const StudentExamResultsEntryPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StudentExamResultsEntryPageContent />
   </div>
 );

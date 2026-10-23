@@ -159,7 +159,7 @@ const WeeklyPlansPage: React.FC = () => {
       });
       setCreateModalOpen(false);
       resetForm();
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to create weekly plan.',
@@ -190,7 +190,7 @@ const WeeklyPlansPage: React.FC = () => {
       });
       setEditModalOpen(false);
       setEditingPlan(null);
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to update weekly plan.',
@@ -211,7 +211,7 @@ const WeeklyPlansPage: React.FC = () => {
           type: 'success',
           message: 'Weekly plan deleted successfully.',
         });
-      } catch (error) {
+      } catch {
         showToast({
           type: 'error',
           message: 'Failed to delete weekly plan.',
@@ -233,7 +233,7 @@ const WeeklyPlansPage: React.FC = () => {
         type: 'success',
         message: 'Plan submitted for approval.',
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to submit plan for approval.',
@@ -419,10 +419,10 @@ const WeeklyPlansPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('weeklyPlan.plural')}
-        subtitle={t('weeklyPlan.description', 'Manage weekly lesson plans')}
+        info={t('weeklyPlan.description', 'Manage weekly lesson plans')}
         actions={
           <div className="flex space-x-2">
             <Button

@@ -3,11 +3,13 @@ import { logger } from '@/utils/logging';
 // ABOUTME: This file provides the main Exam Scheduling Page component
 // ABOUTME: with calendar view, schedule listing, and management functionality
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { ExamSchedule } from '../data/types';
 import { examScheduleManager } from '../services/ExamScheduleManager';
-import ExamSchedulingUI from '@/modules/academics/components/ExamSchedulingUI';
+import ExamSchedulingUI from '../components/ExamSchedulingUI';
 import SchedulingCalendar from '@/components/SchedulingCalendar';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import Button from '@/components/ui/Button';
 import { useAppData } from '@/hooks/useAppData';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
@@ -28,15 +30,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
 
   const scheduleManager = examScheduleManager;
 
-  useEffect(() => {
-    loadSchedules();
-  }, [examSessionId]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [schedules, filterClassStream, filterRoom]);
-
-  const loadSchedules = async () => {
+  const loadSchedules = useCallback(async () => {
     try {
       setLoading(true);
       let allSchedules;
@@ -53,9 +47,9 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
     } finally {
       setLoading(false);
     }
-  };
+  }, [examSessionId, scheduleManager]);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...schedules];
 
     if (filterClassStream) {
@@ -71,7 +65,15 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
     }
 
     setFilteredSchedules(filtered);
-  };
+  }, [schedules, filterClassStream, filterRoom]);
+
+  useEffect(() => {
+    loadSchedules();
+  }, [loadSchedules]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const handleCreateSchedule = async (schedule: ExamSchedule) => {
     try {
@@ -192,28 +194,30 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
 
   return (
     <div className="exam-scheduling-page">
-      <div className="page-header">
-        <h1>Exam Scheduling Management</h1>
-        <div className="header-actions">
-          <button onClick={() => setShowCreateModal(true)}>
-            Create New Schedule
-          </button>
-          <div className="view-toggle">
-            <button 
-              className={viewMode === 'calendar' ? 'active' : ''}
-              onClick={() => setViewMode('calendar')}
-            >
-              Calendar
-            </button>
-            <button 
-              className={viewMode === 'list' ? 'active' : ''}
-              onClick={() => setViewMode('list')}
-            >
-              List
-            </button>
+      <PageHeaderWithTabs
+        title="Exam Scheduling Management"
+        action={
+          <div className="header-actions">
+            <Button onClick={() => setShowCreateModal(true)} variant="primary">
+              Create New Schedule
+            </Button>
+            <div className="view-toggle">
+              <button 
+                className={viewMode === 'calendar' ? 'active' : ''}
+                onClick={() => setViewMode('calendar')}
+              >
+                Calendar
+              </button>
+              <button 
+                className={viewMode === 'list' ? 'active' : ''}
+                onClick={() => setViewMode('list')}
+              >
+                List
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="filters">
         <div className="filter-group">
@@ -289,15 +293,6 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
           padding: 20px;
           max-width: 1200px;
           margin: 0 auto;
-        }
-
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #ddd;
         }
 
         .header-actions {
@@ -460,7 +455,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
 };
 
 const ExamSchedulingPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ExamSchedulingPageContent />
   </div>
 );

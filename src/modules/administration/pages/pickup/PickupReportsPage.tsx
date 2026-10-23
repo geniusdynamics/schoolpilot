@@ -254,7 +254,7 @@ const PickupReportsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Report Configuration Card */}
       <Card
         title="Pickup Reports"

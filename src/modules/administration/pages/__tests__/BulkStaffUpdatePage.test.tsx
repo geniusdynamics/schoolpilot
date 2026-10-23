@@ -59,4 +59,16 @@ describe('BulkStaffUpdateContent (P0-D05)', () => {
     expect(updateStaff).toHaveBeenCalledWith('STF-1', { department_id: 'DEP-2', department_name: 'Humanities' });
     expect(updateStaff).toHaveBeenCalledWith('STF-2', { department_id: 'DEP-2', department_name: 'Humanities' });
   });
+
+  // The heading-density convention: this is a hub tab body, so the tab's title rides on the Card
+  // header (not a second page heading) and the sentence it used to spend a permanent coloured row on
+  // is reachable from the info hint beside the Card title.
+  it('keeps the page explanation on the info hint instead of a permanent intro box', () => {
+    render(<BulkStaffUpdateContent />);
+
+    expect(screen.getByRole('heading', { name: 'Bulk Staff Update' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'About this section' })).toBeInTheDocument();
+    // The deleted box's heading is gone from the page body.
+    expect(screen.queryByText('Multi-Field Batch Update for Staff Records')).not.toBeInTheDocument();
+  });
 });

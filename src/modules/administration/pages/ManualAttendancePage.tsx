@@ -190,19 +190,8 @@ export const ManualAttendanceContent: React.FC = () => {
             {isSaving ? 'Saving...' : 'Save Attendance'}
           </Button>
         }
+        info="Record one full-day register for a class group. Learners not marked are saved as present."
       >
-        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-          <div className="flex items-start gap-3">
-            <CalendarIcon className="mt-0.5 h-5 w-5 text-emerald-600" />
-            <div>
-              <h3 className="font-semibold text-emerald-800">Daily Roll-Call Entry</h3>
-              <p className="mt-1 text-sm text-emerald-700">
-                Record one full-day register for a class group. Learners not marked are saved as
-                present.
-              </p>
-            </div>
-          </div>
-        </div>
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           <div className="rounded-lg border border-surface-border bg-surface-card p-4">
@@ -282,7 +271,7 @@ export const ManualAttendanceContent: React.FC = () => {
 };
 
 const ManualAttendancePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ManualAttendanceContent />
   </div>
 );

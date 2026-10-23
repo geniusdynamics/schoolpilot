@@ -78,6 +78,11 @@ describe('FeatureSettings', () => {
     expect(screen.getByText('Sync Management')).toBeInTheDocument();
   });
 
+  it('explains the page from the heading info hint rather than a description row', () => {
+    render(<FeatureSettings />);
+    expect(screen.getByRole('button', { name: 'About this page' })).toBeInTheDocument();
+  });
+
   it('renders the Feature Flags tab with Application Mode and known flags', () => {
     render(<FeatureSettings />);
     fireEvent.click(screen.getByText('Feature Flags'));

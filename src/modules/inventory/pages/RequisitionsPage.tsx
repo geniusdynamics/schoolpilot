@@ -382,7 +382,7 @@ export const RequisitionsPageContent: React.FC = () => {
   
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Stock Requisitions Management" actions={
         <Button onClick={() => openRequisitionModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           New Requisition
@@ -486,7 +486,7 @@ export const RequisitionsPageContent: React.FC = () => {
 };
 const RequisitionsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <RequisitionsPageContent />
     </div>
   </CanonicalRepositoryProvider>

@@ -76,7 +76,7 @@ const ProcurementPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('procurementHub.title', 'Procurement')}
-        subtitle={t(
+        info={t(
           'procurementHub.subtitle',
           'Manage requisitions, purchase orders, suppliers, and contracts'
         )}

@@ -6,6 +6,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { InfoHint } from '@/components/ui/feedback';
 import {
   ArrowUpIcon,
   ArrowDownIcon,
@@ -210,17 +211,12 @@ const AlertBannerItem: React.FC<DashboardAlertBanner> = ({ type, count, label, d
 // Enhanced Metric Card Component
 const EnhancedMetricCard: React.FC<DashboardMetric> = ({ label, value, description, icon, trend, trendValue, to, onClick, colorScheme = 'blue' }) => {
   const colors = colorSchemes[colorScheme];
-  const navigate = useNavigate();
   const clickable = Boolean(to || onClick);
 
   const trendConfig = {
     up: { icon: <ArrowUpIcon className="h-3 w-3" />, color: 'text-emerald-600 bg-emerald-100' },
     down: { icon: <ArrowDownIcon className="h-3 w-3" />, color: 'text-rose-600 bg-rose-100' },
     neutral: { icon: <MinusIcon className="h-3 w-3" />, color: 'text-surface-muted-fg bg-surface-accent' },
-  };
-
-  const handleClick = () => {
-    if (to) navigate(to);
   };
 
   const content = (
@@ -322,8 +318,10 @@ const ModuleDashboardShell: React.FC<ModuleDashboardShellProps> = ({
       <section className={`rounded-2xl border border-${accentColor}-100 bg-gradient-to-r ${accentColors.gradient} p-5 text-white shadow-sm sm:p-6`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
-            <p className="max-w-3xl text-sm text-primary-50 sm:text-base">{subtitle}</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
+              {subtitle && <InfoHint text={subtitle} label="About this dashboard" tone="onColor" />}
+            </div>
           </div>
           {heroIcon && (
             <div aria-hidden className="rounded-xl border border-white/25 bg-white/10 p-3 backdrop-blur-sm">

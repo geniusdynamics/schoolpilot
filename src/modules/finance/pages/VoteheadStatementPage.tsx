@@ -168,7 +168,7 @@ export const VoteheadStatementPageContent: React.FC = () => {
 
 const VoteheadStatementPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <VoteheadStatementPageContent />
     </div>
   </CanonicalRepositoryProvider>

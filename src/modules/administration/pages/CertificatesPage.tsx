@@ -77,7 +77,7 @@ const CertificatesPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('certificatesHub.title', 'Certificates')}
-        subtitle={t(
+        info={t(
           'certificatesHub.subtitle',
           'Manage certificate requests and generate birth, character, and transfer certificates'
         )}

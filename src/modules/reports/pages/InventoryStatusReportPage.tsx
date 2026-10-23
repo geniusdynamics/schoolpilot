@@ -8,7 +8,7 @@ export const InventoryStatusReportPageContent: React.FC = () => {
   return <InventoryStatusReport />;
 };
 const InventoryStatusReportPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <InventoryStatusReportPageContent />
   </div>
 );

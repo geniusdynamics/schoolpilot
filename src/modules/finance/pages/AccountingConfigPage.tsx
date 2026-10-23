@@ -57,7 +57,7 @@ const AccountingConfigPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('accountingConfig.title', 'Accounting Configuration')}
-        subtitle={t(
+        info={t(
           'accountingConfig.subtitle',
           'Manage chart of accounts and bank accounts'
         )}

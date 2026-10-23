@@ -347,6 +347,14 @@ beforeEach(() => {
 });
 
 describe('mark entry v2 grid', () => {
+  it('keeps the card explanation behind the info hint instead of on a permanent row', async () => {
+    await openGrid();
+
+    // The sentence used to be a paragraph in the card body; it now lives on the card header's hint.
+    expect(screen.getByRole('button', { name: 'About this section' })).toBeTruthy();
+    expect(screen.queryByText(/Learners down, the scheme/, { selector: 'p' })).toBeNull();
+  });
+
   it('draws a column per assessment and a row per learner of the group', async () => {
     await openGrid();
 

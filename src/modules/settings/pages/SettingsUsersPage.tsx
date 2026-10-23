@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
-import { UserGroupIcon, PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+import { PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import { User, Role } from '@/types';
 import Spinner from '@/components/ui/Spinner';
@@ -176,15 +176,10 @@ export const SettingsUsersContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="User Accounts Management" actions={
+    <div className="space-y-3">
+      <Card title="User Accounts Management" info="Create, edit, and manage user accounts and their roles." actions={
         <Button onClick={() => openUserModal()} leftIcon={<PlusIcon className="w-5 h-5"/>}>Add User</Button>
       }>
-        <div className="text-center py-4 border-b mb-4">
-          <UserGroupIcon className="w-12 h-12 text-sky-500 mx-auto mb-2" />
-          <h2 className="text-xl font-semibold text-surface-foreground">Manage System Users</h2>
-          <p className="text-surface-muted-fg text-sm">Create, edit, and manage user accounts and their roles.</p>
-        </div>
          {loading.users ? (
           <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Loading users...</span></div>
         ) : (

@@ -103,12 +103,9 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card title="Student Votehead Statement Report">
+    <div className="space-y-3">
+      <Card title="Student Votehead Statement Report" info="Detailed statement of charges and payments for a selected student and period.">
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
-            <p className="text-sm text-surface-muted-fg mb-4">
-                Detailed statement of charges and payments for a selected student and period.
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select label="Select Student" value={selectedStudentId || ''} onChange={e => setSelectedStudentId(e.target.value || undefined)} required>
                     <option value="">-- Student --</option>
@@ -153,7 +150,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
   );
 };
 const StudentVoteheadStatementPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StudentVoteheadStatementPageContent />
   </div>
 );

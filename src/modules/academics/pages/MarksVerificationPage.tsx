@@ -60,7 +60,7 @@ const MarksVerificationPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('verification.title', 'Marks Verification')}
-        subtitle={t(
+        info={t(
           'verification.subtitle',
           'Verify and validate entered marks through cross-checks and structure analysis'
         )}

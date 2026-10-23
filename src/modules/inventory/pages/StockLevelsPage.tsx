@@ -56,11 +56,11 @@ export const StockLevelsPageContent: React.FC = () => {
 
 
   return (
-    <div className="space-y-6">
-      <Card title="Current Stock Levels">
-        <p className="text-sm text-surface-muted-fg mb-4">
-          View current stock levels for all items across different warehouses. Use filters to narrow down the list.
-        </p>
+    <div className="space-y-3">
+      <Card
+        title="Current Stock Levels"
+        info="View current stock levels for all items across different warehouses. Use filters to narrow down the list."
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Select
                 label="Filter by Warehouse"
@@ -96,7 +96,7 @@ export const StockLevelsPageContent: React.FC = () => {
   );
 };
 const StockLevelsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StockLevelsPageContent />
   </div>
 );

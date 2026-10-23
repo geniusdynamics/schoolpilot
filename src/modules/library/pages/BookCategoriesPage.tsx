@@ -91,15 +91,12 @@ export const BookCategoriesPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card title={t('bookCategories.managementTitle')} actions={
+    <div className="space-y-3">
+      <Card title={t('bookCategories.managementTitle')} info={t('bookCategories.defineCategories')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('bookCategories.addCategory')}
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          {t('bookCategories.defineCategories')}
-        </p>
         <DataGrid columns={columns} data={bookCategories} loading={loading.bookCategories && isModalOpen} />
       </Card>
 
@@ -129,7 +126,7 @@ export const BookCategoriesPageContent: React.FC = () => {
   );
 };
 const BookCategoriesPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BookCategoriesPageContent />
   </div>
 );

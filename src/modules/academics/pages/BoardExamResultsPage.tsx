@@ -243,27 +243,21 @@ export const BoardExamResultsPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Board Exam Results</h1>
-        <Button onClick={() => openModal()} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Result
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-indigo-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-indigo-800">External Board Exam Result Entry</h3>
-              <p className="text-sm text-indigo-700 mt-1">
-                Enter and manage external board exam results (IGCSE, A-Level, IB, SAT, etc.) for students. 
-                This tracks performance in external examinations separate from internal school assessments.
-              </p>
-            </div>
+      <Card
+        title={
+          <div className="flex items-center gap-2">
+            <DocumentTextIcon className="w-6 h-6 text-indigo-600" />
+            <span>Board Exam Results</span>
           </div>
-        </div>
-
+        }
+        info="Enter and manage external board exam results (IGCSE, A-Level, IB, SAT, etc.) for students. This tracks performance in external examinations separate from internal school assessments."
+        actions={
+          <Button onClick={() => openModal()} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Result
+          </Button>
+        }
+      >
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-surface-card border border-surface-border rounded-lg p-4">
@@ -477,7 +471,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
   );
 };
 const BoardExamResultsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BoardExamResultsPageContent />
   </div>
 );

@@ -245,10 +245,10 @@ const CategoriesPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('categories.title')}
-        subtitle="Manage merit and demerit point categories"
+        info="Manage merit and demerit point categories"
         actions={
           <Button onClick={openCreateModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('categories.create')}

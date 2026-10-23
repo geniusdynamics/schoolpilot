@@ -4,6 +4,7 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import { PrinterIcon } from '@/components/ui/icons';
@@ -89,10 +90,10 @@ export const ReportCardsPageContent: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-3">
       <style>{PRINT_CSS}</style>
-      <div className="no-print print:hidden space-y-6">
-        <h1 className="text-2xl font-bold text-surface-foreground">{t('reportCards.title', 'Report Cards')}</h1>
+      <div className="no-print print:hidden space-y-3">
+        <PageHeaderWithTabs title={t('reportCards.title', 'Report Cards')} />
         <Card>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

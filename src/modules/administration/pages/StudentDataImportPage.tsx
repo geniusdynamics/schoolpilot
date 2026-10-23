@@ -4,12 +4,11 @@ import Button from '@/components/ui/Button';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Badge from '@/components/ui/Badge';
 import { Alert } from '@/components/ui/Alert';
-import { UploadIcon, DownloadIcon, EyeIcon, CheckCircleIcon, ExclamationCircleIcon, TrashIcon, ArrowRightIcon } from '@/components/ui/icons';
+import { UploadIcon, DownloadIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowRightIcon } from '@/components/ui/icons';
 import { useStudentImportData } from '../data/useStudentImportData';
 import { useTranslation } from 'react-i18next';
-import type { StudentImportSession, StudentImportRecord, ImportValidationStatus, ImportStatus } from '../data/types';
+import type { StudentImportRecord, ImportValidationStatus } from '../data/types';
 import { logger } from '@/utils/logging';
-import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type ImportStep = 'upload' | 'preview' | 'importing' | 'results';
 
@@ -33,19 +32,17 @@ const StudentDataImportPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const {
     activeSession,
-    setActiveSession,
     createImportSession,
     updateSessionStatus,
     addImportRecord,
     updateImportRecord,
-    deleteImportSession,
     getRecordsBySession,
     addStudentFromImport
   } = useStudentImportData();
 
   const [currentStep, setCurrentStep] = useState<ImportStep>('upload');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [parsedRows, setParsedRows] = useState<ParsedStudentRow[]>([]);
+  const [, setParsedRows] = useState<ParsedStudentRow[]>([]);
   const [validationResults, setValidationResults] = useState<StudentImportRecord[]>([]);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 });
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +101,7 @@ const StudentDataImportPage: React.FC = () => {
     if (row.guardian_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.guardian_email)) {
       warnings.push('Invalid email format');
     }
-    if (row.guardian_phone && !/^[\d\s\-\+\(\)]+$/.test(row.guardian_phone)) {
+    if (row.guardian_phone && !/^[\d\s+()-]+$/.test(row.guardian_phone)) {
       warnings.push('Phone number contains invalid characters');
     }
 
@@ -243,7 +240,6 @@ const StudentDataImportPage: React.FC = () => {
 
       let successCount = 0;
       let failedCount = 0;
-      const totalValid = validationResults.filter(r => r.validation_status !== 'Invalid').length;
 
       // Import valid records
       for (let i = 0; i < validationResults.length; i++) {
@@ -343,14 +339,6 @@ const StudentDataImportPage: React.FC = () => {
     setImportProgress({ current: 0, total: 0, success: 0, failed: 0 });
     setError(null);
   }, []);
-
-  // Delete old session
-  const confirm = useConfirm();
-  const handleDeleteSession = useCallback(async (sessionId: string) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this import session and all its records?' }))) {
-      await deleteImportSession(sessionId);
-    }
-  }, [deleteImportSession]);
 
   // Download template CSV
   const handleDownloadTemplate = useCallback(() => {
@@ -485,72 +473,8 @@ const StudentDataImportPage: React.FC = () => {
     }
   ];
 
-  // Session history columns
-  const sessionColumns: DataGridColumn<StudentImportSession>[] = [
-    { key: 'filename', header: 'File', width: 200, sortable: true, filterable: true },
-    { key: 'total_records', header: 'Total', width: 80, sortable: true },
-    { key: 'imported_records', header: 'Imported', width: 100, sortable: true },
-    { key: 'failed_records', header: 'Failed', width: 90, sortable: true },
-    {
-      key: 'status',
-      header: 'Status',
-      width: 120,
-      sortable: true,
-      filterable: true,
-      render: (value, item) => {
-        const statusColors: Record<string, string> = {
-          Pending: 'bg-surface-accent text-surface-foreground',
-          Validating: 'bg-yellow-100 text-yellow-800',
-          Importing: 'bg-primary-100 text-primary-800',
-          Completed: 'bg-green-100 text-green-800',
-          Failed: 'bg-red-100 text-red-800',
-          Partial: 'bg-orange-100 text-orange-800'
-        };
-        return (
-          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[item.status] || 'bg-surface-accent text-surface-foreground'}`}>
-            {item.status}
-          </span>
-        );
-      }
-    },
-    {
-      key: 'started_at',
-      header: 'Date',
-      width: 120,
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString()
-    },
-    {
-      key: 'id',
-      header: 'Actions',
-      width: 100,
-      sortable: false,
-      render: (value, item) => (
-        <div className="space-x-2">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => {
-              setActiveSession(item);
-              setCurrentStep('results');
-            }}
-            leftIcon={<EyeIcon className="w-4 h-4" />}
-          >
-            View
-          </Button>
-          <Button 
-            size="sm" 
-            variant="danger" 
-            onClick={() => handleDeleteSession(item.id)}
-            leftIcon={<TrashIcon className="w-4 h-4" />}
-          />
-        </div>
-      )
-    }
-  ];
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Error Alert */}
       {error && (
         <Alert variant="danger" onClose={() => setError(null)}>
@@ -603,7 +527,7 @@ const StudentDataImportPage: React.FC = () => {
       {/* Upload Step */}
       {currentStep === 'upload' && (
         <>
-          <Card title={t('studentImport.title')} description={t('studentImport.description')}>
+          <Card title={t('studentImport.title')} info={t('studentImport.description')}>
             <div className="space-y-4">
               {/* File Drop Zone */}
               <div

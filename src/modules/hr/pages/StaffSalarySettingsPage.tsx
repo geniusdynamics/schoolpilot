@@ -248,13 +248,13 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card
         title={t('salarySettings.title')}
+        info={t('salarySettings.description')}
         actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('salarySettings.addButton')}
           </Button>
         }
       >
-        <p className="text-sm text-surface-muted-fg mb-4">{t('salarySettings.description')}</p>
         {loading ? (
           <div className="flex justify-center py-8">
             <Spinner />
@@ -370,7 +370,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
 
 const StaffSalarySettingsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StaffSalarySettingsPageContent />
     </div>
   </CanonicalRepositoryProvider>

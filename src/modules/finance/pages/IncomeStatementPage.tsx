@@ -105,20 +105,8 @@ export const IncomeStatementPageContent: React.FC = () => {
             <span>Income Statement</span>
           </div>
         }
+        info="The Income Statement shows the financial performance over a period, comparing revenue against expenses to determine net income or loss. Use this to analyze profitability and identify cost-saving opportunities."
       >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ChartBarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">Revenue vs Expenses for Period</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                The Income Statement shows the financial performance over a period, comparing revenue against expenses 
-                to determine net income or loss. Use this to analyze profitability and identify cost-saving opportunities.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
@@ -230,7 +218,7 @@ export const IncomeStatementPageContent: React.FC = () => {
   );
 };
 const IncomeStatementPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <IncomeStatementPageContent />
   </div>
 );

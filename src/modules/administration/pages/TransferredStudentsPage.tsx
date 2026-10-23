@@ -115,10 +115,10 @@ const TransferredStudentsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Transferred Students"
-        description="View and manage students who have been transferred to other schools"
+        info="View and manage students who have been transferred to other schools"
         actions={
           <Select
             placeholder="Filter by Year"

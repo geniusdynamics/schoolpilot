@@ -93,7 +93,7 @@ const CommunicationPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('communicationHub.title', 'Communication')}
-        subtitle={t(
+        info={t(
           'communicationHub.subtitle',
           'Manage communication templates, campaigns, SMS reports, auto-settings, and newsletters'
         )}

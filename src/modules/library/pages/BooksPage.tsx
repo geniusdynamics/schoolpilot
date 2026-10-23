@@ -365,8 +365,8 @@ export const BooksPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card title="Library Book Catalog Management" actions={
+    <div className="space-y-3">
+      <Card title="Library Book Catalog Management" info="Manage all books in the library catalog." actions={
         <div className="flex items-center space-x-2">
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
             Add Book
@@ -383,10 +383,6 @@ export const BooksPageContent: React.FC = () => {
           </Button>
         </div>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Manage all books in the library catalog.
-        </p>
-        
         {/* Basic Search */}
         <div className="mb-4 flex items-center">
           <Input
@@ -582,7 +578,7 @@ export const BooksPageContent: React.FC = () => {
   );
 };
 const BooksPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BooksPageContent />
   </div>
 );

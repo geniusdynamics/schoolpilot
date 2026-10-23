@@ -15,7 +15,7 @@ export const EducationSystemConfigPageContent: React.FC<any> = ({ editingSystem,
   );
 };
 const EducationSystemConfigPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <EducationSystemConfigPageContent />
   </div>
 );

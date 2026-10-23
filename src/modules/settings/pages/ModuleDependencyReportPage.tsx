@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { RefreshCwIcon } from '@/components/ui/icons';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { ModuleDependencyValidator } from '@/core/services/ModuleDependencyValidator';
 import { DependencyVisualizer } from '@/core/services/DependencyVisualizer';
 
@@ -50,14 +51,16 @@ export const ModuleDependencyReportContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{t('dependencyReport.title')}</h1>
-        <Button onClick={generateReport} variant="outline">
-          <RefreshCwIcon className="h-4 w-4 mr-2" />
-          {t('dependencyReport.refresh')}
-        </Button>
-      </div>
+    <div className="space-y-3">
+      <PageHeaderWithTabs
+        title={t('dependencyReport.title')}
+        action={
+          <Button onClick={generateReport} variant="outline">
+            <RefreshCwIcon className="h-4 w-4 mr-2" />
+            {t('dependencyReport.refresh')}
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

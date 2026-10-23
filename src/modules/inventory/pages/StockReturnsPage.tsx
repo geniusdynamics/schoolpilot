@@ -5,7 +5,6 @@ import React, { useState, useEffect } from 'react';
 import {
   PlusIcon,
   TrashIcon,
-  ArrowUturnLeftIcon,
 } from '@heroicons/react/24/outline';
 import { StockTransactionType } from '../data/types';
 import { useInventory } from '../hooks/useInventory';
@@ -259,23 +258,7 @@ export const StockReturnsPageContent: React.FC = () => {
   );
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/15 text-primary-600 dark:text-primary-400">
-            <ArrowUturnLeftIcon className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-surface-foreground">Stock Returns</h1>
-            <p className="text-sm text-surface-muted-fg">Send stock back to storage or suppliers</p>
-          </div>
-        </div>
-        <Button leftIcon={<PlusIcon className="h-4 w-4" />} onClick={() => handleOpenDialog()} disabled={loading}>
-          New Return
-        </Button>
-      </div>
-
+    <div className="p-6 space-y-3">
       {error && (
         <Alert variant="destructive" onClose={() => setError(null)}>
           {error}
@@ -288,7 +271,15 @@ export const StockReturnsPageContent: React.FC = () => {
         </Alert>
       )}
 
-      <Card title="Recent Stock Returns">
+      <Card
+        title="Recent Stock Returns"
+        info="Send stock back to storage or suppliers"
+        actions={
+          <Button leftIcon={<PlusIcon className="h-4 w-4" />} onClick={() => handleOpenDialog()} disabled={loading}>
+            New Return
+          </Button>
+        }
+      >
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-surface-border text-sm">
             <thead>
@@ -545,7 +536,7 @@ export const StockReturnsPageContent: React.FC = () => {
 };
 
 const StockReturnsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StockReturnsPageContent />
   </div>
 );

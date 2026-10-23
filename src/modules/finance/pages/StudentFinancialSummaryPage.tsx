@@ -209,7 +209,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
 
 const StudentFinancialSummaryPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentFinancialSummaryPageContent />
     </div>
   </CanonicalRepositoryProvider>

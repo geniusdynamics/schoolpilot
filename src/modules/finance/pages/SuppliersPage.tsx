@@ -153,15 +153,12 @@ export const SuppliersPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="Supplier Management" actions={
+    <div className="space-y-3">
+      <Card title="Supplier Management" info="Maintain a database of school suppliers for inventory, services, and other procurement needs." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Supplier
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Maintain a database of school suppliers for inventory, services, and other procurement needs.
-        </p>
         <DataGrid 
             columns={columns} 
             data={suppliers || []}
@@ -232,7 +229,7 @@ export const SuppliersPageContent: React.FC = () => {
   );
 };
 const SuppliersPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <SuppliersPageContent />
   </div>
 );

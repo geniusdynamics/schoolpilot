@@ -299,7 +299,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
   
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Purchase Orders (LPOs)" actions={
         <Button onClick={() => openPOModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           New Purchase Order
@@ -385,7 +385,7 @@ export const PurchaseOrdersPageContent: React.FC = () => {
   );
 };
 const PurchaseOrdersPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <PurchaseOrdersPageContent />
   </div>
 );

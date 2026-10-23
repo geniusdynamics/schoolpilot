@@ -123,7 +123,7 @@ export const PortalProfileContent: React.FC = () => {
     .slice(0, 2);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Role Switcher (for demonstration) */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-surface-muted-fg">View as:</span>

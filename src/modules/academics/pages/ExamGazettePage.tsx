@@ -115,19 +115,8 @@ export const ExamGazettePageContent: React.FC = () => {
             <span>Exam Gazette</span>
           </div>
         }
+        info="The Exam Gazette provides a comprehensive class-wise report showing all students, their marks across all subjects, overall performance, and class rankings. This is the official examination results publication."
       >
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-amber-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-amber-800">Class-wise Gazette Report</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                The Exam Gazette provides a comprehensive class-wise report showing all students, their marks across all subjects, 
-                overall performance, and class rankings. This is the official examination results publication.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
@@ -224,7 +213,7 @@ export const ExamGazettePageContent: React.FC = () => {
   );
 };
 const ExamGazettePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ExamGazettePageContent />
   </div>
 );

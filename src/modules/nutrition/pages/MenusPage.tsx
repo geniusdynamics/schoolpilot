@@ -125,15 +125,12 @@ export const MenusPageContent: React.FC = () => {
   ], [openModal, handleDelete]);
 
   return (
-    <div className="space-y-6">
-      <Card title={t('menus.management.title')} actions={
+    <div className="space-y-3">
+      <Card title={t('menus.management.title')} info={t('menus.management.description')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('menus.add.button')}
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          {t('menus.management.description')}
-        </p>
         <DataGrid 
           columns={columns} 
           data={menus || []} 
@@ -205,7 +202,7 @@ export const MenusPageContent: React.FC = () => {
   );
 };
 const MenusPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <MenusPageContent />
   </div>
 );

@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { UserIcon, PlusIcon, AcademicCapIcon, BriefcaseIcon, DocumentTextIcon, ChartBarIcon } from '@/components/ui/icons';
+import { PlusIcon, AcademicCapIcon, BriefcaseIcon, DocumentTextIcon, ChartBarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import type { StaffBioData } from '../data/types';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { useCanonicalStaff } from '../data/useCanonicalStaff';
@@ -87,27 +88,15 @@ export const StaffBioDataPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Staff Bio Data & Records</h1>
-      </div>
-      
+      <PageHeaderWithTabs
+        title="Staff Bio Data & Records"
+        info="View and manage complete staff bio data including qualifications, employment history, contracts, and performance reviews. Select a staff member to view detailed records."
+      />
+
       {!selectedStaff ? (
         <Card>
-          <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <UserIcon className="w-5 h-5 text-indigo-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-indigo-800">Comprehensive Staff Records</h3>
-                <p className="text-sm text-indigo-700 mt-1">
-                  View and manage complete staff bio data including qualifications, employment history, 
-                  contracts, and performance reviews. Select a staff member to view detailed records.
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Filters */}
-          <div className="mb-6 flex gap-4 flex-wrap">
+          <div className="mb-4 flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-medium text-surface-foreground mb-1">Department</label>
               <select
@@ -359,7 +348,7 @@ export const StaffBioDataPageContent: React.FC = () => {
 };
 const StaffBioDataPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StaffBioDataPageContent />
     </div>
   </CanonicalRepositoryProvider>

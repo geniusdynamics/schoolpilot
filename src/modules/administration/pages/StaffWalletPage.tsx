@@ -221,26 +221,16 @@ export const StaffWalletContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Staff Wallet</h1>
-        <Button onClick={openModal} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Transaction
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CurrencyDollarIcon className="w-5 h-5 text-emerald-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-emerald-800">Staff Advance/Loan/Deduction Tracking</h3>
-              <p className="text-sm text-emerald-700 mt-1">
-                Track staff financial transactions including advances, loans, deductions, and repayments. 
-                Monitor outstanding balances and transaction statuses.
-              </p>
-            </div>
-          </div>
-        </div>
+      <Card
+        title="Staff Wallet"
+        info="Track staff financial transactions including advances, loans, deductions, and repayments. Monitor outstanding balances and transaction statuses."
+        actions={
+          <Button onClick={openModal} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Transaction
+          </Button>
+        }
+      >
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -404,7 +394,7 @@ export const StaffWalletContent: React.FC = () => {
 };
 
 const StaffWalletPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StaffWalletContent />
   </div>
 );

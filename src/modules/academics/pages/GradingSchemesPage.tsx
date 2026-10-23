@@ -214,15 +214,12 @@ export const GradingSchemesContent: React.FC = () => {
   ];
 
 return (
-    <div className="space-y-6">
-      <Card title="Grading Schemes Management" actions={
+    <div className="space-y-3">
+      <Card title="Grading Schemes Management" info="Define grading schemes and their corresponding levels (grades, minimum scores, points)." actions={
         <Button onClick={() => openSchemeModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Grading Scheme
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Define grading schemes and their corresponding levels (grades, minimum scores, points).
-        </p>
         <DataGrid columns={schemeColumns} data={gradingSchemes} />
       </Card>
 

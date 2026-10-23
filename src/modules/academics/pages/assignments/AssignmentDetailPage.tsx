@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import {
   ArrowLeftIcon,
@@ -81,7 +82,7 @@ const AssignmentDetailPage: React.FC = () => {
         message: 'Assignment deleted successfully.',
       });
       navigate('/assignments/all');
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to delete assignment.',
@@ -163,10 +164,12 @@ const AssignmentDetailPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <PageHeaderWithTabs
+        title={assignment.title}
+        info={`${assignment.subjectName} - ${assignment.classStreamName}`}
+        leading={
           <Button
             variant="ghost"
             onClick={() => navigate('/assignments/all')}
@@ -174,35 +177,33 @@ const AssignmentDetailPage: React.FC = () => {
           >
             {t('common.back')}
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-foreground">{assignment.title}</h1>
-            <p className="text-sm text-surface-muted-fg mt-1">{assignment.subjectName} - {assignment.classStreamName}</p>
+        }
+        action={
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/assignments/${assignment.id}/edit`)}
+              leftIcon={<EditIcon className="w-4 h-4" />}
+            >
+              {t('assignment.actions.edit')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/assignments/${assignment.id}/grading`)}
+              leftIcon={<ClipboardDocumentCheckIcon className="w-4 h-4" />}
+            >
+              Grade Submissions
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDelete}
+              leftIcon={<DeleteIcon className="w-4 h-4" />}
+            >
+              {t('assignment.actions.delete')}
+            </Button>
           </div>
-        </div>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/assignments/${assignment.id}/edit`)}
-            leftIcon={<EditIcon className="w-4 h-4" />}
-          >
-            {t('assignment.actions.edit')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/assignments/${assignment.id}/grading`)}
-            leftIcon={<ClipboardDocumentCheckIcon className="w-4 h-4" />}
-          >
-            Grade Submissions
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            leftIcon={<DeleteIcon className="w-4 h-4" />}
-          >
-            {t('assignment.actions.delete')}
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Assignment Details Card */}
       <Card title="Assignment Details" variant="default">

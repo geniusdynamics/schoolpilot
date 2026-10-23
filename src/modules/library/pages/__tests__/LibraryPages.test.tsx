@@ -188,6 +188,15 @@ describe('BookCategoriesPage (P0-H02)', () => {
     submitDialog(dialog);
     await waitFor(() => expect(collections.book_categories.remove).toHaveBeenCalledWith('bc-1'));
   });
+
+  it('keeps the categories explanation on the card heading instead of a description row', async () => {
+    renderWithProviders(<BookCategoriesPage />);
+    await screen.findByText('Fiction');
+
+    // The sentence moved off the card body onto the heading, reachable from the info hint.
+    expect(screen.getByRole('button', { name: 'About this section' })).toBeInTheDocument();
+    expect(screen.getByText('bookCategories.defineCategories')).toBeInTheDocument();
+  });
 });
 
 describe('BookLoansPage (P1-E05)', () => {

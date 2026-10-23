@@ -211,6 +211,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
     <div className="space-y-4">
       <Card
         title="Fee installments"
+        info="An installment plan splits a fee into dated percentages. A fee schedule line can name a plan; the plan itself carries no money, so it never drifts from the amount billed."
         actions={
           <Button
             onClick={() => open(null)}
@@ -221,10 +222,6 @@ export const FeesInstallmentsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          An installment plan splits a fee into dated percentages. A fee schedule line can name a
-          plan; the plan itself carries no money, so it never drifts from the amount billed.
-        </p>
         <DataGrid
           columns={columns}
           data={[...finance.installmentPlans]}
@@ -304,7 +301,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
 
 const FeesInstallmentsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeesInstallmentsPageContent />
     </div>
   </CanonicalRepositoryProvider>

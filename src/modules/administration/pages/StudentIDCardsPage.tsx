@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import { IdentificationIcon, UserIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
+import { UserIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { logger } from '@/utils/logging';
 
@@ -158,26 +159,17 @@ const StudentIDCardsPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Student ID Cards</h1>
-        <Button onClick={handlePrintAll} variant="primary">
-          <PrinterIcon className="w-4 h-4 mr-2" />
-          Print All
-        </Button>
-      </div>
+      <PageHeaderWithTabs
+        title="Student ID Cards"
+        info="Generate and print student ID cards with photos, class information, and emergency contacts. Print individual cards or bulk print for entire classes."
+        action={
+          <Button onClick={handlePrintAll} variant="primary">
+            <PrinterIcon className="w-4 h-4 mr-2" />
+            Print All
+          </Button>
+        }
+      />
       <Card>
-        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <IdentificationIcon className="w-5 h-5 text-purple-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-purple-800">Generate Printable ID Cards</h3>
-              <p className="text-sm text-purple-700 mt-1">
-                Generate and print student ID cards with photos, class information, and emergency contacts.
-                Print individual cards or bulk print for entire classes.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* ID Card Preview */}
         {selectedStudent && (

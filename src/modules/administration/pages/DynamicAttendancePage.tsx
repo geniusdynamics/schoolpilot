@@ -197,24 +197,14 @@ export const DynamicAttendanceContent: React.FC = () => {
             )}
           </div>
         }
+        info="Track attendance in real-time with session-based check-in/check-out functionality. Start a session to enable live attendance tracking for students."
       >
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ClockIcon className="w-5 h-5 text-rose-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-rose-800">Real-Time Session Tracking</h3>
-              <p className="text-sm text-rose-700 mt-1">
-                Track attendance in real-time with session-based check-in/check-out functionality. 
-                Start a session to enable live attendance tracking for students.
-              </p>
-              {isSessionActive && sessionStartTime && (
-                <p className="text-sm text-rose-600 mt-2 font-semibold">
-                  Session active since: {new Date(sessionStartTime).toLocaleTimeString()}
-                </p>
-              )}
-            </div>
+        {isSessionActive && sessionStartTime && (
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+            <ClockIcon className="w-4 h-4" />
+            <span>Session active since: {new Date(sessionStartTime).toLocaleTimeString()}</span>
           </div>
-        </div>
+        )}
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -306,7 +296,7 @@ export const DynamicAttendanceContent: React.FC = () => {
 };
 
 const DynamicAttendancePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <DynamicAttendanceContent />
   </div>
 );

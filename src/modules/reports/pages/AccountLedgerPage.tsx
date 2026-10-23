@@ -107,12 +107,9 @@ export const AccountLedgerPageContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card title={t('accountLedgerPage.title')}>
+    <div className="space-y-3">
+      <Card title={t('accountLedgerPage.title')} info={t('accountLedgerPage.description')}>
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
-            <p className="text-sm text-surface-muted-fg mb-4">
-                {t('accountLedgerPage.description')}
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <Select label={t('accountLedgerPage.selectAccount')} value={selectedAccountId || ''} onChange={e => setSelectedAccountId(e.target.value || undefined)} required>
                     <option value="">-- {t('accountLedgerPage.selectAccountPlaceholder')} --</option>
@@ -146,7 +143,7 @@ export const AccountLedgerPageContent: React.FC = () => {
   );
 };
 const AccountLedgerPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AccountLedgerPageContent />
   </div>
 );

@@ -225,7 +225,7 @@ export const StaffListContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Staff Management"
         bodyClassName="p-0"
@@ -479,7 +479,7 @@ function nextEmployeeNumber(staff: readonly CanonicalStaffMember[]): string {
 }
 
 const StaffListPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StaffListContent />
   </div>
 );

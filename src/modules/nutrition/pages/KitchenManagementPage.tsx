@@ -147,23 +147,10 @@ export const KitchenManagementPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">School Kitchen Management</h1>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CubeIcon className="w-5 h-5 text-orange-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-orange-800">Kitchen Operations</h3>
-              <p className="text-sm text-orange-700 mt-1">
-                Manage food inventory with dietary restrictions tracking, monitor stock levels, 
-                and track meal costs. Ensure all students receive appropriate meals based on their dietary needs.
-              </p>
-            </div>
-          </div>
-        </div>
-
+      <Card
+        title="School Kitchen Management"
+        info="Manage food inventory with dietary restrictions tracking, monitor stock levels, and track meal costs. Ensure all students receive appropriate meals based on their dietary needs."
+      >
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-surface-card border border-surface-border rounded-lg p-4">
@@ -544,7 +531,7 @@ export const KitchenManagementPageContent: React.FC = () => {
   );
 };
 const KitchenManagementPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <KitchenManagementPageContent />
   </div>
 );

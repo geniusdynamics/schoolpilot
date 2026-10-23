@@ -180,7 +180,7 @@ export const DormitoriesContent: React.FC = () => {
 };
 
 const DormitoriesPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <DormitoriesContent />
   </div>
 );

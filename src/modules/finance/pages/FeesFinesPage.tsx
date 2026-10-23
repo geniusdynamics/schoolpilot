@@ -213,6 +213,7 @@ export const FeesFinesPageContent: React.FC = () => {
     <div className="space-y-4">
       <Card
         title="Fines and penalties"
+        info="A fine is a one-line posted charge against a learner. Once posted it is frozen: the page still offers Edit so the repository can refuse the write, and a credit note is the way to correct it."
         actions={
           <Button
             onClick={() => open(null)}
@@ -223,11 +224,6 @@ export const FeesFinesPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A fine is a one-line posted charge against a learner. Once posted it is frozen: the page
-          still offers Edit so the repository can refuse the write, and a credit note is the way to
-          correct it.
-        </p>
         <DataGrid
           columns={columns}
           data={[...fines]}
@@ -302,7 +298,7 @@ export const FeesFinesPageContent: React.FC = () => {
 
 const FeesFinesPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeesFinesPageContent />
     </div>
   </CanonicalRepositoryProvider>

@@ -9,6 +9,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   AlertTriangleIcon,
   CheckCircleIcon,
@@ -165,8 +166,8 @@ export const DataIntegrityContent: React.FC<DataIntegrityPageProps> = ({ adapter
 
   if (!adapter) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('integrity.title', 'Data integrity')}</h1>
+      <div className="space-y-3">
+        <PageHeaderWithTabs title={t('integrity.title', 'Data integrity')} />
         <Card title={t('integrity.notConnectedTitle', 'The data layer is not connected')}>
           <p className="text-sm text-surface-muted-fg">
             {t(
@@ -180,26 +181,24 @@ export const DataIntegrityContent: React.FC<DataIntegrityPageProps> = ({ adapter
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{t('integrity.title', 'Data integrity')}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-surface-muted-fg">
-            {t(
-              'integrity.subtitle',
-              'The checks look for references that point at a row that is not there, references that do not hold an id, learners without a class group and ids that are used twice. Nothing is changed until you agree to a fix.'
-            )}
-          </p>
-        </div>
-        <Button
-          onClick={() => void runChecks()}
-          variant="outline"
-          loading={running}
-          leftIcon={<RefreshCwIcon className="h-4 w-4" />}
-        >
-          {t('integrity.checkAgain', 'Check again')}
-        </Button>
-      </div>
+    <div className="space-y-3">
+      <PageHeaderWithTabs
+        title={t('integrity.title', 'Data integrity')}
+        info={t(
+          'integrity.subtitle',
+          'The checks look for references that point at a row that is not there, references that do not hold an id, learners without a class group and ids that are used twice. Nothing is changed until you agree to a fix.'
+        )}
+        action={
+          <Button
+            onClick={() => void runChecks()}
+            variant="outline"
+            loading={running}
+            leftIcon={<RefreshCwIcon className="h-4 w-4" />}
+          >
+            {t('integrity.checkAgain', 'Check again')}
+          </Button>
+        }
+      />
 
       {error && (
         <div

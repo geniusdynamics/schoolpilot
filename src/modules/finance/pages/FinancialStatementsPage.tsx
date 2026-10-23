@@ -65,7 +65,7 @@ const FinancialStatementsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('financialStatements.title', 'Financial Statements')}
-        subtitle={t(
+        info={t(
           'financialStatements.subtitle',
           'View trial balance, balance sheet, and income statement'
         )}

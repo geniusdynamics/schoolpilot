@@ -183,12 +183,9 @@ const InventoryStatusReport: React.FC = () => {
   const totalValue = filteredInventoryItems.reduce((sum, item) => sum + item.totalValue, 0);
 
   return (
-    <div className="space-y-6">
-      <Card title="Inventory Status Report" icon={CubeIcon}>
+    <div className="space-y-3">
+      <Card title="Inventory Status Report" icon={CubeIcon} info="Generate a comprehensive report of inventory status including stock levels, alerts, and valuation.">
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
-          <p className="text-sm text-surface-muted-fg mb-4">
-            Generate a comprehensive report of inventory status including stock levels, alerts, and valuation.
-          </p>
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
             <Select 
               label="Warehouse" 

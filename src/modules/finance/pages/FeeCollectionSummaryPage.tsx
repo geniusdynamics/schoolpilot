@@ -90,11 +90,10 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
   ];
 
   return (
-    <Card title="Fee collection summary">
-      <p className="mb-4 text-sm text-surface-muted-fg">
-        Billed is every posted invoice line of the period; collected is the share of those lines the
-        recorded payments have settled. Nothing is rounded on the way.
-      </p>
+    <Card
+      title="Fee collection summary"
+      info="Billed is every posted invoice line of the period; collected is the share of those lines the recorded payments have settled. Nothing is rounded on the way."
+    >
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Period</span>
@@ -137,7 +136,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
 
 const FeeCollectionSummaryPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeeCollectionSummaryPageContent />
     </div>
   </CanonicalRepositoryProvider>

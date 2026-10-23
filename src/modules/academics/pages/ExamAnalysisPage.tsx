@@ -60,7 +60,7 @@ const ExamAnalysisPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('analysis.title', 'Exam Analysis')}
-        subtitle={t(
+        info={t(
           'analysis.subtitle',
           'Analyze exam performance at class and individual student levels'
         )}

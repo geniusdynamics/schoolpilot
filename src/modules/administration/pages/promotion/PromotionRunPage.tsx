@@ -284,7 +284,7 @@ export const PromotionRunPageContent: React.FC<PromotionRunPageContentProps> = (
   const committed = run?.committedAt != null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Promotion run">
         <div className="space-y-4">
           <p className="text-sm text-surface-muted-fg">

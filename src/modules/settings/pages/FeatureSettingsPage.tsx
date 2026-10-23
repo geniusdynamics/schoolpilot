@@ -27,15 +27,7 @@ export const FeatureSettingsContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="p-6 bg-primary-50 border border-primary-200 rounded-lg">
-        <h2 className="text-xl font-semibold text-primary-900 mb-2">
-          {t('featureSettings.title')}
-        </h2>
-        <p className="text-primary-700">
-          {t('featureSettings.description')}
-        </p>
-      </div>
+    <div className="space-y-3">
       <FeatureSettings />
     </div>
   );

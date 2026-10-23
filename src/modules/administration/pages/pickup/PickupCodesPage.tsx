@@ -107,7 +107,7 @@ const PickupCodesPage: React.FC = () => {
       setGenerateModalOpen(false);
       setStudentId('');
       setExpiryMinutes('30');
-    } catch (error) {
+    } catch {
       showToast({ variant: 'error', message: 'Failed to generate pickup code.' });
     } finally {
       setGenerating(false);
@@ -126,7 +126,7 @@ const PickupCodesPage: React.FC = () => {
       try {
         await revokePickupCode(codeToRevoke.id);
         showToast({ variant: 'success', message: `Code ${codeToRevoke.code} has been revoked.` });
-      } catch (error) {
+      } catch {
         showToast({ variant: 'error', message: 'Failed to revoke code.' });
       } finally {
         setRevoking(false);
@@ -226,7 +226,7 @@ const PickupCodesPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('pickupCode.plural')}
         actions={

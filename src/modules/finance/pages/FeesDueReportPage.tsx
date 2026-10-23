@@ -221,7 +221,7 @@ export const FeesDueReportPageContent: React.FC = () => {
 
 const FeesDueReportPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeesDueReportPageContent />
     </div>
   </CanonicalRepositoryProvider>

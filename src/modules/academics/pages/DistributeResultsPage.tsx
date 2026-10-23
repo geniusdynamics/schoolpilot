@@ -272,19 +272,8 @@ export const DistributeResultsPageContent: React.FC = () => {
             Schedule Distribution
           </Button>
         }
+        info="Distribute exam results to students and parents through multiple channels: student portal, SMS, email, or printed copies. Schedule distributions for automatic delivery or trigger immediate distribution."
       >
-        <div className="mb-6 p-4 bg-pink-50 border border-pink-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <MegaphoneIcon className="w-5 h-5 text-pink-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-pink-800">Result Distribution Workflow</h3>
-              <p className="text-sm text-pink-700 mt-1">
-                Distribute exam results to students and parents through multiple channels: student portal, SMS, email, or printed copies. 
-                Schedule distributions for automatic delivery or trigger immediate distribution.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -451,7 +440,7 @@ export const DistributeResultsPageContent: React.FC = () => {
   );
 };
 const DistributeResultsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <DistributeResultsPageContent />
   </div>
 );

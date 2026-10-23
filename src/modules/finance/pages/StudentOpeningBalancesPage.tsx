@@ -179,6 +179,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
     <div className="space-y-4">
       <Card
         title="Opening balances"
+        info="A brought-forward balance is posted as an invoice whose single line has kind “opening_balance”. Once posted it is frozen; a credit note corrects it."
         actions={
           <Button
             onClick={() => {
@@ -193,10 +194,6 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A brought-forward balance is posted as an invoice whose single line has kind
-          “opening_balance”. Once posted it is frozen; a credit note corrects it.
-        </p>
         <DataGrid
           columns={columns}
           data={[...rows]}
@@ -295,7 +292,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
 
 const StudentOpeningBalancesPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentOpeningBalancesPageContent />
     </div>
   </CanonicalRepositoryProvider>

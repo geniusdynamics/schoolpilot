@@ -20,7 +20,7 @@ export const BillingRunsPageContent: React.FC = () => {
 
 const BillingRunsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <BillingRunsPageContent />
     </div>
   </CanonicalRepositoryProvider>

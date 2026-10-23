@@ -65,7 +65,7 @@ const LessonPlansHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('lessonPlansHub.title', 'Lesson Plans')}
-        subtitle={t(
+        info={t(
           'lessonPlansHub.subtitle',
           'Manage weekly plans, lesson notes, and approvals'
         )}

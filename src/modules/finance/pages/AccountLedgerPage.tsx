@@ -216,7 +216,7 @@ export const AccountLedgerPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title={t('accountLedger.title') || 'Account Ledger'}>
         {/* Filters */}
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md">
@@ -327,7 +327,7 @@ export const AccountLedgerPageContent: React.FC = () => {
   );
 };
 const AccountLedgerPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AccountLedgerPageContent />
   </div>
 );

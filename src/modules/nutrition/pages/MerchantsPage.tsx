@@ -131,15 +131,12 @@ export const MerchantsPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="Merchants Management (e.g., Canteen)" actions={
+    <div className="space-y-3">
+      <Card title="Merchants Management (e.g., Canteen)" info="Define merchants where students can make purchases using their wallets. Link to a revenue GL account." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Merchant
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Define merchants where students can make purchases using their wallets. Link to a revenue GL account.
-        </p>
         <DataGrid 
           columns={columns} 
           data={merchants || []} 
@@ -201,7 +198,7 @@ export const MerchantsPageContent: React.FC = () => {
   );
 };
 const MerchantsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <MerchantsPageContent />
   </div>
 );

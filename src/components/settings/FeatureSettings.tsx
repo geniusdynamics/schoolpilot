@@ -6,6 +6,7 @@ import { logger } from '@/utils/logging';
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CogIcon,
   ArrowPathIcon,
@@ -34,6 +35,7 @@ import TooltipDemo from './TooltipsShowcase';
 import ConflictResolutionComponent from '@/components/ConflictResolutionInterface';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { UnifiedModeSwitch } from './UnifiedModeSwitch';
 
 interface FeatureSettingsProps {
@@ -43,6 +45,7 @@ interface FeatureSettingsProps {
 export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   className = ''
 }) => {
+  const { t } = useTranslation('settings');
   const { config, updateConfig } = useUnifiedConfig();
   const { 
     isOnline, 
@@ -380,12 +383,13 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   return (
     <div className={`max-w-6xl mx-auto ${className}`}>
       {/* Header */}
-      <div className="mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-surface-foreground">Feature Settings</h1>
-          <p className="text-surface-muted-fg">Manage offline capabilities, sync settings, and application features</p>
-        </div>
-      </div>
+      <PageHeaderWithTabs
+        title="Feature Settings"
+        info={t(
+          'featureSettings.description',
+          'Manage offline capabilities, sync settings, and application features'
+        )}
+      />
 
       {/* Unified Tabs System */}
       <AdaptiveTabs

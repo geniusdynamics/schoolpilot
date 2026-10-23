@@ -76,7 +76,7 @@ const StudentAttendancePage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('attendanceHub.title', 'Student Attendance')}
-        subtitle={t(
+        info={t(
           'attendanceHub.subtitle',
           'Manage student attendance through manual entry, dynamic tracking, and comprehensive reports'
         )}

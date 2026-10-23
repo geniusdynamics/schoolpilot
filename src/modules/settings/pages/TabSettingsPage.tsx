@@ -4,6 +4,7 @@
 import React from 'react';
 // import TabSettings from '@/components/TabSettings';
 import BreadcrumbNavigation from '@/components/BreadcrumbNavigation';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 
 export const TabSettingsContent: React.FC = () => {
   // const { t } = useTranslation(['settings', 'common']);
@@ -16,14 +17,10 @@ export const TabSettingsContent: React.FC = () => {
       </div>
       
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-surface-foreground mb-2">
-          Tabbed Mode Settings
-        </h1>
-        <p className="text-surface-muted-fg">
-          Configure and manage tabbed mode functionality
-        </p>
-      </div>
+      <PageHeaderWithTabs
+        title="Tabbed Mode Settings"
+        info="Configure and manage tabbed mode functionality"
+      />
       
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">

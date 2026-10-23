@@ -352,7 +352,7 @@ export const HRDashboardPageContent: React.FC = () => {
 };
 const HRDashboardPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <HRDashboardPageContent />
     </div>
   </CanonicalRepositoryProvider>

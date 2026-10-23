@@ -119,7 +119,7 @@ const CustomersPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title={t('customers.managementTitle')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('customers.addCustomer')}

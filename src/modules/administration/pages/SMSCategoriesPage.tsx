@@ -62,9 +62,9 @@ const SMSCategoriesPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-3 p-6">
       {/* Send SMS by Category */}
-      <Card title="Send SMS by Category" description="Quickly send SMS messages to predefined recipient groups">
+      <Card title="Send SMS by Category" info="Quickly send SMS messages to predefined recipient groups">
         <div className="space-y-4">
           <Select
             label="Recipient Category"
@@ -136,7 +136,7 @@ const SMSCategoriesPage: React.FC = () => {
 
       {/* Sent Messages History */}
       {sentMessages.length > 0 && (
-        <Card title="Recent Messages" description="Recently sent SMS messages">
+        <Card title="Recent Messages" info="Recently sent SMS messages">
           <DataGrid
             data={sentMessages}
             columns={messageColumns}

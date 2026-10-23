@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import Card from '@/components/ui/Card';
@@ -238,26 +239,17 @@ const ScholarshipTrackingPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Scholarship Tracking</h1>
-        <Button onClick={() => openModal()} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Scholarship
-        </Button>
-      </div>
+      <PageHeaderWithTabs
+        title="Scholarship Tracking"
+        info="Track scholarship recipients, manage scholarship types, amounts, and statuses. Monitor active scholarships and generate reports for financial planning."
+        action={
+          <Button onClick={() => openModal()} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Scholarship
+          </Button>
+        }
+      />
       <Card>
-        <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CurrencyDollarIcon className="w-5 h-5 text-teal-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-teal-800">Scholarship Recipient Tracking and Reporting</h3>
-              <p className="text-sm text-teal-700 mt-1">
-                Track scholarship recipients, manage scholarship types, amounts, and statuses. 
-                Monitor active scholarships and generate reports for financial planning.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">

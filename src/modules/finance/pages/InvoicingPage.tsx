@@ -69,7 +69,7 @@ const InvoicingPage: React.FC = () => {
       <div className="space-y-4">
         <PageHeaderWithTabs
           title={t('invoicing.title', 'Invoicing')}
-          subtitle={t(
+          info={t(
             'invoicing.subtitle',
             'Generate and manage customer and supplier invoices'
           )}

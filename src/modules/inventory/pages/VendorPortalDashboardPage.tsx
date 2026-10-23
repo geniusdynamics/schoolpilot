@@ -104,7 +104,7 @@ export const VendorPortalDashboardPageContent: React.FC = () => {
   );
 };
 const VendorPortalDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <VendorPortalDashboardPageContent />
   </div>
 );

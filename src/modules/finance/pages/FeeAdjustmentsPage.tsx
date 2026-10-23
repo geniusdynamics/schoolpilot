@@ -256,6 +256,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
     <div className="space-y-4">
       <Card
         title="Fee adjustments"
+        info="A scholarship, discount or exemption is a credit note against the learner's fees. Meeting a posted invoice with a correction is this note, never an edit: the repository freezes a posted note and a posted invoice alike."
         actions={
           <Button
             onClick={() => open(null)}
@@ -266,11 +267,6 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A scholarship, discount or exemption is a credit note against the learner's fees. Meeting
-          a posted invoice with a correction is this note, never an edit: the repository freezes a
-          posted note and a posted invoice alike.
-        </p>
         <DataGrid
           columns={columns}
           data={[...finance.creditNotes]}
@@ -333,7 +329,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
 
 const FeeAdjustmentsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeeAdjustmentsPageContent />
     </div>
   </CanonicalRepositoryProvider>

@@ -895,7 +895,7 @@ export const PublicApplicationPageContent: React.FC = () => {
   );
 };
 const PublicApplicationPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <PublicApplicationPageContent />
   </div>
 );

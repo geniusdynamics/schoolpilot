@@ -7,10 +7,10 @@ import { useLibrarySettingsData } from '../data/useLibrarySettingsData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 
 import Spinner from '@/components/ui/Spinner';
@@ -138,7 +138,7 @@ export const LibrarySettingsPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Library Borrowing Rules Management"
         actions={
@@ -238,7 +238,7 @@ export const LibrarySettingsPageContent: React.FC = () => {
   );
 };
 const LibrarySettingsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <LibrarySettingsPageContent />
   </div>
 );

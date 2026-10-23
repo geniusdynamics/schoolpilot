@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
+import { PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 
 interface Student {
@@ -104,24 +104,11 @@ export const CharacterCertificateContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Character Certificate (C.C.)</h1>
-      </div>
-      
       {!selectedStudent ? (
-        <Card>
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <DocumentTextIcon className="w-5 h-5 text-green-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-green-800">Character Certificate Generation</h3>
-                <p className="text-sm text-green-700 mt-1">
-                  Generate official character certificates for students. 
-                  Select a student to preview and print their character certificate.
-                </p>
-              </div>
-            </div>
-          </div>
+        <Card
+          title="Character Certificate (C.C.)"
+          info="Generate official character certificates for students. Select a student to preview and print their character certificate."
+        >
 
           {/* Filters */}
           <div className="mb-6 flex gap-4 flex-wrap">
@@ -172,7 +159,7 @@ export const CharacterCertificateContent: React.FC = () => {
           </div>
         </Card>
       ) : (
-        <Card>
+        <Card title="Character Certificate (C.C.)">
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
               ← Back to Students
@@ -287,7 +274,7 @@ export const CharacterCertificateContent: React.FC = () => {
 };
 
 const CharacterCertificatePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <CharacterCertificateContent />
   </div>
 );

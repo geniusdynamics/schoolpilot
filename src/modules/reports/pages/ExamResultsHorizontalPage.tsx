@@ -116,7 +116,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
   const isLoadingPage = loading.students || loading.examSessions || loading.classes || loading.classStreams || loading.studentExamResults;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title={t('examResultsHorizontal.title')}>
          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-md bg-surface-muted filter-section">
             <Select
@@ -178,7 +178,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
   );
 };
 const ExamResultsHorizontalPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ExamResultsHorizontalPageContent />
   </div>
 );

@@ -183,7 +183,7 @@ export const AccountingReportsPageContent: React.FC<AccountingReportsPageProps> 
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('accountingReports.title', 'Accounting Reports')}
-        subtitle={t(
+        info={t(
           'accountingReports.subtitle',
           'Trial balance, income and expenditure, balance sheet, cash and bank books, budget versus actual, period close'
         )}

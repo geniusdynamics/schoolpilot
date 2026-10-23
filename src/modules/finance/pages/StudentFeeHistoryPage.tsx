@@ -59,7 +59,7 @@ const StudentFeeHistoryPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('studentFeeHistory.title', 'Student Fee History')}
-        subtitle={t(
+        info={t(
           'studentFeeHistory.subtitle',
           'Manage opening balances and previous session fees'
         )}

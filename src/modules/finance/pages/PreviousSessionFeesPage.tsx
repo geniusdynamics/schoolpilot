@@ -138,11 +138,8 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
           Previous session fees
         </span>
       }
+      info="Invoices from earlier academic years and what is still outstanding on them. A carry-over is written as an opening balance in the new session, not by editing the old invoice."
     >
-      <p className="mb-4 text-sm text-surface-muted-fg">
-        Invoices from earlier academic years and what is still outstanding on them. A carry-over is
-        written as an opening balance in the new session, not by editing the old invoice.
-      </p>
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Year</span>
@@ -183,7 +180,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
 
 const PreviousSessionFeesPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <PreviousSessionFeesPageContent />
     </div>
   </CanonicalRepositoryProvider>

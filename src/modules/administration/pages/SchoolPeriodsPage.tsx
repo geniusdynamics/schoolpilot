@@ -220,7 +220,7 @@ export const SchoolPeriodsContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="School Periods (Terms/Semesters)" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add School Period
@@ -256,7 +256,7 @@ export const SchoolPeriodsContent: React.FC = () => {
 };
 
 const SchoolPeriodsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <SchoolPeriodsContent />
   </div>
 );

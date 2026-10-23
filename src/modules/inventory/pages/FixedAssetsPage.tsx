@@ -188,15 +188,16 @@ export const FixedAssetsPageContent: React.FC = () => {
 
 
   return (
-    <div className="space-y-6">
-      <Card title="Fixed Assets Management" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Fixed Asset
-        </Button>
-      }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Track fixed assets, including asset tags, purchase details, depreciation, and assignment to staff.
-        </p>
+    <div className="space-y-3">
+      <Card
+        title="Fixed Assets Management"
+        info="Track fixed assets, including asset tags, purchase details, depreciation, and assignment to staff."
+        actions={
+          <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            Add Fixed Asset
+          </Button>
+        }
+      >
         <DataGrid 
           columns={columns} 
           data={fixedAssets} 
@@ -273,7 +274,7 @@ export const FixedAssetsPageContent: React.FC = () => {
 };
 const FixedAssetsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FixedAssetsPageContent />
     </div>
   </CanonicalRepositoryProvider>

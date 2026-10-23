@@ -377,15 +377,12 @@ export const CustomerInvoicesPageContent: React.FC = () => {
   ];
   
   return (
-    <div className="space-y-6">
-      <Card title="Customer Invoices Management" actions={
+    <div className="space-y-3">
+      <Card title="Customer Invoices Management" info="Manage invoices for services provided to external customers." actions={
         <Button onClick={() => openInvoiceModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           New Customer Invoice
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Manage invoices for services provided to external customers.
-        </p>
         <DataGrid 
           columns={invoiceColumns} 
           data={invoiceRows}
@@ -476,7 +473,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
   );
 };
 const CustomerInvoicesPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <CustomerInvoicesPageContent />
   </div>
 );

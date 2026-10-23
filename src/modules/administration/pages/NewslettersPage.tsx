@@ -106,7 +106,7 @@ export const NewslettersContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-3 pb-8">
       {/* Tab Navigation */}
       <TabNavigation 
         tabs={tabs} 
@@ -220,7 +220,7 @@ export const NewslettersContent: React.FC = () => {
 };
 
 const NewslettersPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <NewslettersContent />
   </div>
 );

@@ -120,19 +120,8 @@ export const TrialBalancePageContent: React.FC = () => {
             <span>Trial Balance</span>
           </div>
         }
+        info="The Trial Balance summarizes all ledger account balances to verify that total debits equal total credits. This is a fundamental accounting check before preparing financial statements."
       >
-        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ScaleIcon className="w-5 h-5 text-purple-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-purple-800">Debit/Credit Balance Summary by Account</h3>
-              <p className="text-sm text-purple-700 mt-1">
-                The Trial Balance summarizes all ledger account balances to verify that total debits equal total credits. 
-                This is a fundamental accounting check before preparing financial statements.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
@@ -226,7 +215,7 @@ export const TrialBalancePageContent: React.FC = () => {
   );
 };
 const TrialBalancePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <TrialBalancePageContent />
   </div>
 );

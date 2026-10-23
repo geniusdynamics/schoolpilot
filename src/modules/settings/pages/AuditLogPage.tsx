@@ -95,17 +95,12 @@ export const AuditLogContent: React.FC = () => {
   const isLoadingPage = loading.auditLogs || loading.users || loading.all;
 
   return (
-    <div className="space-y-6">
-      <Card title="System Audit Log">
-        <div className="text-center py-8 border-b mb-6">
-          <ClockIcon className="w-16 h-16 text-surface-muted-fg mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-surface-foreground">View System Audit Trails</h2>
-          <p className="text-surface-muted-fg">
-            Review logs of significant actions performed within the system for security and accountability.
-          </p>
-        </div>
-
-        <Card title="Filter Audit Logs" className="mb-6 filter-section">
+    <div className="space-y-3">
+      <Card
+        title="System Audit Log"
+        info="Review logs of significant actions performed within the system for security and accountability."
+      >
+        <Card title="Filter Audit Logs" className="mb-4 filter-section">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
                 <Input
                     label="Start Date"

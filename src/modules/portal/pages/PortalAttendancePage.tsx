@@ -159,7 +159,7 @@ export const PortalAttendanceContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Attendance Summary Cards */}
       {attendanceSummary && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

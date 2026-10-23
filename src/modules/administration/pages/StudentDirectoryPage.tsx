@@ -85,7 +85,7 @@ const StudentDirectoryPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('studentDirectory.title', 'Student Directory')}
-        subtitle={t(
+        info={t(
           'studentDirectory.subtitle',
           'Manage students across all stages: directory, bio data, health records, and clearance'
         )}

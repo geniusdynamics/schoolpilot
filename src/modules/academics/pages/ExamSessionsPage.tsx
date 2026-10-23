@@ -336,7 +336,7 @@ export const ExamSessionsPageContent: React.FC = () => {
   ];
 
 return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Exam Sessions Management" actions={
         <Button onClick={() => openSessionModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Exam Session
@@ -437,7 +437,7 @@ return (
 };
 
 const ExamSessionsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ExamSessionsPageContent />
   </div>
 );
