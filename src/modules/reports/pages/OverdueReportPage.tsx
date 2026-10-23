@@ -8,7 +8,7 @@ export const OverdueReportPageContent: React.FC = () => {
   return <OverdueReport />;
 };
 const OverdueReportPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <OverdueReportPageContent />
   </div>
 );

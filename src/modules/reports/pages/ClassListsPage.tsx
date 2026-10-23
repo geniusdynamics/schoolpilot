@@ -290,7 +290,7 @@ export const ClassListsPageContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-3 pb-8">
       {/* Tab Navigation */}
       <TabNavigation 
         tabs={tabs} 
@@ -336,7 +336,7 @@ export const ClassListsPageContent: React.FC = () => {
 
       {/* Content based on active tab */}
       {activeTab === 'class-lists' && (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Grade Breakdown Section */}
           <Card>
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -430,7 +430,7 @@ export const ClassListsPageContent: React.FC = () => {
   );
 };
 const ClassListsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ClassListsPageContent />
   </div>
 );

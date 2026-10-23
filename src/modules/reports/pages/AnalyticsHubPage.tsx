@@ -84,7 +84,7 @@ const AnalyticsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('analyticsHub.title', 'Analytics')}
-        subtitle={t(
+        info={t(
           'analyticsHub.subtitle',
           'Teacher dashboard, subject and class analysis, data exports, and trends'
         )}

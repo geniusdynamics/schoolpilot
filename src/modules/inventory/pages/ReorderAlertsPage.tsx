@@ -12,7 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { ReorderAlertsPanel } from '@/components/ReorderAlertsPanel';
 import { useReorderMonitoring } from '@/hooks/useReorderMonitoring';
-import { PageHeader } from '@/components/layout/PageHeader';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { PageContainer } from '@/components/layout/PageContainer';
 
 /**
@@ -23,14 +23,11 @@ export const ReorderAlertsContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('alerts');
   
   const {
-    alerts,
     monitoringResult,
-    isLoading,
     error,
     totalAlertsCount,
     highPriorityAlerts = [],
     mediumPriorityAlerts = [],
-    lowPriorityAlerts = []
   } = useReorderMonitoring();
 
   const getAlertSummaryCards = () => {
@@ -68,22 +65,19 @@ export const ReorderAlertsContent: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
+      <PageHeaderWithTabs
         title={t('reorderAlerts.title')}
-        description={t('reorderAlerts.description', 'Monitor and manage automated reorder alerts for inventory items')}
-        icon={<BellIcon className="h-6 w-6" />}
-        actions={
-          <div className="flex items-center gap-2">
-            {totalAlertsCount > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {totalAlertsCount} {t('reorderAlerts.activeAlerts')}
-              </Badge>
-            )}
-          </div>
+        info={t('reorderAlerts.description', 'Monitor and manage automated reorder alerts for inventory items')}
+        action={
+          totalAlertsCount > 0 ? (
+            <Badge variant="destructive" className="ml-2">
+              {totalAlertsCount} {t('reorderAlerts.activeAlerts')}
+            </Badge>
+          ) : undefined
         }
       />
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Error Alert */}
         {error && (
           <Alert variant="destructive">

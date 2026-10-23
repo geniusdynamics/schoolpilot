@@ -334,7 +334,7 @@ export const ReportsDashboardPageContent: React.FC = () => {
   );
 };
 const ReportsDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ReportsDashboardPageContent />
   </div>
 );

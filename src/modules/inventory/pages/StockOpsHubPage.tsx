@@ -75,7 +75,7 @@ const StockOpsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('stockOpsHub.title', 'Stock Operations')}
-        subtitle={t(
+        info={t(
           'stockOpsHub.subtitle',
           'Manage stock reception, issuance, returns, and stationery'
         )}

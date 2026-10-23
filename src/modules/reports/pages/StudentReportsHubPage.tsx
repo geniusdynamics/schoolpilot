@@ -92,7 +92,7 @@ const StudentReportsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('studentReports.title', 'Student Reports')}
-        subtitle={t(
+        info={t(
           'studentReports.subtitle',
           'View student masterlist, class lists, teacher assignments, financial summaries, votehead statements, and exam results'
         )}

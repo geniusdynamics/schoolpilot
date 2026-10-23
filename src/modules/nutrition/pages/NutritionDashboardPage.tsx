@@ -363,7 +363,7 @@ export const NutritionDashboardPageContent: React.FC = () => {
 };
 const NutritionDashboardPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <NutritionDashboardPageContent />
     </div>
   </CanonicalRepositoryProvider>

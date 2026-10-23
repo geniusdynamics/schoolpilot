@@ -64,4 +64,18 @@ describe('StudentMasterlistPage report header', () => {
     );
     expect(await screen.findByText(/Amina Otieno/)).toBeTruthy();
   });
+
+  it('keeps the masterlist explanation on the card heading instead of a filter description row', async () => {
+    fake.current.collections.school_details.seed([{ id: 's1', name: 'Probe Academy', postal_address: 'P.O. Box 1', town: 'Nairobi' }]);
+    render(
+      <CanonicalRepositoryProvider repository={repository}>
+        <StudentMasterlistPage />
+      </CanonicalRepositoryProvider>
+    );
+    await screen.findByText('Probe Academy');
+
+    // The sentence moved off the card body onto the heading, reachable from the info hint.
+    expect(screen.getByRole('button', { name: 'About this section' })).toBeTruthy();
+    expect(screen.getByText('studentMasterlistPage.filterDescription')).toBeTruthy();
+  });
 });

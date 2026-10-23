@@ -214,7 +214,7 @@ export const StudentWalletPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Student Wallet Management" actions={
         <Button onClick={openTxModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Manual Transaction
@@ -304,7 +304,7 @@ export const StudentWalletPageContent: React.FC = () => {
 };
 const StudentWalletPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentWalletPageContent />
     </div>
   </CanonicalRepositoryProvider>

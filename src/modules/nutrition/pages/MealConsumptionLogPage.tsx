@@ -105,11 +105,8 @@ export const MealConsumptionLogPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="Log Meal Consumption">
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Select a student and the meal they are consuming. The system will check their meal plan or deduct from their wallet if applicable.
-        </p>
+    <div className="space-y-3">
+      <Card title="Log Meal Consumption" info="Select a student and the meal they are consuming. The system will check their meal plan or deduct from their wallet if applicable.">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border rounded-md bg-surface-muted">
             <Input 
                 name="consumption_date" 
@@ -187,7 +184,7 @@ export const MealConsumptionLogPageContent: React.FC = () => {
 };
 const MealConsumptionLogPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <MealConsumptionLogPageContent />
     </div>
   </CanonicalRepositoryProvider>

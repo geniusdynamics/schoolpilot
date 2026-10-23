@@ -174,15 +174,12 @@ export const FinesPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card title="Library Fines Management" actions={
+    <div className="space-y-3">
+      <Card title="Library Fines Management" info="View and manage library fines. Fines for overdue books are often generated automatically upon return." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Manual Fine
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          View and manage library fines. Fines for overdue books are often generated automatically upon return.
-        </p>
         <DataGrid
           columns={columns}
           data={fines || []}
@@ -254,7 +251,7 @@ export const FinesPageContent: React.FC = () => {
   );
 };
 const FinesPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <FinesPageContent />
   </div>
 );

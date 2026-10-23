@@ -91,7 +91,7 @@ const LibraryResourcesHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('libraryResources.title', 'Library Resources')}
-        subtitle={t(
+        info={t(
           'libraryResources.subtitle',
           'Manage books, categories, loans, damaged/lost books, and digital resources'
         )}

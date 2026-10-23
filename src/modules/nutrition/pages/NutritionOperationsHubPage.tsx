@@ -68,7 +68,7 @@ const NutritionOperationsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('nutritionOperations.title', 'Nutrition Operations')}
-        subtitle={t(
+        info={t(
           'nutritionOperations.subtitle',
           'Manage merchants, student wallets, and kitchen operations'
         )}

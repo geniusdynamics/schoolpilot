@@ -42,7 +42,7 @@ export const ReportsPageContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState(reportTabs[0]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b pb-2 mb-4">
         {(reportTabs || []).map(tab => (
@@ -86,7 +86,7 @@ export const ReportsPageContent: React.FC = () => {
         <Card>
           <h2 className="text-lg font-bold mb-2">Working Capital Trend</h2>
           <div className="h-56 flex items-end gap-2">
-            {(workingCapitalTrend || []).map((item, idx) => (
+            {(workingCapitalTrend || []).map((item) => (
               <div key={item.month} className="flex flex-col items-center justify-end h-full">
                 <div
                   className="bg-primary-400 rounded-t w-8"
@@ -102,7 +102,7 @@ export const ReportsPageContent: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mt-4">
-        {(summaryData || []).map((item, idx) => (
+        {(summaryData || []).map((item) => (
           <Card key={item.label} className="flex flex-col items-center p-3">
             <span className="text-xs text-surface-muted-fg mb-1">{item.label}</span>
             <span className="text-lg font-bold">{item.value.toLocaleString()}</span>
@@ -113,7 +113,7 @@ export const ReportsPageContent: React.FC = () => {
   );
 };
 const ReportsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ReportsPageContent />
   </div>
 );

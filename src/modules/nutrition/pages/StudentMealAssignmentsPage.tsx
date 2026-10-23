@@ -198,7 +198,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
   ];
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Student Meal Plan Assignments">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
             <EntityPicker
@@ -287,7 +287,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
 };
 const StudentMealAssignmentsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentMealAssignmentsPageContent />
     </div>
   </CanonicalRepositoryProvider>

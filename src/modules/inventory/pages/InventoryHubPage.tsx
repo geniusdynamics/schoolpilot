@@ -84,7 +84,7 @@ const InventoryHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('inventoryHub.title', 'Inventory Management')}
-        subtitle={t(
+        info={t(
           'inventoryHub.subtitle',
           'Manage items, categories, warehouses, stock levels, and reorder alerts'
         )}

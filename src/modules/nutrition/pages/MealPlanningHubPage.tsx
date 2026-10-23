@@ -75,7 +75,7 @@ const MealPlanningHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('mealPlanning.title', 'Meal Planning')}
-        subtitle={t(
+        info={t(
           'mealPlanning.subtitle',
           'Manage meal plans, menus, consumption logs, and student assignments'
         )}

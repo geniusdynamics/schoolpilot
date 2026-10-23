@@ -380,7 +380,7 @@ export const LibraryDashboardPageContent: React.FC = () => {
   );
 };
 const LibraryDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <LibraryDashboardPageContent />
   </div>
 );

@@ -7,10 +7,10 @@ import { useBookData } from '../data/useBookData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { UploadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
@@ -101,7 +101,7 @@ export const DigitalResourcesPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Digital Resources Management">
         {booksLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -161,7 +161,7 @@ export const DigitalResourcesPageContent: React.FC = () => {
   );
 };
 const DigitalResourcesPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <DigitalResourcesPageContent />
   </div>
 );

@@ -159,12 +159,9 @@ const OverdueReport: React.FC = () => {
   const totalFineAmount = filteredOverdueItems.reduce((sum, item) => sum + (item.fineAmount || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <Card title="Overdue Books Report" icon={ClockIcon}>
+    <div className="space-y-3">
+      <Card title="Overdue Books Report" icon={ClockIcon} info="Generate a report of all overdue library books with borrower information and potential fines.">
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
-          <p className="text-sm text-surface-muted-fg mb-4">
-            Generate a report of all overdue library books with borrower information and potential fines.
-          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
             <Select 
               label="Borrower Type" 

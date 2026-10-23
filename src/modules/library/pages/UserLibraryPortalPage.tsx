@@ -208,10 +208,10 @@ export const UserLibraryPortalPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card 
         title={t('library:userPortal.title')} 
-        subtitle={t('library:userPortal.description')}
+        info={t('library:userPortal.description')}
       >
         {/* Borrowing Rules Info */}
         {userBorrowingRules && (
@@ -284,7 +284,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
   );
 };
 const UserLibraryPortalPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <UserLibraryPortalPageContent />
   </div>
 );

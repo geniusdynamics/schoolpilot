@@ -212,15 +212,16 @@ export const ItemsPageContent: React.FC = () => {
 
 
   return (
-    <div className="space-y-6">
-      <Card title={t('inventory.items.management.title')} actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          {t('inventory.items.addItem')}
-        </Button>
-      }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          {t('inventory.items.maintain.list')}
-        </p>
+    <div className="space-y-3">
+      <Card
+        title={t('inventory.items.management.title')}
+        info={t('inventory.items.maintain.list')}
+        actions={
+          <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            {t('inventory.items.addItem')}
+          </Button>
+        }
+      >
         <DataGrid 
           columns={columns} 
           data={(itemsInv || [])} 
@@ -283,7 +284,7 @@ export const ItemsPageContent: React.FC = () => {
   );
 };
 const ItemsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ItemsPageContent />
   </div>
 );

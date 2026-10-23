@@ -2,6 +2,7 @@
 // ABOUTME: Provides comprehensive contract management with CRUD operations, search, and filtering.
 
 import React, { useState, useEffect } from 'react';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -271,15 +272,15 @@ export const SupplierContractsPageContent: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-surface-foreground">
-          {t('inventory.contracts.title')}
-        </h1>
-        <Button onClick={() => handleOpenDialog()} leftIcon={<PlusIcon className="w-4 h-4" />}>
-          {t('inventory.contracts.add')}
-        </Button>
-      </div>
+    <div className="p-6 space-y-3">
+      <PageHeaderWithTabs
+        title={t('inventory.contracts.title')}
+        action={
+          <Button onClick={() => handleOpenDialog()} leftIcon={<PlusIcon className="w-4 h-4" />}>
+            {t('inventory.contracts.add')}
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <div className="bg-surface-card border border-surface-border rounded-lg p-4">
@@ -434,7 +435,7 @@ export const SupplierContractsPageContent: React.FC = () => {
   );
 };
 const SupplierContractsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <SupplierContractsPageContent />
   </div>
 );

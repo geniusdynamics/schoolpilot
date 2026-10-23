@@ -29,8 +29,8 @@ const InventorySettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card title="Inventory Settings" description="Configure inventory module preferences and defaults">
+    <div className="space-y-3">
+      <Card title="Inventory Settings" info="Configure inventory module preferences and defaults">
         <div className="space-y-6">
           {/* Stock Thresholds */}
           <div>

@@ -322,7 +322,7 @@ export const InventoryDashboardPageContent: React.FC = () => {
   );
 };
 const InventoryDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <InventoryDashboardPageContent />
   </div>
 );

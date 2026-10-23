@@ -134,12 +134,9 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card title="Fee Collection Summary Report">
+    <div className="space-y-3">
+      <Card title="Fee Collection Summary Report" info="Aggregated summary of fee collection by votehead for the selected criteria.">
          <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
-            <p className="text-sm text-surface-muted-fg mb-4">
-                Aggregated summary of fee collection by votehead for the selected criteria.
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">All Periods</option>
@@ -175,7 +172,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
   );
 };
 const FeeCollectionSummaryPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <FeeCollectionSummaryPageContent />
   </div>
 );

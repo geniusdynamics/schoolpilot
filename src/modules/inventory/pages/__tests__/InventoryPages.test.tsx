@@ -185,6 +185,15 @@ describe('WarehousesPage (P0-H01)', () => {
     fireEvent.click(lastButton(await screen.findByRole('dialog')));
     await waitFor(() => expect(collections.warehouses.remove).toHaveBeenCalledWith(WH));
   });
+
+  it('keeps the warehouses explanation on the card heading instead of a description row', async () => {
+    renderPage(<WarehousesPage />);
+    await screen.findByText('Central Store');
+
+    // The sentence moved off the card body onto the heading, reachable from the info hint.
+    expect(screen.getByRole('button', { name: 'About this section' })).toBeInTheDocument();
+    expect(screen.getByText('warehouses.description')).toBeInTheDocument();
+  });
 });
 
 describe('ItemCategoriesPage (P0-H01)', () => {

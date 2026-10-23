@@ -272,6 +272,15 @@ describe('MenusPage (P0-H03)', () => {
     );
     expect(await screen.findByText('Ugali, beans and greens')).toBeInTheDocument();
   });
+
+  it('keeps the menus explanation on the card heading instead of a description row', async () => {
+    renderPage(<MenusPage />);
+    await screen.findByText('Ugali and beans');
+
+    // The sentence moved off the card body onto the heading, reachable from the info hint.
+    expect(screen.getByRole('button', { name: 'About this section' })).toBeInTheDocument();
+    expect(screen.getByText('menus.management.description')).toBeInTheDocument();
+  });
 });
 
 describe('MerchantsPage (P0-H03)', () => {

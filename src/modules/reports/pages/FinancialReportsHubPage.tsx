@@ -71,7 +71,7 @@ const FinancialReportsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('financeReports.title', 'Finance Reports')}
-        subtitle={t(
+        info={t(
           'financeReports.subtitle',
           'View fees due reports, previous session fees, paid students, and votehead statements'
         )}

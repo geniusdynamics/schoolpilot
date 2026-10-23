@@ -113,12 +113,9 @@ export const StudentMasterlistPageContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card title={t('studentMasterlistPage.title')}>
+    <div className="space-y-3">
+      <Card title={t('studentMasterlistPage.title')} info={t('studentMasterlistPage.filterDescription')}>
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
-          <p className="text-sm text-surface-muted-fg mb-4">
-            {t('studentMasterlistPage.filterDescription')}
-          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(e.target.value || undefined); setSelectedStreamId(undefined);}}>
                 <option value="">{t('studentMasterlistPage.allClasses')}</option>
@@ -162,7 +159,7 @@ export const StudentMasterlistPageContent: React.FC = () => {
 };
 const StudentMasterlistPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentMasterlistPageContent />
     </div>
   </CanonicalRepositoryProvider>

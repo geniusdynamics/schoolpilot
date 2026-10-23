@@ -233,15 +233,12 @@ export const BookLoansPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card title={t('library:bookLoans.title')} actions={
+    <div className="space-y-3">
+      <Card title={t('library:bookLoans.title')} info={t('library:bookLoans.description')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('library:bookLoans.issueNewLoan')}
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          {t('library:bookLoans.description')}
-        </p>
         <DataGrid
           columns={columns}
           data={loans || []}
@@ -343,7 +340,7 @@ export const BookLoansPageContent: React.FC = () => {
 };
 const BookLoansPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <BookLoansPageContent />
     </div>
   </CanonicalRepositoryProvider>

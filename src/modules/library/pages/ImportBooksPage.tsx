@@ -8,12 +8,11 @@ import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import { UploadIcon, DocumentTextIcon, CheckIcon, XMarkIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 interface ImportRow {
   id: string;
@@ -36,8 +35,7 @@ interface ImportRow {
 }
 
 export const ImportBooksPageContent: React.FC = () => {
-  const { t } = useTranslation();
-  const { create: addBook, isLoading: booksLoading } = useBookData();
+  const { create: addBook } = useBookData();
   const { data: bookCategories } = useBookCategoryData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -174,7 +172,7 @@ export const ImportBooksPageContent: React.FC = () => {
 
         setImportData(importRows);
         setIsModalOpen(true);
-      } catch (error) {
+      } catch {
         alert('Error parsing file. Please ensure it is a valid CSV file.');
       }
     };
@@ -306,7 +304,7 @@ export const ImportBooksPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card 
         title="Import Books from CSV/Excel" 
         actions={
@@ -433,7 +431,7 @@ export const ImportBooksPageContent: React.FC = () => {
   );
 };
 const ImportBooksPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ImportBooksPageContent />
   </div>
 );

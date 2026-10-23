@@ -139,8 +139,8 @@ export const MealPlansPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title={t('mealPlans.managementTitle')} actions={
+    <div className="space-y-3">
+      <Card title={t('mealPlans.managementTitle')} info={t('mealPlans.managementDescription')} actions={
         <div className="flex space-x-2">
           {selectedRows.length > 0 && (
             <Button 
@@ -156,9 +156,6 @@ export const MealPlansPageContent: React.FC = () => {
           </Button>
         </div>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          {t('mealPlans.managementDescription')}
-        </p>
         <DataGrid 
           columns={columns} 
           data={mealPlans} 
@@ -216,7 +213,7 @@ export const MealPlansPageContent: React.FC = () => {
   );
 };
 const MealPlansPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <MealPlansPageContent />
   </div>
 );
