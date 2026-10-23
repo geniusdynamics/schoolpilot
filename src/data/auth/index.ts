@@ -50,3 +50,20 @@ export {
   type AuthorizedRepositoryOptions,
   type ScopedRepositoryOptions,
 } from './scopedRepository';
+
+export {
+  FINANCE_PERMISSIONS,
+  FINANCE_ROLES,
+  FinanceDutyError,
+  SEGREGATION_OF_DUTIES,
+  assertDeciderIsNotMaker,
+  assertMayPerform,
+  assertSegregatedDuties,
+  dutyRule,
+  dutyRuleFor,
+  mayPerform,
+  rolesHolding,
+  separationViolations,
+  type DutyMechanism,
+  type DutyRule,
+} from './permissions/finance';
