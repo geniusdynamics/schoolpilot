@@ -26,3 +26,6 @@ export {
   useTooltip
 } from './Tooltip';
 export type { TooltipProps, InfoTooltipProps, HelpTooltipProps, ValidationTooltipProps } from './Tooltip';
+
+export { InfoHint } from './InfoHint';
+export type { InfoHintProps } from './InfoHint';

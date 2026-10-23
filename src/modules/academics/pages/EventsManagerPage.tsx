@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
@@ -200,26 +201,17 @@ export const EventsManagerPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Events Manager</h1>
-        <Button onClick={() => openModal()} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
-      </div>
+      <PageHeaderWithTabs
+        title="Events Manager"
+        info="Manage school events including exams, holidays, functions, meetings, and sports activities. Track event schedules, locations, and participants."
+        action={
+          <Button onClick={() => openModal()} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Event
+          </Button>
+        }
+      />
       <Card>
-        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-purple-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-purple-800">School Events Calendar</h3>
-              <p className="text-sm text-purple-700 mt-1">
-                Manage school events including exams, holidays, functions, meetings, and sports activities. 
-                Track event schedules, locations, and participants.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">

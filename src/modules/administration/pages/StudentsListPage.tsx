@@ -495,7 +495,7 @@ export const StudentsListContent: React.FC = () => {
   const pageIsLoading = isLoading && learnerRows.length === 0 && status === 'loading';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Student Management"
         bodyClassName="p-0"

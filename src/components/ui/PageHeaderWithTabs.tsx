@@ -3,6 +3,7 @@
 
 import React from 'react';
 import PageErrorBoundary from '@/components/PageErrorBoundary';
+import { InfoHint } from '@/components/ui/feedback';
 
 export interface Tab {
   id: string;
@@ -14,6 +15,13 @@ export interface Tab {
 interface PageHeaderWithTabsProps {
   title?: string;
   subtitle?: string;
+  /**
+   * The same explanatory line as `subtitle`, shown on demand from an icon beside the title instead
+   * of occupying a row. Prefer this: a header that costs two text rows pushes the page's actual
+   * content down on every screen, and the sentence is read once. `subtitle` is honoured the same
+   * way, so a page that already passes one needs no change.
+   */
+  info?: string;
   tabs?: Tab[];
   activeTab?: string;
   onTabChange?: (tabId: string) => void;
@@ -130,6 +138,7 @@ const colorSchemes = {
 export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   title,
   subtitle,
+  info,
   tabs,
   activeTab,
   onTabChange,
@@ -140,6 +149,9 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   children,
 }) => {
   const colors = colorSchemes[colorScheme];
+  // Both props name the same thing: the sentence that explains the page. It is rendered on demand
+  // from the icon beside the title, so a page's content starts one row higher than it used to.
+  const explanation = info ?? subtitle;
 
   const renderTabPanel = () => {
     if (children === undefined || children === null) return null;
@@ -149,7 +161,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
         role="tabpanel"
         id={`tabpanel-${panelKey}`}
         aria-labelledby={`tab-${panelKey}`}
-        className="mt-4"
+        className="mt-2"
       >
         <PageErrorBoundary pageName={title ? `${title} / ${panelKey}` : panelKey} resetKey={panelKey}>
           {children}
@@ -232,19 +244,18 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   }
 
   return (
-    <div className={`${variant === 'compact' ? 'mb-3' : 'mb-4'}`}>
-      {/* Top row: Title and actions */}
+    <div className={`${variant === 'compact' ? 'mb-2' : 'mb-3'}`}>
+      {/* Top row: Title and actions. The title and its explanation share one line: the sentence
+          moves into a tooltip so the content below it starts higher on every screen. */}
       {(title || action || secondaryAction) && (
-        <div className="flex items-center justify-between mb-2">
-          <div>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-1.5 min-w-0">
             {title && (
-              <h1 className={`font-semibold text-surface-foreground ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
+              <h1 className={`font-semibold text-surface-foreground truncate ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
                 {title}
               </h1>
             )}
-            {subtitle && (
-              <p className="text-sm text-surface-muted-fg mt-0.5">{subtitle}</p>
-            )}
+            {explanation && <InfoHint text={explanation} label="About this page" />}
           </div>
           <div className="flex items-center gap-2">
             {secondaryAction}
