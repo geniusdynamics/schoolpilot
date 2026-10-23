@@ -6,6 +6,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { InfoHint } from '@/components/ui/feedback';
 import {
   ArrowUpIcon,
   ArrowDownIcon,
@@ -322,8 +323,10 @@ const ModuleDashboardShell: React.FC<ModuleDashboardShellProps> = ({
       <section className={`rounded-2xl border border-${accentColor}-100 bg-gradient-to-r ${accentColors.gradient} p-5 text-white shadow-sm sm:p-6`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
-            <p className="max-w-3xl text-sm text-primary-50 sm:text-base">{subtitle}</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
+              {subtitle && <InfoHint text={subtitle} label="About this dashboard" tone="onColor" />}
+            </div>
           </div>
           {heroIcon && (
             <div aria-hidden className="rounded-xl border border-white/25 bg-white/10 p-3 backdrop-blur-sm">

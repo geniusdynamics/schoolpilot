@@ -27,6 +27,12 @@ interface PageHeaderWithTabsProps {
   onTabChange?: (tabId: string) => void;
   action?: React.ReactNode;
   secondaryAction?: React.ReactNode;
+  /**
+   * A control that belongs *before* the title — a Back button on a detail page. Without this slot a
+   * detail page has to pass Back as a secondary action on the right, which is where four pages in
+   * the academics sweep had to put it.
+   */
+  leading?: React.ReactNode;
   variant?: 'default' | 'compact' | 'minimal';
   /**
    * Content of the active tab. When provided it is rendered as the tab panel inside an
@@ -144,6 +150,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   onTabChange,
   action,
   secondaryAction,
+  leading,
   variant = 'compact',
   colorScheme = 'blue',
   children,
@@ -250,6 +257,7 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
       {(title || action || secondaryAction) && (
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5 min-w-0">
+            {leading}
             {title && (
               <h1 className={`font-semibold text-surface-foreground truncate ${variant === 'compact' ? 'text-lg' : 'text-xl'}`}>
                 {title}

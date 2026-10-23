@@ -9,6 +9,11 @@ export interface InfoHintProps {
   /** The accessible name of the button. Says what the hint is about. */
   label?: string;
   className?: string;
+  /**
+   * `onColor` is for a heading that sits on a gradient hero — the default light-surface ring and
+   * muted ink disappear there, so the button takes the surrounding ink and a translucent ring.
+   */
+  tone?: 'default' | 'onColor';
 }
 
 /**
@@ -19,7 +24,17 @@ export interface InfoHintProps {
  * screen above the actual content. The sentence now lives here, one click away, and the heading
  * costs a single line.
  */
-export function InfoHint({ text, label = 'About this section', className = '' }: InfoHintProps) {
+export function InfoHint({
+  text,
+  label = 'About this section',
+  className = '',
+  tone = 'default',
+}: InfoHintProps) {
+  const ring =
+    tone === 'onColor'
+      ? 'border-white/50 text-white/90 hover:border-white hover:text-white focus:ring-white'
+      : 'border-surface-border text-surface-muted-fg hover:border-primary-400 hover:text-primary-600 focus:ring-primary-500';
+
   return (
     <Tooltip content={text} maxWidth="420px">
       <button
@@ -27,9 +42,9 @@ export function InfoHint({ text, label = 'About this section', className = '' }:
         aria-label={label}
         className={`
           inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full
-          border border-surface-border text-surface-muted-fg
-          transition-colors hover:border-primary-400 hover:text-primary-600
-          focus:outline-none focus:ring-2 focus:ring-primary-500
+          border transition-colors
+          focus:outline-none focus:ring-2
+          ${ring}
           ${className}
         `}
       >
