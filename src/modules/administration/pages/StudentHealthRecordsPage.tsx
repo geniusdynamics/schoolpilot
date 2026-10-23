@@ -144,7 +144,7 @@ const StudentHealthRecordsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title="Student Health Records Management">
         <p className="text-sm text-surface-muted-fg mb-4">
           Manage health records for each student, including blood type, allergies, medical conditions, and emergency contact overrides.

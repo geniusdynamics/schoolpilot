@@ -129,7 +129,7 @@ export const AcademicYearsContent: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Academic Years Management"
         actions={
@@ -258,7 +258,7 @@ export const AcademicYearsContent: React.FC = () => {
 };
 
 const AcademicYearsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AcademicYearsContent />
   </div>
 );

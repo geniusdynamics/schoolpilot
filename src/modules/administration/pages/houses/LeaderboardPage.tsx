@@ -21,11 +21,11 @@ const rankIcons: Record<number, string> = {
 
 const LeaderboardPage: React.FC = () => {
   const { t } = useTranslation('houses');
-  const { houses, loading, getLeaderboard } = useHousesData();
+  const { loading, getLeaderboard } = useHousesData();
 
   const leaderboard = useMemo(() => {
     return getLeaderboard();
-  }, [houses, getLeaderboard]);
+  }, [getLeaderboard]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -80,7 +80,7 @@ const LeaderboardPage: React.FC = () => {
       filterable: false,
       width: 140,
       align: 'center',
-      render: (value: number, item) => (
+      render: (value: number) => (
         <div>
           <span className="text-xl font-bold text-indigo-600">{value}</span>
           <p className="text-xs text-surface-muted-fg">total points</p>
@@ -200,7 +200,7 @@ const LeaderboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Stats Summary */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -229,7 +229,7 @@ const LeaderboardPage: React.FC = () => {
       {/* Full Leaderboard Table */}
       <Card
         title={t('leaderboard.title')}
-        subtitle="Complete house rankings"
+        info="Complete house rankings"
         icon={<ChartBarIcon className="w-5 h-5 text-indigo-600" />}
       >
         <DataGrid

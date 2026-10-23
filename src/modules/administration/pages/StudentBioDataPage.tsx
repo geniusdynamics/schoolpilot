@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
 import Spinner from '@/components/ui/Spinner';
@@ -33,7 +32,7 @@ const StudentBioDataPage: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedClass, searchTerm]);
+  }, [selectedClass, searchTerm, studentBioData]);
 
   const classes = ['Grade 10', 'Grade 9', 'Grade 8', 'Grade 7'];
 
@@ -48,23 +47,11 @@ const StudentBioDataPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">{t('studentBioData.title', 'Student Bio Data Management')}</h1>
-      </div>
-      
       {!selectedStudent ? (
-        <Card>
-          <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <UserIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-primary-800">{t('studentBioData.profiles', 'Comprehensive Student Profiles')}</h3>
-                <p className="text-sm text-primary-700 mt-1">
-                  {t('studentBioData.description', 'View and manage complete student bio data including emergency contacts, medical history, allergies, and documents.')}
-                </p>
-              </div>
-            </div>
-          </div>
+        <Card
+          title={t('studentBioData.title', 'Student Bio Data Management')}
+          info={t('studentBioData.description', 'View and manage complete student bio data including emergency contacts, medical history, allergies, and documents.')}
+        >
 
           {/* Filters */}
           <div className="mb-6 flex gap-4 flex-wrap">

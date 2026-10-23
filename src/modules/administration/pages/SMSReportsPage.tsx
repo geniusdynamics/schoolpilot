@@ -153,25 +153,15 @@ export const SMSReportsContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">SMS Reports</h1>
-        <Button variant="secondary">
-          Export Report
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ChatBubbleLeftRightIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">SMS Delivery and Status Reports</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                Track SMS delivery status, view delivery reports, and monitor failed messages. 
-                Filter by recipient type, status, date range, or search by recipient.
-              </p>
-            </div>
-          </div>
-        </div>
+      <Card
+        title="SMS Reports"
+        info="Track SMS delivery status, view delivery reports, and monitor failed messages. Filter by recipient type, status, date range, or search by recipient."
+        actions={
+          <Button variant="secondary">
+            Export Report
+          </Button>
+        }
+      >
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -290,7 +280,7 @@ export const SMSReportsContent: React.FC = () => {
 };
 
 const SMSReportsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <SMSReportsContent />
   </div>
 );

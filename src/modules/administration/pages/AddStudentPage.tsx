@@ -2,6 +2,7 @@
 // ABOUTME: The learner, the primary contact and the first enrolment are written through the repository in one transaction.
 
 import React, { useCallback, useMemo, useState } from 'react';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { withCanonicalRepository } from '../data/withCanonicalRepository';
 import { useNavigate } from 'react-router-dom';
 
@@ -310,9 +311,11 @@ const AddStudentPage: React.FC = () => {
   }, [form, handleFieldChange, classGroupsLookup]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-3">
+      <PageHeaderWithTabs
+        title="Add New Student"
+        info="Fill in the student information using the tabbed form below"
+        secondaryAction={
           <Button
             variant="ghost"
             size="sm"
@@ -321,14 +324,8 @@ const AddStudentPage: React.FC = () => {
           >
             Back to Students
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-foreground">Add New Student</h1>
-            <p className="text-sm text-surface-muted-fg">
-              Fill in the student information using the tabbed form below
-            </p>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       <Card className="mx-auto max-w-6xl">
         {error ? (

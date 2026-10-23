@@ -189,7 +189,7 @@ const StudentFinancialDetailPage: React.FC = () => {
   const formatCurrency = (amount: number = 0) => `Ksh ${amount.toFixed(2)}`;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card>
         <div className="flex justify-between items-center mb-6 pb-4 border-b">
           <div>

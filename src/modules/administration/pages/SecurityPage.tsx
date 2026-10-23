@@ -60,7 +60,7 @@ const SecurityPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('securityHub.title', 'Security')}
-        subtitle={t(
+        info={t(
           'securityHub.subtitle',
           'Manage visitor logs and gate pass requests'
         )}

@@ -271,7 +271,7 @@ export const ManualAttendanceContent: React.FC = () => {
 };
 
 const ManualAttendancePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ManualAttendanceContent />
   </div>
 );

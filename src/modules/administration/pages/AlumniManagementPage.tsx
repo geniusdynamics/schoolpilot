@@ -70,10 +70,10 @@ const AlumniEngagementContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-4 text-sm text-surface-muted-fg">
-        Track donations, mentorship, volunteering, and event participation activities
-      </div>
-      <Card title="Alumni Engagement">
+      <Card
+        title="Alumni Engagement"
+        info="Track donations, mentorship, volunteering, and event participation activities"
+      >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
             <div className="text-2xl font-bold text-purple-700">{engagementsCollection.data.length}</div>
@@ -187,10 +187,10 @@ const AlumniEventsContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-4 text-sm text-surface-muted-fg">
-        Plan and manage reunions, fundraisers, networking events, and workshops
-      </div>
-      <Card title="Alumni Events">
+      <Card
+        title="Alumni Events"
+        info="Plan and manage reunions, fundraisers, networking events, and workshops"
+      >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
             <div className="text-2xl font-bold text-primary-700">{eventsCollection.data.length}</div>
@@ -283,7 +283,7 @@ const AlumniManagementPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title="Alumni Management"
-        subtitle="Manage alumni records, track engagement, and coordinate events"
+        info="Manage alumni records, track engagement, and coordinate events"
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}

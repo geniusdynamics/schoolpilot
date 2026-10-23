@@ -217,7 +217,7 @@ export const ClassesContent: React.FC = () => {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('classes.title')}
         actions={
@@ -371,7 +371,7 @@ const ClassesPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('classManagement.title', 'Class Management')}
-        subtitle={t(
+        info={t(
           'classManagement.subtitle',
           'Manage classes, streams, and create bulk streams'
         )}

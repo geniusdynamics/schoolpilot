@@ -144,7 +144,7 @@ const ClassStandingsPage: React.FC = () => {
   // Build class standings
   const classStandings = useMemo(() => {
     return buildClassStandings(transactions, houses);
-  }, [transactions, houses, buildClassStandings]);
+  }, [transactions, houses]);
 
   // Filter by selected class
   const filteredStandings = useMemo(() => {
@@ -184,7 +184,7 @@ const ClassStandingsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Stats Summary */}
       {overallStats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -214,7 +214,7 @@ const ClassStandingsPage: React.FC = () => {
       {/* Filter */}
       <Card
         title={t('houses.classStandings', 'Class Standings')}
-        subtitle="Student rankings grouped by class"
+        info="Student rankings grouped by class"
         icon={<UsersIcon className="w-5 h-5 text-indigo-600" />}
         actions={
           classNames.length > 0 && (
@@ -301,7 +301,7 @@ const ClassStandingsPage: React.FC = () => {
       {filteredStandings.length > 0 && (
         <Card
           title="House Distribution"
-          subtitle="Student count by house per class"
+          info="Student count by house per class"
         >
           <div className="space-y-4">
             {filteredStandings.map((classStanding) => {

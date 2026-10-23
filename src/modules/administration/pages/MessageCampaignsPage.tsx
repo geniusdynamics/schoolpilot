@@ -242,7 +242,7 @@ export const MessageCampaignsContent: React.FC = () => {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title={t('MessageCampaignsPage.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('MessageCampaignsPage.createCampaign')}
@@ -373,7 +373,7 @@ export const MessageCampaignsContent: React.FC = () => {
 };
 
 const MessageCampaignsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <MessageCampaignsContent />
   </div>
 );

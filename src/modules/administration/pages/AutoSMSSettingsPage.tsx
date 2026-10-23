@@ -6,16 +6,14 @@ import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
-import { ChatBubbleLeftRightIcon, PlusIcon, BellIcon, CheckIcon, XMarkIcon } from '@/components/ui/icons';
+import { ChatBubbleLeftRightIcon, PlusIcon, CheckIcon, XMarkIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { AutoSMSSetting, TriggerType, RecipientType } from '../data/types';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 export const AutoSMSSettingsContent: React.FC = () => {
-  const { t } = useTranslation('administration');
   const settingsCollection = useDatabaseCollection<AutoSMSSetting>('auto_sms_settings');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -222,26 +220,16 @@ export const AutoSMSSettingsContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Auto-Send SMS Settings</h1>
-        <Button onClick={() => openModal()} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Rule
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <BellIcon className="w-5 h-5 text-violet-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-violet-800">Trigger-Based SMS Automation</h3>
-              <p className="text-sm text-violet-700 mt-1">
-                Configure automatic SMS notifications triggered by events like attendance, fees due, exam results, 
-                announcements, and birthdays. Set recipient types, templates, and conditions for each automation rule.
-              </p>
-            </div>
-          </div>
-        </div>
+      <Card
+        title="Auto-Send SMS Settings"
+        info="Configure automatic SMS notifications triggered by events like attendance, fees due, exam results, announcements, and birthdays. Set recipient types, templates, and conditions for each automation rule."
+        actions={
+          <Button onClick={() => openModal()} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Rule
+          </Button>
+        }
+      >
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -416,7 +404,7 @@ export const AutoSMSSettingsContent: React.FC = () => {
 };
 
 const AutoSMSSettingsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AutoSMSSettingsContent />
   </div>
 );

@@ -196,25 +196,16 @@ export const GatePassContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">{t('gatePass.title', 'Student Gate Pass Issuance')}</h1>
-        <Button onClick={openModal} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          {t('gatePass.newPass', 'New Gate Pass')}
-        </Button>
-      </div>
-      <Card>
-        <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <TicketIcon className="w-5 h-5 text-orange-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-orange-800">{t('gatePass.management', 'Gate Pass Management')}</h3>
-              <p className="text-sm text-orange-700 mt-1">
-                {t('gatePass.description', 'Manage student gate passes for early departures, medical emergencies, and personal reasons.')}
-              </p>
-            </div>
-          </div>
-        </div>
+      <Card
+        title={t('gatePass.title', 'Student Gate Pass Issuance')}
+        info={t('gatePass.description', 'Manage student gate passes for early departures, medical emergencies, and personal reasons.')}
+        actions={
+          <Button onClick={openModal} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            {t('gatePass.newPass', 'New Gate Pass')}
+          </Button>
+        }
+      >
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -496,7 +487,7 @@ export const GatePassContent: React.FC = () => {
 };
 
 const GatePassPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <GatePassContent />
   </div>
 );

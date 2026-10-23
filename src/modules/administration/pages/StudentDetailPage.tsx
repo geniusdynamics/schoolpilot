@@ -244,7 +244,7 @@ const StudentDetailPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b">
             <div>

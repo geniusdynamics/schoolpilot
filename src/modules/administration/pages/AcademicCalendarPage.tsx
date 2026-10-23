@@ -77,7 +77,7 @@ const AcademicCalendarPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('academicCalendar.title', 'Academic Calendar')}
-        subtitle={t(
+        info={t(
           'academicCalendar.subtitle',
           'Manage academic years, school periods, period definitions, and year structures'
         )}

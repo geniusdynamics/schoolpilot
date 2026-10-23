@@ -117,10 +117,10 @@ const StudentClearancePage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('clearance.title')}
-        description={t('clearance.description')}
+        info={t('clearance.description')}
         actions={
           <Button onClick={openModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('clearance.newRequest')}

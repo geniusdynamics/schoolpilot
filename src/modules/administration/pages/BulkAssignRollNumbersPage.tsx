@@ -186,20 +186,8 @@ export const BulkAssignRollNumbersContent: React.FC = () => {
             Assign Roll Numbers
           </Button>
         }
+        info="Automatically assign sequential roll numbers to students in a class, or manually assign specific roll numbers. Select a class or specific students to begin assignment."
       >
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <UserIcon className="w-5 h-5 text-amber-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-amber-800">Auto/Manual Roll Number Assignment</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Automatically assign sequential roll numbers to students in a class, or manually assign
-                specific roll numbers. Select a class or specific students to begin assignment.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-surface-card border border-surface-border rounded-lg p-4">
@@ -345,7 +333,7 @@ export const BulkAssignRollNumbersContent: React.FC = () => {
 };
 
 const BulkAssignRollNumbersPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BulkAssignRollNumbersContent />
   </div>
 );

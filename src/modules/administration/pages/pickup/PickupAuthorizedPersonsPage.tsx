@@ -142,7 +142,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
       showToast({ variant: 'success', message: 'Authorized person added successfully.' });
       setAddModalOpen(false);
       resetForm();
-    } catch (error) {
+    } catch {
       showToast({ variant: 'error', message: 'Failed to add authorized person.' });
     } finally {
       setSaving(false);
@@ -161,7 +161,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
       try {
         await removeAuthorizedPerson(personToDelete.id);
         showToast({ variant: 'success', message: 'Authorized person removed successfully.' });
-      } catch (error) {
+      } catch {
         showToast({ variant: 'error', message: 'Failed to remove authorized person.' });
       } finally {
         setDeleting(false);
@@ -281,7 +281,7 @@ const PickupAuthorizedPersonsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={String(t('authorizedPerson.plural'))}
         actions={

@@ -213,19 +213,8 @@ export const BulkStudentUpdateContent: React.FC = () => {
             Update Selected ({selectedStudents.size})
           </Button>
         }
+        info="Select multiple students and update their records in bulk. Choose from fields like class, section, roll number, phone, email, or address to update all selected students at once."
       >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <UserIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">Multi-Field Batch Update</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                Select multiple students and update their records in bulk. Choose from fields like class, section,
-                roll number, phone, email, or address to update all selected students at once.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Card */}
         <div className="mb-6 bg-surface-card border border-surface-border rounded-lg p-4">
@@ -323,7 +312,7 @@ export const BulkStudentUpdateContent: React.FC = () => {
 };
 
 const BulkStudentUpdatePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BulkStudentUpdateContent />
   </div>
 );

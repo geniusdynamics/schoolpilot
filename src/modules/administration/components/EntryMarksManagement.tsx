@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -168,11 +169,11 @@ export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-surface-foreground">Pre-NA Marks Management</h2>
-        <p className="text-sm text-surface-muted-fg mt-1">Manage Pre-NA exam marks</p>
-      </div>
+    <div className="space-y-3">
+      <PageHeaderWithTabs
+        title="Pre-NA Marks Management"
+        info="Manage Pre-NA exam marks"
+      />
 
       <Card>
         <DataGrid
