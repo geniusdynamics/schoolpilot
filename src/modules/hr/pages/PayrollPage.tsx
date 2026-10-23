@@ -84,7 +84,7 @@ export const PayrollPageContent: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('payrollHub.title', 'Payroll Management')}
-        subtitle={t(
+        info={t(
           'payrollHub.subtitle',
           'Manage payroll item types, periods, payslips, and staff salary settings'
         )}
@@ -104,7 +104,7 @@ export const PayrollPageContent: React.FC = () => {
   );
 };
 const PayrollPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <PayrollPageContent />
   </div>
 );

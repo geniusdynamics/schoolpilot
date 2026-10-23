@@ -196,13 +196,13 @@ export const PayrollItemTypesPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card
         title={t('payrollItemTypes.title')}
+        info={t('payrollItemTypes.description')}
         actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('payrollItemTypes.addButton')}
           </Button>
         }
       >
-        <p className="text-sm text-surface-muted-fg mb-4">{t('payrollItemTypes.description')}</p>
         {appDataLoading.payrollItemTypes ? (
           <div className="flex justify-center py-8">
             <Spinner />
@@ -293,7 +293,7 @@ export const PayrollItemTypesPageContent: React.FC = () => {
 };
 
 const PayrollItemTypesPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <PayrollItemTypesPageContent />
   </div>
 );

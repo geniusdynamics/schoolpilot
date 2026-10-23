@@ -62,33 +62,14 @@ const MiniCalendar: React.FC = () => {
   );
 };
 
-// Metric Card Component
-const MetricCard: React.FC<{
-  title: string;
-  value: string | number;
-  trend?: { direction: 'up' | 'down' | 'neutral'; value: string };
-  color: string;
-}> = ({ title, value, trend, color }) => (
-  <div className="bg-surface-card rounded-lg p-4 text-center border border-surface-border">
-    <p className="text-sm text-surface-muted-fg mb-1">{title}</p>
-    <p className={`text-3xl font-bold ${color}`}>{value}</p>
-    {trend && (
-      <p className={`text-xs mt-1 ${trend.direction === 'up' ? 'text-emerald-600' : trend.direction === 'down' ? 'text-rose-600' : 'text-surface-muted-fg'}`}>
-        {trend.direction === 'up' ? '▲' : trend.direction === 'down' ? '▼' : '−'} {trend.value}
-      </p>
-    )}
-  </div>
-);
-
 // Pipeline Card Component
 const PipelineCard: React.FC<{
   label: string;
   count: number;
   isActive: boolean;
   onClick: () => void;
-  colorClass: string;
   textClass: string;
-}> = ({ label, count, isActive, onClick, colorClass, textClass }) => (
+}> = ({ label, count, isActive, onClick, textClass }) => (
   <button
     onClick={onClick}
     className={`relative flex flex-col items-start p-4 rounded-lg border-2 transition-all duration-200 w-full text-left group
@@ -351,7 +332,6 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       count={statistics.pipeline.contacts}
                       isActive={activePipelineFilter === 'contacts'}
                       onClick={() => setActivePipelineFilter('contacts')}
-                      colorClass="bg-surface-muted"
                       textClass="text-surface-muted-fg"
                     />
                     <PipelineCard
@@ -359,7 +339,6 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       count={statistics.pipeline.enquired}
                       isActive={activePipelineFilter === 'enquired'}
                       onClick={() => setActivePipelineFilter('enquired')}
-                      colorClass="bg-amber-50"
                       textClass="text-amber-600"
                     />
                     <PipelineCard
@@ -367,7 +346,6 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       count={statistics.pipeline.applied}
                       isActive={activePipelineFilter === 'applied'}
                       onClick={() => setActivePipelineFilter('applied')}
-                      colorClass="bg-primary-50"
                       textClass="text-primary-600"
                     />
                     <PipelineCard
@@ -375,7 +353,6 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       count={statistics.pipeline.admitted}
                       isActive={activePipelineFilter === 'admitted'}
                       onClick={() => setActivePipelineFilter('admitted')}
-                      colorClass="bg-emerald-50"
                       textClass="text-emerald-600"
                     />
                     <PipelineCard
@@ -383,7 +360,6 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       count={statistics.pipeline.enrolled}
                       isActive={activePipelineFilter === 'enrolled'}
                       onClick={() => setActivePipelineFilter('enrolled')}
-                      colorClass="bg-violet-50"
                       textClass="text-violet-600"
                     />
                   </div>
@@ -515,7 +491,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
   );
 };
 const AdmissionsDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AdmissionsDashboardPageContent />
   </div>
 );

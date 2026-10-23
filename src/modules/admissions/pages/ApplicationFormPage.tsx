@@ -494,7 +494,7 @@ export const ApplicationFormPageContent: React.FC = () => {
   );
 };
 const ApplicationFormPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ApplicationFormPageContent />
   </div>
 );

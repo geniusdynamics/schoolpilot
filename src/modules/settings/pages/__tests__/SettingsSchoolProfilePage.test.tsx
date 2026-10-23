@@ -83,4 +83,15 @@ describe('SettingsSchoolProfilePage', () => {
     expect(store.rows.size).toBe(1);
     expect(store.rows.get('school-1')).toMatchObject({ name: 'New Name', school_code: 'S001' });
   });
+
+  it('keeps the section explanation on the card heading instead of a description row', async () => {
+    render(<SettingsSchoolProfilePage />);
+    await screen.findByText('schoolProfile.saveButton');
+
+    // The sentence moved off the page body onto the heading, so it is still in the DOM — reachable
+    // from the info hint rather than spent on a row above the form.
+    const hint = screen.getByRole('button', { name: 'About this section' });
+    expect(hint).toBeInTheDocument();
+    expect(screen.getByText('schoolProfile.description')).toBeInTheDocument();
+  });
 });

@@ -199,10 +199,10 @@ export const AdmissionsRegisterPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title="Applicants and admitted learners"
-        subtitle="Every learner of the canonical register, with the class group and the guardians of the day."
+        info="Every learner of the canonical register, with the class group and the guardians of the day."
         actions={
           <Button
             onClick={() => navigate('/admissions/admit')}

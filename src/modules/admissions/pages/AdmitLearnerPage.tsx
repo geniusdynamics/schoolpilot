@@ -237,7 +237,7 @@ export const AdmitLearnerPageContent: React.FC = () => {
 
   if (result) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <Card title="Learner admitted">
           <div role="status" data-testid="admission-result" className="space-y-3">
             <p className="text-lg font-semibold text-surface-foreground">

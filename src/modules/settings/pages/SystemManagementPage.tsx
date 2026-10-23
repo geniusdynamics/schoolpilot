@@ -122,7 +122,7 @@ const SystemManagementPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('systemManagement.title', 'System Management')}
-        subtitle={t('systemManagement.subtitle', 'Manage data layer, modules, dependencies, and plugins')}
+        info={t('systemManagement.subtitle', 'Manage data layer, modules, dependencies, and plugins')}
         tabs={tabs.map((tab) => ({
           id: tab.id,
           label: tab.label,

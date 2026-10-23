@@ -197,13 +197,13 @@ export const PayslipsPageContent: React.FC = () => {
     <div className="space-y-6">
       <Card
         title={t('payslips.title')}
+        info={t('payslips.description')}
         actions={
           <Button onClick={openModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('payslips.generateButton')}
           </Button>
         }
       >
-        <p className="text-sm text-surface-muted-fg mb-4">{t('payslips.description')}</p>
         {appDataLoading.payslips ? (
           <div className="flex justify-center py-8">
             <Spinner />
@@ -348,7 +348,7 @@ export const PayslipsPageContent: React.FC = () => {
 
 const PayslipsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <PayslipsPageContent />
     </div>
   </CanonicalRepositoryProvider>

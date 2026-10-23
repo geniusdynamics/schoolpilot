@@ -92,7 +92,7 @@ const SchoolOperationsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('schoolOperations.title', 'School Operations')}
-        subtitle={t('schoolOperations.subtitle', 'Manage school profile, users, workflows, audit logs, and interface settings')}
+        info={t('schoolOperations.subtitle', 'Manage school profile, users, workflows, audit logs, and interface settings')}
         tabs={tabs.map((tab) => ({
           id: tab.id,
           label: tab.label,

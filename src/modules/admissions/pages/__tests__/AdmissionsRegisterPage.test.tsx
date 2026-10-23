@@ -160,6 +160,20 @@ describe('AdmissionsRegisterPage', () => {
     expect(screen.queryByText('Daniel Kiptoo')).not.toBeInTheDocument();
   });
 
+  it('keeps the register explanation on the card heading instead of a description row', async () => {
+    renderPage();
+    await screen.findByText('Amani Wekesa');
+
+    // The subtitle moved onto the card header, so it is read from the info hint, not a row.
+    const hint = screen.getByRole('button', { name: 'About this section' });
+    expect(hint).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Every learner of the canonical register, with the class group and the guardians of the day.'
+      )
+    ).toBeInTheDocument();
+  });
+
   it('edits a guardian through the schema-bound guardian form', async () => {
     renderPage();
     await screen.findByText('Amani Wekesa');

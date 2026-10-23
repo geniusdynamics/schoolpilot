@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Button from '@/components/ui/Button';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Modal from '@/components/ui/Modal';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';
@@ -381,15 +382,12 @@ export const ModuleManagementContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <Card title={t('moduleManagement.title')}>
-        <div className="text-center py-8">
-          <CogIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-surface-foreground">{t('moduleManagement.header')}</h2>
-          <p className="text-surface-muted-fg">{t('moduleManagement.description')}</p>
-        </div>
-      </Card>
+      <PageHeaderWithTabs
+        title={t('moduleManagement.title')}
+        info={t('moduleManagement.description')}
+      />
 
       {/* Filters and Search */}
       <Card title={t('moduleManagement.filtersTitle')}>

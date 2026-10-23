@@ -12,6 +12,7 @@ import {
 import { useToast } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import { logger } from '@/utils/logging';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 
 interface FormTemplate {
   id: string;
@@ -176,13 +177,11 @@ const FormBuilderPage: React.FC = () => {
   const { t } = useTranslation('admissions');
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-surface-foreground">{t('formBuilder.title', 'Form Builder')}</h1>
-        <p className="text-sm text-surface-muted-fg mt-1">
-          {t('formBuilder.pageSubtitle', 'Design and manage admission application forms')}
-        </p>
-      </div>
+    <div className="space-y-3">
+      <PageHeaderWithTabs
+        title={t('formBuilder.title', 'Form Builder')}
+        info={t('formBuilder.pageSubtitle', 'Design and manage admission application forms')}
+      />
       <FormBuilderPageContent />
     </div>
   );

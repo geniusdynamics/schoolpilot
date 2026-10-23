@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -43,11 +43,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    loadApplicationData();
-  }, [applicationId]);
-
-  const loadApplicationData = async () => {
+  const loadApplicationData = useCallback(async () => {
     if (!applicationId) return;
     
     setLoading(true);
@@ -63,7 +59,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
       setDocuments(docs);
       setReviews(revs);
       setNotes(noteList);
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to load application details.',
@@ -71,7 +67,11 @@ export const ApplicationDetailPageContent: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [applicationId, getApplication, getApplicationDocuments, getApplicationReviews, getApplicationNotes, showToast]);
+
+  useEffect(() => {
+    loadApplicationData();
+  }, [loadApplicationData]);
 
   const handleBack = () => {
     navigate('/admissions/applications');
@@ -92,7 +92,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
           message: 'Application deleted successfully.',
         });
         navigate('/admissions/applications');
-      } catch (error) {
+      } catch {
         showToast({
           type: 'error',
           message: 'Failed to delete application.',
@@ -133,7 +133,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center space-x-4">
@@ -472,7 +472,7 @@ export const ApplicationDetailPageContent: React.FC = () => {
   );
 };
 const ApplicationDetailPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ApplicationDetailPageContent />
   </div>
 );

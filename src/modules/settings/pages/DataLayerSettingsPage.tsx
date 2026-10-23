@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/data/DataServiceFactory';
@@ -259,11 +260,8 @@ export const DataLayerSettingsContent: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-3">
-        <Cog6ToothIcon className="w-6 h-6" />
-        <h1 className="text-2xl font-bold">Data Layer Settings</h1>
-      </div>
+    <div className="max-w-4xl mx-auto p-6 space-y-3">
+      <PageHeaderWithTabs title="Data Layer Settings" />
 
       {isLoading && (
         <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">

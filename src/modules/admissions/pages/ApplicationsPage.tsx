@@ -76,7 +76,7 @@ const ApplicationsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('applicationsHub.title', 'Application Management')}
-        subtitle={t(
+        info={t(
           'applicationsHub.subtitle',
           'Manage applications, review queue, details, and tracking'
         )}

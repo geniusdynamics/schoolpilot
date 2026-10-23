@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/icons';
 import FeatureSettingsPage from './FeatureSettingsPage';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { User, Role, Workflow, WorkflowState } from '@/types';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logging';
@@ -387,10 +388,7 @@ export const UnifiedSettingsContent: React.FC = () => {
 
   return (
     <PageContainer>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-surface-foreground">{t('title')}</h1>
-        <p className="text-surface-muted-fg mt-2">{t('description')}</p>
-      </div>
+      <PageHeaderWithTabs title={t('title')} info={t('description')} />
 
       {/* Tab Navigation */}
       <div className="border-b border-surface-border mb-6">

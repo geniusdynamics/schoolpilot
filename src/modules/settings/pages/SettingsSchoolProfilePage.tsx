@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
-import { IdentificationIcon } from '@/components/ui/icons';
 import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import { SchoolDetails } from '@/types';
 import Input from '@/components/ui/Input';
@@ -78,7 +77,7 @@ export const SettingsSchoolProfileContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card title={t('schoolProfile.setupWizard.title', 'Setup wizard')}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-surface-muted-fg">
@@ -93,13 +92,10 @@ export const SettingsSchoolProfileContent: React.FC = () => {
           </Button>
         </div>
       </Card>
-      <Card title={t('schoolProfile.title')}>
-        <div className="text-center py-8 border-b mb-6">
-          <IdentificationIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-surface-foreground">{t('schoolProfile.header')}</h2>
-          <p className="text-surface-muted-fg">{t('schoolProfile.description')}</p>
-        </div>
-
+      <Card
+        title={t('schoolProfile.title')}
+        info={t('schoolProfile.description')}
+      >
         {pageIsLoading ? (
           <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">{t('schoolProfile.loadingDetails')}</span></div>
         ) : (

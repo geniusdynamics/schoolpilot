@@ -138,7 +138,7 @@ const DatabaseBackupPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-3 p-6">
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -194,7 +194,7 @@ const DatabaseBackupPage: React.FC = () => {
       {/* Backup History */}
       <Card
         title="Backup History"
-        description="View and manage database backups"
+        info="View and manage database backups"
         actions={
           <div className="flex gap-2">
             <Badge variant="success">{completedCount} Successful</Badge>

@@ -76,7 +76,7 @@ const ConfigurationPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('configuration.title', 'System Configuration')}
-        subtitle={t('configuration.subtitle', 'Manage system settings, feature flags, and general preferences')}
+        info={t('configuration.subtitle', 'Manage system settings, feature flags, and general preferences')}
         tabs={tabs.map((tab) => ({
           id: tab.id,
           label: tab.label,
