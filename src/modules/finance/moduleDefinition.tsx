@@ -104,6 +104,8 @@ export const financeModule: ModuleDefinition = {
     { path: '/finance/fee-items', page: 'feeItems/FeeItemsPage' },
     // The fee-schedule matrix editor is the same shape: a nested page and a hub tab.
     { path: '/finance/fee-schedules', page: 'schedules/FeeSchedulesPage' },
+    // The billing run v2: preview with reasons and exceptions, then post in one transaction.
+    { path: '/finance/billing-runs', page: 'billing/BillingRunsPage' },
     { path: '/finance/fee-rules', page: 'FeeRulesPage' },
     { path: '/finance/accounting-config', page: 'AccountingConfigPage' },
     { path: '/finance/financial-years', page: 'FinancialYearsPage' },
