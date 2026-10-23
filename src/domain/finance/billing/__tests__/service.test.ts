@@ -266,6 +266,55 @@ describe('the preview', () => {
     expect(line?.reasons.some((reason) => reason.includes('opening balance carried from a previous system'))).toBe(true);
   });
 
+  it('prices a learner who names no fee category from a schedule that declares exactly one', async () => {
+    const { tuition } = await publishTuition();
+    // The admission form records no fee category, which is the state every learner the app itself
+    // admits is in. A schedule that declares exactly one category prices them: the matrix resolves an
+    // omitted dimension the schedule is unambiguous about, so the pre-filter must not refuse a learner
+    // the resolver would have priced.
+    const learner = await fixture.enrol({
+      admissionNumber: 'CAT-1',
+      residence: 'day',
+      levelId: fixture.levelId,
+      startDate: '2027-01-05',
+      feeCategoryIds: [],
+    });
+
+    const preview = await fixture.service().preview(fixture.request({ learnerIds: [learner] }));
+
+    expect(preview.skips).toEqual([]);
+    expect(preview.lines).toHaveLength(1);
+    expect(preview.lines[0]?.items.map((item) => item.feeItemId)).toEqual([tuition]);
+  });
+
+  it('reports a cell it cannot resolve rather than guessing one', async () => {
+    // A schedule that declares no category at all cannot price a learner who names none: the refusal
+    // is the matrix's, and the run reports it by name instead of inventing a cell.
+    const tuition = await fixture.feeItem('TUIT-T2', 'Tuition');
+    await fixture.publishSchedule({
+      name: 'No category fees',
+      levelIds: [fixture.levelId],
+      residences: ['day'],
+      feeCategoryIds: [],
+      lines: [
+        { feeItemId: tuition, amountMinor: 500_000, levelId: fixture.levelId, residence: 'day' },
+      ],
+    });
+    const learner = await fixture.enrol({
+      admissionNumber: 'CAT-2',
+      residence: 'day',
+      levelId: fixture.levelId,
+      startDate: '2027-01-05',
+      feeCategoryIds: [],
+    });
+
+    const preview = await fixture.service().preview(fixture.request({ learnerIds: [learner] }));
+
+    expect(preview.lines).toEqual([]);
+    expect(preview.skips[0]?.code).toBe('cell_unresolved');
+    expect(preview.skips[0]?.detail).toContain('declares no fee category');
+  });
+
   it('reports a learner who is already billed, and a charge outside the cohort', async () => {
     await publishTuition();
     const learner = await enrolDayLearner('PRE-8');
@@ -308,6 +357,11 @@ describe('the post', () => {
     expect(outcome.invoicesCreated).toBe(1);
     expect(outcome.ledgerEntries).toBe(1);
     expect(toDecimalString(outcome.amount)).toBe('6000.00');
+    // The outcome names the invoice it wrote. The number is what the school quotes when it collects
+    // the money, so the run reports it rather than leaving the caller to look the invoice up.
+    expect(outcome.invoices).toEqual([
+      { learnerId: learner, number: 'INV/2027/1/000001', supplementary: false },
+    ]);
 
     const invoices = await invoicesOf();
     expect(invoices).toHaveLength(1);
@@ -466,6 +520,8 @@ describe('idempotency', () => {
     expect(second.invoicesCreated).toBe(0);
     expect(second.ledgerEntries).toBe(0);
     expect(second.amount.amount_minor).toBe(0);
+    // A replay wrote nothing, so it names no invoice.
+    expect(second.invoices).toEqual([]);
     expect(second.original?.invoicesCreated).toBe(1);
     expect(second.original?.learnersBilled).toBe(1);
     expect(await invoicesOf()).toHaveLength(1);

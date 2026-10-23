@@ -204,6 +204,19 @@ export interface PostedBillingRun {
   readonly postedBy: string | null;
 }
 
+/**
+ * One invoice a run wrote, and the learner it belongs to.
+ *
+ * The number is the one the sequences module issued, which is what the school quotes when it
+ * collects the money - so a run reports it rather than leaving the caller to look it up.
+ */
+export interface WrittenInvoice {
+  readonly learnerId: string;
+  readonly number: string;
+  /** True when the learner already held an invoice for the period and this one carries the rest. */
+  readonly supplementary: boolean;
+}
+
 /** What a post did, or that it replayed an earlier run. */
 export interface BillingRunOutcome {
   readonly key: string;
@@ -217,6 +230,8 @@ export interface BillingRunOutcome {
   readonly ledgerEntries: number;
   /** What this call added to the learners' balances. */
   readonly amount: Money;
+  /** The invoices this call wrote, with the numbers the sequences module issued. */
+  readonly invoices: readonly WrittenInvoice[];
   /** The state of the run as it is now; after a post, every learner it billed is already billed. */
   readonly preview: BillingRunPreview;
 }

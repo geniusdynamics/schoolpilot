@@ -156,10 +156,11 @@ function scheduleRejection(
   ) {
     return `${row.name} v${row.version} prices other residences`;
   }
-  if (
-    row.fee_category_ids.length > 0 &&
-    (category === null || !row.fee_category_ids.includes(category))
-  ) {
+  // A learner whose enrolment names no fee category is left to the matrix: it resolves an omitted
+  // dimension when the schedule declares exactly one value for it, and refuses with a stated reason
+  // (`cell_dimension_undeclared`, `cell_ambiguous`) when the schedule declares none or several. Only a
+  // category the learner *names* can be one the schedule does not price.
+  if (row.fee_category_ids.length > 0 && category !== null && !row.fee_category_ids.includes(category)) {
     return `${row.name} v${row.version} prices other fee categories`;
   }
   if (row.new_learners_only) {

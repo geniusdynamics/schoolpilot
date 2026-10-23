@@ -16,6 +16,8 @@ const preview = await service.preview({ scope: { periodId } });
 
 const outcome = await service.post({ scope: { periodId } });
 // outcome.invoicesCreated, outcome.ledgerEntries, outcome.replayed
+// outcome.invoices — one entry per invoice written: the learner, the number the sequence issued,
+// and whether it is supplementary to an invoice the learner already held
 ```
 
 ## What already existed, and what this module changes
@@ -65,6 +67,16 @@ no proration, ad-hoc charges or opening balances.
 | `already_billed` | the learner's live invoice for the period already bills every item this run would add |
 | `zero_total` | every applicable line prorated to nothing |
 | `out_of_scope` | a charge or opening balance names a learner outside the run's cohort |
+
+### A dimension the learner does not name
+
+A cell is level × residence × fee category. An enrolment names its level and programme and the learner
+names their residence, but **nothing in the app names a fee category yet**: the admission form does not
+collect one. A dimension the address omits is resolved when the schedule declares exactly one value for
+it, and refused with a stated reason when it declares none (`cell_dimension_undeclared`) or several
+(`cell_ambiguous`). A schedule that declares one category therefore prices every learner whose enrolment
+names none — the school prices one category, so that is the one they are in — and only a category the
+learner *names* can be one the schedule does not price.
 
 ## The post: one transaction
 
