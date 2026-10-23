@@ -78,10 +78,21 @@ async function measureProbe() {
     let up = false;
     for (let i = 0; i < 90 && !up; i++) {
       await new Promise((r) => setTimeout(r, 1000));
+      // `--strictPort` makes the server we started exit when the port is already taken. Something else
+      // then answers the poll below, and the probe measures a stranger's build: a stale dev server from
+      // an earlier session left on 5299 held that port for two days, and the probe reported the app
+      // never rendering — a verdict about nothing in this tree. Our own server dying is the signal.
+      if (server.exitCode !== null || server.signalCode !== null) {
+        return { pass: 0, total: 0, error: `the dev server on port ${port} exited before it answered; another process already holds that port. Stop it, or pass --port <free port>.` };
+      }
       up = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', `http://localhost:${port}/`], { encoding: 'utf8' }).stdout === '200';
     }
     if (!up) return { pass: 0, total: 0, error: 'dev server did not start' };
     const out = path.join(REPORT_DIR, 'probe.md');
+    // A report an earlier run left behind is not this run's evidence. Delete it first, so the count
+    // below can only come from the probe about to run: a probe that dies before writing leaves the old
+    // file in place, and its PASS rows would be read as this run's.
+    fs.rmSync(out, { force: true });
     const run = spawnSync('node', ['scripts/audit/school-ops-probe.mjs', '--out', out], { cwd: ROOT, env: { ...process.env, BASE_URL: `http://localhost:${port}` }, stdio: 'inherit', timeout: 30 * 60 * 1000 });
     const md = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
     const pass = (md.match(/\| PASS \|/g) || []).length;
