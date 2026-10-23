@@ -36,6 +36,8 @@ export interface CanonicalStaffMember {
   readonly employment_type: string;
   readonly job_title_id: string | null;
   readonly designation_id: string | null;
+  /** The canonical login this staff member signs in with, or null when they have none. */
+  readonly user_id: string | null;
   readonly job_title: string;
   readonly designation_title: string;
   readonly department_ids: readonly string[];
@@ -70,6 +72,8 @@ export interface StaffFormValues {
   readonly is_active: boolean;
   readonly national_id: string;
   readonly employer_number: string;
+  /** The canonical login the staff member signs in with, or null when they have none. */
+  readonly user_id: string | null;
 }
 
 /** The canonical employment types, in the order the staff form offers them. */
@@ -146,6 +150,7 @@ export function toCanonicalStaffMember(
     employment_type: row.employment_type,
     job_title_id: row.job_title_id ?? null,
     designation_id: row.job_title_id ?? null,
+    user_id: row.user_id ?? null,
     job_title: row.job_title_id ? jobTitleLabel(row.job_title_id) : '',
     designation_title: row.job_title_id ? jobTitleLabel(row.job_title_id) : '',
     department_ids: departmentIds,
@@ -186,6 +191,7 @@ export function staffCreateInput(
     start_date: values.start_date || new Date().toISOString().slice(0, 10),
     ...(values.designation_id ? { job_title_id: values.designation_id } : {}),
     ...(values.end_date ? { end_date: values.end_date } : {}),
+    ...(values.user_id ? { user_id: values.user_id } : {}),
     ...(phone ? { phones: [phone] } : {}),
     ...(email ? { emails: [email] } : {}),
   };
@@ -205,6 +211,7 @@ export function staffUpdateInput(values: StaffFormValues): UpdateInput<'staff'> 
     department_ids: departmentId ? [departmentId] : [],
     ...(values.designation_id ? { job_title_id: values.designation_id } : {}),
     ...(values.end_date ? { end_date: values.end_date } : { end_date: null }),
+    ...(values.user_id ? { user_id: values.user_id } : {}),
     ...(phone ? { phones: [phone] } : { phones: [] }),
     ...(email ? { emails: [email] } : { emails: [] }),
   };

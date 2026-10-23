@@ -22,6 +22,8 @@ export const ROLES = [
   'class_teacher',
   'teacher',
   'accountant',
+  'accounts_clerk',
+  'bursar',
   'nurse',
   'auditor',
 ] as const;
@@ -42,11 +44,19 @@ export type Role = (typeof ROLES)[number];
  *   row of every role that does not hold this permission.
  * - `invoice.post`, `payment.void` and `fee_schedule.approve` name transitions no repository
  *   action carries; the finance services judge them.
+ * - The finance duties of spec 05 §11 are the maker/checker pairs of
+ *   `./permissions/finance`: `payment.receipt`, `payment.void.request`, `refund.request`,
+ *   `refund.approve`, `write_off.request`, `write_off.approve`, `billing.post`,
+ *   `billing.post.approve`, `period.close.prepare`, `period.close.approve`, `discount.grant` and
+ *   `discount.approve`. A role holds the maker's side or the checker's side
+ *   and never both, which is what makes the separation of duties of that matrix real rather than a
+ *   description. `payment.receipt`, `receipt.update` and `payment.void` are consulted by
+ *   {@link permissionFor} for the payment and receipt entities.
  * - `workflow.manage` owns the workflow catalogue of `src/domain/workflows`: it gates who may add,
  *   edit or remove a workflow definition. A transition of a workflow names its own permission,
  *   which is one of the entity permissions above; this one is about the definitions themselves.
- *   The administrator holds every permission, so it is the administrator alone who curates the
- *   catalogue.
+ *   The administrator holds every permission, and the head teacher holds this one as well, so the
+ *   catalogue is curated by the administrator and the head (see {@link ROLE_PERMISSIONS}).
  */
 export const PERMISSIONS = [
   'learner.read',
@@ -73,6 +83,18 @@ export const PERMISSIONS = [
   'invoice.post',
   'payment.void',
   'fee_schedule.approve',
+  'payment.receipt',
+  'payment.void.request',
+  'refund.request',
+  'refund.approve',
+  'write_off.request',
+  'write_off.approve',
+  'billing.post',
+  'billing.post.approve',
+  'period.close.prepare',
+  'period.close.approve',
+  'discount.grant',
+  'discount.approve',
   'staff.read',
   'staff.write',
   'institution.read',
@@ -209,6 +231,13 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'report_card.read',
     'report_card.write',
     'finance.read',
+    'payment.void',
+    'refund.approve',
+    'write_off.approve',
+    'fee_schedule.approve',
+    'billing.post.approve',
+    'period.close.approve',
+    'discount.approve',
     'staff.read',
     'institution.read',
     'reference.read',
@@ -271,8 +300,50 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'finance.read',
     'finance.write',
     'invoice.post',
+    'payment.receipt',
     'payment.void',
     'fee_schedule.approve',
+    'learner.read',
+    'institution.read',
+    'reference.read',
+  ],
+  /**
+   * The accounts clerk of spec 05 §11: takes a payment and asks for the rest.
+   *
+   * The clerk receipts money and raises a request - a void, a refund, a write-off - but holds no
+   * approval permission and no `finance.write`, so the repository refuses the clerk every other
+   * finance write. The matrix's "request" column is this role's permissions and nothing more.
+   */
+  accounts_clerk: [
+    'finance.read',
+    'payment.receipt',
+    'payment.void.request',
+    'refund.request',
+    'write_off.request',
+    'learner.read',
+    'institution.read',
+    'reference.read',
+  ],
+  /**
+   * The bursar of spec 05 §11: takes money, voids a receipt, prepares and posts.
+   *
+   * The bursar holds the maker's side of every pair - a void, a refund request, a write-off request,
+   * a fee-schedule submission, a billing run, a period close, a discount - and never the checker's
+   * side: the approvals are the head's. `finance.write` is what the fee-schedule submission and the
+   * finance documents need; the bursar's own duties are named separately so the separation is a
+   * fact of the permission set rather than a fact of one role's breadth.
+   */
+  bursar: [
+    'finance.read',
+    'finance.write',
+    'invoice.post',
+    'payment.receipt',
+    'payment.void',
+    'refund.request',
+    'write_off.request',
+    'billing.post',
+    'period.close.prepare',
+    'discount.grant',
     'learner.read',
     'institution.read',
     'reference.read',
@@ -308,12 +379,31 @@ export const ROLE_SCOPE_KINDS: Record<Role, readonly ScopeKind[]> = {
   class_teacher: ['class_group'],
   teacher: ['teaching_group'],
   accountant: ['finance'],
+  accounts_clerk: ['finance'],
+  bursar: ['finance'],
 };
 
 /** True when one of the roles holds the permission. */
 export function hasPermission(roles: readonly Role[], permission: Permission): boolean {
   return roles.some((role) => ROLE_PERMISSIONS[role].includes(permission));
 }
+
+/**
+ * The finance transitions whose permission is finer than the entity's write permission.
+ *
+ * The matrix of spec 05 §11 separates taking a payment from voiding a receipt, and the entity
+ * permission cannot name the difference: `finance.write` covers every finance write at once. A role
+ * that may take a payment but may not write any other finance document - the accounts clerk - would
+ * otherwise be refused at the counter. The map names the finer permission for the transitions the
+ * payments core writes; every other entity keeps its pair.
+ */
+const FINANCE_TRANSITION_PERMISSIONS: Readonly<
+  Partial<Record<EntityName, Readonly<Partial<Record<RepositoryAction, Permission>>>>>
+> = {
+  payment: { create: 'payment.receipt' },
+  payment_allocation: { create: 'payment.receipt' },
+  receipt: { create: 'payment.receipt', update: 'payment.void' },
+};
 
 /** The permission a repository action needs, or undefined when no permission covers the entity. */
 export function permissionFor(
@@ -323,6 +413,8 @@ export function permissionFor(
   const pair = ENTITY_PERMISSIONS[entity];
   if (!pair) return undefined;
   if (action === 'audit') return 'audit.read';
+  const transition = FINANCE_TRANSITION_PERMISSIONS[entity]?.[action];
+  if (transition) return transition;
   if (action === 'read' || action === 'list' || action === 'watch') return pair.read;
   return pair.write;
 }

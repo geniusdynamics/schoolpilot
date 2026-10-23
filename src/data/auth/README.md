@@ -15,6 +15,7 @@ allowed. This module fills that seam: it owns the **permissions**, not the stora
 | `scope.ts` | the scope types, the resolution from the real assignment data, and the row and list checks |
 | `authorizer.ts` | the `PermissionContext`, the `ScopePermissionError` and the authorizer of the repository hook |
 | `scopedRepository.ts` | the repository a scoped actor reads and writes through |
+| `permissions/finance.ts` | the segregation-of-duties matrix of spec 05 §11 as data, the roles it binds, and the gate that refuses a role that may not make or check a finance move |
 
 ## The roles
 
@@ -24,11 +25,13 @@ and every other catalogue entry maps onto one of these:
 | Role | Catalogue name (spec 06 §5.2) | Scope kind |
 | --- | --- | --- |
 | `administrator` | Super administrator | institution + finance |
-| `head_teacher` | Head teacher/Principal | institution + finance |
+| `head_teacher` | Head teacher/Principal, Director | institution + finance |
 | `registrar` | Registrar/Secretary | institution |
 | `class_teacher` | Class teacher | class group |
 | `teacher` | Subject teacher | teaching group |
-| `accountant` | Bursar, Accounts clerk/Cashier | finance |
+| `accountant` | Bursar, Accounts clerk/Cashier (the merged legacy bundle) | finance |
+| `accounts_clerk` | Accounts clerk/Cashier (spec 05 §11) | finance |
+| `bursar` | Bursar (spec 05 §11) | finance |
 | `nurse` | Nurse | institution |
 | `auditor` | Auditor (read-only) | institution + finance |
 
@@ -39,6 +42,12 @@ master/Matron* like a `class_teacher`, *Librarian*, *Storekeeper*, *Guidance & c
 *Security/Gate* like a `nurse` (institution, contact rows only), *Guardian* and *Learner* are not
 staff and get their own portal scope when the platform entities arrive, and *Board/Proprietor* is
 an `auditor` over the dashboards.
+
+The `accountant` role is the merged bundle the finance work started with - a bursar and an accounts
+clerk in one role. Spec 05 §11 separates them, so `accounts_clerk` and `bursar` are their own roles
+and `accountant` is kept for the callers that name it. The separation is the finance permission
+layer's (`permissions/finance.ts`), and where `accountant` holds both sides of a pair the matrix
+says so rather than pretending otherwise.
 
 ## The permissions
 
@@ -56,6 +65,38 @@ Two permissions are not entity permissions:
   of every role that does not hold the permission - on a read and on a list alike.
 - `invoice.post`, `payment.void` and `fee_schedule.approve` name transitions no repository action
   carries; the finance services judge them.
+- The finance duties of spec 05 §11 are the maker/checker pairs of `permissions/finance.ts`:
+  `payment.receipt`, `payment.void.request`, `refund.request`, `refund.approve`, `write_off.request`,
+  `write_off.approve`, `billing.post`, `billing.post.approve`, `period.close.prepare`,
+  `period.close.approve`, `discount.grant` and `discount.approve`. `permissionFor` consults
+  `payment.receipt` for a `payment`, `payment_allocation` or `receipt` create and `payment.void` for
+  a `receipt` update; the rest are judged by the matrix's own gate until a module consults them.
+
+## The finance segregation of duties (spec 05 §11)
+
+The matrix is data in `permissions/finance.ts`: `SEGREGATION_OF_DUTIES` is one `DutyRule` per
+permission, naming the action, the permission, the roles bound to it, the duty it separates from,
+and the mechanism that enforces it. The mechanism is one of four, and the rule says which and why:
+
+| Mechanism | What enforces it | The rules |
+| --- | --- | --- |
+| `permission` | the repository's authorisation hook consults the permission | receipt, void, void request, workflow catalogue |
+| `workflow` | a workflow definition's `allowed_roles` / `allowed_permissions`, judged by the engine | refund, write-off, fee schedule |
+| `identity` | the module refuses a decider who is the maker of the request | fee-schedule approval |
+| `none` | nothing yet; the rule carries a `gap` naming what is missing | billing run, period close, discount |
+
+Where the matrix separates a maker from a checker the roles are disjoint, so no role - and no
+single person's role bundle - holds both sides: `assertSegregatedDuties` refuses a role set that
+does, and `separationViolations` names the roles that do. The workflow engine has no notion of
+self-approval, so the adjustments module and the fee-schedule gateway each enforce
+"the maker may not decide" themselves; `assertDeciderIsNotMaker` is the same rule for a caller that
+goes through neither. The tests are in `permissions/__tests__/finance.test.ts`.
+
+The rules whose mechanism is `none` are the honest part of the matrix: `BillingService.post` checks
+no permission and has no threshold, `LedgerService.closePeriod` closes in one step with no approver,
+and `DiscountService` writes through the repository with no gate. The permissions and the role
+bindings for them exist so a screen or a service can call `assertMayPerform` today; a `gap` field on
+each rule records that the module itself does not yet consult them.
 
 ## The scope
 
@@ -169,3 +210,19 @@ learning area) become scope grants of their own.
   passed.
 - **The write path is the repository's own.** A write is judged inside the transaction, before the
   row is stored, so a refused write leaves no trace.
+- **The canonical repository the app hands the finance pages carries no authorizer.** The provider
+  of `@/data/canonicalRepository` builds `createRepository({ adapter })` with no `authorize` hook
+  and no actor, so `permissionFor` is never consulted for a finance write in the running app. The
+  matrix's `permission` rows are enforced wherever a caller goes through
+  `createAuthorizedRepository` (and the tests prove it), and the `workflow` rows are enforced by the
+  workflow engine's guard; installing the authorizer in the app is the missing seam.
+- **The repository's entity permissions are coarser than the matrix.** `finance.write` covers every
+  finance write at once, so only the payment and receipt transitions are mapped to their finer
+  permission in `permissionFor`. A billing run, a period close and a discount grant are still
+  `finance.write` at the repository, and their matrix permissions are consulted by nothing.
+- **The canonical `user` row does not exist.** `payment.cashier_user_id`, `receipt.issued_by`,
+  `payment_allocation.allocated_by` and `refund.approved_by` are foreign keys to a `user` row the
+  platform does not create, so the cashier screen, the workflow actor and the finance services
+  cannot write an actor foreign key. The audit trail records the actor the caller names (often
+  null); wiring sign-in to a canonical `user` row is the blocker this shares with report publishing
+  and promotion commits.

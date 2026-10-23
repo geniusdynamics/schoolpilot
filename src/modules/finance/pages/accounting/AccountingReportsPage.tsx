@@ -7,6 +7,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
+import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -45,12 +46,12 @@ export interface AccountingReportsPageProps {
   readonly budget?: readonly BudgetLine[];
 }
 
-/** The reason the reports are unavailable until the ledger's tables have a migration. */
+/** The reason the reports are unavailable while the canonical data layer is not open. */
 const NOT_CONNECTED_REASON =
-  'The accounting reports read the double-entry ledger. The ledger has no canonical migration yet, ' +
-  'so the app does not open it on its own: this page takes the ledger (or the SQLite adapter it is ' +
-  'built over) as a prop. The routing shell renders it without one, so the reports stay empty until ' +
-  'the migration lands.';
+  'The accounting reports read the double-entry ledger on the canonical database. The canonical ' +
+  'data layer is not open, so the ledger has not been opened either: the app opens it at start-up, ' +
+  'and a caller outside that path hands this page the ledger (or the SQLite adapter it is built ' +
+  'over) as a prop.';
 
 /**
  * The accounting reports hub.
@@ -59,7 +60,7 @@ const NOT_CONNECTED_REASON =
  * the range and the tab. The range's end is also the date the trial balance and the balance sheet
  * are as of, so a period chosen here filters the statement and sets the position date.
  */
-const AccountingReportsPage: React.FC<AccountingReportsPageProps> = (props) => {
+export const AccountingReportsPageContent: React.FC<AccountingReportsPageProps> = (props) => {
   const { t } = useTranslation('finance');
 
   const [from, setFrom] = useState<string>('');
@@ -226,5 +227,19 @@ const AccountingReportsPage: React.FC<AccountingReportsPageProps> = (props) => {
     </div>
   );
 };
+
+/**
+ * The routed page.
+ *
+ * It mounts the canonical repository itself, as the statements page does, because the ledger is
+ * opened over the canonical adapter and the adapter is only there once the repository is. Without
+ * this, a direct load of the route (a bookmark, a reload, a fresh navigation) finds no adapter and
+ * the page says "The ledger is not connected" instead of showing the figures it exists to show.
+ */
+const AccountingReportsPage: React.FC<AccountingReportsPageProps> = (props) => (
+  <CanonicalRepositoryProvider>
+    <AccountingReportsPageContent {...props} />
+  </CanonicalRepositoryProvider>
+);
 
 export default AccountingReportsPage;

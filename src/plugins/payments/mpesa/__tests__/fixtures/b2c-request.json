@@ -1,0 +1,12 @@
+{
+  "InitiatorName": "testapi",
+  "SecurityCredential": "SAaGvCpkRXL1rnK+1OfIkA==",
+  "CommandID": "BusinessPayment",
+  "Amount": "500",
+  "PartyA": "600638",
+  "PartyB": "254708374149",
+  "Remarks": "Deposit refund on transfer",
+  "QueueTimeOutURL": "https://mydomain.com/b2c/queue",
+  "ResultURL": "https://mydomain.com/b2c/result",
+  "Occasion": "Deposit refund on transfer"
+}

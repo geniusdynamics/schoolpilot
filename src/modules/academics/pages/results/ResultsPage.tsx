@@ -13,8 +13,8 @@ import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLookup } from '@/data/query';
+import { useCanonicalSessionActor } from '@/data/useCanonicalSessionActor';
 import type { AggregationDefinition } from '@/domain/assessment/aggregation';
 import type { GradingScaleDefinition } from '@/domain/assessment/scales';
 import type { Id } from '@/domain/ids';
@@ -26,16 +26,6 @@ import { defaultAggregation, describeAggregation } from './aggregation';
 import { displayNumber, displayPercent } from './format';
 import { useResults } from './useResults';
 import type { AreaOutcome, GradeExplanation, LearnerResultRow } from './types';
-
-/** The login the page acts for; a page rendered outside the app shell has no session. */
-function useSessionActor(): { actorId: string; role: string | null } {
-  try {
-    const auth = useAuth();
-    return { actorId: auth.user?.id ?? '', role: auth.user?.role ?? null };
-  } catch {
-    return { actorId: '', role: null };
-  }
-}
 
 export interface ResultsPageContentProps {
   /** Overrides the session, so a page test can act as a named teacher. */
@@ -152,7 +142,9 @@ const ResultsInner: React.FC<ResultsPageContentProps> = ({
   now,
 }) => {
   const { t } = useTranslation('academics');
-  const session = useSessionActor();
+  // The scope resolves a teacher's groups through the canonical `user` their staff record links to,
+  // so the page acts as the session's canonical identity rather than the login's own id.
+  const session = useCanonicalSessionActor();
   const actorId = givenActorId ?? session.actorId;
   const role = givenRole === undefined ? session.role : givenRole;
 

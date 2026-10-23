@@ -114,10 +114,19 @@ jobs:
         if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
         run: pnpm -s build
 
+      # The 1,000-learner billing run, measured against the spec's budgets (preview ≤ 30 s, post ≤
+      # 2 min). It seeds its own school and prints what it measured; the seeding is outside the
+      # measured window. A separate run so its seconds do not hide among the unit suite's output.
+      - name: Performance — billing 1,000 learners
+        if: ${{ !cancelled() && steps.gate.outcome != 'skipped' }}
+        run: pnpm -s test:perf
+
   e2e:
-    name: GP-1-lite golden path (persistent SQLite)
+    name: Golden paths (persistent SQLite)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # GP-1-lite, GP-6 and the finance golden path are three long real-browser journeys; the finance
+    # one alone measured 7.1 minutes on a cold dev server.
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -142,14 +151,18 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run GP-1-lite and GP-6 on a real SQLite-WASM database
-        run: pnpm exec playwright test tests/e2e/gp1-lite.spec.ts tests/e2e/gp6.spec.ts
+      - name: Run GP-1-lite, GP-6 and the finance golden path on a real SQLite-WASM database
+        run: >-
+          pnpm exec playwright test
+          tests/e2e/gp1-lite.spec.ts
+          tests/e2e/gp6.spec.ts
+          tests/e2e/finance-billing-golden-path.spec.ts
 
       - name: Upload Playwright traces and screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gp1-lite-playwright
+          name: golden-paths-playwright
           path: test-results
           if-no-files-found: ignore
           retention-days: 7

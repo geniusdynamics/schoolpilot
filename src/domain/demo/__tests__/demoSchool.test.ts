@@ -9,6 +9,8 @@ import {
   type TestContext,
 } from '@/data/__tests__/harness';
 import { DemoSchoolSeedError, defaultDemoSchool, seedDemoSchool, type DemoSchoolInput } from '@/domain/demo';
+import { BillingRunService } from '@/domain/finance/billing';
+import { asId } from '@/domain/ids';
 import type { EntityName } from '@/domain/schema';
 
 const contexts: TestContext[] = [];
@@ -117,8 +119,12 @@ describe('the demo school seed', () => {
     expect(feeItems.items).toHaveLength(3);
     const schedule = await context.repository.list('fee_schedule', { limit: 5 });
     expect(schedule.items).toHaveLength(1);
-    const lines = await context.repository.list('fee_schedule_line', { limit: 10 });
-    expect(lines.items).toHaveLength(3);
+    const lines = await context.repository.list('fee_schedule_line', { limit: 20 });
+    // One line per level per fee item: the schedule prices every level, so each line has to name the
+    // level it prices. The test's school has two classes, so two levels.
+    const levels = await context.repository.list('level', { limit: 20 });
+    expect(lines.items).toHaveLength(feeItems.items.length * levels.items.length);
+    expect(new Set(lines.items.map((row) => row.level_id)).size).toBe(levels.items.length);
 
     const invoices = await context.repository.list('invoice', { limit: 50 });
     expect(invoices.items).toHaveLength(learners.items.length);
@@ -306,6 +312,36 @@ describe('the demo school seed', () => {
     expect(sessions.items.map((row) => row.class_group_id).sort()).toEqual(
       groups.items.map((row) => row.id).sort()
     );
+  });
+
+  it('prices every learner it admits: the seeded schedule resolves for the whole sample school', async () => {
+    const context = await freshContext();
+    await seedDemoSchool(context.repository, demoInput());
+
+    const year = (await context.repository.list('academic_year', { limit: 1 })).items[0];
+    const periods = await context.repository.list('academic_period', {
+      where: { academic_year_id: year?.id ?? '' },
+      limit: 50,
+    });
+    const period = periods.items.find((row) => row.name === 'Term 1') ?? periods.items[0];
+
+    const preview = await new BillingRunService({
+      store: context.repository,
+      now: () => new Date('2027-02-01T08:00:00.000Z'),
+    }).preview({ scope: { periodId: asId<'academic_period'>(period?.id ?? '') } });
+
+    // The run prices a cell of level x residence x fee category, so the seed has to give every line the
+    // level it prices and declare the one residence and one category its learners are in. A cell the
+    // matrix cannot resolve is reported `cell_unresolved` or `no_schedule` - which is the state the
+    // sample school was in, and why the school the wizard installs could not be billed at all. Every
+    // learner the seed admits already holds a posted invoice for the term, so a cell that does resolve
+    // is reported `already_billed` instead.
+    const unresolved = preview.skips.filter(
+      (skip) => skip.code === 'cell_unresolved' || skip.code === 'no_schedule'
+    );
+    expect(unresolved, JSON.stringify(unresolved)).toEqual([]);
+    expect(preview.skips.length).toBeGreaterThan(0);
+    expect(preview.skips.every((skip) => skip.code === 'already_billed')).toBe(true);
   });
 
   it('refuses a term that lies outside the academic year before it admits anyone', async () => {

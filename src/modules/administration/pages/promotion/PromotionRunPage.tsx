@@ -28,7 +28,11 @@ import {
 } from '@/domain/services';
 
 import { useWritableRepository } from '../../data/useWritableRepository';
-import { promotionRulesForPack } from './packPromotionRules';
+import {
+  resolvePromotionRules,
+  unresolvedPromotionMessage,
+  type PromotionRulesResolution,
+} from './packPromotionRules';
 
 /** The role gate needs the roles the actor holds; the shell supplies them (spec 02 section 11). */
 export interface PromotionApprover {
@@ -570,25 +574,20 @@ const PromotionRunPageWithRepository: React.FC<{
 }> = ({ rules, approver, now }) => {
   const repository = useWritableRepository();
   const programmes = useEntityQuery(repository, 'programme');
+  const packs = useEntityQuery(repository, 'curriculum_pack');
   // The approval is recorded under a canonical identity: a promotion decision names its decider by
   // a canonical `user` reference, and the commit's audit trail names the same actor, so the actor
   // has to be a canonical row rather than the login's own UUIDv4 id.
   const users = useEntityQuery(repository, 'user');
   const session = useSessionActor();
-  // The school runs more than one programme (the demo programme, then one per installed pack), and
-  // only a pack that ships with the application has rules the page can read. The first programme
-  // whose pack is bundled is the one the run is computed with; a programme whose pack is not in the
-  // library is skipped rather than making the run impossible.
-  const resolvedRules = useMemo(() => {
-    if (rules) return rules;
-    for (const programme of programmes.data?.items ?? []) {
-      const code = programme.curriculum_pack_code;
-      if (!code) continue;
-      const candidate = promotionRulesForPack(code);
-      if (candidate) return candidate;
-    }
-    return null;
-  }, [rules, programmes.data]);
+  // The rules come from the pack installed for one of the school's programmes, read back by the
+  // programme's own pin. A programme whose pack was never installed is skipped rather than resolved
+  // against a bundled document that merely shares its code, and a programme whose pack declares no
+  // promotion rules is reported as exactly that.
+  const resolution = useMemo<PromotionRulesResolution>(() => {
+    if (rules) return { kind: 'rules', rules, programmeId: '' };
+    return resolvePromotionRules(programmes.data?.items ?? [], packs.data?.items ?? []);
+  }, [rules, programmes.data, packs.data]);
 
   const resolvedApprover = useMemo<PromotionApprover>(
     () =>
@@ -599,12 +598,11 @@ const PromotionRunPageWithRepository: React.FC<{
     [approver, users.data, session]
   );
 
-  if (!resolvedRules) {
+  if (resolution.kind !== 'rules') {
     return (
       <div className="p-6">
-        <p role="alert" className="text-sm text-surface-muted-fg">
-          The promotion rules of the school's curriculum pack could not be resolved, so the run
-          cannot be computed.
+        <p role="alert" data-testid="promotion-unresolved" className="text-sm text-surface-muted-fg">
+          {unresolvedPromotionMessage(resolution)}
         </p>
       </div>
     );
@@ -614,7 +612,7 @@ const PromotionRunPageWithRepository: React.FC<{
     <div className="p-6">
       <PromotionRunPageContent
         repository={repository}
-        rules={resolvedRules}
+        rules={resolution.rules}
         approver={resolvedApprover}
         {...(now ? { now } : {})}
       />

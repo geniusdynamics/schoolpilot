@@ -43,6 +43,8 @@ test.use({ navigationTimeout: COLD_LOAD_TIMEOUT, actionTimeout: UI_TIMEOUT });
 
 const RUN = `${Date.now()}`;
 const YEAR = new Date().getFullYear();
+/** The wizard's default academic year starts on this date, which is inside its first term. */
+const YEAR_START = `${YEAR}-01-06`;
 const ADMIN = {
   username: `gp1-admin-${RUN}`,
   displayName: 'GP1 Administrator',
@@ -109,6 +111,14 @@ test.describe('GP-1 golden path', () => {
       await page.locator('[name=guardians\\.0\\.given_name]').fill(STUDENT.guardianGiven);
       await page.locator('[name=guardians\\.0\\.family_name]').fill(STUDENT.guardianFamily);
       await page.locator('[name=guardians\\.0\\.phone]').fill(STUDENT.guardianPhone);
+      // The learner joins at the start of the academic year, which is what the wizard's default
+      // terms describe. The sample school prices the first term - its fee schedule, its own invoices
+      // and its assessment all pin that term - and the billing run bills a learner only for a period
+      // their enrolment covers, so a learner admitted on today's date, months into the third term, is
+      // correctly refused the first-term run. Back-dating the admission is what a registrar records
+      // for a learner who joined in the first term, and it is the only start date that lets this path
+      // bill, teach and mark the same term.
+      await page.locator('[name=start_date]').fill(YEAR_START);
 
       // The class group is a canonical reference: choose it through the picker, never a legacy class-stream select.
       await chooseFromPicker(page, page.getByTestId('programme-picker'), 'School Programme');
@@ -163,14 +173,20 @@ test.describe('GP-1 golden path', () => {
       await go(page, '/finance/invoicing');
       await expect(page.getByRole('heading', { name: 'Invoice Generation', exact: true })).toBeVisible({ timeout: LOAD_TIMEOUT });
       await chooseFromPicker(page, page.getByTestId('billing-period-picker'), TERM_LABEL);
-      await page.getByRole('button', { name: 'Generate invoices' }).click();
+      // The panel now previews before it posts: the run shows every learner with the reason they are
+      // billed or skipped, and posting is a second, deliberate step.
+      await page.getByRole('button', { name: 'Preview' }).click();
+      await page.getByRole('button', { name: 'Post the run' }).click();
       await expect(page.getByText('Billing run posted')).toBeVisible();
 
       const invoiceRow = page.getByRole('row', { name: new RegExp(STUDENT_NAME) });
       await expect(invoiceRow).toBeVisible();
       await expect(invoiceRow).toContainText(FEE_TOTAL);
+      // The number the run issued, which the sequences module formats as INV/{year}/{term}/{seq}.
+      // The row is the run's own result table, so this proves the invoice the UI reports is the one
+      // the sequence issued, not a number the page made up.
       const invoiceText = await invoiceRow.innerText();
-      const match = /INV-\d+/.exec(invoiceText);
+      const match = /INV\/\d{4}\/\d+\/\d+/.exec(invoiceText);
       expect(match, `the invoice number is missing from the billing result:\n${invoiceText}`).not.toBeNull();
       invoiceNumber = match![0];
     });
@@ -203,6 +219,13 @@ test.describe('GP-1 golden path', () => {
       await dialog.getByRole('button', { name: 'Record payment' }).click();
       await expect(dialog).toBeHidden();
 
+      // The payments page issues its receipt number by counting the numeric suffix of the numbers it
+      // finds (`canonicalFinanceService.recordPayment` -> `nextDocumentNumber('RCT', ...)`), so it is
+      // `RCT-000004`, not the year-scoped `RCT/{YYYY}/{SEQ:6}` the sequences module issues and the
+      // cashier path uses. That is a defect, not the intended shape: spec 05 §6 wants a receipt number
+      // that carries the year and is never reused, and a count is neither. It is asserted as it behaves
+      // so the difference is visible here rather than discovered again, and it is recorded in the wave
+      // log for the server-allocated sequences task (P4-A03).
       const toast = page.getByText(/Payment recorded\. Receipt RCT-\d+\./);
       await expect(toast).toBeVisible();
       const toastText = await toast.innerText();
@@ -261,14 +284,16 @@ test.describe('GP-1 golden path', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: /^Teaching group/ }), /^Form 1 English\b/);
       await chooseFromPicker(page, page.getByRole('combobox', { name: /^Learner enrolment/ }), new RegExp(STUDENT_NAME));
       // The demo assessment falls a month into the first term; the membership must cover that date.
-      await page.getByLabel('From', { exact: true }).fill(`${YEAR}-01-06`);
+      await page.getByLabel('From', { exact: true }).fill(YEAR_START);
       await page.getByRole('button', { name: 'Create membership' }).click();
       await expect(page.getByText('Membership added.')).toBeVisible();
     });
 
     await test.step('enter and save the learner mark for the published assessment', async () => {
       await go(page, '/academics/marks-entry');
-      await expect(page.getByText('Marks entry')).toBeVisible();
+      // The page heading, not a text match: the module sub-navigation item carries the same words,
+      // so getByText('Marks entry') resolved to two elements depending on which mounted first.
+      await expect(page.getByRole('heading', { name: 'Marks Entry' })).toBeVisible();
       // The hub's default tab is the v2 grid: the scheme is derived from the period's
       // assessments, so the assessment is a column rather than a picker, and the grid autosaves.
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);

@@ -12,8 +12,8 @@ import { EntityPicker } from '@/components/ui/EntityPicker';
 import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLookup } from '@/data/query';
+import { useCanonicalSessionActor } from '@/data/useCanonicalSessionActor';
 import type { Id } from '@/domain/ids';
 
 import { CanonicalRepositoryProvider, useWritableRepository } from '../../data/canonicalRepository';
@@ -49,16 +49,6 @@ const SUMMARY_CODES: readonly { readonly code: CellStatusCode; readonly label: s
   { code: 'moderated', label: 'Moderated' },
 ];
 
-/** The login the page acts for; a page rendered outside the app shell has no session. */
-function useSessionActor(): { actorId: string; role: string | null } {
-  try {
-    const auth = useAuth();
-    return { actorId: auth.user?.id ?? '', role: auth.user?.role ?? null };
-  } catch {
-    return { actorId: '', role: null };
-  }
-}
-
 export interface MarkEntryV2PageContentProps {
   /** Overrides the session, so a page test can act as a named teacher. */
   readonly actorId?: string;
@@ -75,7 +65,9 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
   isOnline,
 }) => {
   const { t } = useTranslation('academics');
-  const session = useSessionActor();
+  // The teaching scope resolves a teacher's groups through the canonical `user` their staff record is
+  // linked to, so the session's canonical identity is what the page acts as, not the login's own id.
+  const session = useCanonicalSessionActor();
   const actorId = givenActorId ?? session.actorId;
   const role = givenRole === undefined ? session.role : givenRole;
 

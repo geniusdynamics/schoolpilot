@@ -3475,10 +3475,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "a1eb0f3",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-B04",
@@ -3501,10 +3501,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "c044f67",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-C01",
@@ -3532,10 +3532,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "e2a2fa8",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-C02",
@@ -3558,10 +3558,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "c26ad66",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-D01",
@@ -3642,10 +3642,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "02dd038",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-D04",
@@ -3694,10 +3694,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "453fa42",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-E01",
@@ -3724,10 +3724,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "04d68c1",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-E02",
@@ -3750,10 +3750,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "22095ae",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-E03",
@@ -3807,10 +3807,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "dcf6a84",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P3-Q02",
@@ -3833,10 +3833,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
+      "status": "done",
+      "commit": "fc1804b",
       "notes": "",
-      "completed_at": null
+      "completed_at": "2026-10-23"
     },
     {
       "id": "P4-A01",

@@ -1,0 +1,16 @@
+{
+  "Result": {
+    "ResultType": 1,
+    "ResultCode": 1,
+    "ResultDesc": "The request is timed out.",
+    "OriginatorConversationID": "16740-34861180-1",
+    "ConversationID": "AG_20191219_00005797af5d7d75f652",
+    "TransactionID": "NLJ41HAY6Q",
+    "ReferenceData": {
+      "ReferenceItem": {
+        "Key": "QueueTimeoutURL",
+        "Value": "https://internalsandbox.safaricom.co.ke/mpesa/b2cresults/v1/submit"
+      }
+    }
+  }
+}

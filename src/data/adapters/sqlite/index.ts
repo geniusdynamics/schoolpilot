@@ -18,7 +18,7 @@ export {
   createWasmDatabaseDriver,
   type WasmDatabase,
 } from './wasmDatabase';
-export { statementsForSchema, statementsForSchemas } from './ddl';
+export { statementsForSchema, statementsForSchemas, columnsForSchema } from './ddl';
 export { applyCanonicalSchema, canonicalDatabaseSchema } from './canonical';
 export {
   SqliteAdapterError,

@@ -1,0 +1,13 @@
+{
+  "BusinessShortCode": "174379",
+  "Password": "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDUyOGZmNTBkMWU4MDMyMmVkYjIwMjMxMDMxMTIzOTU5",
+  "Timestamp": "20231031123959",
+  "TransactionType": "CustomerPayBillOnline",
+  "Amount": "1500",
+  "PartyA": "254708374149",
+  "PartyB": "174379",
+  "PhoneNumber": "254708374149",
+  "CallBackURL": "https://mydomain.com/pat",
+  "AccountReference": "GA/2027/001",
+  "TransactionDesc": "Term 1 fees"
+}

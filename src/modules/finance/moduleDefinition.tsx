@@ -29,6 +29,7 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.cashier', path: '/finance/cashier', icon: CashIcon, page: 'cashier/CashierPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.cashierSessions', path: '/finance/cashier-sessions', icon: ClipboardDocumentListIcon, page: 'cashier/CashierSessionsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.studentFeeHistory', path: '/finance/student-fee-history', icon: BanknotesIcon, page: 'StudentFeeHistoryPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.statements', path: '/finance/statements', icon: DocumentTextIcon, page: 'statements/StatementsPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Finance reports hub relocated to /reports/finance (see reports/moduleDefinition.tsx).
     // Old /finance/reports path is now handled by redirectMap.
     { name: 'navigation:finance.invoicing', path: '/finance/invoicing', icon: DocumentDuplicateIcon, page: 'InvoicingPage', showInModes: ['standard', 'fullwidth'] },
@@ -104,6 +105,8 @@ export const financeModule: ModuleDefinition = {
     { path: '/finance/fee-items', page: 'feeItems/FeeItemsPage' },
     // The fee-schedule matrix editor is the same shape: a nested page and a hub tab.
     { path: '/finance/fee-schedules', page: 'schedules/FeeSchedulesPage' },
+    // The billing run v2: preview with reasons and exceptions, then post in one transaction.
+    { path: '/finance/billing-runs', page: 'billing/BillingRunsPage' },
     { path: '/finance/fee-rules', page: 'FeeRulesPage' },
     { path: '/finance/accounting-config', page: 'AccountingConfigPage' },
     { path: '/finance/financial-years', page: 'FinancialYearsPage' },
@@ -115,6 +118,9 @@ export const financeModule: ModuleDefinition = {
     { path: '/finance/cashier', page: 'cashier/CashierPage' },
     { path: '/finance/cashier-sessions', page: 'cashier/CashierSessionsPage' },
     { path: '/finance/student-fee-history', page: 'StudentFeeHistoryPage' },
+    // The statements of spec 05 section 6: a learner, household or sponsor running account with
+    // its aging and clearance.
+    { path: '/finance/statements', page: 'statements/StatementsPage' },
     // M3: /finance/reports removed; redirected to /reports/finance via redirectMap.
     { path: '/finance/invoicing', page: 'InvoicingPage' },
     { path: '/finance/expenses', page: 'ExpensesPage' },

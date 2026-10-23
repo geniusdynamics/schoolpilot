@@ -17,8 +17,9 @@ import { useToast } from '@/hooks/useToast';
 import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import type { SchoolProfile } from '@/hooks/useSchoolProfile';
 import { openCanonicalRepository } from '@/data/canonicalRepository';
+import { ensureCanonicalLogin } from '@/data/canonicalIdentity';
 import type { Repository } from '@/data/repository';
-import { asId, generateUuidv7 } from '@/domain/ids';
+import { generateUuidv7 } from '@/domain/ids';
 import { logger } from '@/utils/logging';
 import {
   KENYAN_CURRICULUM_PRESETS,
@@ -158,34 +159,28 @@ const EMPTY_ADMIN: AdminForm = { username: '', displayName: '', password: '', co
  * decision's decider, the audit columns of any write made for a named actor — references that entity.
  * The login's own id is a UUIDv4 while the canonical model stores UUIDv7, so the login id can never
  * be written into one: the canonical identity is a row of its own, linked by the username both rows
- * carry. The school structure is written before this step, so the institution exists; a wizard whose
- * structure step failed leaves no canonical row behind rather than a user with no institution.
+ * carry. The administrator is also a member of staff, so a staff row is created beside the canonical
+ * user and linked (`staff.user_id`), which is the link a teaching scope resolves through. The school
+ * structure is written before this step, so the institution exists; a wizard whose structure step
+ * failed leaves no canonical row behind rather than a user with no institution.
  */
 async function linkCanonicalAdministrator(store: WizardStore): Promise<void> {
   const opened = await openCanonicalRepository();
   if (!isCanonicalRepository(opened)) return;
 
-  const institution = (await opened.list('institution', { limit: 1 })).items[0];
-  if (!institution) return;
-
   const login = (await store.find('users'))[0];
   const username = typeof login?.username === 'string' ? login.username.trim() : '';
   if (!username) return;
 
-  const existing = await opened.list('user', { where: { username }, limit: 1 });
-  if (existing.items.length > 0) return;
-
+  const displayName =
+    typeof login.display_name === 'string' && login.display_name.trim()
+      ? login.display_name.trim()
+      : username;
   const passwordHash =
     typeof login.hashed_password === 'string' && login.hashed_password !== ''
       ? login.hashed_password
       : 'external-login';
-  await opened.create('user', {
-    institution_id: asId<'institution'>(institution.id),
-    username,
-    password_hash: passwordHash,
-    status: 'active',
-    mfa: false,
-  });
+  await ensureCanonicalLogin(opened, { username, displayName, passwordHash });
 }
 
 export interface SetupWizardProps {
@@ -339,6 +334,20 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
           : t('setupWizard.packError', 'The curriculum packs could not be installed.');
       // A pack install is one transaction per pack, so a failure leaves no partial programme. The
       // wizard stays open rather than marking setup complete over a school with no curriculum.
+      toast.showError(`${detail} Setup is not complete; correct the problem and finish again.`);
+      return;
+    }
+    try {
+      // The administrator's canonical identity: the `user` row a canonical write names and the staff
+      // record a teaching scope resolves. The admin step does this too; this run is the safety net for
+      // a wizard resumed on its last step, or re-run on a school whose administrator already existed.
+      await linkCanonicalAdministrator(await openWizardStore());
+    } catch (error) {
+      logger.error('[SetupWizard] could not link the administrator to a staff record:', error);
+      const detail =
+        error instanceof Error
+          ? error.message
+          : t('setupWizard.identityError', 'The administrator could not be linked to a staff record.');
       toast.showError(`${detail} Setup is not complete; correct the problem and finish again.`);
       return;
     }

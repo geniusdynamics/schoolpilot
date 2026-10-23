@@ -52,11 +52,12 @@ describe('the canonical start-up path', () => {
         'reconciliation_statement',
         'reconciliation_line',
         'reconciliation_match',
+        'subscription',
       ])
     );
 
     const version = await readSchemaVersion(adapter);
     expect(version.complete).toBe(true);
-    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102]);
+    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
   });
 });

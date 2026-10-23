@@ -93,6 +93,19 @@ async function writeReconciliationRows(adapter: SqliteAdapter): Promise<void> {
   );
 }
 
+/** Writes one active subscription over a fee item the schedule prices. */
+async function writeSubscriptionRow(adapter: SqliteAdapter): Promise<void> {
+  await adapter.run(
+    `INSERT INTO subscription
+       (id, institution_id, learner_id, service_kind, service_ref, fee_item_id, fee_schedule_id,
+        academic_period_id, starts_on, ends_on, proration_rule, status, cancelled_on,
+        cancellation_reason, created_at, updated_at)
+     VALUES ('subscription-1', 'school-1', 'learner-1', 'transport', NULL, 'fee-item-1',
+             'fee-schedule-1', NULL, '2026-01-05', NULL, 'pro_rata_weeks', 'active', NULL, NULL,
+             '2026-01-05T08:00:00.000Z', '2026-01-05T08:00:00.000Z')`
+  );
+}
+
 describe('the module schema migrations', () => {
   it('gives a fresh database every module table, index and trigger, in version order', async () => {
     const adapter = await openAdapter();
@@ -100,9 +113,9 @@ describe('the module schema migrations', () => {
     const result = await applySchemaMigrations(adapter);
 
     expect(result.status).toBe('completed');
-    expect(result.applied.map((entry) => entry.version)).toEqual([100, 101, 102]);
+    expect(result.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
     expect(result.skipped).toEqual([]);
-    expect(result.version).toBe(102);
+    expect(result.version).toBe(103);
 
     const objects = await objectKeys(adapter);
     for (const key of moduleObjectKeys()) {
@@ -129,11 +142,12 @@ describe('the module schema migrations', () => {
     ).rejects.toThrow(/immutable/);
 
     const version = await readSchemaVersion(adapter);
-    expect(version).toMatchObject({ current: 102, latest: 102, complete: true });
+    expect(version).toMatchObject({ current: 103, latest: 103, complete: true });
     expect(version.applied.map((entry) => [entry.version, entry.module])).toEqual([
       [100, 'sequences'],
       [101, 'ledger'],
       [102, 'reconciliation'],
+      [103, 'subscriptions'],
     ]);
     expect(version.pending).toEqual([]);
   });
@@ -147,8 +161,8 @@ describe('the module schema migrations', () => {
 
     expect(second.status).toBe('noop');
     expect(second.applied).toEqual([]);
-    expect(second.skipped.map((entry) => entry.version)).toEqual([100, 101, 102]);
-    expect(second.version).toBe(102);
+    expect(second.skipped.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
+    expect(second.version).toBe(103);
     // Same rows, same timestamps: the ledger is the record of a single application.
     expect(await readApplied(adapter)).toEqual(recorded);
   });
@@ -183,7 +197,7 @@ describe('the module schema migrations', () => {
     const rolled = await rollbackSchemaMigrations(adapter);
 
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
 
     const objects = await objectKeys(adapter);
     for (const key of moduleObjectKeys()) {
@@ -196,7 +210,7 @@ describe('the module schema migrations', () => {
     const version = await readSchemaVersion(adapter);
     expect(version).toMatchObject({ current: 0, complete: false });
     expect(version.applied).toEqual([]);
-    expect(version.pending.map((entry) => entry.version)).toEqual([100, 101, 102]);
+    expect(version.pending.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
     expect(await readApplied(adapter)).toEqual([]);
   });
 
@@ -214,11 +228,11 @@ describe('the module schema migrations', () => {
     // database written by a newer build.
     const applied = await applySchemaMigrations(adapter);
     expect(applied.status).toBe('completed');
-    expect(applied.applied.map((entry) => entry.version)).toEqual([100, 101, 102]);
+    expect(applied.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
 
     const rolled = await rollbackSchemaMigrations(adapter);
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
 
     // The data migration keeps its ledger row and its table: the two bands compose.
     expect((await readApplied(adapter)).map((entry) => entry.version)).toEqual([2]);
@@ -268,7 +282,7 @@ describe('the module schema migrations', () => {
 
     const rolled = await rollbackSchemaMigrations(adapter);
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
     const after = await objectKeys(adapter);
     for (const object of reconciliation?.objects ?? []) {
       expect(after.has(`${object.kind}:${object.name}`), `${object.name} should be gone`).toBe(false);
@@ -291,9 +305,51 @@ describe('the module schema migrations', () => {
     const enforcedRolled = await rollbackSchemaMigrations(enforced);
 
     expect(enforcedRolled.status).toBe('completed');
-    expect(enforcedRolled.undone.map((entry) => entry.version)).toEqual([102, 101, 100]);
+    expect(enforcedRolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
     expect((await objectKeys(enforced)).has('table:reconciliation_statement')).toBe(false);
     await enforced.close();
+  });
+
+  it('creates the subscription table and its indexes, and drops them again', async () => {
+    const adapter = await openAdapter();
+    await applySchemaMigrations(adapter);
+
+    const subscriptions = SCHEMA_MIGRATIONS.find(
+      (migration) => migration.module === 'subscriptions'
+    );
+    expect(subscriptions?.version).toBe(103);
+    // The reader covers every form this module's DDL uses: one table and the three indexes the
+    // billing run reads. This module declares no trigger and no unique index.
+    expect(subscriptions?.objects.filter((object) => object.kind === 'table')).toHaveLength(1);
+    expect(subscriptions?.objects.filter((object) => object.kind === 'index')).toHaveLength(3);
+    expect(subscriptions?.objects.filter((object) => object.kind === 'trigger')).toEqual([]);
+
+    const objects = await objectKeys(adapter);
+    for (const object of subscriptions?.objects ?? []) {
+      expect(objects.has(`${object.kind}:${object.name}`), `${object.name} should exist`).toBe(true);
+    }
+
+    // The table is real: a subscription takes a write and reads back, and the index the billing
+    // run reads is the one the query uses.
+    await writeSubscriptionRow(adapter);
+    const [row] = await adapter.all<{ id: string; service_kind: string; status: string }>(
+      `SELECT id, service_kind, status FROM subscription
+        WHERE institution_id = 'school-1' AND learner_id = 'learner-1' AND status = 'active'`
+    );
+    expect(row).toEqual({ id: 'subscription-1', service_kind: 'transport', status: 'active' });
+    const plan = await adapter.all<{ detail: string }>(
+      `EXPLAIN QUERY PLAN SELECT id FROM subscription
+        WHERE institution_id = 'school-1' AND learner_id = 'learner-1' AND status = 'active'`
+    );
+    expect(plan.map((step) => step.detail).join(' ')).toMatch(/subscription_learner/);
+
+    const rolled = await rollbackSchemaMigrations(adapter);
+    expect(rolled.status).toBe('completed');
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
+    const after = await objectKeys(adapter);
+    for (const object of subscriptions?.objects ?? []) {
+      expect(after.has(`${object.kind}:${object.name}`), `${object.name} should be gone`).toBe(false);
+    }
   });
 
   it('still refuses a ledger row that comes from a newer build', async () => {
@@ -309,7 +365,7 @@ describe('the module schema migrations', () => {
   it('leaves no table behind when a migration fails part-way', async () => {
     const adapter = await openAdapter();
     const failing: Migration = {
-      version: 103,
+      version: 104,
       name: 'a migration that creates a table and then fails',
       // The second statement fails on a table the first one created: the failure happens inside
       // the migration's transaction, after real DDL has run.
@@ -332,15 +388,15 @@ describe('the module schema migrations', () => {
     }
 
     expect(failure).toBeInstanceOf(MigrationError);
-    expect((failure as MigrationError).message).toMatch(/103/);
+    expect((failure as MigrationError).message).toMatch(/104/);
     expect((failure as MigrationError).code).toBe('migration_failed');
 
     // SQLite's DDL is transactional: the table the first statement created is gone.
     expect((await objectKeys(adapter)).has('table:half_applied')).toBe(false);
     // The ledger keeps the position it reached: the successful migrations stay, the failed one
     // is not recorded, and the start-up path retries it next time.
-    expect((await readApplied(adapter)).map((entry) => entry.version)).toEqual([100, 101, 102]);
-    expect((await readSchemaVersion(adapter)).current).toBe(102);
+    expect((await readApplied(adapter)).map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
+    expect((await readSchemaVersion(adapter)).current).toBe(103);
   });
 });
 
@@ -408,12 +464,12 @@ describe('the schema registry', () => {
     const runner = createSchemaMigrationRunner(adapter);
     const status = await runner.status();
     expect(status.total).toBe(SCHEMA_MIGRATIONS.length);
-    expect(status.remaining.map((entry) => entry.version)).toEqual([100, 101, 102]);
+    expect(status.remaining.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
   });
 
   it('knows every version this build ships, in either band', () => {
-    // 102 must be known for the same reason 100 and 101 must: the startup runner refuses a ledger
+    // 103 must be known for the same reason 100-102 must: the startup runner refuses a ledger
     // row it has never heard of as a database written by a newer build.
-    expect(KNOWN_MIGRATION_VERSIONS).toEqual([1, 2, 3, 4, 5, 100, 101, 102]);
+    expect(KNOWN_MIGRATION_VERSIONS).toEqual([1, 2, 3, 4, 5, 100, 101, 102, 103]);
   });
 });
