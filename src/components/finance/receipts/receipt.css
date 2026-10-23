@@ -1,0 +1,430 @@
+/**
+ * ABOUTME: The printable receipt surface: the school header, the identity and figure lines, the
+ * ABOUTME: allocation table, the verification QR and the footer, in the DR-05 ink palette.
+ *
+ * The static Inter print fonts and the `html[data-printing] #root { display: none }` shell rule come
+ * from the report print stylesheet (`report.css`), which this file relies on. Page geometry is NOT
+ * declared here: `ReceiptDocument` injects one `@page` rule per A5/A4 receipt from the template, and
+ * thermal declares none — a roll is not a sheet (DR-05 §Page geometry).
+ */
+
+/* ------------------------------------------------------------------ surface */
+
+.receipt-print-surface {
+  background: #e5e7eb;
+  padding: 8mm 4mm 12mm;
+  min-height: 100%;
+}
+
+.receipt-document {
+  --receipt-ink: #111827;
+  --receipt-muted: #4b5563;
+  --receipt-rule: #1f2937;
+  --receipt-hairline: #d1d5db;
+  --receipt-font: 'Inter Print', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --receipt-base: 8.5pt;
+  --receipt-meta-size: max(7.2pt, calc(var(--receipt-base) - 1.3pt));
+  --receipt-sheet-width: 186mm;
+
+  color: var(--receipt-ink);
+  font-family: var(--receipt-font);
+  font-size: var(--receipt-base);
+  line-height: 1.35;
+}
+
+.receipt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3mm;
+  max-width: 210mm;
+  margin: 0 auto 4mm;
+  font-size: 10pt;
+  color: var(--receipt-muted);
+}
+
+.receipt-toolbar__button {
+  padding: 1.6mm 4mm;
+  border: 0.3mm solid var(--receipt-rule);
+  border-radius: 1mm;
+  background: #ffffff;
+  color: var(--receipt-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.receipt-toolbar__hint {
+  font-size: 9pt;
+}
+
+/* A sheet is one page at 1:1 on screen; on paper the page box comes from `@page`. The width is the
+   template's content box exactly, so the sheet is measured at 72 / 130 / 186 mm, not that plus an inset. */
+.receipt-sheet {
+  width: var(--receipt-sheet-width);
+  margin: 0 auto;
+  padding: 0;
+  background: #ffffff;
+  color: var(--receipt-ink);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* The roll: 72 mm of printable width, a dashed tear rule, and figures a cashier can read across. */
+.receipt-document--thermal .receipt-sheet {
+  box-shadow: none;
+}
+
+.receipt-document--thermal .receipt-header,
+.receipt-document--thermal .receipt-footer {
+  border-style: dashed;
+}
+
+/* Figures use a monospaced stack on the roll, where column alignment matters more than the face. */
+.receipt-document--thermal .receipt-figure {
+  font-family: ui-monospace, 'Cascadia Mono', 'Courier New', monospace;
+}
+
+.receipt-document[dir='rtl'] {
+  direction: rtl;
+}
+
+/* ------------------------------------------------------------------- header */
+
+.receipt-header {
+  padding-bottom: 1.6mm;
+  border-bottom: 0.6mm solid var(--receipt-rule);
+  text-align: center;
+}
+
+.receipt-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3mm;
+}
+
+.receipt-header__logo {
+  display: block;
+  width: 14mm;
+  height: 14mm;
+  object-fit: contain;
+}
+
+.receipt-header__identity {
+  min-width: 0;
+}
+
+.receipt-header__name {
+  margin: 0;
+  font-size: 1.5em;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.receipt-header__motto {
+  margin: 0.4mm 0 0;
+  font-size: 0.84em;
+  font-style: italic;
+  color: var(--receipt-muted);
+}
+
+.receipt-header__contact {
+  margin: 0.4mm 0 0;
+  font-size: 0.8em;
+  color: var(--receipt-muted);
+}
+
+.receipt-title {
+  margin: 1.2mm 0 0;
+  font-size: 0.95em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.receipt-preview-banner {
+  margin-bottom: 1.2mm;
+  padding: 1mm 2mm;
+  border: 0.4mm solid var(--receipt-rule);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------- blocks */
+
+.receipt-block {
+  margin-top: 1.7mm;
+}
+
+.receipt-block__title {
+  margin: 0 0 0.7mm;
+  padding-bottom: 0.3mm;
+  border-bottom: 0.25mm solid var(--receipt-hairline);
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--receipt-muted);
+}
+
+.receipt-lines {
+  display: block;
+  margin: 0;
+}
+
+/* One labelled line: the key and the value on one row, the value right-aligned. A flex row rather
+   than a grid so a lone line (the balance) renders identically to a list of them. */
+.receipt-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4mm;
+}
+
+.receipt-line + .receipt-line {
+  margin-top: 0.4mm;
+}
+
+.receipt-line__key {
+  color: var(--receipt-muted);
+  font-size: 0.82em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.receipt-line__value {
+  text-align: end;
+  font-weight: 600;
+}
+
+.receipt-figure {
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-void {
+  margin: 1mm 0 0;
+  padding: 0.6mm 1.4mm;
+  border: 0.4mm solid var(--receipt-rule);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.receipt-empty {
+  margin: 0;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--receipt-muted);
+}
+
+/* amount in figures and in words */
+
+.receipt-amount__figure {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3mm;
+  padding: 0.8mm 0;
+  border-top: 0.25mm solid var(--receipt-hairline);
+  border-bottom: 0.25mm solid var(--receipt-hairline);
+}
+
+.receipt-amount__value {
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.receipt-amount__words {
+  margin: 0.8mm 0 0;
+  font-size: 0.9em;
+}
+
+/* allocation table */
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: max(7.2pt, calc(var(--receipt-base) - 0.5pt));
+}
+
+.receipt-table th,
+.receipt-table td {
+  padding: 0.7mm 1.1mm;
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.receipt-table thead th {
+  border-bottom: 0.45mm solid var(--receipt-rule);
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.receipt-table tbody td {
+  border-bottom: 0.2mm solid var(--receipt-hairline);
+}
+
+/* Totals are a row in `tbody`, never a `tfoot`: a footer group repeats on every page (DR-05). */
+.receipt-table__total td {
+  border-top: 0.45mm solid var(--receipt-rule);
+  border-bottom: 0.45mm solid var(--receipt-rule);
+  font-weight: 700;
+}
+
+.receipt-cell--end {
+  text-align: end !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* verification */
+
+.receipt-verification {
+  display: flex;
+  gap: 2.5mm;
+  align-items: center;
+}
+
+.receipt-qr svg {
+  display: block;
+  width: 16mm;
+  height: 16mm;
+}
+
+.receipt-qr--large svg {
+  width: 18mm;
+  height: 18mm;
+}
+
+.receipt-verification__label {
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.receipt-verification__label--preview {
+  text-transform: uppercase;
+  border: 0.3mm solid var(--receipt-rule);
+  padding: 0.4mm 1mm;
+  display: inline-block;
+}
+
+.receipt-verification__url {
+  font-size: var(--receipt-meta-size);
+  color: var(--receipt-muted);
+  overflow-wrap: anywhere;
+}
+
+/* footer */
+
+.receipt-footer {
+  margin-top: 1.7mm;
+  padding-top: 1.2mm;
+  border-top: 0.25mm solid var(--receipt-hairline);
+  text-align: center;
+}
+
+.receipt-footer__message {
+  margin: 0;
+  font-size: 0.86em;
+}
+
+.receipt-footer__meta {
+  margin: 0.6mm 0 0;
+  font-size: var(--receipt-meta-size);
+  color: var(--receipt-muted);
+}
+
+/* ------------------------------------------------------------------------ print */
+
+@media print {
+  .receipt-screen-only,
+  .receipt-toolbar {
+    display: none !important;
+  }
+
+  .receipt-print-surface {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    min-height: 0;
+  }
+
+  .receipt-document {
+    background: #ffffff;
+  }
+
+  /*
+   * A sheet fills its `@page` content box; a roll keeps its 72 mm width, because thermal declares no
+   * page box and the printer's driver owns the roll's length. There is no `break-after` here: a
+   * receipt is one document, not a batch of sheets, so there is no next page to move to.
+   */
+  .receipt-sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    orphans: 2;
+    widows: 2;
+  }
+
+  .receipt-document--thermal .receipt-sheet {
+    width: var(--receipt-sheet-width);
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  .receipt-line {
+    break-inside: avoid;
+  }
+
+  .receipt-header,
+  .receipt-amount,
+  .receipt-verification,
+  .receipt-keep,
+  .receipt-footer {
+    break-inside: avoid;
+  }
+
+  /*
+   * The allocation table is the one block allowed to break: a receipt can carry more vote-head lines
+   * than a roll length or a page holds, and `break-inside: avoid` around a table that exceeds a page
+   * pushes the whole table to the next page and leaves the previous one blank (measured, DR-05).
+   */
+  .receipt-block--flow {
+    break-inside: auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  .receipt-block__title {
+    break-after: avoid;
+  }
+
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+  }
+}
