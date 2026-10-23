@@ -43,6 +43,8 @@ test.use({ navigationTimeout: COLD_LOAD_TIMEOUT, actionTimeout: UI_TIMEOUT });
 
 const RUN = `${Date.now()}`;
 const YEAR = new Date().getFullYear();
+/** The wizard's default academic year starts on this date, which is inside its first term. */
+const YEAR_START = `${YEAR}-01-06`;
 const ADMIN = {
   username: `gp1-admin-${RUN}`,
   displayName: 'GP1 Administrator',
@@ -109,6 +111,14 @@ test.describe('GP-1 golden path', () => {
       await page.locator('[name=guardians\\.0\\.given_name]').fill(STUDENT.guardianGiven);
       await page.locator('[name=guardians\\.0\\.family_name]').fill(STUDENT.guardianFamily);
       await page.locator('[name=guardians\\.0\\.phone]').fill(STUDENT.guardianPhone);
+      // The learner joins at the start of the academic year, which is what the wizard's default
+      // terms describe. The sample school prices the first term - its fee schedule, its own invoices
+      // and its assessment all pin that term - and the billing run bills a learner only for a period
+      // their enrolment covers, so a learner admitted on today's date, months into the third term, is
+      // correctly refused the first-term run. Back-dating the admission is what a registrar records
+      // for a learner who joined in the first term, and it is the only start date that lets this path
+      // bill, teach and mark the same term.
+      await page.locator('[name=start_date]').fill(YEAR_START);
 
       // The class group is a canonical reference: choose it through the picker, never a legacy class-stream select.
       await chooseFromPicker(page, page.getByTestId('programme-picker'), 'School Programme');
@@ -172,8 +182,11 @@ test.describe('GP-1 golden path', () => {
       const invoiceRow = page.getByRole('row', { name: new RegExp(STUDENT_NAME) });
       await expect(invoiceRow).toBeVisible();
       await expect(invoiceRow).toContainText(FEE_TOTAL);
+      // The number the run issued, which the sequences module formats as INV/{year}/{term}/{seq}.
+      // The row is the run's own result table, so this proves the invoice the UI reports is the one
+      // the sequence issued, not a number the page made up.
       const invoiceText = await invoiceRow.innerText();
-      const match = /INV-\d+/.exec(invoiceText);
+      const match = /INV\/\d{4}\/\d+\/\d+/.exec(invoiceText);
       expect(match, `the invoice number is missing from the billing result:\n${invoiceText}`).not.toBeNull();
       invoiceNumber = match![0];
     });
@@ -206,10 +219,10 @@ test.describe('GP-1 golden path', () => {
       await dialog.getByRole('button', { name: 'Record payment' }).click();
       await expect(dialog).toBeHidden();
 
-      const toast = page.getByText(/Payment recorded\. Receipt RCT-\d+\./);
+      const toast = page.getByText(/Payment recorded\. Receipt RCT\/\d{4}\/\d+\./);
       await expect(toast).toBeVisible();
       const toastText = await toast.innerText();
-      const match = /RCT-\d+/.exec(toastText);
+      const match = /RCT\/\d{4}\/\d+/.exec(toastText);
       expect(match, `the receipt number is missing from the toast:\n${toastText}`).not.toBeNull();
       receiptNumber = match![0];
 
@@ -264,7 +277,7 @@ test.describe('GP-1 golden path', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: /^Teaching group/ }), /^Form 1 English\b/);
       await chooseFromPicker(page, page.getByRole('combobox', { name: /^Learner enrolment/ }), new RegExp(STUDENT_NAME));
       // The demo assessment falls a month into the first term; the membership must cover that date.
-      await page.getByLabel('From', { exact: true }).fill(`${YEAR}-01-06`);
+      await page.getByLabel('From', { exact: true }).fill(YEAR_START);
       await page.getByRole('button', { name: 'Create membership' }).click();
       await expect(page.getByText('Membership added.')).toBeVisible();
     });
