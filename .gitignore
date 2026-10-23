@@ -83,3 +83,6 @@ full_file_list.txt
 # Playwright artifacts
 test-results/
 playwright-report/
+
+# Harness artifacts: browser captures and local session state from a dev run.
+.openchamber/
