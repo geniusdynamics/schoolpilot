@@ -47,7 +47,15 @@ export { ensureDeclaredColumns } from './columnSync';
 
 export { AUDIT_DDL, AUDIT_TABLE, applyAuditSchema, readAuditEvents, writeAuditEvent } from './audit';
 
-export { ENFORCED_INVARIANTS, guardsFor, type InvariantContext, type InvariantGuard } from './invariants';
+export {
+  ENFORCED_INVARIANTS,
+  guardsFor,
+  guardsForRemoval,
+  type InvariantContext,
+  type InvariantGuard,
+} from './invariants';
+
+export { referenceOrder } from './referenceOrder';
 
 export {
   columnsFor,
@@ -74,6 +82,7 @@ export type {
   ListQuery,
   OrderSpec,
   Page,
+  RemoveOptions,
   RepositoryAction,
   RepositoryRow,
   Unsubscribe,

@@ -2,13 +2,17 @@
 // ABOUTME: single surface the LAN server and, later, the cloud server serve.
 
 import type { Repository } from '@/data/repository';
+import type { ServerNode } from '@/data/sync';
 
+import { addSyncRoutes } from '../sync';
 import { addRepositoryRoutes } from './repositoryRoutes';
 import { Router } from './router';
 import { addServiceRoutes } from './serviceRoutes';
 
 export interface HubRouterOptions {
   readonly repository: Repository;
+  /** The sync node; when present the hub serves `/api/sync`. */
+  readonly sync?: ServerNode;
   /** The actor a write names when the request carries no `x-actor` header. */
   readonly actor?: string;
 }
@@ -23,6 +27,7 @@ export function createHubRouter(options: HubRouterOptions): Router {
 
   addRepositoryRoutes(router, routes);
   addServiceRoutes(router, routes);
+  if (options.sync) addSyncRoutes(router, { sync: options.sync });
 
   return router;
 }
