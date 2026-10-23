@@ -220,10 +220,6 @@ const EnhancedMetricCard: React.FC<DashboardMetric> = ({ label, value, descripti
     neutral: { icon: <MinusIcon className="h-3 w-3" />, color: 'text-surface-muted-fg bg-surface-accent' },
   };
 
-  const handleClick = () => {
-    if (to) navigate(to);
-  };
-
   const content = (
     <div
       className={`
