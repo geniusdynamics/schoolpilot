@@ -1,0 +1,119 @@
+{
+  "name": "bench-sqlite",
+  "generatedAt": "2026-10-23T16:39:41.121Z",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "measurements": [
+    {
+      "name": "localWrite.p50",
+      "value": 7.872,
+      "unit": "ms",
+      "note": "a create through the repository, with its outbox entry"
+    },
+    {
+      "name": "localWrite.p95",
+      "value": 10.919,
+      "unit": "ms",
+      "note": "a create through the repository, with its outbox entry"
+    },
+    {
+      "name": "localWrite.samples",
+      "value": 20,
+      "unit": "count",
+      "note": "a create through the repository, with its outbox entry"
+    },
+    {
+      "name": "pushOneChange.p50",
+      "value": 8.091,
+      "unit": "ms",
+      "note": "one change accepted by the server"
+    },
+    {
+      "name": "pushOneChange.p95",
+      "value": 30.543,
+      "unit": "ms",
+      "note": "one change accepted by the server"
+    },
+    {
+      "name": "pushOneChange.samples",
+      "value": 20,
+      "unit": "count",
+      "note": "one change accepted by the server"
+    },
+    {
+      "name": "pullOneChange.p50",
+      "value": 3.377,
+      "unit": "ms",
+      "note": "one changed row pulled and folded in"
+    },
+    {
+      "name": "pullOneChange.p95",
+      "value": 15.17,
+      "unit": "ms",
+      "note": "one changed row pulled and folded in"
+    },
+    {
+      "name": "pullOneChange.samples",
+      "value": 20,
+      "unit": "count",
+      "note": "one changed row pulled and folded in"
+    },
+    {
+      "name": "statements.bootstrap",
+      "value": 998,
+      "unit": "count",
+      "note": "the seeded fixtures written once"
+    },
+    {
+      "name": "statements.pullBootstrap",
+      "value": 138,
+      "unit": "count",
+      "note": "68 rows served to a new device"
+    },
+    {
+      "name": "statements.pushOneChange",
+      "value": 28,
+      "unit": "count",
+      "note": "statements one accepted change costs"
+    },
+    {
+      "name": "statements.pullOneChange",
+      "value": 4,
+      "unit": "count",
+      "note": "statements one pulled change costs"
+    },
+    {
+      "name": "statements.push20",
+      "value": 560,
+      "unit": "count",
+      "note": "twenty changes in one push call"
+    },
+    {
+      "name": "statements.pullBatch20",
+      "value": 42,
+      "unit": "count",
+      "note": "twenty changed rows in one pull"
+    },
+    {
+      "name": "mergeMeanMicros",
+      "value": 2.84,
+      "unit": "us",
+      "note": "the pure policy, no database"
+    },
+    {
+      "name": "sameFieldConflicts",
+      "value": 1,
+      "unit": "count",
+      "note": "two devices editing one field"
+    },
+    {
+      "name": "paymentsHeld",
+      "value": 81,
+      "unit": "count",
+      "note": "seeded plus written"
+    }
+  ]
+}

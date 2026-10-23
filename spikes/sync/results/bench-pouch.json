@@ -1,0 +1,107 @@
+{
+  "name": "bench-pouch",
+  "generatedAt": "2026-10-23T16:40:04.905Z",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "measurements": [
+    {
+      "name": "putOneDocument.p50",
+      "value": 13.66,
+      "unit": "ms",
+      "note": "one document written on its own"
+    },
+    {
+      "name": "putOneDocument.p95",
+      "value": 59.633,
+      "unit": "ms",
+      "note": "one document written on its own"
+    },
+    {
+      "name": "putOneDocument.samples",
+      "value": 50,
+      "unit": "count",
+      "note": "one document written on its own"
+    },
+    {
+      "name": "put20Singly.p50",
+      "value": 1.474,
+      "unit": "ms",
+      "note": "twenty documents, one call each"
+    },
+    {
+      "name": "put20Singly.p95",
+      "value": 4.35,
+      "unit": "ms",
+      "note": "twenty documents, one call each"
+    },
+    {
+      "name": "put20Singly.samples",
+      "value": 20,
+      "unit": "count",
+      "note": "twenty documents, one call each"
+    },
+    {
+      "name": "bulkDocs20.p50",
+      "value": 7.102,
+      "unit": "ms",
+      "note": "twenty documents in one batch"
+    },
+    {
+      "name": "bulkDocs20.p95",
+      "value": 21.839,
+      "unit": "ms",
+      "note": "twenty documents in one batch"
+    },
+    {
+      "name": "bulkDocs20.samples",
+      "value": 5,
+      "unit": "count",
+      "note": "twenty documents in one batch"
+    },
+    {
+      "name": "replicateInitial.docs",
+      "value": 50,
+      "unit": "count",
+      "note": "documents the first replication wrote"
+    },
+    {
+      "name": "replicateInitial.p50",
+      "value": 165.473,
+      "unit": "ms",
+      "note": "50 documents in one replication"
+    },
+    {
+      "name": "replicateIncremental.docs",
+      "value": 130,
+      "unit": "count",
+      "note": "documents the second replication wrote"
+    },
+    {
+      "name": "replicateIncremental.p50",
+      "value": 410.284,
+      "unit": "ms",
+      "note": "everything written since the first replication"
+    },
+    {
+      "name": "documentBytes.mean",
+      "value": 716,
+      "unit": "bytes",
+      "note": "a payment document as the create wrote it"
+    },
+    {
+      "name": "documentsHeld",
+      "value": 180,
+      "unit": "count",
+      "note": "documents in the replica"
+    },
+    {
+      "name": "documentsBytes",
+      "value": 130060,
+      "unit": "bytes",
+      "note": "every document as JSON"
+    }
+  ]
+}
