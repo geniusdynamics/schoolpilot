@@ -151,15 +151,15 @@ rather than mutating a past amount.
 named at all, and the billing seam's `fee_item_not_priced` skip when the resolved schedule prices no
 line for the item.
 
-## The store, and its one gap
+## The store
 
 `store.ts` declares the `subscription` table's DDL and `ensureSubscriptionSchema(adapter)` applies
-it, exactly as the ledger and reconciliation modules declare their own tables. The **gap** is that
-this table is not yet in `SCHEMA_MIGRATIONS` (`src/data/migrations/schemaMigrations.ts`), so it is
-created by `ensureSubscriptionSchema` (what the tests call) but not by the startup path. Registering
-it is one entry in that registry's list — a change outside this task's files — and is reported here
-rather than made. Until then a billing run reads subscriptions through `SubscriptionStore`, which the
-SQLite store satisfies.
+it, exactly as the ledger and reconciliation modules declare their own tables. **Schema migration
+103 applies `SUBSCRIPTION_DDL`** at startup (`src/data/migrations/schemaMigrations.ts`, applied by
+`applySchemaMigrations` while the app opens the canonical database), so the startup path creates
+the table and the three indexes; `ensureSubscriptionSchema` remains the path the module's own tests
+take, and is safe to call alongside the migration. A billing run reads subscriptions through
+`SubscriptionStore`, which the SQLite store satisfies.
 
 ## The tests
 

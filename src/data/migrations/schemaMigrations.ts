@@ -3,6 +3,7 @@
 
 import { LEDGER_DDL } from '@/domain/finance/ledger/store';
 import { RECONCILIATION_DDL } from '@/domain/finance/reconciliation/store';
+import { SUBSCRIPTION_DDL } from '@/domain/finance/subscriptions/store';
 import { SEQUENCE_DDL } from '@/domain/sequences/store';
 
 import { dropStatementsFor, schemaObjectsOf, type SchemaObject } from './schemaDdl';
@@ -95,6 +96,14 @@ export const reconciliationSchemaMigration: ModuleSchemaMigration = moduleSchema
   ddl: RECONCILIATION_DDL,
 });
 
+/** The subscriptions module: one row per subscription, priced from the fee schedule it names. */
+export const subscriptionsSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 103,
+  module: 'subscriptions',
+  name: 'subscriptions: the subscription table and the indexes the billing run reads',
+  ddl: SUBSCRIPTION_DDL,
+});
+
 /**
  * The module schema migrations this build applies at startup, in version order.
  *
@@ -105,6 +114,7 @@ export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   sequencesSchemaMigration,
   ledgerSchemaMigration,
   reconciliationSchemaMigration,
+  subscriptionsSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */

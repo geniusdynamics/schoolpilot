@@ -43,6 +43,7 @@ export {
   SCHEMA_MIGRATIONS,
   schemaMigrationFor,
   sequencesSchemaMigration,
+  subscriptionsSchemaMigration,
   type ModuleSchemaMigration,
 } from './schemaMigrations';
 
