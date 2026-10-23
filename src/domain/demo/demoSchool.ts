@@ -948,26 +948,32 @@ async function seedDemoPeople(
     () => input.count('fee_schedule')
   );
 
-  for (const [index, item] of feeItems.entries()) {
-    const amount = FEE_ITEMS[index];
-    if (!amount) continue;
-    await repository.create(
-      'fee_schedule_line',
-      {
-        institution_id: institutionId,
-        fee_schedule_id: asId<'fee_schedule'>(schedule.id),
-        fee_item_id: asId<'fee_item'>(item.id),
-        amount: money(amount.amountMinor),
-        mandatory: true,
-        frequency: 'per_term',
-        due_dates: [input.yearStart],
-        proration_rule: 'full',
-        residence_status: 'day',
-        fee_category_id: feeCategory.id,
-      },
-      options
-    );
-    input.count('fee_schedule_line');
+  // One line per level per fee item: the schedule prices every level, so a line has to name the level
+  // it prices. A line that names no level has no effective address when the header spans several, and
+  // the matrix then finds no cell for any learner.
+  for (const level of input.levels) {
+    for (const [index, item] of feeItems.entries()) {
+      const amount = FEE_ITEMS[index];
+      if (!amount) continue;
+      await repository.create(
+        'fee_schedule_line',
+        {
+          institution_id: institutionId,
+          fee_schedule_id: asId<'fee_schedule'>(schedule.id),
+          fee_item_id: asId<'fee_item'>(item.id),
+          level_id: level.id,
+          amount: money(amount.amountMinor),
+          mandatory: true,
+          frequency: 'per_term',
+          due_dates: [input.yearStart],
+          proration_rule: 'full',
+          residence_status: 'day',
+          fee_category_id: feeCategory.id,
+        },
+        options
+      );
+      input.count('fee_schedule_line');
+    }
   }
 
   // A term invoice for every learner, with the lines the schedule says, and a payment for half.
