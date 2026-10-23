@@ -907,6 +907,24 @@ async function seedDemoPeople(
     feeItems.push(row);
   }
 
+  // A fee schedule prices a cell of level x residence x category. The demo bills day scholars of one
+  // category, and both dimensions must be declared as exactly one value: a dimension with none
+  // refuses every cell ("the schedule declares no fee category"), and one with several demands the
+  // caller name a value the learner data does not carry. Declaring boarder here while no learner is
+  // one is what made the sample school unbillable by the billing run.
+  const feeCategory = await findOrCreate<'fee_category'>(
+    repository,
+    'fee_category',
+    { where: { institution_id: institutionId, code: 'DAY' } },
+    () => ({
+      institution_id: institutionId,
+      code: 'DAY',
+      name: 'Day scholar',
+    }),
+    options,
+    () => input.count('fee_category')
+  );
+
   const scheduleName = `${input.yearStart.slice(0, 4)} fees`;
   const schedule = await findOrCreate<'fee_schedule'>(
     repository,
@@ -919,8 +937,8 @@ async function seedDemoPeople(
       academic_period_ids: [periodId],
       programme_ids: [programmeId],
       level_ids: input.levels.map((level) => level.id),
-      residence_statuses: ['day', 'boarder'],
-      fee_category_ids: [],
+      residence_statuses: ['day'],
+      fee_category_ids: [feeCategory.id],
       campus_id: campusId,
       new_learners_only: false,
       version: 1,
@@ -944,6 +962,8 @@ async function seedDemoPeople(
         frequency: 'per_term',
         due_dates: [input.yearStart],
         proration_rule: 'full',
+        residence_status: 'day',
+        fee_category_id: feeCategory.id,
       },
       options
     );
