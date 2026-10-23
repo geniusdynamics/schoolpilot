@@ -527,7 +527,7 @@ const StatementView: React.FC<{ readonly statement: Statement }> = ({ statement 
 
 const StatementsPage: React.FC<StatementsPageProps> = (props) => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StatementsPageContent {...props} />
     </div>
   </CanonicalRepositoryProvider>

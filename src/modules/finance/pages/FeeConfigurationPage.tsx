@@ -86,7 +86,7 @@ const FeeConfigurationPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('feeConfiguration.title', 'Fee Configuration')}
-        subtitle={t(
+        info={t(
           'feeConfiguration.subtitle',
           'Manage fee templates, structures, adjustments, fines, installments, and receipt templates'
         )}

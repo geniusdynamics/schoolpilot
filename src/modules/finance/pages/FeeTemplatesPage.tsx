@@ -376,6 +376,7 @@ export const FeeTemplatesContent: React.FC = () => {
     <div className="space-y-4">
       <Card
         title="Fee Schedules"
+        info="A fee schedule fixes the fee items and exact amounts an academic year bills. An invoice copies the schedule's lines when the billing run posts it; editing a schedule later never changes an invoice that is already posted."
         actions={
           <Button
             onClick={() => openSchedule(null)}
@@ -386,11 +387,6 @@ export const FeeTemplatesContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A fee schedule fixes the fee items and exact amounts an academic year bills. An invoice
-          copies the schedule's lines when the billing run posts it; editing a schedule later never
-          changes an invoice that is already posted.
-        </p>
         <DataGrid
           columns={scheduleColumns}
           data={[...finance.scheduleRows]}
@@ -617,7 +613,7 @@ export const FeeTemplatesContent: React.FC = () => {
 
 const FeeTemplatesPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeeTemplatesContent />
     </div>
   </CanonicalRepositoryProvider>

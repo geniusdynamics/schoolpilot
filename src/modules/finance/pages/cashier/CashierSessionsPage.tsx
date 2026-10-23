@@ -63,7 +63,7 @@ export const CashierSessionsPageContent: React.FC<CashierSessionsPageContentProp
     <div className="space-y-4" data-testid="cashier-sessions-page">
       <Card
         title="Cashier sessions"
-        subtitle="A session closes once. Its Z-report states the expected cash, the counted cash and the difference."
+        info="A session closes once. Its Z-report states the expected cash, the counted cash and the difference."
         actions={
           <Button size="sm" variant="secondary" onClick={() => void load()} disabled={!port}>
             Refresh

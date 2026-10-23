@@ -368,7 +368,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
 
 const FinanceDashboardPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FinanceDashboardPageContent />
     </div>
   </CanonicalRepositoryProvider>

@@ -184,21 +184,19 @@ const FinancialYearsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('finance:financialYears.title', 'Financial Years')}
+        info={t(
+          'finance:financialYears.description',
+          'Financial years group terms, fees and accounts. Date ranges may not overlap, and one open year is always the current year.'
+        )}
         actions={
           <Button onClick={openCreate} leftIcon={<PlusIcon className="w-5 h-5" />}>
             {t('finance:financialYears.add', 'Add Financial Year')}
           </Button>
         }
       >
-        <p className="text-sm text-surface-muted-fg mb-4">
-          {t(
-            'finance:financialYears.description',
-            'Financial years group terms, fees and accounts. Date ranges may not overlap, and one open year is always the current year.'
-          )}
-        </p>
         <DataGrid
           columns={columns}
           data={financialYears}

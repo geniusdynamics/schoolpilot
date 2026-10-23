@@ -315,15 +315,12 @@ export const GeneralReceiptsPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="General Receipts" actions={
+    <div className="space-y-3">
+      <Card title="General Receipts" info="Record miscellaneous payments received by the school." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Record Receipt
         </Button>
       }>
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Record miscellaneous payments received by the school.
-        </p>
         <DataGrid
           columns={columns}
           data={rows}
@@ -455,7 +452,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
 
 const GeneralReceiptsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <GeneralReceiptsPageContent />
     </div>
   </CanonicalRepositoryProvider>

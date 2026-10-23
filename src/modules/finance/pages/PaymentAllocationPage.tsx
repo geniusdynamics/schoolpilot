@@ -168,12 +168,10 @@ export const PaymentAllocationPageContent: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <Card title="Payment allocation">
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A posted payment can be applied to any posted invoice of the same learner. The payment's
-          allocations may never exceed the amount that was paid; the repository refuses the write
-          when they would.
-        </p>
+      <Card
+        title="Payment allocation"
+        info="A posted payment can be applied to any posted invoice of the same learner. The payment's allocations may never exceed the amount that was paid; the repository refuses the write when they would."
+      >
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
@@ -295,7 +293,7 @@ export const PaymentAllocationPageContent: React.FC = () => {
 
 const PaymentAllocationPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <PaymentAllocationPageContent />
     </div>
   </CanonicalRepositoryProvider>

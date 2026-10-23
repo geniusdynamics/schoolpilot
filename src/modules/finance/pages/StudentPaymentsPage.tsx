@@ -231,16 +231,13 @@ export const StudentPaymentsPageContent: React.FC = () => {
     <div className="space-y-4">
       <Card
         title="Student payments"
+        info="A payment is posted when it is recorded, so it can be reversed but never edited or deleted. The receipt number is issued with the payment."
         actions={
           <Button onClick={openNew} leftIcon={<PlusIcon className="w-5 h-5" />}>
             Record payment
           </Button>
         }
       >
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          A payment is posted when it is recorded, so it can be reversed but never edited or
-          deleted. The receipt number is issued with the payment.
-        </p>
         <DataGrid
           columns={columns}
           data={[...finance.paymentRows]}
@@ -313,7 +310,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
 
 const StudentPaymentsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentPaymentsPageContent />
     </div>
   </CanonicalRepositoryProvider>

@@ -134,20 +134,10 @@ export const BalanceSheetPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <Card title="Balance Sheet">
-        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <BuildingLibraryIcon className="w-5 h-5 text-purple-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-purple-800">Assets, Liabilities, Equity Snapshot</h3>
-              <p className="text-sm text-purple-700 mt-1">
-                The Balance Sheet provides a snapshot of the school's financial position at a specific point in time, 
-                showing what the school owns (assets), what it owes (liabilities), and the residual interest (equity).
-              </p>
-            </div>
-          </div>
-        </div>
-
+      <Card
+        title="Balance Sheet"
+        info="The Balance Sheet provides a snapshot of the school's financial position at a specific point in time, showing what the school owns (assets), what it owes (liabilities), and the residual interest (equity)."
+      >
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
@@ -282,7 +272,7 @@ export const BalanceSheetPageContent: React.FC = () => {
   );
 };
 const BalanceSheetPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BalanceSheetPageContent />
   </div>
 );

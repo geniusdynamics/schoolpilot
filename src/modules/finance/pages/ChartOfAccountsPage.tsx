@@ -231,15 +231,12 @@ export const ChartOfAccountsContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Card title="Chart of Accounts Management" actions={
+    <div className="space-y-3">
+      <Card title="Chart of Accounts Management" info="Manage the school's chart of accounts. Define accounts for assets, liabilities, equity, revenue, and expenses." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Account
         </Button>
       }>
-         <p className="text-sm text-surface-muted-fg mb-4">
-          Manage the school's chart of accounts. Define accounts for assets, liabilities, equity, revenue, and expenses.
-        </p>
         <DataGrid 
           columns={columns} 
           data={accountRows}
@@ -301,7 +298,7 @@ export const ChartOfAccountsContent: React.FC = () => {
 };
 
 const ChartOfAccountsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <ChartOfAccountsContent />
   </div>
 );

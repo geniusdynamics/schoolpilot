@@ -106,20 +106,8 @@ export const CashBookPageContent: React.FC = () => {
             <span>Cash Book</span>
           </div>
         }
+        info="The Cash Book records all cash transactions including cash receipts and cash payments. Use this to track actual cash flow and reconcile with physical cash on hand."
       >
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <CurrencyDollarIcon className="w-5 h-5 text-green-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-green-800">Cash-Only Transaction Register</h3>
-              <p className="text-sm text-green-700 mt-1">
-                The Cash Book records all cash transactions including cash receipts and cash payments.
-                Use this to track actual cash flow and reconcile with physical cash on hand.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Filters */}
         <div className="mb-6 flex gap-4 flex-wrap">
           <div className="flex-1 min-w-[200px]">
@@ -204,7 +192,7 @@ export const CashBookPageContent: React.FC = () => {
   );
 };
 const CashBookPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <CashBookPageContent />
   </div>
 );

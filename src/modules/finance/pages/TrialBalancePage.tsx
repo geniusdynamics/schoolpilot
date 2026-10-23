@@ -215,7 +215,7 @@ export const TrialBalancePageContent: React.FC = () => {
   );
 };
 const TrialBalancePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <TrialBalancePageContent />
   </div>
 );

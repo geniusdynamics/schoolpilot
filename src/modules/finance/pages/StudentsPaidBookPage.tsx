@@ -143,7 +143,7 @@ export const StudentsPaidBookPageContent: React.FC = () => {
 
 const StudentsPaidBookPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <StudentsPaidBookPageContent />
     </div>
   </CanonicalRepositoryProvider>

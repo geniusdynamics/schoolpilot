@@ -59,7 +59,7 @@ const TransportFinancePage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('transport.title', 'Transport Finance')}
-        subtitle={t(
+        info={t(
           'transport.subtitle',
           'Manage transport routes and student transport assignments'
         )}

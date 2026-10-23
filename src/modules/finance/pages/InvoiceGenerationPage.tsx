@@ -20,7 +20,7 @@ export const InvoiceGenerationPageContent: React.FC = () => {
 
 const InvoiceGenerationPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <InvoiceGenerationPageContent />
     </div>
   </CanonicalRepositoryProvider>

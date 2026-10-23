@@ -208,20 +208,8 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
             New Template
           </Button>
         }
+        info="Create custom receipt templates with your school branding, logo, and personalized messages. These templates are used when generating fee payment receipts for students and parents."
       >
-        <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-primary-800">About Receipt Templates</h3>
-              <p className="text-sm text-primary-700 mt-1">
-                Create custom receipt templates with your school branding, logo, and personalized messages.
-                These templates are used when generating fee payment receipts for students and parents.
-              </p>
-            </div>
-          </div>
-        </div>
-
         <DataGrid
           data={templates}
           columns={columns}
@@ -434,7 +422,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
 };
 
 const FeesReceiptTemplatePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <FeesReceiptTemplatePageContent />
   </div>
 );

@@ -355,10 +355,10 @@ export const FeeItemsPageContent: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('feeItems.title', 'Fee items (vote heads)')}
-        subtitle={t(
+        info={t(
           'feeItems.subtitle',
           'The vote heads a school bills, each with the account a posting credits, the order allocation follows and who funds it.'
         )}
@@ -523,7 +523,7 @@ export const FeeItemsPageContent: React.FC = () => {
 
 const FeeItemsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
-    <div className="space-y-6">
+    <div className="space-y-3">
       <FeeItemsPageContent />
     </div>
   </CanonicalRepositoryProvider>
