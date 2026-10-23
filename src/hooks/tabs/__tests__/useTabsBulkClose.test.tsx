@@ -58,10 +58,6 @@ const initialState = (): ParsedTabState => ({
   activeTabId: 'tab-applications',
 });
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MemoryRouter>{children}</MemoryRouter>
-);
-
 /** The hook as the tab bar mounts it, over the URL the engine writes for these three tabs.
  *
  * The router is given that same URL: the hook re-reads the tab list from the routed location, so the
