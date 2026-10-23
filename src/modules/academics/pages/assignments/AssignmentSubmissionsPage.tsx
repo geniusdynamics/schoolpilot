@@ -152,7 +152,7 @@ const AssignmentSubmissionsPage: React.FC = () => {
       <PageHeaderWithTabs
         title={assignment?.title || 'Assignment Submissions'}
         info={assignment ? `${assignment.subjectName} - ${assignment.classStreamName}` : undefined}
-        secondaryAction={
+        leading={
           <Button
             variant="ghost"
             onClick={() => navigate(`/assignments/${id}`)}

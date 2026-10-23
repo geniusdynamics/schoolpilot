@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
@@ -323,11 +322,12 @@ const AssignmentGradingPage: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      {/* Header */}
-      <PageHeaderWithTabs
+      {/* Progress Bar */}
+      <Card
+        variant="compact"
         title="Grade Submissions"
         info={`${assignment.title} - ${assignment.subjectName}`}
-        secondaryAction={
+        actions={
           <Button
             variant="ghost"
             onClick={() => navigate(`/assignments/${id}`)}
@@ -336,10 +336,7 @@ const AssignmentGradingPage: React.FC = () => {
             {t('common.back')}
           </Button>
         }
-      />
-
-      {/* Progress Bar */}
-      <Card variant="compact">
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">

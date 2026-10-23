@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -244,18 +243,21 @@ export const BoardExamResultsPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <PageHeaderWithTabs
-        title="Board Exam Results"
+      <Card
+        title={
+          <div className="flex items-center gap-2">
+            <DocumentTextIcon className="w-6 h-6 text-indigo-600" />
+            <span>Board Exam Results</span>
+          </div>
+        }
         info="Enter and manage external board exam results (IGCSE, A-Level, IB, SAT, etc.) for students. This tracks performance in external examinations separate from internal school assessments."
-        action={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             <PlusIcon className="w-4 h-4 mr-2" />
             Add Result
           </Button>
         }
-      />
-      <Card>
-
+      >
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-surface-card border border-surface-border rounded-lg p-4">

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { TabNavigation } from '@/components/ui';
 import { StudentExamProfile } from '../components';
 import { 
@@ -352,15 +351,6 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
     gradeForScore,
   ]);
 
-  const pageTitle = useMemo(() => {
-    const parts = [
-      streamLabel !== '—' ? streamLabel : '',
-      selectedSession?.name ?? '',
-      selectedSession?.school_period_name ? `(${selectedSession.school_period_name})` : '',
-    ].filter(Boolean);
-    return parts.length > 0 ? parts.join(' - ') : 'Student Exam Analysis';
-  }, [streamLabel, selectedSession]);
-
   const isLoading = Boolean(loading?.all || loading?.students);
 
   if (isLoading) {
@@ -379,26 +369,6 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
         variant="sidebar"
         activeTabId={activeTab}
         onTabChange={setActiveTab}
-      />
-
-      {/* Page Title */}
-      <PageHeaderWithTabs
-        title={pageTitle}
-        action={
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-surface-muted-fg">Change Exam:</span>
-            <select
-              value={selectedSession?.id ?? ''}
-              onChange={(e) => setSelectedExam(e.target.value)}
-              className="px-3 py-2 border border-surface-border rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              {examOptions.length === 0 && <option value="">No exams available</option>}
-              {examOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-        }
       />
 
       {/* Student Profile & Performance */}
@@ -422,13 +392,29 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
       />
 
       {/* Subject Performance Chart */}
-      <Card>
-        <div className="p-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-surface-foreground flex items-center gap-2">
+      <Card
+        title={
+          <div className="flex items-center gap-2">
             <ChartBarIcon className="h-5 w-5 text-surface-muted-fg" />
-            Exam Performance Comparison
-          </h3>
-        </div>
+            <span>Exam Performance Comparison</span>
+          </div>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-surface-muted-fg">Change Exam:</span>
+            <select
+              value={selectedSession?.id ?? ''}
+              onChange={(e) => setSelectedExam(e.target.value)}
+              className="px-3 py-2 border border-surface-border rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              {examOptions.length === 0 && <option value="">No exams available</option>}
+              {examOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        }
+      >
         <div className="p-4">
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={subjectPerformanceData}>

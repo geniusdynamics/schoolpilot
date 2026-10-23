@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import Textarea from '@/components/ui/Textarea';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -375,14 +374,15 @@ const ApprovalPage: React.FC = () => {
     { id: 'rejected', label: `Rejected (${rejectedPlans.length})` },
   ];
 
+  // The sentence that explains this tab. It rides on whichever list card is shown, so the tab
+  // body does not spend a row repeating the hub's own heading.
+  const approvalInfo = t(
+    'approval.subtitle',
+    'Review and approve weekly lesson plans submitted by teachers.'
+  );
+
   return (
     <div className="space-y-3">
-      {/* Header */}
-      <PageHeaderWithTabs
-        title={t('approval.title', 'Approval Queue')}
-        info="Review and approve weekly lesson plans submitted by teachers."
-      />
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
@@ -422,6 +422,7 @@ const ApprovalPage: React.FC = () => {
         <Card
           title={t('approval.pending', 'Pending Review')}
           subtitle={`${submittedPlans.length} plan(s) waiting for approval`}
+          info={approvalInfo}
         >
           {loading ? (
             <div className="p-8 text-center text-surface-muted-fg">Loading plans...</div>
@@ -448,6 +449,7 @@ const ApprovalPage: React.FC = () => {
         <Card
           title={t('approval.approved', 'Approved Plans')}
           subtitle={`${approvedPlans.length} plan(s) approved`}
+          info={approvalInfo}
         >
           {approvedPlans.length === 0 ? (
             <div className="text-center py-12">
@@ -472,6 +474,7 @@ const ApprovalPage: React.FC = () => {
         <Card
           title={t('approval.rejected', 'Rejected Plans')}
           subtitle={`${rejectedPlans.length} plan(s) rejected`}
+          info={approvalInfo}
         >
           {rejectedPlans.length === 0 ? (
             <div className="text-center py-12">

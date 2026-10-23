@@ -183,7 +183,7 @@ const PlanDetailPage: React.FC = () => {
       <PageHeaderWithTabs
         title={`Weekly Plan #${plan.id}`}
         info={`${plan.subjectName} - ${plan.classStreamName}`}
-        secondaryAction={
+        leading={
           <Button variant="ghost" onClick={handleBack} leftIcon={<ArrowLeftIcon className="w-5 h-5" />}>
             Back
           </Button>
