@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
-import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
+import { CanonicalRepositoryProvider, canonicalAdapter } from '@/data/canonicalRepository';
 import { useEntityQuery } from '@/data/query';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -51,12 +51,12 @@ export interface StatementsPageProps {
   readonly now?: () => Date;
 }
 
-/** The reason the statements are unavailable until the ledger's tables have a migration. */
+/** The reason the statements are unavailable while the canonical data layer is not open. */
 const NOT_CONNECTED_REASON =
-  'A statement is the ledger\u2019s running account, and the ledger has no canonical migration yet, ' +
-  'so the app does not open it on its own: this page takes the ledger (or the SQLite adapter it is ' +
-  'built over) as a prop. The routing shell renders it without one, so the statement stays empty ' +
-  'until the migration lands.';
+  'A statement is the ledger\u2019s running account on the canonical database. The canonical data ' +
+  'layer is not open, so the ledger has not been opened either: the app opens it at start-up, and ' +
+  'a caller outside that path hands this page the ledger (or the SQLite adapter it is built over) ' +
+  'as a prop.';
 
 const SPONSOR_GAP_REASON =
   'The platform models no sponsor invoice or sponsor receipt entity yet, so a sponsor statement ' +
@@ -74,21 +74,34 @@ async function openLedgerOver(adapter: SqliteAdapter): Promise<LedgerService> {
   return new LedgerService({ store: createSqliteLedgerStore(adapter) });
 }
 
-/** Resolves the ledger the page reads: the one it was handed, or one built from the adapter. */
+/**
+ * Resolves the ledger the page reads: the one it was handed, or one built over the caller's
+ * adapter, or - with neither - the one canonical connection the app opened. Without an adapter of
+ * its own the page reads the canonical ledger rather than staying empty.
+ */
 function useStatementLedger(
   ledger: LedgerReader | null | undefined,
   adapter: SqliteAdapter | null | undefined
 ): { readonly ledger: LedgerReader | null; readonly status: 'unavailable' | 'loading' | 'ready' | 'error'; readonly error: unknown } {
   const [opened, setOpened] = useState<LedgerService | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
+  const [storage, setStorage] = useState<SqliteAdapter | null | undefined>(
+    () => adapter ?? canonicalAdapter()
+  );
 
   useEffect(() => {
-    if (ledger || !adapter) {
+    // The canonical database may open just after this page mounts, so it is re-read rather than
+    // latched at the first render; the caller's adapter always wins.
+    setStorage(adapter ?? canonicalAdapter());
+  }, [adapter]);
+
+  useEffect(() => {
+    if (ledger || !storage) {
       setOpened(null);
       return;
     }
     let cancelled = false;
-    void openLedgerOver(adapter)
+    void openLedgerOver(storage)
       .then((service) => {
         if (!cancelled) setOpened(service);
       })
@@ -98,11 +111,11 @@ function useStatementLedger(
     return () => {
       cancelled = true;
     };
-  }, [ledger, adapter]);
+  }, [ledger, storage]);
 
   if (ledger) return { ledger, status: 'ready', error: null };
   if (failure) return { ledger: null, status: 'error', error: failure };
-  if (!adapter) return { ledger: null, status: 'unavailable', error: null };
+  if (!storage) return { ledger: null, status: 'unavailable', error: null };
   return { ledger: opened, status: opened ? 'ready' : 'loading', error: null };
 }
 

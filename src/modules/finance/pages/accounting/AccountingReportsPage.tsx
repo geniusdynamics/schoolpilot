@@ -45,12 +45,12 @@ export interface AccountingReportsPageProps {
   readonly budget?: readonly BudgetLine[];
 }
 
-/** The reason the reports are unavailable until the ledger's tables have a migration. */
+/** The reason the reports are unavailable while the canonical data layer is not open. */
 const NOT_CONNECTED_REASON =
-  'The accounting reports read the double-entry ledger. The ledger has no canonical migration yet, ' +
-  'so the app does not open it on its own: this page takes the ledger (or the SQLite adapter it is ' +
-  'built over) as a prop. The routing shell renders it without one, so the reports stay empty until ' +
-  'the migration lands.';
+  'The accounting reports read the double-entry ledger on the canonical database. The canonical ' +
+  'data layer is not open, so the ledger has not been opened either: the app opens it at start-up, ' +
+  'and a caller outside that path hands this page the ledger (or the SQLite adapter it is built ' +
+  'over) as a prop.';
 
 /**
  * The accounting reports hub.

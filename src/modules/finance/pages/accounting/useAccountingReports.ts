@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
+import { canonicalAdapter } from '@/data/canonicalRepository';
 import {
   createSqliteLedgerStore,
   ensureLedgerSchema,
@@ -42,8 +43,9 @@ export const REPORT_CURRENCY: CurrencyCode = 'KES';
  * Opens a ledger over an already-open adapter.
  *
  * `ensureLedgerSchema` applies the ledger's DDL (and the audit table it writes into) once and is
- * safe to call repeatedly. The ledger's tables have no canonical migration yet, so the provider
- * that hands this an adapter is the seam that applies them.
+ * safe to call repeatedly. The canonical migration owns those tables now, so this is the idempotent
+ * safety net for an adapter prepared without it - a test's own adapter, or a caller outside the
+ * app's start-up path.
  */
 export async function openLedgerOver(adapter: SqliteAdapter): Promise<LedgerService> {
   await ensureLedgerSchema(adapter);
@@ -91,14 +93,26 @@ function useLedgerFromAdapter(
 ): { readonly ledger: LedgerService | null; readonly status: AccountingReportsState['status']; readonly error: unknown } {
   const [opened, setOpened] = useState<LedgerService | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
+  // The storage the ledger is built over: the caller's adapter when one is given, otherwise the
+  // one canonical connection the app opened. Without an adapter of its own the page reads the
+  // canonical ledger rather than staying empty.
+  const [storage, setStorage] = useState<SqliteAdapter | null | undefined>(
+    () => adapter ?? canonicalAdapter()
+  );
 
   useEffect(() => {
-    if (ledger || !adapter) {
+    // The canonical database may open just after this page mounts, so it is re-read rather than
+    // latched at the first render; the caller's adapter always wins.
+    setStorage(adapter ?? canonicalAdapter());
+  }, [adapter]);
+
+  useEffect(() => {
+    if (ledger || !storage) {
       setOpened(null);
       return;
     }
     let cancelled = false;
-    void openLedgerOver(adapter)
+    void openLedgerOver(storage)
       .then((service) => {
         if (!cancelled) setOpened(service);
       })
@@ -108,11 +122,11 @@ function useLedgerFromAdapter(
     return () => {
       cancelled = true;
     };
-  }, [ledger, adapter]);
+  }, [ledger, storage]);
 
   if (ledger) return { ledger, status: 'ready', error: null };
   if (failure) return { ledger: null, status: 'error', error: failure };
-  if (!adapter) return { ledger: null, status: 'unavailable', error: null };
+  if (!storage) return { ledger: null, status: 'unavailable', error: null };
   return { ledger: opened, status: opened ? 'ready' : 'loading', error: null };
 }
 
