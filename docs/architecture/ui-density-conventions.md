@@ -78,6 +78,23 @@ the page is**, not what to do next. Use judgement and say what you kept.
 - A `mb-6` immediately under a card header: → `mb-3` or `mb-4`.
 - Do not touch padding inside data grids, forms or dialogs — this is about the heading region.
 
+### 5a. A hub tab body does not repeat a page heading
+
+A hub renders the page title and the tab strip. **The tab body below it must not render a second
+page-level heading** — that is a row of chrome for a title the reader has already seen, and it is the
+layer that pushes content down on the tabs of every hub.
+
+- A tab body whose content is a **Card** uses the **Card's** `title` + `info` + `actions`. The tab's
+  own Save/Add button moves onto the Card's `actions`, which is where the attendance tab already has
+  it.
+- A tab body with no Card (rare) may use `PageHeaderWithTabs`.
+- A **page** that is not a tab — a standalone route — keeps `PageHeaderWithTabs` with its title and
+  `info`. The rule is about not repeating a heading that is already on screen, not about avoiding the
+  component.
+
+Before: hub title + tabs, then the tab's own `<h1>` **and** its Card header → four rows of chrome.
+After: hub title + tabs, then the Card header → three, and the button rides on it.
+
 ### 6. Never lose the information
 
 Every sentence removed from a row must appear in an `info` tooltip. If a box contains something the
