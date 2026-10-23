@@ -211,7 +211,6 @@ const AlertBannerItem: React.FC<DashboardAlertBanner> = ({ type, count, label, d
 // Enhanced Metric Card Component
 const EnhancedMetricCard: React.FC<DashboardMetric> = ({ label, value, description, icon, trend, trendValue, to, onClick, colorScheme = 'blue' }) => {
   const colors = colorSchemes[colorScheme];
-  const navigate = useNavigate();
   const clickable = Boolean(to || onClick);
 
   const trendConfig = {
