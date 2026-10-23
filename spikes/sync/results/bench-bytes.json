@@ -1,0 +1,101 @@
+{
+  "name": "bench-bytes",
+  "generatedAt": "2026-10-23T16:39:33.595Z",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "measurements": [
+    {
+      "name": "payment.createEnvelope",
+      "value": 1113,
+      "unit": "bytes",
+      "note": "append-only (payment), whole row"
+    },
+    {
+      "name": "payment.patchEnvelope",
+      "value": 272,
+      "unit": "bytes",
+      "note": "append-only (payment), one field"
+    },
+    {
+      "name": "payment.snapshot",
+      "value": 1625,
+      "unit": "bytes",
+      "note": "append-only (payment), whole row plus clocks"
+    },
+    {
+      "name": "payment.row",
+      "value": 712,
+      "unit": "bytes",
+      "note": "append-only (payment), the row alone"
+    },
+    {
+      "name": "mark.createEnvelope",
+      "value": 1115,
+      "unit": "bytes",
+      "note": "cell (mark), whole row"
+    },
+    {
+      "name": "mark.patchEnvelope",
+      "value": 269,
+      "unit": "bytes",
+      "note": "cell (mark), one field"
+    },
+    {
+      "name": "mark.snapshot",
+      "value": 1660,
+      "unit": "bytes",
+      "note": "cell (mark), whole row plus clocks"
+    },
+    {
+      "name": "mark.row",
+      "value": 710,
+      "unit": "bytes",
+      "note": "cell (mark), the row alone"
+    },
+    {
+      "name": "learner.createEnvelope",
+      "value": 1617,
+      "unit": "bytes",
+      "note": "profile (learner), whole row"
+    },
+    {
+      "name": "learner.patchEnvelope",
+      "value": 272,
+      "unit": "bytes",
+      "note": "profile (learner), one field"
+    },
+    {
+      "name": "learner.snapshot",
+      "value": 2525,
+      "unit": "bytes",
+      "note": "profile (learner), whole row plus clocks"
+    },
+    {
+      "name": "learner.row",
+      "value": 1054,
+      "unit": "bytes",
+      "note": "profile (learner), the row alone"
+    },
+    {
+      "name": "bootstrap.snapshots",
+      "value": 68,
+      "unit": "count",
+      "note": "every fixture row, as a pull carries it"
+    },
+    {
+      "name": "bootstrap.bytes",
+      "value": 87643,
+      "unit": "bytes",
+      "note": "the whole first pull, uncompressed JSON"
+    },
+    {
+      "name": "bootstrap.meanBytes",
+      "value": 1289,
+      "unit": "bytes",
+      "note": "bytes per snapshot"
+    }
+  ]
+}

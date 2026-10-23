@@ -1,0 +1,34 @@
+{
+  "name": "pouch-update-bytes",
+  "generatedAt": "2026-10-23T16:39:37.205Z",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "measurements": [
+    {
+      "name": "createdWholeRow",
+      "value": 658,
+      "unit": "bytes",
+      "note": "the document a create writes"
+    },
+    {
+      "name": "oneFieldUpdate",
+      "value": 649,
+      "unit": "bytes",
+      "note": "the same row with one column changed"
+    },
+    {
+      "name": "fiveFieldUpdate",
+      "value": 882,
+      "unit": "bytes",
+      "note": "the same row with five columns changed"
+    },
+    {
+      "name": "oneFieldShareOfWholeRow",
+      "value": 0.986,
+      "unit": "ratio"
+    }
+  ]
+}
