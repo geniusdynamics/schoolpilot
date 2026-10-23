@@ -1,12 +1,19 @@
 // ABOUTME: The billing run's acceptance, measured rather than asserted: 1,000 learners with
 // ABOUTME: enrolments and a published schedule, previewed and posted, with the two durations the
 // ABOUTME: spec names printed so a slow machine is reported rather than hidden.
+// ABOUTME:
+// ABOUTME: This is the same measurement P3-C01 wrote beside the service (a moved copy, not a second
+// ABOUTME: test: the original at src/domain/finance/billing/__tests__/performance.test.ts no longer
+// ABOUTME: exists). It lives here so it is collected by its own vitest config
+// ABOUTME: (tests/perf/vitest.config.ts) and run by `pnpm test:perf`, never by the ordinary unit run.
+// ABOUTME: Seeding the 1,000 learners and the schedule is deliberately outside the measured window:
+// ABOUTME: the clock starts at the preview and the post only, so the figures are the run's own work.
 
 import { describe, expect, it } from 'vitest';
 
 import type { Id } from '@/domain/ids';
 
-import { createBillingFixture, type BillingFixture } from './fixtures';
+import { createBillingFixture, type BillingFixture } from '@/domain/finance/billing/__tests__/fixtures';
 
 /** The acceptance of spec 05 §4: 1,000 learners. */
 const LEARNERS = 1_000;

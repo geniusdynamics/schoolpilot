@@ -16,6 +16,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:perf": "vitest run --config tests/perf/vitest.config.ts",
     "test:e2e": "playwright test",
     "test:e2e:gp1": "playwright test tests/e2e/gp1-lite.spec.ts",
     "test:ui": "vitest --ui",
