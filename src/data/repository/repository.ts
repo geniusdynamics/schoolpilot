@@ -22,6 +22,7 @@ import {
   type AuditRunner,
 } from './audit';
 import { columnsFor, decodeRow, encodeRow } from './columns';
+import { ensureDeclaredColumns } from './columnSync';
 import {
   ensureConcurrencyColumns,
   INITIAL_VERSION,
@@ -146,8 +147,9 @@ export class Repository {
   }
 
   /**
-   * Prepares the database: foreign keys on, the canonical DDL, the concurrency columns
-   * and the audit table. Idempotent, so it is safe to call on every start.
+   * Prepares the database: foreign keys on, any declared column an existing table lacks, the
+   * canonical DDL, the concurrency columns and the audit table. Idempotent, so it is safe to
+   * call on every start.
    */
   async setup(): Promise<void> {
     await this.adapter.exec('PRAGMA foreign_keys = ON');
@@ -159,6 +161,10 @@ export class Repository {
       );
     }
 
+    // A table created before a column was declared never receives it: the canonical DDL is
+    // CREATE-only. The missing columns are added before the DDL runs, so the index statements
+    // the DDL also carries find the columns they name.
+    await ensureDeclaredColumns(this.adapter, this.entities);
     await applyCanonicalSchema(this.adapter, this.entities);
     await ensureConcurrencyColumns(this.adapter, this.entities);
     await applyAuditSchema(this.adapter);

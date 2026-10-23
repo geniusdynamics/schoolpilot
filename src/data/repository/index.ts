@@ -43,6 +43,8 @@ export {
   INITIAL_VERSION,
 } from './concurrency';
 
+export { ensureDeclaredColumns } from './columnSync';
+
 export { AUDIT_DDL, AUDIT_TABLE, applyAuditSchema, readAuditEvents, writeAuditEvent } from './audit';
 
 export { ENFORCED_INVARIANTS, guardsFor, type InvariantContext, type InvariantGuard } from './invariants';
