@@ -197,19 +197,8 @@ export const VerifyMarksCrossCheckPageContent: React.FC = () => {
             <span>Verify Marks Cross-Check</span>
           </div>
         }
+        info="This page enables cross-verification of marks entered by primary teachers. A different teacher reviews and confirms the marks, ensuring accuracy and identifying discrepancies that need further review."
       >
-        <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <UserIcon className="w-5 h-5 text-teal-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-teal-800">Cross-Teacher Verification Workflow</h3>
-              <p className="text-sm text-teal-700 mt-1">
-                This page enables cross-verification of marks entered by primary teachers. A different teacher reviews and confirms 
-                the marks, ensuring accuracy and identifying discrepancies that need further review.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -369,7 +358,7 @@ export const VerifyMarksCrossCheckPageContent: React.FC = () => {
 };
 
 const VerifyMarksCrossCheckPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <VerifyMarksCrossCheckPageContent />
   </div>
 );

@@ -64,7 +64,7 @@ const ExamSetupPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('examSetup.title', 'Exam Setup')}
-        subtitle={t(
+        info={t(
           'examSetup.subtitle',
           'Configure exam schedules, subject papers, sessions, and access tokens'
         )}

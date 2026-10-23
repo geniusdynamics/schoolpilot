@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { ChartBarIcon, CheckCircleIcon, ClockIcon, DocumentTextIcon } from '@/components/ui/icons';
 import { useAssignmentsData } from '../../data/useAssignmentsData';
 import { AssignmentStatus, SubmissionStatus } from '../../data/types';
@@ -218,12 +219,12 @@ const AssignmentAnalyticsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-surface-foreground">{t('analytics.title')}</h1>
-        <p className="text-sm text-surface-muted-fg mt-1">Overview of assignment performance and submission analytics</p>
-      </div>
+      <PageHeaderWithTabs
+        title={t('analytics.title')}
+        info="Overview of assignment performance and submission analytics"
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -401,7 +402,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
       {/* Assignment Performance Summary */}
       <Card
         title="Assignment Performance Summary"
-        subtitle="Overview of how each assignment is performing"
+        info="Overview of how each assignment is performing"
       >
         <DataGrid
           columns={performanceColumns}

@@ -68,7 +68,7 @@ const ResultsDistributionPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('distribution.title', 'Result Distribution')}
-        subtitle={t(
+        info={t(
           'distribution.subtitle',
           'Generate gazettes, distribute results, and manage board exam results'
         )}

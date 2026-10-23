@@ -65,7 +65,7 @@ const CurriculumAllocationsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('curriculumAllocations.title', 'Curriculum Allocations')}
-        subtitle={t(
+        info={t(
           'curriculumAllocations.subtitle',
           'Manage class subject allocations, teacher assignments, and student enrollment'
         )}

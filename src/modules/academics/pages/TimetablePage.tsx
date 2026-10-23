@@ -60,7 +60,7 @@ const TimetablePage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('timetable.title', 'Timetable Management')}
-        subtitle={t(
+        info={t(
           'timetable.subtitle',
           'Define timetable periods and manage class schedule entries'
         )}

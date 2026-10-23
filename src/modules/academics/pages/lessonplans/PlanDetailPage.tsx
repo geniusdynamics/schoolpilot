@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Tabs from '@/components/ui/Tabs';
 import Textarea from '@/components/ui/Textarea';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -20,7 +21,6 @@ import {
   ClockIcon,
   UserCircleIcon,
 } from '@/components/ui/icons';
-import { formatDate } from '@/utils/format';
 import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
 import type { DayPlan } from '../../data/types';
 
@@ -83,7 +83,7 @@ const PlanDetailPage: React.FC = () => {
         type: 'success',
         message: 'Plan submitted for approval successfully.',
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to submit plan for approval.',
@@ -102,7 +102,7 @@ const PlanDetailPage: React.FC = () => {
         type: 'success',
         message: 'Plan approved successfully.',
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to approve plan.',
@@ -129,7 +129,7 @@ const PlanDetailPage: React.FC = () => {
       });
       setRejectModalOpen(false);
       setRejectionReason('');
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to reject plan.',
@@ -178,60 +178,56 @@ const PlanDetailPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center space-x-4">
+      <PageHeaderWithTabs
+        title={`Weekly Plan #${plan.id}`}
+        info={`${plan.subjectName} - ${plan.classStreamName}`}
+        secondaryAction={
           <Button variant="ghost" onClick={handleBack} leftIcon={<ArrowLeftIcon className="w-5 h-5" />}>
             Back
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-foreground">
-              Weekly Plan #{plan.id}
-            </h1>
-            <p className="text-sm text-surface-muted-fg">
-              {plan.subjectName} - {plan.classStreamName}
-            </p>
+        }
+        action={
+          <div className="flex space-x-2">
+            {plan.status === PlanStatus.DRAFT && (
+              <>
+                <Button variant="outline" onClick={handleEdit} leftIcon={<EditIcon className="w-4 h-4" />}>
+                  Edit
+                </Button>
+                <Button
+                  onClick={handleSubmitForApproval}
+                  disabled={isSubmitting}
+                  leftIcon={<PaperAirplaneIcon className="w-4 h-4" />}
+                >
+                  {isSubmitting ? 'Submitting...' : t('weeklyPlan.actions.submit')}
+                </Button>
+              </>
+            )}
+            {plan.status === PlanStatus.SUBMITTED && (
+              <>
+                <Button
+                  variant="primary"
+                  onClick={handleApprove}
+                  disabled={isSubmitting}
+                  leftIcon={<CheckCircleIcon className="w-4 h-4" />}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => setRejectModalOpen(true)}
+                  disabled={isSubmitting}
+                  leftIcon={<XCircleIcon className="w-4 h-4" />}
+                >
+                  Reject
+                </Button>
+              </>
+            )}
           </div>
-        </div>
-        <div className="flex space-x-2">
-          {plan.status === PlanStatus.DRAFT && (
-            <>
-              <Button variant="outline" onClick={handleEdit} leftIcon={<EditIcon className="w-4 h-4" />}>
-                Edit
-              </Button>
-              <Button
-                onClick={handleSubmitForApproval}
-                disabled={isSubmitting}
-                leftIcon={<PaperAirplaneIcon className="w-4 h-4" />}
-              >
-                {isSubmitting ? 'Submitting...' : t('weeklyPlan.actions.submit')}
-              </Button>
-            </>
-          )}
-          {plan.status === PlanStatus.SUBMITTED && (
-            <>
-              <Button
-                variant="primary"
-                onClick={handleApprove}
-                disabled={isSubmitting}
-                leftIcon={<CheckCircleIcon className="w-4 h-4" />}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Approve
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => setRejectModalOpen(true)}
-                disabled={isSubmitting}
-                leftIcon={<XCircleIcon className="w-4 h-4" />}
-              >
-                Reject
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Status Banner */}
       <div className={`p-4 rounded-lg ${statusColors[plan.status]}`}>

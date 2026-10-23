@@ -126,9 +126,10 @@ export const EducationSystemsPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card 
         title="Education System Configurations" 
+        info="Configure education systems to support different curricula, grading schemes, and assessment methods."
         actions={
           <Button 
             onClick={() => setShowConfigPage(true)}
@@ -138,16 +139,13 @@ export const EducationSystemsPageContent: React.FC = () => {
           </Button>
         }
       >
-        <p className="text-sm text-surface-muted-fg mb-4">
-          Configure education systems to support different curricula, grading schemes, and assessment methods.
-        </p>
         <DataGrid columns={columns} data={educationSystemConfigurations} />
       </Card>
     </div>
   );
 };
 const EducationSystemsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <EducationSystemsPageContent />
   </div>
 );

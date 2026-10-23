@@ -151,19 +151,8 @@ export const VerifyMarksByStructurePageContent: React.FC = () => {
             <span>Verify Marks by Structure</span>
           </div>
         }
+        info="This page validates that entered marks conform to the defined exam structure/pattern. It checks that maximum marks per component match the expected values and identifies any discrepancies."
       >
-        <div className="mb-6 p-4 bg-cyan-50 border border-cyan-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-cyan-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-cyan-800">Verify Against Exam Pattern</h3>
-              <p className="text-sm text-cyan-700 mt-1">
-                This page validates that entered marks conform to the defined exam structure/pattern. 
-                It checks that maximum marks per component match the expected values and identifies any discrepancies.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -255,7 +244,7 @@ export const VerifyMarksByStructurePageContent: React.FC = () => {
 };
 
 const VerifyMarksByStructurePage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <VerifyMarksByStructurePageContent />
   </div>
 );

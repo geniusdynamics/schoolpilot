@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Spinner from '@/components/ui/Spinner';
 import { asId } from '@/domain/ids';
 import type { CreateInput } from '@/data/repository';
@@ -411,9 +412,7 @@ export const ObservationsCapturePage: React.FC<ObservationsCapturePageProps> = (
   if (!packResult.ok) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-surface-foreground">
-          {t('observations.title', 'CBC observations')}
-        </h1>
+        <PageHeaderWithTabs title={t('observations.title', 'CBC observations')} />
         <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
           {t('observations.packFailed', 'The curriculum pack cannot drive observation capture: {{reason}}', {
             reason: packResult.error,
@@ -436,19 +435,15 @@ export const ObservationsCapturePage: React.FC<ObservationsCapturePageProps> = (
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold text-surface-foreground">
-          {t('observations.title', 'CBC observations')}
-        </h1>
-        <p className="mt-1 text-sm text-surface-muted-fg">
-          {t(
-            'observations.subtitle',
-            'Record a level and evidence for each learner, then read the term judgement the pack derives. Scheme {{scheme}} · {{scale}}.',
-            { scheme: activePack.scheme.code, scale: activePack.scale.code }
-          )}
-        </p>
-      </header>
+    <div className="p-6 space-y-3">
+      <PageHeaderWithTabs
+        title={t('observations.title', 'CBC observations')}
+        info={t(
+          'observations.subtitle',
+          'Record a level and evidence for each learner, then read the term judgement the pack derives. Scheme {{scheme}} · {{scale}}.',
+          { scheme: activePack.scheme.code, scale: activePack.scale.code }
+        )}
+      />
 
       <Card>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -250,10 +250,10 @@ const ResultsInner: React.FC<ResultsPageContentProps> = ({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('results.title', 'Results')}
-        subtitle={t(
+        info={t(
           'results.subtitle',
           'Grades computed from the scheme and the aggregation the programme declares — never typed in here.'
         )}

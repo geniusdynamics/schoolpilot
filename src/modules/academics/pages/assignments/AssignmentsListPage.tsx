@@ -211,7 +211,7 @@ const AssignmentsListPage: React.FC = () => {
       }
       setCreateFormOpen(false);
       resetForm();
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: editingAssignment ? 'Failed to update assignment.' : 'Failed to create assignment.',
@@ -233,7 +233,7 @@ const AssignmentsListPage: React.FC = () => {
           type: 'success',
           message: 'Assignment deleted successfully.',
         });
-      } catch (error) {
+      } catch {
         showToast({
           type: 'error',
           message: 'Failed to delete assignment.',
@@ -372,7 +372,7 @@ const AssignmentsListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('assignment.plural')}
         subtitle={t('description')}

@@ -57,7 +57,7 @@ const SubjectsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('subjectsHub.title', 'Subjects Management')}
-        subtitle={t(
+        info={t(
           'subjectsHub.subtitle',
           'Manage subjects and subject papers'
         )}

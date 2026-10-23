@@ -164,19 +164,8 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
             <span>Marks Entry by Token</span>
           </div>
         }
+        info="Enter your secure token to access the marks entry form. Tokens ensure that only authorized teachers can enter marks for their assigned subjects and classes, maintaining data integrity and security."
       >
-        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentDuplicateIcon className="w-5 h-5 text-indigo-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-indigo-800">Token-based Marks Entry</h3>
-              <p className="text-sm text-indigo-700 mt-1">
-                Enter your secure token to access the marks entry form. Tokens ensure that only authorized teachers 
-                can enter marks for their assigned subjects and classes, maintaining data integrity and security.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Token Entry */}
         <div className="mb-6 flex gap-4 items-end">
@@ -313,7 +302,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
 };
 
 const MarksEntryByTokenPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <MarksEntryByTokenPageContent />
   </div>
 );

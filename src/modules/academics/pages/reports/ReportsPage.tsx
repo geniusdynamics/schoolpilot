@@ -230,10 +230,10 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
       : (publishing.batch?.reports[0]?.previewDocument ?? null);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('reports.title', 'Report publishing')}
-        subtitle={t(
+        info={t(
           'reports.subtitle',
           'Generate a class’s reports from the computed results, review them, then publish a snapshot that never changes.'
         )}
@@ -339,7 +339,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
 
       <Card
         title={t('reports.review', 'Review before publish')}
-        subtitle={t('reports.reviewSubtitle', 'Nothing publishes until a reviewer has seen this.')}
+        info={t('reports.reviewSubtitle', 'Nothing publishes until a reviewer has seen this.')}
       >
         <ReviewPanel
           review={publishing.review}
@@ -369,7 +369,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
 
       <Card
         title={t('reports.distribution', 'Distribution')}
-        subtitle={t('reports.distributionSubtitle', 'Print queue, stored PDFs, the portal link and SMS.')}
+        info={t('reports.distributionSubtitle', 'Print queue, stored PDFs, the portal link and SMS.')}
       >
         <DistributionPanel
           publications={publishing.publications}
@@ -390,7 +390,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
       {previewDocument === null ? null : (
         <Card
           title={t('reports.preview', 'Preview')}
-          subtitle={t(
+          info={t(
             'reports.previewSubtitle',
             'A published document carries a valid signed QR; an unpublished preview does not.'
           )}

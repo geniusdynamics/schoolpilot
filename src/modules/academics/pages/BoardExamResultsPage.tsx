@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -243,26 +244,17 @@ export const BoardExamResultsPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-surface-foreground">Board Exam Results</h1>
-        <Button onClick={() => openModal()} variant="primary">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Result
-        </Button>
-      </div>
+      <PageHeaderWithTabs
+        title="Board Exam Results"
+        info="Enter and manage external board exam results (IGCSE, A-Level, IB, SAT, etc.) for students. This tracks performance in external examinations separate from internal school assessments."
+        action={
+          <Button onClick={() => openModal()} variant="primary">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Result
+          </Button>
+        }
+      />
       <Card>
-        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <DocumentTextIcon className="w-5 h-5 text-indigo-600 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-indigo-800">External Board Exam Result Entry</h3>
-              <p className="text-sm text-indigo-700 mt-1">
-                Enter and manage external board exam results (IGCSE, A-Level, IB, SAT, etc.) for students. 
-                This tracks performance in external examinations separate from internal school assessments.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -477,7 +469,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
   );
 };
 const BoardExamResultsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <BoardExamResultsPageContent />
   </div>
 );

@@ -54,7 +54,7 @@ const AssignmentsHubPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('assignmentsHub.title', 'Assignments')}
-        subtitle={t(
+        info={t(
           'assignmentsHub.subtitle',
           'Manage assignments, submissions, and grading'
         )}

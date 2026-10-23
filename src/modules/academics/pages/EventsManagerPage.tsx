@@ -479,7 +479,7 @@ export const EventsManagerPageContent: React.FC = () => {
   );
 };
 const EventsManagerPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <EventsManagerPageContent />
   </div>
 );

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import {
   ExclamationTriangleIcon,
@@ -120,22 +121,22 @@ const AssignmentRubricsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-surface-foreground">{t('rubric.title')} Management</h1>
-          <p className="text-sm text-surface-muted-fg mt-1">Define and manage grading rubrics for assignments</p>
-        </div>
-        <Button
-          variant="primary"
-          leftIcon={<PlusIcon className="w-5 h-5" />}
-          disabled
-          title="Coming soon"
-        >
-          Create Rubric
-        </Button>
-      </div>
+      <PageHeaderWithTabs
+        title={`${t('rubric.title')} Management`}
+        info="Define and manage grading rubrics for assignments"
+        action={
+          <Button
+            variant="primary"
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+            disabled
+            title="Coming soon"
+          >
+            Create Rubric
+          </Button>
+        }
+      />
 
       {/* Coming Soon Banner */}
       <Card variant="filled">
@@ -214,7 +215,7 @@ const AssignmentRubricsPage: React.FC = () => {
           </div>
 
           {/* Assignment Rubrics */}
-          <Card title="Assignment Rubrics" subtitle="Rubrics currently assigned to assignments">
+          <Card title="Assignment Rubrics" info="Rubrics currently assigned to assignments">
             <DataGrid
               columns={[
                 {
@@ -261,7 +262,7 @@ const AssignmentRubricsPage: React.FC = () => {
           </Card>
 
           {/* Rubric Criteria Detail */}
-          <Card title="Rubric Criteria Detail" subtitle="Individual grading criteria from all assignments">
+          <Card title="Rubric Criteria Detail" info="Individual grading criteria from all assignments">
             <DataGrid
               columns={criteriaColumns}
               data={allCriteria}

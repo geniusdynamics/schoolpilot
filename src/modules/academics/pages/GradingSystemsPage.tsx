@@ -68,7 +68,7 @@ const GradingSystemsPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('grading.title', 'Grading & Systems')}
-        subtitle={t(
+        info={t(
           'grading.subtitle',
           'Manage grading schemes, education systems, and system configurations'
         )}

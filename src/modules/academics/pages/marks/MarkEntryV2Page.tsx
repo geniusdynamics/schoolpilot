@@ -118,15 +118,14 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
   const nextState = entry.workflowState ? FORWARD[entry.workflowState] : null;
 
   return (
-    <div className="space-y-6">
-      <Card title={t('marksEntry.grid.title', 'Mark entry')}>
-        <p className="mb-4 text-sm text-surface-muted-fg">
-          {t(
-            'marksEntry.grid.intro',
-            'Learners down, the scheme’s assessment slots across. Arrow keys, Tab and Enter move between cells; paste a range from a spreadsheet and every pasted cell is checked before it is saved.'
-          )}
-        </p>
-
+    <div className="space-y-3">
+      <Card
+        title={t('marksEntry.grid.title', 'Mark entry')}
+        info={t(
+          'marksEntry.grid.intro',
+          'Learners down, the scheme’s assessment slots across. Arrow keys, Tab and Enter move between cells; paste a range from a spreadsheet and every pasted cell is checked before it is saved.'
+        )}
+      >
         <div className="grid grid-cols-1 gap-4 rounded-md border bg-surface-muted p-4 md:grid-cols-2">
           <EntityPicker
             label={t('marksEntry.grid.period', 'Period')}

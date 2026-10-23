@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import Textarea from '@/components/ui/Textarea';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -23,7 +24,6 @@ import { useLessonPlansData, PlanStatus, WeeklyPlan } from '../../data/lessonpla
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { formatDate } from '@/utils/format';
 
 const statusColors: Record<PlanStatus, string> = {
   [PlanStatus.DRAFT]: 'bg-surface-accent text-surface-foreground',
@@ -95,7 +95,7 @@ const ApprovalPage: React.FC = () => {
         type: 'success',
         message: `Plan ${plan.id} approved successfully.`,
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to approve plan.',
@@ -129,7 +129,7 @@ const ApprovalPage: React.FC = () => {
       setRejectModalOpen(false);
       setPlanToReject(null);
       setRejectionReason('');
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to reject plan.',
@@ -376,16 +376,12 @@ const ApprovalPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-surface-foreground">
-          {t('approval.title', 'Approval Queue')}
-        </h1>
-        <p className="text-sm text-surface-muted-fg mt-1">
-          Review and approve weekly lesson plans submitted by teachers.
-        </p>
-      </div>
+      <PageHeaderWithTabs
+        title={t('approval.title', 'Approval Queue')}
+        info="Review and approve weekly lesson plans submitted by teachers."
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

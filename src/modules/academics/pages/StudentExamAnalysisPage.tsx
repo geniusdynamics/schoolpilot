@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import { TabNavigation } from '@/components/ui';
 import { StudentExamProfile } from '../components';
 import { 
@@ -371,7 +372,7 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-3 pb-8">
       {/* Tab Navigation */}
       <TabNavigation 
         tabs={tabs} 
@@ -381,26 +382,24 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
       />
 
       {/* Page Title */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-surface-foreground">
-            {pageTitle}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-surface-muted-fg">Change Exam:</span>
-          <select
-            value={selectedSession?.id ?? ''}
-            onChange={(e) => setSelectedExam(e.target.value)}
-            className="px-3 py-2 border border-surface-border rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            {examOptions.length === 0 && <option value="">No exams available</option>}
-            {examOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <PageHeaderWithTabs
+        title={pageTitle}
+        action={
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-surface-muted-fg">Change Exam:</span>
+            <select
+              value={selectedSession?.id ?? ''}
+              onChange={(e) => setSelectedExam(e.target.value)}
+              className="px-3 py-2 border border-surface-border rounded-lg text-sm focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              {examOptions.length === 0 && <option value="">No exams available</option>}
+              {examOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        }
+      />
 
       {/* Student Profile & Performance */}
       <StudentExamProfile
@@ -568,7 +567,7 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
   );
 };
 const StudentExamAnalysisPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <StudentExamAnalysisPageContent />
   </div>
 );

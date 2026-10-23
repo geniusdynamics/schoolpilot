@@ -68,7 +68,7 @@ const MarksEntryPage: React.FC = () => {
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('marksEntry.title', 'Marks Entry')}
-        subtitle={t(
+        info={t(
           'marksEntry.subtitle',
           'Enter and manage student exam marks and token-based entries'
         )}

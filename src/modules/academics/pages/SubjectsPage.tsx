@@ -180,7 +180,7 @@ const LearningAreasContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {institutionId === null && (
         <p role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
           The canonical database holds no institution row, so a learning area cannot be saved yet.
@@ -257,7 +257,7 @@ export const SubjectsContent: React.FC = () => (
 );
 
 const SubjectsPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <SubjectsContent />
   </div>
 );

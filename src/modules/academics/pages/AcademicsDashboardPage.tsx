@@ -396,7 +396,7 @@ export const AcademicsDashboardPageContent: React.FC = () => {
   );
 };
 const AcademicsDashboardPage: React.FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-3">
     <AcademicsDashboardPageContent />
   </div>
 );

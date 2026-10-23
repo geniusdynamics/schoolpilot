@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -146,10 +147,12 @@ const AssignmentSubmissionsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <PageHeaderWithTabs
+        title={assignment?.title || 'Assignment Submissions'}
+        info={assignment ? `${assignment.subjectName} - ${assignment.classStreamName}` : undefined}
+        secondaryAction={
           <Button
             variant="ghost"
             onClick={() => navigate(`/assignments/${id}`)}
@@ -157,22 +160,16 @@ const AssignmentSubmissionsPage: React.FC = () => {
           >
             {t('common.back')}
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-foreground">
-              {assignment?.title || 'Assignment Submissions'}
-            </h1>
-            <p className="text-sm text-surface-muted-fg mt-1">
-              {assignment?.subjectName} - {assignment?.classStreamName}
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate(`/assignments/${id}/grading`)}
-        >
-          Go to Grading
-        </Button>
-      </div>
+        }
+        action={
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/assignments/${id}/grading`)}
+          >
+            Go to Grading
+          </Button>
+        }
+      />
 
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

@@ -205,7 +205,7 @@ const LessonNotesPage: React.FC = () => {
       });
       setCreateModalOpen(false);
       resetForm();
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to create lesson note.',
@@ -246,7 +246,7 @@ const LessonNotesPage: React.FC = () => {
       });
       setEditModalOpen(false);
       setEditingNote(null);
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         message: 'Failed to update lesson note.',
@@ -267,7 +267,7 @@ const LessonNotesPage: React.FC = () => {
           type: 'success',
           message: 'Lesson note deleted successfully.',
         });
-      } catch (error) {
+      } catch {
         showToast({
           type: 'error',
           message: 'Failed to delete lesson note.',
@@ -531,10 +531,10 @@ const LessonNotesPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Card
         title={t('lessonNote.plural')}
-        subtitle={t('lessonNote.description', 'Track daily lesson delivery and reflections')}
+        info={t('lessonNote.description', 'Track daily lesson delivery and reflections')}
         actions={
           <div className="flex space-x-2">
             <Button

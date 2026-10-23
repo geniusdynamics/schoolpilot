@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Checkbox from '@/components/ui/Checkbox';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -13,7 +14,6 @@ import {
   ClockIcon,
   UserCircleIcon,
 } from '@/components/ui/icons';
-import { formatDate } from '@/utils/format';
 import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
 
 import { useToast } from '@/hooks/useToast';
@@ -85,7 +85,7 @@ const SubmissionPage: React.FC = () => {
         const plan = weeklyPlans.find(p => p.id === planId);
         await submitPlan(planId, plan?.teacherName || 'Teacher');
         successCount++;
-      } catch (error) {
+      } catch {
         errorCount++;
       }
     }
@@ -141,25 +141,21 @@ const SubmissionPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-surface-foreground">
-            {t('submission.title', 'Submit Plans for Approval')}
-          </h1>
-          <p className="text-sm text-surface-muted-fg mt-1">
-            Select draft plans to submit for approval review.
-          </p>
-        </div>
-        <Button
-          onClick={handleSubmitClick}
-          disabled={selectedPlans.size === 0 || isSubmitting}
-          leftIcon={<PaperAirplaneIcon className="w-5 h-5" />}
-        >
-          {isSubmitting ? 'Submitting...' : `Submit ${selectedPlans.size} Plan(s)`}
-        </Button>
-      </div>
+      <PageHeaderWithTabs
+        title={t('submission.title', 'Submit Plans for Approval')}
+        info="Select draft plans to submit for approval review."
+        action={
+          <Button
+            onClick={handleSubmitClick}
+            disabled={selectedPlans.size === 0 || isSubmitting}
+            leftIcon={<PaperAirplaneIcon className="w-5 h-5" />}
+          >
+            {isSubmitting ? 'Submitting...' : `Submit ${selectedPlans.size} Plan(s)`}
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -267,7 +263,7 @@ const SubmissionPage: React.FC = () => {
       {showSubmittedList && submittedPlans.length > 0 && (
         <Card
           title="Recently Submitted Plans"
-          subtitle="Plans that have been submitted for approval"
+          info="Plans that have been submitted for approval"
         >
           <div className="divide-y">
             {submittedPlans.map((plan) => (
