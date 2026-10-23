@@ -13,7 +13,9 @@ import {
 } from '@/domain/finance/ledger';
 import { formatMoney, fromMinor } from '@/domain/money';
 
-import AccountingReportsPage from '../AccountingReportsPage';
+import AccountingReportsPage, {
+  AccountingReportsPageContent,
+} from '../AccountingReportsPage';
 import { openLedgerOver } from '../useAccountingReports';
 
 vi.mock('react-i18next', () => ({
@@ -116,8 +118,19 @@ function parseCsv(text: string): string[][] {
 
 describe('the accounting reports hub', () => {
   it('says the ledger is not connected when it is handed none', () => {
-    render(<AccountingReportsPage />);
+    // The content component is what "handed none" means. The routed page mounts the canonical
+    // repository itself, which is what the test below covers.
+    render(<AccountingReportsPageContent />);
     expect(screen.getByText('The ledger is not connected')).toBeInTheDocument();
+  });
+
+  it('opens the canonical repository itself, so a direct load of the route has a ledger', async () => {
+    // Nothing has opened the canonical database in this file, and neither a ledger nor an adapter is
+    // handed in. A bookmark or a reload of /finance/accounting-reports lands exactly here: if the page
+    // does not open the repository, the ledger is never opened over it and the page says "The ledger is
+    // not connected" instead of showing the reports it exists to show.
+    render(<AccountingReportsPage />);
+    expect(await screen.findByTestId('tie-trial-balance')).toHaveTextContent('Ties to the journal');
   });
 
   it('draws the trial balance and states that it ties to the journal', async () => {
