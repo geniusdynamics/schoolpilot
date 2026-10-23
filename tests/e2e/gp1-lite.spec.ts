@@ -163,7 +163,10 @@ test.describe('GP-1 golden path', () => {
       await go(page, '/finance/invoicing');
       await expect(page.getByRole('heading', { name: 'Invoice Generation', exact: true })).toBeVisible({ timeout: LOAD_TIMEOUT });
       await chooseFromPicker(page, page.getByTestId('billing-period-picker'), TERM_LABEL);
-      await page.getByRole('button', { name: 'Generate invoices' }).click();
+      // The panel now previews before it posts: the run shows every learner with the reason they are
+      // billed or skipped, and posting is a second, deliberate step.
+      await page.getByRole('button', { name: 'Preview' }).click();
+      await page.getByRole('button', { name: 'Post the run' }).click();
       await expect(page.getByText('Billing run posted')).toBeVisible();
 
       const invoiceRow = page.getByRole('row', { name: new RegExp(STUDENT_NAME) });
