@@ -21,7 +21,9 @@ describe('isPseudoTranslatable', () => {
 
 describe('pseudoTranslate', () => {
   it('accents letters and marks both ends', () => {
-    expect(pseudoTranslate('Save')).toBe('«Šávé·»');
+    // Escapes, not literal accents: this expectation is exactly what the repo-wide mojibake
+    // check (scripts/prd/fix-encoding.mjs) flags, and a test fixture is not worth an exemption.
+    expect(pseudoTranslate('Save')).toBe('\u00AB\u0160\u00E1v\u00E9\u00B7\u00BB');
   });
 
   it('leaves a string without letters untouched, markers and all', () => {
