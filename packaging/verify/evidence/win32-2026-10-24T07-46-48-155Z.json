@@ -1,0 +1,40 @@
+{
+  "measuredAt": "2026-10-24T07:46:48.155Z",
+  "platform": "Windows 10.0.22631.0 (AMD64)",
+  "installMs": 59732,
+  "installToLoginMs": 67130,
+  "accepted": true,
+  "limitMs": 900000,
+  "installer": "packaging\\windows\\install-hub.ps1",
+  "node": "v24.21.0",
+  "service": null,
+  "protocol": "https",
+  "url": "https://smokehub.local:51436",
+  "fingerprint": "5e8987c09342da58a0599bfcd118191f42baf1e5bc8447803646e80a9434be28",
+  "checks": [
+    {
+      "name": "health over TLS with the reported fingerprint",
+      "ok": true,
+      "detail": "status 200, fingerprint matches"
+    },
+    {
+      "name": "mDNS browse finds the hub without an address (multicast 224.0.0.251)",
+      "ok": true,
+      "detail": "https://smokehub.local:51436 (port matches, fingerprint matches)"
+    },
+    {
+      "name": "first authenticated request (repository API; sessions are P4-C01)",
+      "ok": true,
+      "detail": "status 200, 404 for POST /api/sessions (not yet routed)"
+    }
+  ],
+  "durationsMs": {
+    "preflight": 6794,
+    "node": 1127,
+    "payload": 21834,
+    "dependencies": 13305,
+    "certificate": 4060,
+    "ready": 9911,
+    "total": 57035
+  }
+}

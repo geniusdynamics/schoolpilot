@@ -32,7 +32,16 @@ npx tsx src/server/cli.ts --data-dir ./data --port 3000
 ```
 
 The CLI opens `./data/schoolpilot.db` (or the file under `--data-dir`), creates `./data/auth.key`
-on first start, and listens. `GET /health` reports the status. From code:
+on first start, and listens. It serves HTTPS by default, issuing and storing a self-signed LAN
+certificate in `<data-dir>/tls`, and advertises the hub over mDNS so a client on the same network
+can find it without being told an address. `--no-tls` and `--no-mdns` turn those off for a loopback
+development box, `--print-fingerprint` shows what clients pin, and `--discover` browses the LAN for
+hubs. `GET /health` reports the status, including the protocol, the fingerprint and the
+advertisement.
+
+[`docs/guides/deployment-hub.md`](../docs/guides/deployment-hub.md) is the operator's guide, and
+[`packaging/`](../packaging/README.md) holds the installers for Windows, Ubuntu and Raspberry Pi.
+From code:
 
 ```ts
 import { LANServer } from '@/server/LANServer';
@@ -148,6 +157,14 @@ Every refusal is `{"error":{"code":…,"message":…}}`; a locked account also c
 
 ## Call it
 
+The examples below are plain HTTP for a loopback box, which is what `--no-tls` is for. Against a hub
+that serves TLS, use `https` and the certificate it issued:
+
+```bash
+cert=./data/tls/hub-cert.pem
+curl --cacert "$cert" https://127.0.0.1:3000/health
+```
+
 ```bash
 # The entity registry
 curl http://127.0.0.1:3000/api/entities -H "Authorization: Bearer $TOKEN"
@@ -208,15 +225,16 @@ npx vitest run server/__tests__/authPrimitives.test.ts server/__tests__/auth.tes
   route, so the repository API returns whatever an entity row holds — including a `user` row's
   `password_hash` — to any signed-in account, guardian sessions included. P4-C02 adds the RBAC and
   scope model and the maker-checker engine, and it is where per-entity read rules and the
-  redaction of sensitive columns belong. Until then the hub belongs on a trusted network, which is
-  the same posture it had before this task.
+  redaction of sensitive columns belong. Until then the hub belongs on a trusted network.
 - **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making
   finance and administrator roles *require* it is a role-model decision, so it lands with P4-C02.
 - **OIDC SSO** for staff, P4-C03.
 - **Real-time sync.** The WebSocket hub of P4-A02; the HTTP surface here is what it extends.
-- **mDNS discovery, TLS and pairing.** P4-D02. The session token travels in clear text until then.
+- **Pairing.** A client finds and trusts the hub — the mDNS advertisement and the fingerprint it
+  reports are here — but there is no enrolment handshake that issues a device its own credential.
+  That follows authorisation, and belongs with it.
 - **Rate limiting the public sign-in endpoints.** Lockout bounds password guessing per username;
-  a per-address limit is P4-D02's, with the rest of the network controls.
+  a per-address limit is P4-D04's, with the rest of the network controls.
 - **Request schema validation beyond the repository and service schemas.** The route layer
   checks shapes and query syntax; the entity and service schemas own field validation, which is
   where a 400's `issues` comes from.

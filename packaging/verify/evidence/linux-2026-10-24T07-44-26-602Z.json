@@ -1,0 +1,40 @@
+{
+  "measuredAt": "2026-10-24T07:44:26.602Z",
+  "platform": "Ubuntu 22.04.3 LTS (x86_64)",
+  "installMs": 83704,
+  "installToLoginMs": 113759,
+  "accepted": true,
+  "limitMs": 900000,
+  "installer": "packaging/ubuntu/install-hub.sh",
+  "node": "v22.23.4",
+  "service": null,
+  "protocol": "https",
+  "url": "https://smokehub.local:35515",
+  "fingerprint": "d237a2a677c9f7cb85842cdb6473cceaf51e29df903c815879667ac675bce585",
+  "checks": [
+    {
+      "name": "health over TLS with the reported fingerprint",
+      "ok": true,
+      "detail": "status 200, fingerprint matches"
+    },
+    {
+      "name": "mDNS browse finds the hub without an address (multicast 224.0.0.251)",
+      "ok": true,
+      "detail": "https://smokehub.local:35515 (port matches, fingerprint matches)"
+    },
+    {
+      "name": "first authenticated request (repository API; sessions are P4-C01)",
+      "ok": true,
+      "detail": "status 200, 404 for POST /api/sessions (not yet routed)"
+    }
+  ],
+  "durationsMs": {
+    "preflight": 71,
+    "node": 33917,
+    "payload": 20353,
+    "dependencies": 2981,
+    "certificate": 21662,
+    "ready": 4574,
+    "total": 83562
+  }
+}
