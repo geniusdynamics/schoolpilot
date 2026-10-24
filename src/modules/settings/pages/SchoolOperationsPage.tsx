@@ -12,6 +12,7 @@ import {
   ClockIcon,
   ViewColumnsIcon,
   HomeIcon,
+  ExclamationTriangleIcon,
 } from '@/components/ui/icons';
 import { SettingsSchoolProfileContent } from './SettingsSchoolProfilePage';
 import { SettingsUsersContent } from './SettingsUsersPage';
@@ -19,6 +20,7 @@ import { SettingsWorkflowsContent } from './SettingsWorkflowsPage';
 import { AuditLogContent } from './AuditLogPage';
 import { TabSettingsContent } from './TabSettingsPage';
 import { SettingsDashboardContent } from './SettingsDashboardPage';
+import { SyncConflictsPanel } from '../components/SyncConflictsPanel';
 
 interface HubTab {
   id: string;
@@ -56,6 +58,12 @@ const SchoolOperationsPage: React.FC = () => {
       label: t('navigation.settings.auditLog', 'Audit Log'),
       icon: <ClockIcon className="w-4 h-4" />,
       component: <AuditLogContent />,
+    },
+    {
+      id: 'sync-conflicts',
+      label: t('navigation.settings.syncConflicts', 'Sync Conflicts'),
+      icon: <ExclamationTriangleIcon className="w-4 h-4" />,
+      component: <SyncConflictsPanel />,
     },
     {
       id: 'tabs',

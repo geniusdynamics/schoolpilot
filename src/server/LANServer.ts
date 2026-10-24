@@ -7,6 +7,7 @@ import path from 'node:path';
 
 import { createNodeSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
 import { createRepository, type Repository } from '@/data/repository';
+import { ServerNode } from '@/data/sync';
 import { ENTITY_NAMES } from '@/domain/schema';
 
 import { createHubRouter } from '../../server/http/hubRouter';
@@ -64,6 +65,7 @@ export class LANServer {
   private httpServer: Server | null = null;
   private adapter: SqliteAdapter | null = null;
   private repository: Repository | null = null;
+  private syncNode: ServerNode | null = null;
   private state: ServerState = {
     running: false,
     startTime: null,
@@ -112,8 +114,21 @@ export class LANServer {
       await repository.setup();
       this.repository = repository;
 
+      // The sync node opens its metadata beside the canonical tables and seeds the change log
+      // from rows the hub already holds, so a device that joins after the hub was populated
+      // pulls them instead of an empty page. Rows that already have a change are skipped.
+      const sync = await ServerNode.open({
+        repository,
+        adapter,
+        deviceId: 'hub',
+        dialect: 'sqlite',
+      });
+      await sync.bootstrap();
+      this.syncNode = sync;
+
       const router = createHubRouter({
         repository,
+        sync,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
       });
       router.add('GET', '/health', () => ({ body: this.getStatus() }));
@@ -155,6 +170,11 @@ export class LANServer {
   /** The repository the hub serves; null before start and after stop. */
   getRepository(): Repository | null {
     return this.repository;
+  }
+
+  /** The sync node the hub serves; null before start and after stop. */
+  getSyncNode(): ServerNode | null {
+    return this.syncNode;
   }
 
   // ==================== Private Methods ====================
@@ -205,6 +225,7 @@ export class LANServer {
     const adapter = this.adapter;
     this.adapter = null;
     this.repository = null;
+    this.syncNode = null;
     if (adapter) await adapter.close();
 
     this.state.running = false;
