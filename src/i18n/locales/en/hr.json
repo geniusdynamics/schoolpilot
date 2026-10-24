@@ -1,5 +1,5 @@
 {
-  "title": "Human Resources",
+  "title": "HR",
   "employees": "Employees",
   "recruitment": "Recruitment",
   "onboarding": "Onboarding",
@@ -178,6 +178,19 @@
     "modalAddTitle": "Add Salary Setting",
     "formSection": {
       "title": "Salary Setting Details"
+    }
+  },
+  "navigation": {
+    "hr": {
+      "title": "HR",
+      "description": "Manage human resources, payroll, and staff compensation",
+      "dashboard": "Dashboard",
+      "payroll": "Payroll",
+      "payrollItemTypes": "Payroll Item Types",
+      "payrollPeriods": "Payroll Periods",
+      "payslips": "Payslips",
+      "staffSalarySettings": "Staff Salary Settings",
+      "staffBioData": "Staff Bio Data"
     }
   }
 }

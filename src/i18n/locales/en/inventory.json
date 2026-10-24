@@ -1,9 +1,38 @@
 {
   "title": "Inventory",
-  "items": "Items",
+  "items": {
+    "title": "Inventory Items Management",
+    "description": "Maintain a master list of all inventory items.",
+    "addButton": "Add Item",
+    "modalAddTitle": "Add New Item",
+    "modalEditTitle": "Edit Item",
+    "nameLabel": "Item Name",
+    "categoryLabel": "Category",
+    "selectCategoryOption": "Select Category",
+    "unitLabel": "Unit of Measure",
+    "unitPlaceholder": "e.g. Piece, Kg, Litre, Box",
+    "typeLabel": "Item Type",
+    "priceLabel": "Current Price (KES)",
+    "descriptionLabel": "Description",
+    "deleteConfirm": "Are you sure you want to delete this item? This may affect fixed assets, stock levels and transactions.",
+    "alertRequiredFields": "Item Name, Unit of Measure and Item Type are required."
+  },
   "categories": "Categories",
   "stock": "Stock Management",
-  "suppliers": "Suppliers",
+  "suppliers": {
+    "title": "Suppliers Management",
+    "description": "Manage suppliers and their contact details for procurement and purchase orders.",
+    "addButton": "Add Supplier",
+    "modalAddTitle": "Add New Supplier",
+    "modalEditTitle": "Edit Supplier",
+    "nameLabel": "Supplier Name",
+    "contactPersonLabel": "Contact Person",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "addressLabel": "Address",
+    "deleteConfirm": "Are you sure you want to delete this supplier? This may affect existing purchase orders.",
+    "alertRequiredFields": "The supplier name is required."
+  },
   "orders": "Purchase Orders",
   "receiving": "Receiving",
   "tracking": "Asset Tracking",
@@ -135,5 +164,32 @@
     "cancel": "Cancel",
     "saveChanges": "Save Changes",
     "warehouseName": "Warehouse Name"
+  },
+  "navigation": {
+    "inventory": {
+      "title": "Inventory",
+      "description": "Manage inventory, procurement, assets, and stock control",
+      "dashboard": "Dashboard",
+      "inventoryHub": "Inventory Hub",
+      "procurementHub": "Procurement Hub",
+      "stockOpsHub": "Stock Operations Hub",
+      "items": "Items",
+      "itemCategories": "Item Categories",
+      "stockLevels": "Stock Levels",
+      "reorderAlerts": "Reorder Alerts",
+      "stockReception": "Stock Reception",
+      "stockReturns": "Stock Returns",
+      "requisitions": "Requisitions",
+      "purchaseOrders": "Purchase Orders",
+      "stockIssuance": "Stock Issuance",
+      "suppliers": "Suppliers",
+      "supplierContracts": "Supplier Contracts",
+      "fixedAssets": "Fixed Assets",
+      "settings": "Inventory Settings",
+      "warehouses": "Warehouses",
+      "schoolProcurementDashboard": "School Procurement Dashboard",
+      "vendorPortalDashboard": "Vendor Portal Dashboard",
+      "stationery": "Stationery"
+    }
   }
 }

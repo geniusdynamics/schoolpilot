@@ -59,6 +59,24 @@ jobs:
       - name: Pack conformance vectors (every pack through the real engines)
         run: node scripts/packs/run-vectors.mjs
 
+      # The pseudo-locale makes untranslated and over-long strings visible; this
+      # step also fails on a core string the code asks for and the catalogue
+      # cannot answer, and on a namespace split across two files.
+      - name: i18n check (namespaces, extraction, pseudo-locale)
+        run: pnpm -s i18n:check
+
+      - name: i18n report to job summary
+        if: always()
+        run: |
+          {
+            echo "## i18n"
+            echo
+            echo '```'
+            pnpm -s i18n:extract || true
+            pnpm -s i18n:pseudo -- --check || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: PRD task gate (vs PR base)
         id: gate
         env:
