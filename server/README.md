@@ -24,8 +24,16 @@ the service wiring is `server/services.ts`.
 npx tsx src/server/cli.ts --data-dir ./data --port 3000
 ```
 
-The CLI opens `./data/schoolpilot.db` (or the file under `--data-dir`) and listens. `GET /health`
-reports the status. From code:
+The CLI opens `./data/schoolpilot.db` (or the file under `--data-dir`) and listens. It serves HTTPS by
+default, issuing and storing a self-signed LAN certificate in `<data-dir>/tls`, and advertises the hub
+over mDNS so a client on the same network can find it without being told an address. `--no-tls` and
+`--no-mdns` turn those off for a loopback development box, `--print-fingerprint` shows what clients
+pin, and `--discover` browses the LAN for hubs. `GET /health` reports the status, including the
+protocol, the fingerprint and the advertisement.
+
+[`docs/guides/deployment-hub.md`](../docs/guides/deployment-hub.md) is the operator's guide, and
+[`packaging/`](../packaging/README.md) holds the installers for Windows, Ubuntu and Raspberry Pi.
+From code:
 
 ```ts
 import { LANServer } from '@/server/LANServer';
@@ -39,6 +47,14 @@ console.log(hub.address);
 `stop()` closes the connections and the database.
 
 ## Call it
+
+The examples below are plain HTTP for a loopback box, which is what `--no-tls` is for. Against a hub
+that serves TLS, use `https` and the certificate it issued:
+
+```bash
+cert=./data/tls/hub-cert.pem
+curl --cacert "$cert" https://127.0.0.1:3000/health
+```
 
 ```bash
 # The entity registry
@@ -88,9 +104,11 @@ npx vitest run server/__tests__/hub.test.ts
 ## Deliberately not here yet
 
 - **Authentication and authorisation.** `x-actor` is a trusted header placeholder; P4-C01
-  replaces it with sessions and a scoped repository.
+  replaces it with sessions and a scoped repository. Until then a hub belongs on a trusted LAN, which
+  is why TLS and discovery are on by default rather than optional.
 - **Real-time sync.** The WebSocket hub of P4-A02; the HTTP surface here is what it extends.
-- **mDNS discovery, TLS and pairing.** P4-D02.
+- **Pairing.** A client finds and trusts the hub (mDNS plus the fingerprint it advertises), but there
+  is no enrolment handshake that issues a device its own credential — that follows authentication.
 - **Request schema validation beyond the repository and service schemas.** The route layer
   checks shapes and query syntax; the entity and service schemas own field validation, which is
   where a 400's `issues` comes from.
