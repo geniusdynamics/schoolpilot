@@ -45,45 +45,61 @@
     "students": "Students"
   },
   "mealPlans": {
-    "managementTitle": "Meal Plans",
-    "addMealPlan": "Add Meal Plan",
-    "managementDescription": "Management Description",
-    "editMealPlan": "Edit Meal Plan",
-    "addNewMealPlan": "Add New Meal Plan",
-    "cancel": "Cancel",
-    "saveChanges": "Save Changes",
-    "addPlan": "Add Plan",
-    "planName": "Plan Name",
-    "description": "Description",
-    "costPerPeriod": "Cost Per Period"
+    "managementTitle": "Gestion des Plans de Repas",
+    "addMealPlan": "Ajouter Plan de Repas",
+    "managementDescription": "Définir et gérer les plans de repas offerts par l'école.",
+    "editMealPlan": "Modifier Plan de Repas",
+    "addNewMealPlan": "Ajouter Nouveau Plan de Repas",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer Modifications",
+    "addPlan": "Ajouter Plan",
+    "planName": "Nom du Plan",
+    "description": "Description (Optionnel)",
+    "costPerPeriod": "Coût par Période (KES)"
   },
   "menus": {
     "management": {
-      "title": "Management",
-      "description": "Description"
+      "title": "Gestion des Menus Quotidiens/Hebdomadaires",
+      "description": "Créer et gérer les menus pour différents types de repas à des dates spécifiques."
     },
     "add": {
-      "button": "Add",
-      "title": "Add"
+      "button": "Ajouter Menu",
+      "title": "Ajouter Nouveau Menu"
     },
     "edit": {
-      "title": "Edit"
+      "title": "Modifier Menu"
     },
     "date": {
-      "label": "Date"
+      "label": "Date du Menu"
     },
     "mealType": {
-      "label": "Meal Type"
+      "label": "Type de Repas"
     },
     "description": {
-      "label": "Description",
-      "placeholder": "Placeholder"
+      "label": "Description du Menu / Articles",
+      "placeholder": "ex: Riz, Ragoût de Bœuf, Chou, et une Banane"
     },
     "cancel": {
-      "button": "Cancel"
+      "button": "Annuler"
     },
     "save": {
-      "button": "Save"
+      "button": "Enregistrer Modifications"
+    }
+  },
+  "navigation": {
+    "nutrition": {
+      "title": "Nutrition",
+      "description": "Gérer les plans de repas, les menus et les programmes de nutrition scolaire",
+      "dashboard": "Tableau de Bord",
+      "mealPlans": "Plans de Repas",
+      "menus": "Menus",
+      "merchants": "Marchands",
+      "studentMealAssignments": "Attributions des Repas aux Élèves",
+      "mealConsumptionLog": "Journal de Consommation des Repas",
+      "studentWallet": "Portefeuille de l'Élève",
+      "kitchenManagement": "Gestion de la Cuisine",
+      "mealPlanning": "Meal Planning",
+      "nutritionOperations": "Nutrition Operations"
     }
   }
 }

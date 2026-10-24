@@ -32,5 +32,11 @@
   "filterByCategory": "Filtrer par catégorie",
   "noTasks": "Aucune tâche trouvée",
   "taskManagement": "Gestion des tâches",
-  "myTasks": "Mes tâches"
+  "myTasks": "Mes tâches",
+  "navigation": {
+    "todos": {
+      "title": "Taches",
+      "description": "Gestion des taches et rappels"
+    }
+  }
 }

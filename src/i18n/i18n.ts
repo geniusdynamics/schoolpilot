@@ -1,7 +1,9 @@
-﻿﻿﻿import i18next from 'i18next';
+﻿import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { loadModularTranslations } from './modularLoader';
+import { FALLBACK_LOCALE, NAMESPACE_NAMES, SUPPORTED_LOCALES } from './namespaces';
+import { PSEUDO_LOCALE } from './pseudo';
 import { logger } from '@/utils/logging';
 
 
@@ -37,31 +39,12 @@ const initializeI18n = async (): Promise<void> => {
         .use(initReactI18next)
         .init({
           resources,
-          fallbackLng: 'en',
+          fallbackLng: FALLBACK_LOCALE,
+          supportedLngs: [...SUPPORTED_LOCALES, PSEUDO_LOCALE],
           debug: process.env.NODE_ENV === 'development',
           defaultNS: 'common',
           returnNull: false, // Ensure empty strings instead of null
-          ns: [
-            'common',
-            'navigation',
-            'dashboard',
-            'academics',
-            'administration',
-            'finance',
-            'hr',
-            'inventory',
-            'library',
-            'nutrition',
-            'portal',
-            'reports',
-            'settings',
-            'todos',
-            'assignments',
-            'houses',
-            'pickup',
-            'analytics',
-            'lessonplans',
-          ],
+          ns: [...NAMESPACE_NAMES],
           interpolation: {
             escapeValue: false,
           },

@@ -6,30 +6,21 @@ import {
 } from '@heroicons/react/24/outline';
 import HookErrorBoundary from '../HookErrorBoundary';
 import { logger } from '@/utils/logging';
+import { LOCALES } from '@/i18n/localeRegistry';
 
 const LanguageSwitcherContent: React.FC = () => {
   const { i18n, ready } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Define available languages with stable reference
-  const languages = useMemo(() => {
-    try {
-      return [
-        { code: 'en', name: 'English', flag: '🇺🇸' },
-        { code: 'fr', name: 'Français', flag: '🇫🇷' },
-        { code: 'es', name: 'Español', flag: '🇪🇸' },
-        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-        { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-        { code: 'pt', name: 'Português', flag: '🇵🇹' },
-        { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-        { code: 'sw', name: 'Kiswahili', flag: '🇹🇿' },
-        { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' }
-      ];
-    } catch (error) {
-      logger.error('[LanguageSwitcher] Error creating languages array:', error);
-      return [];
-    }
-  }, []);
+
+  // Every locale the app can actually render, plus the generated pseudo-locale.
+  const languages = useMemo(
+    () =>
+      LOCALES.map((locale) => ({
+        code: locale.code,
+        name: locale.generated ? `${locale.name} (untranslated)` : locale.nativeName,
+      })),
+    []
+  );
 
   const handleLanguageChange = useCallback((languageCode: string) => {
     try {
@@ -64,10 +55,10 @@ const LanguageSwitcherContent: React.FC = () => {
     try {
       const currentLang = (ready && i18n?.language) || 'en';
       const foundLanguage = languages.find(lang => lang && lang.code === currentLang);
-      return foundLanguage || languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
+      return foundLanguage || languages[0] || { code: 'en', name: 'English' };
     } catch (error) {
       logger.error('[LanguageSwitcher] Error finding current language:', error);
-      return { code: 'en', name: 'English', flag: '🇺🇸' };
+      return { code: 'en', name: 'English' };
     }
   }, [ready, i18n?.language, languages]);
 
@@ -87,7 +78,6 @@ const LanguageSwitcherContent: React.FC = () => {
       onClick={toggleDropdown}
       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-card border border-slate-200 text-slate-700 hover:border-slate-300 transition-colors"
     >
-      <span className="text-sm" style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{currentLanguage.flag}</span>
       <span className="text-sm font-medium">{currentLanguage.name}</span>
       <ChevronDownIcon className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
     </button>
@@ -102,7 +92,6 @@ const LanguageSwitcherContent: React.FC = () => {
               lang.code === currentLanguage.code ? 'bg-primary-50 text-primary-700' : 'text-slate-700'
             }`}
           >
-            <span style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{lang.flag}</span>
             <span>{lang.name}</span>
           </button>
         ))}

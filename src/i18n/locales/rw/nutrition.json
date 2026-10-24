@@ -1,5 +1,5 @@
 {
-  "title": "Nutrition",
+  "title": "Intungamubiri",
   "meals": "Meal Planning",
   "menu": "Menu Management",
   "dietary": "Dietary Requirements",
@@ -84,6 +84,22 @@
     },
     "save": {
       "button": "Save"
+    }
+  },
+  "navigation": {
+    "nutrition": {
+      "title": "Intungamubiri",
+      "description": "Gucunga gahunda z'ifunguro, menu, na gahunda z'intungamubiri z'abanyeshuri",
+      "dashboard": "Ikibaho",
+      "mealPlans": "Gahunda z'Ifunguro",
+      "menus": "Menu",
+      "merchants": "Abacuruzi",
+      "studentMealAssignments": "Gutanga Ifunguro ku Banyeshuri",
+      "mealConsumptionLog": "Inyandiko y'Ikoreshwa ry'Ifunguro",
+      "studentWallet": "Agakoro k'Umunyeshuri",
+      "kitchenManagement": "Gucunga igikoni",
+      "mealPlanning": "Meal Planning",
+      "nutritionOperations": "Nutrition Operations"
     }
   }
 }

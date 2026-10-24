@@ -1,62 +1,112 @@
 {
-  "title": "Portal",
-  "description": "Student and parent portal access",
+  "title": "Urubuga",
+  "description": "Urubuga rw'abanyeshuri n'ababyeyi kubona amakuru y'ishuri",
   "common": {
-    "loading": "Loading...",
-    "noData": "No data available",
-    "cancel": "Cancel",
-    "save": "Save",
+    "loading": "Gupakurura...",
+    "noData": "Nta makuru ahari",
+    "cancel": "Kuraguza",
+    "save": "Kubika",
     "close": "Close",
-    "open": "Open"
+    "open": "Open",
+    "create": "Kurema",
+    "edit": "Guhindura",
+    "delete": "Gusiba",
+    "back": "Gusubira inyuma",
+    "next": "Komeza",
+    "search": "Gushakisha",
+    "filter": "Gushungura",
+    "error": "Ikosa ryabaye"
   },
   "dashboard": {
-    "welcome": "Welcome to your portal",
-    "recentAnnouncements": "Recent Announcements",
-    "attendanceSummary": "Attendance Summary",
-    "feeOverview": "Fee Overview",
-    "recentResults": "Recent Results"
+    "welcome": "Murakaza neza",
+    "recentAnnouncements": "Amatangazo y'ibyak最近",
+    "attendanceSummary": "Incamake y'kwitabira",
+    "feeOverview": "Incamake y'amafaranga y'ishuri",
+    "recentResults": "Ibisubizo by'ibyak最近",
+    "title": "Ikibaho cyanjye",
+    "quickLinks": "Ihuza ryihuse"
   },
   "navigation": {
     "attendance": "Attendance",
     "results": "Results",
     "fees": "Fees",
     "announcements": "Announcements",
-    "profile": "Profile"
+    "profile": "Profile",
+    "portal": {
+      "title": "Urubuga",
+      "description": "Urubuga rw'abanyeshuri n'ababyeyi",
+      "dashboard": "Ikibaho cy'Urubuga",
+      "attendance": "Kwitabira",
+      "results": "Ibisubizo",
+      "fees": "Amafaranga y'ishuri",
+      "announcements": "Amatangazo",
+      "profile": "Umwirondoro"
+    },
+    "title": "Portal",
+    "dashboard": "Dashboard"
   },
   "attendance": {
-    "title": "Attendance",
-    "percentage": "Attendance Percentage",
-    "present": "Present",
-    "absent": "Absent",
-    "late": "Late",
-    "excused": "Excused"
+    "title": "Kwitabira kwanjye",
+    "percentage": "Igipimo cy'kwitabira",
+    "present": "Yitabiye",
+    "absent": "Ntabwo yitabiye",
+    "late": "Yatinze",
+    "excused": "Yababariwe",
+    "totalDays": "Iminsi yose",
+    "records": "Inyandiko z'kwitabira",
+    "date": "Itariki",
+    "period": "Igihe",
+    "status": "Imiterere",
+    "remarks": "Ibisobanuro",
+    "recordedBy": "Yanditswe na"
   },
   "fees": {
-    "title": "Fees",
-    "balance": "Balance",
-    "totalFees": "Total Fees",
-    "totalPaid": "Total Paid",
-    "amount": "Amount",
-    "dueDate": "Due Date",
-    "status": "Status"
+    "title": "Ibanze ry'amafaranga y'ishuri",
+    "balance": "Asigaye",
+    "totalFees": "Amafaranga yose y'ishuri",
+    "totalPaid": "Amafaranga yose yishyuwe",
+    "amount": "Amafaranga",
+    "dueDate": "Itariki yo kwishyura",
+    "status": "Imiterere",
+    "invoices": "Amafakitiri",
+    "payments": "Kwishyura",
+    "invoiceNumber": "Nomero y'ifakitire",
+    "receiptNumber": "Nomero y'akwita",
+    "paymentMethod": "Uburyo bwo kwishyura",
+    "paymentDate": "Itariki yo kwishyura",
+    "items": "Ibintu by'amafaranga y'ishuri"
   },
   "results": {
-    "title": "Results",
+    "title": "Ibisubizo byanjye",
     "exam": "Exam",
-    "subject": "Subject",
-    "marks": "Marks",
-    "grade": "Grade",
-    "position": "Position"
+    "subject": "Igisomo",
+    "marks": "Amanota",
+    "grade": "Ipimwa",
+    "position": "Position",
+    "examSession": "Igice c'ibizamini",
+    "totalMarks": "Amanota yose",
+    "meanGrade": "Ipimwa rusange",
+    "classRank": "Imiterere y'isomo",
+    "streamRank": "Imiterere y'umugezi",
+    "points": "Amanota",
+    "comment": "Igitekerezo",
+    "noResults": "Nta bisubizo byabonetse"
   },
   "announcements": {
-    "title": "Announcements",
-    "noAnnouncements": "No announcements available",
-    "priority": {
-      "urgent": "Urgent",
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
-    }
+    "title": "Amatangazo",
+    "noAnnouncements": "Nta matangazo ahari",
+    "priority": "Iby'ingenzi",
+    "audience": "Abateganijwe",
+    "publishedAt": "Yasohowe",
+    "expiresAt": "Izarangira",
+    "author": "Umwanditsi",
+    "content": "Ibirimo",
+    "read": "Wanditse ko yasomwe",
+    "unread": "Itasomwe",
+    "priorityHigh": "Cy'ingenzi",
+    "priorityMedium": "Hagati",
+    "priorityLow": "Ntacyo",
+    "priorityUrgent": "Byihutirwa"
   },
   "timetable": {
     "title": "Timetable",
@@ -211,5 +261,13 @@
       "loginHistoryPlaceholder": "Login History Placeholder",
       "accountOptionsPlaceholder": "Account Options Placeholder"
     }
+  },
+  "profile": {
+    "title": "Umwirondoro wanjye",
+    "personalInfo": "Amakuru y'ibanze",
+    "contactInfo": "Amakuru yo kuvugana",
+    "academicInfo": "Amakuru y'uburezi",
+    "editProfile": "Hindura umwirondoro",
+    "saveProfile": "Kubika impinduka"
   }
 }

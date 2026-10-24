@@ -1,0 +1,370 @@
+{
+  "title": "Admissions",
+  "navigation": {
+    "admissions": {
+      "title": "Admissions",
+      "description": "Gérer les admissions et les candidatures des étudiants",
+      "dashboard": "Tableau de Bord des Admissions",
+      "newApplication": "Nouvelle Candidature",
+      "applications": "Candidatures",
+      "reviewQueue": "File d'Attente d'Évaluation",
+      "apply": "Postuler",
+      "track": "Suivre la Candidature",
+      "applicationsHub": "Applications Hub"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de Bord des Admissions",
+    "subtitle": "Aperçu des activités et statistiques d'admission",
+    "stats": {
+      "pendingReview": "En Attente d'Évaluation",
+      "approved": "Approuvées",
+      "rejected": "Rejetées",
+      "enrolled": "Inscrits",
+      "totalApplications": "Total des Candidatures",
+      "thisMonth": "Ce Mois",
+      "applicationsByStatus": "Candidatures par Statut",
+      "applicationsByClass": "Candidatures par Classe",
+      "recentActivity": "Activité Récente"
+    },
+    "quickActions": {
+      "newApplication": "Nouvelle Candidature",
+      "viewApplications": "Voir les Candidatures",
+      "reviewQueue": "File d'Attente d'Évaluation",
+      "exportReport": "Exporter le Rapport"
+    }
+  },
+  "applicationForm": {
+    "validation": {
+      "requiredFields": "Veuillez remplir tous les champs obligatoires (marqués *) avant de continuer.",
+      "incompleteApplication": "Certains champs obligatoires sont manquants. Revenez en arrière et complétez tous les champs obligatoires avant de soumettre."
+    }
+  },
+  "application": {
+    "title": "Application Form",
+    "subtitle": "Submit a new student admission application",
+    "sections": {
+      "studentInfo": "Student Information",
+      "guardianInfo": "Guardian Information",
+      "academicBackground": "Academic Background",
+      "documents": "Required Documents",
+      "review": "Review Application"
+    },
+    "fields": {
+      "firstName": "First Name",
+      "middleName": "Middle Name",
+      "lastName": "Last Name",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "genderOther": "Other",
+      "nationality": "Nationality",
+      "religion": "Religion",
+      "birthCertificateNumber": "Birth Certificate Number",
+      "intendedClass": "Intended Class",
+      "academicYear": "Academic Year",
+      "applicationType": "Application Type",
+      "applicationTypeNew": "New Admission",
+      "applicationTypeTransfer": "Transfer",
+      "applicationTypeReadmission": "Readmission",
+      "previousSchool": "Previous School",
+      "previousClass": "Previous Class",
+      "kcpeIndexNumber": "KCPE Index Number",
+      "kcpeMarks": "KCPE Marks",
+      "kcpeGrade": "KCPE Grade",
+      "guardianType": "Guardian Type",
+      "guardianTypeFather": "Father",
+      "guardianTypeMother": "Mother",
+      "guardianTypeGuardian": "Guardian",
+      "guardianTypeOther": "Other",
+      "guardianFirstName": "Guardian First Name",
+      "guardianLastName": "Guardian Last Name",
+      "guardianPhone": "Guardian Phone",
+      "guardianEmail": "Guardian Email",
+      "guardianOccupation": "Guardian Occupation",
+      "guardianEmployer": "Guardian Employer",
+      "residentialAddress": "Residential Address",
+      "postalAddress": "Postal Address",
+      "county": "County",
+      "subCounty": "Sub-County",
+      "location": "Location",
+      "subLocation": "Sub-Location"
+    },
+    "documents": {
+      "birthCertificate": "Birth Certificate",
+      "kcpeCertificate": "KCPE Certificate",
+      "transferLetter": "Transfer Letter",
+      "medicalReport": "Medical Report",
+      "passportPhoto": "Passport Photo",
+      "previousSchoolReport": "Previous School Report",
+      "dropzoneText": "Drag and drop files here, or click to select files",
+      "supportedFormats": "Supported formats: PDF, JPG, PNG (max 10MB each)",
+      "uploadButton": "Upload Document",
+      "removeButton": "Remove"
+    },
+    "actions": {
+      "saveAsDraft": "Save as Draft",
+      "submitApplication": "Submit Application",
+      "previous": "Previous",
+      "next": "Next",
+      "cancel": "Cancel",
+      "edit": "Edit"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid phone number",
+      "futureDate": "Date cannot be in the future",
+      "minAge": "Student must be at least 3 years old",
+      "fileTooLarge": "File size must be less than 10MB",
+      "invalidFileType": "Invalid file type"
+    },
+    "messages": {
+      "submitSuccess": "Application submitted successfully!",
+      "saveDraftSuccess": "Application saved as draft",
+      "submitError": "Error submitting application. Please try again.",
+      "confirmSubmit": "Are you sure you want to submit this application?",
+      "confirmCancel": "Are you sure you want to cancel? All progress will be lost."
+    }
+  },
+  "applicationsList": {
+    "title": "Applications",
+    "subtitle": "Manage and track all admission applications",
+    "filters": {
+      "search": "Search by name or application number...",
+      "status": "Filter by Status",
+      "class": "Filter by Class",
+      "dateRange": "Date Range",
+      "allStatuses": "All Statuses",
+      "allClasses": "All Classes"
+    },
+    "table": {
+      "applicationNumber": "Application #",
+      "applicantName": "Applicant Name",
+      "intendedClass": "Intended Class",
+      "submissionDate": "Submission Date",
+      "status": "Status",
+      "reviewer": "Reviewer",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "underReview": "Under Review",
+      "interviewScheduled": "Interview Scheduled",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "deferred": "Deferred",
+      "waitlisted": "Waitlisted",
+      "enrolled": "Enrolled"
+    },
+    "actions": {
+      "view": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "review": "Review",
+      "download": "Download",
+      "export": "Export List"
+    },
+    "emptyState": {
+      "title": "No applications found",
+      "description": "Get started by creating a new application",
+      "button": "New Application"
+    }
+  },
+  "applicationDetail": {
+    "title": "Application Details",
+    "sections": {
+      "overview": "Overview",
+      "personalInfo": "Personal Information",
+      "guardianInfo": "Guardian Information",
+      "academicInfo": "Academic Information",
+      "documents": "Documents",
+      "notes": "Notes",
+      "history": "Decision History"
+    },
+    "info": {
+      "applicationNumber": "Application Number",
+      "submissionDate": "Submission Date",
+      "lastUpdated": "Last Updated",
+      "submittedBy": "Submitted By",
+      "reviewDeadline": "Review Deadline"
+    },
+    "documents": {
+      "title": "Submitted Documents",
+      "verified": "Verified",
+      "pending": "Pending Verification",
+      "verifyButton": "Verify",
+      "downloadButton": "Download",
+      "noDocuments": "No documents submitted yet"
+    },
+    "notes": {
+      "title": "Internal Notes",
+      "placeholder": "Add a note...",
+      "addButton": "Add Note",
+      "noNotes": "No notes added yet"
+    },
+    "history": {
+      "title": "Decision History",
+      "action": "Action",
+      "by": "By",
+      "date": "Date",
+      "comments": "Comments",
+      "noHistory": "No decision history available"
+    },
+    "actions": {
+      "back": "Back to List",
+      "print": "Print",
+      "edit": "Edit Application",
+      "delete": "Delete Application"
+    }
+  },
+  "applicationReview": {
+    "title": "Review Application",
+    "subtitle": "Review and evaluate admission application",
+    "sections": {
+      "applicantInfo": "Applicant Information",
+      "evaluation": "Evaluation",
+      "decision": "Decision",
+      "assignment": "Class Assignment"
+    },
+    "evaluation": {
+      "academicScore": "Academic Score",
+      "interviewScore": "Interview Score",
+      "behavioralAssessment": "Behavioral Assessment",
+      "recommendation": "Recommendation",
+      "stronglyRecommend": "Strongly Recommend",
+      "recommend": "Recommend",
+      "neutral": "Neutral",
+      "notRecommend": "Not Recommend",
+      "stronglyNotRecommend": "Strongly Not Recommend",
+      "comments": "Review Comments",
+      "internalNotes": "Internal Notes (not visible to applicant)"
+    },
+    "decision": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "defer": "Defer",
+      "waitlist": "Add to Waitlist",
+      "conditions": "Conditions (if any)",
+      "finalComments": "Final Comments",
+      "confirmApprove": "Are you sure you want to approve this application?",
+      "confirmReject": "Are you sure you want to reject this application?",
+      "confirmDefer": "Are you sure you want to defer this application?",
+      "confirmWaitlist": "Are you sure you want to add this application to the waitlist?"
+    },
+    "assignment": {
+      "assignClass": "Assign Class",
+      "assignStream": "Assign Stream",
+      "admissionNumber": "Admission Number",
+      "startDate": "Start Date",
+      "feeStructure": "Fee Structure",
+      "autoGenerate": "Auto-generate admission number",
+      "dormitory": "Dormitory (Optional)",
+      "generateInvoice": "Generate invoice upon enrollment"
+    },
+    "actions": {
+      "saveReview": "Save Review",
+      "submitDecision": "Submit Decision",
+      "scheduleInterview": "Schedule Interview",
+      "requestDocuments": "Request More Documents",
+      "back": "Back"
+    },
+    "messages": {
+      "reviewSaved": "Review saved successfully",
+      "decisionSubmitted": "Decision submitted successfully",
+      "enrollmentComplete": "Student enrolled successfully",
+      "error": "An error occurred. Please try again."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "step": "Step",
+    "of": "of"
+  },
+  "public": {
+    "applyTitle": "Apply for Admission",
+    "applySubtitle": "Complete the form below to start your application. All fields marked with * are required.",
+    "studentInfo": "Student Information",
+    "studentInfoDesc": "Enter the prospective student's personal details",
+    "parentGuardianInfo": "Parent / Guardian Information",
+    "parentGuardianDesc": "Enter the primary contact person's details",
+    "parentFirstName": "Parent First Name",
+    "parentLastName": "Parent Last Name",
+    "academicInfo": "Academic Information",
+    "academicInfoDesc": "Provide details about the class you are applying for and previous schooling",
+    "previousSchooling": "Previous Schooling",
+    "transferReason": "Reason for Transfer / Additional Notes",
+    "documents": "Upload Documents",
+    "documentsDesc": "Upload any supporting documents. You can also bring these documents in person.",
+    "reviewTitle": "Review Your Application",
+    "reviewDesc": "Please verify all details before submitting. You cannot edit after submission.",
+    "confirmSubmit": "By submitting this application, you confirm that all information provided is accurate and complete. You will receive a reference number to track your application status.",
+    "successTitle": "Application Submitted!",
+    "successMessage": "Your application has been received. Please save your reference number below to track your application status.",
+    "referenceNumber": "Reference Number",
+    "submitSuccess": "Application submitted successfully!",
+    "submitError": "Failed to submit application. Please try again.",
+    "studentName": "Student Name",
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "underReview": "Under Review",
+      "interviewScheduled": "Interview Scheduled",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "deferred": "Deferred",
+      "waitlisted": "Waitlisted",
+      "enrolled": "Enrolled"
+    },
+    "tracking": {
+      "title": "Track Your Application",
+      "subtitle": "Enter your application reference number to check the current status of your application.",
+      "referenceNumber": "Application Reference Number",
+      "checkStatus": "Check Status",
+      "enterReference": "Please enter a reference number",
+      "notFound": "Application Not Found",
+      "notFoundDesc": "No application was found with that reference number. Please check the number and try again.",
+      "searchedFor": "Searched for:",
+      "applicationNumber": "Application",
+      "submittedOn": "Submitted On",
+      "statusTimeline": "Application Progress",
+      "currentStatus": "Current Status",
+      "congratulations": "Congratulations!",
+      "acceptedMessage": "Your application has been accepted. You can now proceed to enrollment.",
+      "notes": "Notes",
+      "proceedToEnrollment": "Proceed to Enrollment",
+      "enrollmentRedirect": "Redirecting to enrollment page...",
+      "applicationRejected": "Application Not Accepted",
+      "rejectedMessage": "We regret to inform you that your application was not successful at this time.",
+      "reason": "Reason",
+      "contactAdmissions": "If you have questions, please contact the admissions office for more information.",
+      "welcomeMessage": "Welcome!",
+      "enrolledMessage": "You are now enrolled. Please check your email for further instructions and orientation details.",
+      "waitlistedTitle": "Waitlisted",
+      "waitlistedMessage": "Your application is currently on the waitlist. We will contact you if a spot becomes available.",
+      "checkAnother": "Check Another Application",
+      "howItWorks": "How It Works",
+      "step1": "After submitting your application, you will receive a unique reference number.",
+      "step2": "Enter that reference number above to see the current status of your application.",
+      "step3": "The timeline will show you exactly where your application is in the review process."
+    }
+  }
+}

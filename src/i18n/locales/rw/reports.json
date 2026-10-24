@@ -1,7 +1,9 @@
 {
-  "title": "Reports",
+  "title": "Raporo",
   "generate": "Generate Report",
-  "export": "Export",
+  "export": {
+    "title": "Kohereza Raporo"
+  },
   "filter": "Filter",
   "dateRange": "Date Range",
   "academic": "Academic Reports",
@@ -47,5 +49,164 @@
     "csvExportToBeDeveloped": "Csv Export To Be Developed",
     "printToBeDeveloped": "Print To Be Developed",
     "exportToBeDeveloped": "Export To Be Developed"
+  },
+  "navigation": {
+    "reports": {
+      "title": "Raporo",
+      "description": "Gukora no kureba raporo zitandukanye n'isesengura",
+      "dashboard": "Ikibaho cy'Iraporo",
+      "overview": "Raporo Zose",
+      "accountLedger": "Igitabo cy'Amakonti",
+      "examResultsHorizontal": "Ibisubizo by'Ibizamini Bitambitse",
+      "feeCollectionSummary": "Incamake y'Ikusanyiriza ry'Amafaranga",
+      "studentFinancialSummary": "Incamake y'Imari y'Umunyeshuri",
+      "studentMasterlist": "Urutonde Rukuru rw'Abanyeshuri",
+      "studentVoteheadStatement": "Raporo y'Umutwe w'Amajwi w'Umunyeshuri",
+      "teacherAssignments": "Gutanga Inshingano ku Barimu",
+      "classLists": "Urutonde rw'Amasomo",
+      "overdueBooks": "Ibitabo byarenze igihe",
+      "inventoryStatus": "Imiterere y'Ibikoresho",
+      "studentReports": "Student Reports"
+    },
+    "analytics": {
+      "title": "Isesengura",
+      "description": "Isesengura ry'amakuru n'ubumenyi",
+      "teacherDashboard": "Ikibaho cy'Umwalimu",
+      "subjectAnalytics": "Isesengura ry'Igisomo",
+      "classAnalytics": "Isesengura ry'Ishuri",
+      "exportReports": "Kohereza Raporo"
+    }
+  },
+  "accountLedgerPage": {
+    "title": "Raporo y'Igitabo cy'Amakonti",
+    "description": "Reba imyitwarire y'akonti runguka mu gihe",
+    "selectAccount": "Hitamo Konti",
+    "selectAccountPlaceholder": "Hitamo konti",
+    "startDate": "Itariki y'Itangira",
+    "endDate": "Itariki y'Isose",
+    "generateLedger": "Kora Igitabo",
+    "loadingData": "Gukora data...",
+    "generatingLedger": "Gukora gitabo...",
+    "print": "Gucapa",
+    "exportCSV": "Kohereza CSV",
+    "noTransactionsFound": "Nta myitwarire yabonetse",
+    "pleaseSelectFiltersAndClickGenerateLedger": "Hitamo imiterere kandi ukande Kora Igitabo"
+  },
+  "examResultsHorizontal": {
+    "title": "Ibisubizo by'Ibizamini (Bitambitse)",
+    "examSession": "Igice c'Ibizamini",
+    "optionSelectExamSession": "Hitamo Igice c'Ibizamini",
+    "class": "Urwego",
+    "optionAllClasses": "Amashuri Yose",
+    "stream": "Ikigwa",
+    "optionAllStreams": "Amagwa Yose",
+    "selectFiltersMessage": "Hitamo imiterere kugira ngo ukore raporo",
+    "generateReport": "Kora Raporo",
+    "generatingReport": "Gukora raporo...",
+    "loadingData": "Gukora data...",
+    "print": "Gucapa",
+    "exportCSV": "Kohereza CSV",
+    "alertSelectSessionStream": "Hitamo igice c'ibizamini n'ikigwa"
+  },
+  "studentMasterlistPage": {
+    "title": "Urutonde Rukuru rw'Abanyeshuri",
+    "filterDescription": "Vana abanyeshuri ukurikije urwego, ikigwa, imiterere, n'igitsina",
+    "filterByClass": "Vana ukurikije Urwego",
+    "allClasses": "Amashuri Yose",
+    "filterByStream": "Vana ukurikije Ikigwa",
+    "allStreams": "Amagwa Yose",
+    "filterByStatus": "Vana ukurikije Imiterere",
+    "allStatuses": "Imiterere Yose",
+    "filterByGender": "Vana ukurikije Ibitsina",
+    "allGenders": "Ibitsina Byose",
+    "generateReport": "Kora Raporo",
+    "loadingInitialData": "Gukora data ya mbere...",
+    "generatingReport": "Gukora raporo...",
+    "print": "Gucapa",
+    "exportCSV": "Kohereza CSV",
+    "noStudentsFound": "Nta mwaneshuri wabonetse"
+  },
+  "teacherAssignmentsPage": {
+    "title": "Raporo y'Ishyirwa ry'Inshingano ku Barimu",
+    "description": "Reba imyigishire yabarimu ikurikije umwaka w'amasomo",
+    "selectAcademicYear": "Hitamo Umwaka w'Amasomo",
+    "allYears": "Imyaka Yose",
+    "selectTeacher": "Hitamo Mwalimu",
+    "allTeachers": "Abarimu Bose",
+    "generateReport": "Kora Raporo",
+    "loadingData": "Gukora data...",
+    "generatingReport": "Gukora raporo...",
+    "print": "Gucapa",
+    "exportCSV": "Kohereza CSV",
+    "noAssignmentsFound": "Nta mushyirwa ry'ishingano rwabonetse"
+  },
+  "analytics": {
+    "title": "Ibimenyetso",
+    "description": "Ibimenyetso n'amakuru ku mikorere y'abarimu",
+    "dashboard": {
+      "title": "Igenzura ry'Abarimu",
+      "passRate": "Umubare w'abize",
+      "overview": "Isesengura",
+      "attendanceRate": "Umubare w'abitabira",
+      "assignmentsGraded": "Ibikorwa byavunwe"
+    },
+    "common": {
+      "totalTeachers": "Abarimu Bose"
+    }
+  },
+  "examResultsVerticalPage": {
+    "title": "Exam Results (Vertical)",
+    "examSession": "Exam Session",
+    "optionSelectExamSession": "Select Exam Session",
+    "class": "Class",
+    "optionAllClasses": "All Classes",
+    "stream": "Stream",
+    "optionAllStreams": "All Streams",
+    "selectFiltersMessage": "Select filters to generate report",
+    "generateReport": "Generate Report",
+    "generatingReport": "Generating report...",
+    "loadingData": "Loading data...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "alertSelectSessionStream": "Please select exam session and stream"
+  },
+  "feeCollectionSummaryPage": {
+    "title": "Fee Collection Summary Report",
+    "description": "View fee collection summary by date range",
+    "selectDateRange": "Select Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "generateReport": "Generate Report",
+    "loadingData": "Loading data...",
+    "generatingReport": "Generating report...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noCollectionsFound": "No collections found"
+  },
+  "studentFinancialSummaryPage": {
+    "title": "Student Financial Summary Report",
+    "description": "View student financial summary by date range",
+    "selectDateRange": "Select Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "generateReport": "Generate Report",
+    "loadingData": "Loading data...",
+    "generatingReport": "Generating report...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noFinancialDataFound": "No financial data found"
+  },
+  "studentVoteheadStatementPage": {
+    "title": "Student Votehead Statement Report",
+    "description": "View student votehead statement by date range",
+    "selectDateRange": "Select Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "generateReport": "Generate Report",
+    "loadingData": "Loading data...",
+    "generatingReport": "Generating report...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noVoteheadDataFound": "No votehead data found"
   }
 }

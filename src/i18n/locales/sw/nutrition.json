@@ -1,5 +1,5 @@
 {
-  "title": "Nutrition",
+  "title": "Lishe",
   "meals": "Meal Planning",
   "menu": "Menu Management",
   "dietary": "Dietary Requirements",
@@ -84,6 +84,22 @@
     },
     "save": {
       "button": "Save"
+    }
+  },
+  "navigation": {
+    "nutrition": {
+      "title": "Lishe",
+      "description": "Simamia mipango ya chakula, menyu, na mipango ya lishe ya wanafunzi",
+      "dashboard": "Dashibodi",
+      "mealPlans": "Mipango ya Chakula",
+      "menus": "Menyu",
+      "merchants": "Wafanyabiashara",
+      "studentMealAssignments": "Mgawo wa Chakula cha Wanafunzi",
+      "mealConsumptionLog": "Kumbukumbu ya Matumizi ya Chakula",
+      "studentWallet": "Mkoba wa Mwanafunzi",
+      "kitchenManagement": "Usimamizi wa Jikoni",
+      "mealPlanning": "Meal Planning",
+      "nutritionOperations": "Nutrition Operations"
     }
   }
 }

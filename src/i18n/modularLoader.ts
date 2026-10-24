@@ -1,161 +1,52 @@
+// ABOUTME: Loads translation resources for every locale from the per-namespace files on disk.
+// ABOUTME: Sources are globbed here, then merged by the pure catalogue builder the CI scripts also use.
+
 import { logger } from '@/utils/logging';
+import { buildCatalogue, type TranslationSource, type TranslationTree } from './catalogue';
+import { PSEUDO_LOCALE, pseudoTranslateCatalogue } from './pseudo';
+import { FALLBACK_LOCALE, NAMESPACE_NAMES, SUPPORTED_LOCALES } from './namespaces';
 
-// ABOUTME: This file is responsible for loading modular translation resources.
-// ABOUTME: It dynamically loads translations from each module's i18n directory.
+// One file per locale and namespace: src/i18n/locales/<locale>/<namespace>.json.
+// A module's strings live in the namespace it owns, never in a second file under
+// src/modules/<module>/i18n — `scripts/i18n/consolidate.ts --check` enforces that.
+const sharedFiles = import.meta.glob('./locales/*/*.json');
 
+type Loader = () => Promise<{ default?: TranslationTree }>;
 
-// Use Vite's import.meta.glob to dynamically import translation files
-const modules = import.meta.glob('../modules/*/i18n/*.json');
-const coreModules = import.meta.glob('../modules/core/i18n/**/*.json');
-// Also load static translation files from locales directory
-const staticTranslations = import.meta.glob('./locales/**/*.json');
+const supported = new Set<string>(SUPPORTED_LOCALES);
 
-/**
- * Deep-merges `source` into `target`. Unlike `Object.assign`, this recurses
- * into plain-object children so that partial overlaps don't wipe out
- * sibling keys.
- *
- * Semantics:
- *  - If both `target[k]` and `source[k]` are plain objects, recurse.
- *  - Otherwise, `source[k]` (the later value) wins.
- *  - Arrays and primitives are replaced wholesale — we never try to
- *    "merge" an array, because doing so silently drops items.
- *  - The function is type-safe and side-effect free: it mutates and
- *    returns `target`.
- *
- * Why this matters: the previous implementation used `Object.assign` to
- * fold each module's `navigation` object into a unified namespace. That
- * shallow merge meant that any module whose `navigation.<section>` object
- * was incomplete (e.g. `academics` in `src/modules/academics/i18n/<lang>.json`
- * missing `allocations`, `assignments`, `lessonPlans`) would silently
- * overwrite the richer version coming from `src/i18n/locales/<lang>/navigation.json`,
- * producing raw key paths at runtime (e.g. `navigation:academics.allocations`
- * showing up verbatim in the sidebar instead of the translated label).
- */
-function deepMerge(target: any, source: any): any {
-  if (target === null || target === undefined) return source;
-  if (source === null || source === undefined) return target;
-  if (typeof target !== 'object' || typeof source !== 'object') {
-    return source;
-  }
-  if (Array.isArray(target) || Array.isArray(source)) {
-    return source;
+export const loadModularTranslations = async (): Promise<
+  Record<string, Record<string, TranslationTree>>
+> => {
+  const sources: TranslationSource[] = [];
+
+  for (const path of Object.keys(sharedFiles)) {
+    const parts = path.split('/').filter((part) => part.length > 0);
+    const lang = parts[parts.length - 2];
+    const namespace = parts[parts.length - 1].replace(/\.json$/, '');
+    if (!supported.has(lang)) continue;
+    const module = (await (sharedFiles[path] as Loader)()) as { default?: TranslationTree };
+    sources.push({
+      lang,
+      namespace,
+      scope: 'shared',
+      origin: path,
+      data: module.default ?? (module as unknown as TranslationTree),
+    });
   }
 
-  for (const key of Object.keys(source)) {
-    const targetValue = target[key];
-    const sourceValue = source[key];
-    const targetIsObject =
-      targetValue !== null &&
-      typeof targetValue === 'object' &&
-      !Array.isArray(targetValue);
-    const sourceIsObject =
-      sourceValue !== null &&
-      typeof sourceValue === 'object' &&
-      !Array.isArray(sourceValue);
+  const catalogue = buildCatalogue(sources);
 
-    if (targetIsObject && sourceIsObject) {
-      deepMerge(targetValue, sourceValue);
-    } else if (sourceValue !== undefined) {
-      target[key] = sourceValue;
-    }
-  }
+  // The pseudo-locale is generated from the fallback locale, never shipped as files.
+  catalogue[PSEUDO_LOCALE] = pseudoTranslateCatalogue(catalogue[FALLBACK_LOCALE] ?? {});
 
-  return target;
-}
+  logger.info(
+    'i18n: resources constructed for',
+    Object.keys(catalogue).join(', '),
+    '·',
+    NAMESPACE_NAMES.length,
+    'namespaces'
+  );
 
-export const loadModularTranslations = async () => {
-  const resources: any = {
-    en: { translation: {} },
-    fr: { translation: {} },
-    sw: { translation: {} },
-    rw: { translation: {}
-  }
-  };
-
-  const languages = ['en', 'fr', 'sw', 'rw'];
-
-  for (const lang of languages) {
-    // Initialize namespaces for each language
-    resources[lang] = {
-      navigation: {} // Initialize unified navigation namespace
-    };
-
-    // First, load static translations from locales directory
-    for (const path in staticTranslations) {
-      // Path format: ./locales/{lang}/{namespace}.json
-      const pathParts = path.split('/');
-      if (pathParts.length >= 4) {
-        const fileLang = pathParts[2]; // e.g., 'en'
-        const namespace = pathParts[3].replace('.json', ''); // e.g., 'navigation'
-
-        if (fileLang === lang) {
-          const module = await (staticTranslations[path] as () => Promise<{ default: any }>)();
-          const moduleData = module.default || module;
-
-          // Initialize namespace if needed
-          if (!resources[lang][namespace]) {
-            resources[lang][namespace] = {};
-          }
-
-          // Deep-merge static translations so partially-overlapping
-          // structures don't clobber each other.
-          deepMerge(resources[lang][namespace], moduleData);
-        }
-      }
-    }
-
-    for (const path in modules) {
-      const moduleName = path.split('/')[2];
-      if (path.includes(`/${lang}.json`)) {
-        const module = await (modules[path] as () => Promise<{ default: any }>)();
-        const moduleData = module.default || module;
-
-        // Create module-specific namespace
-        if (!resources[lang][moduleName]) {
-          resources[lang][moduleName] = {};
-        }
-        // Deep-merge module translations over the static locale file for the
-        // same namespace. Replacing wholesale would wipe out every key that
-        // exists only in src/i18n/locales/<lang>/<module>.json (the static
-        // files are far richer than the module files), leaving raw keys
-        // rendered across the UI.
-        deepMerge(resources[lang][moduleName], moduleData);
-
-        // Extract navigation translations and merge into unified navigation namespace.
-        // Deep-merge is critical here: a module's `navigation.<section>` is
-        // commonly a strict subset of the static `src/i18n/locales/*/navigation.json`
-        // entry. A shallow merge would wipe out keys that exist only in the
-        // static file (e.g. `academics.allocations` is in the static file but
-        // not in the academics module's i18n).
-        if (moduleData.navigation) {
-          deepMerge(resources[lang].navigation, moduleData.navigation);
-        }
-      }
-    }
-
-    for (const path in coreModules) {
-      // Path format: ../modules/core/i18n/{lang}/{namespace}.json — the
-      // namespace is the file name (last segment), not a fixed index.
-      const coreModuleName = path.split('/').pop()!.replace('.json', '');
-      if (path.includes(`/${lang}/`)) {
-        const module = await (coreModules[path] as () => Promise<{ default: any }>)();
-        const moduleData = module.default || module;
-
-        // Create core module-specific namespace
-        if (!resources[lang][coreModuleName]) {
-          resources[lang][coreModuleName] = {};
-        }
-        deepMerge(resources[lang][coreModuleName], moduleData);
-
-        // Extract navigation translations and merge into unified navigation namespace
-        if (moduleData.navigation) {
-          deepMerge(resources[lang].navigation, moduleData.navigation);
-        }
-      }
-    }
-  }
-
-  logger.info("i18n: Modular resources constructed:", resources);
-  return resources;
+  return catalogue;
 };

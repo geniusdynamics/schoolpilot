@@ -32,5 +32,11 @@
   "filterByCategory": "Filter by Category",
   "noTasks": "No tasks found",
   "taskManagement": "Task Management",
-  "myTasks": "My Tasks"
+  "myTasks": "My Tasks",
+  "navigation": {
+    "todos": {
+      "title": "Todos",
+      "description": "Task management and reminders"
+    }
+  }
 }
