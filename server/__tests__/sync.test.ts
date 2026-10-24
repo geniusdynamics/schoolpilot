@@ -236,8 +236,8 @@ describe('a device syncing over the HTTP transport', () => {
         dialect: 'sqlite',
       });
       const transport = createHttpSyncTransport({
-    // The device authenticates the same way a browser does: with the session's bearer token.
-    headers: { authorization: `Bearer ` },
+        // The device authenticates the same way a browser does: with the session's bearer token.
+        headers: { authorization: `Bearer ${token}` },
         baseUrl: `http://127.0.0.1:${port}`,
         fetch: nodeFetch as unknown as typeof fetch,
       });
