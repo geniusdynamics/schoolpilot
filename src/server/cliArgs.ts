@@ -11,6 +11,8 @@ export interface CliOptions {
   readonly port: number;
   readonly dataDir: string;
   readonly host: string;
+  /** A SQLite file other than `<dataDir>/schoolpilot.db`; null means the default. */
+  readonly databaseFile: string | null;
   /** Whether the hub serves TLS; on by default, because a LAN is not a trusted network. */
   readonly tls: boolean;
   /** A certificate the school brought instead of one issued here. */
@@ -68,6 +70,7 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
   let port = DEFAULT_PORT;
   let dataDir = DEFAULT_DATA_DIR;
   let host = DEFAULT_HOST;
+  let databaseFile: string | null = null;
   let tls = true;
   let tlsCert: string | null = null;
   let tlsKey: string | null = null;
@@ -110,6 +113,10 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
       case '--host':
       case '-h':
         host = next(index, flag);
+        index += 1;
+        break;
+      case '--database-file':
+        databaseFile = next(index, flag);
         index += 1;
         break;
       case '--tls':
@@ -212,6 +219,7 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
     port,
     dataDir,
     host,
+    databaseFile,
     tls,
     tlsCert,
     tlsKey,
@@ -245,6 +253,7 @@ export function usage(): string {
     'Serve options:',
     '  -p, --port <n>        port to listen on (default 3000)',
     '  -d, --data-dir <dir>  database and TLS material (default ./data)',
+    '      --database-file <file>   a SQLite file other than <data-dir>/schoolpilot.db',
     '  -h, --host <addr>     address to bind (default 0.0.0.0)',
     '      --tls             serve HTTPS with the stored certificate (default)',
     '      --no-tls          serve plain HTTP; only for a loopback development box',

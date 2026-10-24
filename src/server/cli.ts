@@ -64,6 +64,7 @@ async function serve(options: CliOptions): Promise<void> {
     port: options.port,
     dataDir: options.dataDir,
     host: options.host,
+    ...(options.databaseFile ? { databaseFile: options.databaseFile } : {}),
     backup: backupConfigOf(options),
     ...(certificate ? { tls: { cert: certificate.certPem, key: certificate.keyPem } } : {}),
     ...(options.restrictedKeyFile ? { restrictedKeyFile: options.restrictedKeyFile } : {}),

@@ -35,6 +35,13 @@ describe('hub arguments', () => {
     });
   });
 
+  it('takes a database file other than the one under the data directory', () => {
+    expect(parseArgs([])).toMatchObject({ databaseFile: null });
+    expect(parseArgs(['--database-file', '/srv/schoolpilot.db'])).toMatchObject({
+      databaseFile: '/srv/schoolpilot.db',
+    });
+  });
+
   it('serves plain HTTP only when it is asked to', () => {
     expect(parseArgs(['--no-tls']).tls).toBe(false);
     expect(parseArgs(['--no-mdns']).mdns).toBe(false);
