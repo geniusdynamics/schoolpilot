@@ -6,7 +6,7 @@ import type { BillingRunRequest } from '@/domain/finance/billing';
 import { asId } from '@/domain/ids';
 import type { AdmissionInput, OpenRegisterInput, RecordMarkInput } from '@/domain/services';
 
-import { actorOf, readJsonBody, requireObject } from './http';
+import { readJsonBody, requireObject } from './http';
 import type { RouteRequest, Router } from './router';
 import {
   admissionServiceOf,
@@ -17,8 +17,6 @@ import {
 
 export interface ServiceRouteOptions {
   readonly repository: Repository;
-  /** The actor a service write names when the request carries no `x-actor` header. */
-  readonly actor?: string;
 }
 
 /** Registers the service API under `/api/services`. */
@@ -60,9 +58,9 @@ export function addServiceRoutes(router: Router, options: ServiceRouteOptions): 
   });
 }
 
-/** The services of one request: the hub's repository and the actor the request names. */
+/** The services of one request: the hub's repository and the signed-in actor. */
 function servicesOf(request: RouteRequest, options: ServiceRouteOptions): HubServices {
-  const actor = actorOf(request.req, options.actor);
+  const actor = request.session?.userId;
   return {
     repository: options.repository,
     ...(actor !== undefined ? { actor } : {}),

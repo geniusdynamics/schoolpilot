@@ -41,6 +41,43 @@ earlier implementer backgrounded it, ended its turn, and left its work uncommitt
 | P5-W1 | A01 i18n infrastructure: namespaces, extraction, platform sync, pseudo-locale CI check | `prd/P5-A01` | `consolidation` |
 | P5-W1 | A02 locale formats and RTL layout | `prd/P5-A02` | `consolidation` |
 
+## The P4-W2 blocker, with the fix ready to apply
+
+`prd/P4-W2` carries **A02 + C01**, merge-resolved and lint-clean (`0f3d850`), and its gate fails **only**
+on G3: 10 tests in `server/__tests__/sync.test.ts` get `{"code":"unauthenticated"}` (and one asserts
+`400` where it now gets `401`). C01 made every route but `/health` and the sign-in endpoints require a
+bearer session; A02's sync suite and D01's backup suite were written before that and call those routes
+with no token.
+
+**The fix, worked out and not yet applied** — in `server/__tests__/sync.test.ts` and
+`server/__tests__/backupRoutes.test.ts`:
+
+1. `const USERNAME = 'grace.wekesa'; const PASSWORD = 'mwangaza-hub-2027';` and `let token: string | undefined;`
+2. import `hashPassword` from `../auth/passwords`.
+3. In `beforeAll`, **before** `seeded.close()` and before the hub starts, give the seeded user a password
+   the hub can verify — the fixture's hash is a placeholder, and the hub has **no** administrator of its
+   own, it authenticates against the canonical `user` table:
+   ```ts
+   const users = await seeded.repository.list('user', { where: { username: USERNAME } });
+   const seededUser = users.items[0];
+   if (!seededUser) throw new Error(`the ${USERNAME} fixture was not seeded`);
+   await seeded.repository.update(
+     'user',
+     seededUser.id,
+     { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
+     { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
+   );
+   ```
+   **The fourth argument is required** — without it the repository throws
+   `Cannot read properties of undefined (reading 'actor')`. This is the step that cost the most to find.
+4. After `hub.start()`, sign in and keep the token:
+   `const login = await api('POST', '/api/auth/login', { username: USERNAME, password: PASSWORD }); token = (login.body as { token: string }).token;`
+5. In each suite's request helper, carry `...(token === undefined ? {} : { authorization: \`Bearer ${token}\` })`
+   in the headers.
+
+Then re-run the wave gate and open the P4-W2 PR.
+
+
 ## The workflow every wave follows
 
 1. Cut the wave branch from the current `consolidation`; merge the finished task branches into it.
