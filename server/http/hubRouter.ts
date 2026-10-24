@@ -11,13 +11,15 @@ import { addAuthRoutes } from './authRoutes';
 import { addBackupRoutes } from './backupRoutes';
 import { addRepositoryRoutes } from './repositoryRoutes';
 import { Router } from './router';
+import type { RateLimiter } from './rateLimit';
 import { addServiceRoutes } from './serviceRoutes';
+import type { RestrictedAccessLog } from '../security/restrictedAccessLog';
 
 export interface HubRouterOptions {
   readonly repository: Repository;
   /** The sync node; when present the hub serves `/api/sync`. */
   readonly sync?: ServerNode;
-  /** The actor a write names when the request carries no `x-actor` header. */
+  /** The actor a write names when the session names none. */
   readonly actor?: string;
   /** The backup service; when omitted the hub serves no backup endpoints. */
   readonly backup?: BackupService;
@@ -28,6 +30,10 @@ export interface HubRouterOptions {
    * say who is calling must not guess.
    */
   readonly auth?: AuthenticationService;
+  /** Enforces the hub's rate limits when set. */
+  readonly rateLimiter?: RateLimiter;
+  /** Records every read and write of restricted data when set. */
+  readonly accessLog?: RestrictedAccessLog;
 }
 
 /** Builds the router of a hub over an open repository. */
@@ -35,12 +41,18 @@ export function createHubRouter(options: HubRouterOptions): Router {
   const auth = options.auth;
   const router = new Router({
     ...(auth === undefined ? {} : { authenticate: (token: string) => auth.authenticate(token) }),
+    ...(options.rateLimiter === undefined ? {} : { rateLimiter: options.rateLimiter }),
   });
+  const routes = {
+    repository: options.repository,
+    ...(options.actor !== undefined ? { actor: options.actor } : {}),
+    ...(options.accessLog !== undefined ? { accessLog: options.accessLog } : {}),
+  };
 
   if (auth !== undefined) addAuthRoutes(router, { auth });
 
-  addRepositoryRoutes(router, { repository: options.repository });
-  addServiceRoutes(router, { repository: options.repository });
+  addRepositoryRoutes(router, routes);
+  addServiceRoutes(router, routes);
   if (options.sync) addSyncRoutes(router, { sync: options.sync });
   if (options.backup) addBackupRoutes(router, { service: options.backup });
 

@@ -2,8 +2,9 @@
 // ABOUTME: every mutation makes inside its own transaction, and the reader for the trail.
 
 import { generateUuidv7, asId } from '@/domain/ids';
-import type { EntityName } from '@/domain/schema';
+import { isEntityName, type EntityName } from '@/domain/schema';
 import type { SqliteAdapter, SqliteBindValue, SqliteRunResult } from '@/data/adapters/sqlite';
+import { redactRestricted } from '@/data/security';
 
 import type { AuditEvent, AuditQuery, ChangeType } from './types';
 
@@ -64,9 +65,19 @@ export interface AuditRecord {
   readonly commitSequence: number;
 }
 
-/** Writes one audit record. The caller runs it inside the mutation's transaction. */
+/**
+ * Writes one audit record. The caller runs it inside the mutation's transaction.
+ *
+ * Restricted values are replaced by a marker before the row is serialised: the trail records that
+ * a restricted field changed and who changed it, never what it held. The value therefore exists at
+ * rest in one place, sealed in the row itself, and not in a second copy a reader of the trail
+ * could open without the key.
+ */
 export async function writeAuditEvent(runner: AuditRunner, record: AuditRecord): Promise<string> {
   const id = generateUuidv7();
+  const entity = isEntityName(record.entity) ? record.entity : null;
+  const before = entity ? redactRestricted(entity, record.before) : record.before;
+  const after = entity ? redactRestricted(entity, record.after) : record.after;
 
   await runner.run(
     `INSERT INTO "${AUDIT_TABLE}"
@@ -79,8 +90,8 @@ export async function writeAuditEvent(runner: AuditRunner, record: AuditRecord):
       record.action,
       record.actorId,
       JSON.stringify(record.changedFields),
-      record.before === undefined ? null : JSON.stringify(record.before),
-      record.after === undefined ? null : JSON.stringify(record.after),
+      before === undefined ? null : JSON.stringify(before),
+      after === undefined ? null : JSON.stringify(after),
       record.reason,
       record.createdAt,
       record.commitSequence,

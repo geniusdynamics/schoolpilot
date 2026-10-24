@@ -7,6 +7,7 @@ import path from 'node:path';
 
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
 import type { Repository } from '@/data/repository';
+import type { FieldCipher } from '@/data/security';
 
 import {
   ARCHIVE_MAGIC,
@@ -64,6 +65,13 @@ export interface BackupServiceOptions {
   readonly restoreDir?: string;
   readonly drillDir?: string;
   readonly exportDir?: string;
+  /**
+   * Opens the encrypted columns the portable export reads.
+   *
+   * A hub seals restricted columns at rest, so an export over a live hub needs the cipher to read
+   * them; a plaintext database needs none and an omitted cipher leaves the values as stored.
+   */
+  readonly cipher?: FieldCipher;
 }
 
 /**
@@ -79,6 +87,7 @@ export class BackupService {
   readonly retention: BackupRetentionPolicy;
   private readonly adapter: SqliteAdapter;
   private readonly repository: Repository;
+  private readonly cipher: FieldCipher | undefined;
   private readonly secret: BackupSecret | null;
   private readonly dailyAt: string;
   private readonly now: () => Date;
@@ -92,6 +101,7 @@ export class BackupService {
   constructor(options: BackupServiceOptions) {
     this.adapter = options.adapter;
     this.repository = options.repository;
+    this.cipher = options.cipher;
     this.backupDir = path.resolve(options.backupDir);
     this.secret = options.secret ?? null;
     this.retention = { ...DEFAULT_RETENTION, ...options.retention };
@@ -291,6 +301,7 @@ export class BackupService {
       destination,
       includeRestricted: options.includeRestricted === true,
       generatedAt: now,
+      ...(this.cipher !== undefined ? { cipher: this.cipher } : {}),
     });
     await this.refresh();
     return manifest;

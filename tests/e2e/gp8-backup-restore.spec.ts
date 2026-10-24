@@ -69,6 +69,9 @@ async function startHub(dataDir: string, extraArgs: readonly string[] = []): Pro
       '0',
       '--data-dir',
       dataDir,
+      // A loopback hub the suite drives over plain HTTP: no TLS to pin and nothing to advertise.
+      '--no-tls',
+      '--no-mdns',
       ...extraArgs,
     ],
     {

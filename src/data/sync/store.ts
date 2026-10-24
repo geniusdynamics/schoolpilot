@@ -5,6 +5,7 @@ import { generateUuidv7 } from '@/domain/ids';
 import { ENTITY_NAMES, type EntityName } from '@/domain/schema';
 import type { SqliteAdapter, SqliteRow, SqliteTransaction } from '@/data/adapters/sqlite';
 import { columnsFor, decodeRow } from '@/data/repository';
+import type { FieldCipher } from '@/data/security';
 
 import type { ConflictNote, Envelope, Snapshot } from './envelope';
 import { deviceOf, laterHlc } from './hlc';
@@ -52,6 +53,8 @@ export interface SyncStoreOptions {
   readonly role: SyncRole;
   readonly dialect: StorageDialect;
   readonly deviceId: string;
+  /** The cipher that opens the canonical tables' sealed columns; absent when they are not sealed. */
+  readonly cipher?: FieldCipher;
 }
 
 /** A conflict read back from the table. */
@@ -71,12 +74,14 @@ export class SyncStore {
   private readonly role: SyncRole;
   private readonly dialect: StorageDialect;
   private readonly deviceId: string;
+  private readonly cipher: FieldCipher | undefined;
 
   constructor(options: SyncStoreOptions) {
     this.adapter = options.adapter;
     this.role = options.role;
     this.dialect = options.dialect;
     this.deviceId = options.deviceId;
+    this.cipher = options.cipher;
   }
 
   /** Creates the metadata tables. Idempotent. */
@@ -434,7 +439,7 @@ export class SyncStore {
       );
       if (!raw) continue;
 
-      const decoded = decodeRow(columns, raw);
+      const decoded = decodeRow(columns, raw, this.cipher);
       if (scope && !rowInScope(scope, entity, decoded.row)) continue;
 
       const clock = await this.rowClock(this.adapter, entity, row.entity_id);

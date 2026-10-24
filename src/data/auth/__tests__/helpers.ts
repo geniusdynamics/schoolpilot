@@ -215,7 +215,7 @@ export async function createScenario(): Promise<Scenario> {
     'Amani',
     'Wekesa',
     'GA/2027/001',
-    { medical: { allergies: ['penicillin'] } }
+    { medical: { allergies: ['penicillin'] }, special_needs: ['low vision'] }
   );
   const greenLearner = await createLearner(repository, institution.id, 'Brian', 'Otieno', 'GA/2027/002');
   const otherLearner = await createLearner(

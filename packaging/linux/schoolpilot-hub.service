@@ -1,0 +1,28 @@
+# ABOUTME: The systemd unit a Linux install registers: the hub starts at boot, restarts when it
+# ABOUTME: fails, and reads its configuration from the hub.env the installer wrote.
+# ABOUTME: @ROOT@ is substituted by the installer; the unit itself carries no paths of its own.
+
+[Unit]
+Description=SchoolPilot hub (school management server)
+Documentation=https://github.com/geniusdynamics/schoolpilot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=@ROOT@/run-hub.sh
+WorkingDirectory=@ROOT@/app
+EnvironmentFile=@ROOT@/hub.env
+# A hub is a small server: it must come back after a crash, and it must not be killed for being idle.
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+# The database and backups are the school's records; the hub never needs more than this.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=@ROOT@
+
+[Install]
+WantedBy=multi-user.target

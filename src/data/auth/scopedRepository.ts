@@ -207,14 +207,14 @@ export class ScopedRepository extends Repository {
   /**
    * The field policy of a row.
    *
-   * The medical record of a learner is special/restricted data (spec 06 §8.1): it is only handed
-   * to the roles that hold `learner.medical.read`, and the row of every other role is stripped of
-   * it.
+   * The medical record and the disability support notes of a learner are both special/restricted
+   * data (spec 06 §8.1), so both are handed only to the roles that hold `learner.medical.read`;
+   * the row of every other role is stripped of them.
    */
   private project<E extends EntityName>(entity: E, row: RepositoryRow<E>): RepositoryRow<E> {
     if (entity !== 'learner') return row;
     if (hasPermission(this.context.roles, 'learner.medical.read')) return row;
-    return withoutMedical(row);
+    return withoutRestrictedLearnerFields(row);
   }
 
   private denied(entity: EntityName, action: string, detail?: string): ScopePermissionError {
@@ -328,10 +328,13 @@ function mergeScopeQuery(query: ListQuery, filter: ScopeFilter): ListQuery | nul
   return null;
 }
 
-/** The learner row without its medical record. */
-function withoutMedical<E extends EntityName>(row: RepositoryRow<E>): RepositoryRow<E> {
+/** The learner row without the fields only a role holding the medical permission may read. */
+function withoutRestrictedLearnerFields<E extends EntityName>(
+  row: RepositoryRow<E>
+): RepositoryRow<E> {
   const copy: Record<string, unknown> = { ...row };
   delete copy.medical;
+  delete copy.special_needs;
   return copy as unknown as RepositoryRow<E>;
 }
 

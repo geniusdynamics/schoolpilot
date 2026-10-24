@@ -18,6 +18,7 @@ import {
   type WriteOptions,
 } from '@/data/repository';
 import { referenceOrder } from '@/data/repository/referenceOrder';
+import type { FieldCipher } from '@/data/security';
 
 import { SyncApplier } from './apply';
 import type { ConflictNote, Envelope, Snapshot } from './envelope';
@@ -40,6 +41,14 @@ export interface ReplicaOptions {
   readonly clock?: HlcClock;
   /** The data this replica may hold and write; absent means the whole database. */
   readonly scope?: ReplicaScope;
+  /**
+   * The cipher that opens the repository's sealed columns.
+   *
+   * The replica reads and writes the canonical tables directly, so it needs the same cipher the
+   * repository holds: without it a sealed restricted value cannot be decoded. Absent on a device
+   * whose store is not encrypted.
+   */
+  readonly cipher?: FieldCipher;
 }
 
 /** One locally written change and the row it produced. */
@@ -104,7 +113,8 @@ export class DeviceNode {
     store: SyncStore,
     clock: HlcClock,
     deviceId: string,
-    scope: ReplicaScope | undefined
+    scope: ReplicaScope | undefined,
+    cipher: FieldCipher | undefined
   ) {
     this.repository = repository;
     this.adapter = adapter;
@@ -112,7 +122,7 @@ export class DeviceNode {
     this.clock = clock;
     this.deviceId = deviceId;
     this.scope = scope;
-    this.applier = new SyncApplier(store);
+    this.applier = new SyncApplier(store, cipher);
   }
 
   /** Opens a device: creates the metadata tables, keeps the repository as it is. */
@@ -122,6 +132,7 @@ export class DeviceNode {
       role: 'device',
       dialect: options.dialect,
       deviceId: options.deviceId,
+      ...(options.cipher === undefined ? {} : { cipher: options.cipher }),
     });
     await store.setup();
     const clock = options.clock ?? new HlcClock(options.deviceId);
@@ -131,7 +142,8 @@ export class DeviceNode {
       store,
       clock,
       options.deviceId,
-      options.scope
+      options.scope,
+      options.cipher
     );
   }
 
@@ -465,20 +477,23 @@ export class ServerNode {
   private readonly repository: Repository;
   private readonly adapter: SqliteAdapter;
   private readonly applier: SyncApplier;
+  private readonly cipher: FieldCipher | undefined;
 
   private constructor(
     repository: Repository,
     adapter: SqliteAdapter,
     store: SyncStore,
     clock: HlcClock,
-    deviceId: string
+    deviceId: string,
+    cipher: FieldCipher | undefined
   ) {
     this.repository = repository;
     this.adapter = adapter;
     this.store = store;
     this.clock = clock;
     this.deviceId = deviceId;
-    this.applier = new SyncApplier(store);
+    this.cipher = cipher;
+    this.applier = new SyncApplier(store, cipher);
   }
 
   /** Opens a server over an already prepared repository. */
@@ -488,10 +503,18 @@ export class ServerNode {
       role: 'server',
       dialect: options.dialect,
       deviceId: options.deviceId,
+      ...(options.cipher === undefined ? {} : { cipher: options.cipher }),
     });
     await store.setup();
     const clock = options.clock ?? new HlcClock(options.deviceId);
-    return new ServerNode(options.repository, options.adapter, store, clock, options.deviceId);
+    return new ServerNode(
+      options.repository,
+      options.adapter,
+      store,
+      clock,
+      options.deviceId,
+      options.cipher
+    );
   }
 
   /** The repository the server serves. */
@@ -557,7 +580,7 @@ export class ServerNode {
         const raws = await tx.all<SqliteRow>(`SELECT * FROM "${columns.table}"`);
 
         for (const raw of raws) {
-          const decoded = decodeRow(columns, raw);
+          const decoded = decodeRow(columns, raw, this.cipher);
           const id = String(decoded.row.id);
           if (await this.store.hasChange(tx, entity, id)) continue;
 

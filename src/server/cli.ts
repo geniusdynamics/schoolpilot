@@ -1,196 +1,208 @@
 #!/usr/bin/env node
-/**
- * LAN Server CLI
- *
- * Command-line interface for starting the LAN server.
- *
- * Usage:
- *   npx tsx src/server/cli.ts [options]
- *
- * Options:
- *   --port, -p            Port to run on (default: 3000)
- *   --data-dir, -d        Data directory (default: ./data)
- *   --host, -h            Host to bind to (default: 0.0.0.0)
- *   --database-file       A different SQLite file (default: <data-dir>/schoolpilot.db)
- *   --backup-dir          Where archives go (default: <data-dir>/backups)
- *   --backup-key-file     A file holding the backup passphrase
- *   --backup-passphrase   The backup passphrase (prefer the environment variable)
- *   --daily-at            Daily backup time in UTC, HH:MM (default: 02:00)
- *   --no-backups          Turn the backup service and its endpoints off
- *   --restore-from        Restore this archive before the hub opens its database
- *   --restore-to          Where a restore writes schoolpilot.db (default: the data directory)
- *
- * The passphrase is also read from SCHOOLPILOT_BACKUP_PASSPHRASE, which keeps it out of the
- * process list. A key file must live outside the backup directory.
- */
+// ABOUTME: The hub's command line: serve the hub over TLS with an mDNS advertisement, issue or show
+// ABOUTME: the LAN certificate, and discover hubs on the network without being told an address.
 
+import { readFileSync } from 'node:fs';
+import os from 'node:os';
+
+import { CliUsageError, parseArgs, usage, type CliOptions } from './cliArgs';
 import { LANServer, type LANServerBackupConfig } from './LANServer';
+import { discoverHubs } from './discovery';
+import { lanIpv4Addresses, mdnsHostName, mdnsLabel } from './network';
+import { ensureHubCertificate, type HubCertificate } from './tls';
 
-interface CliOptions {
-  port: number;
-  dataDir: string;
-  host: string;
-  databaseFile?: string;
-  backupDir?: string;
-  keyFile?: string;
-  passphrase?: string;
-  dailyAt?: string;
-  backups: boolean;
-  restoreFrom?: string;
-  restoreTo?: string;
-}
-
-// Parse command line arguments
-function parseArgs(): CliOptions {
-  const args = process.argv.slice(2);
-
-  const options: CliOptions = {
-    port: 3000,
-    dataDir: './data',
-    host: '0.0.0.0',
-    backups: true,
-  };
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    const nextArg = args[i + 1];
-
-    switch (arg) {
-      case '--port':
-      case '-p':
-        if (nextArg) {
-          options.port = parseInt(nextArg, 10);
-          i++;
-        }
-        break;
-      case '--data-dir':
-      case '-d':
-        if (nextArg) {
-          options.dataDir = nextArg;
-          i++;
-        }
-        break;
-      case '--host':
-      case '-h':
-        if (nextArg) {
-          options.host = nextArg;
-          i++;
-        }
-        break;
-      case '--database-file':
-        if (nextArg) {
-          options.databaseFile = nextArg;
-          i++;
-        }
-        break;
-      case '--backup-dir':
-        if (nextArg) {
-          options.backupDir = nextArg;
-          i++;
-        }
-        break;
-      case '--backup-key-file':
-        if (nextArg) {
-          options.keyFile = nextArg;
-          i++;
-        }
-        break;
-      case '--backup-passphrase':
-        if (nextArg) {
-          options.passphrase = nextArg;
-          i++;
-        }
-        break;
-      case '--daily-at':
-        if (nextArg) {
-          options.dailyAt = nextArg;
-          i++;
-        }
-        break;
-      case '--no-backups':
-        options.backups = false;
-        break;
-      case '--restore-from':
-        if (nextArg) {
-          options.restoreFrom = nextArg;
-          i++;
-        }
-        break;
-      case '--restore-to':
-        if (nextArg) {
-          options.restoreTo = nextArg;
-          i++;
-        }
-        break;
-    }
+async function main(): Promise<void> {
+  let options: CliOptions;
+  try {
+    options = parseArgs(process.argv.slice(2));
+  } catch (error) {
+    if (!(error instanceof CliUsageError)) throw error;
+    console.error(`hub: ${error.message}`);
+    console.error();
+    console.error(usage());
+    process.exitCode = 2;
+    return;
   }
 
-  return options;
+  switch (options.command) {
+    case 'help':
+      console.log(usage());
+      return;
+    case 'discover':
+      await discover(options);
+      return;
+    case 'print-fingerprint':
+      printCertificate(certificateFor(options));
+      return;
+    case 'serve':
+      await serve(options);
+      return;
+  }
 }
 
 /** The backup section of the hub config the CLI flags describe. */
 function backupConfigOf(options: CliOptions): LANServerBackupConfig | false {
   if (!options.backups) return false;
   return {
-    ...(options.backupDir !== undefined ? { directory: options.backupDir } : {}),
-    ...(options.keyFile !== undefined ? { keyFile: options.keyFile } : {}),
-    ...(options.passphrase !== undefined ? { passphrase: options.passphrase } : {}),
-    ...(options.dailyAt !== undefined ? { dailyAt: options.dailyAt } : {}),
+    ...(options.backupDir !== null ? { directory: options.backupDir } : {}),
+    ...(options.backupKeyFile !== null ? { keyFile: options.backupKeyFile } : {}),
+    ...(options.backupPassphrase !== null ? { passphrase: options.backupPassphrase } : {}),
+    ...(options.dailyAt !== null ? { dailyAt: options.dailyAt } : {}),
   };
 }
 
-async function main() {
-  const options = parseArgs();
+/** Runs the hub until it is stopped. */
+async function serve(options: CliOptions): Promise<void> {
+  const certificate = options.tls ? certificateFor(options) : null;
 
-  console.log('╔════════════════════════════════════════╗');
-  console.log('║     SchoolPilot LAN Server             ║');
-  console.log('╚════════════════════════════════════════╝');
-  console.log();
+  if (!options.json) {
+    console.log('SchoolPilot hub');
+    console.log();
+  }
 
   const server = new LANServer({
     port: options.port,
     dataDir: options.dataDir,
     host: options.host,
+    ...(options.databaseFile ? { databaseFile: options.databaseFile } : {}),
     backup: backupConfigOf(options),
-    ...(options.databaseFile !== undefined ? { databaseFile: options.databaseFile } : {}),
-    ...(options.restoreFrom !== undefined
+    ...(certificate ? { tls: { cert: certificate.certPem, key: certificate.keyPem } } : {}),
+    ...(options.restrictedKeyFile ? { restrictedKeyFile: options.restrictedKeyFile } : {}),
+    ...(options.restoreFrom
       ? {
           restore: {
             from: options.restoreFrom,
-            ...(options.restoreTo !== undefined ? { to: options.restoreTo } : {}),
+            ...(options.restoreTo ? { to: options.restoreTo } : {}),
           },
         }
       : {}),
+    discovery: {
+      enabled: options.mdns,
+      instanceName: mdnsLabel(options.name),
+      hostName: mdnsHostName(options.name),
+      port: options.mdnsPort,
+    },
   });
 
-  // Handle graceful shutdown
-  process.on('SIGINT', async () => {
-    console.log('\nReceived SIGINT, shutting down...');
+  const stop = async (signal: string): Promise<void> => {
+    console.log(`\nReceived ${signal}, shutting down...`);
     await server.stop();
     process.exit(0);
+  };
+  process.on('SIGINT', () => void stop('SIGINT'));
+  process.on('SIGTERM', () => void stop('SIGTERM'));
+
+  await server.start();
+
+  const status = server.getStatus();
+  const scheme = status.protocol;
+  const addresses = status.discovery?.addresses ?? lanIpv4Addresses();
+
+  if (options.json) {
+    console.log(
+      JSON.stringify({
+        url: server.url,
+        port: status.port,
+        protocol: status.protocol,
+        tlsFingerprint: status.tlsFingerprint,
+        certificateFile: certificate?.certFile ?? null,
+        instanceName: status.discovery?.instanceName ?? null,
+        hostName: status.discovery?.hostName ?? null,
+        discoveryRunning: status.discovery?.running ?? false,
+        addresses,
+      })
+    );
+    return;
+  }
+
+  console.log();
+  console.log(`  Open:        ${scheme}://${status.discovery?.hostName ?? 'localhost'}:${status.port}`);
+  for (const address of addresses) {
+    console.log(`               ${scheme}://${address}:${status.port}`);
+  }
+  console.log(`  Data:        ${status.databaseFile}`);
+  console.log(`  Key file:    ${server.restrictedKeyFile}`);
+  console.log(`  Backups:     ${options.backups ? 'enabled' : 'disabled'}`);
+  console.log(`  Discovery:   ${status.discovery?.running ? status.discovery.hostName : 'off'}`);
+  if (status.tlsFingerprint) {
+    console.log(`  TLS:         ${status.tlsFingerprint}`);
+    if (certificate?.certFile) console.log(`  Certificate: ${certificate.certFile}`);
+  }
+  console.log();
+  console.log('Press Ctrl+C to stop');
+}
+
+/** Prints the hubs mDNS found. */
+async function discover(options: CliOptions): Promise<void> {
+  const hubs = await discoverHubs({
+    timeoutMs: options.timeoutMs,
+    port: options.mdnsPort,
+    ...(options.discoverAddress ? { address: options.discoverAddress } : {}),
   });
 
-  process.on('SIGTERM', async () => {
-    console.log('\nReceived SIGTERM, shutting down...');
-    await server.stop();
-    process.exit(0);
-  });
+  if (options.json) {
+    console.log(JSON.stringify({ hubs }, null, 2));
+    return;
+  }
 
-  try {
-    await server.start();
-    console.log();
-    console.log(`Server Configuration:`);
-    console.log(`  Port: ${server.address?.port ?? options.port}`);
-    console.log(`  Data Directory: ${options.dataDir}`);
-    console.log(`  Host: ${options.host}`);
-    console.log(`  Database: ${server.databaseFile}`);
-    console.log(`  Backups: ${options.backups ? 'enabled' : 'disabled'}`);
-    console.log();
-    console.log('Press Ctrl+C to stop');
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+  if (hubs.length === 0) {
+    console.log(`No hubs answered in ${options.timeoutMs} ms.`);
+    console.log('A hub on this machine prints its address when it starts; on another machine, check');
+    console.log('that port 5353 UDP is open between them.');
+    return;
+  }
+
+  for (const hub of hubs) {
+    console.log(`${hub.instanceName}  ${hub.url || `port ${hub.port}`}`);
+    console.log(`  host:      ${hub.hostName}`);
+    console.log(`  addresses: ${hub.addresses.join(', ') || 'none advertised'}`);
+    console.log(`  tls:       ${hub.txt.tls === '1' ? 'on' : 'off'}`);
+    if (hub.txt.fp) console.log(`  pin:       ${hub.txt.fp}`);
   }
 }
 
-main();
+/** The certificate the hub serves: the school's own, or one issued and stored here. */
+function certificateFor(options: CliOptions): HubCertificate {
+  if (options.tlsCert && options.tlsKey) {
+    return ensureHubCertificate({
+      dataDir: options.dataDir,
+      provided: {
+        certPem: readFileSync(options.tlsCert, 'utf8'),
+        keyPem: readFileSync(options.tlsKey, 'utf8'),
+      },
+    });
+  }
+
+  const label = mdnsLabel(options.name);
+  const machine = mdnsLabel(os.hostname());
+  return ensureHubCertificate({
+    dataDir: options.dataDir,
+    commonName: `${label}.local`,
+    // Both names a client may use: the one the hub advertises, and this machine's own.
+    dnsNames: [`${label}.local`, `${machine}.local`, 'schoolpilot.local', 'localhost'],
+    ipAddresses: ['127.0.0.1', ...lanIpv4Addresses()],
+  });
+}
+
+/** Prints what a client needs to trust this hub. */
+function printCertificate(certificate: HubCertificate): void {
+  console.log(
+    JSON.stringify(
+      {
+        fingerprint256: certificate.fingerprint256,
+        sha256: certificate.sha256,
+        certFile: certificate.certFile,
+        keyFile: certificate.keyFile,
+        fingerprintFile: certificate.fingerprintFile,
+        notBefore: certificate.notBefore,
+        notAfter: certificate.notAfter,
+        subjectAlternativeNames: certificate.subjectAlternativeNames,
+        source: certificate.source,
+      },
+      null,
+      2
+    )
+  );
+}
+
+void main();
