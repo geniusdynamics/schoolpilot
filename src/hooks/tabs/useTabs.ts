@@ -199,6 +199,12 @@ export function useTabs(): UseTabsReturn {
     setState(newState);
   }, [location.pathname, location.search]);
 
+  // The engine writes the tab list with `history.replaceState`, which React Router does not observe:
+  // a caller that writes the list and does not also navigate left this hook holding the list it
+  // started with, so the tabs stayed on screen and the action looked like it did nothing. Following
+  // the engine's own notifications keeps the two in step whichever way the URL was written.
+  useEffect(() => engine.subscribe((next) => setState(next)), []);
+
   // Computed values
   const activeTab = useMemo(() => {
     return state.tabs.find(t => t.id === state.activeTabId) || null;
@@ -369,7 +375,14 @@ export function useTabs(): UseTabsReturn {
     const newTabs = state.tabs.filter(t => t.id === keepTabId || t.pinned);
     const newState = { tabs: newTabs, activeTabId: keepTabId };
     engine.updateURL(newState);
-  }, [state]);
+
+    // The kept tab becomes the active one, so the page has to follow it: closing the others while
+    // looking at a tab that is now gone would leave the tab bar and the page disagreeing.
+    if (state.activeTabId !== keepTabId) {
+      const kept = newTabs.find(t => t.id === keepTabId);
+      if (kept) navigate(kept.url);
+    }
+  }, [state, navigate]);
 
   const closeTabsToRight = useCallback((tabId: string) => {
     const tabIndex = state.tabs.findIndex(t => t.id === tabId);

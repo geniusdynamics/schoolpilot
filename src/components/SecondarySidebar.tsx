@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
@@ -36,11 +36,12 @@ const IconWrapper: React.FC<{
   isMinimized?: boolean;
   isMobile?: boolean;
   isSecondaryAsPrimary?: boolean;
-}> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false, isSecondaryAsPrimary = false }) => {
-  // Enhanced icon sizing — larger when secondary acts as primary in fullwidth mode
-  const isPrimaryMode = isMinimized && isSecondaryAsPrimary;
-  const iconSize = isPrimaryMode ? "w-6 h-6" : isMobile ? "w-5 h-5" : "w-4 h-4";
-  const wrapperSize = isPrimaryMode ? "w-9 h-9" : isMinimized ? "w-5 h-5" : isMobile ? "w-6 h-6" : "w-5 h-5";
+}> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false }) => {
+  // One size per state, whatever the viewport. Standing in for the primary sidebar used to enlarge both
+  // the wrapper and the glyph - and that is what happens on a narrow screen - so the rail and its icons
+  // grew on the screen with the least room for them.
+  const iconSize = isMinimized ? "w-4 h-4" : isMobile ? "w-5 h-5" : "w-4 h-4";
+  const wrapperSize = isMinimized ? "w-5 h-5" : isMobile ? "w-6 h-6" : "w-5 h-5";
 
   return (
     <div className={`
@@ -111,40 +112,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     setOpenGroups(g => ({ ...g, [key]: !g[key] }));
   }, []); // No dependencies needed for state setter function
 
-  // Active-state tracking: which nav item matches the currently-open URL?
-  // Uses the longest matching path so the most specific item is highlighted
-  // (e.g. on /portal/attendance, "Portal Attendance" wins over "Portal Dashboard").
+  // Active-state tracking: which nav item matches the currently-open URL? The winner is decided
+  // below, once the items themselves are known: a module's dashboard is a top-level item while the
+  // page you are on is often a child of a group, so a decision taken per sibling list highlighted
+  // both of them.
   const location = useLocation();
   const currentPath = location.pathname;
-
-  /**
-   * Determine if a nav item should be highlighted as the currently-active item.
-   * - Exact match: e.g. /portal === /portal → active
-   * - Sub-path match: e.g. /portal/attendance is a sub-path of /portal → active
-   *   ONLY when no other item is a more specific match. We approximate this by
-   *   always highlighting exact matches first; sub-path matches are highlighted
-   *   only when no exact match exists in the visible list.
-   */
-  const isItemActive = useCallback((item: any, siblings?: any[]): boolean => {
-    if (!item?.path || !currentPath) return false;
-    if (item.path === currentPath) return true;
-    // Sub-path match: currentPath is /a/b/c and item.path is /a/b
-    if (currentPath.startsWith(item.path + '/')) {
-      // Only count as active if no sibling has a more specific match
-      if (!siblings) return true;
-      const hasMoreSpecificMatch = siblings.some((s: any) => {
-        if (!s?.path || s === item) return false;
-        if (s.path === currentPath) return true;
-        if (currentPath.startsWith(s.path + '/')) {
-          // s.path is longer / more specific than item.path
-          return s.path.length > item.path.length;
-        }
-        return false;
-      });
-      return !hasMoreSpecificMatch;
-    }
-    return false;
-  }, [currentPath]);
 
   // Pre-translate error messages to avoid hook violations
   const errorMessages = useMemo(() => ({
@@ -341,21 +314,29 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   }, [moduleKey]);
 
   // Enhanced responsive behavior with improved mobile breakpoints
+  //
+  // The viewport chooses the default; a click on Minimize has to survive it. This handler used to be
+  // rebuilt whenever the minimized flag changed - it depends on setIsMinimized, which is itself built
+  // from that flag - so the effect below re-ran on the change and the width rule undid the click,
+  // leaving the sidebar minimized for a frame and then expanded again. The band is remembered so a
+  // rule only fires when the viewport really crosses one.
+  const resizeBand = useRef<'narrow' | 'medium' | 'wide' | null>(null);
   const handleResize = useCallback(() => {
     const width = window.innerWidth;
       const height = window.innerHeight;
 
       setIsMobile(width < 1024);
 
-      if (width >= 768 && width < 1200) {
-        setIsMinimized(true);
-      } else if (width >= 1200) {
-        setIsMinimized(false);
-      }
+      const band: 'narrow' | 'medium' | 'wide' =
+        width < 640 || (width < 900 && height < 600)
+          ? 'narrow'
+          : width >= 768 && width < 1200
+            ? 'medium'
+            : 'wide';
 
-      if (width < 640 || (width < 900 && height < 600)) {
-        setIsMinimized(true);
-      }
+      if (band === resizeBand.current) return;
+      resizeBand.current = band;
+      setIsMinimized(band !== 'wide');
   }, [setIsMinimized]);
 
   useEffect(() => {
@@ -387,6 +368,39 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       }
     });
   }, [search, t]);
+
+  /**
+   * The one nav item the current URL belongs to: the item with the longest path that matches, across
+   * the whole tree.
+   *
+   * Deciding this within a sibling list is not enough. A module's dashboard is a top-level item and
+   * the page you are on is often a child of a group, so the two never met as siblings and both were
+   * highlighted - the dashboard by its prefix, the page by its exact match. The longest match is
+   * computed once over every item the sidebar can show, and exactly that item is the active one.
+   */
+  const activeItem = useMemo(() => {
+    if (!currentPath) return null;
+
+    const candidates: any[] = [];
+    for (const item of subMenus) {
+      candidates.push(item);
+      for (const child of item?.children ?? []) candidates.push(child);
+    }
+
+    let best: any = null;
+    for (const item of candidates) {
+      if (!item?.path) continue;
+      const matches = item.path === currentPath || currentPath.startsWith(item.path + '/');
+      if (!matches) continue;
+      if (!best || item.path.length > best.path.length) best = item;
+    }
+    return best;
+  }, [subMenus, currentPath]);
+
+  const isItemActive = useCallback(
+    (item: any): boolean => item != null && item === activeItem,
+    [activeItem]
+  );
 
   // Enhanced keyboard navigation for accessibility
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -459,7 +473,10 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
   // Enhanced sidebar width and positioning for mobile optimization
   // When acting as primary sidebar (fullwidth mode), minimized width matches TopOverflowMenu (w-16 sm:w-20)
-  const minimizedWidth = isSecondaryAsPrimary ? 'w-16 sm:w-20' : 'w-14';
+  // One minimized width everywhere. It used to widen when the secondary sidebar stood in for the
+  // primary one (which is what happens on a narrow screen), so the rail a phone got was 64px or 80px
+  // while a desktop got 56px - the rail grew on the screen with the least room for it.
+  const minimizedWidth = 'w-14';
   const sidebarWidth = isMinimized ? minimizedWidth : 'w-52';
   const sidebarLeft = isSecondaryAsPrimary ? 'left-0' : 'left-16 sm:left-20';
   const backdropLeft = isSecondaryAsPrimary ? 'left-0' : 'left-16 sm:left-20';
@@ -633,7 +650,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                           moduleKey={moduleKey} 
                           isMinimized={isMinimized}
                           isMobile={isMobile}
-                          isSecondaryAsPrimary={isSecondaryAsPrimary}
                         />
                         {!isMinimized && <span className="truncate text-xs">{t(item.name)}</span>}
                       </span>
@@ -669,7 +685,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                           onClick={(e) => handleNavigationClick(child, e)}
                                           onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
                                           className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
-                                            isItemActive(child, item.children)
+                                            isItemActive(child)
                                               ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                                               : 'border-transparent bg-white/5 hover:bg-white/20'
                                           }`}
@@ -679,7 +695,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                           icon={child.icon} 
                                           moduleKey={moduleKey}
                                           isMobile={isMobile}
-                                          isSecondaryAsPrimary={isSecondaryAsPrimary}
                                         />
                                           <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
                                         </button>
@@ -700,7 +715,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                 onClick={(e) => handleNavigationClick(child, e)}
                                 onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
                                 className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
-                                  isItemActive(child, item.children)
+                                  isItemActive(child)
                                     ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                                     : 'border-transparent bg-white/5 hover:bg-white/20'
                                 }`}
@@ -710,7 +725,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                   icon={child.icon} 
                                   moduleKey={moduleKey}
                                   isMobile={isMobile}
-                                  isSecondaryAsPrimary={isSecondaryAsPrimary}
                                 />
                                 <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
                               </button>
@@ -726,7 +740,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       onClick={(e) => handleNavigationClick(item, e)}
                       onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
                       className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
-                        isItemActive(item, filterItems(subMenus))
+                        isItemActive(item)
                           ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                           : `border-transparent bg-white/5 hover:bg-white/20 ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''}`
                       }`}
@@ -738,7 +752,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                         moduleKey={moduleKey} 
                         isMinimized={isMinimized}
                         isMobile={isMobile}
-                        isSecondaryAsPrimary={isSecondaryAsPrimary}
                       />
                       {!isMinimized && <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(item.name)}</span>}
                     </button>

@@ -363,7 +363,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
               const secondaryWidth = !isSubmenuOpen
                 ? '0rem'
                 : isSecondaryMinimized
-                  ? isFullWidth ? SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_PRIMARY : SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_DESKTOP
+                  ? SECONDARY_SIDEBAR_WIDTHS.MINIMIZED
                   : SECONDARY_SIDEBAR_WIDTHS.EXPANDED;
               return primaryWidth === '0rem' && secondaryWidth === '0rem' ? '0rem' : `calc(${primaryWidth} + ${secondaryWidth})`;
             })()

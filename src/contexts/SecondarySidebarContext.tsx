@@ -36,9 +36,9 @@ import React, {
  */
 export const SECONDARY_SIDEBAR_WIDTHS = {
   EXPANDED: '13rem', // 208px — must match `w-52` on SecondarySidebar
-  MINIMIZED_DESKTOP: '3.5rem', // 56px — must match `w-14`
-  MINIMIZED_PRIMARY: '5rem', // 80px (sm+) — must match `w-20` when asPrimary
-  MINIMIZED_PRIMARY_MOBILE: '4rem', // 64px — must match `w-16` (<sm)
+  // One minimized width, whatever the viewport and whether or not the sidebar stands in for the
+  // primary one: a rail that widened on a narrow screen took room from the screen that had least.
+  MINIMIZED: '3.5rem', // 56px — must match `w-14` on SecondarySidebar
 } as const;
 
 export interface SecondarySidebarContextValue {
@@ -53,7 +53,7 @@ export interface SecondarySidebarContextValue {
    * CSS length. Useful for inline styles that need to mirror the sidebar
    * exactly (e.g. the main content's `marginLeft`).
    */
-  getSecondarySidebarWidth: (isSecondaryAsPrimary: boolean) => string;
+  getSecondarySidebarWidth: () => string;
 }
 
 const SecondarySidebarContext = createContext<SecondarySidebarContextValue | undefined>(
@@ -78,20 +78,8 @@ export const SecondarySidebarProvider: React.FC<SecondarySidebarProviderProps> =
   }, []);
 
   const getSecondarySidebarWidth = useCallback(
-    (isSecondaryAsPrimary: boolean): string => {
-      if (!isSecondaryMinimized) {
-        return SECONDARY_SIDEBAR_WIDTHS.EXPANDED;
-      }
-      // When minimized, the rendered width depends on whether the secondary
-      // sidebar is acting as the primary sidebar (fullwidth mode).
-      if (isSecondaryAsPrimary) {
-        // Tailwind's sm breakpoint is 640px; we don't have the viewport width
-        // here, so we return the larger width. The Layout can override the
-        // mobile case via media queries if needed.
-        return SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_PRIMARY;
-      }
-      return SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_DESKTOP;
-    },
+    (): string =>
+      isSecondaryMinimized ? SECONDARY_SIDEBAR_WIDTHS.MINIMIZED : SECONDARY_SIDEBAR_WIDTHS.EXPANDED,
     [isSecondaryMinimized],
   );
 

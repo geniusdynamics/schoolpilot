@@ -13,6 +13,7 @@ import {
 import { BillingError } from '@/domain/finance/billing';
 import { ServiceError } from '@/domain/services';
 
+import { AuthError } from '../auth/errors';
 import { BackupError } from '../backup/errors';
 import { HttpError } from './http';
 
@@ -24,6 +25,8 @@ export interface ErrorBody {
     readonly entity?: string;
     readonly issues?: readonly unknown[];
     readonly reason?: string;
+    /** Present on a locked account: the whole seconds until the lock lifts. */
+    readonly retryAfterSeconds?: number;
   };
 }
 
@@ -35,6 +38,21 @@ export interface ErrorResponse {
 export function errorResponse(error: unknown): ErrorResponse {
   if (error instanceof HttpError) {
     return refuse(error.status, error.code, error.message);
+  }
+
+  if (error instanceof AuthError) {
+    return {
+      status: error.status,
+      body: {
+        error: {
+          code: error.code,
+          message: error.message,
+          ...(error.retryAfterSeconds !== undefined
+            ? { retryAfterSeconds: error.retryAfterSeconds }
+            : {}),
+        },
+      },
+    };
   }
 
   if (error instanceof RepositoryValidationError) {

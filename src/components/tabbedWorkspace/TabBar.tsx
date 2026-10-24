@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import {
   ChevronLeftIcon,
@@ -61,11 +61,8 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
   onCloseAllTabs,
   onCloseAllExceptPinned,
   onNewTab,
-  maxTabs,
-  enableTabGroups,
-  theme,
-  userRole,
-  userPermissions,
+  // Accepted for callers that pass them (the tab limit, groups, theming and role scoping are enforced
+  // elsewhere); not read here.
   // Hierarchical props
   hierarchicalTabs,
   enableHierarchicalMode = false,
@@ -79,15 +76,19 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
     activateTab,
     closeTab,
     reorderTabs,
-    pinnedTabs,
     pinTab,
     unpinTab,
     duplicateTab,
     validateTabAccess
   } = useTabStore();
   
-  // Use hierarchical tabs if in hierarchical mode, otherwise use legacy tabs
-  const tabs = enableHierarchicalMode ? (hierarchicalTabs || []) : (propTabs || storeTabs || []);
+  // Use hierarchical tabs if in hierarchical mode, otherwise use legacy tabs.
+  // Memoized so the callbacks that read it (the pin/unpin decision, for one) do not change identity
+  // on every render.
+  const tabs = useMemo(
+    () => (enableHierarchicalMode ? hierarchicalTabs || [] : propTabs || storeTabs || []),
+    [enableHierarchicalMode, hierarchicalTabs, propTabs, storeTabs]
+  );
   const activeTabId = propActiveTabId || storeActiveTabId;
   
   // Convert legacy tabs to hierarchical format if needed
@@ -196,7 +197,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
 
   // Handle tab pin/unpin
   const handleTabPin = useCallback((tabId: string) => {
-    const isPinned = pinnedTabs.includes(tabId);
+    const isPinned = Boolean(tabs.find((tab) => tab.id === tabId)?.pinned);
     if (isPinned) {
       if (onTabUnpin) {
         onTabUnpin(tabId);
@@ -210,7 +211,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
         pinTab(tabId);
       }
     }
-  }, [pinnedTabs, onTabPin, onTabUnpin, pinTab, unpinTab]);
+  }, [tabs, onTabPin, onTabUnpin, pinTab, unpinTab]);
 
   // Handle tab duplicate
   const handleTabDuplicate = useCallback((tabId: string) => {
@@ -342,7 +343,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
                         <TabComponent
                           tab={tab}
                           isActive={tab.id === activeTabId}
-                          isPinned={pinnedTabs.includes(tab.id)}
+                          isPinned={Boolean(tab.pinned)}
                           isDragging={snapshot.isDragging}
                           onClick={() => handleTabClick(tab.id)}
                           onClose={showCloseButtons && tab.canClose !== false ? (e) => handleTabClose(tab.id, e) : undefined}
@@ -446,7 +447,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
                       ) : null;
                     })()}
                     <span className="truncate flex-1">{tab.title}</span>
-                    {pinnedTabs.includes(tab.id) && (
+                    {tab.pinned && (
                       <span className="text-green-500 text-xs">📌</span>
                     )}
                     {tab.isDirty && (

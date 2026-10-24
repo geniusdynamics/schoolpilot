@@ -47,6 +47,62 @@ describe('tab label rendering', () => {
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
+  it('labels the context menu pin item by what it does, never by the icon name', () => {
+    const onPin = vi.fn();
+    const tab = {
+      id: 'tab-dashboard',
+      url: '/dashboard',
+      title: 'Dashboard',
+      module: 'dashboard',
+      isDirty: false,
+      pinned: false,
+      icon: 'HomeIcon'
+    };
+
+    const { container, rerender } = render(
+      <Tab
+        tab={tab}
+        isActive
+        isPinned={false}
+        onClick={vi.fn()}
+        onClose={vi.fn()}
+        onPin={onPin}
+        onDuplicate={vi.fn()}
+        tabStyle="modern"
+      />
+    );
+
+    fireEvent.contextMenu(screen.getByText('Dashboard'));
+
+    // The item said 'MapPinIcon Tab' — the icon's name, not the action.
+    expect(screen.queryByText('MapPinIcon Tab')).not.toBeInTheDocument();
+    expect(screen.getByText('Pin Tab')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Pin Tab'));
+
+    expect(onPin).toHaveBeenCalled();
+    // The menu closes, as it does for every other item.
+    expect(screen.queryByText('Pin Tab')).not.toBeInTheDocument();
+
+    // A pinned tab offers the other half of the pair.
+    rerender(
+      <Tab
+        tab={{ ...tab, pinned: true }}
+        isActive
+        isPinned
+        onClick={vi.fn()}
+        onClose={vi.fn()}
+        onPin={vi.fn()}
+        onDuplicate={vi.fn()}
+        tabStyle="modern"
+      />
+    );
+    // A pinned tab shows no title, as a browser's does, so the menu is opened on the tab's own
+    // element rather than on its text.
+    fireEvent.contextMenu(container.firstElementChild as Element);
+    expect(screen.getByText('Unpin Tab')).toBeInTheDocument();
+  });
+
   it('renders overflow tabs with page titles instead of icon names', () => {
     render(
       <TabBar

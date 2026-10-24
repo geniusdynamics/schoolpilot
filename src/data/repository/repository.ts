@@ -650,6 +650,20 @@ export class Repository {
     };
   }
 
+  /**
+   * Announces a change the repository did not write itself.
+   *
+   * The sync layer writes a pulled row behind the repository's write path, so nothing would
+   * otherwise reach the bus and a live query would keep showing the state before the pull.
+   * This emits the event and schedules a delivery exactly as a local write does. The commit
+   * sequence is the repository's current one: allocating a new number for a pulled row is
+   * P4-A03's server-allocated sequence, not this method's job.
+   */
+  announceChange(event: ChangeEvent): void {
+    this.emitChangeEvent(event);
+    this.scheduleDelivery(event.entity);
+  }
+
   /** The audit trail of one row, newest first. */
   async auditTrail(entity: EntityName, entityId: string): Promise<readonly AuditEvent[]> {
     this.checkPermission({ action: 'audit', entity, id: entityId });

@@ -167,9 +167,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuItems = [
     {
       id: 'pin',
-      label: tab.pinned ? 'Unpin Tab' : 'MapPinIcon Tab',
+      label: tab.pinned ? 'Unpin Tab' : 'Pin Tab',
       icon: MapPinIcon,
-      onClick: onPin,
+      // The menu closes, as it does for every other item: leaving it open over the tab it has just
+      // changed reads as the action having done nothing.
+      onClick: () => {
+        onPin();
+        onClose();
+      },
       shortcut: 'Ctrl+P'
     },
     {
