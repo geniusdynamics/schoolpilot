@@ -16,7 +16,7 @@ local SQLite-WASM store, so device-side encryption is a separate concern (see th
 | 3 | A response is sniffed and executed as another type | `X-Content-Type-Options: nosniff` | `server/http/securityHeaders.ts` | `server/__tests__/restrictedAccessLog.test.ts` | closed |
 | 4 | A URL leaks where the user came from (a learner id in a referrer) | `Referrer-Policy: no-referrer` | `vite.config.ts`, `server/http/securityHeaders.ts` | `tests/e2e/csp.spec.ts`, `server/__tests__/restrictedAccessLog.test.ts` | closed |
 | 5 | Restricted API responses sit in a browser or proxy cache | `Cache-Control: no-store` on every hub response | `server/http/securityHeaders.ts` | `server/__tests__/restrictedAccessLog.test.ts` | closed |
-| 6 | Credential guessing against the sign-in surface | Fixed-window limit of 10 requests per 5 minutes per client address over the whole `/api/auth` prefix, whatever the method, answered `429` with `Retry-After` | `server/http/rateLimit.ts`, `server/http/router.ts` | `server/__tests__/rateLimit.test.ts` | closed (the bucket is wired and tested; the routes themselves arrive with P4-C01) |
+| 6 | Credential guessing against the sign-in surface | Fixed-window limit of 10 requests per 5 minutes per client address over the whole `/api/auth` prefix, whatever the method, answered `429` with `Retry-After` | `server/http/rateLimit.ts`, `server/http/router.ts` | `server/__tests__/rateLimit.test.ts` | closed |
 | 7 | A client floods the write surface | Fixed-window limit of 120 writes per minute per client address; reads are not counted | `server/http/rateLimit.ts` | `server/__tests__/rateLimit.test.ts` | closed |
 | 8 | A secret is committed | Secret scan of tracked files, in CI and in the task gate | `scripts/prd/secret-scan.mjs`, `.github/workflows/ci.yml`, `scripts/prd/gate.mjs` (G8) | the gate's `G8` row; the CI step `Secret scan (tracked files)` | closed |
 | 9 | A dependency with a known vulnerability is pulled in | `pnpm audit --json` reduced to stable advisory keys, ratcheted against a checked-in baseline of today's high/critical advisories; a new one fails | `scripts/security/dependency-scan.ts`, `scripts/security/dependency-baseline.json`, `.github/workflows/ci.yml`, `scripts/prd/gate.mjs` (G8) | `scripts/security/__tests__/dependencyScan.test.ts`; the CI step fails hard, the gate tolerates an unreachable feed | closed — with 98 high/critical advisories recorded as existing debt (see gaps) |
@@ -44,9 +44,12 @@ local SQLite-WASM store, so device-side encryption is a separate concern (see th
 
 ## Deliberately not fixed here
 
-- **The hub is unauthenticated.** `x-actor` is still a trusted header, so the access log records
-  what a caller *claimed*, not what was proven. P4-C01 supplies sessions; the log's shape does not
-  change when it does.
+- **Authorisation, not authentication.** Sessions arrived with P4-C01, so the access log records the
+  proven actor and a spoofed `x-actor` header is ignored. What is missing is per-field
+  authorisation: every live session may still call every route, so the repository API returns
+  whatever an entity row holds — a `user` row's `password_hash` included — to any signed-in
+  account, guardian sessions among them. P4-C02 is where the scope model and the per-entity read
+  rules belong.
 - **`health_visit` and `conduct_incident` restricted fields have no field-level permission.** A
   role that may read the entity reads the clinical narrative or the safeguarding note. Closing this
   needs a permission per restricted field group in `src/data/auth/roles.ts`.
@@ -61,6 +64,7 @@ local SQLite-WASM store, so device-side encryption is a separate concern (see th
   direct `UPDATE`/`DELETE` on `audit_event`; the hub exposes no route that writes to it, and an
   operator with the file can. Spec 06 §8.2's "immutable audit log" is not yet enforced.
 - **CORS stays open when enabled.** `enableCors` sends `access-control-allow-origin: *`. On a
-  trusted LAN behind TLS that is the current design; it should narrow when P4-D02 lands.
+  trusted LAN behind TLS that is the current design, and P4-D02 did not narrow it: a browser client
+  on the LAN is a first-class caller here.
 - **Identity documents.** `identifier.value` (a national registry key) is confidential, not
   classified as restricted here; a scanned document has no entity yet.

@@ -177,8 +177,8 @@ Ports to allow through the firewall: TCP `--port` (8443 by default) from the LAN
 discovery. Both installers add those rules when they run with the privileges to do so.
 
 Plain HTTP exists only for a loopback development box: `--no-tls`. There is no configuration in which
-a hub on a shared LAN should be run that way, because `x-actor` is trusted from the network until
-P4-C01 lands authentication.
+a hub on a shared LAN should be run that way: the bearer session token travels in the clear, and so
+does every restricted field a signed-in caller reads.
 
 ## The acceptance measurement
 

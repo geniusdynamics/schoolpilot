@@ -285,13 +285,19 @@ npx tsx src/server/cli.ts --data-dir ./recovered --backup-passphrase '...' \
 - **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making
   finance and administrator roles *require* it is a role-model decision, so it lands with P4-C02.
 - **OIDC SSO** for staff, P4-C03.
-- **Real-time sync.** The WebSocket hub of P4-A02; the HTTP surface here is what it extends.
+- **Push, not poll.** Sync runs over the hub's HTTP surface — `/api/sync/changes`, `/api/sync/push`
+  and `/api/sync/conflicts` — and a device pulls on its own schedule. A channel that pushes changes
+  to a connected device as they happen is not here.
 - **Pairing.** A client finds and trusts the hub — the mDNS advertisement and the fingerprint it
   reports are here — but there is no enrolment handshake that issues a device its own credential.
   That follows authorisation, and belongs with it.
 - **Field-level permissions on health and conduct records.** A learner's restricted fields are
   stripped for a role without `learner.medical.read`; the restricted fields of `health_visit` and
   `conduct_incident` are gated only by the permission to read the entity.
+- **The sync change log holds restricted values in the clear.** `sync_change.payload` carries the
+  fields a change touched, opened, so the encryption at rest above covers the canonical columns and
+  not this one. Closing it means either sealing the payload or keeping restricted fields out of the
+  change log, and either changes what a device is sent — a design decision that needs its own tests.
 - **Request schema validation beyond the repository and service schemas.** The route layer
   checks shapes and query syntax; the entity and service schemas own field validation, which is
   where a 400's `issues` comes from.
