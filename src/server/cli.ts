@@ -11,17 +11,24 @@
  *   --port, -p      Port to run on (default: 3000)
  *   --data-dir, -d  Data directory (default: ./data)
  *   --host, -h      Host to bind to (default: 0.0.0.0)
+ *   --restricted-key-file  File holding the restricted-data key (default: <data-dir>/keys/restricted-data.key)
  */
 
 import { LANServer } from './LANServer';
 
 // Parse command line arguments
-function parseArgs(): { port: number; dataDir: string; host: string } {
+function parseArgs(): {
+  port: number;
+  dataDir: string;
+  host: string;
+  restrictedKeyFile?: string;
+} {
   const args = process.argv.slice(2);
-  
+
   let port = 3000;
   let dataDir = './data';
   let host = '0.0.0.0';
+  let restrictedKeyFile: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -49,21 +56,32 @@ function parseArgs(): { port: number; dataDir: string; host: string } {
           i++;
         }
         break;
+      case '--restricted-key-file':
+        if (nextArg) {
+          restrictedKeyFile = nextArg;
+          i++;
+        }
+        break;
     }
   }
 
-  return { port, dataDir, host };
+  return { port, dataDir, host, ...(restrictedKeyFile ? { restrictedKeyFile } : {}) };
 }
 
 async function main() {
-  const { port, dataDir, host } = parseArgs();
+  const { port, dataDir, host, restrictedKeyFile } = parseArgs();
 
   console.log('╔════════════════════════════════════════╗');
   console.log('║     SchoolPilot LAN Server             ║');
   console.log('╚════════════════════════════════════════╝');
   console.log();
 
-  const server = new LANServer({ port, dataDir, host });
+  const server = new LANServer({
+    port,
+    dataDir,
+    host,
+    ...(restrictedKeyFile ? { restrictedKeyFile } : {}),
+  });
 
   // Handle graceful shutdown
   process.on('SIGINT', async () => {
@@ -85,6 +103,7 @@ async function main() {
     console.log(`  Port: ${port}`);
     console.log(`  Data Directory: ${dataDir}`);
     console.log(`  Host: ${host}`);
+    console.log(`  Restricted-data key: ${server.restrictedKeyFile}`);
     console.log();
     console.log('Press Ctrl+C to stop');
   } catch (error) {

@@ -38,6 +38,40 @@ console.log(hub.address);
 `databaseFile` names a different SQLite file and `port: 0` lets the operating system pick one.
 `stop()` closes the connections and the database.
 
+## Security
+
+The hub hardens its own surface, and the app hardens its document. What each control answers is
+listed in [`docs/security/threat-checklist.md`](../docs/security/threat-checklist.md).
+
+- **Restricted data is encrypted at rest.** The columns the entity registry declares `encrypted`
+  (a learner's `medical` and `special_needs`, a health visit's `complaint` and `treatment`, a
+  conduct incident's `description` and `action`) are sealed with AES-256-GCM as
+  `enc:v1:<iv>:<tag>:<ciphertext>` on the way into SQLite and opened on the way out. A value an
+  older hub left in plaintext is read as it stands and sealed by the sweep on the next start.
+- **The key** comes from `SCHOOLPILOT_RESTRICTED_KEY` (base64 or hex), or from
+  `<dataDir>/keys/restricted-data.key`, which the hub creates on first start with mode `0600` in a
+  `0700` directory. A database that holds sealed values with no key to open them **refuses to
+  start**: a fresh key would leave those rows unreadable while the hub reported healthy. Pass
+  `restrictedKey` or `restrictedKeyFile` to name them explicitly.
+- **Access to restricted data is logged.** Every read, list, create, update and removal that
+  carries a restricted value appends one JSON line to `<dataDir>/logs/restricted-access.jsonl`
+  naming the actor, the action, the row ids and the field names — never a value. The line is
+  written before the response is returned, so a read that cannot be recorded is refused rather
+  than served unlogged. Pass `accessLog` to send the trail somewhere else.
+- **The auth and write surfaces are rate limited.** 10 requests per 5 minutes per client address
+  under `/api/auth`, and 120 writes per minute per client address everywhere else, answered with
+  `429` and `Retry-After`. Set `rateLimits: false` to turn them off.
+- **Every response carries security headers**: a `default-src 'none'` policy, `nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`. Set
+  `securityHeaders: false` to turn them off.
+- **The app's document carries its own policy.** `src/security/csp.ts` builds it and
+  `scripts/security/cspVitePlugin.ts` injects it with a hash of every inline script the build
+  produced, so `script-src` stays strict without `'unsafe-eval'`.
+- **The repository scans itself.** `node scripts/prd/secret-scan.mjs` and
+  `tsx scripts/security/dependency-scan.ts` run in CI and in the task gate; the dependency scan
+  ratchets against `scripts/security/dependency-baseline.json` so a *new* high or critical
+  advisory fails while the ones already carried do not.
+
 ## Call it
 
 ```bash
@@ -88,9 +122,13 @@ npx vitest run server/__tests__/hub.test.ts
 ## Deliberately not here yet
 
 - **Authentication and authorisation.** `x-actor` is a trusted header placeholder; P4-C01
-  replaces it with sessions and a scoped repository.
+  replaces it with sessions and a scoped repository. Until then the access log records what a
+  caller claimed, and rate limits are keyed by address rather than identity.
 - **Real-time sync.** The WebSocket hub of P4-A02; the HTTP surface here is what it extends.
 - **mDNS discovery, TLS and pairing.** P4-D02.
+- **Field-level permissions on health and conduct records.** A learner's restricted fields are
+  stripped for a role without `learner.medical.read`; the restricted fields of `health_visit` and
+  `conduct_incident` are gated only by the permission to read the entity.
 - **Request schema validation beyond the repository and service schemas.** The route layer
   checks shapes and query syntax; the entity and service schemas own field validation, which is
   where a 400's `issues` comes from.

@@ -136,7 +136,10 @@ export const learnerEntity = defineEntity({
       house_id: 'house',
       household_id: 'household',
     },
-    encrypted: ['medical'],
+    // Medical detail and disability support are special-category data (spec 06 §8.1), so both
+    // are sealed at rest and access-logged. Neither is indexed or filtered on: an encrypted
+    // column cannot be compared in SQL, which is why they are stored as text and never queried.
+    encrypted: ['medical', 'special_needs'],
   },
   label: (row) => `${personLabel(row)} · ${row.admission_number}`,
 });

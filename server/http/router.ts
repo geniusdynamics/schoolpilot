@@ -5,6 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import { errorResponse } from './errors';
 import { sendJson } from './http';
+import type { RateLimiter } from './rateLimit';
 
 /** What a handler receives. */
 export interface RouteRequest {
@@ -32,6 +33,11 @@ interface CompiledRoute {
 /** A small route table; the hub needs nothing a framework would add. */
 export class Router {
   private readonly routes: CompiledRoute[] = [];
+  private readonly rateLimiter: RateLimiter | undefined;
+
+  constructor(rateLimiter?: RateLimiter) {
+    this.rateLimiter = rateLimiter;
+  }
 
   /** Registers a route. A `:name` segment becomes a parameter. */
   add(method: string, path: string, handler: RouteHandler): void {
@@ -43,6 +49,26 @@ export class Router {
   async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
     const method = (req.method ?? 'GET').toUpperCase();
+
+    // The limit is checked before the route is matched, so an unrouted path cannot be used to
+    // probe the surface for free and a limited route stays limited however it is spelled.
+    const limit = this.rateLimiter?.checkRequest(req, method, url.pathname);
+    if (limit && !limit.allowed) {
+      sendJson(
+        res,
+        429,
+        {
+          error: {
+            code: 'rate_limited',
+            message: `too many requests on the ${limit.rule.name} surface; retry in ${limit.retryAfterSeconds}s`,
+            retryAfterSeconds: limit.retryAfterSeconds,
+          },
+        },
+        { 'retry-after': String(limit.retryAfterSeconds) }
+      );
+      return;
+    }
+
     const match = this.match(method, url.pathname);
 
     if (!match) {

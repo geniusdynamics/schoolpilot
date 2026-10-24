@@ -12,6 +12,7 @@ import type {
 } from '@/data/repository';
 import { asId } from '@/domain/ids';
 import { ENTITY_NAMES, isEntityName, type EntityName } from '@/domain/schema';
+import { restrictedFieldsIn } from '@/data/security';
 
 import {
   actorOf,
@@ -24,11 +25,17 @@ import {
   requireObject,
 } from './http';
 import type { RouteRequest, Router } from './router';
+import type {
+  RestrictedAccessAction,
+  RestrictedAccessLog,
+} from '../security/restrictedAccessLog';
 
 export interface RepositoryRouteOptions {
   readonly repository: Repository;
   /** The actor a write names when the request carries no `x-actor` header. */
   readonly actor?: string;
+  /** Records every read and write of restricted data when set. */
+  readonly accessLog?: RestrictedAccessLog;
 }
 
 /** Registers the repository API under `/api/entities`. */
@@ -38,6 +45,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
   router.add('GET', '/api/entities/:entity', async (request) => {
     const entity = entityOf(request);
     const page = await options.repository.list(entity, listQueryOf(request.url));
+    recordRestrictedAccess(options, request, 'list', entity, page.items);
     return { body: page };
   });
 
@@ -48,6 +56,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
     if (!row) {
       throw new HttpError(404, 'not_found', `no ${entity} row with id ${request.params.id}`);
     }
+    recordRestrictedAccess(options, request, 'read', entity, [row]);
     return { body: row };
   });
 
@@ -66,6 +75,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
       body as CreateInput<EntityName>,
       writeOptionsOf(request, options.actor)
     );
+    recordRestrictedAccess(options, request, 'create', entity, [row]);
     return { status: 201, body: row };
   });
 
@@ -85,6 +95,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
       expectedVersion,
       ...writeOptionsOf(request, options.actor),
     });
+    recordRestrictedAccess(options, request, 'update', entity, [row]);
     return { body: row };
   };
 
@@ -99,8 +110,56 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
       ...writeOptionsOf(request, options.actor),
       ...(expectedVersion !== undefined ? { expectedVersion } : {}),
     });
+    recordRestrictedAccess(options, request, 'remove', entity, [row]);
     return { body: { removed: row } };
   });
+}
+
+/**
+ * Records an access to restricted data, when the rows carried any.
+ *
+ * The entry names the actor, the rows and the fields, never a value. It is written before the
+ * response is handed back, so a read whose access cannot be recorded fails the request rather than
+ * going unlogged.
+ */
+function recordRestrictedAccess(
+  options: RepositoryRouteOptions,
+  request: RouteRequest,
+  action: RestrictedAccessAction,
+  entity: EntityName,
+  rows: readonly unknown[]
+): void {
+  const log = options.accessLog;
+  if (!log) return;
+
+  const fields = new Set<string>();
+  const ids: string[] = [];
+  for (const row of rows) {
+    const touched = restrictedFieldsIn(entity, row);
+    if (touched.length === 0) continue;
+    for (const field of touched) fields.add(field);
+    ids.push(rowIdOf(row));
+  }
+  if (ids.length === 0) return;
+
+  log.record({
+    at: new Date().toISOString(),
+    actor: actorOf(request.req, options.actor) ?? null,
+    action,
+    entity,
+    ids,
+    fields: [...fields],
+    outcome: 'allowed',
+  });
+}
+
+/** The id of a row about to be recorded. */
+function rowIdOf(row: unknown): string {
+  if (row !== null && typeof row === 'object') {
+    const id = (row as { id?: unknown }).id;
+    if (typeof id === 'string') return id;
+  }
+  return '';
 }
 
 /** The entity a request names, refusing one the registry does not hold. */

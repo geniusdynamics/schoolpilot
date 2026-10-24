@@ -11,7 +11,19 @@ import { ENTITY_NAMES } from '@/domain/schema';
 
 import { createHubRouter } from '../../server/http/hubRouter';
 import { sendJson, setCorsHeaders } from '../../server/http/http';
+import { RateLimiter } from '../../server/http/rateLimit';
 import type { Router } from '../../server/http/router';
+import { applySecurityHeaders } from '../../server/http/securityHeaders';
+import {
+  createRestrictedDataCipher,
+  defaultRestrictedKeyFile,
+} from '../../server/security/aesGcmFieldCipher';
+import {
+  FileRestrictedAccessLog,
+  defaultRestrictedAccessLogFile,
+  type RestrictedAccessLog,
+} from '../../server/security/restrictedAccessLog';
+import { sealRestrictedData } from '../../server/security/sealRestrictedData';
 
 interface LANServerConfig {
   /** The directory the hub keeps its database and, later, its backups in. */
@@ -26,6 +38,16 @@ interface LANServerConfig {
   enableCors?: boolean;
   /** The actor a write is stamped with when the request names none. */
   actor?: string;
+  /** The restricted-data key (base64 or hex); the env var or the key file supplies it otherwise. */
+  restrictedKey?: string;
+  /** The restricted-data key file; `<dataDir>/keys/restricted-data.key` when omitted. */
+  restrictedKeyFile?: string;
+  /** Where restricted-data access is recorded; a JSONL file under the data directory by default. */
+  accessLog?: RestrictedAccessLog;
+  /** Whether the auth and write rate limits are enforced. Defaults to true. */
+  rateLimits?: boolean;
+  /** Whether the hub's security response headers are set. Defaults to true. */
+  securityHeaders?: boolean;
 }
 
 interface ServerState {
@@ -56,8 +78,11 @@ export interface LANServerStatus {
  *   await server.start();
  *
  * The hub is not yet authenticated: `x-actor` is trusted from the network until P4-C01 supplies
- * sessions, so it belongs on a trusted LAN. Real-time sync (P4-A02), mDNS discovery and TLS
- * (P4-D02) are later tasks; this skeleton is the HTTP surface they extend.
+ * sessions, so it belongs on a trusted LAN. What the hub does own is its own hardening: restricted
+ * columns are sealed at rest through a key it manages, every access to them is logged, the auth and
+ * write surfaces are rate limited, and every response carries security headers. Real-time sync
+ * (P4-A02), mDNS discovery and TLS (P4-D02) are later tasks; this skeleton is the HTTP surface they
+ * extend.
  */
 export class LANServer {
   private config: LANServerConfig;
@@ -75,6 +100,8 @@ export class LANServer {
       port: 3000,
       host: '0.0.0.0',
       enableCors: true,
+      rateLimits: true,
+      securityHeaders: true,
       ...config,
     };
   }
@@ -82,6 +109,16 @@ export class LANServer {
   /** The SQLite file the hub serves. */
   get databaseFile(): string {
     return this.config.databaseFile ?? path.join(this.config.dataDir, 'schoolpilot.db');
+  }
+
+  /**
+   * The file the restricted-data key is read from.
+   *
+   * It is the one file that has to be backed up with the database: without it the sealed columns
+   * cannot be read, and the hub refuses to start rather than generating a replacement.
+   */
+  get restrictedKeyFile(): string {
+    return this.config.restrictedKeyFile ?? defaultRestrictedKeyFile(this.config.dataDir);
   }
 
   /** The address the hub listens on; null when it is not listening. */
@@ -105,16 +142,37 @@ export class LANServer {
       await adapter.open();
       this.adapter = adapter;
 
+      // The key is loaded (or created) before the repository is built, so the cipher is in place
+      // for every read and write, and the sweep seals any restricted value an older hub left in
+      // the clear. A missing key over an already-encrypted database refuses to start here.
+      const cipher = await createRestrictedDataCipher({
+        dataDir: this.config.dataDir,
+        adapter,
+        ...(this.config.restrictedKey !== undefined
+          ? { key: this.config.restrictedKey }
+          : {}),
+        ...(this.config.restrictedKeyFile !== undefined
+          ? { keyFile: this.config.restrictedKeyFile }
+          : {}),
+      });
+
       const repository = createRepository({
         adapter,
+        cipher,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
       });
       await repository.setup();
+      await sealRestrictedData(adapter, cipher);
       this.repository = repository;
 
+      const accessLog =
+        this.config.accessLog ??
+        new FileRestrictedAccessLog(defaultRestrictedAccessLogFile(this.config.dataDir));
       const router = createHubRouter({
         repository,
+        accessLog,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
+        ...(this.config.rateLimits === false ? {} : { rateLimiter: new RateLimiter() }),
       });
       router.add('GET', '/health', () => ({ body: this.getStatus() }));
 
@@ -160,6 +218,10 @@ export class LANServer {
   // ==================== Private Methods ====================
 
   private handleRequest(router: Router, req: IncomingMessage, res: ServerResponse): void {
+    if (this.config.securityHeaders !== false) {
+      applySecurityHeaders(res);
+    }
+
     if (this.config.enableCors) {
       setCorsHeaders(res);
       if ((req.method ?? '').toUpperCase() === 'OPTIONS') {

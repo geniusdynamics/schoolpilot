@@ -56,13 +56,19 @@ export function requireObject(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-/** Writes a JSON response. */
-export function sendJson(res: ServerResponse, status: number, body: unknown): void {
+/** Writes a JSON response, with any headers the caller adds on top of the JSON ones. */
+export function sendJson(
+  res: ServerResponse,
+  status: number,
+  body: unknown,
+  headers: Readonly<Record<string, string>> = {}
+): void {
   if (res.writableEnded) return;
   const payload = JSON.stringify(body);
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'content-length': Buffer.byteLength(payload),
+    ...headers,
   });
   res.end(payload);
 }
