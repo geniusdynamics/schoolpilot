@@ -139,31 +139,73 @@ async function readJson<T>(response: APIResponse): Promise<T> {
   return JSON.parse(text) as T;
 }
 
-/** Seeds one institution and one learner over the same API a LAN client uses. */
-async function seedSchool(
+/** The account the hub is set up with on its first run; there are no default credentials. */
+const ADMIN = 'grace.wekesa';
+const PASSWORD = 'mwangaza-hub-2027';
+
+/**
+ * Signs in to a hub, setting it up first when it has never been used.
+ *
+ * A hub that has just been installed holds no institution and no account, and the entity API
+ * refuses until somebody can sign in, so the first run carries the institution's own fields.
+ */
+async function authenticate(
   request: APIRequestContext,
   baseUrl: string,
-  learnerFamilyName: string
-): Promise<void> {
-  const institution = await readJson<{ id: string }>(
-    await request.post(`${baseUrl}/api/entities/institution`, {
+  institutionName: string
+): Promise<string> {
+  const state = await readJson<{ setupRequired: boolean }>(
+    await request.get(`${baseUrl}/api/auth/state`)
+  );
+
+  if (!state.setupRequired) {
+    const login = await readJson<{ token: string }>(
+      await request.post(`${baseUrl}/api/auth/login`, {
+        data: { username: ADMIN, password: PASSWORD },
+      })
+    );
+    return login.token;
+  }
+
+  const created = await readJson<{ token: string }>(
+    await request.post(`${baseUrl}/api/auth/setup`, {
       data: {
-        name: `GP-8 Backup School ${learnerFamilyName}`,
-        country: 'KE',
-        ownership: 'private',
-        gender_policy: 'mixed',
-        boarding_policy: 'day',
-        default_locale: 'en-KE',
-        time_zone: 'Africa/Nairobi',
-        base_currency: 'KES',
+        institution: {
+          name: institutionName,
+          country: 'KE',
+          ownership: 'private',
+          gender_policy: 'mixed',
+          boarding_policy: 'day',
+          default_locale: 'en-KE',
+          time_zone: 'Africa/Nairobi',
+          base_currency: 'KES',
+        },
+        username: ADMIN,
+        password: PASSWORD,
       },
     })
   );
+  return created.token;
+}
+
+/** Seeds one learner into the institution the first run created. */
+async function seedLearner(
+  request: APIRequestContext,
+  baseUrl: string,
+  token: string,
+  learnerFamilyName: string
+): Promise<void> {
+  const page = await readJson<{ items: Array<{ id: string }> }>(
+    await request.get(`${baseUrl}/api/entities/institution`, { headers: authHeaders(token) })
+  );
+  const institutionId = page.items[0]?.id;
+  if (!institutionId) throw new Error('the first run left no institution to seed into');
 
   await readJson<{ id: string }>(
     await request.post(`${baseUrl}/api/entities/learner`, {
+      headers: authHeaders(token),
       data: {
-        institution_id: institution.id,
+        institution_id: institutionId,
         given_name: 'Amina',
         family_name: learnerFamilyName,
         name_order: 'given_first',
@@ -174,6 +216,11 @@ async function seedSchool(
       },
     })
   );
+}
+
+/** The bearer header every request after the sign-in carries. */
+function authHeaders(token: string): Record<string, string> {
+  return { authorization: `Bearer ${token}` };
 }
 
 test.describe('GP-8 backup and restore', () => {
@@ -190,11 +237,25 @@ test.describe('GP-8 backup and restore', () => {
     let sourceHub: Hub | null = null;
     let backedUpHub: Hub | null = null;
     let restoredHub: Hub | null = null;
+    /**
+     * The session the first run issued, reused for the hubs that follow.
+     *
+     * Signing in again would be the obvious thing, but a sign-in writes to the `user` row, and
+     * this journey compares a live logical checksum against the one the archive restores to. A
+     * write between the automatic backup and that comparison makes the two differ for a reason
+     * that has nothing to do with the backup.
+     */
+    let sessionToken = '';
 
     try {
       await test.step('seed a school through the hub API', async () => {
         sourceHub = await startHub(sourceDir, ['--no-backups']);
-        await seedSchool(request, sourceHub.url, learnerFamilyName);
+        sessionToken = await authenticate(
+          request,
+          sourceHub.url,
+          `GP-8 Backup School ${learnerFamilyName}`
+        );
+        await seedLearner(request, sourceHub.url, sessionToken, learnerFamilyName);
       });
 
       let backupId = '';
@@ -206,8 +267,11 @@ test.describe('GP-8 backup and restore', () => {
         sourceHub = null;
 
         backedUpHub = await startHub(sourceDir, ['--backup-passphrase', PASSPHRASE]);
+
         const list = await readJson<{ backups: BackupEntryBody[] }>(
-          await request.get(`${backedUpHub.url}/api/backups`)
+          await request.get(`${backedUpHub.url}/api/backups`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(list.backups).toHaveLength(1);
         expect(list.backups[0]?.kind).toBe('automatic');
@@ -217,14 +281,18 @@ test.describe('GP-8 backup and restore', () => {
         expect((await fs.promises.stat(archiveFile)).size).toBeGreaterThan(0);
 
         const status = await readJson<BackupStatusBody>(
-          await request.get(`${backedUpHub.url}/api/backups/status`)
+          await request.get(`${backedUpHub.url}/api/backups/status`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(status.available).toBe(true);
         expect(status.lastAutomaticAt).not.toBeNull();
         expect(status.retention).toEqual({ daily: 7, weekly: 4, monthly: 12 });
 
         sourceDigest = await readJson<DigestBody>(
-          await request.get(`${backedUpHub.url}/api/backups/checksum`)
+          await request.get(`${backedUpHub.url}/api/backups/checksum`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(sourceDigest.rows).toBeGreaterThan(0);
       });
@@ -268,32 +336,42 @@ test.describe('GP-8 backup and restore', () => {
         expect(receipt.databaseFile).toBe(path.join(restoredDir, 'schoolpilot.db'));
 
         const restoredDigest = await readJson<DigestBody>(
-          await request.get(`${restoredHub.url}/api/backups/checksum`)
+          await request.get(`${restoredHub.url}/api/backups/checksum`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(restoredDigest).toEqual(sourceDigest);
         expect(receipt.digest).toBe(restoredDigest.overall);
 
         const page = await readJson<{ items: { family_name: string }[] }>(
-          await request.get(`${restoredHub.url}/api/entities/learner`)
+          await request.get(`${restoredHub.url}/api/entities/learner`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(page.items.map((row) => row.family_name)).toContain(learnerFamilyName);
       });
 
       await test.step('the restore drill reminder is due and a drill clears it', async () => {
         const before = await readJson<BackupStatusBody>(
-          await request.get(`${restoredHub.url}/api/backups/status`)
+          await request.get(`${restoredHub.url}/api/backups/status`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(before.drill.due).toBe(true);
         expect(before.drill.reason).toBe('never_performed');
 
         const drill = await readJson<DrillBody>(
-          await request.post(`${restoredHub.url}/api/backups/drill`)
+          await request.post(`${restoredHub.url}/api/backups/drill`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(drill.backupId).toBe(backupId);
         expect(drill.digest.overall).toBe(sourceDigest?.overall);
 
         const after = await readJson<BackupStatusBody>(
-          await request.get(`${restoredHub.url}/api/backups/status`)
+          await request.get(`${restoredHub.url}/api/backups/status`, {
+            headers: authHeaders(sessionToken),
+          })
         );
         expect(after.drill.due).toBe(false);
         expect(after.lastDrillAt).not.toBeNull();
@@ -301,7 +379,10 @@ test.describe('GP-8 backup and restore', () => {
 
       await test.step('the portable export contains the seeded school', async () => {
         const manifest = await readJson<ExportBody>(
-          await request.post(`${restoredHub.url}/api/backups/export`, { data: {} })
+          await request.post(`${restoredHub.url}/api/backups/export`, {
+            headers: authHeaders(sessionToken),
+            data: {},
+          })
         );
         expect(manifest.format).toBe('schoolpilot-export');
         expect(manifest.includeRestricted).toBe(false);
