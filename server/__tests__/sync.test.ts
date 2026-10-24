@@ -13,6 +13,8 @@ import { createHttpSyncTransport, DeviceNode, type Snapshot } from '@/data/sync'
 import { ENTITY_NAMES } from '@/domain/schema';
 import { LANServer } from '@/server/LANServer';
 
+import { hashPassword } from '../auth/passwords';
+
 interface ApiResponse {
   readonly status: number;
   readonly body: unknown;
@@ -27,11 +29,17 @@ interface PushPage {
   readonly results: Array<{ status: string; id: string; error?: string }>;
 }
 
+/** The seeded user the hub authenticates against; it has no administrator of its own. */
+const USERNAME = 'grace.wekesa';
+const PASSWORD = 'mwangaza-hub-2027';
+
 let workDir: string;
 let hub: LANServer;
 let port: number;
 let seed: Seed;
 let institutionId: string;
+/** The bearer token every request after the sign-in carries. */
+let token: string | undefined;
 
 beforeAll(async () => {
   workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'schoolpilot-sync-'));
@@ -41,12 +49,30 @@ beforeAll(async () => {
   const seeded = await createTestContext({ database: { kind: 'file', filename: databaseFile } });
   seed = seeded.seed;
   institutionId = seed.idOf('institution');
+  // The fixture user's password hash is a placeholder; the hub needs one it can verify, and it
+  // has no administrator of its own - it authenticates against the canonical user table.
+  const users = await seeded.repository.list('user', { where: { username: USERNAME } });
+  const seededUser = users.items[0];
+  if (!seededUser) throw new Error(`the  fixture was not seeded`);
+  await seeded.repository.update(
+    'user',
+    seededUser.id,
+    { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
+    { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
+  );
+
   await seeded.close();
 
   hub = new LANServer({ dataDir: workDir, databaseFile, host: '127.0.0.1', port: 0 });
   await hub.start();
   port = hub.address?.port ?? 0;
   expect(port).toBeGreaterThan(0);
+
+  const login = await api('POST', '/api/auth/login', { username: USERNAME, password: PASSWORD });
+  if (login.status !== 200) {
+    throw new Error(`the hub refused the sign-in: `);
+  }
+  token = (login.body as { token: string }).token;
 }, 60000);
 
 afterAll(async () => {
@@ -210,6 +236,8 @@ describe('a device syncing over the HTTP transport', () => {
         dialect: 'sqlite',
       });
       const transport = createHttpSyncTransport({
+    // The device authenticates the same way a browser does: with the session's bearer token.
+    headers: { authorization: `Bearer ` },
         baseUrl: `http://127.0.0.1:${port}`,
         fetch: nodeFetch as unknown as typeof fetch,
       });
@@ -250,13 +278,17 @@ function api(method: string, pathname: string, body?: unknown): Promise<ApiRespo
         port,
         path: pathname,
         method,
-        headers:
-          payload !== undefined
+        headers: {
+          // The hub authenticates every route but /health and the sign-in endpoints, so the suite
+          // signs in once in beforeAll and carries the session here.
+          ...(token === undefined ? {} : { authorization: `Bearer ${token}` }),
+          ...(payload !== undefined
             ? {
                 'content-type': 'application/json',
                 'content-length': Buffer.byteLength(payload),
               }
-            : {},
+            : {}),
+        },
       },
       (response) => {
         response.setEncoding('utf8');
