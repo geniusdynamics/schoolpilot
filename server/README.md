@@ -6,8 +6,8 @@ ABOUTME: The hub authenticates every request with a bearer session and serves th
 # The hub server
 
 One Node HTTP server over the canonical SQLite database. It opens the database, applies the
-canonical schema through `Repository.setup()`, applies its own authentication tables, and serves
-three APIs:
+canonical schema through `Repository.setup()`, applies its own sync metadata and authentication
+tables, and serves four APIs:
 
 - **The authentication API** under `/api/auth` — first run, password sign-in, TOTP, guardian phone
   OTP, password reset, and session and authenticator management. The module is `server/auth`.
@@ -17,6 +17,9 @@ three APIs:
   billing-run previews and posts, through the browser's own `AdmissionService`,
   `AttendanceService` and `BillingRunService`. The services are constructed with a repository
   and nothing else; the hub adds a transport, not a second domain layer.
+- **The backup API** under `/api/backups` — encrypted daily archives, retention, restore into a
+  new instance, the restore drill and the portable export. See `server/backup/README.md` for the
+  format, the key handling and the routes.
 
 The composition root is `src/server/LANServer.ts`; the routes live here, in `server/http`, and
 the service wiring is `server/services.ts`.
@@ -252,6 +255,25 @@ Write bodies:
 npx vitest run server/__tests__/authPrimitives.test.ts server/__tests__/auth.test.ts \
   server/__tests__/authHttp.test.ts server/__tests__/hub.test.ts
 ```
+
+## Backups
+
+The hub takes an encrypted SQLite snapshot every day, keeps 7 daily, 4 weekly and 12 monthly
+archives, restores into a new instance without touching the live database, and reminds the
+operator to prove a restore every 30 days. `server/backup/README.md` documents the archive
+format, the key sources, the retention union, the restore checks and the `/api/backups` routes.
+
+```bash
+# Back up daily; the passphrase comes from the environment, never the command line
+SCHOOLPILOT_BACKUP_PASSPHRASE='...' npx tsx src/server/cli.ts --data-dir ./data
+
+# Restore one archive into a fresh directory before the hub opens its database
+npx tsx src/server/cli.ts --data-dir ./recovered --backup-passphrase '...' \
+  --restore-from ./data/backups/backup-....spbk --restore-to ./recovered
+```
+
+`GET /health` reports a `backup` block (`enabled`, `available`, `lastBackupAt`, `drillDue`) and
+`GET /api/backups/status` carries the rest, so the health page of P4-D03 has one place to read.
 
 ## Deliberately not here yet
 

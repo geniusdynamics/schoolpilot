@@ -18,6 +18,20 @@ export interface CliOptions {
   readonly tlsKey: string | null;
   /** The file the restricted-data key is read from; null means `<dataDir>/keys/restricted-data.key`. */
   readonly restrictedKeyFile: string | null;
+  /** Where archives go; null means `<dataDir>/backups`. */
+  readonly backupDir: string | null;
+  /** A file holding the backup passphrase; null means the environment variable. */
+  readonly backupKeyFile: string | null;
+  /** The backup passphrase itself; null means `SCHOOLPILOT_BACKUP_PASSPHRASE`. */
+  readonly backupPassphrase: string | null;
+  /** The daily backup time in UTC, `HH:MM`; null means `02:00`. */
+  readonly dailyAt: string | null;
+  /** Whether the automatic backup and its endpoints run; on by default. */
+  readonly backups: boolean;
+  /** An archive to restore before the hub opens its database; null means no restore. */
+  readonly restoreFrom: string | null;
+  /** Where a restore writes `schoolpilot.db`; null means the data directory. */
+  readonly restoreTo: string | null;
   /** Whether to publish the hub over mDNS; on by default. */
   readonly mdns: boolean;
   /** The mDNS instance label; defaults to the machine's name. */
@@ -58,6 +72,13 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
   let tlsCert: string | null = null;
   let tlsKey: string | null = null;
   let restrictedKeyFile: string | null = null;
+  let backupDir: string | null = null;
+  let backupKeyFile: string | null = null;
+  let backupPassphrase: string | null = null;
+  let dailyAt: string | null = null;
+  let backups = true;
+  let restoreFrom: string | null = null;
+  let restoreTo: string | null = null;
   let mdns = true;
   let name = machineName;
   let mdnsPort = DEFAULT_MDNS_PORT;
@@ -109,6 +130,33 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
         break;
       case '--restricted-key-file':
         restrictedKeyFile = next(index, flag);
+        index += 1;
+        break;
+      case '--backup-dir':
+        backupDir = next(index, flag);
+        index += 1;
+        break;
+      case '--backup-key-file':
+        backupKeyFile = next(index, flag);
+        index += 1;
+        break;
+      case '--backup-passphrase':
+        backupPassphrase = next(index, flag);
+        index += 1;
+        break;
+      case '--daily-at':
+        dailyAt = next(index, flag);
+        index += 1;
+        break;
+      case '--no-backups':
+        backups = false;
+        break;
+      case '--restore-from':
+        restoreFrom = next(index, flag);
+        index += 1;
+        break;
+      case '--restore-to':
+        restoreTo = next(index, flag);
         index += 1;
         break;
       case '--mdns':
@@ -168,6 +216,13 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
     tlsCert,
     tlsKey,
     restrictedKeyFile,
+    backupDir,
+    backupKeyFile,
+    backupPassphrase,
+    dailyAt,
+    backups,
+    restoreFrom,
+    restoreTo,
     mdns,
     name,
     mdnsPort,
@@ -195,6 +250,13 @@ export function usage(): string {
     '      --no-tls          serve plain HTTP; only for a loopback development box',
     '      --tls-cert <file> --tls-key <file>   serve a certificate the school brought',
     '      --restricted-key-file <file>   read the restricted-data key from this file',
+    '      --backup-dir <dir>   where encrypted archives go (default <data-dir>/backups)',
+    '      --backup-key-file <file>   a file holding the backup passphrase',
+    '      --backup-passphrase <text>   the backup passphrase (prefer the environment variable)',
+    '      --daily-at <HH:MM>   daily backup time in UTC (default 02:00)',
+    '      --no-backups      turn the automatic backup and its endpoints off',
+    '      --restore-from <file>   restore this archive before opening the database',
+    '      --restore-to <dir>   where a restore writes schoolpilot.db (default the data directory)',
     '      --mdns            advertise over mDNS (default)',
     '      --no-mdns         do not advertise',
     '      --name <label>    mDNS name, resolvable as <label>.local (default: this machine)',

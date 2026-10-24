@@ -64,6 +64,46 @@ describe('hub arguments', () => {
     expect(parseArgs(['--help']).command).toBe('help');
   });
 
+  it('reads the backup and restore flags', () => {
+    expect(
+      parseArgs([
+        '--backup-dir',
+        '/var/backups',
+        '--backup-key-file',
+        '/etc/schoolpilot/backup.key',
+        '--backup-passphrase',
+        'secret',
+        '--daily-at',
+        '21:30',
+        '--restore-from',
+        './archive.spbk',
+        '--restore-to',
+        './recovered',
+      ])
+    ).toMatchObject({
+      backupDir: '/var/backups',
+      backupKeyFile: '/etc/schoolpilot/backup.key',
+      backupPassphrase: 'secret',
+      dailyAt: '21:30',
+      backups: true,
+      restoreFrom: './archive.spbk',
+      restoreTo: './recovered',
+    });
+  });
+
+  it('runs backups by default and turns them off on request', () => {
+    expect(parseArgs([], 'DESKTOP-ABC')).toMatchObject({
+      backups: true,
+      backupDir: null,
+      backupKeyFile: null,
+      backupPassphrase: null,
+      dailyAt: null,
+      restoreFrom: null,
+      restoreTo: null,
+    });
+    expect(parseArgs(['--no-backups']).backups).toBe(false);
+  });
+
   it('refuses a value it cannot use, naming the flag', () => {
     expect(() => parseArgs(['--port', 'http'])).toThrow(CliUsageError);
     expect(() => parseArgs(['--port', 'http'])).toThrow(/--port needs an integer/);
@@ -76,7 +116,26 @@ describe('hub arguments', () => {
 
   it('documents every flag it accepts', () => {
     const text = usage();
-    for (const flag of ['--port', '--data-dir', '--host', '--tls', '--mdns', '--name', '--discover', '--timeout', '--json', '--print-fingerprint']) {
+    for (const flag of [
+      '--port',
+      '--data-dir',
+      '--host',
+      '--tls',
+      '--mdns',
+      '--name',
+      '--discover',
+      '--timeout',
+      '--json',
+      '--print-fingerprint',
+      '--restricted-key-file',
+      '--backup-dir',
+      '--backup-key-file',
+      '--backup-passphrase',
+      '--daily-at',
+      '--no-backups',
+      '--restore-from',
+      '--restore-to',
+    ]) {
       expect(text).toContain(flag);
     }
   });

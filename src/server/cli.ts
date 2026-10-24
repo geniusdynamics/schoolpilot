@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import os from 'node:os';
 
 import { CliUsageError, parseArgs, usage, type CliOptions } from './cliArgs';
-import { LANServer } from './LANServer';
+import { LANServer, type LANServerBackupConfig } from './LANServer';
 import { discoverHubs } from './discovery';
 import { lanIpv4Addresses, mdnsHostName, mdnsLabel } from './network';
 import { ensureHubCertificate, type HubCertificate } from './tls';
@@ -40,6 +40,17 @@ async function main(): Promise<void> {
   }
 }
 
+/** The backup section of the hub config the CLI flags describe. */
+function backupConfigOf(options: CliOptions): LANServerBackupConfig | false {
+  if (!options.backups) return false;
+  return {
+    ...(options.backupDir !== null ? { directory: options.backupDir } : {}),
+    ...(options.backupKeyFile !== null ? { keyFile: options.backupKeyFile } : {}),
+    ...(options.backupPassphrase !== null ? { passphrase: options.backupPassphrase } : {}),
+    ...(options.dailyAt !== null ? { dailyAt: options.dailyAt } : {}),
+  };
+}
+
 /** Runs the hub until it is stopped. */
 async function serve(options: CliOptions): Promise<void> {
   const certificate = options.tls ? certificateFor(options) : null;
@@ -53,8 +64,17 @@ async function serve(options: CliOptions): Promise<void> {
     port: options.port,
     dataDir: options.dataDir,
     host: options.host,
+    backup: backupConfigOf(options),
     ...(certificate ? { tls: { cert: certificate.certPem, key: certificate.keyPem } } : {}),
     ...(options.restrictedKeyFile ? { restrictedKeyFile: options.restrictedKeyFile } : {}),
+    ...(options.restoreFrom
+      ? {
+          restore: {
+            from: options.restoreFrom,
+            ...(options.restoreTo ? { to: options.restoreTo } : {}),
+          },
+        }
+      : {}),
     discovery: {
       enabled: options.mdns,
       instanceName: mdnsLabel(options.name),
@@ -101,6 +121,7 @@ async function serve(options: CliOptions): Promise<void> {
   }
   console.log(`  Data:        ${status.databaseFile}`);
   console.log(`  Key file:    ${server.restrictedKeyFile}`);
+  console.log(`  Backups:     ${options.backups ? 'enabled' : 'disabled'}`);
   console.log(`  Discovery:   ${status.discovery?.running ? status.discovery.hostName : 'off'}`);
   if (status.tlsFingerprint) {
     console.log(`  TLS:         ${status.tlsFingerprint}`);

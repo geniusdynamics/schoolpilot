@@ -5,6 +5,7 @@
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
 import {
   RepositoryConflictError,
+  type CreateInput,
   type Repository,
   type RepositoryRow,
 } from '@/data/repository';
@@ -263,6 +264,58 @@ export class AuthenticationService {
     // transaction body throws into a storage failure, which would hide the reason.
     const created = await this.repository.transaction(async () => {
       if (await this.hasUsers()) return null;
+      return this.repository.create(
+        'user',
+        {
+          institution_id: institution.id,
+          username,
+          password_hash: passwordHash,
+          status: 'active',
+          mfa: false,
+        },
+        { origin: 'hub', reason: 'first administrator created' }
+      );
+    });
+
+    if (created === null) {
+      throw new AuthError('setup_complete', 'this hub already has an administrator; sign in instead');
+    }
+
+    await this.events.append('administrator_created', {
+      actorId: created.id,
+      detail: { username: created.username },
+    });
+    return this.issueSession(created, input.meta ?? {});
+  }
+
+  /**
+   * The first run on a hub that has never been set up: creates the institution and its first
+   * administrator together.
+   *
+   * A freshly installed hub holds no institution, and creating one over the entity API needs a
+   * session that cannot exist yet, so the first-run path has to bring its own. Without this the
+   * hub is unreachable: `createFirstAdministrator` refuses for want of an institution, and there
+   * is no way to make one.
+   *
+   * The institution, the administrator and the has-users check share one transaction, so two
+   * setups racing cannot both create one.
+   */
+  async setupFirstRun(input: {
+    readonly institution: CreateInput<'institution'>;
+    readonly username: string;
+    readonly password: string;
+    readonly meta?: SessionMeta;
+  }): Promise<LoginOutcome> {
+    const username = normalizeNewUsername(input.username);
+    assertPasswordPolicy(input.password, { username });
+    const passwordHash = hashPassword(input.password);
+
+    const created = await this.repository.transaction(async () => {
+      if (await this.hasUsers()) return null;
+      const institution = await this.repository.create('institution', input.institution, {
+        origin: 'hub',
+        reason: 'first run created the institution',
+      });
       return this.repository.create(
         'user',
         {
