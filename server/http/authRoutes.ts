@@ -1,6 +1,8 @@
 // ABOUTME: The authentication endpoints: first run, password and TOTP sign-in, guardian phone OTP,
 // ABOUTME: password reset, and the session and authenticator management a signed-in user needs.
 
+import type { CreateInput } from '@/data/repository';
+
 import type { AuthenticatedActor, AuthenticationService, SessionMeta } from '../auth';
 
 import { headerValue, HttpError, readJsonBody, requireObject } from './http';
@@ -33,12 +35,26 @@ export function addAuthRoutes(router: Router, options: AuthRouteOptions): void {
     '/api/auth/setup',
     async (request) => {
       const body = await jsonObjectOf(request);
-      const outcome = await auth.createFirstAdministrator({
-        institutionId: requiredString(body, 'institutionId'),
-        username: requiredString(body, 'username'),
-        password: requiredString(body, 'password'),
-        meta: metaOf(request),
-      });
+      const username = requiredString(body, 'username');
+      const password = requiredString(body, 'password');
+      const draft = body.institution;
+      // A hub that has just been installed has no institution to name, so the first run may
+      // carry the institution's own fields instead of an id. Once a hub has an administrator
+      // both forms are refused by the service.
+      const outcome =
+        draft === undefined
+          ? await auth.createFirstAdministrator({
+              institutionId: requiredString(body, 'institutionId'),
+              username,
+              password,
+              meta: metaOf(request),
+            })
+          : await auth.setupFirstRun({
+              institution: requireObject(draft) as unknown as CreateInput<'institution'>,
+              username,
+              password,
+              meta: metaOf(request),
+            });
       return { status: 201, body: outcome };
     },
     { auth: 'none' }

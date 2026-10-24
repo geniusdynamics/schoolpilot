@@ -14,6 +14,7 @@ import { BillingError } from '@/domain/finance/billing';
 import { ServiceError } from '@/domain/services';
 
 import { AuthError } from '../auth/errors';
+import { BackupError } from '../backup/errors';
 import { HttpError } from './http';
 
 /** The JSON body of every refusal. */
@@ -120,6 +121,10 @@ export function errorResponse(error: unknown): ErrorResponse {
     return refuse(billingStatus(error.code), error.code, error.message);
   }
 
+  if (error instanceof BackupError) {
+    return refuse(backupStatus(error.code), error.code, error.message);
+  }
+
   return refuse(
     500,
     'internal',
@@ -175,5 +180,32 @@ function billingStatus(code: BillingError['code']): number {
     case 'institution_missing':
     case 'learner_missing':
       return 422;
+  }
+}
+
+/**
+ * The status a backup refusal maps to.
+ *
+ * A missing key and a missing archive are states of the hub, not the request: the first is
+ * `503` because the endpoint exists but cannot work until an operator configures one, the second
+ * is `404` because the id names nothing. A target that already holds a database is `409`: the
+ * caller asked to overwrite data the hub will not overwrite.
+ */
+function backupStatus(code: BackupError['code']): number {
+  switch (code) {
+    case 'key_missing':
+      return 503;
+    case 'backup_not_found':
+      return 404;
+    case 'restore_target_exists':
+      return 409;
+    case 'key_invalid':
+    case 'wrong_key':
+    case 'archive_invalid':
+    case 'archive_corrupt':
+    case 'digest_mismatch':
+    case 'database_invalid':
+    case 'backup_failed':
+      return 500;
   }
 }

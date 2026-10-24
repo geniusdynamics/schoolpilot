@@ -11,12 +11,35 @@ import { ServerNode } from '@/data/sync';
 import { ENTITY_NAMES } from '@/domain/schema';
 
 import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
+import { BackupError } from '../../server/backup/errors';
+import { resolveBackupSecret, type BackupSecretSource } from '../../server/backup/key';
+import { restoreArchive } from '../../server/backup/restore';
+import { BackupScheduler } from '../../server/backup/schedule';
+import { BackupService } from '../../server/backup/service';
+import type { BackupRetentionPolicy } from '../../server/backup/types';
 import { createHubRouter } from '../../server/http/hubRouter';
 import { sendJson, setCorsHeaders } from '../../server/http/http';
 import type { Router } from '../../server/http/router';
 
+/** The automatic backup a hub runs, and where it finds its key. */
+export interface LANServerBackupConfig {
+  /** False turns the backup service off entirely, including the HTTP endpoints. */
+  readonly enabled?: boolean;
+  /** Defaults to `<dataDir>/backups`. */
+  readonly directory?: string;
+  /** A file holding the passphrase; it must live outside the backup directory. */
+  readonly keyFile?: string;
+  /** The passphrase itself; prefer `SCHOOLPILOT_BACKUP_PASSPHRASE` for an unattended hub. */
+  readonly passphrase?: string;
+  /** The daily run time in UTC, `HH:MM`; defaults to `02:00`. */
+  readonly dailyAt?: string;
+  readonly retention?: Partial<BackupRetentionPolicy>;
+  /** How often the scheduler checks the cadence; defaults to one minute. */
+  readonly intervalMs?: number;
+}
+
 interface LANServerConfig {
-  /** The directory the hub keeps its database and, later, its backups in. */
+  /** The directory the hub keeps its database and, by default, its backups in. */
   dataDir: string;
   /** The port to listen on; `0` lets the operating system pick one. */
   port: number;
@@ -26,10 +49,21 @@ interface LANServerConfig {
   databaseFile?: string;
   /** Whether browsers on the LAN may call the hub from another origin. */
   enableCors?: boolean;
+  /** The actor a write is stamped with when the request names none. */
+  actor?: string;
   /** The channel that delivers guardian one-time codes and password-reset links. */
   notifier?: AuthNotifier;
   /** The label an authenticator app shows beside an enrolment. */
   authIssuer?: string;
+  /** The automatic backup; `false` disables backups and their endpoints. */
+  backup?: LANServerBackupConfig | false;
+  /** Restore an archive into a fresh directory before the hub opens its database. */
+  restore?: {
+    /** The archive to restore. */
+    readonly from: string;
+    /** Where `schoolpilot.db` is written; defaults to the directory of `databaseFile`. */
+    readonly to?: string;
+  };
 }
 
 interface ServerState {
@@ -46,6 +80,13 @@ export interface LANServerStatus {
   readonly databaseFile: string;
   readonly entityCount: number;
   readonly startedAt: string | null;
+  /** The backup surface, or null when backups are disabled for this hub. */
+  readonly backup: {
+    readonly enabled: boolean;
+    readonly available: boolean;
+    readonly lastBackupAt: string | null;
+    readonly drillDue: boolean;
+  } | null;
 }
 
 /**
@@ -69,6 +110,8 @@ export class LANServer {
   private httpServer: Server | null = null;
   private adapter: SqliteAdapter | null = null;
   private repository: Repository | null = null;
+  private backupService: BackupService | null = null;
+  private scheduler: BackupScheduler | null = null;
   private syncNode: ServerNode | null = null;
   private auth: AuthenticationService | null = null;
   private state: ServerState = {
@@ -104,6 +147,7 @@ export class LANServer {
 
     try {
       mkdirSync(this.config.dataDir, { recursive: true });
+      if (this.config.restore) await this.restoreBeforeOpen();
 
       const adapter = createNodeSqliteAdapter({
         filename: this.databaseFile,
@@ -138,11 +182,18 @@ export class LANServer {
       await auth.setup();
       this.auth = auth;
 
+      // The automatic backup runs last, once the hub is fully initialised, so the archive it
+      // writes holds the sync metadata and the auth tables rather than a half-built database.
+      const backup = await this.openBackups(adapter, repository);
+      this.backupService = backup;
+      if (backup) await this.startBackups(backup);
+
       const router = createHubRouter({
         repository,
         sync,
         auth,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
+        ...(backup ? { backup } : {}),
       });
       router.add('GET', '/health', () => ({ body: this.getStatus() }), { auth: 'none' });
 
@@ -169,6 +220,8 @@ export class LANServer {
 
   /** The status of the hub. */
   getStatus(): LANServerStatus {
+    const backup = this.backupService;
+    const cached = backup?.cachedStatus() ?? null;
     return {
       running: this.state.running,
       host: this.config.host ?? '0.0.0.0',
@@ -177,12 +230,25 @@ export class LANServer {
       databaseFile: this.databaseFile,
       entityCount: ENTITY_NAMES.length,
       startedAt: this.state.startTime?.toISOString() ?? null,
+      backup: backup
+        ? {
+            enabled: true,
+            available: backup.isConfigured,
+            lastBackupAt: cached?.lastBackupAt ?? null,
+            drillDue: cached?.drill.due ?? true,
+          }
+        : null,
     };
   }
 
   /** The repository the hub serves; null before start and after stop. */
   getRepository(): Repository | null {
     return this.repository;
+  }
+
+  /** The backup service; null when backups are disabled or the hub is stopped. */
+  getBackupService(): BackupService | null {
+    return this.backupService;
   }
 
   /** The sync node the hub serves; null before start and after stop. */
@@ -197,6 +263,86 @@ export class LANServer {
 
   // ==================== Private Methods ====================
 
+  /** Opens the backup service; null when backups are disabled for this hub. */
+  private async openBackups(
+    adapter: SqliteAdapter,
+    repository: Repository
+  ): Promise<BackupService | null> {
+    const config = this.config.backup;
+    if (config === false || config?.enabled === false) return null;
+
+    const backupDir = path.resolve(
+      config?.directory ?? path.join(this.config.dataDir, 'backups')
+    );
+    const secret = resolveBackupSecret(this.secretSource(backupDir));
+
+    const service = new BackupService({
+      adapter,
+      repository,
+      backupDir,
+      secret,
+      databaseFile: this.databaseFile,
+      ...(config?.retention !== undefined ? { retention: config.retention } : {}),
+      ...(config?.dailyAt !== undefined ? { dailyAt: config.dailyAt } : {}),
+    });
+    await service.refresh();
+    return service;
+  }
+
+  /** Runs a due automatic backup before the hub listens, then keeps checking the cadence. */
+  private async startBackups(service: BackupService): Promise<void> {
+    if (!service.isConfigured) return;
+
+    const config = this.config.backup === false ? undefined : this.config.backup;
+    const scheduler = new BackupScheduler({
+      service,
+      ...(config?.dailyAt !== undefined ? { dailyAt: config.dailyAt } : {}),
+      ...(config?.intervalMs !== undefined ? { intervalMs: config.intervalMs } : {}),
+    });
+    await scheduler.runDue();
+    scheduler.start();
+    this.scheduler = scheduler;
+  }
+
+  /** Where the backup key comes from: the config first, the environment second. */
+  private secretSource(backupDir: string): BackupSecretSource {
+    const config = this.config.backup === false ? undefined : this.config.backup;
+    return {
+      backupDir,
+      env: process.env,
+      ...(config?.passphrase !== undefined ? { passphrase: config.passphrase } : {}),
+      ...(config?.keyFile !== undefined ? { keyFile: config.keyFile } : {}),
+    };
+  }
+
+  /** Restores the configured archive before the database is opened. */
+  private async restoreBeforeOpen(): Promise<void> {
+    const restore = this.config.restore;
+    if (!restore) return;
+
+    const targetDir = path.resolve(restore.to ?? path.dirname(this.databaseFile));
+    const config = this.config.backup === false ? undefined : this.config.backup;
+    const backupDir = path.resolve(
+      config?.directory ?? path.join(this.config.dataDir, 'backups')
+    );
+    const secret = resolveBackupSecret(this.secretSource(backupDir));
+    if (!secret) {
+      throw new BackupError(
+        'key_missing',
+        'a restore needs the backup key: set SCHOOLPILOT_BACKUP_PASSPHRASE or pass --backup-key-file'
+      );
+    }
+
+    mkdirSync(targetDir, { recursive: true });
+    const result = await restoreArchive({
+      backupFile: path.resolve(restore.from),
+      targetDir,
+      secret,
+    });
+    console.log(
+      `Restored backup ${result.backupId} into ${result.databaseFile} (${result.digest.rows} rows)`
+    );
+  }
   private handleRequest(router: Router, req: IncomingMessage, res: ServerResponse): void {
     if (this.config.enableCors) {
       setCorsHeaders(res);
@@ -231,6 +377,10 @@ export class LANServer {
 
   /** Releases the socket and the database, whatever state the hub is in. */
   private async release(): Promise<void> {
+    const scheduler = this.scheduler;
+    this.scheduler = null;
+    scheduler?.stop();
+
     const server = this.httpServer;
     this.httpServer = null;
 
@@ -243,6 +393,7 @@ export class LANServer {
     const adapter = this.adapter;
     this.adapter = null;
     this.repository = null;
+    this.backupService = null;
     this.syncNode = null;
     this.auth = null;
     if (adapter) await adapter.close();
