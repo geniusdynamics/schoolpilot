@@ -7,13 +7,30 @@ export interface LocaleDefinition {
   readonly name: string;
   readonly nativeName: string;
   readonly direction: 'ltr' | 'rtl';
+  /** Placeholder pattern, not a formatter. P5-A02 owns real date and number formatting. */
+  readonly dateFormat?: string;
+  readonly timeFormat?: string;
   /** True for locales generated from another locale at load time rather than read from disk. */
   readonly generated?: boolean;
 }
 
 export const LOCALES: readonly LocaleDefinition[] = [
-  { code: 'en', name: 'English', nativeName: 'English', direction: 'ltr' },
-  { code: 'fr', name: 'French', nativeName: 'Français', direction: 'ltr' },
+  {
+    code: 'en',
+    name: 'English',
+    nativeName: 'English',
+    direction: 'ltr',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: 'hh:mm A',
+  },
+  {
+    code: 'fr',
+    name: 'French',
+    nativeName: 'Français',
+    direction: 'ltr',
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: 'HH:mm',
+  },
   { code: 'sw', name: 'Kiswahili', nativeName: 'Kiswahili', direction: 'ltr' },
   { code: 'rw', name: 'Kinyarwanda', nativeName: 'Ikinyarwanda', direction: 'ltr' },
   {

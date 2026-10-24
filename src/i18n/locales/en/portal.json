@@ -1,62 +1,102 @@
 {
   "title": "Portal",
-  "description": "Student and parent portal access",
+  "description": "Student and parent portal for accessing school information",
   "common": {
     "loading": "Loading...",
     "noData": "No data available",
     "cancel": "Cancel",
     "save": "Save",
     "close": "Close",
-    "open": "Open"
+    "open": "Open",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "filter": "Filter",
+    "error": "An error occurred"
   },
   "dashboard": {
-    "welcome": "Welcome to your portal",
+    "welcome": "Welcome back",
     "recentAnnouncements": "Recent Announcements",
     "attendanceSummary": "Attendance Summary",
     "feeOverview": "Fee Overview",
-    "recentResults": "Recent Results"
+    "recentResults": "Recent Results",
+    "title": "My Dashboard",
+    "quickLinks": "Quick Links"
   },
   "navigation": {
     "attendance": "Attendance",
     "results": "Results",
     "fees": "Fees",
     "announcements": "Announcements",
-    "profile": "Profile"
+    "profile": "Profile",
+    "title": "Portal",
+    "dashboard": "Dashboard"
   },
   "attendance": {
-    "title": "Attendance",
+    "title": "My Attendance",
     "percentage": "Attendance Percentage",
     "present": "Present",
     "absent": "Absent",
     "late": "Late",
-    "excused": "Excused"
+    "excused": "Excused",
+    "totalDays": "Total Days",
+    "records": "Attendance Records",
+    "date": "Date",
+    "period": "Period",
+    "status": "Status",
+    "remarks": "Remarks",
+    "recordedBy": "Recorded By"
   },
   "fees": {
-    "title": "Fees",
+    "title": "Fee Statement",
     "balance": "Balance",
     "totalFees": "Total Fees",
     "totalPaid": "Total Paid",
     "amount": "Amount",
     "dueDate": "Due Date",
-    "status": "Status"
+    "status": "Status",
+    "invoices": "Invoices",
+    "payments": "Payments",
+    "invoiceNumber": "Invoice Number",
+    "receiptNumber": "Receipt Number",
+    "paymentMethod": "Payment Method",
+    "paymentDate": "Payment Date",
+    "items": "Fee Items"
   },
   "results": {
-    "title": "Results",
+    "title": "My Results",
     "exam": "Exam",
     "subject": "Subject",
     "marks": "Marks",
     "grade": "Grade",
-    "position": "Position"
+    "position": "Position",
+    "examSession": "Exam Session",
+    "totalMarks": "Total Marks",
+    "meanGrade": "Mean Grade",
+    "classRank": "Class Rank",
+    "streamRank": "Stream Rank",
+    "points": "Points",
+    "comment": "Comment",
+    "noResults": "No results available yet"
   },
   "announcements": {
     "title": "Announcements",
-    "noAnnouncements": "No announcements available",
-    "priority": {
-      "urgent": "Urgent",
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
-    }
+    "noAnnouncements": "No announcements at this time",
+    "priority": "Priority",
+    "audience": "Audience",
+    "publishedAt": "Published At",
+    "expiresAt": "Expires At",
+    "author": "Author",
+    "content": "Content",
+    "read": "Mark as Read",
+    "unread": "Unread",
+    "priorityHigh": "High",
+    "priorityMedium": "Medium",
+    "priorityLow": "Low",
+    "priorityUrgent": "Urgent"
   },
   "timetable": {
     "title": "Timetable",
@@ -211,5 +251,13 @@
       "loginHistoryPlaceholder": "Login History Placeholder",
       "accountOptionsPlaceholder": "Account Options Placeholder"
     }
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "contactInfo": "Contact Information",
+    "academicInfo": "Academic Information",
+    "editProfile": "Edit Profile",
+    "saveProfile": "Save Changes"
   }
 }

@@ -1,12 +1,40 @@
 {
-  "title": "Library",
-  "books": "Books",
+  "title": "Maktaba",
+  "books": {
+    "title": "Book Catalogue Management",
+    "description": "Manage every book in the library catalogue.",
+    "addButton": "Add Book",
+    "modalAddTitle": "Add New Book",
+    "modalEditTitle": "Edit Book",
+    "titleLabel": "Book Title",
+    "accessionNoLabel": "Accession Number",
+    "authorLabel": "Author(s)",
+    "publisherLabel": "Publisher",
+    "isbnLabel": "ISBN",
+    "categoryLabel": "Category",
+    "selectCategoryOption": "Select Category",
+    "purchaseCostLabel": "Purchase Cost (KES)",
+    "statusLabel": "Status",
+    "deleteConfirm": "Are you sure you want to delete this book? This may affect existing loans and fines."
+  },
   "catalog": "Catalog",
   "borrowing": "Borrowing",
   "returns": "Returns",
   "reservations": "Reservations",
   "members": "Library Members",
-  "fines": "Fines",
+  "fines": {
+    "title": "Library Fines Management",
+    "description": "View and manage library fines. Overdue book fines are often generated automatically on return.",
+    "addFineButton": "Add Manual Fine",
+    "modalAddTitle": "Add Manual Fine",
+    "modalEditTitle": "Update Fine Status",
+    "loanLabel": "Related Loan",
+    "selectLoanOption": "Select Loan (for context)",
+    "amountLabel": "Fine Amount (KES)",
+    "reasonLabel": "Reason for the Fine",
+    "statusLabel": "Fine Status",
+    "deleteConfirm": "Are you sure you want to delete this fine?"
+  },
   "search": "Search Books",
   "digital": "Digital Resources",
   "reports": "Library Reports",
@@ -65,5 +93,22 @@
     "bookTitle": "Book Title",
     "loanDate": "Loan Date",
     "dueDate": "Due Date"
+  },
+  "navigation": {
+    "library": {
+      "title": "Maktaba",
+      "description": "Simamia vitabu, mikopo, faini, na rasilimali za kidijitali",
+      "dashboard": "Dashibodi",
+      "books": "Vitabu",
+      "bookCategories": "Makundi ya Vitabu",
+      "bookLoans": "Mikopo ya Vitabu",
+      "fines": "Faini",
+      "userPortal": "Mlango wa Mtumiaji",
+      "digitalResources": "Rasilimali za Kidijitali",
+      "damagedLostBooks": "Vitabu Vilivyoharibika/Kupotea",
+      "importBooks": "Ingiza Vitabu",
+      "settings": "Mipangilio",
+      "resources": "Resources"
+    }
   }
 }

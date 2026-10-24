@@ -1,62 +1,112 @@
 {
   "title": "Portail",
-  "description": "Accès portail élèves et parents",
+  "description": "Portail etudiant et parent pour acceder aux informations scolaires",
   "common": {
     "loading": "Chargement...",
-    "noData": "Aucune donnée disponible",
+    "noData": "Aucune donnee disponible",
     "cancel": "Annuler",
     "save": "Enregistrer",
     "close": "Fermer",
-    "open": "Ouvrir"
+    "open": "Ouvrir",
+    "create": "Creer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "back": "Retour",
+    "next": "Suivant",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "error": "Une erreur s'est produite"
   },
   "dashboard": {
-    "welcome": "Bienvenue sur votre portail",
-    "recentAnnouncements": "Annonces Récentes",
-    "attendanceSummary": "Résumé des Présences",
-    "feeOverview": "Aperçu des Frais",
-    "recentResults": "Résultats Récents"
+    "welcome": "Bienvenue",
+    "recentAnnouncements": "Annonces Recentes",
+    "attendanceSummary": "Resume de Presence",
+    "feeOverview": "Apercu des Frais",
+    "recentResults": "Resultats Recents",
+    "title": "Mon Tableau de Bord",
+    "quickLinks": "Liens Rapides"
   },
   "navigation": {
     "attendance": "Présences",
     "results": "Résultats",
     "fees": "Frais",
     "announcements": "Annonces",
-    "profile": "Profil"
+    "profile": "Profil",
+    "portal": {
+      "title": "Portail",
+      "description": "Portail etudiant et parent",
+      "dashboard": "Tableau de Bord du Portail",
+      "attendance": "Presence",
+      "results": "Resultats",
+      "fees": "Frais",
+      "announcements": "Annonces",
+      "profile": "Profil"
+    },
+    "title": "Portal",
+    "dashboard": "Dashboard"
   },
   "attendance": {
-    "title": "Présences",
-    "percentage": "Pourcentage de Présence",
-    "present": "Présent",
+    "title": "Ma Presence",
+    "percentage": "Pourcentage de Presence",
+    "present": "Present",
     "absent": "Absent",
     "late": "En Retard",
-    "excused": "Excusé"
+    "excused": "Excuse",
+    "totalDays": "Total des Jours",
+    "records": "Registres de Presence",
+    "date": "Date",
+    "period": "Periode",
+    "status": "Statut",
+    "remarks": "Remarques",
+    "recordedBy": "Enregistre Par"
   },
   "fees": {
-    "title": "Frais",
+    "title": "Releve des Frais",
     "balance": "Solde",
     "totalFees": "Frais Totaux",
-    "totalPaid": "Total Payé",
+    "totalPaid": "Total Paye",
     "amount": "Montant",
-    "dueDate": "Date d'Échéance",
-    "status": "Statut"
+    "dueDate": "Date d'Echeance",
+    "status": "Statut",
+    "invoices": "Factures",
+    "payments": "Paiements",
+    "invoiceNumber": "Numero de Facture",
+    "receiptNumber": "Numero de Recu",
+    "paymentMethod": "Mode de Paiement",
+    "paymentDate": "Date de Paiement",
+    "items": "Elements de Frais"
   },
   "results": {
-    "title": "Résultats",
+    "title": "Mes Resultats",
     "exam": "Examen",
-    "subject": "Matière",
-    "marks": "Notes",
+    "subject": "Matiere",
+    "marks": "Points",
     "grade": "Note",
-    "position": "Position"
+    "position": "Position",
+    "examSession": "Session d'Examen",
+    "totalMarks": "Total des Points",
+    "meanGrade": "Note Moyenne",
+    "classRank": "Rang de Classe",
+    "streamRank": "Rang de Filiere",
+    "points": "Points",
+    "comment": "Commentaire",
+    "noResults": "Aucun resultat disponible pour le moment"
   },
   "announcements": {
     "title": "Annonces",
-    "noAnnouncements": "Aucune annonce disponible",
-    "priority": {
-      "urgent": "Urgent",
-      "high": "Haute",
-      "medium": "Moyenne",
-      "low": "Basse"
-    }
+    "noAnnouncements": "Aucune annonce pour le moment",
+    "priority": "Priorite",
+    "audience": "Public",
+    "publishedAt": "Publie le",
+    "expiresAt": "Expire le",
+    "author": "Auteur",
+    "content": "Contenu",
+    "read": "Marquer comme Lu",
+    "unread": "Non Lu",
+    "priorityHigh": "Haute",
+    "priorityMedium": "Moyenne",
+    "priorityLow": "Basse",
+    "priorityUrgent": "Urgente"
   },
   "timetable": {
     "title": "Emploi du Temps",
@@ -211,5 +261,13 @@
       "loginHistoryPlaceholder": "Login History Placeholder",
       "accountOptionsPlaceholder": "Account Options Placeholder"
     }
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "personalInfo": "Informations Personnelles",
+    "contactInfo": "Informations de Contact",
+    "academicInfo": "Informations Academiques",
+    "editProfile": "Modifier le Profil",
+    "saveProfile": "Enregistrer les Modifications"
   }
 }

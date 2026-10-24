@@ -1,5 +1,5 @@
 {
-  "title": "Human Resources",
+  "title": "Rasilimali za Kibinadamu",
   "employees": "Employees",
   "recruitment": "Recruitment",
   "onboarding": "Onboarding",
@@ -178,6 +178,19 @@
     "modalAddTitle": "Add Salary Setting",
     "formSection": {
       "title": "Salary Setting Details"
+    }
+  },
+  "navigation": {
+    "hr": {
+      "title": "Rasilimali za Kibinadamu",
+      "description": "Simamia rasilimali za kibinadamu, mishahara, na malipo ya wafanyakazi",
+      "dashboard": "Dashibodi",
+      "payrollItemTypes": "Aina za Vipengele vya Mishahara",
+      "payrollPeriods": "Vipindi vya Mishahara",
+      "payslips": "Vipeperushi vya Mishahara",
+      "staffSalarySettings": "Mipangilio ya Mishahara ya Wafanyakazi",
+      "staffBioData": "Data za Bayolojia za Wafanyakazi",
+      "payroll": "Payroll"
     }
   }
 }

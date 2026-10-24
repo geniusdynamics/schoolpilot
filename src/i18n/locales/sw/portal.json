@@ -1,62 +1,112 @@
 {
   "title": "Portal",
-  "description": "Student and parent portal access",
+  "description": "Portal la mwanafunzi na mzazi kwa kupata habari za shule",
   "common": {
-    "loading": "Loading...",
-    "noData": "No data available",
-    "cancel": "Cancel",
-    "save": "Save",
+    "loading": "Inapakia...",
+    "noData": "Hakuna data inayopatikana",
+    "cancel": "Ghairi",
+    "save": "Hifadhi",
     "close": "Close",
-    "open": "Open"
+    "open": "Open",
+    "create": "Unda",
+    "edit": "Hariri",
+    "delete": "Futa",
+    "back": "Rudi",
+    "next": "Endelea",
+    "search": "Tafuta",
+    "filter": "Chuja",
+    "error": "Hitilafu imetokea"
   },
   "dashboard": {
-    "welcome": "Welcome to your portal",
-    "recentAnnouncements": "Recent Announcements",
-    "attendanceSummary": "Attendance Summary",
-    "feeOverview": "Fee Overview",
-    "recentResults": "Recent Results"
+    "welcome": "Karibu tena",
+    "recentAnnouncements": "Tangazo za Hivi Karibuni",
+    "attendanceSummary": "Muhtasari wa Mahudhurio",
+    "feeOverview": "Muhtasari wa Ada",
+    "recentResults": "Matokeo ya Hivi Karibuni",
+    "title": "Dashibodi Yangu",
+    "quickLinks": "Viungo vya Haraka"
   },
   "navigation": {
     "attendance": "Attendance",
     "results": "Results",
     "fees": "Fees",
     "announcements": "Announcements",
-    "profile": "Profile"
+    "profile": "Profile",
+    "portal": {
+      "title": "Portal",
+      "description": "Portal la mwanafunzi na mzazi",
+      "dashboard": "Dashibodi ya Portal",
+      "attendance": "Mahudhurio",
+      "results": "Matokeo",
+      "fees": "Ada",
+      "announcements": "Tangazo",
+      "profile": "Wasifu"
+    },
+    "title": "Portal",
+    "dashboard": "Dashboard"
   },
   "attendance": {
-    "title": "Attendance",
-    "percentage": "Attendance Percentage",
-    "present": "Present",
-    "absent": "Absent",
-    "late": "Late",
-    "excused": "Excused"
+    "title": "Mahudhurio Yangu",
+    "percentage": "Asilimia ya Mahudhurio",
+    "present": "Aliyepo",
+    "absent": "Hayupo",
+    "late": "Alichelewa",
+    "excused": "Kusamehewa",
+    "totalDays": "Jumla ya Siku",
+    "records": "Rekodi za Mahudhurio",
+    "date": "Tarehe",
+    "period": "Kipindi",
+    "status": "Hali",
+    "remarks": "Maoni",
+    "recordedBy": "Aliyeandika"
   },
   "fees": {
-    "title": "Fees",
-    "balance": "Balance",
-    "totalFees": "Total Fees",
-    "totalPaid": "Total Paid",
-    "amount": "Amount",
-    "dueDate": "Due Date",
-    "status": "Status"
+    "title": "Taarifa ya Ada",
+    "balance": "Baki",
+    "totalFees": "Ada Jumla",
+    "totalPaid": "Jumla Iliyolipwa",
+    "amount": "Kiasi",
+    "dueDate": "Tarehe ya Malipo",
+    "status": "Hali",
+    "invoices": "Ankara",
+    "payments": "Malipo",
+    "invoiceNumber": "Namba ya Ankara",
+    "receiptNumber": "Namba ya Risiti",
+    "paymentMethod": "Njia ya Malipo",
+    "paymentDate": "Tarehe ya Malipo",
+    "items": "Vipengele vya Ada"
   },
   "results": {
-    "title": "Results",
+    "title": "Matokeo Yangu",
     "exam": "Exam",
-    "subject": "Subject",
-    "marks": "Marks",
-    "grade": "Grade",
-    "position": "Position"
+    "subject": "Somo",
+    "marks": "Alama",
+    "grade": "Daraja",
+    "position": "Position",
+    "examSession": "Kikao cha Mtihani",
+    "totalMarks": "Jumla ya Alama",
+    "meanGrade": "Daraja la Wastani",
+    "classRank": "Cheo cha Darasa",
+    "streamRank": "Cheo cha Mkondo",
+    "points": "Pointi",
+    "comment": "Maoni",
+    "noResults": "Hakuna matokeo yaliyopatikana bado"
   },
   "announcements": {
-    "title": "Announcements",
-    "noAnnouncements": "No announcements available",
-    "priority": {
-      "urgent": "Urgent",
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
-    }
+    "title": "Tangazo",
+    "noAnnouncements": "Hakuna tangazo kwa sasa",
+    "priority": "Kipaumbele",
+    "audience": "Hadhira",
+    "publishedAt": "Ilichapishwa",
+    "expiresAt": "Inaisha",
+    "author": "Mwandishi",
+    "content": "Maudhui",
+    "read": "Weka kama Imesomwa",
+    "unread": "Haijasomwa",
+    "priorityHigh": "Juu",
+    "priorityMedium": "Wastani",
+    "priorityLow": "Chini",
+    "priorityUrgent": "Haraka"
   },
   "timetable": {
     "title": "Timetable",
@@ -211,5 +261,13 @@
       "loginHistoryPlaceholder": "Login History Placeholder",
       "accountOptionsPlaceholder": "Account Options Placeholder"
     }
+  },
+  "profile": {
+    "title": "Wasifu Wangu",
+    "personalInfo": "Taarifa za Kibinafsi",
+    "contactInfo": "Taarifa za Mawasiliano",
+    "academicInfo": "Taarifa za Kitaaluma",
+    "editProfile": "Hariri Wasifu",
+    "saveProfile": "Hifadhi Mabadiliko"
   }
 }

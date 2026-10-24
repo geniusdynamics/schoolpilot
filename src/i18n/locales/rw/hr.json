@@ -1,5 +1,5 @@
 {
-  "title": "Human Resources",
+  "title": "Umutungo w'Abantu",
   "employees": "Employees",
   "recruitment": "Recruitment",
   "onboarding": "Onboarding",
@@ -178,6 +178,19 @@
     "modalAddTitle": "Add Salary Setting",
     "formSection": {
       "title": "Salary Setting Details"
+    }
+  },
+  "navigation": {
+    "hr": {
+      "title": "Umutungo w'Abantu",
+      "description": "Gucunga umutungo w'abantu, imishahara, n'indishyi z'abakozi",
+      "dashboard": "Ikibaho",
+      "payrollItemTypes": "Ubwoko bw'Ibintu by'Imishahara",
+      "payrollPeriods": "Ibihe by'Imishahara",
+      "payslips": "Impapuro z'Imishahara",
+      "staffSalarySettings": "Amategeko y'Imishahara y'Abakozi",
+      "staffBioData": "Amakuru y'ibanze y'abakozi",
+      "payroll": "Payroll"
     }
   }
 }
