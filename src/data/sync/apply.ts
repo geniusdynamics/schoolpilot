@@ -15,6 +15,7 @@ import {
   issuesFromZodError,
   writeAuditEvent,
 } from '@/data/repository';
+import type { FieldCipher } from '@/data/security';
 
 import type { ConflictNote, Envelope, Snapshot } from './envelope';
 import { latestHlc } from './hlc';
@@ -37,7 +38,10 @@ import type { ApplyResult, SyncStore } from './store';
  * conflict log as an `unresolved` note, so it is visible instead of silently dropped.
  */
 export class SyncApplier {
-  constructor(private readonly store: SyncStore) {}
+  constructor(
+    private readonly store: SyncStore,
+    private readonly cipher?: FieldCipher
+  ) {}
 
   /** Folds a pushed change into the canonical table. */
   async applyIntent(tx: SqliteTransaction, intent: Envelope): Promise<ApplyResult> {
@@ -252,7 +256,7 @@ export class SyncApplier {
     entity: EntityName,
     raw: SqliteRow
   ): Promise<StoredState> {
-    const decoded = decodeRow(columnsFor(entity), raw);
+    const decoded = decodeRow(columnsFor(entity), raw, this.cipher);
     const id = String(decoded.row.id);
     return { id, row: decoded.row, clock: await this.store.rowClock(runner, entity, id) };
   }
@@ -287,7 +291,7 @@ export class SyncApplier {
     id: string
   ): Promise<void> {
     const columns = columnsFor(entity);
-    const encoded = encodeRow(columns, row);
+    const encoded = encodeRow(columns, row, this.cipher);
 
     if (action === 'insert') {
       encoded[columns.concurrencyColumn] = INITIAL_VERSION;

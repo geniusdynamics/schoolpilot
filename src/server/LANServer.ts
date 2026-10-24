@@ -16,7 +16,19 @@ import { ENTITY_NAMES } from '@/domain/schema';
 import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
 import { createHubRouter } from '../../server/http/hubRouter';
 import { sendJson, setCorsHeaders } from '../../server/http/http';
+import { RateLimiter } from '../../server/http/rateLimit';
 import type { Router } from '../../server/http/router';
+import { applySecurityHeaders } from '../../server/http/securityHeaders';
+import {
+  createRestrictedDataCipher,
+  defaultRestrictedKeyFile,
+} from '../../server/security/aesGcmFieldCipher';
+import {
+  FileRestrictedAccessLog,
+  defaultRestrictedAccessLogFile,
+  type RestrictedAccessLog,
+} from '../../server/security/restrictedAccessLog';
+import { sealRestrictedData } from '../../server/security/sealRestrictedData';
 import { advertisementFor, HUB_PROTOCOL_VERSION, MdnsAdvertiser, SCHOOLPILOT_SERVICE } from './discovery';
 import { lanIpv4Addresses, mdnsHostName } from './network';
 
@@ -51,6 +63,16 @@ interface LANServerConfig {
     /** The addresses to advertise; defaults to this machine's LAN addresses. */
     addresses?: readonly string[];
   };
+  /** The restricted-data key (base64 or hex); the env var or the key file supplies it otherwise. */
+  restrictedKey?: string;
+  /** The restricted-data key file; `<dataDir>/keys/restricted-data.key` when omitted. */
+  restrictedKeyFile?: string;
+  /** Where restricted-data access is recorded; a JSONL file under the data directory by default. */
+  accessLog?: RestrictedAccessLog;
+  /** Whether the auth and write rate limits are enforced. Defaults to true. */
+  rateLimits?: boolean;
+  /** Whether the hub's security response headers are set. Defaults to true. */
+  securityHeaders?: boolean;
 }
 
 interface ServerState {
@@ -102,6 +124,10 @@ export interface LANServerDiscoveryStatus {
  * descriptor requires a bearer session, and a write is stamped with the user that session belongs
  * to.
  *
+ * It hardens its own surface: restricted columns are sealed at rest through a key it manages, every
+ * access to them is logged, the auth and write surfaces are rate limited, and every response
+ * carries security headers.
+ *
  * TLS is served when a certificate pair is passed; `src/server/cli.ts` issues and stores one for a
  * LAN install. Discovery is opt-in per hub, and a hub whose mDNS port is taken still serves clients.
  */
@@ -125,6 +151,8 @@ export class LANServer {
       port: 3000,
       host: '0.0.0.0',
       enableCors: true,
+      rateLimits: true,
+      securityHeaders: true,
       ...config,
     };
   }
@@ -145,6 +173,16 @@ export class LANServer {
     const scheme = this.config.tls ? 'https' : 'http';
     const fallback = this.config.host === '0.0.0.0' ? 'localhost' : (this.config.host ?? 'localhost');
     return `${scheme}://${this.discoveryStatus?.hostName ?? fallback}:${this.address?.port ?? this.config.port}`;
+  }
+
+  /**
+   * The file the restricted-data key is read from.
+   *
+   * It is the one file that has to be backed up with the database: without it the sealed columns
+   * cannot be read, and the hub refuses to start rather than generating a replacement.
+   */
+  get restrictedKeyFile(): string {
+    return this.config.restrictedKeyFile ?? defaultRestrictedKeyFile(this.config.dataDir);
   }
 
   /** The address the hub listens on; null when it is not listening. */
@@ -168,8 +206,27 @@ export class LANServer {
       await adapter.open();
       this.adapter = adapter;
 
-      const repository = createRepository({ adapter });
+      // The key is loaded (or created) before the repository is built, so the cipher is in place
+      // for every read and write, and the sweep seals any restricted value an older hub left in
+      // the clear. A missing key over an already-encrypted database refuses to start here.
+      const cipher = await createRestrictedDataCipher({
+        dataDir: this.config.dataDir,
+        adapter,
+        ...(this.config.restrictedKey !== undefined
+          ? { key: this.config.restrictedKey }
+          : {}),
+        ...(this.config.restrictedKeyFile !== undefined
+          ? { keyFile: this.config.restrictedKeyFile }
+          : {}),
+      });
+
+      const repository = createRepository({
+        adapter,
+        cipher,
+        ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
+      });
       await repository.setup();
+      await sealRestrictedData(adapter, cipher);
       this.repository = repository;
 
       // The sync node opens its metadata beside the canonical tables and seeds the change log
@@ -180,6 +237,7 @@ export class LANServer {
         adapter,
         deviceId: 'hub',
         dialect: 'sqlite',
+        cipher,
       });
       await sync.bootstrap();
       this.syncNode = sync;
@@ -194,11 +252,16 @@ export class LANServer {
       await auth.setup();
       this.auth = auth;
 
+      const accessLog =
+        this.config.accessLog ??
+        new FileRestrictedAccessLog(defaultRestrictedAccessLogFile(this.config.dataDir));
       const router = createHubRouter({
         repository,
         sync,
         auth,
+        accessLog,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
+        ...(this.config.rateLimits === false ? {} : { rateLimiter: new RateLimiter() }),
       });
       router.add('GET', '/health', () => ({ body: this.getStatus() }), { auth: 'none' });
       // A client has to read the descriptor before it can sign in, so this one is public too.
@@ -357,6 +420,10 @@ export class LANServer {
   }
 
   private handleRequest(router: Router, req: IncomingMessage, res: ServerResponse): void {
+    if (this.config.securityHeaders !== false) {
+      applySecurityHeaders(res);
+    }
+
     if (this.config.enableCors) {
       setCorsHeaders(res);
       if ((req.method ?? '').toUpperCase() === 'OPTIONS') {

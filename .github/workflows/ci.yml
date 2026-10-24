@@ -56,6 +56,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Dependency scan (a new high or critical advisory fails the build)
+        run: pnpm exec tsx scripts/security/dependency-scan.ts
+
       - name: Pack conformance vectors (every pack through the real engines)
         run: node scripts/packs/run-vectors.mjs
 
@@ -151,12 +154,13 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run GP-1-lite, GP-6 and the finance golden path on a real SQLite-WASM database
+      - name: Run GP-1-lite, GP-6, the finance golden path and the CSP spec on a real SQLite-WASM database
         run: >-
           pnpm exec playwright test
           tests/e2e/gp1-lite.spec.ts
           tests/e2e/gp6.spec.ts
           tests/e2e/finance-billing-golden-path.spec.ts
+          tests/e2e/csp.spec.ts
 
       - name: Upload Playwright traces and screenshots
         if: always()

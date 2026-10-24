@@ -54,6 +54,7 @@ async function serve(options: CliOptions): Promise<void> {
     dataDir: options.dataDir,
     host: options.host,
     ...(certificate ? { tls: { cert: certificate.certPem, key: certificate.keyPem } } : {}),
+    ...(options.restrictedKeyFile ? { restrictedKeyFile: options.restrictedKeyFile } : {}),
     discovery: {
       enabled: options.mdns,
       instanceName: mdnsLabel(options.name),
@@ -99,6 +100,7 @@ async function serve(options: CliOptions): Promise<void> {
     console.log(`               ${scheme}://${address}:${status.port}`);
   }
   console.log(`  Data:        ${status.databaseFile}`);
+  console.log(`  Key file:    ${server.restrictedKeyFile}`);
   console.log(`  Discovery:   ${status.discovery?.running ? status.discovery.hostName : 'off'}`);
   if (status.tlsFingerprint) {
     console.log(`  TLS:         ${status.tlsFingerprint}`);

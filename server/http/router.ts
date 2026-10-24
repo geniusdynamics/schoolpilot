@@ -6,6 +6,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AuthenticatedActor } from '../auth';
 import { errorResponse } from './errors';
 import { bearerToken, HttpError, sendJson } from './http';
+import type { RateLimiter } from './rateLimit';
 
 /** What a handler receives. */
 export interface RouteRequest {
@@ -39,6 +40,8 @@ export interface RouteOptions {
 /** How the router turns a bearer token into an actor. */
 export interface RouterOptions {
   readonly authenticate?: (token: string) => Promise<AuthenticatedActor | null>;
+  /** Enforces the hub's rate limits when set. */
+  readonly rateLimiter?: RateLimiter;
 }
 
 interface CompiledRoute {
@@ -58,9 +61,11 @@ interface RouteMatch {
 export class Router {
   private readonly routes: CompiledRoute[] = [];
   private readonly authenticate: ((token: string) => Promise<AuthenticatedActor | null>) | undefined;
+  private readonly rateLimiter: RateLimiter | undefined;
 
   constructor(options: RouterOptions = {}) {
     this.authenticate = options.authenticate;
+    this.rateLimiter = options.rateLimiter;
   }
 
   /**
@@ -84,6 +89,26 @@ export class Router {
   async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
     const method = (req.method ?? 'GET').toUpperCase();
+
+    // The limit is checked before the route is matched and before the session is verified, so an
+    // unrouted path cannot probe the surface for free, a limited route stays limited however it is
+    // spelled, and the public sign-in endpoints are bounded before they touch a password.
+    const limit = this.rateLimiter?.checkRequest(req, method, url.pathname);
+    if (limit && !limit.allowed) {
+      sendJson(
+        res,
+        429,
+        {
+          error: {
+            code: 'rate_limited',
+            message: `too many requests on the ${limit.rule.name} surface; retry in ${limit.retryAfterSeconds}s`,
+            retryAfterSeconds: limit.retryAfterSeconds,
+          },
+        },
+        { 'retry-after': String(limit.retryAfterSeconds) }
+      );
+      return;
+    }
 
     try {
       const match = this.match(method, url.pathname);

@@ -16,6 +16,8 @@ export interface CliOptions {
   /** A certificate the school brought instead of one issued here. */
   readonly tlsCert: string | null;
   readonly tlsKey: string | null;
+  /** The file the restricted-data key is read from; null means `<dataDir>/keys/restricted-data.key`. */
+  readonly restrictedKeyFile: string | null;
   /** Whether to publish the hub over mDNS; on by default. */
   readonly mdns: boolean;
   /** The mDNS instance label; defaults to the machine's name. */
@@ -55,6 +57,7 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
   let tls = true;
   let tlsCert: string | null = null;
   let tlsKey: string | null = null;
+  let restrictedKeyFile: string | null = null;
   let mdns = true;
   let name = machineName;
   let mdnsPort = DEFAULT_MDNS_PORT;
@@ -102,6 +105,10 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
       case '--tls-key':
         tlsKey = next(index, flag);
         tls = true;
+        index += 1;
+        break;
+      case '--restricted-key-file':
+        restrictedKeyFile = next(index, flag);
         index += 1;
         break;
       case '--mdns':
@@ -160,6 +167,7 @@ export function parseArgs(argv: readonly string[], machineName: string = os.host
     tls,
     tlsCert,
     tlsKey,
+    restrictedKeyFile,
     mdns,
     name,
     mdnsPort,
@@ -186,6 +194,7 @@ export function usage(): string {
     '      --tls             serve HTTPS with the stored certificate (default)',
     '      --no-tls          serve plain HTTP; only for a loopback development box',
     '      --tls-cert <file> --tls-key <file>   serve a certificate the school brought',
+    '      --restricted-key-file <file>   read the restricted-data key from this file',
     '      --mdns            advertise over mDNS (default)',
     '      --no-mdns         do not advertise',
     '      --name <label>    mDNS name, resolvable as <label>.local (default: this machine)',

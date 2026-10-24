@@ -279,7 +279,9 @@ export const conductIncidentEntity = defineEntity({
       institution_id: 'institution',
       learner_id: 'learner',
     },
-    encrypted: [],
+    // A conduct incident is a safeguarding record (spec 06 §8.1): its narrative is sealed at rest
+    // and access-logged, while the category, the date and the learner stay queryable.
+    encrypted: ['description', 'action'],
   },
   label: (row) => `${row.category} · ${row.date}`,
 });

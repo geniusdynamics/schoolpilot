@@ -3,6 +3,7 @@
 
 import { databaseSchemaFor, schemaFor, storageFor, type EntityName } from '@/domain/schema';
 import type { SqliteBindValue, SqliteRow } from '@/data/adapters/sqlite';
+import { RestrictedDataError, type FieldCipher } from '@/data/security';
 
 import { concurrencyColumnFor, hasBusinessVersion } from './concurrency';
 
@@ -27,6 +28,8 @@ export interface EntityColumns {
   readonly concurrencyColumn: string;
   /** True when the entity declares a business `version` field. */
   readonly hasBusinessVersion: boolean;
+  /** The columns whose contents are encrypted at rest. */
+  readonly encrypted: readonly string[];
 }
 
 interface ZodDefLike {
@@ -113,6 +116,7 @@ export function columnsFor(entity: EntityName): EntityColumns {
     columns,
     concurrencyColumn: concurrencyColumnFor(entity),
     hasBusinessVersion: hasBusinessVersion(entity),
+    encrypted: [...storageFor(entity).encrypted],
   };
 
   columnCache.set(entity, resolved);
@@ -140,11 +144,14 @@ export function encodeValue(value: unknown, meta: ColumnMeta): SqliteBindValue {
 /**
  * Turns a schema-shaped row into column parameters.
  *
- * Absent fields are left out entirely, so the column keeps whatever it held.
+ * Absent fields are left out entirely, so the column keeps whatever it held. A cipher seals the
+ * entity's encrypted columns here, at the one point every write passes through, so a restricted
+ * value reaches the database sealed whichever method wrote it.
  */
 export function encodeRow(
   columns: EntityColumns,
-  row: Readonly<Record<string, unknown>>
+  row: Readonly<Record<string, unknown>>,
+  cipher?: FieldCipher
 ): Record<string, SqliteBindValue> {
   const encoded: Record<string, SqliteBindValue> = {};
 
@@ -152,10 +159,32 @@ export function encodeRow(
     if (!(name in row)) continue;
     const value = row[name];
     if (value === undefined) continue;
-    encoded[name] = encodeValue(value, meta);
+
+    const stored = encodeValue(value, meta);
+    encoded[name] =
+      cipher && columns.encrypted.includes(name)
+        ? sealValue(columns.entity, name, stored, cipher)
+        : stored;
   }
 
   return encoded;
+}
+
+/** Seals one encoded value, refusing an encrypted column that is not stored as text. */
+function sealValue(
+  entity: EntityName,
+  column: string,
+  value: SqliteBindValue,
+  cipher: FieldCipher
+): SqliteBindValue {
+  if (value === null) return null;
+  if (typeof value !== 'string') {
+    throw new RestrictedDataError(
+      'encrypted_column_not_text',
+      `${entity}.${column} is declared encrypted but is not stored as text, so it cannot be sealed`
+    );
+  }
+  return cipher.seal(value);
 }
 
 /** Decodes one stored value back into the shape the schema expects. */
@@ -179,17 +208,24 @@ export function decodeValue(value: unknown, meta: ColumnMeta): unknown {
  * Turns a stored row back into the shape the schema expects.
  *
  * The concurrency counter is not part of the entity schema, so it is reported apart
- * from the row instead of being smuggled into it.
+ * from the row instead of being smuggled into it. A cipher opens the entity's encrypted
+ * columns; a value that is not sealed is legacy plaintext and is decoded as it stands.
  */
 export function decodeRow(
   columns: EntityColumns,
-  raw: SqliteRow
+  raw: SqliteRow,
+  cipher?: FieldCipher
 ): { row: Record<string, unknown>; version: number } {
   const row: Record<string, unknown> = {};
 
   for (const [name, meta] of Object.entries(columns.columns)) {
     if (!(name in raw)) continue;
-    const value = decodeValue(raw[name], meta);
+    const stored = raw[name];
+    const opened =
+      cipher && columns.encrypted.includes(name) && typeof stored === 'string'
+        ? cipher.open(stored)
+        : stored;
+    const value = decodeValue(opened, meta);
     if (value === undefined) continue;
     row[name] = value;
   }
