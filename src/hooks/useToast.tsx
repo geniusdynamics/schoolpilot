@@ -124,19 +124,19 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     
     switch (position) {
       case 'top-right':
-        return `${baseStyles} top-4 right-4`;
+        return `${baseStyles} top-4 end-4`;
       case 'top-left':
-        return `${baseStyles} top-4 left-4`;
+        return `${baseStyles} top-4 start-4`;
       case 'bottom-right':
-        return `${baseStyles} bottom-4 right-4 flex-col-reverse`;
+        return `${baseStyles} bottom-4 end-4 flex-col-reverse`;
       case 'bottom-left':
-        return `${baseStyles} bottom-4 left-4 flex-col-reverse`;
+        return `${baseStyles} bottom-4 start-4 flex-col-reverse`;
       case 'top-center':
         return `${baseStyles} top-4 left-1/2 transform -translate-x-1/2`;
       case 'bottom-center':
         return `${baseStyles} bottom-4 left-1/2 transform -translate-x-1/2 flex-col-reverse`;
       default:
-        return `${baseStyles} top-4 right-4`;
+        return `${baseStyles} top-4 end-4`;
     }
   };
 

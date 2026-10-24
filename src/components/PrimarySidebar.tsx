@@ -27,7 +27,7 @@ class PrimarySidebarErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <aside className="flex flex-col items-center min-h-full w-16 sm:w-20 bg-slate-900/95 border-r border-white/10 py-4">
+        <aside className="flex flex-col items-center min-h-full w-16 sm:w-20 bg-slate-900/95 border-e border-white/10 py-4">
           <div className="text-red-400 text-xs text-center p-4">Sidebar Error</div>
         </aside>
       );
@@ -159,9 +159,9 @@ const PrimarySidebarContent: React.FC<{
   
   // 1. Custom hooks (always called first)
   const { navigationItems = [], isLoading = true } = useDynamicNavigation(true) || {};
-  const { accessibleModules = [] } = useRBAC() || {};
-  const { user = null } = useAuth() || {};
-  const { t, i18n } = useTranslation('navigation', { useSuspense: false });
+  useRBAC();
+  useAuth();
+  const { t } = useTranslation('navigation', { useSuspense: false });
   
   // 2. State hooks (always called in same order)
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
@@ -373,16 +373,16 @@ const PrimarySidebarContent: React.FC<{
         </button>
       </div>
     );
-  }, [selectedModuleKey, hoveredModule, handleModuleMouseEnter, handleModuleMouseLeave, handleModuleSelection, windowWidth, isMouseNearSidebar, isTranslationReady]);
+  }, [t, selectedModuleKey, hoveredModule, handleModuleMouseEnter, handleModuleMouseLeave, handleModuleSelection, windowWidth, isMouseNearSidebar, isTranslationReady]);
   
   const sidebarClassName = useMemo(() => {
     return `
-      fixed top-0 left-0 z-50
+      fixed top-0 start-0 z-50
       flex flex-col items-center
       h-screen
       bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95
       lg:backdrop-blur-xl md:backdrop-blur-sm
-      border-r border-white/10
+      border-e border-white/10
       shadow-2xl shadow-black/20
       pt-4 pb-4 sm:pt-4 sm:pb-6
       transition-all duration-300 ease-out

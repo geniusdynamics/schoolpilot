@@ -177,6 +177,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       onModuleSelect,
       navigate,
       toggleFullWidth,
+      toggleTheme,
       closeMenu
     ]
   );
@@ -252,7 +253,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       {isOpen && (
         <div
           className={`
-            absolute top-full left-0 mt-2
+            absolute top-full start-0 mt-2
             flex items-stretch z-50
             rounded-xl border shadow-2xl shadow-black/50
             ${theme.container}
@@ -293,7 +294,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
             item.children && activeSubmenu === item.id ? (
               <div
                 key={`submenu-${item.id}`}
-                className={`w-52 p-2 border-l ${theme.submenuBorder}`}
+                className={`w-52 p-2 border-s ${theme.submenuBorder}`}
               >
                 {item.children.map((child) => (
                   <button

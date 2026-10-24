@@ -1,0 +1,48 @@
+/* ABOUTME: Right-to-left overrides for the pieces CSS cannot express logically: transforms and the
+/* ABOUTME: physical slide animations of the sidebar, the skip link's corner, and a utility for
+/* ABOUTME: mixed-direction user text. Layout itself uses Tailwind's logical utilities (ms/me/ps/pe/
+/* ABOUTME: start/end/border-s/border-e/text-start), which follow the `dir` attribute this sets. */
+
+/* The mobile secondary sidebar slides in from the inline start. The component positions it with
+   logical utilities; these two keyframes mirror the physical translate for RTL. */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+[dir='rtl'] .mobile-slide-in {
+  animation-name: slideInFromRight;
+}
+
+[dir='rtl'] .mobile-slide-out {
+  animation-name: slideOutToRight;
+}
+
+/* The skip link sits at the inline-start corner of the viewport, not the physical left. */
+.skip-link {
+  left: auto;
+  inset-inline-start: 6px;
+}
+
+/* User-authored text (names, comments, addresses) that mixes scripts: let the first strong
+   character decide the paragraph direction instead of the surrounding locale. */
+.text-bidi-auto {
+  unicode-bidi: plaintext;
+}

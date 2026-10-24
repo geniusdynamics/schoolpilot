@@ -9,6 +9,7 @@ import {
   createAriaDescribedBy,
   announceToScreenReader
 } from '@/utils/accessibility';
+import { dateEntryPattern, startOfLocaleWeek, weekdayLabels } from '@/utils/locale';
 
 export interface DatePickerProps {
   value?: Date | null;
@@ -59,18 +60,8 @@ const PATTERN_TOKENS: Record<DatePart, string> = { day: 'dd', month: 'mm', year:
 
 /** Day/month/year order and separator used by `locale` for numeric dates. */
 const getDatePattern = (locale: string): DatePattern => {
-  let parts: Intl.DateTimeFormatPart[];
-  try {
-    parts = new Intl.DateTimeFormat(locale, { year: 'numeric', month: '2-digit', day: '2-digit' })
-      .formatToParts(new Date(2014, 2, 15));
-  } catch {
-    return { order: ['day', 'month', 'year'], separator: '/' };
-  }
-  const order = parts
-    .map((p) => p.type)
-    .filter((type): type is DatePart => type === 'day' || type === 'month' || type === 'year');
-  const separator = parts.find((p) => p.type === 'literal')?.value ?? '/';
-  return order.length === 3 ? { order, separator } : { order: ['day', 'month', 'year'], separator: '/' };
+  const pattern = dateEntryPattern(locale);
+  return { order: [...pattern.order], separator: pattern.separator };
 };
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -442,13 +433,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
     return Array.from({ length: last - first + 1 }, (_, i) => first + i);
   }, [minDate, maxDate, calendarState.currentMonth]);
 
-  // Generate calendar days
+  // Generate calendar days, from the locale's own first day of the week
   const generateCalendarDays = useCallback(() => {
     const year = calendarState.currentMonth.getFullYear();
     const month = calendarState.currentMonth.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    const startDate = startOfLocaleWeek(new Date(year, month, 1), locale);
 
     const days: Date[] = [];
     const current = new Date(startDate);
@@ -460,7 +449,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     }
 
     return days;
-  }, [calendarState.currentMonth]);
+  }, [calendarState.currentMonth, locale]);
 
   // Check if date is in current month
   const isCurrentMonth = useCallback((date: Date): boolean => {
@@ -591,7 +580,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       />
 
       {/* Calendar Icon */}
-      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+      <div className="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none">
         <svg
           className="w-5 h-5 text-surface-muted-fg"
           fill="none"
@@ -687,7 +676,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
           {/* Day Headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            {weekdayLabels(locale, { width: 'short' }).map((day) => (
               <div
                 key={day}
                 className="p-2 text-xs font-medium text-surface-muted-fg text-center"

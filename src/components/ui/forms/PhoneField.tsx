@@ -4,69 +4,19 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { Phone } from '@/domain/schema/people';
+import {
+  DIAL_CODES,
+  countryOfLocale,
+  dialCodeForCountry,
+  normalisePhone,
+  phonePlaceholder,
+  type PhoneParseOptions,
+  type PhoneParseResult,
+} from '@/utils/locale';
 import { FieldFrame, useFieldId } from './FieldFrame';
 
-/** Dialling prefixes for the regions SchoolPilot ships with; packs may pass an explicit code. */
-export const DIAL_CODES: Readonly<Record<string, string>> = {
-  KE: '254',
-  UG: '256',
-  TZ: '255',
-  RW: '250',
-  NG: '234',
-  GH: '233',
-  ZA: '27',
-  GB: '44',
-  US: '1',
-  FR: '33',
-  PT: '351',
-  ET: '251',
-  CM: '237',
-  SN: '221',
-  CI: '225',
-};
-
-export function dialCodeForCountry(country?: string): string | undefined {
-  if (!country) return undefined;
-  return DIAL_CODES[country.toUpperCase()];
-}
-
-export interface PhoneParseOptions {
-  readonly country?: string;
-  readonly dialCode?: string;
-}
-
-export type PhoneParseResult =
-  | { readonly ok: true; readonly number: string }
-  | { readonly ok: false; readonly reason: 'empty' | 'invalid' };
-
-/**
- * Normalises a national or international number to E.164. Leading zeroes are replaced by
- * the supplied dialling prefix; `00` and bare country-code entries are accepted.
- */
-export function normalisePhone(input: string, options: PhoneParseOptions = {}): PhoneParseResult {
-  const trimmed = input.trim();
-  if (trimmed === '') return { ok: false, reason: 'empty' };
-
-  const dial = (options.dialCode ?? dialCodeForCountry(options.country) ?? '254').replace(/\D/g, '');
-  const compact = trimmed.replace(/[\s().\-/]/g, '');
-  if (!/^[+\d]+$/.test(compact)) return { ok: false, reason: 'invalid' };
-
-  let candidate: string;
-  if (compact.startsWith('+')) {
-    candidate = compact;
-  } else if (compact.startsWith('00')) {
-    candidate = `+${compact.slice(2)}`;
-  } else if (compact.startsWith(dial) && compact.length > dial.length) {
-    candidate = `+${compact}`;
-  } else if (compact.startsWith('0')) {
-    candidate = `+${dial}${compact.slice(1)}`;
-  } else {
-    candidate = `+${dial}${compact}`;
-  }
-
-  if (!/^\+[1-9]\d{1,14}$/.test(candidate)) return { ok: false, reason: 'invalid' };
-  return { ok: true, number: candidate };
-}
+export { DIAL_CODES, dialCodeForCountry, normalisePhone };
+export type { PhoneParseOptions, PhoneParseResult };
 
 export interface PhoneFieldProps {
   readonly id?: string;
@@ -74,7 +24,10 @@ export interface PhoneFieldProps {
   readonly label?: string;
   readonly value?: Phone | null;
   readonly onChange?: (value: Phone | undefined) => void;
+  /** The country whose dialling plan the entry is read in; the locale's country when omitted. */
   readonly country?: string;
+  /** The locale the field belongs to; supplies the default country and example placeholder. */
+  readonly locale?: string;
   readonly dialCode?: string;
   readonly placeholder?: string;
   readonly helperText?: string;
@@ -94,7 +47,8 @@ export function PhoneField({
   label,
   value,
   onChange,
-  country = 'KE',
+  country,
+  locale,
   dialCode,
   placeholder,
   helperText,
@@ -108,7 +62,7 @@ export function PhoneField({
   onValidityChange,
 }: PhoneFieldProps) {
   const id = useFieldId(providedId, 'phone-field');
-  const resolvedDialCode = dialCode ?? dialCodeForCountry(country) ?? '254';
+  const resolvedCountry = country ?? countryOfLocale(locale) ?? 'KE';
   const [draft, setDraft] = useState<string | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const editingRef = useRef(false);
@@ -138,7 +92,7 @@ export function PhoneField({
 
   const handleChange = (text: string) => {
     setDraft(text);
-    const result = normalisePhone(text, { country, dialCode });
+    const result = normalisePhone(text, { country: resolvedCountry, dialCode });
     if (!result.ok) {
       if (result.reason === 'empty') {
         setParseError(null);
@@ -157,7 +111,7 @@ export function PhoneField({
 
   const handleBlur = () => {
     editingRef.current = false;
-    const result = normalisePhone(displayText, { country, dialCode });
+    const result = normalisePhone(displayText, { country: resolvedCountry, dialCode });
     if (result.ok || result.reason === 'empty') {
       setDraft(null);
       setParseError(null);
@@ -197,7 +151,7 @@ export function PhoneField({
           inputMode="tel"
           autoComplete="tel"
           value={displayText}
-          placeholder={placeholder ?? `+${resolvedDialCode} 700 000000`}
+          placeholder={placeholder ?? phonePlaceholder(resolvedCountry, locale)}
           disabled={disabled}
           readOnly={readOnly}
           onChange={(event) => handleChange(event.target.value)}

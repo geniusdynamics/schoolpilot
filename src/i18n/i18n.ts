@@ -1,8 +1,9 @@
-﻿﻿﻿import i18next from 'i18next';
+﻿import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { loadModularTranslations } from './modularLoader';
 import { logger } from '@/utils/logging';
+import { applyLocaleDirection } from '@/utils/locale';
 
 
 // Track initialization state
@@ -11,6 +12,10 @@ export let initializationPromise: Promise<void> | null = null;
 
 // Create the i18next instance with react-i18next
 const i18n = i18next.createInstance();
+
+// Publish the language's reading direction on <html> whenever it changes, so logical CSS
+// (ms-/me-/ps-/pe-/start-/end-) mirrors the layout and `activeLocale()` follows the choice.
+i18n.on('languageChanged', (language: string) => applyLocaleDirection(language));
 
 // Initialize i18next
 const initializeI18n = async (): Promise<void> => {
@@ -112,6 +117,7 @@ const initializeI18n = async (): Promise<void> => {
         throw fallbackError;
       }
     } finally {
+      applyLocaleDirection(i18n.language);
       initializationPromise = null;
     }
   })();

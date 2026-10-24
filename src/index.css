@@ -1,5 +1,6 @@
 @import '@fontsource-variable/inter';
 @import './styles/design-system.css';
+@import './styles/rtl.css';
 
 @tailwind base;
 @tailwind components;
