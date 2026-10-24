@@ -11,7 +11,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestContext, TEST_ACTOR } from '@/data/__tests__/harness';
 import { LANServer } from '@/server/LANServer';
 
+import { hashPassword } from '../auth/passwords';
+
 const PASSPHRASE = 'a hub passphrase for the backup routes';
+
+/** The seeded user the hub authenticates against; it has no administrator of its own. */
+const USERNAME = 'grace.wekesa';
+const PASSWORD = 'mwangaza-hub-2027';
 
 interface ApiResponse {
   readonly status: number;
@@ -37,12 +43,15 @@ interface StatusBody {
 let workDir: string;
 let hub: LANServer;
 let port: number;
+/** The bearer token every request after the sign-in carries. */
+let token: string;
 
 beforeAll(async () => {
   workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'schoolpilot-backup-api-'));
   const databaseFile = path.join(workDir, 'schoolpilot.db');
 
   const seeded = await createTestContext({ database: { kind: 'file', filename: databaseFile } });
+  await giveFixtureUserAPassword(seeded);
   await seeded.close();
 
   hub = new LANServer({
@@ -56,6 +65,8 @@ beforeAll(async () => {
   await hub.start();
   port = hub.address?.port ?? 0;
   expect(port).toBeGreaterThan(0);
+
+  token = await signIn(port);
 }, 60000);
 
 afterAll(async () => {
@@ -175,11 +186,20 @@ describe('a hub without a backup key', () => {
   let bareDir: string;
   let bareHub: LANServer;
   let barePort: number;
+  let bareToken: string;
 
   beforeAll(async () => {
     bareDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'schoolpilot-no-key-'));
+    const bareDatabaseFile = path.join(bareDir, 'schoolpilot.db');
+    const seeded = await createTestContext({
+      database: { kind: 'file', filename: bareDatabaseFile },
+    });
+    await giveFixtureUserAPassword(seeded);
+    await seeded.close();
+
     bareHub = new LANServer({
       dataDir: bareDir,
+      databaseFile: bareDatabaseFile,
       host: '127.0.0.1',
       port: 0,
       actor: TEST_ACTOR,
@@ -189,6 +209,7 @@ describe('a hub without a backup key', () => {
     });
     await bareHub.start();
     barePort = bareHub.address?.port ?? 0;
+    bareToken = await signIn(barePort);
   }, 60000);
 
   afterAll(async () => {
@@ -200,13 +221,13 @@ describe('a hub without a backup key', () => {
   }, 60000);
 
   it('reports the surface as unavailable and refuses to write with 503', async () => {
-    const status = await apiTo(barePort, 'GET', '/api/backups/status');
+    const status = await apiTo(barePort, 'GET', '/api/backups/status', undefined, bareToken);
     expect(status.status).toBe(200);
     const body = bodyOf<StatusBody>(status);
     expect(body.available).toBe(false);
     expect(body.backups.count).toBe(0);
 
-    const created = await apiTo(barePort, 'POST', '/api/backups', {});
+    const created = await apiTo(barePort, 'POST', '/api/backups', {}, bareToken);
     expect(created.status).toBe(503);
     expect(errorCodeOf(created)).toBe('key_missing');
 
@@ -216,16 +237,49 @@ describe('a hub without a backup key', () => {
   });
 });
 
+/**
+ * Gives the seeded fixture user a password the hub can verify.
+ *
+ * The fixture hash is a placeholder and the hub has no administrator of its own: it authenticates
+ * against the canonical `user` table, so the suite has to leave one account it can sign in with.
+ */
+async function giveFixtureUserAPassword(
+  context: Awaited<ReturnType<typeof createTestContext>>
+): Promise<void> {
+  const users = await context.repository.list('user', { where: { username: USERNAME } });
+  const seededUser = users.items[0];
+  if (!seededUser) throw new Error(`the ${USERNAME} fixture was not seeded`);
+  await context.repository.update(
+    'user',
+    seededUser.id,
+    { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
+    { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
+  );
+}
+
+/** Signs the fixture user in and returns the bearer token every later request carries. */
+async function signIn(targetPort: number): Promise<string> {
+  const login = await apiTo(targetPort, 'POST', '/api/auth/login', {
+    username: USERNAME,
+    password: PASSWORD,
+  });
+  if (login.status !== 200) {
+    throw new Error(`the hub refused the sign-in: ${JSON.stringify(login.body)}`);
+  }
+  return (login.body as { token: string }).token;
+}
+
 /** A request against the hub under test. */
 function api(method: string, pathname: string, body?: unknown): Promise<ApiResponse> {
-  return apiTo(port, method, pathname, body);
+  return apiTo(port, method, pathname, body, token);
 }
 
 function apiTo(
   targetPort: number,
   method: string,
   pathname: string,
-  body?: unknown
+  body?: unknown,
+  bearer?: string
 ): Promise<ApiResponse> {
   const payload = body === undefined ? undefined : JSON.stringify(body);
   return new Promise<ApiResponse>((resolve, reject) => {
@@ -236,6 +290,9 @@ function apiTo(
         path: pathname,
         method,
         headers: {
+          // The hub authenticates every route but /health and the sign-in endpoints, so the
+          // suite signs in once and carries the session here.
+          ...(bearer === undefined ? {} : { authorization: `Bearer ${bearer}` }),
           'x-actor': TEST_ACTOR,
           ...(payload !== undefined
             ? {
