@@ -71,8 +71,8 @@ export function sendJson(res: ServerResponse, status: number, body: unknown): vo
 export function setCorsHeaders(res: ServerResponse): void {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('access-control-allow-methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-  res.setHeader('access-control-allow-headers', 'content-type, x-actor');
-  res.setHeader('access-control-expose-headers', 'content-type');
+  res.setHeader('access-control-allow-headers', 'content-type, authorization');
+  res.setHeader('access-control-expose-headers', 'content-type, retry-after');
 }
 
 /** The value of a request header, when it is set. */
@@ -83,13 +83,17 @@ export function headerValue(req: IncomingMessage, name: string): string | undefi
 }
 
 /**
- * The actor a write is stamped with.
+ * The bearer token a request presents.
  *
- * `x-actor` is a placeholder for the identity P4-C01 introduces: the hub trusts it, so it
- * must not be exposed beyond a trusted network until authentication lands.
+ * Only the `Authorization` header is read. There is deliberately no fallback to a query
+ * parameter or a custom header: a token in a URL ends up in a proxy log, and a token in a
+ * header a client invents is one more place to get the trust boundary wrong.
  */
-export function actorOf(req: IncomingMessage, fallback: string | undefined): string | undefined {
-  return headerValue(req, 'x-actor') ?? fallback;
+export function bearerToken(req: IncomingMessage): string | undefined {
+  const header = headerValue(req, 'authorization');
+  if (header === undefined) return undefined;
+  const match = /^Bearer[ ]+(\S+)$/i.exec(header.trim());
+  return match?.[1];
 }
 
 /** Parses a JSON query parameter, refusing one that is not JSON. */

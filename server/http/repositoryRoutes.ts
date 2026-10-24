@@ -14,7 +14,6 @@ import { asId } from '@/domain/ids';
 import { ENTITY_NAMES, isEntityName, type EntityName } from '@/domain/schema';
 
 import {
-  actorOf,
   booleanQuery,
   HttpError,
   integerQuery,
@@ -27,8 +26,6 @@ import type { RouteRequest, Router } from './router';
 
 export interface RepositoryRouteOptions {
   readonly repository: Repository;
-  /** The actor a write names when the request carries no `x-actor` header. */
-  readonly actor?: string;
 }
 
 /** Registers the repository API under `/api/entities`. */
@@ -64,7 +61,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
     const row = await options.repository.create(
       entity,
       body as CreateInput<EntityName>,
-      writeOptionsOf(request, options.actor)
+      writeOptionsOf(request)
     );
     return { status: 201, body: row };
   });
@@ -83,7 +80,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
 
     const row = await options.repository.update(entity, id, patch as UpdateInput<EntityName>, {
       expectedVersion,
-      ...writeOptionsOf(request, options.actor),
+      ...writeOptionsOf(request),
     });
     return { body: row };
   };
@@ -96,7 +93,7 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
     const id = idOf(request);
     const expectedVersion = integerQuery(request.url, 'expectedVersion');
     const row = await options.repository.remove(entity, id, {
-      ...writeOptionsOf(request, options.actor),
+      ...writeOptionsOf(request),
       ...(expectedVersion !== undefined ? { expectedVersion } : {}),
     });
     return { body: { removed: row } };
@@ -122,9 +119,9 @@ async function jsonObjectOf(request: RouteRequest): Promise<Record<string, unkno
   return requireObject(await readJsonBody(request.req));
 }
 
-/** The write options of a request: its actor, its reason and the hub as the origin. */
-function writeOptionsOf(request: RouteRequest, fallback: string | undefined): WriteOptions {
-  const actor = actorOf(request.req, fallback);
+/** The write options of a request: the signed-in actor, its reason and the hub as the origin. */
+function writeOptionsOf(request: RouteRequest): WriteOptions {
+  const actor = request.session?.userId;
   const reason = request.url.searchParams.get('reason') ?? undefined;
   return {
     ...(actor !== undefined ? { actor } : {}),

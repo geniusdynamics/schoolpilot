@@ -10,6 +10,7 @@ import { createRepository, type Repository } from '@/data/repository';
 import { ServerNode } from '@/data/sync';
 import { ENTITY_NAMES } from '@/domain/schema';
 
+import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
 import { createHubRouter } from '../../server/http/hubRouter';
 import { sendJson, setCorsHeaders } from '../../server/http/http';
 import type { Router } from '../../server/http/router';
@@ -25,8 +26,10 @@ interface LANServerConfig {
   databaseFile?: string;
   /** Whether browsers on the LAN may call the hub from another origin. */
   enableCors?: boolean;
-  /** The actor a write is stamped with when the request names none. */
-  actor?: string;
+  /** The channel that delivers guardian one-time codes and password-reset links. */
+  notifier?: AuthNotifier;
+  /** The label an authenticator app shows beside an enrolment. */
+  authIssuer?: string;
 }
 
 interface ServerState {
@@ -56,9 +59,10 @@ export interface LANServerStatus {
  *   const server = new LANServer({ dataDir: './data', port: 3000 });
  *   await server.start();
  *
- * The hub is not yet authenticated: `x-actor` is trusted from the network until P4-C01 supplies
- * sessions, so it belongs on a trusted LAN. Real-time sync (P4-A02), mDNS discovery and TLS
- * (P4-D02) are later tasks; this skeleton is the HTTP surface they extend.
+ * The hub is authenticated: every route but `/health` and the sign-in endpoints requires a
+ * bearer session, and a write is stamped with the user that session belongs to. Real-time sync
+ * (P4-A02), mDNS discovery and TLS (P4-D02) are later tasks; this skeleton is the HTTP surface
+ * they extend.
  */
 export class LANServer {
   private config: LANServerConfig;
@@ -66,6 +70,7 @@ export class LANServer {
   private adapter: SqliteAdapter | null = null;
   private repository: Repository | null = null;
   private syncNode: ServerNode | null = null;
+  private auth: AuthenticationService | null = null;
   private state: ServerState = {
     running: false,
     startTime: null,
@@ -107,10 +112,7 @@ export class LANServer {
       await adapter.open();
       this.adapter = adapter;
 
-      const repository = createRepository({
-        adapter,
-        ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
-      });
+      const repository = createRepository({ adapter });
       await repository.setup();
       this.repository = repository;
 
@@ -126,12 +128,23 @@ export class LANServer {
       await sync.bootstrap();
       this.syncNode = sync;
 
+      const auth = new AuthenticationService({
+        adapter,
+        repository,
+        authKey: loadOrCreateAuthKey(path.join(this.config.dataDir, 'auth.key')),
+        ...(this.config.notifier !== undefined ? { notifier: this.config.notifier } : {}),
+        ...(this.config.authIssuer !== undefined ? { issuer: this.config.authIssuer } : {}),
+      });
+      await auth.setup();
+      this.auth = auth;
+
       const router = createHubRouter({
         repository,
         sync,
+        auth,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
       });
-      router.add('GET', '/health', () => ({ body: this.getStatus() }));
+      router.add('GET', '/health', () => ({ body: this.getStatus() }), { auth: 'none' });
 
       const server = createServer((req, res) => this.handleRequest(router, req, res));
       this.httpServer = server;
@@ -175,6 +188,11 @@ export class LANServer {
   /** The sync node the hub serves; null before start and after stop. */
   getSyncNode(): ServerNode | null {
     return this.syncNode;
+  }
+
+  /** The authentication service the hub serves; null before start and after stop. */
+  getAuthentication(): AuthenticationService | null {
+    return this.auth;
   }
 
   // ==================== Private Methods ====================
@@ -226,6 +244,7 @@ export class LANServer {
     this.adapter = null;
     this.repository = null;
     this.syncNode = null;
+    this.auth = null;
     if (adapter) await adapter.close();
 
     this.state.running = false;
