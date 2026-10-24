@@ -12,8 +12,16 @@ export {
   iterationsOf,
   verifyPassword,
 } from './passwords';
-export { loadOrCreateAuthKey, AUTH_KEY_BYTES } from './secrets';
-export { SESSION_TOKEN_PREFIX, hashToken, isSessionToken, newSessionToken } from './tokens';
+export { loadOrCreateAuthKey, AUTH_KEY_BYTES, encryptSecret, decryptSecret } from './secrets';
+export {
+  SESSION_TOKEN_PREFIX,
+  hashCode,
+  hashToken,
+  isSessionToken,
+  newSessionToken,
+  numericCode,
+  safeEqual,
+} from './tokens';
 export {
   DEFAULT_SESSION_POLICY,
   SessionStore,

@@ -16,16 +16,25 @@ import type { EntityName } from '@/domain/schema';
 import { AdmissionService, type AdmissionInput, type AdmissionResult } from '@/domain/services';
 import { LANServer } from '@/server/LANServer';
 
+import { hashPassword } from '../auth';
+
 interface ApiResponse {
   readonly status: number;
   readonly body: unknown;
 }
+
+/** The seeded account the hub signs in as. */
+const USERNAME = 'grace.wekesa';
+const PASSWORD = 'mwangaza-hub-2027';
 
 let workDir: string;
 let databaseFile: string;
 let inProcessFile: string;
 let hub: LANServer;
 let port: number;
+/** The bearer token every request after the sign-in carries. */
+let token: string | undefined;
+let userId: string;
 let classGroupId: Id<'class_group'>;
 let staffId: Id<'staff'>;
 let periodId: Id<'academic_period'>;
@@ -77,6 +86,18 @@ beforeAll(async () => {
   periodId = seeded.seed.idOf('academic_period');
   academicYearId = seeded.seed.idOf('academic_year');
   institutionId = seeded.seed.idOf('institution');
+
+  // The fixture user's password hash is a placeholder; the hub needs one it can verify.
+  const users = await seeded.repository.list('user', { where: { username: USERNAME } });
+  const seededUser = users.items[0];
+  if (!seededUser) throw new Error(`the ${USERNAME} fixture was not seeded`);
+  userId = seededUser.id;
+  await seeded.repository.update(
+    'user',
+    seededUser.id,
+    { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
+    { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
+  );
   await seeded.close();
 
   // The in-process run starts from the same file: a copy of the seeded database, taken before
@@ -89,11 +110,16 @@ beforeAll(async () => {
     databaseFile,
     host: '127.0.0.1',
     port: 0,
-    actor: TEST_ACTOR,
   });
   await hub.start();
   port = hub.address?.port ?? 0;
   expect(port).toBeGreaterThan(0);
+
+  const login = await api('POST', '/api/auth/login', { username: USERNAME, password: PASSWORD });
+  if (login.status !== 200) {
+    throw new Error(`the hub refused the sign-in: ${JSON.stringify(login.body)}`);
+  }
+  token = (login.body as { token: string }).token;
 
   const response = await api('POST', '/api/services/admissions', admission());
   if (response.status !== 201) {
@@ -168,10 +194,14 @@ describe('the hub over a SQLite file', () => {
 
     const audit = await api('GET', `/api/entities/learner/${httpAdmission.learner.id}/audit`);
     expect(audit.status).toBe(200);
-    const events = bodyOf<{ events: Array<{ action: string; reason: string | null }> }>(audit).events;
+    const events = bodyOf<{ events: Array<{ action: string; reason: string | null; actorId: string | null }> }>(
+      audit
+    ).events;
     expect(events.some((event) => event.action === 'create' && event.reason === 'learner admitted')).toBe(
       true
     );
+    // The write is stamped with the user behind the bearer token, not with a trusted header.
+    expect(events.every((event) => event.actorId === userId)).toBe(true);
   });
 
   it('produces the same result when the same service runs in-process', async () => {
@@ -293,7 +323,7 @@ describe('the hub over a SQLite file', () => {
   });
 });
 
-/** A request against the running hub. */
+/** A request against the running hub, carrying the session the suite signed in with. */
 function api(method: string, pathname: string, body?: unknown): Promise<ApiResponse> {
   const payload = body === undefined ? undefined : JSON.stringify(body);
   return new Promise<ApiResponse>((resolve, reject) => {
@@ -304,7 +334,7 @@ function api(method: string, pathname: string, body?: unknown): Promise<ApiRespo
         path: pathname,
         method,
         headers: {
-          'x-actor': TEST_ACTOR,
+          ...(token === undefined ? {} : { authorization: `Bearer ${token}` }),
           ...(payload !== undefined
             ? {
                 'content-type': 'application/json',

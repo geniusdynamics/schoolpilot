@@ -21,6 +21,7 @@ import { UndeliverableNotifier, type AuthNotifier } from './notifier';
 import {
   assertPasswordPolicy,
   hashPassword,
+  isPasswordHash,
   verifyAgainstDummy,
   verifyPassword,
 } from './passwords';
@@ -257,10 +258,11 @@ export class AuthenticationService {
     }
 
     const passwordHash = hashPassword(input.password);
-    const user = await this.repository.transaction(async () => {
-      if (await this.hasUsers()) {
-        throw new AuthError('setup_complete', 'this hub already has an administrator; sign in instead');
-      }
+    // The check and the insert share one transaction, so two setups racing cannot both succeed.
+    // The refusal is returned rather than thrown: the repository rewrites an unknown error a
+    // transaction body throws into a storage failure, which would hide the reason.
+    const created = await this.repository.transaction(async () => {
+      if (await this.hasUsers()) return null;
       return this.repository.create(
         'user',
         {
@@ -274,11 +276,15 @@ export class AuthenticationService {
       );
     });
 
+    if (created === null) {
+      throw new AuthError('setup_complete', 'this hub already has an administrator; sign in instead');
+    }
+
     await this.events.append('administrator_created', {
-      actorId: user.id,
-      detail: { username: user.username },
+      actorId: created.id,
+      detail: { username: created.username },
     });
-    return this.issueSession(user, input.meta ?? {});
+    return this.issueSession(created, input.meta ?? {});
   }
 
   /**
@@ -322,6 +328,13 @@ export class AuthenticationService {
     if (user.status === 'disabled') {
       verifyAgainstDummy(password);
       return this.refuseAttempt(key, username, 'disabled_account', user.id);
+    }
+    // A guardian identity holds a sentinel instead of a hash, and a malformed hash verifies
+    // without work. Both spend a dummy verification first, so the response time does not say
+    // which kind of account the username belongs to.
+    if (!isPasswordHash(user.password_hash)) {
+      verifyAgainstDummy(password);
+      return this.refuseAttempt(key, username, 'no_password', user.id);
     }
     if (!verifyPassword(password, user.password_hash)) {
       return this.refuseAttempt(key, username, 'wrong_password', user.id);

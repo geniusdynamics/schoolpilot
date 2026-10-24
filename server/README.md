@@ -1,13 +1,16 @@
 <!--
 ABOUTME: The hub server of topology B: how to run it, what it exposes, and what it leaves to later PRD tasks.
-ABOUTME: The B01 skeleton serves the typed repository and the unchanged domain services over Node HTTP.
+ABOUTME: The hub authenticates every request with a bearer session and serves the typed repository and domain services.
 -->
 
 # The hub server
 
 One Node HTTP server over the canonical SQLite database. It opens the database, applies the
-canonical schema through `Repository.setup()`, and serves two APIs:
+canonical schema through `Repository.setup()`, applies its own authentication tables, and serves
+three APIs:
 
+- **The authentication API** under `/api/auth` — first run, password sign-in, TOTP, guardian phone
+  OTP, password reset, and session and authenticator management. The module is `server/auth`.
 - **The repository API** under `/api/entities` — list, read, create, patch, remove and the audit
   trail of any registered entity, through the same typed `Repository` the browser uses.
 - **The service API** under `/api/services` — admissions, attendance registers and marks, and
@@ -18,14 +21,18 @@ canonical schema through `Repository.setup()`, and serves two APIs:
 The composition root is `src/server/LANServer.ts`; the routes live here, in `server/http`, and
 the service wiring is `server/services.ts`.
 
+Every route except `GET /health`, `GET /api/auth/state` and the sign-in endpoints requires
+`Authorization: Bearer <token>`. A write is stamped with the user the session belongs to; there is
+no header a caller can set to claim another identity.
+
 ## Run it
 
 ```bash
 npx tsx src/server/cli.ts --data-dir ./data --port 3000
 ```
 
-The CLI opens `./data/schoolpilot.db` (or the file under `--data-dir`) and listens. `GET /health`
-reports the status. From code:
+The CLI opens `./data/schoolpilot.db` (or the file under `--data-dir`), creates `./data/auth.key`
+on first start, and listens. `GET /health` reports the status. From code:
 
 ```ts
 import { LANServer } from '@/server/LANServer';
@@ -35,30 +42,132 @@ await hub.start();   // creates the data directory, opens the database, applies 
 console.log(hub.address);
 ```
 
-`databaseFile` names a different SQLite file and `port: 0` lets the operating system pick one.
-`stop()` closes the connections and the database.
+`databaseFile` names a different SQLite file, `port: 0` lets the operating system pick one, and
+`notifier` fills in the channel that delivers guardian codes and reset links. `stop()` closes the
+connections and the database.
+
+## Authentication
+
+### First run
+
+There are no default credentials. `POST /api/auth/setup` creates the administrator and is refused
+with `setup_complete` from then on:
+
+```bash
+curl -X POST http://127.0.0.1:3000/api/auth/setup \
+  -H "content-type: application/json" \
+  -d '{"institutionId":"<uuid>","username":"director","password":"at-least-ten-characters"}'
+# 201 {"status":"authenticated","token":"sp1_…","sessionId":"…","expiresAt":"…","user":{…}}
+```
+
+### Sign-in
+
+```bash
+TOKEN=$(curl -s -X POST http://127.0.0.1:3000/api/auth/login \
+  -H "content-type: application/json" \
+  -d '{"username":"director","password":"at-least-ten-characters"}' | jq -r .token)
+
+curl http://127.0.0.1:3000/api/entities/learner -H "Authorization: Bearer $TOKEN"
+```
+
+An account whose `user.mfa` flag is set answers `mfa_required` with a challenge token instead of a
+session; `POST /api/auth/login/totp` with `{challengeToken, code}` finishes the sign-in. A challenge
+is single use and a code is accepted once.
+
+### Endpoints
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/auth/state` | none | whether first-run setup is needed, and whether delivery is configured |
+| POST | `/api/auth/setup` | none | create the first administrator |
+| POST | `/api/auth/login` | none | password sign-in; a session or a TOTP challenge |
+| POST | `/api/auth/login/totp` | none | finish a sign-in with a TOTP code |
+| POST | `/api/auth/guardian/otp` | none | send a guardian a code by phone |
+| POST | `/api/auth/guardian/otp/verify` | none | sign a guardian in with that code |
+| POST | `/api/auth/password/forgot` | none | start a password reset |
+| POST | `/api/auth/password/reset` | none | finish a password reset |
+| GET | `/api/auth/session` | session | the current session and user |
+| POST | `/api/auth/logout` | session | end this session |
+| GET | `/api/auth/sessions` | session | the live sessions of this account |
+| DELETE | `/api/auth/sessions/:id` | session | sign one device out |
+| POST | `/api/auth/sessions/revoke-all` | session | sign every other device out |
+| POST | `/api/auth/totp/enrol` | session | start an authenticator enrolment |
+| POST | `/api/auth/totp/confirm` | session | confirm it with a code |
+| POST | `/api/auth/totp/disable` | session | remove the factor; the password is required |
+
+### Refusals
+
+Every refusal is `{"error":{"code":…,"message":…}}`; a locked account also carries
+`retryAfterSeconds` and a `Retry-After` header.
+
+| Code | Status | When |
+| --- | --- | --- |
+| `unauthenticated` | 401 | no bearer token, or one that is not a live session |
+| `invalid_credentials` | 401 | wrong password, unknown username or a disabled account — the same answer for all three |
+| `account_locked` | 423 | too many failures, or a `locked` account status |
+| `account_disabled` | 403 | a live session whose account was disabled |
+| `mfa_not_enrolled` | 403 | the account requires a code but no authenticator is confirmed |
+| `invalid_code` | 401 | a wrong, replayed or malformed TOTP or OTP code |
+| `invalid_challenge` | 401 | an unknown, consumed or over-guessed challenge |
+| `challenge_expired` | 401 | a challenge past its time-to-live |
+| `invalid_token` | 400 | a password-reset token that is unknown, expired or already used |
+| `weak_password` | 422 | fewer than ten characters, only whitespace, or the username itself |
+| `invalid_username` | 422 | not three to one hundred characters |
+| `already_enrolled` | 409 | an authenticator is already confirmed |
+| `setup_complete` | 409 | a first-run setup after the hub already has an account |
+| `institution_required` | 422 | a username or phone held by more than one institution |
+| `delivery_unavailable` | 503 | the deployment has no SMS or mail channel at all |
+
+### Policy
+
+- **Passwords** are PBKDF2-SHA256 at 600,000 iterations, stored as
+  `pbkdf2-sha256$<iterations>$<salt>$<hash>`; the minimum is ten characters. An unknown username
+  costs a real verification against a fixed dummy hash, so the response time does not say whether
+  an account exists.
+- **Sessions** are opaque `sp1_` tokens. Only `sha256:<hex>` of a token is stored, so a stolen
+  database holds no live session. The idle window is 30 minutes and slides on use at most once a
+  minute; the absolute life is 12 hours.
+- **Lockout** is per username: five failures inside 15 minutes lock it for 15 minutes, and each
+  later lock doubles — 30, 60, 120, then 240 minutes. A successful sign-in clears it. A correct
+  password does not open a locked account, and an unknown username locks exactly like a known one.
+- **TOTP** is RFC 6238 over SHA-1, six digits, a 30-second step and a ±1 step window. The secret is
+  stored AES-256-GCM encrypted under `<dataDir>/auth.key`, and a step that was already accepted is
+  refused, so a code that was watched cannot be replayed.
+- **Guardian OTP** is a six-digit code, five minutes, five attempts, hashed with the challenge token
+  as its salt. A guardian signs in by phone only: the identity the hub creates carries a sentinel
+  password no password matches.
+- **Password reset** is a 32-byte token, only hashed at rest, 30 minutes, single use, and it revokes
+  every session of the account. The request answers `202 {"status":"sent"}` whether or not the
+  account exists.
+- **Delivery** is a seam, `AuthNotifier`. The default notifier reports `available: false` and the two
+  endpoints that need it refuse with `delivery_unavailable` before they look anything up, so a hub
+  without a gateway cannot be used to probe phone numbers or usernames. A send that fails after a
+  recipient was found is recorded as an `auth_event` and still answers the same.
+- **The trail** is `auth_event`: sign-ins, refusals, lockouts, factor changes and resets. It holds no
+  password, code, token or TOTP secret.
 
 ## Call it
 
 ```bash
 # The entity registry
-curl http://127.0.0.1:3000/api/entities
+curl http://127.0.0.1:3000/api/entities -H "Authorization: Bearer $TOKEN"
 
 # A page of learners, filtered
-curl "http://127.0.0.1:3000/api/entities/learner?limit=10&where=%7B%22status%22%3A%22enrolled%22%7D"
+curl "http://127.0.0.1:3000/api/entities/learner?limit=10&where=%7B%22status%22%3A%22enrolled%22%7D" \
+  -H "Authorization: Bearer $TOKEN"
 
 # One row, its audit trail
-curl http://127.0.0.1:3000/api/entities/learner/<id>
-curl http://127.0.0.1:3000/api/entities/learner/<id>/audit
+curl http://127.0.0.1:3000/api/entities/learner/<id> -H "Authorization: Bearer $TOKEN"
+curl http://127.0.0.1:3000/api/entities/learner/<id>/audit -H "Authorization: Bearer $TOKEN"
 
-# A write names its actor; that header is trusted until authentication lands
+# A write is stamped with the user behind the token; no header can claim another identity
 curl -X PATCH "http://127.0.0.1:3000/api/entities/learner/<id>" \
-  -H "content-type: application/json" -H "x-actor: <actor-id>" \
+  -H "content-type: application/json" -H "Authorization: Bearer $TOKEN" \
   -d '{"expectedVersion":1,"patch":{"family_name":"Njeri"},"reason":"corrected at the desk"}'
 
 # A domain service, unchanged
 curl -X POST http://127.0.0.1:3000/api/services/admissions \
-  -H "content-type: application/json" -H "x-actor: <actor-id>" \
+  -H "content-type: application/json" -H "Authorization: Bearer $TOKEN" \
   -d @admission.json
 ```
 
@@ -75,22 +184,39 @@ Write bodies:
 
 ## Prove it
 
-`server/__tests__/hub.test.ts` starts the hub against a seeded SQLite file, admits a learner
-through HTTP, reads the rows back over HTTP, then runs the same `AdmissionService` in-process
-against an identical copy of the seeded file and compares the results. It also exercises the
-repository API, an attendance register and a billing preview, and confirms in `afterAll` that
-the admission reached the file on disk.
+- `server/__tests__/authPrimitives.test.ts` — PBKDF2 at the spec floor, the RFC 6238 vectors, the
+  lockout doubling, token hashing and the encryption of a TOTP secret.
+- `server/__tests__/auth.test.ts` — the service against a real database: first run, the identical
+  answer for a wrong password and an unknown user, lockout and recovery, idle and absolute session
+  expiry, revocation, TOTP enrolment with a replayed code refused, a single-use password reset that
+  revokes sessions, and guardian phone OTP.
+- `server/__tests__/authHttp.test.ts` — the boundary over HTTP: an unauthenticated caller is
+  refused, a bearer session opens the hub, a spoofed `x-actor` header is ignored, and a signed-out
+  token is dead.
+- `server/__tests__/hub.test.ts` — starts the hub against a seeded SQLite file, signs in, admits a
+  learner through HTTP, reads the rows back, then runs the same `AdmissionService` in-process
+  against an identical copy of the seeded file and compares the results.
 
 ```bash
-npx vitest run server/__tests__/hub.test.ts
+npx vitest run server/__tests__/authPrimitives.test.ts server/__tests__/auth.test.ts \
+  server/__tests__/authHttp.test.ts server/__tests__/hub.test.ts
 ```
 
 ## Deliberately not here yet
 
-- **Authentication and authorisation.** `x-actor` is a trusted header placeholder; P4-C01
-  replaces it with sessions and a scoped repository.
+- **Authorisation.** Authentication is done; authorisation is not. Any live session may call any
+  route, so the repository API returns whatever an entity row holds — including a `user` row's
+  `password_hash` — to any signed-in account, guardian sessions included. P4-C02 adds the RBAC and
+  scope model and the maker-checker engine, and it is where per-entity read rules and the
+  redaction of sensitive columns belong. Until then the hub belongs on a trusted network, which is
+  the same posture it had before this task.
+- **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making
+  finance and administrator roles *require* it is a role-model decision, so it lands with P4-C02.
+- **OIDC SSO** for staff, P4-C03.
 - **Real-time sync.** The WebSocket hub of P4-A02; the HTTP surface here is what it extends.
-- **mDNS discovery, TLS and pairing.** P4-D02.
+- **mDNS discovery, TLS and pairing.** P4-D02. The session token travels in clear text until then.
+- **Rate limiting the public sign-in endpoints.** Lockout bounds password guessing per username;
+  a per-address limit is P4-D02's, with the rest of the network controls.
 - **Request schema validation beyond the repository and service schemas.** The route layer
   checks shapes and query syntax; the entity and service schemas own field validation, which is
   where a 400's `issues` comes from.

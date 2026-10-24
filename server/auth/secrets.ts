@@ -26,7 +26,7 @@ export function encryptSecret(plaintext: string, key: Buffer): string {
   assertKey(key);
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv('aes-256-gcm', bytes(key), bytes(iv));
-  const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const ciphertext = Buffer.concat([bytes(cipher.update(plaintext, 'utf8')), bytes(cipher.final())]);
   const tag = cipher.getAuthTag();
   return [VERSION, base64url(iv), base64url(tag), base64url(ciphertext)].join('.');
 }
@@ -48,7 +48,7 @@ export function decryptSecret(stored: string, key: Buffer): string {
 
   const decipher = createDecipheriv('aes-256-gcm', bytes(key), bytes(iv));
   decipher.setAuthTag(bytes(tag));
-  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
+  return Buffer.concat([bytes(decipher.update(bytes(ciphertext))), bytes(decipher.final())]).toString('utf8');
 }
 
 /**
