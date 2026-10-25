@@ -7,16 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   CircleStackIcon,
-  PuzzlePieceIcon,
-  ViewColumnsIcon,
-  DocumentTextIcon,
   ClockIcon,
   HeartIcon,
 } from '@/components/ui/icons';
 import { DataLayerSettingsContent } from './DataLayerSettingsPage';
-import { ModuleManagementContent } from './ModuleManagementPage';
-import { ModuleDependencyReportContent } from './ModuleDependencyReportPage';
-import { PluginSettingsContent } from './PluginSettingsPage';
 import { DatabaseBackupContent } from './DatabaseBackupPage';
 import { SystemHealthContent } from './SystemHealthPage';
 import {
@@ -76,24 +70,6 @@ const SystemManagementPage: React.FC = () => {
       label: t('navigation.settings.dataLayer', 'Data Layer'),
       icon: <CircleStackIcon className="w-4 h-4" />,
       component: <DataLayerSettingsContent />,
-    },
-    {
-      id: 'modules',
-      label: t('navigation.settings.modules', 'Modules'),
-      icon: <ViewColumnsIcon className="w-4 h-4" />,
-      component: <ModuleManagementContent />,
-    },
-    {
-      id: 'dependencies',
-      label: t('navigation.settings.dependencyReport', 'Dependencies'),
-      icon: <DocumentTextIcon className="w-4 h-4" />,
-      component: <ModuleDependencyReportContent />,
-    },
-    {
-      id: 'plugins',
-      label: t('navigation.settings.plugins', 'Plugins'),
-      icon: <PuzzlePieceIcon className="w-4 h-4" />,
-      component: <PluginSettingsContent />,
     },
     {
       id: 'backup',

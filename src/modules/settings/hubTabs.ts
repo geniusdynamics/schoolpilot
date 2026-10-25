@@ -6,6 +6,14 @@ export const SETTINGS_HUBS = {
     defaultTab: 'school-profile',
     tabs: ['school-profile', 'users', 'workflows', 'audit'],
   },
+  '/settings/modules': {
+    defaultTab: 'modules',
+    tabs: ['modules', 'features', 'plugins'],
+  },
+  '/settings/system': {
+    defaultTab: 'data-layer',
+    tabs: ['data-layer', 'sync', 'backup', 'integrity', 'health'],
+  },
 } as const;
 
 export type SettingsHubPath = keyof typeof SETTINGS_HUBS;

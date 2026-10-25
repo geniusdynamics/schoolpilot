@@ -34,9 +34,6 @@ vi.mock('@/services/database/SQLiteWASMProvider', () => ({
 }));
 
 vi.mock('../DataLayerSettingsPage', () => ({ DataLayerSettingsContent: () => <div>data layer</div> }));
-vi.mock('../ModuleManagementPage', () => ({ ModuleManagementContent: () => null }));
-vi.mock('../ModuleDependencyReportPage', () => ({ ModuleDependencyReportContent: () => null }));
-vi.mock('../PluginSettingsPage', () => ({ PluginSettingsContent: () => null }));
 vi.mock('../DatabaseBackupPage', () => ({ DatabaseBackupContent: () => null }));
 
 import SystemManagementPage from '../SystemManagementPage';

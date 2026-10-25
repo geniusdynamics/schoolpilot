@@ -52,6 +52,13 @@ const settingsModule: ModuleDefinition = {
       showInModes: ['standard', 'fullwidth'],
     },
     {
+      name: 'navigation:settings.modulesFeatures',
+      path: '/settings/modules',
+      icon: ViewColumnsIcon,
+      page: 'ModulesAndFeaturesPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
       name: 'navigation:settings.dataIntegrity',
       path: '/settings/data-integrity',
       icon: ShieldCheckIcon,
@@ -76,7 +83,7 @@ const settingsModule: ModuleDefinition = {
       page: 'FeatureSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/configuration?tab=features',
+      redirectTo: '/settings/modules?tab=features',
     },
     {
       name: 'navigation:settings.general',
@@ -97,22 +104,12 @@ const settingsModule: ModuleDefinition = {
       redirectTo: '/settings/system?tab=data-layer',
     },
     {
-      name: 'navigation:settings.modules',
-      path: '/settings/modules',
-      icon: ViewColumnsIcon,
-      page: 'ModuleManagementPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/settings/system?tab=modules',
-    },
-    {
       name: 'navigation:settings.dependencyReport',
       path: '/settings/dependency-report',
       icon: DocumentTextIcon,
-      page: 'ModuleDependencyReportPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/system?tab=dependencies',
+      redirectTo: '/settings/modules',
     },
     {
       name: 'navigation:settings.plugins',
@@ -121,7 +118,7 @@ const settingsModule: ModuleDefinition = {
       page: 'PluginSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/system?tab=plugins',
+      redirectTo: '/settings/modules?tab=plugins',
     },
     {
       name: 'navigation:settings.databaseBackup',
@@ -186,6 +183,7 @@ const settingsModule: ModuleDefinition = {
     { path: '/settings/configuration', page: 'ConfigurationPage' },
     { path: '/settings/system', page: 'SystemManagementPage' },
     { path: '/settings/school', page: 'SchoolAndPeoplePage' },
+    { path: '/settings/modules', page: 'ModulesAndFeaturesPage' },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
