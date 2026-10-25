@@ -21,3 +21,4 @@ export { AuditLogContent } from './AuditLogPage';
 export { TabSettingsContent } from './TabSettingsPage';
 export { SettingsDashboardContent } from './SettingsDashboardPage';
 export { DatabaseBackupContent } from './DatabaseBackupPage';
+export { SystemHealthContent } from './SystemHealthPage';
