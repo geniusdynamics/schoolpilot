@@ -1,6 +1,6 @@
 {
-  "updated": "2026-10-19",
-  "note": "Thresholds for scripts/prd/gate.mjs. Tighten via `baseline --update`. Typecheck is calibrated to the Linux CI runner: the local Windows tsc measures 2481 on the same tree, CI measures 2500 (platform-dependent resolution), and 2500 is still tighter than the previous 2628. Update the number from an actual CI gate run, not a local one.",
+  "updated": "2026-10-25",
+  "note": "Thresholds for scripts/prd/gate.mjs. Tighten via `baseline --update`. Typecheck is calibrated to the Linux CI runner: the local Windows tsc measures 2481 on the same tree, CI measures 2500 (platform-dependent resolution), and 2500 is still tighter than the previous 2628. Update the number from an actual CI gate run, not a local one. The school-ops probe floor is 14 of 16, not 15: C13 (attendance roll-call) flaked once in four runs, and a floor at 15 would fail on it.",
   "typecheck": {
     "total": 2500,
     "missingNames": 0
@@ -26,7 +26,7 @@
     ]
   },
   "probe": {
-    "pass": 0,
+    "pass": 14,
     "total": 16
   },
   "lintRequired": true
