@@ -5,6 +5,7 @@ import { PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/compo
 import { useAppData } from '@/hooks/useAppData';
 import { User, Role } from '@/types';
 import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import EntityForm from '@/components/ui/forms/EntityForm';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -17,6 +18,12 @@ import { ensureCanonicalUser } from '@/data/canonicalIdentity';
 import { Repository } from '@/data/repository';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logging';
+import { userRoleLabel, userStatusLabel } from '../data/userDisplay';
+
+// The login row as written to the users collection: the schema's own `is_active` column beside the
+// camelCase `isActive` the rest of the app still reads. Without `is_active` the sign-in finds the
+// login not active.
+type UserWrite = Partial<User> & { is_active?: boolean };
 
 // Add a string array of user types for the dropdown
 const USER_TYPES = ['Staff', 'Student', 'Parent', 'Supplier'];
@@ -146,8 +153,15 @@ export const SettingsUsersContent: React.FC = () => {
     { header: 'Username', key: 'username' as keyof User },
     { header: 'Email', key: 'email' as keyof User },
     { header: 'User Type', key: 'userType' as keyof User},
-    { header: 'Role', key: 'role' as keyof User },
-    { header: 'Status', key: 'isActive' as keyof User },
+    { header: 'Role', key: 'role' as keyof User, render: (_value: unknown, item: User) => userRoleLabel(item, roles || []) },
+    {
+      header: 'Status',
+      key: 'isActive' as keyof User,
+      render: (_value: unknown, item: User) => {
+        const status = userStatusLabel(item);
+        return <Badge variant={status === 'Active' ? 'success' : 'secondary'} size="sm">{status}</Badge>;
+      },
+    },
     {
       header: 'Actions',
       key: 'id' as keyof User,
@@ -165,7 +179,8 @@ export const SettingsUsersContent: React.FC = () => {
     { header: 'Description', key: 'description' as keyof Role },
     {
       header: 'Actions',
-      key: 'id' as keyof Role,
+      // Not 'id': the grid keys its columns by this, and the ID column above already is.
+      key: 'actions' as keyof Role,
       render: (_value: any, item: Role) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openRoleModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
@@ -216,11 +231,12 @@ export const SettingsUsersContent: React.FC = () => {
           const username = String(values.username ?? '').trim();
           let passwordHash: string | undefined;
           if (editingUser) {
-            const updateData: Partial<User> = {
+            const updateData: UserWrite = {
               username,
               email: String(values.email ?? ''),
               userType: String(values.userType ?? ''),
               isActive: Boolean(values.isActive),
+              is_active: Boolean(values.isActive),
               role_id: values.role_id || undefined,
             };
             if (values.password) {
@@ -232,11 +248,12 @@ export const SettingsUsersContent: React.FC = () => {
           } else {
             const hashedPassword = await hashPassword(String(values.password ?? ''));
             passwordHash = hashedPassword.hash + ':' + hashedPassword.salt + ':' + hashedPassword.iterations;
-            const newUser: Omit<User, 'id'> = {
+            const newUser: Omit<User, 'id'> & { is_active: boolean } = {
               username,
               email: String(values.email ?? ''),
               userType: String(values.userType ?? ''),
               isActive: Boolean(values.isActive),
+              is_active: Boolean(values.isActive),
               role_id: values.role_id || undefined,
               hashed_password: passwordHash,
             };
