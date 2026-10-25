@@ -9,9 +9,11 @@ import { X509Certificate } from 'node:crypto';
 import path from 'node:path';
 
 import { createNodeSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
+import { applySchemaMigrations } from '@/data/migrations';
 import { createRepository, type Repository } from '@/data/repository';
 import type { FieldCipher } from '@/data/security';
 import { ServerNode } from '@/data/sync';
+import { CATALOG, SequenceService, createSqliteSequenceStore } from '@/domain/sequences';
 import { ENTITY_NAMES } from '@/domain/schema';
 
 import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
@@ -179,6 +181,7 @@ export class LANServer {
   private backupService: BackupService | null = null;
   private scheduler: BackupScheduler | null = null;
   private syncNode: ServerNode | null = null;
+  private sequences: SequenceService | null = null;
   private auth: AuthenticationService | null = null;
   private advertiser: MdnsAdvertiser | null = null;
   private discoveryStatus: LANServerDiscoveryStatus | null = null;
@@ -272,6 +275,17 @@ export class LANServer {
       await sealRestrictedData(adapter, cipher);
       this.repository = repository;
 
+      // The module-owned tables (the sequences, the ledger, reconciliation) are not in the
+      // canonical registry, so their migrations are applied here: the hub hands out number blocks
+      // and must hold the tables they are recorded in. The device applies the same migrations when
+      // it opens its own database, so the two schemas agree.
+      await applySchemaMigrations(adapter);
+      this.sequences = new SequenceService({
+        store: createSqliteSequenceStore(adapter),
+        definitions: CATALOG,
+        deviceId: 'hub',
+      });
+
       // The sync node opens its metadata beside the canonical tables and seeds the change log
       // from rows the hub already holds, so a device that joins after the hub was populated
       // pulls them instead of an empty page. Rows that already have a change are skipped.
@@ -310,6 +324,7 @@ export class LANServer {
         sync,
         auth,
         accessLog,
+        sequences: this.sequences,
         ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
         ...(this.config.rateLimits === false ? {} : { rateLimiter: new RateLimiter() }),
         ...(backup ? { backup } : {}),
@@ -426,6 +441,11 @@ export class LANServer {
   /** The sync node the hub serves; null before start and after stop. */
   getSyncNode(): ServerNode | null {
     return this.syncNode;
+  }
+
+  /** The hub's sequences, which hand out the number blocks devices number from. */
+  getSequences(): SequenceService | null {
+    return this.sequences;
   }
 
   /** The authentication service the hub serves; null before start and after stop. */
@@ -628,6 +648,7 @@ export class LANServer {
     this.repository = null;
     this.backupService = null;
     this.syncNode = null;
+    this.sequences = null;
     this.auth = null;
     if (adapter) await adapter.close();
 

@@ -3,9 +3,11 @@
 
 import type { Repository } from '@/data/repository';
 import type { ServerNode } from '@/data/sync';
+import type { SequenceService } from '@/domain/sequences';
 
 import type { AuthenticationService } from '../auth';
 import type { BackupService } from '../backup/service';
+import { addSequenceRoutes } from '../sequences';
 import { addSyncRoutes } from '../sync';
 import { addAuthRoutes } from './authRoutes';
 import { addBackupRoutes } from './backupRoutes';
@@ -19,6 +21,8 @@ export interface HubRouterOptions {
   readonly repository: Repository;
   /** The sync node; when present the hub serves `/api/sync`. */
   readonly sync?: ServerNode;
+  /** The hub's sequences; when present the hub serves `/api/sequences`. */
+  readonly sequences?: SequenceService;
   /** The actor a write names when the session names none. */
   readonly actor?: string;
   /** The backup service; when omitted the hub serves no backup endpoints. */
@@ -54,6 +58,7 @@ export function createHubRouter(options: HubRouterOptions): Router {
   addRepositoryRoutes(router, routes);
   addServiceRoutes(router, routes);
   if (options.sync) addSyncRoutes(router, { sync: options.sync });
+  if (options.sequences) addSequenceRoutes(router, { sequences: options.sequences });
   if (options.backup) addBackupRoutes(router, { service: options.backup });
 
   return router;

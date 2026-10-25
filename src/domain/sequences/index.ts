@@ -8,6 +8,7 @@ export * from './scope';
 export * from './catalog';
 export * from './store';
 export * from './service';
+export * from './blocks';
 
 // The single-file helpers this module replaces. They stay exported so existing callers keep
 // working while they migrate to the named sequences; see `legacy.ts` for why they are unsafe.
