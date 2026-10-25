@@ -94,6 +94,29 @@ await sequences.outstandingBlocks({ sequence: 'receipt' });   // what the hub re
   unused numbers: they stay burnt, so a number that may already be printed is never reissued.
 - An exhausted block drops out of the outstanding report; `blocks()` still shows it.
 
+## Blocks from the hub
+
+A device never invents or reuses a number: **a number is issued from a block, and a block comes from
+the hub.** `BlockAllocator` (`blocks.ts`) numbers from the block the device holds, asks the hub for
+another when one runs out, and refuses to issue - `SequenceBlockExhaustedError` - when it is offline
+with none. Gaps are the accepted cost: a block that is abandoned stays burnt, because a number may
+already be on a printed receipt.
+
+- The hub serves `POST /api/sequences/blocks` (reserve a block for a device and scope) and
+  `GET /api/sequences/blocks` (the blocks still holding numbers) in `server/sequences/routes.ts`,
+  authenticated like the rest of the hub.
+- A device reaches it with `createHttpBlockSource` (`src/data/sequences`), which takes the bearer
+  header; the allocator checks the answer fits the request before it adopts the range.
+- The hub and the device must resolve the **same catalog**, or they would partition a sequence
+  differently and print the same number twice.
+- `server/__tests__/sequences.test.ts` proves it over a real socket: two devices numbering receipts
+  through block top-ups never repeat, and a hub restart does not re-offer a range.
+
+**Not wired yet:** the browser app holds no hub connection, so no screen numbers a receipt through the
+hub today; the payments page still issues a counted number. Wiring needs a hub-connection setting,
+which is its own task. The sync layer's audit rows on a pulled change still invent their own
+sequence numbers (`apply.ts`, `writeAudit`).
+
 ## Store schema
 
 `SEQUENCE_DDL` creates `sequence_counter`, `sequence_number` and `sequence_block`. Nothing here
