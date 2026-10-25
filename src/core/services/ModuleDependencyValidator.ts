@@ -243,6 +243,9 @@ class ModuleDependencyValidator {
     }>;
   } {
     const modules = moduleRegistry.getAllMetadata();
+    // The registry hands back the ids of the enabled modules, not the modules: a version is read
+    // from the dependency's metadata.
+    const enabledModules: string[] = moduleRegistry.getEnabledModules();
     const issues: Array<{
       moduleId: string;
       type: 'missing' | 'version' | 'circular';
@@ -251,26 +254,26 @@ class ModuleDependencyValidator {
 
     // Check each module's dependencies
     for (const module of modules) {
-      const enabledModules = moduleRegistry.getEnabledModules();
       const dependencies = module.dependencies || [];
 
       for (const dep of dependencies) {
         const depId = typeof dep === 'string' ? dep : dep.moduleId;
-        const depModule = enabledModules.find(m => m.id === depId);
+        const depEnabled = enabledModules.includes(depId);
 
-        if (!depModule && (typeof dep === 'string' || dep.required)) {
+        if (!depEnabled && (typeof dep === 'string' || dep.required)) {
           issues.push({
             moduleId: module.id,
             type: 'missing',
             details: `Required dependency '${depId}' not found`
           });
-        } else if (typeof dep !== 'string' && depModule && dep.version) {
+        } else if (typeof dep !== 'string' && depEnabled && dep.version) {
           // Check version compatibility
-          if (!semver.satisfies(depModule.version, dep.version)) {
+          const foundVersion = moduleRegistry.getMetadata(depId)?.version;
+          if (foundVersion && !semver.satisfies(foundVersion, dep.version)) {
             issues.push({
               moduleId: module.id,
               type: 'version',
-              details: `Version mismatch for '${depId}': required ${dep.version}, found ${depModule.version}`
+              details: `Version mismatch for '${depId}': required ${dep.version}, found ${foundVersion}`
             });
           }
         }
