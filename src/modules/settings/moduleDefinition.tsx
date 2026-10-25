@@ -45,10 +45,10 @@ const settingsModule: ModuleDefinition = {
       showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:settings.schoolOperations',
+      name: 'navigation:settings.schoolPeople',
       path: '/settings/school',
       icon: IdentificationIcon,
-      page: 'SchoolOperationsPage',
+      page: 'SchoolAndPeoplePage',
       showInModes: ['standard', 'fullwidth'],
     },
     {
@@ -185,7 +185,7 @@ const settingsModule: ModuleDefinition = {
     { path: '/settings', page: 'SettingsDashboardPage' },
     { path: '/settings/configuration', page: 'ConfigurationPage' },
     { path: '/settings/system', page: 'SystemManagementPage' },
-    { path: '/settings/school', page: 'SchoolOperationsPage' },
+    { path: '/settings/school', page: 'SchoolAndPeoplePage' },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [

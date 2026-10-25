@@ -3,7 +3,7 @@
 
 export { default as ConfigurationPage } from './ConfigurationPage';
 export { default as SystemManagementPage } from './SystemManagementPage';
-export { default as SchoolOperationsPage } from './SchoolOperationsPage';
+export { default as SchoolAndPeoplePage } from './SchoolAndPeoplePage';
 export { default as DataIntegrityPage } from './DataIntegrityPage';
 
 export { SettingsContent } from './SettingsPage';
