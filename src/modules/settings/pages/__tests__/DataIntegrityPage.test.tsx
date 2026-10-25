@@ -122,6 +122,26 @@ describe('the data integrity page', () => {
     expect(screen.getByText('The data layer is not connected')).toBeInTheDocument();
   });
 
+  // The page is a tab of the Data & System hub, and the hub supplies the title.
+  it('has no page header of its own, connected or not', async () => {
+    const { unmount } = render(<DataIntegrityPage />);
+    expect(screen.queryByText('Data integrity')).toBeNull();
+    unmount();
+
+    renderPage();
+    await screen.findByText(/learner\.house_id points at/);
+    expect(screen.queryByText('Data integrity')).toBeNull();
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+  });
+
+  it('keeps what the header carried: what the checks look for, and the action to run them again', async () => {
+    renderPage();
+    await screen.findByText(/learner\.house_id points at/);
+
+    expect(screen.getByText(/Nothing is changed until you agree to a fix/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /check again/i })).toBeInTheDocument();
+  });
+
   it('reports the finding with its entity, column, value and row', async () => {
     renderPage();
 
