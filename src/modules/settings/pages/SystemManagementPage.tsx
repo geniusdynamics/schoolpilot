@@ -11,12 +11,14 @@ import {
   ViewColumnsIcon,
   DocumentTextIcon,
   ClockIcon,
+  HeartIcon,
 } from '@/components/ui/icons';
 import { DataLayerSettingsContent } from './DataLayerSettingsPage';
 import { ModuleManagementContent } from './ModuleManagementPage';
 import { ModuleDependencyReportContent } from './ModuleDependencyReportPage';
 import { PluginSettingsContent } from './PluginSettingsPage';
 import { DatabaseBackupContent } from './DatabaseBackupPage';
+import { SystemHealthContent } from './SystemHealthPage';
 import {
   getSQLiteStorageStatus,
   subscribeSQLiteStorageStatus,
@@ -98,6 +100,12 @@ const SystemManagementPage: React.FC = () => {
       label: t('navigation.settings.backup', 'Backup & Restore'),
       icon: <ClockIcon className="w-4 h-4" />,
       component: <DatabaseBackupContent />,
+    },
+    {
+      id: 'health',
+      label: t('navigation.settings.health', 'System Health'),
+      icon: <HeartIcon className="w-4 h-4" />,
+      component: <SystemHealthContent />,
     },
   ];
 

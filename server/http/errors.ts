@@ -10,10 +10,12 @@ import {
   RepositoryReferenceError,
   RepositoryValidationError,
 } from '@/data/repository';
+import { FinanceDutyError } from '@/data/auth';
 import { BillingError } from '@/domain/finance/billing';
 import { ServiceError } from '@/domain/services';
 
 import { AuthError } from '../auth/errors';
+import { RbacError } from '../auth/rbac/errors';
 import { BackupError } from '../backup/errors';
 import { HttpError } from './http';
 
@@ -123,6 +125,19 @@ export function errorResponse(error: unknown): ErrorResponse {
 
   if (error instanceof BackupError) {
     return refuse(backupStatus(error.code), error.code, error.message);
+  }
+
+  // A missing permission is a 403 `permission`, the code the repository's own hook answers with,
+  // not a server fault.
+  if (error instanceof RbacError) {
+    return refuse(error.status, error.code, error.message);
+  }
+
+  // The finance matrix's own gate, which the approval engine shares with the client: a maker
+  // deciding their own request is `self_approval`, a role that may not make or check a move is
+  // `permission`. Both are refusals of the caller.
+  if (error instanceof FinanceDutyError) {
+    return refuse(403, error.code, error.message);
   }
 
   return refuse(

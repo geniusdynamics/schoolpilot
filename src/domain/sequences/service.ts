@@ -2,7 +2,7 @@
 // ABOUTME: and parses a number back into its scope and counter.
 
 import { CATALOG, definitionFor, type SequenceCatalog } from './catalog';
-import { SequenceDefinitionError, SequencePolicyError, SequenceStoreError } from './errors';
+import { SequenceBlockError, SequenceDefinitionError, SequencePolicyError, SequenceStoreError } from './errors';
 import { compileDefinition, formatNumber, parseNumber, type CompiledFormat } from './format';
 import { resolveScope, scopeKey, validateDefinition } from './scope';
 import type { SequenceStore } from './store';
@@ -255,6 +255,71 @@ export class SequenceService {
       });
       return allocationOf(definition.name, key, resolved, seq, number, deviceId, block.startSeq);
     });
+  }
+
+  /**
+   * Adopts a range the hub allocated for this device.
+   *
+   * This is the other half of `reserveBlock`: the hub's counter advanced when it handed the range
+   * out, so recording the range here is what lets the device issue from it while it is
+   * disconnected. Nothing is allocated and nothing is returned to the sequence. The hub's answer
+   * must name the same sequence, scope and device the device asked for; a block that does not is
+   * refused, because recording it would fold another run's numbers into this one. The store's
+   * unique key then refuses a range that is already recorded, so a replayed answer is not adopted
+   * twice.
+   */
+  async adoptBlock(
+    name: string,
+    scope: ScopeValues,
+    block: BlockReservation
+  ): Promise<BlockSummary> {
+    const definition = this.definition(name);
+    const resolved = resolveScope(definition, scope, this.clock());
+    const key = scopeKey(resolved);
+    const target = block.deviceId ?? this.deviceId;
+    if (!target) {
+      throw new SequenceBlockError(`adopting a block of "${name}" needs a device id`);
+    }
+    if (block.sequence !== definition.name || block.scopeKey !== key || block.deviceId !== target) {
+      throw new SequenceBlockError(
+        `the hub answered with a ${block.sequence} block for ${block.scopeKey} on "${block.deviceId}", not ${definition.name} for ${key} on "${target}"`
+      );
+    }
+    if (
+      !Number.isSafeInteger(block.startSeq) ||
+      !Number.isSafeInteger(block.endSeq) ||
+      block.startSeq < 1 ||
+      block.endSeq < block.startSeq
+    ) {
+      throw new SequenceBlockError(
+        `the hub answered with the range ${block.startSeq}..${block.endSeq}, which is not a run of numbers`
+      );
+    }
+
+    const now = this.clock().toISOString();
+    await this.store.createBlock({
+      sequence: definition.name,
+      scopeKey: key,
+      deviceId: target,
+      startSeq: block.startSeq,
+      endSeq: block.endSeq,
+      createdAt: block.createdAt,
+      updatedAt: now,
+    });
+    return {
+      sequence: definition.name,
+      scopeKey: key,
+      deviceId: target,
+      startSeq: block.startSeq,
+      endSeq: block.endSeq,
+      size: block.endSeq - block.startSeq + 1,
+      status: 'open',
+      usedUpto: null,
+      used: 0,
+      remaining: block.endSeq - block.startSeq + 1,
+      createdAt: block.createdAt,
+      updatedAt: now,
+    };
   }
 
   /** The device's open block for a scope, or null. */

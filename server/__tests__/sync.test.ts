@@ -53,7 +53,7 @@ beforeAll(async () => {
   // has no administrator of its own - it authenticates against the canonical user table.
   const users = await seeded.repository.list('user', { where: { username: USERNAME } });
   const seededUser = users.items[0];
-  if (!seededUser) throw new Error(`the  fixture was not seeded`);
+  if (!seededUser) throw new Error(`the ${USERNAME} fixture was not seeded`);
   await seeded.repository.update(
     'user',
     seededUser.id,
@@ -70,7 +70,7 @@ beforeAll(async () => {
 
   const login = await api('POST', '/api/auth/login', { username: USERNAME, password: PASSWORD });
   if (login.status !== 200) {
-    throw new Error(`the hub refused the sign-in: `);
+    throw new Error(`the hub refused the sign-in: ${JSON.stringify(login.body)}`);
   }
   token = (login.body as { token: string }).token;
 }, 60000);

@@ -9,18 +9,22 @@ import { X509Certificate } from 'node:crypto';
 import path from 'node:path';
 
 import { createNodeSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
+import { applySchemaMigrations } from '@/data/migrations';
 import { createRepository, type Repository } from '@/data/repository';
 import type { FieldCipher } from '@/data/security';
 import { ServerNode } from '@/data/sync';
+import { CATALOG, SequenceService, createSqliteSequenceStore } from '@/domain/sequences';
 import { ENTITY_NAMES } from '@/domain/schema';
 
 import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
+import { ApprovalEngine, RbacService } from '../../server/auth/rbac';
 import { BackupError } from '../../server/backup/errors';
 import { resolveBackupSecret, type BackupSecretSource } from '../../server/backup/key';
 import { restoreArchive } from '../../server/backup/restore';
 import { BackupScheduler } from '../../server/backup/schedule';
 import { BackupService } from '../../server/backup/service';
 import type { BackupRetentionPolicy } from '../../server/backup/types';
+import { HealthService, type HubIntegration } from '../../server/health';
 import { createHubRouter } from '../../server/http/hubRouter';
 import { sendJson, setCorsHeaders } from '../../server/http/http';
 import { RateLimiter } from '../../server/http/rateLimit';
@@ -178,8 +182,11 @@ export class LANServer {
   private repository: Repository | null = null;
   private backupService: BackupService | null = null;
   private scheduler: BackupScheduler | null = null;
+  private healthService: HealthService | null = null;
   private syncNode: ServerNode | null = null;
+  private sequences: SequenceService | null = null;
   private auth: AuthenticationService | null = null;
+  private rbac: RbacService | null = null;
   private advertiser: MdnsAdvertiser | null = null;
   private discoveryStatus: LANServerDiscoveryStatus | null = null;
   private state: ServerState = {
@@ -272,6 +279,17 @@ export class LANServer {
       await sealRestrictedData(adapter, cipher);
       this.repository = repository;
 
+      // The module-owned tables (the sequences, the ledger, reconciliation) are not in the
+      // canonical registry, so their migrations are applied here: the hub hands out number blocks
+      // and must hold the tables they are recorded in. The device applies the same migrations when
+      // it opens its own database, so the two schemas agree.
+      await applySchemaMigrations(adapter);
+      this.sequences = new SequenceService({
+        store: createSqliteSequenceStore(adapter),
+        definitions: CATALOG,
+        deviceId: 'hub',
+      });
+
       // The sync node opens its metadata beside the canonical tables and seeds the change log
       // from rows the hub already holds, so a device that joins after the hub was populated
       // pulls them instead of an empty page. Rows that already have a change are skipped.
@@ -299,18 +317,36 @@ export class LANServer {
         this.config.accessLog ??
         new FileRestrictedAccessLog(defaultRestrictedAccessLogFile(this.config.dataDir));
 
+      // Authorisation. It follows the authentication service's setup because its first-run
+      // backfill reads that service's event log. Every entity and service request acts through
+      // the repository it hands out for the signed-in account.
+      const rbac = new RbacService({ adapter, repository, cipher, accessLog });
+      await rbac.setup();
+      this.rbac = rbac;
+      const approvals = new ApprovalEngine({ adapter });
+
       // The automatic backup runs last, once the hub is fully initialised, so the archive it
       // writes holds the sync metadata and the auth tables rather than a half-built database.
       const backup = await this.openBackups(adapter, repository, cipher);
       this.backupService = backup;
       if (backup) await this.startBackups(backup);
 
+      const health = new HealthService({
+        adapter,
+        databaseFile: this.databaseFile,
+        sync,
+        ...(backup ? { backup } : {}),
+        integrations: () => this.integrations(auth),
+      });
+      this.healthService = health;
+
       const router = createHubRouter({
-        repository,
+        rbac,
+        approvals,
         sync,
         auth,
-        accessLog,
-        ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
+        health,
+        sequences: this.sequences,
         ...(this.config.rateLimits === false ? {} : { rateLimiter: new RateLimiter() }),
         ...(backup ? { backup } : {}),
       });
@@ -413,6 +449,42 @@ export class LANServer {
     };
   }
 
+  /**
+   * The outbound integrations the hub actually has, read on every report.
+   *
+   * Only what is configured is reported: a hub with no SMS or mail channel says so rather than
+   * listing a channel that does not exist, and the mDNS advertisement appears only when asked for.
+   */
+  private integrations(auth: AuthenticationService): readonly HubIntegration[] {
+    const checkedAt = new Date().toISOString();
+    const entries: HubIntegration[] = [
+      {
+        id: 'delivery',
+        name: 'Guardian and staff delivery',
+        level: auth.deliveryAvailable ? 'ok' : 'attention',
+        detail: auth.deliveryAvailable
+          ? 'a channel can deliver one-time codes and password-reset links'
+          : 'no SMS or mail channel is configured, so codes and reset links cannot be sent',
+        checkedAt,
+      },
+    ];
+
+    const discovery = this.discoveryStatus;
+    if (discovery) {
+      entries.push({
+        id: 'discovery',
+        name: 'LAN discovery',
+        level: discovery.running ? 'ok' : 'attention',
+        detail: discovery.running
+          ? `advertising ${discovery.hostName} on the LAN`
+          : `the advertisement is not running${discovery.error ? `: ${discovery.error}` : ''}`,
+        checkedAt,
+      });
+    }
+
+    return entries;
+  }
+
   /** The repository the hub serves; null before start and after stop. */
   getRepository(): Repository | null {
     return this.repository;
@@ -426,6 +498,21 @@ export class LANServer {
   /** The sync node the hub serves; null before start and after stop. */
   getSyncNode(): ServerNode | null {
     return this.syncNode;
+  }
+
+  /** The health service the hub serves; null before start and after stop. */
+  getHealthService(): HealthService | null {
+    return this.healthService;
+  }
+
+  /** The hub's sequences, which hand out the number blocks devices number from. */
+  getSequences(): SequenceService | null {
+    return this.sequences;
+  }
+
+  /** The authorisation layer the hub serves; null before start and after stop. */
+  getAuthorisation(): RbacService | null {
+    return this.rbac;
   }
 
   /** The authentication service the hub serves; null before start and after stop. */
@@ -627,8 +714,11 @@ export class LANServer {
     this.adapter = null;
     this.repository = null;
     this.backupService = null;
+    this.healthService = null;
     this.syncNode = null;
+    this.sequences = null;
     this.auth = null;
+    this.rbac = null;
     if (adapter) await adapter.close();
 
     this.state.running = false;
