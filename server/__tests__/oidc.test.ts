@@ -15,8 +15,8 @@ import { AuthEventLog, AuthenticationService, type LoginOutcome } from '../auth'
 import {
   OidcSsoService,
   namedProviderConfig,
+  type OidcErrorCode as SsoRefusalCode,
   type OidcProviderConfig,
-  type SsoRefusalCode,
 } from '../auth/oidc';
 import { LocalOidcProvider } from './oidcProvider';
 
@@ -290,12 +290,15 @@ describe('account linking', () => {
   });
 
   it('links the identity to the account whose username is the email', async () => {
+    // An address no staff record carries: the seeded staff member holds STAFF_EMAIL, and an account
+    // whose username is that same address would be a second match, which the hub rightly refuses.
+    const usernameEmail = 'registrar@mwangaza.ac.ke';
     const staffId = context.seed.idOf('staff');
     const created = await context.repository.create(
       'user',
       {
         institution_id: context.seed.idOf('institution'),
-        username: STAFF_EMAIL,
+        username: usernameEmail,
         password_hash: '!sso-only',
         status: 'active',
         person_ref: { type: 'staff', id: staffId },
@@ -303,6 +306,7 @@ describe('account linking', () => {
       },
       { origin: 'hub', reason: 'test fixture' }
     );
+    idp.identity = { sub: 'username-subject', email: usernameEmail, email_verified: true };
 
     const outcome = await signIn();
     expect(outcome.status).toBe('authenticated');
@@ -377,12 +381,15 @@ describe('account linking', () => {
   });
 
   it('refuses an account that belongs to a guardian rather than to staff', async () => {
+    // The only way an address reaches a guardian's account is a username equal to it, and it must
+    // be an address no staff record carries, or the staff match would be the one that answered.
+    const guardianEmail = 'parent@mwangaza.ac.ke';
     const guardianId = context.seed.idOf('guardian');
     const guardianUser = await context.repository.create(
       'user',
       {
         institution_id: context.seed.idOf('institution'),
-        username: `guardian.${guardianId}`,
+        username: guardianEmail,
         password_hash: '!guardian-otp-only',
         status: 'active',
         person_ref: { type: 'guardian', id: guardianId },
@@ -391,19 +398,7 @@ describe('account linking', () => {
       { origin: 'hub', reason: 'test fixture' }
     );
 
-    idp.identity = {
-      sub: 'guardian-subject',
-      email: STAFF_EMAIL,
-      email_verified: true,
-    };
-    // The guardian's own record carries the email, so the match would otherwise succeed.
-    const guardian = await context.repository.get('guardian', guardianId);
-    await context.repository.update(
-      'guardian',
-      guardianId,
-      { emails: [{ address: STAFF_EMAIL }] },
-      { expectedVersion: guardian?.rowVersion ?? 0, actor: TEST_ACTOR, reason: 'test fixture' }
-    );
+    idp.identity = { sub: 'guardian-subject', email: guardianEmail, email_verified: true };
 
     expect(await refusalOf(() => signIn())).toBe('not_staff');
     expect(guardianUser.id).toBeTruthy();

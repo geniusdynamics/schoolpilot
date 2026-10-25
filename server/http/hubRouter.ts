@@ -6,6 +6,7 @@ import type { ServerNode } from '@/data/sync';
 import type { SequenceService } from '@/domain/sequences';
 
 import type { AuthenticationService } from '../auth';
+import type { OidcSsoService } from '../auth/oidc';
 import type { ApprovalEngine, RbacService } from '../auth/rbac';
 import type { BackupService } from '../backup/service';
 import type { HealthService } from '../health';
@@ -19,6 +20,7 @@ import { addRepositoryRoutes } from './repositoryRoutes';
 import { Router } from './router';
 import type { RateLimiter } from './rateLimit';
 import { addServiceRoutes } from './serviceRoutes';
+import { addSsoRoutes } from './ssoRoutes';
 
 export interface HubRouterOptions {
   /**
@@ -46,6 +48,8 @@ export interface HubRouterOptions {
    * say who is calling must not guess.
    */
   readonly auth?: AuthenticationService;
+  /** The single-sign-on service; when present the hub serves `/api/auth/sso`. */
+  readonly sso?: OidcSsoService;
   /** Enforces the hub's rate limits when set. */
   readonly rateLimiter?: RateLimiter;
 }
@@ -66,6 +70,8 @@ export function createHubRouter(options: HubRouterOptions): Router {
       onAdministratorCreated: (userId) => rbac.assignRoles(userId, ['administrator']),
     });
   }
+
+  if (options.sso) addSsoRoutes(router, { sso: options.sso });
 
   addRepositoryRoutes(router, { rbac });
   addServiceRoutes(router, { rbac });

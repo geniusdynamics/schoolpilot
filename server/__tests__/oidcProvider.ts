@@ -2,7 +2,14 @@
 // ABOUTME: is exercised end to end against discovery, a JWKS, an authorisation endpoint that enforces
 // ABOUTME: PKCE and a token endpoint that signs genuine RS256 ID tokens with a generated key.
 
-import { createHash, generateKeyPairSync, randomUUID, sign as cryptoSign, type KeyObject } from 'node:crypto';
+import {
+  createHash,
+  createHmac,
+  generateKeyPairSync,
+  randomUUID,
+  sign as cryptoSign,
+  type KeyObject,
+} from 'node:crypto';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 
@@ -273,7 +280,6 @@ export class LocalOidcProvider {
     const now = Math.floor(Date.now() / 1000);
     const claims: Record<string, unknown> = {
       iss: this.issuer,
-      sub: pending.identity.sub,
       aud: this.clientId,
       exp: now + 300,
       iat: now,
@@ -289,8 +295,11 @@ export class LocalOidcProvider {
       return `${encode({ alg: 'none', typ: 'JWT' })}.${encode(claims)}.`;
     }
     if (this.algorithm === 'HS256') {
-      const signature = cryptoSign('sha256', Buffer.from(`${encode({ alg: 'HS256', typ: 'JWT' })}.${encode(claims)}`), this.clientSecret);
-      return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode(claims)}.${base64url(signature)}`;
+      // A genuine HMAC with the client secret: the algorithm-confusion token an attacker who knows
+      // the secret would mint. `crypto.sign` takes a private key, not a secret, so it cannot.
+      const signingInput = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode(claims)}`;
+      const signature = createHmac('sha256', this.clientSecret).update(signingInput).digest();
+      return `${signingInput}.${base64url(signature)}`;
     }
 
     const key = this.signWithUnpublishedKey ? this.generateKey() : this.keys[0] as SigningKey;

@@ -47,10 +47,12 @@ interface ProviderPreset {
 /**
  * What each named provider defaults to.
  *
- * Google Workspace answers discovery and signs tokens from `accounts.google.com`. Microsoft 365
- * uses the multi-tenant v2.0 endpoint; a single-tenant hub replaces `common` with its tenant id
- * (or sets `SCHOOLPILOT_SSO_MICROSOFT_TENANT`). Neither is special-cased anywhere else: the hub
- * speaks plain OIDC to whatever issuer it is given.
+ * Google Workspace answers discovery and signs tokens from `accounts.google.com`. Microsoft 365's
+ * preset names the multi-tenant `common` endpoint for discovery only: it signs tokens whose issuer
+ * is the signer's own tenant, so a hub must be given that tenant's issuer
+ * (`SCHOOLPILOT_SSO_MICROSOFT_TENANT` does so from the environment, and refuses to start without
+ * it). Neither provider is special-cased anywhere else: the hub speaks plain OIDC to whatever
+ * issuer it is given.
  */
 export const PROVIDER_PRESETS: Readonly<Record<ProviderName, ProviderPreset>> = {
   google: {
@@ -90,7 +92,7 @@ export function oidcProviderConfig(input: OidcProviderInput): OidcProviderConfig
   return {
     id: required(input.id ?? '', 'id'),
     label: input.label ?? input.id ?? 'Single sign-on',
-    issuer: trimTrailingSlash(required(input.issuer, 'issuer')),
+    issuer: trimTrailingSlash(required(input.issuer ?? '', 'issuer')),
     clientId: required(input.clientId, 'clientId'),
     clientSecret: required(input.clientSecret, 'clientSecret'),
     redirectUri: required(input.redirectUri, 'redirectUri'),
@@ -174,7 +176,16 @@ export function ssoProvidersFromEnv(env: NodeJS.ProcessEnv): OidcProviderConfig[
 
 function microsoftIssuer(env: NodeJS.ProcessEnv): string {
   const names = PROVIDER_ENV.microsoft;
-  const tenant = (names.tenant === undefined ? null : trimmed(env[names.tenant])) ?? 'common';
+  const tenant = names.tenant === undefined ? null : trimmed(env[names.tenant]);
+  if (tenant === null) {
+    // The multi-tenant `common` endpoint signs tokens whose issuer names the signer's own tenant,
+    // which the exact issuer check would refuse on every login. A hub that cannot sign anyone in
+    // should say so when it starts, as it does for a missing redirect URI.
+    throw new OidcError(
+      'provider_unavailable',
+      `the microsoft single-sign-on provider needs the school's tenant: set ${names.tenant} to its tenant id or domain`
+    );
+  }
   return `https://login.microsoftonline.com/${tenant}/v2.0`;
 }
 

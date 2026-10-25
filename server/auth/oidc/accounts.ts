@@ -109,7 +109,7 @@ export class SsoAccountLinker {
     }
 
     const match = await this.accountFor(identity);
-    if (match.status === 'refused') return match;
+    if (match.status !== 'matched') return match;
 
     const existing = await this.linkForUser(match.user.id, identity.providerId);
     if (existing !== null) {
@@ -178,7 +178,7 @@ export class SsoAccountLinker {
         (entry) => entry.address.trim().toLowerCase() === email
       );
       if (!matches || !staff.user_id) continue;
-      const user = await this.repository.get('user', staff.user_id);
+      const user = await this.repository.get('user', asId<'user'>(staff.user_id));
       if (user !== null) users.push(user);
     }
     return users;
