@@ -473,6 +473,36 @@ export class AuthenticationService {
   }
 
   /**
+   * Issues a session for an account another factor has already verified.
+   *
+   * The caller owns the verification — single sign-on's ID token today — and this method does the
+   * rest exactly as a password sign-in does: it refuses an account that is not active, mints a
+   * session, stamps the sign-in and records the factor's own event before the generic one. It
+   * takes a user id rather than an identity on purpose, so nothing reaching this method can be
+   * talked into creating an account.
+   */
+  async issueSessionForVerifiedAccount(input: {
+    readonly userId: string;
+    readonly kind: AuthEventKind;
+    readonly detail?: Readonly<Record<string, unknown>>;
+    readonly meta?: SessionMeta;
+  }): Promise<LoginOutcome> {
+    const user = await this.repository.get('user', asId<'user'>(input.userId));
+    if (user === null || user.deleted_at) {
+      throw new AuthError('invalid_credentials', GENERIC_CREDENTIALS);
+    }
+    if (user.status !== 'active') {
+      throw new AuthError('account_disabled', 'this account is no longer allowed to sign in');
+    }
+
+    await this.events.append(input.kind, {
+      actorId: user.id,
+      ...(input.detail === undefined ? {} : { detail: input.detail }),
+    });
+    return this.issueSession(user, input.meta ?? {});
+  }
+
+  /**
    * Resolves the actor behind a bearer token.
    *
    * Returns null for a token that is not, was never, or is no longer a live session; a session
