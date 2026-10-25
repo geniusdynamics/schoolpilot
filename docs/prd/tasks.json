@@ -3860,10 +3860,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "a3aa27e",
+      "notes": "DR-02 adopted candidate A (canonical repository, backend as a driver). Candidate B was measured PouchDB-to-PouchDB only, with no CouchDB.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-B01",
@@ -3886,10 +3886,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "0543e6e",
+      "notes": "The hub runs on node:http over SQLite. A Postgres hub is not built.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-A02",
@@ -3916,10 +3916,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "9e5fd9a",
+      "notes": "Sync runs over the hub HTTP surface; there is no push channel. The Postgres dialect is untested. Pulled-row audit sequences are still not server-allocated.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-A03",
@@ -3943,10 +3943,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "8474cb8",
+      "notes": "Hub-allocated number blocks, proven over HTTP across devices and a hub restart. Not wired into any screen: the browser app holds no hub connection.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-C01",
@@ -3972,10 +3972,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "d9da329",
+      "notes": "Sessions, lockout, reset, TOTP and guardian OTP. No real SMS or mail gateway and no real authenticator app was run.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-C02",
@@ -4000,10 +4000,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "8011497",
+      "notes": "Judged by the client permission model for every role. Covers the entity, service, approval and backup APIs only; /api/sync, /api/sequences and /api/health are authenticated but not permission-gated.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-C03",
@@ -4026,10 +4026,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "106a996",
+      "notes": "Proven against a provider running in the test process; not run against Google or Microsoft. The browser app has no sign-in button or callback page.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-D01",
@@ -4055,10 +4055,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "bdc7477",
+      "notes": "GP-8 is proven over HTTP, not a browser UI. Retention across real elapsed time is simulated.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-D02",
@@ -4082,10 +4082,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "dc8054e",
+      "notes": "Fresh install to first request measured at 67 s on Windows and 114 s on Ubuntu 22.04 (WSL2). Raspberry Pi is a dry run only; systemd, the firewall, the Windows scheduled task and two-machine discovery were not verified.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-D03",
@@ -4109,10 +4109,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "7bd81a1",
+      "notes": "The Health tab takes a hub address and session typed into the page: the app keeps no hub connection.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-D04",
@@ -4138,10 +4138,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "1f1d3fa",
+      "notes": "sync_change.payload is plaintext, so encryption at rest does not cover the sync change log. Browser and device databases are unencrypted.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P4-Q01",
@@ -4165,10 +4165,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "18fe6af",
+      "notes": "A Node-level golden path over a real hub with three devices, run in the unit-test job; not a Playwright journey. The receipt number is stored in payment.reference.",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P5-A01",
