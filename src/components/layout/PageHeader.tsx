@@ -55,7 +55,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {/* Header Content */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           {icon && (
             <div className="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-lg">
               {icon}
@@ -73,7 +73,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
         {/* Actions */}
         {actions && (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             {actions}
           </div>
         )}

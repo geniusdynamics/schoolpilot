@@ -329,8 +329,8 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       />
       
       <div className="flex flex-1 pt-16">
-        {/* Floating TopOverflowMenu ├óÔé¼ÔÇØ utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
-        <div className="fixed top-0 left-0 z-[60] w-16 sm:w-20">
+        {/* Floating TopOverflowMenu ├óÔé¼ÔÇØ utmost inline-start, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
+        <div className="fixed top-0 start-0 z-[60] w-16 sm:w-20">
           <TopOverflowMenu
             currentModule={selectedModuleKey}
             onModuleSelect={handleModuleSelect}
@@ -344,7 +344,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
           collapsed={isFullWidth}
         />
         
-        {/* Secondary Sidebar ├óÔé¼ÔÇØ slides to far-left in fullwidth mode */}
+        {/* Secondary Sidebar ├óÔé¼ÔÇØ sits at the inline start in fullwidth mode */}
         <SecondarySidebar 
           selectedModuleKey={selectedModuleKey} 
           isOpen={isSubmenuOpen} 
@@ -354,11 +354,11 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
           items={currentModuleNav}
         />
         
-        {/* Main Content Area ÔÇö margin mirrors SecondarySidebar actual width */}
+        {/* Main Content Area ÔÇö inline-start margin mirrors SecondarySidebar actual width */}
         <main 
           className="flex-1 flex flex-col overflow-hidden min-w-0 transition-[margin] duration-300 ease-in-out"
           style={{
-            marginLeft: (() => {
+            marginInlineStart: (() => {
               const primaryWidth = isFullWidth ? '0rem' : '5rem';
               const secondaryWidth = !isSubmenuOpen
                 ? '0rem'

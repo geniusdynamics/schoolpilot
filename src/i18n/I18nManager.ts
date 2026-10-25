@@ -1,4 +1,5 @@
 import { logger } from '@/utils/logging';
+import { applyLocaleDirection, localeDirection } from '@/utils/locale';
 
 /**
  * i18n Manager
@@ -170,7 +171,6 @@ export class I18nManager {
     date: Date | string | number,
     format: 'short' | 'long' | 'full' | 'relative' = 'long'
   ): string {
-    const localeData = this.getCurrentLocaleData();
     const d = new Date(date);
 
     if (format === 'relative') {
@@ -359,10 +359,12 @@ export class I18nManager {
   }
 
   private updateDocumentDirection(): void {
+    if (typeof document === 'undefined') return;
     const localeData = this.getCurrentLocaleData();
-    if (localeData) {
-      document.documentElement.dir = localeData.direction;
-      document.documentElement.lang = this.currentLocale;
+    // The locale module decides direction; a registered LocaleData may still declare its own.
+    applyLocaleDirection(this.currentLocale);
+    if (localeData && localeData.direction !== localeDirection(this.currentLocale)) {
+      document.documentElement.setAttribute('dir', localeData.direction);
     }
   }
 

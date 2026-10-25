@@ -57,14 +57,14 @@ export function FieldFrame({
           {label}
           {required ? (
             <>
-              <span className="ml-0.5 text-red-500" aria-hidden="true">
+              <span className="ms-0.5 text-red-500" aria-hidden="true">
                 *
               </span>
               <span className="sr-only"> required</span>
             </>
           ) : null}
           {optional ? (
-            <span className="ml-1 font-normal text-surface-muted-fg">(optional)</span>
+            <span className="ms-1 font-normal text-surface-muted-fg">(optional)</span>
           ) : null}
         </label>
       ) : null}

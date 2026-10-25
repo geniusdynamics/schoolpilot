@@ -109,30 +109,30 @@ const Input: React.FC<ModernInputProps> = ({
       input: 'h-8 px-2.5 text-sm rounded-md',
       label: 'text-xs mb-1',
       icon: 'w-4 h-4',
-      iconLeft: 'left-2.5',
-      iconRight: 'right-2.5',
-      padLeft: 'pl-8',
-      padRight: 'pr-8',
+      iconLeft: 'start-2.5',
+      iconRight: 'end-2.5',
+      padLeft: 'ps-8',
+      padRight: 'pe-8',
       floating: 'text-xs',
     },
     md: {
       input: 'h-10 px-3 text-sm rounded-lg',
       label: 'text-sm mb-1.5',
       icon: 'w-4 h-4',
-      iconLeft: 'left-3',
-      iconRight: 'right-3',
-      padLeft: 'pl-9',
-      padRight: 'pr-9',
+      iconLeft: 'start-3',
+      iconRight: 'end-3',
+      padLeft: 'ps-9',
+      padRight: 'pe-9',
       floating: 'text-xs',
     },
     lg: {
       input: 'h-11 px-3.5 text-base rounded-lg',
       label: 'text-sm mb-2',
       icon: 'w-5 h-5',
-      iconLeft: 'left-3',
-      iconRight: 'right-3',
-      padLeft: 'pl-10',
-      padRight: 'pr-10',
+      iconLeft: 'start-3',
+      iconRight: 'end-3',
+      padLeft: 'ps-10',
+      padRight: 'pe-10',
       floating: 'text-xs',
     },
   };
@@ -258,7 +258,7 @@ const Input: React.FC<ModernInputProps> = ({
       <div className={currentVariant.container}>
         {/* Control row */}
         <div className="relative flex items-center">
-          {/* Left icon */}
+          {/* Leading icon */}
           {leftIcon && (
             <div className={`absolute ${currentSize.iconLeft} z-10 pointer-events-none ${currentSize.icon} ${stateStyles.icon}`} aria-hidden="true">
               {leftIcon}
@@ -291,7 +291,7 @@ const Input: React.FC<ModernInputProps> = ({
             {...props}
           />
 
-          {/* Right adornment (status icon or custom) */}
+          {/* Trailing adornment (status icon or custom) */}
           {getRightIcon() && (
             <div className={`absolute ${currentSize.iconRight} z-10 ${currentSize.icon}`} aria-hidden="true">
               {getRightIcon()}
@@ -302,7 +302,7 @@ const Input: React.FC<ModernInputProps> = ({
           {floatingLabel && label && (
             <label
               htmlFor={inputId}
-              className={`absolute left-3 transition-all duration-150 ease-out pointer-events-none font-medium ${
+              className={`absolute start-3 transition-all duration-150 ease-out pointer-events-none font-medium ${
                 shouldFloat ? `${currentSize.floating} ${currentVariant.floatingActive}` : currentVariant.floatingIdle
               } ${stateStyles.label}`}
             >

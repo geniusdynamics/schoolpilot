@@ -324,7 +324,7 @@ describe('useToast Hook', () => {
     fireEvent.click(screen.getByText('Show Toast'));
 
     let container = document.body.querySelector('.fixed');
-    expect(container).toHaveClass('top-4', 'right-4');
+    expect(container).toHaveClass('top-4', 'end-4');
 
     rerender(
       <ToastProvider position="bottom-left">
@@ -335,7 +335,7 @@ describe('useToast Hook', () => {
     fireEvent.click(screen.getByText('Show Success'));
 
     container = document.body.querySelector('.fixed');
-    expect(container).toHaveClass('bottom-4', 'left-4', 'flex-col-reverse');
+    expect(container).toHaveClass('bottom-4', 'start-4', 'flex-col-reverse');
   });
 
   it('stacks multiple toasts correctly', async () => {

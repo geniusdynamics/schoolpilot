@@ -4,6 +4,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { Money } from '@/domain/schema/common';
+import { currencyDisplayDecimals, isCurrencyCode } from '@/domain/money';
+import { moneyInputSeparators } from '@/utils/locale';
 import { FieldFrame, useFieldId } from './FieldFrame';
 
 export interface MoneyParseOptions {
@@ -156,6 +158,8 @@ export interface MoneyFieldProps {
   readonly onChange?: (value: Money | undefined) => void;
   readonly currency?: string;
   readonly minorUnitDigits?: number;
+  /** The locale whose separators and default digits the field reads; en-KE-style defaults without it. */
+  readonly locale?: string;
   readonly decimalSeparator?: string;
   readonly groupSeparator?: string;
   readonly allowNegative?: boolean;
@@ -180,8 +184,9 @@ export function MoneyField({
   onChange,
   currency = 'KES',
   minorUnitDigits,
-  decimalSeparator = '.',
-  groupSeparator = ',',
+  locale,
+  decimalSeparator,
+  groupSeparator,
   allowNegative = true,
   formatMoney,
   placeholder = '0.00',
@@ -196,7 +201,6 @@ export function MoneyField({
   onValidityChange,
 }: MoneyFieldProps) {
   const id = useFieldId(providedId, 'money-field');
-  const digits = normaliseDigits(minorUnitDigits);
   const [draft, setDraft] = useState<string | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const editingRef = useRef(false);
@@ -204,11 +208,20 @@ export function MoneyField({
 
   const valueKey = value ? `${value.amount_minor}:${value.currency}` : '';
   const displayCurrency = value?.currency ?? currency;
+  // The currency table owns precision: UGX has no subunit, KWD has three. A locale only names the
+  // separators a teacher types, never the number of decimals an amount can hold.
+  const digits = normaliseDigits(
+    minorUnitDigits ??
+      (isCurrencyCode(displayCurrency) ? currencyDisplayDecimals(displayCurrency) : 2)
+  );
+  const localeSeparators = locale ? moneyInputSeparators(locale) : undefined;
+  const resolvedDecimalSeparator = decimalSeparator ?? localeSeparators?.decimalSeparator ?? '.';
+  const resolvedGroupSeparator = groupSeparator ?? localeSeparators?.groupSeparator ?? ',';
 
   const formatValue = (money: Money): string =>
     formatMoney
       ? formatMoney(money)
-      : formatMinorUnits(money.amount_minor, digits, groupSeparator, decimalSeparator);
+      : formatMinorUnits(money.amount_minor, digits, resolvedGroupSeparator, resolvedDecimalSeparator);
 
   const displayText = draft ?? (value ? formatValue(value) : '');
   const visibleError = parseError ?? error ?? undefined;
@@ -223,8 +236,8 @@ export function MoneyField({
 
   const parseOptions: MoneyParseOptions = {
     minorUnitDigits: digits,
-    decimalSeparator,
-    groupSeparator,
+    decimalSeparator: resolvedDecimalSeparator,
+    groupSeparator: resolvedGroupSeparator,
     allowNegative,
   };
 
@@ -265,7 +278,7 @@ export function MoneyField({
   };
 
   const classes = [
-    'h-10 w-full rounded-lg border bg-surface-card px-3 pr-16 text-sm text-surface-foreground shadow-sm',
+    'h-10 w-full rounded-lg border bg-surface-card px-3 pe-16 text-sm text-surface-foreground shadow-sm',
     'transition-[border-color,box-shadow] duration-150 outline-none placeholder:text-surface-muted-fg',
     'focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15',
     'disabled:cursor-not-allowed disabled:border-surface-border disabled:bg-surface-muted disabled:text-surface-muted-fg',
@@ -311,7 +324,7 @@ export function MoneyField({
           />
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-surface-muted-fg"
+            className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-xs font-medium text-surface-muted-fg"
           >
             {displayCurrency}
           </span>

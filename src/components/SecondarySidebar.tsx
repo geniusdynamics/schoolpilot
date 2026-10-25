@@ -91,7 +91,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   // Shared minimize state — lives in SecondarySidebarContext so Layout can
-  // compute marginLeft from the actual rendered width. Fallback to local state
+  // The sidebar's inline-start margin comes from the actual rendered width. Fallback to local state
   // keeps isolated unit tests working when no Provider is present.
   const { isFullWidth } = useFullWidth();
   const sidebarCtx = React.useContext(SecondarySidebarContext);
@@ -478,11 +478,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   // while a desktop got 56px - the rail grew on the screen with the least room for it.
   const minimizedWidth = 'w-14';
   const sidebarWidth = isMinimized ? minimizedWidth : 'w-52';
-  const sidebarLeft = isSecondaryAsPrimary ? 'left-0' : 'left-16 sm:left-20';
-  const backdropLeft = isSecondaryAsPrimary ? 'left-0' : 'left-16 sm:left-20';
+  const sidebarStart = isSecondaryAsPrimary ? 'start-0' : 'start-16 sm:start-20';
+  const backdropStart = isSecondaryAsPrimary ? 'start-0' : 'start-16 sm:start-20';
   const sidebarClasses = isMobile
-    ? `w-44 sm:w-24 fixed top-0 ${sidebarLeft} z-40 shadow-2xl h-screen pt-16` // Mobile
-    : `${sidebarWidth} fixed top-0 ${sidebarLeft} z-40 h-screen pt-16 transition-all duration-300 ease-in-out`; // Desktop
+    ? `w-44 sm:w-24 fixed top-0 ${sidebarStart} z-40 shadow-2xl h-screen pt-16` // Mobile
+    : `${sidebarWidth} fixed top-0 ${sidebarStart} z-40 h-screen pt-16 transition-all duration-300 ease-in-out`; // Desktop
 
   // Show loading fallback if modules are still loading
   if (isLoading || !navigationItems.length) {
@@ -495,7 +495,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       {isMobile && (
           <div 
           className={`
-            fixed inset-0 top-12 ${backdropLeft} z-30 transition-all duration-300 ease-in-out
+            fixed inset-0 top-12 ${backdropStart} z-30 transition-all duration-300 ease-in-out
             ${isOpen 
               ? 'bg-transparent opacity-100 pointer-events-auto mobile-fade-in' 
               : 'bg-transparent opacity-0 pointer-events-none mobile-fade-out'
@@ -524,8 +524,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         id="secondary-sidebar"
         className={`
           ${sidebarClasses}
-          ${isOpen ? 'block transform translate-x-0 mobile-slide-in' : 'hidden transform -translate-x-full mobile-slide-out'}
-          flex flex-col shadow-xl border-l ${moduleStyle.border}
+          ${isOpen ? 'block transform translate-x-0 mobile-slide-in' : 'hidden transform -translate-x-full rtl:translate-x-full mobile-slide-out'}
+          flex flex-col shadow-xl border-s ${moduleStyle.border}
           px-2 py-4
           ${moduleStyle.background}
           ${isMobile ? 'bg-white/98 dark:bg-slate-900/98' : 'bg-white/95 dark:bg-slate-900/95'}
@@ -538,7 +538,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         tabIndex={-1}
       >
         {/* Control buttons - positioned to avoid search bar overlap; pushed lower when secondary acts as primary (below TopOverflowMenu) */}
-        <div className={`absolute ${isSecondaryAsPrimary ? 'top-14' : 'top-4'} right-2 z-20 flex flex-col gap-1`}>
+        <div className={`absolute ${isSecondaryAsPrimary ? 'top-14' : 'top-4'} end-2 z-20 flex flex-col gap-1`}>
           {!isMobile && (
             <button
               className={`
@@ -562,7 +562,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         {/* Enhanced close button with better mobile touch targets */}
         <button
           className={`
-            absolute ${isMobile ? '-top-2 -right-2 w-10 h-10 p-2' : '-top-1 -right-1 w-8 h-8 p-1.5'} 
+            absolute ${isMobile ? '-top-2 -end-2 w-10 h-10 p-2' : '-top-1 -end-1 w-8 h-8 p-1.5'} 
             z-40 text-red-600 hover:text-red-800 active:text-red-900
             hover:bg-red-100 active:bg-red-200
             rounded-full bg-surface-card shadow-lg border border-red-200 
@@ -619,7 +619,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         )}
         
         {/* Enhanced navigation content with mobile-optimized scrolling */}
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 sm:pr-2 relative z-10 min-h-0 ${subMenus.length === 0 ? 'hidden' : ''}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pe-1 sm:pe-2 relative z-10 min-h-0 ${subMenus.length === 0 ? 'hidden' : ''}`}>
           <ul className={`${isMobile ? 'space-y-2' : 'space-y-1'} ${isMinimized ? 'items-center' : ''} pb-4 sm:pb-6`}>
             {filterItems(subMenus).map(item => (
               <li key={item.name}>
@@ -657,9 +657,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     </button>
                     {/* Enhanced tooltip for group items - hidden on mobile to avoid touch conflicts */}
                     {isMinimized && !isMobile && (
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                        <div className="absolute start-full top-1/2 -translate-y-1/2 ms-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
                           {t(item.name)}
-                          <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
+                          <div className="absolute end-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-e-[6px] border-t-transparent border-b-transparent border-e-slate-800"></div>
                         </div>
                       )}
                     {openGroups[item.name] && !isMinimized && (
@@ -684,7 +684,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                         <button
                                           onClick={(e) => handleNavigationClick(child, e)}
                                           onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
-                                          className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
+                                          className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-start ${
                                             isItemActive(child)
                                               ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                                               : 'border-transparent bg-white/5 hover:bg-white/20'
@@ -714,7 +714,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                               <button
                                 onClick={(e) => handleNavigationClick(child, e)}
                                 onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
-                                className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
+                                className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-start ${
                                   isItemActive(child)
                                     ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                                     : 'border-transparent bg-white/5 hover:bg-white/20'
@@ -739,7 +739,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     <button
                       onClick={(e) => handleNavigationClick(item, e)}
                       onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
-                      className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
+                      className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-start ${
                         isItemActive(item)
                           ? 'bg-white/60 dark:bg-slate-900/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
                           : `border-transparent bg-white/5 hover:bg-white/20 ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''}`
@@ -757,9 +757,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     </button>
                     {/* Enhanced tooltip for standalone items - hidden on mobile */}
                     {isMinimized && !isMobile && (
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                        <div className="absolute start-full top-1/2 -translate-y-1/2 ms-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
                           {t(item.name)}
-                          <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
+                          <div className="absolute end-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-e-[6px] border-t-transparent border-b-transparent border-e-slate-800"></div>
                         </div>
                       )}
                   </div>
