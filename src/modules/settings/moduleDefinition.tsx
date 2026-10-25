@@ -178,9 +178,15 @@ const settingsModule: ModuleDefinition = {
       redirectTo: '/settings/school?tab=tabs',
     },
   ],
-  // The dashboard is also a declared route: the module root renders it. The old /settings/dashboard
-  // address redirects here from the shared redirect map.
-  routes: [{ path: '/settings', page: 'SettingsDashboardPage' }],
+  // The pages the module serves at an address of their own. They are declared here, not in the router, so
+  // that they are routable as soon as the module is registered and not only once navigation has loaded.
+  // The old /settings/dashboard address redirects to the module root from the shared redirect map.
+  routes: [
+    { path: '/settings', page: 'SettingsDashboardPage' },
+    { path: '/settings/configuration', page: 'ConfigurationPage' },
+    { path: '/settings/system', page: 'SystemManagementPage' },
+    { path: '/settings/school', page: 'SchoolOperationsPage' },
+  ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
     {

@@ -88,22 +88,6 @@ vi.mock('@/components/ui/Spinner', () => ({
   default: ({ size }: { size?: string }) => <div data-testid={`spinner-${size || 'default'}`}>Loading...</div>,
 }));
 
-// Mock settings hub pages that DynamicRoutes imports directly
-vi.mock('../../modules/settings/pages/ConfigurationPage', () => ({
-  __esModule: true,
-  default: () => <div data-testid="configuration-hub-page">Configuration Hub</div>,
-}));
-
-vi.mock('../../modules/settings/pages/SystemManagementPage', () => ({
-  __esModule: true,
-  default: () => <div data-testid="system-management-hub-page">System Management Hub</div>,
-}));
-
-vi.mock('../../modules/settings/pages/SchoolOperationsPage', () => ({
-  __esModule: true,
-  default: () => <div data-testid="school-operations-hub-page">School Operations Hub</div>,
-}));
-
 describe('DynamicRoutes', () => {
   const mockModules = [
     {
@@ -179,50 +163,8 @@ describe('DynamicRoutes', () => {
     });
   });
 
-  describe('Settings Routes', () => {
-    // /settings is the module root and holds the Settings dashboard, so it is no longer a redirect into
-    // the configuration hub; that is covered with the real module definitions in moduleRoutesCoverage.
-
-    it('should redirect /settings/unified to the configuration hub page', () => {
-      render(
-        <MemoryRouter initialEntries={['/settings/unified']}>
-          <DynamicRoutes modulesInitialized={true} />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByTestId('configuration-hub-page')).toBeInTheDocument();
-    });
-
-    it('should redirect /settings/features to the configuration hub page', () => {
-      render(
-        <MemoryRouter initialEntries={['/settings/features']}>
-          <DynamicRoutes modulesInitialized={true} />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByTestId('configuration-hub-page')).toBeInTheDocument();
-    });
-
-    it('should redirect /settings/data-layer to the system management hub page', () => {
-      render(
-        <MemoryRouter initialEntries={['/settings/data-layer']}>
-          <DynamicRoutes modulesInitialized={true} />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByTestId('system-management-hub-page')).toBeInTheDocument();
-    });
-
-    it('should redirect /settings/audit-log to the school operations hub page', () => {
-      render(
-        <MemoryRouter initialEntries={['/settings/audit-log']}>
-          <DynamicRoutes modulesInitialized={true} />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByTestId('school-operations-hub-page')).toBeInTheDocument();
-    });
-  });
+  // The Settings pages are routes of the settings module definition, not special cases of the router, so
+  // they are covered with the real module definitions in moduleRoutesCoverage.
 
   describe('Test Routes', () => {
     it('should render error tracking test page', () => {
