@@ -16,6 +16,7 @@ import type { EntityName } from '@/domain/schema';
 import { LANServer } from '@/server/LANServer';
 
 import { hashPassword } from '../auth';
+import { grantRoles } from './helpers/authorisation';
 import {
   FileRestrictedAccessLog,
   MemoryRestrictedAccessLog,
@@ -357,6 +358,8 @@ async function giveSeededUserAPassword(context: TestContext): Promise<string> {
     { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
     { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
   );
+  // The hub denies an account that holds no role; the administrator may read restricted data.
+  await grantRoles(context.adapter, seededUser.id);
   return seededUser.id;
 }
 

@@ -48,8 +48,11 @@ export {
   createAuthorizedRepository,
   type AuthorizedRepository,
   type AuthorizedRepositoryOptions,
+  type RepositoryRowEvent,
   type ScopedRepositoryOptions,
 } from './scopedRepository';
+
+export { redactRow, redactRows, withheldFields } from './fieldPolicy';
 
 export {
   FINANCE_PERMISSIONS,

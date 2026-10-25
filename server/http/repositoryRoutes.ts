@@ -1,18 +1,17 @@
 // ABOUTME: The repository API: list, read, create, patch, remove and the audit trail of any
-// ABOUTME: registered entity, over the same typed repository the browser runs.
+// ABOUTME: registered entity, over the scoped repository of the signed-in actor, so every operation
+// ABOUTME: is judged by the client's permission model and answered with the fields its role may see.
 
 import type {
   CreateInput,
   FilterCondition,
   ListQuery,
   OrderSpec,
-  Repository,
   UpdateInput,
   WriteOptions,
 } from '@/data/repository';
 import { asId } from '@/domain/ids';
 import { ENTITY_NAMES, isEntityName, type EntityName } from '@/domain/schema';
-import { restrictedFieldsIn } from '@/data/security';
 
 import {
   booleanQuery,
@@ -24,17 +23,11 @@ import {
   requireObject,
 } from './http';
 import type { RouteRequest, Router } from './router';
-import type {
-  RestrictedAccessAction,
-  RestrictedAccessLog,
-} from '../security/restrictedAccessLog';
+import type { ActorAccess, RbacService } from '../auth/rbac';
 
 export interface RepositoryRouteOptions {
-  readonly repository: Repository;
-  /** The actor a write names when the session names none; the session's user wins. */
-  readonly actor?: string;
-  /** Records every read and write of restricted data when set. */
-  readonly accessLog?: RestrictedAccessLog;
+  /** The authorisation layer: the repository each request acts through comes from here. */
+  readonly rbac: RbacService;
 }
 
 /** Registers the repository API under `/api/entities`. */
@@ -43,38 +36,35 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
 
   router.add('GET', '/api/entities/:entity', async (request) => {
     const entity = entityOf(request);
-    const page = await options.repository.list(entity, listQueryOf(request.url));
-    recordRestrictedAccess(options, request, 'list', entity, page.items);
+    const repository = (await accessOf(request, options)).repository;
+    const page = await repository.list(entity, listQueryOf(request.url));
     return { body: page };
   });
 
   router.add('GET', '/api/entities/:entity/:id', async (request) => {
     const entity = entityOf(request);
     const id = idOf(request);
-    const row = await options.repository.get(entity, id);
+    const repository = (await accessOf(request, options)).repository;
+    const row = await repository.get(entity, id);
     if (!row) {
       throw new HttpError(404, 'not_found', `no ${entity} row with id ${request.params.id}`);
     }
-    recordRestrictedAccess(options, request, 'read', entity, [row]);
     return { body: row };
   });
 
   router.add('GET', '/api/entities/:entity/:id/audit', async (request) => {
     const entity = entityOf(request);
-    const events = await options.repository.auditTrail(entity, request.params.id ?? '');
+    const repository = (await accessOf(request, options)).repository;
+    const events = await repository.auditTrail(entity, request.params.id ?? '');
     return { body: { events } };
   });
 
   router.add('POST', '/api/entities/:entity', async (request) => {
     const entity = entityOf(request);
     const body = await jsonObjectOf(request);
+    const repository = (await accessOf(request, options)).repository;
 
-    const row = await options.repository.create(
-      entity,
-      body as CreateInput<EntityName>,
-      writeOptionsOf(request, options.actor)
-    );
-    recordRestrictedAccess(options, request, 'create', entity, [row]);
+    const row = await repository.create(entity, body as CreateInput<EntityName>, writeOptionsOf(request));
     return { status: 201, body: row };
   });
 
@@ -90,11 +80,11 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
       throw new HttpError(400, 'invalid_body', 'patch must be a JSON object');
     }
 
-    const row = await options.repository.update(entity, id, patch as UpdateInput<EntityName>, {
+    const repository = (await accessOf(request, options)).repository;
+    const row = await repository.update(entity, id, patch as UpdateInput<EntityName>, {
       expectedVersion,
-      ...writeOptionsOf(request, options.actor),
+      ...writeOptionsOf(request),
     });
-    recordRestrictedAccess(options, request, 'update', entity, [row]);
     return { body: row };
   };
 
@@ -105,60 +95,31 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
     const entity = entityOf(request);
     const id = idOf(request);
     const expectedVersion = integerQuery(request.url, 'expectedVersion');
-    const row = await options.repository.remove(entity, id, {
-      ...writeOptionsOf(request, options.actor),
+    const repository = (await accessOf(request, options)).repository;
+    const row = await repository.remove(entity, id, {
+      ...writeOptionsOf(request),
       ...(expectedVersion !== undefined ? { expectedVersion } : {}),
     });
-    recordRestrictedAccess(options, request, 'remove', entity, [row]);
     return { body: { removed: row } };
   });
 }
 
 /**
- * Records an access to restricted data, when the rows carried any.
+ * What the request acts as.
  *
- * The entry names the actor, the rows and the fields, never a value. It is written before the
- * response is handed back, so a read whose access cannot be recorded fails the request rather than
- * going unlogged.
+ * The repository is built per request: the scope is resolved from the roles the account holds now,
+ * and the field policy the client applies is installed on it. A request without a session cannot
+ * reach here - the router refuses it - so a missing one is a refusal rather than a fallback.
  */
-function recordRestrictedAccess(
-  options: RepositoryRouteOptions,
+async function accessOf(
   request: RouteRequest,
-  action: RestrictedAccessAction,
-  entity: EntityName,
-  rows: readonly unknown[]
-): void {
-  const log = options.accessLog;
-  if (!log) return;
-
-  const fields = new Set<string>();
-  const ids: string[] = [];
-  for (const row of rows) {
-    const touched = restrictedFieldsIn(entity, row);
-    if (touched.length === 0) continue;
-    for (const field of touched) fields.add(field);
-    ids.push(rowIdOf(row));
+  options: RepositoryRouteOptions
+): Promise<ActorAccess> {
+  const session = request.session;
+  if (session === null) {
+    throw new HttpError(401, 'unauthenticated', 'this endpoint requires a bearer token');
   }
-  if (ids.length === 0) return;
-
-  log.record({
-    at: new Date().toISOString(),
-    actor: actorFor(request, options.actor) ?? null,
-    action,
-    entity,
-    ids,
-    fields: [...fields],
-    outcome: 'allowed',
-  });
-}
-
-/** The id of a row about to be recorded. */
-function rowIdOf(row: unknown): string {
-  if (row !== null && typeof row === 'object') {
-    const id = (row as { id?: unknown }).id;
-    if (typeof id === 'string') return id;
-  }
-  return '';
+  return options.rbac.accessFor(session);
 }
 
 /** The entity a request names, refusing one the registry does not hold. */
@@ -181,16 +142,12 @@ async function jsonObjectOf(request: RouteRequest): Promise<Record<string, unkno
 }
 
 /**
- * The actor a request acts as: the signed-in user, and only the configured fallback on a route
- * that requires no session. There is no header a caller can set to claim another identity.
+ * The write options of a request: the actor, its reason and the hub as the origin.
+ *
+ * The actor is the signed-in user; there is no header a caller can set to claim another identity.
  */
-function actorFor(request: RouteRequest, fallback: string | undefined): string | undefined {
-  return request.session?.userId ?? fallback;
-}
-
-/** The write options of a request: the actor, its reason and the hub as the origin. */
-function writeOptionsOf(request: RouteRequest, fallback: string | undefined): WriteOptions {
-  const actor = actorFor(request, fallback);
+function writeOptionsOf(request: RouteRequest): WriteOptions {
+  const actor = request.session?.userId;
   const reason = request.url.searchParams.get('reason') ?? undefined;
   return {
     ...(actor !== undefined ? { actor } : {}),
