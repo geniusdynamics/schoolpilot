@@ -32,7 +32,7 @@ const reportsModule: ModuleDefinition = {
     }
   ],
   navigation: [
-    { name: 'navigation:reports.dashboard', path: '/reports/dashboard', icon: DocumentReportIcon, page: 'ReportsDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:reports.dashboard', path: '/reports', icon: DocumentReportIcon, page: 'ReportsDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:reports.overview', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:reports.studentReports', path: '/reports/student-reports', icon: UsersIcon, page: 'StudentReportsHubPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Financial reports hub (relocated from finance module)

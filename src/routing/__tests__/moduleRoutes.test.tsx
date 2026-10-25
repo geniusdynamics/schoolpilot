@@ -180,15 +180,8 @@ describe('DynamicRoutes', () => {
   });
 
   describe('Settings Routes', () => {
-    it('should redirect /settings to the configuration hub page', () => {
-      render(
-        <MemoryRouter initialEntries={['/settings']}>
-          <DynamicRoutes modulesInitialized={true} />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByTestId('configuration-hub-page')).toBeInTheDocument();
-    });
+    // /settings is the module root and holds the Settings dashboard, so it is no longer a redirect into
+    // the configuration hub; that is covered with the real module definitions in moduleRoutesCoverage.
 
     it('should redirect /settings/unified to the configuration hub page', () => {
       render(

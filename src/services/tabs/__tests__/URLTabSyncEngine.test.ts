@@ -314,4 +314,65 @@ describe('URLTabSyncEngine', () => {
       expect(parsed.activeTabId).toBe('tab-academics-students-list');
     });
   });
+
+  describe('a module dashboard saved under its old /module/dashboard address', () => {
+    it('restores it from the compact URL at the module root, named for the module', () => {
+      const engine = new URLTabSyncEngine();
+
+      const parsed = engine.parseURL('/?tab=/dashboard&tab=/finance/dashboard&a=1&p=0#/finance');
+
+      expect(parsed.tabs).toHaveLength(2);
+      expect(parsed.tabs[1]).toMatchObject({ url: '/finance', module: 'finance', title: 'Finance' });
+      expect(parsed.tabs[1].entity).toBeUndefined();
+      // The routed page is the module root, and the tab for it is the active one.
+      expect(parsed.activeTabId).toBe(parsed.tabs[1].id);
+    });
+
+    it('restores it from stored JSON with the stale "Dashboard" title replaced', () => {
+      sessionStorage.setItem(
+        'sp_tabs_v2',
+        JSON.stringify({
+          tabs: [
+            { id: 'tab-dashboard', url: '/dashboard', title: 'Dashboard', module: 'dashboard', isDirty: false, pinned: true },
+            {
+              id: 'tab-finance-dashboard-list',
+              url: '/finance/dashboard',
+              title: 'Dashboard',
+              module: 'finance',
+              entity: 'dashboard',
+              view: 'list',
+              isDirty: false,
+              pinned: false,
+            },
+          ],
+          activeTabId: 'tab-finance-dashboard-list',
+        })
+      );
+      const engine = new URLTabSyncEngine();
+
+      const parsed = engine.parseURL('/#/finance');
+
+      expect(parsed.tabs[1]).toMatchObject({ url: '/finance', module: 'finance', title: 'Finance' });
+      expect(parsed.tabs[1].entity).toBeUndefined();
+      expect(parsed.activeTabId).toBe(parsed.tabs[1].id);
+    });
+
+    it('leaves a stored tab that is not a module dashboard exactly as it was saved', () => {
+      sessionStorage.setItem(
+        'sp_tabs_v2',
+        JSON.stringify({
+          tabs: [
+            { id: 'tab-dashboard', url: '/dashboard', title: 'Dashboard', module: 'dashboard', isDirty: false, pinned: true },
+            { id: 'tab-custom', url: '/academics/students', title: 'My students', module: 'academics', isDirty: false, pinned: false },
+          ],
+          activeTabId: 'tab-custom',
+        })
+      );
+      const engine = new URLTabSyncEngine();
+
+      const parsed = engine.parseURL('/#/academics/students');
+
+      expect(parsed.tabs[1]).toMatchObject({ url: '/academics/students', title: 'My students' });
+    });
+  });
 });

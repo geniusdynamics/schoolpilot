@@ -11,6 +11,7 @@ import type { Tab, ParsedTabState, TabStateSnapshot } from './types';
 import { performanceEventManager } from '@/services/performance';
 import { TabStateDeriver } from './TabStateDeriver';
 import { routeToTabMapper } from './RouteToTabMapper';
+import { canonicalTabUrl } from './moduleDashboardUrl';
 
 const STORAGE_KEY = 'sp_tabs_v2';
 const MAX_TABS = 20;
@@ -300,11 +301,17 @@ export class URLTabSyncEngine {
       if (validatedTabs.length >= MAX_TABS) break;
       if (!t || typeof t !== 'object' || !t.id || !t.url || !t.module) continue;
 
-      const url = String(t.url);
-      if (!routeToTabMapper.isKnownAppRoute(url)) {
-        logger.warn('[URLTabSyncEngine] Ignoring restored tab url the router cannot render:', url);
+      const savedUrl = String(t.url);
+      if (!routeToTabMapper.isKnownAppRoute(savedUrl)) {
+        logger.warn('[URLTabSyncEngine] Ignoring restored tab url the router cannot render:', savedUrl);
         continue;
       }
+
+      // A tab saved under an old spelling of its address (a module's dashboard was /module/dashboard)
+      // is restored at the current one, and described by it: its saved title, entity and icon
+      // describe the old address ("Dashboard"), not the page it now opens.
+      const url = canonicalTabUrl(savedUrl);
+      const current = url === savedUrl ? null : this.deriver.deriveTab(url);
 
       const id = this.makeUniqueTabId(String(t.id), usedIds);
       usedIds.add(id);
@@ -312,14 +319,14 @@ export class URLTabSyncEngine {
       validatedTabs.push({
         id,
         url,
-        title: String(t.title || 'Untitled'),
-        module: String(t.module),
-        entity: t.entity ? String(t.entity) : undefined,
-        entityId: t.entityId ? String(t.entityId) : undefined,
-        view: t.view ? String(t.view) : undefined,
+        title: current ? current.title : String(t.title || 'Untitled'),
+        module: current ? current.module : String(t.module),
+        entity: current ? current.entity : t.entity ? String(t.entity) : undefined,
+        entityId: current ? current.entityId : t.entityId ? String(t.entityId) : undefined,
+        view: current ? current.view : t.view ? String(t.view) : undefined,
         isDirty: Boolean(t.isDirty),
         pinned: Boolean(t.pinned),
-        icon: t.icon ? String(t.icon) : undefined,
+        icon: current ? current.icon : t.icon ? String(t.icon) : undefined,
         metadata: {
           createdAt: Number(t.metadata?.createdAt) || Date.now(),
           lastAccessed: Number(t.metadata?.lastAccessed) || Date.now()

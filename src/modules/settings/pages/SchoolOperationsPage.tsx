@@ -2,7 +2,7 @@
 // ABOUTME: Consolidates school profile, users, workflows, audit logs, and interface settings
 
 import React, { useState, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
@@ -11,7 +11,6 @@ import {
   ArrowsRightLeftIcon,
   ClockIcon,
   ViewColumnsIcon,
-  HomeIcon,
   ExclamationTriangleIcon,
 } from '@/components/ui/icons';
 import { SettingsSchoolProfileContent } from './SettingsSchoolProfilePage';
@@ -19,7 +18,6 @@ import { SettingsUsersContent } from './SettingsUsersPage';
 import { SettingsWorkflowsContent } from './SettingsWorkflowsPage';
 import { AuditLogContent } from './AuditLogPage';
 import { TabSettingsContent } from './TabSettingsPage';
-import { SettingsDashboardContent } from './SettingsDashboardPage';
 import { SyncConflictsPanel } from '../components/SyncConflictsPanel';
 
 interface HubTab {
@@ -71,12 +69,6 @@ const SchoolOperationsPage: React.FC = () => {
       icon: <ViewColumnsIcon className="w-4 h-4" />,
       component: <TabSettingsContent />,
     },
-    {
-      id: 'dashboard',
-      label: t('navigation.settings.dashboard', 'Dashboard'),
-      icon: <HomeIcon className="w-4 h-4" />,
-      component: <SettingsDashboardContent />,
-    },
   ];
 
   const activeTabFromUrl = searchParams.get('tab') || 'school-profile';
@@ -95,6 +87,12 @@ const SchoolOperationsPage: React.FC = () => {
   );
 
   const activeTabData = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+
+  // The Settings dashboard used to be a tab of this hub; it is the module root now. An old link to
+  // ?tab=dashboard goes there rather than opening this hub on a tab that no longer exists.
+  if (activeTabFromUrl === 'dashboard') {
+    return <Navigate to="/settings" replace />;
+  }
 
   return (
     <div className="space-y-4">

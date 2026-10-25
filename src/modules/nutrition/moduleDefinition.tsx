@@ -14,7 +14,7 @@ export const nutritionModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:nutrition.dashboard', path: '/nutrition/dashboard', icon: CakeIcon, page: 'NutritionDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:nutrition.dashboard', path: '/nutrition', icon: CakeIcon, page: 'NutritionDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:nutrition.mealPlanning', path: '/nutrition/meal-planning', icon: DocumentTextIcon, page: 'MealPlanningHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:nutrition.nutritionOperations', path: '/nutrition/operations', icon: CubeIcon, page: 'NutritionOperationsHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:nutrition.mealPlans', path: '/nutrition/meal-plans', icon: DocumentTextIcon, page: 'MealPlansPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/nutrition/meal-planning?tab=meal-plans' },

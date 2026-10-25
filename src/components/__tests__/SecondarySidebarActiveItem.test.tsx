@@ -101,6 +101,22 @@ describe('the secondary sidebar', () => {
     expect(active[0]).toContain('Staff');
   });
 
+  it('highlights the module dashboard on the module root', () => {
+    renderAt('/administration');
+
+    const active = activeItems();
+    expect(active).toHaveLength(1);
+    expect(active[0]).toContain('Admin Dashboard');
+  });
+
+  it('does not call the module dashboard active on a page the sidebar does not list', () => {
+    // The dashboard is the module root, so its path prefixes every page in the module. That is not
+    // being on the dashboard: a page with no entry of its own highlights nothing.
+    renderAt('/administration/a-page-nobody-listed');
+
+    expect(activeItems()).toHaveLength(0);
+  });
+
   it('keeps a minimize the user asked for, on a viewport whose rule says expanded', () => {
     const originalWidth = window.innerWidth;
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1440 });

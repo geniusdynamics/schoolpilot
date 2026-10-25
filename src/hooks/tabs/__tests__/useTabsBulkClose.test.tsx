@@ -63,8 +63,8 @@ const initialState = (): ParsedTabState => ({
  * The router is given that same URL: the hook re-reads the tab list from the routed location, so the
  * location and the URL the engine writes have to agree, exactly as they do on the app's first load.
  */
-function renderTabs() {
-  const url = urlTabSyncEngine.createURL(initialState());
+function renderTabs(state: ParsedTabState = initialState()) {
+  const url = urlTabSyncEngine.createURL(state);
   window.history.replaceState(null, '', url);
   const routed = new URL(url);
   const entry = `${routed.pathname}${routed.search}`;

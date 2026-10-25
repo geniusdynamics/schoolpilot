@@ -27,7 +27,7 @@ export const portalModule: ModuleDefinition = {
     // tabbed hub that defaults to the dashboard.
     {
       name: 'navigation:portal.dashboard',
-      path: '/portal/dashboard',
+      path: '/portal',
       icon: HomeIcon,
       page: 'PortalDashboardPage',
       showInModes: ['standard', 'fullwidth'],

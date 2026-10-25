@@ -83,7 +83,7 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         modulePath: '/administration',
         isGroup: true,
         children: [
-          { name: 'administration.dashboard', path: '/administration/dashboard' },
+          { name: 'administration.dashboard', path: '/administration' },
           { name: 'administration.applications', path: '/administration/applications' }
         ]
       },
@@ -92,7 +92,7 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         name: 'navigation:academics.title',
         modulePath: '/academics',
         isGroup: true,
-        children: [{ name: 'academics.dashboard', path: '/academics/dashboard' }]
+        children: [{ name: 'academics.dashboard', path: '/academics' }]
       },
       {
         id: 'finance',
@@ -100,7 +100,7 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         modulePath: '/finance',
         isGroup: true,
         children: [
-          { name: 'finance.dashboard', path: '/finance/dashboard' },
+          { name: 'finance.dashboard', path: '/finance' },
           { name: 'finance.reports', path: '/finance/reports', permissions: ['finance.reports.view'] }
         ]
       }
@@ -112,7 +112,7 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         modulePath: '/administration',
         isGroup: true,
         children: [
-          { name: 'administration.dashboard', path: '/administration/dashboard' },
+          { name: 'administration.dashboard', path: '/administration' },
           { name: 'administration.applications', path: '/administration/applications' }
         ]
       },
@@ -121,7 +121,7 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         name: 'navigation:academics.title',
         modulePath: '/academics',
         isGroup: true,
-        children: [{ name: 'academics.dashboard', path: '/academics/dashboard' }]
+        children: [{ name: 'academics.dashboard', path: '/academics' }]
       },
       {
         id: 'finance',
@@ -129,7 +129,7 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         modulePath: '/finance',
         isGroup: true,
         children: [
-          { name: 'finance.dashboard', path: '/finance/dashboard' },
+          { name: 'finance.dashboard', path: '/finance' },
           { name: 'finance.reports', path: '/finance/reports', permissions: ['finance.reports.view'] }
         ]
       }
@@ -141,9 +141,9 @@ vi.mock('../../hooks/tabs', () => ({
   useTabs: () => ({
     tabs: [
       {
-        id: 'tab-administration-dashboard',
-        url: '/administration/dashboard',
-        title: 'Dashboard',
+        id: 'tab-administration',
+        url: '/administration',
+        title: 'Administration',
         module: 'administration',
         pinned: false,
         isDirty: false,
@@ -151,15 +151,15 @@ vi.mock('../../hooks/tabs', () => ({
       }
     ],
     activeTab: {
-      id: 'tab-administration-dashboard',
-      url: '/administration/dashboard',
-      title: 'Dashboard',
+      id: 'tab-administration',
+      url: '/administration',
+      title: 'Administration',
       module: 'administration',
       pinned: false,
       isDirty: false,
       metadata: { lastAccessed: Date.now() }
     },
-    activeTabId: 'tab-administration-dashboard',
+    activeTabId: 'tab-administration',
     activateTab: vi.fn(),
     closeTab: vi.fn(),
     reorderTabs: vi.fn(),
@@ -181,12 +181,12 @@ describe('LayoutNew module transitions', () => {
     vi.clearAllMocks();
     hasModuleAccessMock.mockResolvedValue(true);
     hasPermissionMock.mockResolvedValue(true);
-    switchModuleSessionMock.mockResolvedValue('tab-academics-dashboard');
+    switchModuleSessionMock.mockResolvedValue('tab-academics');
   });
 
   it('switches to the target module dashboard via a module session', async () => {
     render(
-      <MemoryRouter initialEntries={['/administration/dashboard']}>
+      <MemoryRouter initialEntries={['/administration']}>
         <LayoutNew />
       </MemoryRouter>
     );
@@ -195,7 +195,7 @@ describe('LayoutNew module transitions', () => {
 
     await waitFor(() => {
       expect(switchModuleSessionMock).toHaveBeenCalledWith(
-        '/academics/dashboard',
+        '/academics',
         expect.objectContaining({
           preservePinned: true,
           refresh: false,
@@ -208,7 +208,7 @@ describe('LayoutNew module transitions', () => {
 
   it('keeps same-module navigation inside the current tab session', async () => {
     render(
-      <MemoryRouter initialEntries={['/administration/dashboard']}>
+      <MemoryRouter initialEntries={['/administration']}>
         <LayoutNew />
       </MemoryRouter>
     );
@@ -224,7 +224,7 @@ describe('LayoutNew module transitions', () => {
 
   it('opens a tab for cross-module submenu clicks', async () => {
     render(
-      <MemoryRouter initialEntries={['/administration/dashboard']}>
+      <MemoryRouter initialEntries={['/administration']}>
         <LayoutNew />
       </MemoryRouter>
     );

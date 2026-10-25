@@ -390,7 +390,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     let best: any = null;
     for (const item of candidates) {
       if (!item?.path) continue;
-      const matches = item.path === currentPath || currentPath.startsWith(item.path + '/');
+      // A module's dashboard is its root page (/finance), so its path prefixes every page in the
+      // module. That is not being on the dashboard: the root item matches the root alone, and a page
+      // the sidebar does not list highlights nothing.
+      const isModuleRoot = item.path.split('/').filter(Boolean).length <= 1;
+      const matches = item.path === currentPath || (!isModuleRoot && currentPath.startsWith(item.path + '/'));
       if (!matches) continue;
       if (!best || item.path.length > best.path.length) best = item;
     }

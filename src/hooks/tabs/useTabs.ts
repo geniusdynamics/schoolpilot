@@ -21,6 +21,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { urlTabSyncEngine } from '@/services/tabs/URLTabSyncEngine';
 import { routeToTabMapper } from '@/services/tabs/RouteToTabMapper';
+import { canonicalTabUrl } from '@/services/tabs/moduleDashboardUrl';
 import { TabStateDeriver } from '@/services/tabs/TabStateDeriver';
 import type { Tab, TabOptions, ParsedTabState } from '@/services/tabs/types';
 import { logger } from '@/utils/logging';
@@ -241,6 +242,9 @@ export function useTabs(): UseTabsReturn {
       return state.activeTabId;
     }
 
+    // A module's dashboard is its root page; the old /module/dashboard spelling is the same tab.
+    const target = canonicalTabUrl(url);
+
     // Check if tab already exists for this URL
     const existingTab = state.tabs.find(t => deriver.isSameEntity(t.url, url));
 
@@ -271,7 +275,7 @@ export function useTabs(): UseTabsReturn {
       const newState = { tabs: newTabs, activeTabId: newTab.id };
 
       engine.updateURL(newState, { push: true });
-      navigate(url);
+      navigate(target);
 
       return newTab.id;
     }
@@ -282,7 +286,7 @@ export function useTabs(): UseTabsReturn {
     const newState = { tabs: newTabs, activeTabId: newTab.id };
 
     engine.updateURL(newState, { push: true });
-    navigate(url);
+    navigate(target);
 
     return newTab.id;
   }, [state, deriver, activateTab, navigate]);
@@ -291,7 +295,7 @@ export function useTabs(): UseTabsReturn {
     const newTab = deriver.deriveTab(url, options);
     const newState = { tabs: [newTab], activeTabId: newTab.id };
     engine.updateURL(newState, { push: true });
-    navigate(url);
+    navigate(newTab.url);
     return newTab.id;
   }, [deriver, navigate]);
 
@@ -306,15 +310,17 @@ export function useTabs(): UseTabsReturn {
       }
     });
 
+    const target = canonicalTabUrl(url);
+
     if (options?.refresh) {
-      const nextUrl = engine.createURL(newState, url);
+      const nextUrl = engine.createURL(newState, target);
       engine.updateURL(newState);
       window.location.assign(nextUrl);
       return newState.activeTabId;
     }
 
     engine.updateURL(newState, { push: true });
-    navigate(url);
+    navigate(target);
     return newState.activeTabId;
   }, [state, deriver, navigate]);
 

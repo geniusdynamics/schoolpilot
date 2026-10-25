@@ -1,6 +1,8 @@
 // ABOUTME: Utility functions for module identification and path handling
 // ABOUTME: Helps with consistent module identification across the application
 
+import { canonicalTabUrl } from '../services/tabs/moduleDashboardUrl';
+
 /**
  * Extract module ID from a module name or path
  * @param moduleIdentifier - Module name or path
@@ -83,7 +85,8 @@ export const getModuleDashboardPath = (moduleId: string): string => {
     return '/dashboard';
   }
   
-  return `/${cleanModuleId}/dashboard`;
+  // A module's dashboard is its root page, named for the module; settings keeps its own address.
+  return canonicalTabUrl(`/${cleanModuleId}/dashboard`);
 };
 
 export default {

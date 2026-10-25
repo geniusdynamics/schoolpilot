@@ -15,7 +15,7 @@ export const admissionsModule: ModuleDefinition = {
   navigation: [
     {
       name: 'navigation:admissions.dashboard',
-      path: '/admissions/dashboard',
+      path: '/admissions',
       icon: ChartBarIcon,
       page: 'AdmissionsDashboardPage',
       showInModes: ['standard', 'fullwidth'],
@@ -104,7 +104,7 @@ export const admissionsModule: ModuleDefinition = {
   ],
   optionalDependencies: [],
   routes: [
-    { path: '/admissions/dashboard', page: 'AdmissionsDashboardPage' },
+    { path: '/admissions', page: 'AdmissionsDashboardPage' },
     { path: '/admissions/admit', page: 'AdmitLearnerPage' },
     { path: '/admissions/register', page: 'AdmissionsRegisterPage' },
     { path: '/admissions/new-application', page: 'ApplicationFormPage' },

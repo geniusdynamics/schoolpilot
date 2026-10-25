@@ -15,7 +15,7 @@ export const financeModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Dashboard (always visible)
-    { name: 'navigation:finance.dashboard', path: '/finance/dashboard', icon: CurrencyDollarIcon, page: 'FinanceDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.dashboard', path: '/finance', icon: CurrencyDollarIcon, page: 'FinanceDashboardPage', showInModes: ['standard', 'fullwidth'] },
 
     // Hub pages (standard mode)
     { name: 'navigation:finance.feeConfiguration', path: '/finance/fee-configuration', icon: DocumentDuplicateIcon, page: 'FeeConfigurationPage', showInModes: ['standard', 'fullwidth'] },
@@ -98,7 +98,7 @@ export const financeModule: ModuleDefinition = {
     ]
   },
   routes: [
-    { path: '/finance/dashboard', page: 'FinanceDashboardPage' },
+    { path: '/finance', page: 'FinanceDashboardPage' },
     { path: '/finance/fee-configuration', page: 'FeeConfigurationPage' },
     // Fee items (vote heads) live in their own nested page, surfaced as a tab of the fee
     // configuration hub; the route is the deep link the hub tab points at.

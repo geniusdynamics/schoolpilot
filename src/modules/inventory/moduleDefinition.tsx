@@ -14,7 +14,7 @@ export const inventoryModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:inventory.dashboard', path: '/inventory/dashboard', icon: CubeIcon, page: 'InventoryDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:inventory.dashboard', path: '/inventory', icon: CubeIcon, page: 'InventoryDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:inventory.inventoryHub', path: '/inventory/inventory-management', icon: CubeIcon, page: 'InventoryHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:inventory.items', path: '/inventory/items', icon: CubeIcon, page: 'ItemsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=items' },
     { name: 'navigation:inventory.itemCategories', path: '/inventory/item-categories', icon: DocumentTextIcon, page: 'ItemCategoriesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=categories' },

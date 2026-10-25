@@ -1,6 +1,8 @@
 // ABOUTME: Centralized mapping of deprecated routes to their new hub+tab destinations
 // ABOUTME: Prevents hardcoded redirect strings scattered across module definitions
 
+import { MODULE_DASHBOARD_ROOTS } from '@/services/tabs/moduleDashboardUrl';
+
 export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/administration/prenas-marks': '/administration/entry-marks',
   // Administration
@@ -81,6 +83,12 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
 
   // Cross-module redirects (handled at route level, NOT in module nav)
   '/hr/staff-bio-data': '/administration/staff?tab=bio-data',
+
+  // A module's dashboard is its root page, named for the module: the old /module/dashboard address
+  // that links, bookmarks and saved tabs still carry lands there.
+  ...Object.fromEntries(
+    MODULE_DASHBOARD_ROOTS.map((moduleId): [string, string] => [`/${moduleId}/dashboard`, `/${moduleId}`])
+  ),
 };
 
 export const getRedirectForRoute = (path: string): string | undefined => {

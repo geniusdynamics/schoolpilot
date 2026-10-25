@@ -99,14 +99,17 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const moduleDashboardRoute = useCallback((moduleId: string) => {
     const modules = getMainModules();
     const selectedModule = modules.find(module => normalizeModuleId(module.modulePath || module.path || module.name) === moduleId);
-    const preferredChild = selectedModule?.children?.find(child => child.path?.includes('/dashboard'));
-    const firstChildPath = selectedModule?.children?.find(child => !!child.path)?.path;
-    const moduleBasePath = selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`;
-    const fallbackDashboardPath = moduleId === 'dashboard'
-      ? '/dashboard'
-      : `${moduleBasePath.replace(/\/$/, '')}/dashboard`;
+    const children = selectedModule?.children ?? [];
+    const moduleBasePath = (selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`).replace(/\/$/, '') || '/';
 
-    return preferredChild?.path || firstChildPath || fallbackDashboardPath;
+    // A module's dashboard is its root page (/finance), and it is not always the first entry in the
+    // module's navigation. The older /module/dashboard spelling is still recognised.
+    const rootChild = children.find(child => child.path && normalizeRoutePath(child.path) === moduleBasePath);
+    const legacyChild = children.find(child => child.path?.includes('/dashboard'));
+    const firstChildPath = children.find(child => !!child.path)?.path;
+    const fallbackDashboardPath = moduleId === 'dashboard' ? '/dashboard' : moduleBasePath;
+
+    return rootChild?.path || legacyChild?.path || firstChildPath || fallbackDashboardPath;
   }, [getMainModules]);
 
   const canRestorePinnedTab = useCallback(async (tab: Tab) => {

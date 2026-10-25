@@ -10,6 +10,7 @@ import { getRedirectForRoute } from '../redirectMap';
 import { initializeAllModules } from '@/core/moduleRegistration';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import type { ModuleDefinition } from '@/core/types';
+import { MODULE_DASHBOARD_ROOTS } from '@/services/tabs/moduleDashboardUrl';
 
 // Navigation-driven routes are disabled so only module `routes` metadata can satisfy a path.
 vi.mock('@/hooks/useDynamicNavigation', () => ({
@@ -154,4 +155,63 @@ describe('module routes coverage', () => {
       cleanup();
     }
   );
+});
+
+describe('module dashboards at the module root', () => {
+  beforeAll(async () => {
+    await initializeAllModules();
+  });
+
+  const definitionOf = (moduleId: string): ModuleDefinition => {
+    const def = Object.values(definitionModules)
+      .map(mod => mod.default)
+      .find(candidate => candidate?.id === moduleId);
+    if (!def) throw new Error(`no definition for ${moduleId}`);
+    return def;
+  };
+
+  it.each(MODULE_DASHBOARD_ROOTS)('declares the %s dashboard at its module root and nowhere else', (moduleId) => {
+    const def = definitionOf(moduleId);
+    const declared = [...(def.navigation || []), ...(def.routes || [])].map(entry => entry.path);
+
+    // The module's dashboard page is named by an entry at the module root...
+    const dashboardEntry = (def.navigation || []).find(entry => entry.path === `/${moduleId}`);
+    expect(dashboardEntry, `a navigation entry at /${moduleId}`).toBeDefined();
+    expect(dashboardEntry?.page).toMatch(/DashboardPage$/);
+    expect(dashboardEntry?.deprecated).toBeFalsy();
+
+    // ...and nothing still declares the old address as a page of its own.
+    expect(declared).not.toContain(`/${moduleId}/dashboard`);
+  });
+
+  it.each(MODULE_DASHBOARD_ROOTS)('sends the old /%s/dashboard address to the module root', (moduleId) => {
+    render(
+      <MemoryRouter initialEntries={[`/${moduleId}/dashboard`]}>
+        <DynamicRoutes modulesInitialized userId="user-1" userRole="admin" />
+        <LocationProbe />
+      </MemoryRouter>
+    );
+
+    expect(currentPathname).toBe(`/${moduleId}`);
+    cleanup();
+  });
+
+  it('lists the settings dashboard first among its live entries, as the module root', () => {
+    const live = (definitionOf('settings').navigation || []).filter(entry => !entry.deprecated);
+
+    expect(live[0]?.path).toBe('/settings');
+    expect(live[0]?.page).toBe('SettingsDashboardPage');
+  });
+
+  it('keeps no entry that sends /settings or /settings/dashboard into a hub tab', () => {
+    const hubRedirects = (definitionOf('settings').navigation || []).filter(
+      entry => entry.deprecated && (entry.path === '/settings' || entry.path === '/settings/dashboard')
+    );
+
+    expect(hubRedirects).toEqual([]);
+  });
+
+  it('declares the settings dashboard as a route, so the module root renders it', () => {
+    expect((definitionOf('settings').routes || []).map(route => route.path)).toContain('/settings');
+  });
 });

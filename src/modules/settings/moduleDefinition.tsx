@@ -20,6 +20,15 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
+    // The module's dashboard is its root page, like every other module's, not a tab of a hub.
+    {
+      name: 'navigation:settings.dashboard',
+      path: '/settings',
+      icon: HomeIcon,
+      page: 'SettingsDashboardPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+
     // Hub pages - shown in standard mode
     {
       name: 'navigation:settings.configuration',
@@ -51,15 +60,6 @@ const settingsModule: ModuleDefinition = {
     },
 
     // Legacy pages - shown in fullwidth mode with redirects to hub tabs
-    {
-      name: 'navigation:settings.dashboard',
-      path: '/settings',
-      icon: CogIcon,
-      page: 'SettingsPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/settings/configuration?tab=settings',
-    },
     {
       name: 'navigation:settings.unified',
       path: '/settings/unified',
@@ -177,16 +177,10 @@ const settingsModule: ModuleDefinition = {
       deprecated: true,
       redirectTo: '/settings/school?tab=tabs',
     },
-    {
-      name: 'navigation:settings.settingsDashboard',
-      path: '/settings/dashboard',
-      icon: HomeIcon,
-      page: 'SettingsDashboardPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/settings/school?tab=dashboard',
-    },
   ],
+  // The dashboard is also a declared route: the module root renders it. The old /settings/dashboard
+  // address redirects here from the shared redirect map.
+  routes: [{ path: '/settings', page: 'SettingsDashboardPage' }],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
     {
