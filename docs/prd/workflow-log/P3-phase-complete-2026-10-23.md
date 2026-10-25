@@ -104,3 +104,8 @@ Two more defects are recorded and deliberately **not** fixed here, with their ho
 page issues a **counted** receipt number (`RCT-000004`) while the cashier issues the sequences module's
 year-scoped one (P4-A03 owns receipt numbering across devices), and **the RBAC layer is built and wired
 into nothing** (P4-C02 is where the server-side checks land).
+
+
+## Addendum, 2026-10-25: the quiet re-run
+
+The re-run this log was waiting for has landed: **the phase gate passed, 11 checks, 0 failed, with the school-ops probe at 15 PASS and 1 SKIP.** It is recorded in full in [`P4-phase-complete-2026-10-25.md`](./P4-phase-complete-2026-10-25.md). The first quiet run still failed, and not from load: probe checks C11 and C12 drove screens that had since been redesigned, and were fixed to drive the real flows. P3 exit criterion 5 is met; criterion 4 still needs amending in the phase document.
