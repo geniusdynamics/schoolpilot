@@ -292,6 +292,31 @@ with the client authorizer's for every role.
   request, a checker needs the checker permission or role, and a request is decided once.
 - A refusal is `403` with code `permission` or `self_approval`.
 
+## Single sign-on
+
+Staff can sign in with Google Workspace or Microsoft 365 over OpenID Connect (authorisation code with
+PKCE). It ends in the same bearer session a password gives. Configure a provider with environment
+variables; a hub with none configured serves no SSO routes.
+
+| Variable | Meaning |
+| --- | --- |
+| `SCHOOLPILOT_SSO_GOOGLE_CLIENT_ID` / `_CLIENT_SECRET` | the Google OAuth client |
+| `SCHOOLPILOT_SSO_MICROSOFT_CLIENT_ID` / `_CLIENT_SECRET` | the Microsoft app registration |
+| `SCHOOLPILOT_SSO_MICROSOFT_TENANT` | **required** for Microsoft: the school's tenant id or domain |
+| `SCHOOLPILOT_SSO_REDIRECT_URI` | the callback the provider sends the browser to (or `..._<PROVIDER>_REDIRECT_URI`) |
+| `SCHOOLPILOT_SSO_<PROVIDER>_ALLOWED_DOMAINS` | comma-separated email domains allowed to sign in |
+
+The flow: `GET /api/auth/sso/providers`, then `POST /api/auth/sso/:provider/start` (answers the
+authorisation URL and a state), then the browser returns with a code and `POST
+/api/auth/sso/:provider/complete` `{ code, state }` answers the session. All three are public and sit
+under the `/api/auth` rate limit.
+
+An identity is linked to an existing account by a staff member's recorded email or a username equal to
+the address, only when the provider says the email is verified and its domain is allowed. **SSO never
+creates an account**, and so can never create the first administrator; a guardian or learner account
+cannot be reached this way. `server/__tests__/ssoHttp.test.ts` drives the whole sign-in over a real
+socket against a provider running in the test process.
+
 ## Deliberately not here yet
 
 - **Authorisation beyond the entity, service, approval and backup APIs.** Those four are judged by the
@@ -305,7 +330,7 @@ with the client authorizer's for every role.
   it does in the browser, so a caller who lacks a permission is told 400 for a malformed body and 404 for
   a missing row, not 403. That leaks only whether an id exists.
 - **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making finance and administrator roles *require* it is still to do; the roles that would carry the rule now exist.
-- **OIDC SSO** for staff, P4-C03.
+- **A sign-in screen for SSO.** The hub serves the flow; the browser app has no "Sign in with Google" button or callback page yet, and the flow has not been run against Google or Microsoft themselves, only a local provider.
 - **Push, not poll.** Sync runs over the hub's HTTP surface — `/api/sync/changes`, `/api/sync/push`
   and `/api/sync/conflicts` — and a device pulls on its own schedule. A channel that pushes changes
   to a connected device as they happen is not here.

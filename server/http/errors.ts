@@ -15,6 +15,7 @@ import { BillingError } from '@/domain/finance/billing';
 import { ServiceError } from '@/domain/services';
 
 import { AuthError } from '../auth/errors';
+import { OidcError } from '../auth/oidc/errors';
 import { RbacError } from '../auth/rbac/errors';
 import { BackupError } from '../backup/errors';
 import { HttpError } from './http';
@@ -129,6 +130,12 @@ export function errorResponse(error: unknown): ErrorResponse {
 
   // A missing permission is a 403 `permission`, the code the repository's own hook answers with,
   // not a server fault.
+  // A single-sign-on refusal carries its own status and a stable code; the message never holds the
+  // token, the code or the client secret.
+  if (error instanceof OidcError) {
+    return refuse(error.status, error.code, error.message);
+  }
+
   if (error instanceof RbacError) {
     return refuse(error.status, error.code, error.message);
   }

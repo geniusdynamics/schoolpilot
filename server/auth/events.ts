@@ -23,7 +23,10 @@ export type AuthEventKind =
   | 'password_reset_completed'
   | 'totp_enrolled'
   | 'totp_disabled'
-  | 'totp_refused';
+  | 'totp_refused'
+  | 'sso_account_linked'
+  | 'sso_login_succeeded'
+  | 'sso_login_refused';
 
 /** One recorded event. */
 export interface AuthEvent {

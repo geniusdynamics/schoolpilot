@@ -273,7 +273,7 @@ function optionalInstitution(
  * The user agent is the only description a browser offers, and it is truncated: it is a label
  * in a device list, not a value anything decides on.
  */
-function metaOf(request: RouteRequest): SessionMeta {
+export function metaOf(request: RouteRequest): SessionMeta {
   const agent = headerValue(request.req, 'user-agent');
   const peer = request.req.socket.remoteAddress;
   return {

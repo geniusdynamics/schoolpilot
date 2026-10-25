@@ -17,6 +17,7 @@ import { CATALOG, SequenceService, createSqliteSequenceStore } from '@/domain/se
 import { ENTITY_NAMES } from '@/domain/schema';
 
 import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
+import { OidcSsoService, ssoProvidersFromEnv, type OidcProviderConfig } from '../../server/auth/oidc';
 import { ApprovalEngine, RbacService } from '../../server/auth/rbac';
 import { BackupError } from '../../server/backup/errors';
 import { resolveBackupSecret, type BackupSecretSource } from '../../server/backup/key';
@@ -77,6 +78,13 @@ interface LANServerConfig {
   notifier?: AuthNotifier;
   /** The label an authenticator app shows beside an enrolment. */
   authIssuer?: string;
+  /**
+   * The OIDC identity providers staff may sign in with.
+   *
+   * Omitted, they are read from the `SCHOOLPILOT_SSO_*` environment variables, and a hub with none
+   * configured serves no SSO endpoints. `false` turns SSO off whatever the environment says.
+   */
+  sso?: readonly OidcProviderConfig[] | false;
   /** The PEM pair to serve; absent means plain HTTP. */
   tls?: { cert: string; key: string } | null;
   /** The mDNS advertisement; off unless asked for, so an embedder is never surprised. */
@@ -303,15 +311,27 @@ export class LANServer {
       await sync.bootstrap();
       this.syncNode = sync;
 
+      const authKey = loadOrCreateAuthKey(path.join(this.config.dataDir, 'auth.key'));
       const auth = new AuthenticationService({
         adapter,
         repository,
-        authKey: loadOrCreateAuthKey(path.join(this.config.dataDir, 'auth.key')),
+        authKey,
         ...(this.config.notifier !== undefined ? { notifier: this.config.notifier } : {}),
         ...(this.config.authIssuer !== undefined ? { issuer: this.config.authIssuer } : {}),
       });
       await auth.setup();
       this.auth = auth;
+
+      // Single sign-on for staff. It signs people in through the authentication service above, so it
+      // follows it, and it seals its in-flight state with the same key. A hub with no provider
+      // configured serves no SSO routes at all.
+      const ssoProviders =
+        this.config.sso === false ? [] : (this.config.sso ?? ssoProvidersFromEnv(process.env));
+      let sso: OidcSsoService | undefined;
+      if (ssoProviders.length > 0) {
+        sso = new OidcSsoService({ adapter, repository, auth, authKey, providers: ssoProviders });
+        await sso.setup();
+      }
 
       const accessLog =
         this.config.accessLog ??
@@ -347,6 +367,7 @@ export class LANServer {
         auth,
         health,
         sequences: this.sequences,
+        ...(sso ? { sso } : {}),
         ...(this.config.rateLimits === false ? {} : { rateLimiter: new RateLimiter() }),
         ...(backup ? { backup } : {}),
       });
