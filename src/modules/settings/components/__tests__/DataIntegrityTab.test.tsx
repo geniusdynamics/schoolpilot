@@ -1,7 +1,6 @@
 // ABOUTME: The Data integrity tab opens the canonical database and runs the integrity checks against it as the
 // ABOUTME: signed-in user. The page used to be given no database at all and always said "not connected".
 
-import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 

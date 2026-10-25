@@ -1,7 +1,6 @@
 // ABOUTME: The sync conflicts panel opens the canonical database itself. While it opens the log says it is loading,
 // ABOUTME: not that the database is "not open yet"; if it cannot open, the log says why.
 
-import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
