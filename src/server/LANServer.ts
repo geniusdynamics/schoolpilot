@@ -17,6 +17,7 @@ import { CATALOG, SequenceService, createSqliteSequenceStore } from '@/domain/se
 import { ENTITY_NAMES } from '@/domain/schema';
 
 import { AuthenticationService, loadOrCreateAuthKey, type AuthNotifier } from '../../server/auth';
+import { ApprovalEngine, RbacService } from '../../server/auth/rbac';
 import { BackupError } from '../../server/backup/errors';
 import { resolveBackupSecret, type BackupSecretSource } from '../../server/backup/key';
 import { restoreArchive } from '../../server/backup/restore';
@@ -185,6 +186,7 @@ export class LANServer {
   private syncNode: ServerNode | null = null;
   private sequences: SequenceService | null = null;
   private auth: AuthenticationService | null = null;
+  private rbac: RbacService | null = null;
   private advertiser: MdnsAdvertiser | null = null;
   private discoveryStatus: LANServerDiscoveryStatus | null = null;
   private state: ServerState = {
@@ -315,6 +317,14 @@ export class LANServer {
         this.config.accessLog ??
         new FileRestrictedAccessLog(defaultRestrictedAccessLogFile(this.config.dataDir));
 
+      // Authorisation. It follows the authentication service's setup because its first-run
+      // backfill reads that service's event log. Every entity and service request acts through
+      // the repository it hands out for the signed-in account.
+      const rbac = new RbacService({ adapter, repository, cipher, accessLog });
+      await rbac.setup();
+      this.rbac = rbac;
+      const approvals = new ApprovalEngine({ adapter });
+
       // The automatic backup runs last, once the hub is fully initialised, so the archive it
       // writes holds the sync metadata and the auth tables rather than a half-built database.
       const backup = await this.openBackups(adapter, repository, cipher);
@@ -331,13 +341,12 @@ export class LANServer {
       this.healthService = health;
 
       const router = createHubRouter({
-        repository,
+        rbac,
+        approvals,
         sync,
         auth,
-        accessLog,
         health,
         sequences: this.sequences,
-        ...(this.config.actor !== undefined ? { actor: this.config.actor } : {}),
         ...(this.config.rateLimits === false ? {} : { rateLimiter: new RateLimiter() }),
         ...(backup ? { backup } : {}),
       });
@@ -499,6 +508,11 @@ export class LANServer {
   /** The hub's sequences, which hand out the number blocks devices number from. */
   getSequences(): SequenceService | null {
     return this.sequences;
+  }
+
+  /** The authorisation layer the hub serves; null before start and after stop. */
+  getAuthorisation(): RbacService | null {
+    return this.rbac;
   }
 
   /** The authentication service the hub serves; null before start and after stop. */
@@ -704,6 +718,7 @@ export class LANServer {
     this.syncNode = null;
     this.sequences = null;
     this.auth = null;
+    this.rbac = null;
     if (adapter) await adapter.close();
 
     this.state.running = false;

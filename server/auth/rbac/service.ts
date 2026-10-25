@@ -94,9 +94,44 @@ export class RbacService {
     this.assignments = new RoleAssignmentStore(this.adapter, { now: this.clock });
   }
 
-  /** Creates the authorisation tables. Idempotent, so it runs on every start. */
+  /**
+   * Creates the authorisation tables and, for a hub that predates them, hands the administrator
+   * its role. Idempotent, so it runs on every start.
+   *
+   * Run it after the authentication service's own `setup()`: the backfill reads that service's
+   * event log.
+   */
   async setup(): Promise<void> {
     await applyRbacSchema(this.adapter);
+    await this.backfillFirstAdministrator();
+  }
+
+  /**
+   * A hub set up before roles existed has accounts and no assignment at all, and since an account
+   * that holds no role is denied everything, nobody could sign in and do anything.
+   *
+   * The audit log names who set the hub up (`administrator_created`), so that account is the
+   * administrator. This runs only while the hub holds no assignment whatever: once any exists the
+   * operator is managing roles, and a role revoked later must stay revoked.
+   */
+  private async backfillFirstAdministrator(): Promise<void> {
+    const held = await this.adapter.get<{ total: number }>(
+      'SELECT COUNT(*) AS total FROM "auth_role_assignment"'
+    );
+    if (Number(held?.total ?? 0) > 0) return;
+
+    const hasEvents = await this.adapter.get<{ present: number }>(
+      `SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = 'auth_event'`
+    );
+    if (!hasEvents) return;
+
+    const events = await this.adapter.all<{ actor_id: string }>(
+      `SELECT DISTINCT "actor_id" FROM "auth_event"
+        WHERE "kind" = 'administrator_created' AND "actor_id" IS NOT NULL`
+    );
+    for (const event of events) {
+      await this.assignments.grant(event.actor_id, 'administrator', { grantedBy: null });
+    }
   }
 
   /** The roles each account holds. */

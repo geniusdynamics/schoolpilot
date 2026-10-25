@@ -68,7 +68,7 @@ export function addApprovalRoutes(router: Router, options: ApprovalRouteOptions)
 
   router.add('POST', '/api/approvals/:id/approve', async (request) => {
     const access = await accessOf(request, options);
-    const body = await optionalObject(request.req);
+    const body = await optionalObject(request);
     const record = await engine.approve({
       id: request.params.id ?? '',
       actor: actorOf(access),
@@ -79,7 +79,7 @@ export function addApprovalRoutes(router: Router, options: ApprovalRouteOptions)
 
   router.add('POST', '/api/approvals/:id/reject', async (request) => {
     const access = await accessOf(request, options);
-    const body = await optionalObject(request.req);
+    const body = await optionalObject(request);
     const record = await engine.reject({
       id: request.params.id ?? '',
       actor: actorOf(access),

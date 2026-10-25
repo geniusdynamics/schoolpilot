@@ -14,6 +14,7 @@ import type { RepositoryRow } from '@/data/repository';
 import { LANServer } from '@/server/LANServer';
 
 import { hashPassword } from '../auth';
+import { grantRoles } from './helpers/authorisation';
 
 const USERNAME = 'grace.wekesa';
 const PASSWORD = 'mwangaza-portal-2027';
@@ -54,6 +55,8 @@ beforeAll(async () => {
     { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
     { expectedVersion: row.rowVersion, actor: row.id, reason: 'test fixture' }
   );
+  // The hub denies an account that holds no role.
+  await grantRoles(seeded.adapter, row.id);
   await seeded.close();
 
   hub = new LANServer({ dataDir: workDir, databaseFile, host: '127.0.0.1', port: 0 });

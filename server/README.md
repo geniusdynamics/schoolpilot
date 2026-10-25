@@ -275,15 +275,36 @@ npx tsx src/server/cli.ts --data-dir ./recovered --backup-passphrase '...' \
 `GET /health` reports a `backup` block (`enabled`, `available`, `lastBackupAt`, `drillDue`) and
 `GET /api/backups/status` carries the rest, so the health page of P4-D03 has one place to read.
 
+## Authorisation
+
+Every entity, service, approval and backup request acts as the signed-in account, and the hub's
+decisions are the browser's: the roles come from `auth_role_assignment`, and the client's own
+`resolvePermissionContext`, `createAuthorizer` and `ScopedRepository` judge each action and apply the
+field policy (`server/auth/rbac/service.ts`). `server/__tests__/rbac.test.ts` compares the hub's answer
+with the client authorizer's for every role.
+
+- **An account that holds no role is denied everything.** The account that sets a hub up is granted
+  `administrator` once, by the setup route; a hub set up before roles existed is given its administrator
+  from the audit log at start, and only while it holds no assignment at all, so a role revoked on purpose
+  stays revoked.
+- **Maker-checker.** `/api/approvals` raises a privileged action (a fee schedule, a refund, a write-off, a
+  mark change after a lock, a promotion commit) for a second person. The maker cannot decide their own
+  request, a checker needs the checker permission or role, and a request is decided once.
+- A refusal is `403` with code `permission` or `self_approval`.
+
 ## Deliberately not here yet
 
-- **Authorisation.** Authentication is done; authorisation is not. Any live session may call any
-  route, so the repository API returns whatever an entity row holds — including a `user` row's
-  `password_hash` — to any signed-in account, guardian sessions included. P4-C02 adds the RBAC and
-  scope model and the maker-checker engine, and it is where per-entity read rules and the
-  redaction of sensitive columns belong. Until then the hub belongs on a trusted network.
-- **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making
-  finance and administrator roles *require* it is a role-model decision, so it lands with P4-C02.
+- **Authorisation beyond the entity, service, approval and backup APIs.** Those four are judged by the
+  role model (see "Authorisation" above). Three surfaces are not: **`/api/sync`** (any signed-in session
+  may pull every row, restricted fields included, and push changes), **`/api/sequences`** (any
+  signed-in session may reserve a receipt block) and **`/api/health`** (any signed-in session may read
+  the report and the diagnostic bundle). They need their own permissions, which the role catalogue
+  does not define yet. The hub still belongs on a trusted network, and a guardian session must not be
+  handed a device's sync credentials.
+- **Authorise-then-validate.** The repository validates a write and loads a row before it authorises, as
+  it does in the browser, so a caller who lacks a permission is told 400 for a malformed body and 404 for
+  a missing row, not 403. That leaks only whether an id exists.
+- **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making finance and administrator roles *require* it is still to do; the roles that would carry the rule now exist.
 - **OIDC SSO** for staff, P4-C03.
 - **Push, not poll.** Sync runs over the hub's HTTP surface — `/api/sync/changes`, `/api/sync/push`
   and `/api/sync/conflicts` — and a device pulls on its own schedule. A channel that pushes changes
