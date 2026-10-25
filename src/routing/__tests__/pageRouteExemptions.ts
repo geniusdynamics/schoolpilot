@@ -173,6 +173,7 @@ export const PAGE_ROUTE_EXEMPTIONS: readonly PageRouteExemption[] = [
   { key: 'settings/SettingsSchoolProfilePage', reason: 'deprecated route: its path redirects to /settings/school?tab=school-profile' },
   { key: 'settings/SettingsUsersPage', reason: 'deprecated route: its path redirects to /settings/school?tab=users' },
   { key: 'settings/SettingsWorkflowsPage', reason: 'deprecated route: its path redirects to /settings/school?tab=workflows' },
+  { key: 'settings/SystemHealthPage', reason: 'a tab body of the System hub, shown at /settings/system?tab=health; it is not a route of its own' },
   { key: 'settings/TabSettingsPage', reason: 'deprecated route: its path redirects to /settings/school?tab=tabs' },
   { key: 'settings/UnifiedSettingsPage', reason: 'deprecated route: its path redirects to /settings/configuration?tab=unified' },
   { key: 'todos/TODOPage', reason: 'legacy page with no route entry; not reachable from navigation' },
