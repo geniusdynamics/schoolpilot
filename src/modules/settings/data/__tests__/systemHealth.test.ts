@@ -7,7 +7,12 @@ import { createTestContext, TEST_ACTOR, type TestContext } from '@/data/__tests_
 import type { HubHealthReport } from '@/data/health';
 import { DeviceNode } from '@/data/sync';
 
-import { createHubHealthClient, loadSystemHealth, readDeviceHealth } from '../systemHealth';
+import {
+  createHubHealthClient,
+  fetchDiagnosticBundle,
+  loadSystemHealth,
+  readDeviceHealth,
+} from '../systemHealth';
 
 let context: TestContext | undefined;
 
@@ -201,5 +206,51 @@ describe('createHubHealthClient', () => {
       fetch: (async () => new Response('{}', { status: 401 })) as unknown as typeof fetch,
     });
     await expect(client.report()).rejects.toThrow(/401/);
+  });
+});
+
+describe('fetchDiagnosticBundle', () => {
+  it('downloads the bundle with the session and names the file from the hub', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response('{"generatedAt":"2026-10-24T10:00:00.000Z"}', {
+          status: 200,
+          headers: {
+            'content-disposition': 'attachment; filename="schoolpilot-diagnostics-2026-10-24.json"',
+          },
+        })
+    );
+
+    const bundle = await fetchDiagnosticBundle({
+      baseUrl: 'http://hub.local:3000/',
+      token: 'sp1_test',
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    expect(bundle.filename).toBe('schoolpilot-diagnostics-2026-10-24.json');
+    expect(JSON.parse(bundle.text).generatedAt).toBe('2026-10-24T10:00:00.000Z');
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe('http://hub.local:3000/api/health/diagnostics');
+    expect((init.headers as Record<string, string>).authorization).toBe('Bearer sp1_test');
+  });
+
+  it('falls back to a dated name when the hub names none', async () => {
+    const bundle = await fetchDiagnosticBundle({
+      baseUrl: 'http://hub.local:3000',
+      token: 'sp1_test',
+      fetch: (async () => new Response('{}', { status: 200 })) as unknown as typeof fetch,
+    });
+    expect(bundle.filename).toMatch(/^schoolpilot-diagnostics-.*\.json$/);
+  });
+
+  it('throws when the hub refuses, rather than saving an error body as a bundle', async () => {
+    await expect(
+      fetchDiagnosticBundle({
+        baseUrl: 'http://hub.local:3000',
+        token: 'sp1_test',
+        fetch: (async () => new Response('{}', { status: 403 })) as unknown as typeof fetch,
+      })
+    ).rejects.toThrow(/403/);
   });
 });

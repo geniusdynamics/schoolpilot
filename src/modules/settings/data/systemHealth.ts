@@ -130,6 +130,41 @@ export function createHubHealthClient(options: HubHealthClientOptions): HubHealt
   };
 }
 
+/** The diagnostic bundle as a file the operator saves and hands to support. */
+export interface DiagnosticDownload {
+  readonly filename: string;
+  readonly text: string;
+}
+
+/**
+ * Downloads the hub's diagnostic bundle.
+ *
+ * The route is authenticated like the rest of the hub, so a plain link cannot fetch it. A refused
+ * read throws: an error body saved as `schoolpilot-diagnostics.json` would be handed to support
+ * as though it were a bundle.
+ */
+export async function fetchDiagnosticBundle(
+  options: HubHealthClientOptions
+): Promise<DiagnosticDownload> {
+  const baseUrl = options.baseUrl.replace(/\/+$/, '');
+  const request = options.fetch ?? fetch;
+
+  const response = await request(`${baseUrl}/api/health/diagnostics`, {
+    method: 'GET',
+    headers: { accept: 'application/json', authorization: `Bearer ${options.token}` },
+  });
+  if (!response.ok) {
+    throw new Error(`the hub refused the diagnostic bundle: ${response.status} ${response.statusText}`);
+  }
+
+  const named = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') ?? '');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return {
+    filename: named?.[1] ?? `schoolpilot-diagnostics-${stamp}.json`,
+    text: await response.text(),
+  };
+}
+
 /** The device's own signals: its storage, its outbox and its pull cursor. */
 export async function readDeviceHealth(options: ReadDeviceHealthOptions): Promise<DeviceSignals> {
   const estimate = options.estimate === undefined ? await platformEstimate() : options.estimate;
