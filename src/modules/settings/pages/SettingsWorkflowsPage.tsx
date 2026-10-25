@@ -10,8 +10,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import { Workflow, WorkflowState } from '@/types';
-import { useRBAC } from '@/hooks/useRBAC';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSettingsAccess } from '../hooks/useSettingsAccess';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { useToastHelpers } from '@/hooks/useToast';
 import { logger } from '@/utils/logging';
@@ -27,17 +26,16 @@ interface ValidationErrors {
 export const SettingsWorkflowsContent: React.FC = () => {
   const { t } = useTranslation('settings');
   const { workflows, loading: appDataLoading, refreshCollection } = useAppData();
-  const { user } = useAuth();
-  const { hasPermission } = useRBAC(user?.id, user?.role);
+  const { can } = useSettingsAccess();
   const toast = useToastHelpers();
   const dbManager = UnifiedDatabaseManager.getInstance();
   
   // Permission checks
-  const canViewWorkflows = hasPermission('settings.workflows.view');
-  const canCreateWorkflows = hasPermission('settings.workflows.create');
-  const canUpdateWorkflows = hasPermission('settings.workflows.update');
-  const canDeleteWorkflows = hasPermission('settings.workflows.delete');
-  const canManageWorkflowStates = hasPermission('settings.workflows.manage_states');
+  const canViewWorkflows = can('settings.workflows.view');
+  const canCreateWorkflows = can('settings.workflows.create');
+  const canUpdateWorkflows = can('settings.workflows.update');
+  const canDeleteWorkflows = can('settings.workflows.delete');
+  const canManageWorkflowStates = can('settings.workflows.manage_states');
   
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);

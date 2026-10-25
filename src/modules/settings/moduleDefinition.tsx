@@ -263,6 +263,52 @@ const settingsModule: ModuleDefinition = {
       action: 'view',
       moduleId: 'settings'
     },
+    // The workflows page checks these five; they were never declared, so nobody could hold them.
+    {
+      id: 'settings.workflows.view',
+      name: 'View Workflows',
+      description: 'Can view approval workflows and their states',
+      resource: 'workflows',
+      action: 'read',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.create',
+      name: 'Create Workflows',
+      description: 'Can create approval workflows',
+      resource: 'workflows',
+      action: 'create',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.update',
+      name: 'Update Workflows',
+      description: 'Can rename approval workflows',
+      resource: 'workflows',
+      action: 'update',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.delete',
+      name: 'Delete Workflows',
+      description: 'Can delete approval workflows and their states',
+      resource: 'workflows',
+      action: 'delete',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.manage_states',
+      name: 'Manage Workflow States',
+      description: 'Can add, reorder and remove the states of a workflow',
+      resource: 'workflows',
+      action: 'execute',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
   ],
   settings: {
     category: 'system',

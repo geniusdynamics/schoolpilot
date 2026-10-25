@@ -6,6 +6,7 @@ import { logger } from '@/utils/logging';
 import { databaseService } from '../database/databaseService';
 // Using unified database service (SQLite-WASM/PouchDB)
 import { userPermissionsService } from './userPermissionsService';
+import { SUPER_ADMIN_ROLE, isUserRowActive, userHasPermission } from './accessRules';
 import { rbacService } from '../../core/rbacService';
 import { unifiedConfigManager, getStoredDataMode } from '../../config/unifiedConfig';
 import { reportError } from '../../config/errorTracking';
@@ -65,15 +66,8 @@ export interface InitialAdministratorInput {
 }
 
 export const MIN_ADMIN_PASSWORD_LENGTH = 10;
-const SUPER_ADMIN_ROLE = 'super_admin';
 const STORAGE_UNAVAILABLE_MESSAGE = 'The school database is not available on this device. Sign-in is disabled until storage is working.';
 const NO_ADMINISTRATOR_MESSAGE = 'No administrator account exists yet. Create the administrator to continue.';
-
-/** True when a users row is active. SQLite rows carry the schema column is_active (1/0); older rows use isActive. */
-const isUserRowActive = (user: { is_active?: unknown; isActive?: unknown }): boolean => {
-  const flag = user.is_active ?? user.isActive;
-  return flag === true || flag === 1 || flag === '1' || flag === 'true';
-};
 
 // Service Result Types
 export interface ServiceResult<T> {
@@ -733,15 +727,7 @@ class AuthService {
   // ===== UTILITY METHODS =====
 
   async hasPermission(permissionId: string): Promise<boolean> {
-    const user = await this.getCurrentUser();
-    if (!user) return false;
-
-    // Super admin has all permissions
-    if (user.role === 'super_admin' || user.permissions.includes('*')) {
-      return true;
-    }
-
-    return user.permissions.includes(permissionId);
+    return userHasPermission(await this.getCurrentUser(), permissionId);
   }
 
   async hasModuleAccess(moduleId: string): Promise<boolean> {
