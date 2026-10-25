@@ -10,8 +10,10 @@ import {
   createRepository,
   type AuditEvent,
   type AuditQuery,
+  type CreateInput,
   type ListQuery,
   type Page,
+  type RepositoryAction,
   type RepositoryOptions,
   type RepositoryRow,
   type UpdateInput,
@@ -27,13 +29,30 @@ import {
   ScopePermissionError,
   type PermissionContext,
 } from './authorizer';
+import { redactRow } from './fieldPolicy';
 import { coversInstitution, coversRow, refinesRows, scopeFilterFor, type ScopeFilter } from './scope';
 import { hasPermission, type Role } from './roles';
+
+/** The rows an action loaded or stored, as they are held, before the field policy withholds any. */
+export interface RepositoryRowEvent {
+  readonly entity: EntityName;
+  readonly action: RepositoryAction;
+  readonly rows: readonly Readonly<Record<string, unknown>>[];
+}
 
 /** How the scoped repository is built. */
 export interface ScopedRepositoryOptions extends RepositoryOptions {
   /** The context of the actor the repository acts for. */
   readonly context: PermissionContext;
+  /**
+   * Called with the rows an action read or wrote, as they are stored.
+   *
+   * The field policy of {@link redactRow} withholds a restricted value from the caller, and a
+   * caller that has to record access to restricted data - the hub's access log - needs the row as
+   * it is held rather than the row it was handed. The observer runs before the response is
+   * returned, so a read whose record cannot be written is refused rather than served unrecorded.
+   */
+  readonly onRow?: (event: RepositoryRowEvent) => void;
 }
 
 /**
@@ -46,12 +65,14 @@ export interface ScopedRepositoryOptions extends RepositoryOptions {
  */
 export class ScopedRepository extends Repository {
   private readonly context: PermissionContext;
+  private readonly onRow: ((event: RepositoryRowEvent) => void) | undefined;
 
   constructor(options: ScopedRepositoryOptions) {
-    const { context, ...rest } = options;
+    const { context, onRow, ...rest } = options;
     const authorizer = rest.authorize ?? createAuthorizer(context);
     super({ ...rest, authorize: authorizer });
     this.context = context;
+    this.onRow = onRow;
   }
 
   /** The context the repository acts for. */
@@ -68,6 +89,24 @@ export class ScopedRepository extends Repository {
     const row = await super.get(entity, id, options);
     if (!row) return null;
     if (!this.covers(entity, row)) throw this.denied(entity, 'read');
+    this.observe(entity, 'read', [row]);
+    return this.project(entity, row);
+  }
+
+  /**
+   * Stores a row, and hands back the row the field policy allows.
+   *
+   * The authorizer judges the permission and the write scope inside the write; the field policy
+   * applies to what the caller is handed back, so a `user` row never carries its password hash in
+   * a response.
+   */
+  async create<E extends EntityName>(
+    entity: E,
+    input: CreateInput<E>,
+    options: WriteOptions = {}
+  ): Promise<RepositoryRow<E>> {
+    const row = await super.create(entity, input, options);
+    this.observe(entity, 'create', [row]);
     return this.project(entity, row);
   }
 
@@ -87,6 +126,7 @@ export class ScopedRepository extends Repository {
       const merged = mergeScopeQuery(query, filter);
       if (merged) {
         const page = await super.list(entity, merged);
+        this.observe(entity, 'list', page.items);
         return { ...page, items: page.items.map((row) => this.project(entity, row)) };
       }
     }
@@ -108,7 +148,9 @@ export class ScopedRepository extends Repository {
   ): Promise<RepositoryRow<E>> {
     const row = await super.get(entity, id);
     if (row && !this.covers(entity, row)) throw this.denied(entity, 'update');
-    return super.update(entity, id, patch, options);
+    const updated = await super.update(entity, id, patch, options);
+    this.observe(entity, 'update', [updated]);
+    return this.project(entity, updated);
   }
 
   /** Removes a row, and refuses a row outside the actor's scope. */
@@ -120,7 +162,9 @@ export class ScopedRepository extends Repository {
     const row = await super.get(entity, id);
     if (row && !this.covers(entity, row)) throw this.denied(entity, 'remove');
     // The repository asks the authorizer about the removal itself, with the row it would store.
-    return super.remove(entity, id, options);
+    const removed = await super.remove(entity, id, options);
+    this.observe(entity, 'remove', [removed]);
+    return this.project(entity, removed);
   }
 
   /** Watches a query; the payload holds the rows of the actor's scope only. */
@@ -207,14 +251,23 @@ export class ScopedRepository extends Repository {
   /**
    * The field policy of a row.
    *
-   * The medical record of a learner is special/restricted data (spec 06 §8.1): it is only handed
-   * to the roles that hold `learner.medical.read`, and the row of every other role is stripped of
-   * it.
+   * The medical record and the disability support notes of a learner are both special/restricted
+   * data (spec 06 §8.1), and the credential column of a `user` row is the hub's own, so both are
+   * withheld from a role that may not be handed them. The policy itself is {@link redactRow}: the
+   * hub's entity API reads the same one, so the browser and the server cannot drift apart.
    */
   private project<E extends EntityName>(entity: E, row: RepositoryRow<E>): RepositoryRow<E> {
-    if (entity !== 'learner') return row;
-    if (hasPermission(this.context.roles, 'learner.medical.read')) return row;
-    return withoutMedical(row);
+    return redactRow(this.context.roles, entity, row);
+  }
+
+  /** Hands the rows as they are held to the observer, when one is installed. */
+  private observe(
+    entity: EntityName,
+    action: RepositoryAction,
+    rows: readonly Readonly<Record<string, unknown>>[]
+  ): void {
+    if (!this.onRow || rows.length === 0) return;
+    this.onRow({ entity, action, rows });
   }
 
   private denied(entity: EntityName, action: string, detail?: string): ScopePermissionError {
@@ -247,7 +300,9 @@ export class ScopedRepository extends Repository {
     const offset = pageOffset(query);
     const candidates = await this.candidates(entity, query, filter);
     const narrowed = candidates.filter((row) => this.covers(entity, row));
-    const items = narrowed.slice(offset, offset + limit).map((row) => this.project(entity, row));
+    const window = narrowed.slice(offset, offset + limit);
+    this.observe(entity, 'list', window);
+    const items = window.map((row) => this.project(entity, row));
     const hasMore = offset + items.length < narrowed.length;
     return {
       items,
@@ -328,13 +383,6 @@ function mergeScopeQuery(query: ListQuery, filter: ScopeFilter): ListQuery | nul
   return null;
 }
 
-/** The learner row without its medical record. */
-function withoutMedical<E extends EntityName>(row: RepositoryRow<E>): RepositoryRow<E> {
-  const copy: Record<string, unknown> = { ...row };
-  delete copy.medical;
-  return copy as unknown as RepositoryRow<E>;
-}
-
 /** The number of rows a page holds, within the limits of the repository. */
 function pageLimit(limit: number | undefined): number {
   if (limit === undefined || !Number.isFinite(limit)) return DEFAULT_LIMIT;
@@ -383,6 +431,8 @@ export interface AuthorizedRepositoryOptions {
   readonly now?: () => Date;
   /** Called when a watch listener throws. */
   readonly onListenerError?: (error: unknown) => void;
+  /** Called with the rows an action read or wrote, as they are held, before the field policy. */
+  readonly onRow?: (event: RepositoryRowEvent) => void;
 }
 
 /** The authorised repository and the context it acts for. */
@@ -422,6 +472,7 @@ export async function createAuthorizedRepository(
     actor: options.actorId,
     now: options.now,
     onListenerError: options.onListenerError,
+    ...(options.onRow === undefined ? {} : { onRow: options.onRow }),
     context,
   });
   await repository.setup();

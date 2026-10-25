@@ -12,6 +12,7 @@ import { createTestContext, TEST_ACTOR } from '@/data/__tests__/harness';
 import { LANServer } from '@/server/LANServer';
 
 import { hashPassword } from '../auth/passwords';
+import { grantRoles } from './helpers/authorisation';
 
 const PASSPHRASE = 'a hub passphrase for the backup routes';
 
@@ -255,6 +256,8 @@ async function giveFixtureUserAPassword(
     { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
     { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
   );
+  // The hub denies an account that holds no role; a backup is the administrator's surface.
+  await grantRoles(context.adapter, seededUser.id);
 }
 
 /** Signs the fixture user in and returns the bearer token every later request carries. */

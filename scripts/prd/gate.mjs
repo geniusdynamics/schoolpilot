@@ -260,6 +260,19 @@ async function runTaskChecks(base, baseline, files) {
     if (broken && !baseline.lintRequired) record('G7', 'ESLint on changed files', 'WARN', 'ESLint cannot load its config (task P0-G01 fixes this); not enforced yet');
     else record('G7', 'ESLint on changed files', ok ? 'PASS' : 'FAIL', ok ? '' : out.split('\n').filter((l) => /error/.test(l)).slice(0, 3).join(' | '));
   }
+
+  // P4-D04: the repository's own scans, run on every task gate and not only in CI. The dependency
+  // scan is offline-tolerant here so a developer without network is not blocked; CI runs the same
+  // script without --allow-offline, where an unreachable feed is a hard failure.
+  const secretScan = shOk('node scripts/prd/secret-scan.mjs');
+  const dependencyScan = shOk('pnpm -s exec tsx scripts/security/dependency-scan.ts --allow-offline');
+  const scanTail = (r) => r.out.split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 2).join(' | ');
+  const scans = [
+    secretScan.ok ? 'secret scan clean' : `secret scan: ${scanTail(secretScan)}`,
+    dependencyScan.ok ? 'dependency scan clean' : `dependency scan: ${scanTail(dependencyScan)}`,
+  ].join('; ');
+  record('G8', 'Secret and dependency scans pass', secretScan.ok && dependencyScan.ok ? 'PASS' : 'FAIL', scans);
+
   return { typecheck: tc, contracts };
 }
 

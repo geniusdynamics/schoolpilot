@@ -12,6 +12,7 @@ import {
   type SqliteRow,
   type SqliteTransaction,
 } from '@/data/adapters/sqlite';
+import type { FieldCipher } from '@/data/security';
 
 import {
   applyAuditSchema,
@@ -85,6 +86,14 @@ export interface RepositoryOptions {
   readonly now?: () => Date;
   /** Called when a watch listener throws. */
   readonly onListenerError?: (error: unknown) => void;
+  /**
+   * Seals and opens the entity's encrypted columns.
+   *
+   * The hub supplies one; a browser repository runs without it, because the device has no key
+   * store and the browser's own database is the one place a device can hold. Without a cipher an
+   * encrypted column is stored as plaintext, which is why the hub always builds one.
+   */
+  readonly cipher?: FieldCipher;
 }
 
 interface Watcher {
@@ -121,6 +130,7 @@ export class Repository {
   private readonly authorize: Authorizer | undefined;
   private readonly clock: () => Date;
   private readonly onListenerError: ((error: unknown) => void) | undefined;
+  private readonly cipher: FieldCipher | undefined;
 
   private readonly changeListeners = new Set<(event: ChangeEvent) => void>();
   private readonly watchers = new Map<EntityName, Set<Watcher>>();
@@ -144,6 +154,7 @@ export class Repository {
     this.authorize = options.authorize;
     this.clock = options.now ?? (() => new Date());
     this.onListenerError = options.onListenerError;
+    this.cipher = options.cipher;
   }
 
   /**
@@ -290,7 +301,7 @@ export class Repository {
     );
     if (!raw) return null;
 
-    const decoded = decodeRow(columns, raw);
+    const decoded = decodeRow(columns, raw, this.cipher);
     if (!options.includeDeleted && decoded.row.deleted_at) return null;
 
     return toRepositoryRow(entity, decoded.row, decoded.version);
@@ -335,7 +346,7 @@ export class Repository {
     this.checkPermission({ action: 'create', entity, row });
 
     const columns = columnsFor(entity);
-    const encoded = encodeRow(columns, row);
+    const encoded = encodeRow(columns, row, this.cipher);
     encoded[columns.concurrencyColumn] = INITIAL_VERSION;
 
     await this.runWrite(
@@ -401,7 +412,7 @@ export class Repository {
         );
         if (!raw) throw new RepositoryNotFoundError(entity, id);
 
-        const current = decodeRow(columns, raw);
+        const current = decodeRow(columns, raw, this.cipher);
         // An archived row is out of the default view, so it is out of reach for a write.
         if (current.row.deleted_at) throw new RepositoryNotFoundError(entity, id);
         if (current.version !== expectedVersion) {
@@ -426,7 +437,7 @@ export class Repository {
 
         await this.runGuards(tx, entity, 'update', current.row, row);
 
-        const encoded = encodeRow(columns, row);
+        const encoded = encodeRow(columns, row, this.cipher);
         const setColumns = Object.keys(encoded).filter((name) => name !== columns.primaryKey);
         const assignments = [
           ...setColumns.map((name) => `"${name}" = ?`),
@@ -508,7 +519,7 @@ export class Repository {
         );
         if (!raw) throw new RepositoryNotFoundError(entity, id);
 
-        const current = decodeRow(columns, raw);
+        const current = decodeRow(columns, raw, this.cipher);
         // An archived row is already removed.
         if (current.row.deleted_at) throw new RepositoryNotFoundError(entity, id);
         if (
@@ -543,7 +554,7 @@ export class Repository {
         let encoded: Record<string, SqliteBindValue> = {};
 
         if (soft) {
-          const encodedRow = encodeRow(columns, row);
+          const encodedRow = encodeRow(columns, row, this.cipher);
           encoded = encodedRow;
           const setColumns = Object.keys(encodedRow).filter(
             (name) => name !== columns.primaryKey
@@ -727,7 +738,7 @@ export class Repository {
 
     const hasMore = rows.length > limit;
     const items = rows.slice(0, limit).map((raw) => {
-      const decoded = decodeRow(columns, raw);
+      const decoded = decodeRow(columns, raw, this.cipher);
       return toRepositoryRow(entity, decoded.row, decoded.version);
     });
 

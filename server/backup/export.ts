@@ -7,6 +7,7 @@ import path from 'node:path';
 
 import type { SqliteAdapter, SqliteRow } from '@/data/adapters/sqlite';
 import { columnsFor, decodeRow } from '@/data/repository';
+import type { FieldCipher } from '@/data/security';
 import { ENTITY_NAMES, storageFor, type EntityName } from '@/domain/schema';
 
 import { digestDatabase, quoteIdentifier } from './digest';
@@ -28,6 +29,13 @@ export interface ExportOptions {
   readonly destination: string;
   readonly includeRestricted?: boolean;
   readonly generatedAt?: Date;
+  /**
+   * Opens the encrypted columns a hub seals at rest.
+   *
+   * A hub supplies one; without it a sealed value cannot be decoded and the export would throw on
+   * the first restricted row. A plaintext database needs none.
+   */
+  readonly cipher?: FieldCipher;
 }
 
 /**
@@ -67,7 +75,7 @@ export async function exportDatabase(options: ExportOptions): Promise<ExportMani
     const names = Object.keys(columns.columns);
     const rows = await readRows(options.adapter, columns.table);
     const normalised = rows.map((raw) => {
-      const decoded = decodeRow(columns, raw).row;
+      const decoded = decodeRow(columns, raw, options.cipher).row;
       const row: Record<string, unknown> = {};
       for (const name of names) {
         const value = decoded[name];

@@ -8,7 +8,8 @@ export type SequenceErrorCode =
   | 'storage'
   | 'conflict'
   | 'nested_transaction'
-  | 'policy';
+  | 'policy'
+  | 'block';
 
 /** The base of every error this module raises. */
 export class SequenceError extends Error {
@@ -77,6 +78,46 @@ export class SequencePolicyError extends SequenceError {
   constructor(message: string, options: { cause?: unknown } = {}) {
     super('policy', message, options);
     this.name = 'SequencePolicyError';
+  }
+}
+
+/**
+ * A reserved block could not be adopted or used.
+ *
+ * The hub's answer and the device's request have to agree on the sequence, the scope and the
+ * device; a block that does not is refused rather than recorded, because recording it would put
+ * numbers from another run into this one.
+ */
+export class SequenceBlockError extends SequenceError {
+  constructor(message: string, options: { cause?: unknown } = {}) {
+    super('block', message, options);
+    this.name = 'SequenceBlockError';
+  }
+}
+
+/**
+ * The device has no numbers left and no hub to ask.
+ *
+ * This is the offline edge, and it is loud on purpose: a block that ran out while the device was
+ * disconnected must stop the cashier rather than reuse a number that may already be on a receipt.
+ */
+export class SequenceBlockExhaustedError extends SequenceBlockError {
+  readonly sequence: string;
+  readonly scopeKey: string;
+  readonly deviceId: string;
+
+  constructor(
+    input: { sequence: string; scopeKey: string; deviceId: string },
+    options: { cause?: unknown } = {}
+  ) {
+    super(
+      `the block of "${input.sequence}" for ${input.scopeKey} on device "${input.deviceId}" is used up, and no hub could supply another`,
+      options
+    );
+    this.name = 'SequenceBlockExhaustedError';
+    this.sequence = input.sequence;
+    this.scopeKey = input.scopeKey;
+    this.deviceId = input.deviceId;
   }
 }
 

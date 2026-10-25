@@ -1,0 +1,12 @@
+{
+  "name": "schoolpilot-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The hub's runtime dependencies. A hub serves the repository and domain services over HTTP, so it installs better-sqlite3, tsx and zod and nothing else: the browser's dependency tree never reaches a school PC.",
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "tsx": "^4.20.5",
+    "zod": "3.25.76"
+  }
+}

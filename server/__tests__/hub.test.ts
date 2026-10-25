@@ -17,6 +17,7 @@ import { AdmissionService, type AdmissionInput, type AdmissionResult } from '@/d
 import { LANServer } from '@/server/LANServer';
 
 import { hashPassword } from '../auth';
+import { grantRoles } from './helpers/authorisation';
 
 interface ApiResponse {
   readonly status: number;
@@ -98,6 +99,8 @@ beforeAll(async () => {
     { password_hash: hashPassword(PASSWORD), status: 'active', mfa: false },
     { expectedVersion: seededUser.rowVersion, actor: seededUser.id, reason: 'test fixture' }
   );
+  // The hub denies an account that holds no role.
+  await grantRoles(seeded.adapter, seededUser.id);
   await seeded.close();
 
   // The in-process run starts from the same file: a copy of the seeded database, taken before

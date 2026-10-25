@@ -245,30 +245,35 @@ describe('the permission scope of the repository', () => {
   });
 
   describe('the field policy of the medical record', () => {
-    it('strips the medical record for a teacher without the permission', async () => {
+    it('strips the medical record and the disability notes for a teacher without the permission', async () => {
       const repository = await asActor(scenario.userIds.teacher, ['teacher']);
 
       const learner = await repository.get('learner', asId<'learner'>(scenario.learnerIds.blue));
 
       expect(learner?.id).toBe(scenario.learnerIds.blue);
       expect(learner?.medical).toBeUndefined();
+      expect(learner?.special_needs).toBeUndefined();
     });
 
-    it('strips the medical record from a list as well', async () => {
+    it('strips the restricted fields from a list as well', async () => {
       const repository = await asActor(scenario.userIds.teacher, ['teacher']);
 
       const page = await repository.list('learner');
 
       expect(page.items.length).toBeGreaterThan(0);
-      for (const learner of page.items) expect(learner.medical).toBeUndefined();
+      for (const learner of page.items) {
+        expect(learner.medical).toBeUndefined();
+        expect(learner.special_needs).toBeUndefined();
+      }
     });
 
-    it('hands the medical record to a nurse that holds the permission', async () => {
+    it('hands the restricted fields to a nurse that holds the permission', async () => {
       const repository = await asActor(scenario.userIds.nurse, ['nurse']);
 
       const learner = await repository.get('learner', asId<'learner'>(scenario.learnerIds.blue));
 
       expect(learner?.medical).toEqual({ allergies: ['penicillin'] });
+      expect(learner?.special_needs).toEqual(['low vision']);
     });
   });
 

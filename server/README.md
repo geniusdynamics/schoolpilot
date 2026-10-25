@@ -35,7 +35,16 @@ npx tsx src/server/cli.ts --data-dir ./data --port 3000
 ```
 
 The CLI opens `./data/schoolpilot.db` (or the file under `--data-dir`), creates `./data/auth.key`
-on first start, and listens. `GET /health` reports the status. From code:
+on first start, and listens. It serves HTTPS by default, issuing and storing a self-signed LAN
+certificate in `<data-dir>/tls`, and advertises the hub over mDNS so a client on the same network
+can find it without being told an address. `--no-tls` and `--no-mdns` turn those off for a loopback
+development box, `--print-fingerprint` shows what clients pin, and `--discover` browses the LAN for
+hubs. `GET /health` reports the status, including the protocol, the fingerprint and the
+advertisement.
+
+[`docs/guides/deployment-hub.md`](../docs/guides/deployment-hub.md) is the operator's guide, and
+[`packaging/`](../packaging/README.md) holds the installers for Windows, Ubuntu and Raspberry Pi.
+From code:
 
 ```ts
 import { LANServer } from '@/server/LANServer';
@@ -149,7 +158,49 @@ Every refusal is `{"error":{"code":…,"message":…}}`; a locked account also c
 - **The trail** is `auth_event`: sign-ins, refusals, lockouts, factor changes and resets. It holds no
   password, code, token or TOTP secret.
 
+## Security
+
+The hub hardens its own surface, and the app hardens its document. What each control answers is
+listed in [`docs/security/threat-checklist.md`](../docs/security/threat-checklist.md).
+
+- **Restricted data is encrypted at rest.** The columns the entity registry declares `encrypted`
+  (a learner's `medical` and `special_needs`, a health visit's `complaint` and `treatment`, a
+  conduct incident's `description` and `action`) are sealed with AES-256-GCM as
+  `enc:v1:<iv>:<tag>:<ciphertext>` on the way into SQLite and opened on the way out. A value an
+  older hub left in plaintext is read as it stands and sealed by the sweep on the next start.
+- **The key** comes from `SCHOOLPILOT_RESTRICTED_KEY` (base64 or hex), or from
+  `<dataDir>/keys/restricted-data.key`, which the hub creates on first start with mode `0600` in a
+  `0700` directory. A database that holds sealed values with no key to open them **refuses to
+  start**: a fresh key would leave those rows unreadable while the hub reported healthy. Pass
+  `restrictedKey` or `restrictedKeyFile` to name them explicitly.
+- **Access to restricted data is logged.** Every read, list, create, update and removal that
+  carries a restricted value appends one JSON line to `<dataDir>/logs/restricted-access.jsonl`
+  naming the actor, the action, the row ids and the field names — never a value. The line is
+  written before the response is returned, so a read that cannot be recorded is refused rather
+  than served unlogged. Pass `accessLog` to send the trail somewhere else.
+- **The auth and write surfaces are rate limited.** 10 requests per 5 minutes per client address
+  under `/api/auth`, and 120 writes per minute per client address everywhere else, answered with
+  `429` and `Retry-After`. Set `rateLimits: false` to turn them off.
+- **Every response carries security headers**: a `default-src 'none'` policy, `nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`. Set
+  `securityHeaders: false` to turn them off.
+- **The app's document carries its own policy.** `src/security/csp.ts` builds it and
+  `scripts/security/cspVitePlugin.ts` injects it with a hash of every inline script the build
+  produced, so `script-src` stays strict without `'unsafe-eval'`.
+- **The repository scans itself.** `node scripts/prd/secret-scan.mjs` and
+  `tsx scripts/security/dependency-scan.ts` run in CI and in the task gate; the dependency scan
+  ratchets against `scripts/security/dependency-baseline.json` so a *new* high or critical
+  advisory fails while the ones already carried do not.
+
 ## Call it
+
+The examples below are plain HTTP for a loopback box, which is what `--no-tls` is for. Against a hub
+that serves TLS, use `https` and the certificate it issued:
+
+```bash
+cert=./data/tls/hub-cert.pem
+curl --cacert "$cert" https://127.0.0.1:3000/health
+```
 
 ```bash
 # The entity registry
@@ -224,21 +275,75 @@ npx tsx src/server/cli.ts --data-dir ./recovered --backup-passphrase '...' \
 `GET /health` reports a `backup` block (`enabled`, `available`, `lastBackupAt`, `drillDue`) and
 `GET /api/backups/status` carries the rest, so the health page of P4-D03 has one place to read.
 
+## Authorisation
+
+Every entity, service, approval and backup request acts as the signed-in account, and the hub's
+decisions are the browser's: the roles come from `auth_role_assignment`, and the client's own
+`resolvePermissionContext`, `createAuthorizer` and `ScopedRepository` judge each action and apply the
+field policy (`server/auth/rbac/service.ts`). `server/__tests__/rbac.test.ts` compares the hub's answer
+with the client authorizer's for every role.
+
+- **An account that holds no role is denied everything.** The account that sets a hub up is granted
+  `administrator` once, by the setup route; a hub set up before roles existed is given its administrator
+  from the audit log at start, and only while it holds no assignment at all, so a role revoked on purpose
+  stays revoked.
+- **Maker-checker.** `/api/approvals` raises a privileged action (a fee schedule, a refund, a write-off, a
+  mark change after a lock, a promotion commit) for a second person. The maker cannot decide their own
+  request, a checker needs the checker permission or role, and a request is decided once.
+- A refusal is `403` with code `permission` or `self_approval`.
+
+## Single sign-on
+
+Staff can sign in with Google Workspace or Microsoft 365 over OpenID Connect (authorisation code with
+PKCE). It ends in the same bearer session a password gives. Configure a provider with environment
+variables; a hub with none configured serves no SSO routes.
+
+| Variable | Meaning |
+| --- | --- |
+| `SCHOOLPILOT_SSO_GOOGLE_CLIENT_ID` / `_CLIENT_SECRET` | the Google OAuth client |
+| `SCHOOLPILOT_SSO_MICROSOFT_CLIENT_ID` / `_CLIENT_SECRET` | the Microsoft app registration |
+| `SCHOOLPILOT_SSO_MICROSOFT_TENANT` | **required** for Microsoft: the school's tenant id or domain |
+| `SCHOOLPILOT_SSO_REDIRECT_URI` | the callback the provider sends the browser to (or `..._<PROVIDER>_REDIRECT_URI`) |
+| `SCHOOLPILOT_SSO_<PROVIDER>_ALLOWED_DOMAINS` | comma-separated email domains allowed to sign in |
+
+The flow: `GET /api/auth/sso/providers`, then `POST /api/auth/sso/:provider/start` (answers the
+authorisation URL and a state), then the browser returns with a code and `POST
+/api/auth/sso/:provider/complete` `{ code, state }` answers the session. All three are public and sit
+under the `/api/auth` rate limit.
+
+An identity is linked to an existing account by a staff member's recorded email or a username equal to
+the address, only when the provider says the email is verified and its domain is allowed. **SSO never
+creates an account**, and so can never create the first administrator; a guardian or learner account
+cannot be reached this way. `server/__tests__/ssoHttp.test.ts` drives the whole sign-in over a real
+socket against a provider running in the test process.
+
 ## Deliberately not here yet
 
-- **Authorisation.** Authentication is done; authorisation is not. Any live session may call any
-  route, so the repository API returns whatever an entity row holds — including a `user` row's
-  `password_hash` — to any signed-in account, guardian sessions included. P4-C02 adds the RBAC and
-  scope model and the maker-checker engine, and it is where per-entity read rules and the
-  redaction of sensitive columns belong. Until then the hub belongs on a trusted network, which is
-  the same posture it had before this task.
-- **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making
-  finance and administrator roles *require* it is a role-model decision, so it lands with P4-C02.
-- **OIDC SSO** for staff, P4-C03.
-- **Real-time sync.** The WebSocket hub of P4-A02; the HTTP surface here is what it extends.
-- **mDNS discovery, TLS and pairing.** P4-D02. The session token travels in clear text until then.
-- **Rate limiting the public sign-in endpoints.** Lockout bounds password guessing per username;
-  a per-address limit is P4-D02's, with the rest of the network controls.
+- **Authorisation beyond the entity, service, approval and backup APIs.** Those four are judged by the
+  role model (see "Authorisation" above). Three surfaces are not: **`/api/sync`** (any signed-in session
+  may pull every row, restricted fields included, and push changes), **`/api/sequences`** (any
+  signed-in session may reserve a receipt block) and **`/api/health`** (any signed-in session may read
+  the report and the diagnostic bundle). They need their own permissions, which the role catalogue
+  does not define yet. The hub still belongs on a trusted network, and a guardian session must not be
+  handed a device's sync credentials.
+- **Authorise-then-validate.** The repository validates a write and loads a row before it authorises, as
+  it does in the browser, so a caller who lacks a permission is told 400 for a malformed body and 404 for
+  a missing row, not 403. That leaks only whether an id exists.
+- **Role-driven TOTP.** The factor follows `user.mfa`, which an account sets by enrolling. Making finance and administrator roles *require* it is still to do; the roles that would carry the rule now exist.
+- **A sign-in screen for SSO.** The hub serves the flow; the browser app has no "Sign in with Google" button or callback page yet, and the flow has not been run against Google or Microsoft themselves, only a local provider.
+- **Push, not poll.** Sync runs over the hub's HTTP surface — `/api/sync/changes`, `/api/sync/push`
+  and `/api/sync/conflicts` — and a device pulls on its own schedule. A channel that pushes changes
+  to a connected device as they happen is not here.
+- **Pairing.** A client finds and trusts the hub — the mDNS advertisement and the fingerprint it
+  reports are here — but there is no enrolment handshake that issues a device its own credential.
+  That follows authorisation, and belongs with it.
+- **Field-level permissions on health and conduct records.** A learner's restricted fields are
+  stripped for a role without `learner.medical.read`; the restricted fields of `health_visit` and
+  `conduct_incident` are gated only by the permission to read the entity.
+- **The sync change log holds restricted values in the clear.** `sync_change.payload` carries the
+  fields a change touched, opened, so the encryption at rest above covers the canonical columns and
+  not this one. Closing it means either sealing the payload or keeping restricted fields out of the
+  change log, and either changes what a device is sent — a design decision that needs its own tests.
 - **Request schema validation beyond the repository and service schemas.** The route layer
   checks shapes and query syntax; the entity and service schemas own field validation, which is
   where a 400's `issues` comes from.

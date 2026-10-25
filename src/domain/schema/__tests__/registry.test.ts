@@ -187,7 +187,7 @@ describe('canonical entity registry', () => {
     expect(learner.primaryKey).toBe('id');
     expect(learner.required).toContain('institution_id');
     expect(learner.properties.institution_id.ref).toBe('institution');
-    expect(learner.encrypted).toEqual(['medical']);
+    expect(learner.encrypted).toEqual(['medical', 'special_needs']);
   });
 
   it('exposes inferred row types for the registry', () => {

@@ -10,6 +10,14 @@ import type { RouteRequest, Router } from './router';
 
 export interface AuthRouteOptions {
   readonly auth: AuthenticationService;
+  /**
+   * Called once with the account the first run created, before the response is sent.
+   *
+   * The hub's authorisation denies an account that holds no role, so the account that sets the hub
+   * up must be handed the administrator role here or it could do nothing at all. It runs once, so
+   * revoking the role later is not undone.
+   */
+  readonly onAdministratorCreated?: (userId: string) => Promise<void>;
 }
 
 /** Registers the authentication API under `/api/auth`. */
@@ -55,6 +63,9 @@ export function addAuthRoutes(router: Router, options: AuthRouteOptions): void {
               password,
               meta: metaOf(request),
             });
+      if (outcome.status === 'authenticated') {
+        await options.onAdministratorCreated?.(outcome.user.id);
+      }
       return { status: 201, body: outcome };
     },
     { auth: 'none' }
@@ -262,7 +273,7 @@ function optionalInstitution(
  * The user agent is the only description a browser offers, and it is truncated: it is a label
  * in a device list, not a value anything decides on.
  */
-function metaOf(request: RouteRequest): SessionMeta {
+export function metaOf(request: RouteRequest): SessionMeta {
   const agent = headerValue(request.req, 'user-agent');
   const peer = request.req.socket.remoteAddress;
   return {

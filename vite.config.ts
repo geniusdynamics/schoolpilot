@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { cspPlugin } from './scripts/security/cspVitePlugin';
 // import { livestoreDevtoolsPlugin } from '@livestore/devtools-vite';
 
 export default defineConfig(({ mode }) => {
@@ -88,6 +89,8 @@ export default defineConfig(({ mode }) => {
       plugins: [
         react(),
         ...(pwaPlugin ? [pwaPlugin] : []),
+        // Last, so the policy hashes every inline script the plugins above injected.
+        cspPlugin(),
         // livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' })
       ],
       server: {
@@ -109,6 +112,11 @@ export default defineConfig(({ mode }) => {
         headers: {
           'Cross-Origin-Opener-Policy': 'same-origin',
           'Cross-Origin-Embedder-Policy': 'require-corp',
+          // A meta policy cannot carry frame-ancestors, so the framing and referrer controls are
+          // response headers. They must be set by whatever serves the built app as well; this
+          // covers the development server the e2e suite runs against.
+          'X-Frame-Options': 'DENY',
+          'Referrer-Policy': 'no-referrer',
         },
       },
       resolve: {

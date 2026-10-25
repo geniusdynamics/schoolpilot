@@ -1,12 +1,12 @@
 // ABOUTME: The repository API: list, read, create, patch, remove and the audit trail of any
-// ABOUTME: registered entity, over the same typed repository the browser runs.
+// ABOUTME: registered entity, over the scoped repository of the signed-in actor, so every operation
+// ABOUTME: is judged by the client's permission model and answered with the fields its role may see.
 
 import type {
   CreateInput,
   FilterCondition,
   ListQuery,
   OrderSpec,
-  Repository,
   UpdateInput,
   WriteOptions,
 } from '@/data/repository';
@@ -23,9 +23,11 @@ import {
   requireObject,
 } from './http';
 import type { RouteRequest, Router } from './router';
+import type { ActorAccess, RbacService } from '../auth/rbac';
 
 export interface RepositoryRouteOptions {
-  readonly repository: Repository;
+  /** The authorisation layer: the repository each request acts through comes from here. */
+  readonly rbac: RbacService;
 }
 
 /** Registers the repository API under `/api/entities`. */
@@ -34,14 +36,16 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
 
   router.add('GET', '/api/entities/:entity', async (request) => {
     const entity = entityOf(request);
-    const page = await options.repository.list(entity, listQueryOf(request.url));
+    const repository = (await accessOf(request, options)).repository;
+    const page = await repository.list(entity, listQueryOf(request.url));
     return { body: page };
   });
 
   router.add('GET', '/api/entities/:entity/:id', async (request) => {
     const entity = entityOf(request);
     const id = idOf(request);
-    const row = await options.repository.get(entity, id);
+    const repository = (await accessOf(request, options)).repository;
+    const row = await repository.get(entity, id);
     if (!row) {
       throw new HttpError(404, 'not_found', `no ${entity} row with id ${request.params.id}`);
     }
@@ -50,19 +54,17 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
 
   router.add('GET', '/api/entities/:entity/:id/audit', async (request) => {
     const entity = entityOf(request);
-    const events = await options.repository.auditTrail(entity, request.params.id ?? '');
+    const repository = (await accessOf(request, options)).repository;
+    const events = await repository.auditTrail(entity, request.params.id ?? '');
     return { body: { events } };
   });
 
   router.add('POST', '/api/entities/:entity', async (request) => {
     const entity = entityOf(request);
     const body = await jsonObjectOf(request);
+    const repository = (await accessOf(request, options)).repository;
 
-    const row = await options.repository.create(
-      entity,
-      body as CreateInput<EntityName>,
-      writeOptionsOf(request)
-    );
+    const row = await repository.create(entity, body as CreateInput<EntityName>, writeOptionsOf(request));
     return { status: 201, body: row };
   });
 
@@ -78,7 +80,8 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
       throw new HttpError(400, 'invalid_body', 'patch must be a JSON object');
     }
 
-    const row = await options.repository.update(entity, id, patch as UpdateInput<EntityName>, {
+    const repository = (await accessOf(request, options)).repository;
+    const row = await repository.update(entity, id, patch as UpdateInput<EntityName>, {
       expectedVersion,
       ...writeOptionsOf(request),
     });
@@ -92,12 +95,31 @@ export function addRepositoryRoutes(router: Router, options: RepositoryRouteOpti
     const entity = entityOf(request);
     const id = idOf(request);
     const expectedVersion = integerQuery(request.url, 'expectedVersion');
-    const row = await options.repository.remove(entity, id, {
+    const repository = (await accessOf(request, options)).repository;
+    const row = await repository.remove(entity, id, {
       ...writeOptionsOf(request),
       ...(expectedVersion !== undefined ? { expectedVersion } : {}),
     });
     return { body: { removed: row } };
   });
+}
+
+/**
+ * What the request acts as.
+ *
+ * The repository is built per request: the scope is resolved from the roles the account holds now,
+ * and the field policy the client applies is installed on it. A request without a session cannot
+ * reach here - the router refuses it - so a missing one is a refusal rather than a fallback.
+ */
+async function accessOf(
+  request: RouteRequest,
+  options: RepositoryRouteOptions
+): Promise<ActorAccess> {
+  const session = request.session;
+  if (session === null) {
+    throw new HttpError(401, 'unauthenticated', 'this endpoint requires a bearer token');
+  }
+  return options.rbac.accessFor(session);
 }
 
 /** The entity a request names, refusing one the registry does not hold. */
@@ -119,7 +141,11 @@ async function jsonObjectOf(request: RouteRequest): Promise<Record<string, unkno
   return requireObject(await readJsonBody(request.req));
 }
 
-/** The write options of a request: the signed-in actor, its reason and the hub as the origin. */
+/**
+ * The write options of a request: the actor, its reason and the hub as the origin.
+ *
+ * The actor is the signed-in user; there is no header a caller can set to claim another identity.
+ */
 function writeOptionsOf(request: RouteRequest): WriteOptions {
   const actor = request.session?.userId;
   const reason = request.url.searchParams.get('reason') ?? undefined;
