@@ -414,7 +414,8 @@ if (!/#\/dashboard/.test(page.url())) {
   });
 
   await check('C11', 'A student fee payment can be recorded', async () => {
-    await goFresh('/finance/payments');
+    // The payments page is a hub of tabs; recording a student payment lives on its own tab.
+    await goFresh('/finance/payments?tab=student-payments');
     await page.locator('main').getByRole('button', { name: 'Record payment' }).click(); await wait(1200);
     const d = dialog();
     const learnerPicker = d.locator('[name=learner_id]');
@@ -454,20 +455,21 @@ if (!/#\/dashboard/.test(page.url())) {
   // -------------------------------------------------------------------------
   await check('C12', 'Marks entry lists the students of a stream', async () => {
     await go('/academics/marks-entry');
-    const assessmentPicker = page.locator('main').getByRole('combobox', { name: /^Assessment/ });
-    if (!(await assessmentPicker.count())) return { fail: 'the assessment picker is not rendered' };
-    await assessmentPicker.click();
+    // Mark entry picks a period and then one of the teacher's teaching groups.
+    const periodPicker = page.locator('main').getByRole('combobox', { name: /^Period/ });
+    if (!(await periodPicker.count())) return { fail: 'the period picker is not rendered' };
+    await periodPicker.click();
     const listbox = page.getByRole('listbox').last();
     await listbox.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
-    const assessmentOptions = listbox.getByRole('option');
-    if ((await assessmentOptions.count()) === 0) {
+    const periodOptions = listbox.getByRole('option');
+    if ((await periodOptions.count()) === 0) {
       await page.keyboard.press('Escape');
       return {
         skip:
-          'this fresh production school has no assessment to mark; the canonical marks entry is driven by tests/e2e/gp1-lite.spec.ts with the sample school',
+          'this fresh production school has no period to mark in; the canonical marks entry is driven by tests/e2e/gp1-lite.spec.ts with the sample school',
       };
     }
-    await assessmentOptions.first().click();
+    await periodOptions.first().click();
     const groupPicker = page.locator('main').getByRole('combobox', { name: /^Teaching group/ });
     if (!(await groupPicker.count())) return { fail: 'the teaching-group picker is not rendered' };
     await groupPicker.click();
