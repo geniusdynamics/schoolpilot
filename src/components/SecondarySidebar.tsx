@@ -484,9 +484,14 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const sidebarWidth = isMinimized ? minimizedWidth : 'w-52';
   const sidebarStart = isSecondaryAsPrimary ? 'start-0' : 'start-16 sm:start-20';
   const backdropStart = isSecondaryAsPrimary ? 'start-0' : 'start-16 sm:start-20';
+
+  // A docked sidebar starts below the header (48px, `top-12`) and does not paint over it: the school
+  // name and logo at the header's leading edge are the way back to the main dashboard, and a sidebar
+  // that began at the top of the screen covered them, buttons and all. The drawer a narrow screen gets
+  // is an overlay by nature, so it still starts at the top.
   const sidebarClasses = isMobile
     ? `w-44 sm:w-24 fixed top-0 ${sidebarStart} z-40 shadow-2xl h-screen pt-16` // Mobile
-    : `${sidebarWidth} fixed top-0 ${sidebarStart} z-40 h-screen pt-16 transition-all duration-300 ease-in-out`; // Desktop
+    : `${sidebarWidth} fixed top-12 bottom-0 ${sidebarStart} z-40 pt-12 transition-all duration-300 ease-in-out`; // Desktop
 
   // Show loading fallback if modules are still loading
   if (isLoading || !navigationItems.length) {
@@ -541,8 +546,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
-        {/* Control buttons - positioned to avoid search bar overlap; pushed lower when secondary acts as primary (below TopOverflowMenu) */}
-        <div className={`absolute ${isSecondaryAsPrimary ? 'top-14' : 'top-4'} end-2 z-20 flex flex-col gap-1`}>
+        {/* Control buttons - in the band above the search bar, so they never overlap it. The sidebar starts
+            below both the header and the TopOverflowMenu, so the band is clear of them in every mode. */}
+        <div className="absolute top-4 end-2 z-20 flex flex-col gap-1">
           {!isMobile && (
             <button
               className={`

@@ -260,6 +260,16 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     openTab('/dashboard', { pinned: true });
   }, [openTab]);
   
+  // The school name in the header: close every tab - the pinned ones too - and open the main
+  // dashboard as the one fresh, pinned tab. The tab menu's "close all" keeps pinned tabs, so it is not
+  // used here: the whole session is replaced in a single step, which also leaves no moment with no tab.
+  const handleGoHome = useCallback(() => {
+    const alreadyHome = tabs.length === 1 && tabs[0]?.path === '/dashboard' && location.pathname === '/dashboard';
+    if (alreadyHome) return;
+
+    void switchModuleSession('/dashboard', { preservePinned: false, refresh: false, pinned: true });
+  }, [tabs, location.pathname, switchModuleSession]);
+
   // Handle navigation item click from secondary sidebar
   const handleNavItemClick = useCallback(async (item: { path: string; name?: string }) => {
     if (!item.path) return;
@@ -327,6 +337,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex flex-col min-h-screen w-screen bg-slate-100">
       <Header
         onSettings={() => setShowSettings(true)}
+        onHome={handleGoHome}
         currentModule={selectedModuleKey}
         onModuleSelect={handleModuleSelect}
       />
