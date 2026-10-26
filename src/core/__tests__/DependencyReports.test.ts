@@ -14,13 +14,15 @@ interface FakeModule {
   readonly name: string;
   readonly version: string;
   readonly dependencies?: readonly Dependency[];
+  readonly optionalDependencies?: readonly Dependency[];
 }
 
-const moduleOf = (id: string, version = '1.0.0', dependencies?: readonly Dependency[]): FakeModule => ({
+const moduleOf = (id: string, version = '1.0.0', dependencies?: readonly Dependency[], optionalDependencies?: readonly Dependency[]): FakeModule => ({
   id,
   name: id,
   version,
   dependencies,
+  optionalDependencies,
 });
 
 const required = (moduleId: string, version = '^1.0.0'): ModuleDependency => ({ moduleId, version, required: true });
@@ -97,6 +99,40 @@ describe('the dependency report', () => {
     const issues = ModuleDependencyValidator.generateCompatibilityReport(registry).issues;
 
     expect(issues.some((issue) => issue.type === 'circular')).toBe(true);
+  });
+
+  // The shipped modules are laid out like this: administration is the root and optionally integrates with
+  // finance and HR, while those require administration. Only a cycle made of required links can stop modules
+  // from loading, so this is not a problem and must not be reported as one.
+  it('does not call a cycle circular when one link of it is optional', () => {
+    const registry = registryOf(
+      [moduleOf('administration', '1.0.0', undefined, [optional('finance')]), moduleOf('finance', '1.0.0', [required('administration')])],
+      ['administration', 'finance']
+    );
+
+    expect(ModuleDependencyValidator.generateCompatibilityReport(registry)).toEqual({
+      totalModules: 2,
+      modulesWithIssues: 0,
+      issues: [],
+    });
+  });
+
+  it('does not call a cycle circular when one link of it is a dependency marked not required', () => {
+    const registry = registryOf(
+      [moduleOf('a', '1.0.0', [optional('b')]), moduleOf('b', '1.0.0', [required('a')])],
+      ['a', 'b']
+    );
+
+    expect(ModuleDependencyValidator.generateCompatibilityReport(registry).issues).toEqual([]);
+  });
+
+  it('still reports a cycle of three required links', () => {
+    const registry = registryOf(
+      [moduleOf('a', '1.0.0', [required('b')]), moduleOf('b', '1.0.0', [required('c')]), moduleOf('c', '1.0.0', [required('a')])],
+      ['a', 'b', 'c']
+    );
+
+    expect(ModuleDependencyValidator.generateCompatibilityReport(registry).issues.some((issue) => issue.type === 'circular')).toBe(true);
   });
 });
 

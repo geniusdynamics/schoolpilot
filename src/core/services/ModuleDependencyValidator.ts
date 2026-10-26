@@ -143,16 +143,14 @@ class ModuleDependencyValidator {
     const graph = new Map<string, string[]>();
     const cycles: string[][] = [];
     
-    // Build dependency graph including both required and optional dependencies
+    // Build the graph from required dependencies only. A module uses an optional one when it is there and
+    // does without it when it is not, so an optional link cannot stop anything from loading: administration
+    // optionally integrates with finance, which requires administration, and that is not a cycle.
     for (const module of modules) {
-      const requiredDeps = (module.dependencies || []).map(d => 
-        typeof d === 'string' ? d : d.moduleId
-      );
-      const optionalDeps = (module.optionalDependencies || []).map(d => 
-        typeof d === 'string' ? d : d.moduleId
-      );
-      const allDeps = [...requiredDeps, ...optionalDeps];
-      graph.set(module.id, allDeps);
+      const requiredDeps = (module.dependencies || [])
+        .filter(d => typeof d === 'string' || d.required)
+        .map(d => typeof d === 'string' ? d : d.moduleId);
+      graph.set(module.id, requiredDeps);
     }
     
     // Detect cycles using DFS
