@@ -8,26 +8,20 @@ import { pageHealthMonitor } from '../performance/pageHealthMonitor';
 
 // Explicit page imports for critical pages to ensure correct resolution
 // This fixes the issue where settings pages were all resolving to AuditLogPage
-import UnifiedSettingsPage from '@/modules/settings/pages/UnifiedSettingsPage';
-import FeatureSettingsPage from '@/modules/settings/pages/FeatureSettingsPage';
 // import DatabaseSettingsPage from '@/modules/settings/pages/DatabaseSettingsPage';
 // import DataManagementSettingsPage from '@/modules/settings/pages/DataManagementSettingsPage';
 // import BackupSettingsPage from '@/modules/settings/pages/BackupSettingsPage';
 import DataLayerSettingsPage from '@/modules/settings/pages/DataLayerSettingsPage';
 import AuditLogPage from '@/modules/settings/pages/AuditLogPage';
-import SettingsPage from '@/modules/settings/pages/SettingsPage';
 import PluginSettingsPage from '@/modules/settings/pages/PluginSettingsPage';
 
 // Explicit page mapping
 const explicitPageMapping: Record<string, React.ComponentType> = {
-  'UnifiedSettingsPage': UnifiedSettingsPage,
-  'FeatureSettingsPage': FeatureSettingsPage,
   // 'DatabaseSettingsPage': DatabaseSettingsPage,
   // 'DataManagementSettingsPage': DataManagementSettingsPage,
   // 'BackupSettingsPage': BackupSettingsPage,
   'DataLayerSettingsPage': DataLayerSettingsPage,
   'AuditLogPage': AuditLogPage,
-  'SettingsPage': SettingsPage,
   'PluginSettingsPage': PluginSettingsPage,
 };
 

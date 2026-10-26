@@ -53,9 +53,6 @@ vi.mock('../routeConfig', () => ({
   LoginPage: () => <div data-testid="login-page">Login Page</div>,
   DashboardPage: () => <div data-testid="dashboard-page">Dashboard Page</div>,
   ErrorTrackingTest: () => <div data-testid="error-tracking-page">Error Tracking</div>,
-  SettingsPage: () => <div data-testid="settings-page">Settings</div>,
-  UnifiedSettingsPage: () => <div data-testid="unified-settings-page">Unified Settings</div>,
-  FeatureSettingsPage: () => <div data-testid="feature-settings-page">Feature Settings</div>,
   DataLayerSettingsPage: () => <div data-testid="data-layer-settings-page">Data Layer Settings</div>,
   AuditLogPage: () => <div data-testid="audit-log-page">Audit Log</div>,
   ROUTE_PATHS: {

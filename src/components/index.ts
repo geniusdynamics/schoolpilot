@@ -69,13 +69,7 @@ export {
 } from './tabbedWorkspace';
 
 // --- Settings Components ---
-export {
-  FeatureSettings,
-  BackendConfiguration,
-  UnifiedModeSwitch,
-  ModuleManagementPanel,
-  UserPermissionsPanel,
-} from './settings';
+export { BackendConfiguration } from './settings';
 export { SettingsPopup } from './SettingsPopup';
 
 // --- Onboarding & Auth ---
@@ -106,11 +100,9 @@ export { ModuleLoadingPerformancePanel } from './ModuleLoadingPerformancePanel';
 // --- Offline & Sync ---
 export { OfflineIndicator } from './OfflineIndicator';
 export { OfflineCapability } from './OfflineCapability';
-export { SyncManagementPanel } from './SyncManagementPanel';
 
 // --- Database & Data ---
 export { DatabaseMonitoringDashboard } from './DatabaseMonitoringDashboard';
-export { ConflictResolutionInterface } from './ConflictResolutionInterface';
 export { GlobalNotifications } from './GlobalNotifications';
 export { MigrationScreen, useMigrationStatus } from './MigrationScreen';
 
@@ -128,8 +120,3 @@ export { MarketplaceDiscovery } from './MarketplaceDiscovery';
 
 // --- Error Tracking & Debugging ---
 export { ErrorTrackingTest } from './ErrorTrackingTest';
-
-// --- Legacy/Deprecated Exports ---
-// These exports are kept for backward compatibility but will be removed in a future version
-// Please import from '@/components/settings' instead
-export { default as FeatureSettingsLegacy } from './FeatureSettings';

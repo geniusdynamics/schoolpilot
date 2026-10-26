@@ -1,7 +1,6 @@
 // ABOUTME: The Users tab shows the school's first administrator as an active super administrator, not as a blank
 // ABOUTME: row, and its two grids render without React warning about columns that share a key.
 
-import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 

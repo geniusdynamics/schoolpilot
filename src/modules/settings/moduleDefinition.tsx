@@ -1,5 +1,5 @@
 // ABOUTME: Settings module definition for modular system
-// ABOUTME: Exports the module definition for the settings module with hub-and-spoke navigation
+// ABOUTME: An overview page and three hubs, with every old address redirecting to where its page lives now
 
 import { ModuleDefinition } from '@/core/types';
 import { AdjustmentsHorizontalIcon, ArrowsRightLeftIcon, CircleStackIcon, ClockIcon, CogIcon, DocumentTextIcon, HomeIcon, IdentificationIcon, PuzzlePieceIcon, ShieldCheckIcon, SparklesIcon, UsersIcon, ViewColumnsIcon, WrenchIcon } from '@/components/ui/icons';
@@ -20,30 +20,16 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    // The module's dashboard is its root page, like every other module's, not a tab of a hub.
+    // The module's overview is its root page, like every other module's dashboard, and comes first.
     {
-      name: 'navigation:settings.dashboard',
+      name: 'navigation:settings.overview',
       path: '/settings',
       icon: HomeIcon,
       page: 'SettingsDashboardPage',
       showInModes: ['standard', 'fullwidth'],
     },
 
-    // Hub pages - shown in standard mode
-    {
-      name: 'navigation:settings.configuration',
-      path: '/settings/configuration',
-      icon: CogIcon,
-      page: 'ConfigurationPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
-    {
-      name: 'navigation:settings.dataSystem',
-      path: '/settings/system',
-      icon: CircleStackIcon,
-      page: 'DataAndSystemPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
+    // The three hubs. Their tabs are listed in hubTabs, which the hubs and the overview are built from.
     {
       name: 'navigation:settings.schoolPeople',
       path: '/settings/school',
@@ -58,34 +44,46 @@ const settingsModule: ModuleDefinition = {
       page: 'ModulesAndFeaturesPage',
       showInModes: ['standard', 'fullwidth'],
     },
+    {
+      name: 'navigation:settings.dataSystem',
+      path: '/settings/system',
+      icon: CircleStackIcon,
+      page: 'DataAndSystemPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
 
-    // Legacy pages - shown in fullwidth mode with redirects to hub tabs
+    // Old addresses - shown in fullwidth mode, each redirecting to where its page lives now.
+    {
+      name: 'navigation:settings.configuration',
+      path: '/settings/configuration',
+      icon: CogIcon,
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings',
+    },
     {
       name: 'navigation:settings.unified',
       path: '/settings/unified',
       icon: AdjustmentsHorizontalIcon,
-      page: 'UnifiedSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/configuration?tab=unified',
-    },
-    {
-      name: 'navigation:settings.features',
-      path: '/settings/features',
-      icon: SparklesIcon,
-      page: 'FeatureSettingsPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/settings/modules?tab=features',
+      redirectTo: '/settings',
     },
     {
       name: 'navigation:settings.general',
       path: '/settings/general',
       icon: WrenchIcon,
-      page: 'SettingsGeneralPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/configuration?tab=general',
+      redirectTo: '/settings',
+    },
+    {
+      name: 'navigation:settings.features',
+      path: '/settings/features',
+      icon: SparklesIcon,
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/modules?tab=features',
     },
     {
       name: 'navigation:settings.dataLayer',
@@ -94,7 +92,7 @@ const settingsModule: ModuleDefinition = {
       page: 'DataLayerSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/system?tab=data-layer',
+      redirectTo: '/settings/system',
     },
     {
       name: 'navigation:settings.dependencyReport',
@@ -132,13 +130,22 @@ const settingsModule: ModuleDefinition = {
       redirectTo: '/settings/system?tab=integrity',
     },
     {
+      // Linked from the old dashboard, but no page ever sat here. Its name says what it was meant to be.
+      name: 'navigation:settings.dataManagement',
+      path: '/settings/data-management',
+      icon: DatabaseIcon,
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system',
+    },
+    {
       name: 'navigation:settings.schoolProfile',
       path: '/settings/school-profile',
       icon: IdentificationIcon,
       page: 'SettingsSchoolProfilePage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/school?tab=school-profile',
+      redirectTo: '/settings/school',
     },
     {
       name: 'navigation:settings.users',
@@ -171,10 +178,9 @@ const settingsModule: ModuleDefinition = {
       name: 'navigation:settings.tabs',
       path: '/settings/tabs',
       icon: ViewColumnsIcon,
-      page: 'TabSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/school?tab=tabs',
+      redirectTo: '/settings/school',
     },
   ],
   // The pages the module serves at an address of their own. They are declared here, not in the router, so
@@ -182,10 +188,9 @@ const settingsModule: ModuleDefinition = {
   // The old /settings/dashboard address redirects to the module root from the shared redirect map.
   routes: [
     { path: '/settings', page: 'SettingsDashboardPage' },
-    { path: '/settings/configuration', page: 'ConfigurationPage' },
-    { path: '/settings/system', page: 'DataAndSystemPage' },
     { path: '/settings/school', page: 'SchoolAndPeoplePage' },
     { path: '/settings/modules', page: 'ModulesAndFeaturesPage' },
+    { path: '/settings/system', page: 'DataAndSystemPage' },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
