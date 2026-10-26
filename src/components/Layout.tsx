@@ -12,6 +12,7 @@ import { useSecondarySidebar, SECONDARY_SIDEBAR_WIDTHS } from '../contexts/Secon
 import { useTabs } from '../hooks/tabs';
 import type { Tab } from '../services/tabs/types';
 import { routeToTabMapper } from '../services/tabs/RouteToTabMapper';
+import { resolveRedirect } from '../routing/redirectMap';
 import { normalizeModuleId } from '../utils/moduleStyles';
 import Header from './Header';
 import PrimarySidebar from './PrimarySidebar';
@@ -179,6 +180,11 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     // #/bulk-streams hit): unknown routes must not become workspace tabs.
     if (!routeToTabMapper.isKnownAppRoute(currentPath)) return;
 
+    // An address that only redirects is not a page: the router leaves it at once, and the tab for where it
+    // lands opens then. Mirroring it would leave a tab named for the old address behind, and at the tab
+    // limit the oldest real tab would be closed to make room for it.
+    if (resolveRedirect(currentPath, navigationItems)) return;
+
     // Check if current URL already has a matching tab
     const hasMatchingTab = tabs.some(
       t => t.path === currentPath || t.path === location.pathname
@@ -193,7 +199,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
         openTab(currentPath, { pinned: location.pathname === '/dashboard' });
       }
     }
-  }, [navLoading, location.pathname, location.search, tabs, openTab]);
+  }, [navLoading, location.pathname, location.search, tabs, openTab, navigationItems]);
   
   // Determine current module from URL
   useEffect(() => {
