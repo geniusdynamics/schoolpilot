@@ -1,0 +1,44 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5"
+      ],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.term_average",
+        "gte": 40
+      }
+    },
+    {
+      "levels": [
+        "P6"
+      ],
+      "rule": "stage_transition",
+      "to_stage": "JSS"
+    },
+    {
+      "levels": [
+        "JSS1",
+        "JSS2"
+      ],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.term_average",
+        "gte": 40
+      }
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "JSS3"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

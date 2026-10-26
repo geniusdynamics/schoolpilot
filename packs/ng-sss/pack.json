@@ -1,0 +1,53 @@
+{
+  "code": "ng-sss",
+  "name": "Nigeria Senior Secondary School - SS 1 to SS 3 (WASSCE and NECO)",
+  "version": "1.0.0",
+  "country": "NG",
+  "issuers": [
+    "Federal Ministry of Education",
+    "WAEC",
+    "NECO"
+  ],
+  "effective_from": "2025-09-01",
+  "languages": [
+    "en",
+    "ha"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "WAEC Nigeria: the West African Senior School Certificate Examination (WASSCE) for school candidates",
+      "issuer": "West African Examinations Council, Nigeria",
+      "url": "https://www.waecnigeria.org/",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "New curriculum in Nigeria: full list of subjects for basic, senior secondary and technical education (news report of the Ministry's announcement of 3 September 2025; secondary)",
+      "issuer": "BBC News Pidgin",
+      "url": "https://www.bbc.com/pidgin/articles/c80d84mz3yxo",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "WAEC Grading System Explained (A1 to F9): the nine-grade scale and its percentage ranges (secondary; WAEC publishes no percentage table on its own site)",
+      "issuer": "ExamGuide",
+      "url": "https://examguide.com/forums/discussion/topic/874951967103",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "Revised 9-Year Basic Education Curriculum: implementation strategy (the basic-education sibling of this pack)",
+      "issuer": "NERDC",
+      "url": "https://www.nerdc.gov.ng/content_manager/Revised%209%20Year%20BEC%20Implementation%20Strategy%203.pdf",
+      "retrieved": "2026-10-26"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a Federal Ministry of Education, WAEC or NECO officer. No official senior-secondary subject list or syllabus was fetched: the subjects are WASSCE subject names and the 8-to-9 subject count and core areas come from a news report of the Ministry's announcement, so every senior-secondary subject, department and combination rule is unconfirmed. Open items: (1) the A1 to F9 percentage ranges follow spec 03 Appendix G and secondary sources; WAEC awards each subject's grades itself. (2) The four departments (Science, Arts, Commercial, Technical) are from spec 03 Appendix G; the news report names Humanities, Sciences, Business, Trade and Technology areas instead. (3) WASSCE and NECO SSCE subject codes are not modelled. (4) The credit count is a count of A1 to C6 grades; the institution-specific rule 'five credits including English and Mathematics' is not encoded. (5) The CA 40 and exam 60 split is the common school practice of spec 03 Appendix G, overridable. (6) The Hausa labels are a draft translation that no native speaker has reviewed."
+  },
+  "overridable": [
+    "grading_scales.ng_waec_9.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "code": "ng-ube",
+  "name": "Nigeria Universal Basic Education - Primary 1 to JSS 3",
+  "version": "1.0.0",
+  "country": "NG",
+  "issuers": [
+    "NERDC",
+    "UBEC",
+    "Federal Ministry of Education"
+  ],
+  "effective_from": "2025-09-01",
+  "languages": [
+    "en",
+    "ha"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Revised 9-Year Basic Education Curriculum: implementation strategy (subject lists for Primary 1-3, Primary 4-6 and JSS 1-3)",
+      "issuer": "NERDC",
+      "url": "https://www.nerdc.gov.ng/content_manager/Revised%209%20Year%20BEC%20Implementation%20Strategy%203.pdf",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "UBEC frequently asked questions: continuous assessment and the external examination under the UBE programme (read from the search index; the page did not load)",
+      "issuer": "UBEC",
+      "url": "https://ubec.gov.ng/faqs",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "WAEC Grading System Explained (A1 to F9): the nine-grade scale and its percentage ranges (secondary; WAEC publishes no percentage table on its own site)",
+      "issuer": "ExamGuide",
+      "url": "https://examguide.com/forums/discussion/topic/874951967103",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "New curriculum in Nigeria: full list of subjects for basic, senior secondary and technical education (news report of the Ministry's announcement of 3 September 2025; secondary)",
+      "issuer": "BBC News Pidgin",
+      "url": "https://www.bbc.com/pidgin/articles/c80d84mz3yxo",
+      "retrieved": "2026-10-26"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a NERDC, UBEC or Federal Ministry of Education officer. The subject lists and the minimum and maximum number of subjects per stage are read from the NERDC revised 9-year curriculum strategy document and are the pack's firmest data. Open items: (1) the A1 to F9 percentage ranges follow spec 03 Appendix G and secondary sources; no WAEC or NECO document fetched for this pack states them, and WAEC grades each subject by its own award, so the table is a school default. (2) The split of 40 continuous-assessment marks (two assessments of 20) and 60 examination marks is the common school practice named in spec 03 Appendix G; the UBEC FAQ, read from the search index only, gives the basic-education split as 60 for school-based assessment and 40 for the external examination. Both are overridable. (3) Primary schools often grade A to F with descriptors; no official boundaries were found, so primary uses the same nine-grade scale. (4) Nursery and pre-primary levels are not modelled. (5) Promotion is a class-council suggestion at an average of 40, the lowest passing grade on the scale; Nigeria publishes no national promotion rule that this pack cites. (6) Typical term dates are pre-fills only; the state ministry publishes the session calendar. (7) The Hausa labels are a draft translation that no native speaker has reviewed."
+  },
+  "overridable": [
+    "grading_scales.ng_waec_9.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

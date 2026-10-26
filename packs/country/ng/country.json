@@ -1,0 +1,422 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-ng",
+  "kind": "country",
+  "country": "NG",
+  "name": "Nigeria",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "Identifier formats other than the NIN are not published in a source the pack cites: every other scheme is free text.",
+    "The state list is verified against section 3 of the Constitution; the ISO 3166-2 codes are read from a secondary copy of the ISO table and are unconfirmed.",
+    "No local government area list is bundled: the local government area is free text.",
+    "Democracy Day moved from 29 May to 12 June with the Public Holidays (Amendment) Act 2019; the Act's text was not fetched, so the dates of the change come from news reports and are approximate.",
+    "Boxing Day is not named in the Schedule as printed in the Laws of the Federation; it is declared by the Federal Government and is kept as a draft.",
+    "The Muslim festivals are listed for 2026 only, the year whose Ministry of Interior declarations the pack cites; Id el Fitr and Id el Kabir each carry the two days declared.",
+    "The Act gives a holiday that falls on a weekend no day in lieu; the Federal Government sometimes declares one by notice, and the pack does not model those notices.",
+    "The PAYE due day is stated by the FCT Internal Revenue Service; other states' services are assumed to follow it. The pension and NSITF due days are unconfirmed."
+  ],
+  "sources": [
+    {
+      "id": "public-holidays-act",
+      "title": "Public Holidays Act (1979 No. 31, amended 1984 and 2000): sections 1 to 5 and the Schedule",
+      "publisher": "Policy and Legal Advocacy Centre (Laws of the Federation of Nigeria)",
+      "url": "https://www.placng.org/lawsofnigeria/print.php?sn=467",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "democracy-day-amendment",
+      "title": "June 12: Buhari signs Public Holiday Amendment Bill (10 June 2019; news report, secondary)",
+      "publisher": "Premium Times",
+      "url": "https://www.premiumtimesng.com/news/top-news/334317-june-12-buhari-signs-public-holiday-amendment-bill.html",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "fmino-fitr-2026",
+      "title": "Federal Government declares Thursday 19th and Friday 20th March 2026 as public holidays to mark Eid-ul-Fitr",
+      "publisher": "Federal Ministry of Information and National Orientation (Ministry of Interior press release)",
+      "url": "https://fmino.gov.ng/federal-government-declares-thursday-19th-and-friday-20th-march-2026-as-public-holidays-to-mark-eid-ul-fitr/",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "fmino-adha-2026",
+      "title": "Federal Government declares Wednesday 27th May and Thursday 28th May, 2026 as public holidays to mark Eid ul Adha",
+      "publisher": "Federal Ministry of Information and National Orientation (Ministry of Interior press release)",
+      "url": "https://fmino.gov.ng/federal-government-declares-wednesday-27th-may-and-thursday-28th-may-2026-as-public-holidays-to-mark-eid-ul-adha-celebration",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "fmino-mawlid-2026",
+      "title": "FG declares Tuesday public holiday as nation marks Eid ul Mawlid (Tuesday 25th August 2026)",
+      "publisher": "Federal Ministry of Information and National Orientation",
+      "url": "https://fmino.gov.ng/fg-declares-tuesday-public-holiday-as-nation-marks-eid-ul-mawlid",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "constitution-1999",
+      "title": "Constitution of the Federal Republic of Nigeria 1999, Chapter I Part I, section 3: the 36 states and the Federal Capital Territory",
+      "publisher": "Jurist.ng (text of the Constitution)",
+      "url": "https://jurist.ng/constitution/chapter-1/part-I",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "iso-3166-2-ng",
+      "title": "ISO 3166-2:NG: subdivision codes of Nigeria (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:NG",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "ncc-nin-faq",
+      "title": "About the NIN: the 11-digit National Identity Number issued by NIMC",
+      "publisher": "Nigerian Communications Commission",
+      "url": "https://ncc.gov.ng/frequently-asked-questions/about-nin",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "fctirs-faq",
+      "title": "FAQ: the due date for remitting PAYE is the 10th day of every month following the month of deduction",
+      "publisher": "FCT Internal Revenue Service",
+      "url": "https://fctirs.gov.ng/faq",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "pencom-remittance",
+      "title": "Framework for recovery of outstanding pension contributions: remittance within 7 days of the day the employee is paid (Pension Reform Act 2004, section 11)",
+      "publisher": "National Pension Commission",
+      "url": "https://www.pencom.gov.ng/framework-for-recovery-of-outstanding-pension-contributions-and-interest-penalty-from-defaulting-employers",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "nsitf",
+      "title": "NSITF: the Employees' Compensation Act 2010 and monthly employer contributions",
+      "publisher": "Nigeria Social Insurance Trust Fund",
+      "url": "https://nsitf.gov.ng/services",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "gx-nigeria-payroll",
+      "title": "Hire employees in Nigeria: payroll, PAYE, pension and NSITF due dates (secondary)",
+      "publisher": "Global Expansion",
+      "url": "https://www.globalexpansion.com/countrypedia/nigeria",
+      "accessed": "2026-10-26"
+    }
+  ],
+  "defaults": {
+    "currency": "NGN",
+    "languages": ["en", "ha"],
+    "timeZone": "Africa/Lagos",
+    "phoneRegion": "NG",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "ng.nin",
+      "labelKey": "country.ng.identifier.nin",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 1, "guardian": 1, "staff": 1 },
+      "validation": { "type": "pattern", "pattern": "^[0-9]{11}$", "normalise": ["trim", "remove_spaces", "remove_hyphens"] },
+      "hintKey": "country.ng.identifier.nin.hint",
+      "example": "12345678901",
+      "sourceRef": "ncc-nin-faq",
+      "verification": "verified",
+      "note": "Format only: eleven digits. A well-formed NIN is not proof that NIMC issued it."
+    },
+    {
+      "scheme": "ng.birth_certificate",
+      "labelKey": "country.ng.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ng.identifier.birth_certificate.hint",
+      "example": "as printed on the certificate",
+      "verification": "draft",
+      "note": "Birth certificate numbers have no published format the pack cites; they are kept as written."
+    },
+    {
+      "scheme": "ng.tin",
+      "labelKey": "country.ng.identifier.tin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ng.identifier.tin.hint",
+      "example": "as printed on the tax identification certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ng.rsa_pin",
+      "labelKey": "country.ng.identifier.rsa_pin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ng.identifier.rsa_pin.hint",
+      "example": "as printed on the retirement savings account statement",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ng.trcn_number",
+      "labelKey": "country.ng.identifier.trcn_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 4 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ng.identifier.trcn_number.hint",
+      "example": "as issued by the Teachers Registration Council of Nigeria",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ng.passport",
+      "labelKey": "country.ng.identifier.passport",
+      "appliesTo": ["staff"],
+      "order": { "staff": 5 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ng.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "state",
+        "labelKey": "address.ng.state",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "NG-AB", "name": "Abia" },
+            { "code": "NG-AD", "name": "Adamawa" },
+            { "code": "NG-AK", "name": "Akwa Ibom" },
+            { "code": "NG-AN", "name": "Anambra" },
+            { "code": "NG-BA", "name": "Bauchi" },
+            { "code": "NG-BY", "name": "Bayelsa" },
+            { "code": "NG-BE", "name": "Benue" },
+            { "code": "NG-BO", "name": "Borno" },
+            { "code": "NG-CR", "name": "Cross River" },
+            { "code": "NG-DE", "name": "Delta" },
+            { "code": "NG-EB", "name": "Ebonyi" },
+            { "code": "NG-ED", "name": "Edo" },
+            { "code": "NG-EK", "name": "Ekiti" },
+            { "code": "NG-EN", "name": "Enugu" },
+            { "code": "NG-FC", "name": "Federal Capital Territory" },
+            { "code": "NG-GO", "name": "Gombe" },
+            { "code": "NG-IM", "name": "Imo" },
+            { "code": "NG-JI", "name": "Jigawa" },
+            { "code": "NG-KD", "name": "Kaduna" },
+            { "code": "NG-KN", "name": "Kano" },
+            { "code": "NG-KT", "name": "Katsina" },
+            { "code": "NG-KE", "name": "Kebbi" },
+            { "code": "NG-KO", "name": "Kogi" },
+            { "code": "NG-KW", "name": "Kwara" },
+            { "code": "NG-LA", "name": "Lagos" },
+            { "code": "NG-NA", "name": "Nasarawa" },
+            { "code": "NG-NI", "name": "Niger" },
+            { "code": "NG-OG", "name": "Ogun" },
+            { "code": "NG-ON", "name": "Ondo" },
+            { "code": "NG-OS", "name": "Osun" },
+            { "code": "NG-OY", "name": "Oyo" },
+            { "code": "NG-PL", "name": "Plateau" },
+            { "code": "NG-RI", "name": "Rivers" },
+            { "code": "NG-SO", "name": "Sokoto" },
+            { "code": "NG-TA", "name": "Taraba" },
+            { "code": "NG-YO", "name": "Yobe" },
+            { "code": "NG-ZA", "name": "Zamfara" }
+          ],
+          "sourceRef": "constitution-1999",
+          "verification": "draft"
+        }
+      },
+      { "key": "lga", "labelKey": "address.ng.lga", "required": true }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.ng.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "verified"
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.ng.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "verified"
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.ng.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "verified"
+    },
+    {
+      "id": "workers-day",
+      "nameKey": "country.ng.holiday.workers_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "verified"
+    },
+    {
+      "id": "democracy-day-may29",
+      "nameKey": "country.ng.holiday.democracy_day",
+      "rule": { "type": "fixed", "month": 5, "day": 29 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": "2019-06-09",
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "The Schedule names Democracy Day (29th May). The Act's history cites an amendment of 2000; whether the day applied from the start of 2000 is unconfirmed. The end date is the day before the 2019 amendment was signed (news report)."
+    },
+    {
+      "id": "democracy-day",
+      "nameKey": "country.ng.holiday.democracy_day",
+      "rule": { "type": "fixed", "month": 6, "day": 12 },
+      "effectiveFrom": "2019-06-10",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "democracy-day-amendment",
+      "verification": "draft",
+      "note": "Moved from 29 May to 12 June by the Public Holidays (Amendment) Act, signed 10 June 2019 according to a news report. The Act's text was not fetched."
+    },
+    {
+      "id": "id-el-fitr",
+      "nameKey": "country.ng.holiday.id_el_fitr",
+      "rule": { "type": "byYear", "dates": { "2026": "2026-03-19" } },
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "fmino-fitr-2026",
+      "verification": "verified",
+      "note": "Declared each year by the Minister of Interior under the Schedule (item 8). 2026: Thursday 19 and Friday 20 March; the second day is id-el-fitr-2. A year not listed has none here until its declaration is added."
+    },
+    {
+      "id": "id-el-fitr-2",
+      "nameKey": "country.ng.holiday.id_el_fitr_2",
+      "rule": { "type": "byYear", "dates": { "2026": "2026-03-20" } },
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "fmino-fitr-2026",
+      "verification": "verified",
+      "note": "The second day of the 2026 Id el Fitr declaration."
+    },
+    {
+      "id": "id-el-kabir",
+      "nameKey": "country.ng.holiday.id_el_kabir",
+      "rule": { "type": "byYear", "dates": { "2026": "2026-05-27" } },
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "fmino-adha-2026",
+      "verification": "verified",
+      "note": "Declared each year under the Schedule (item 9). 2026: Wednesday 27 and Thursday 28 May; the second day is id-el-kabir-2."
+    },
+    {
+      "id": "id-el-kabir-2",
+      "nameKey": "country.ng.holiday.id_el_kabir_2",
+      "rule": { "type": "byYear", "dates": { "2026": "2026-05-28" } },
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "fmino-adha-2026",
+      "verification": "verified",
+      "note": "The second day of the 2026 Id el Kabir declaration."
+    },
+    {
+      "id": "id-el-maulud",
+      "nameKey": "country.ng.holiday.id_el_maulud",
+      "rule": { "type": "byYear", "dates": { "2026": "2026-08-25" } },
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "fmino-mawlid-2026",
+      "verification": "verified",
+      "note": "Declared each year under the Schedule (item 10). 2026: Tuesday 25 August."
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.ng.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 10, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "verified",
+      "note": "The Schedule calls it National Day (1st October)."
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.ng.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "verified"
+    },
+    {
+      "id": "boxing-day",
+      "nameKey": "country.ng.holiday.boxing_day",
+      "rule": { "type": "fixed", "month": 12, "day": 26 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "Not named in the Schedule as printed in the Laws of the Federation; the Federal Government declares it as a public holiday and secondary sources list it every year."
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "paye-monthly",
+      "nameKey": "country.ng.return.paye",
+      "authority": "State Internal Revenue Service of the state of employment (FCT-IRS in the Federal Capital Territory)",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 10 },
+      "sourceRef": "fctirs-faq",
+      "verification": "verified",
+      "note": "Stated by the FCT Internal Revenue Service: PAYE is remitted by the 10th of the month after deduction. Other states' services are assumed to follow it; confirm each state's own notice."
+    },
+    {
+      "id": "pension-monthly",
+      "nameKey": "country.ng.return.pension",
+      "authority": "Employee's Pension Fund Administrator, supervised by the National Pension Commission",
+      "frequency": "monthly",
+      "due": { "type": "working_day_of_following_month", "workingDay": 7 },
+      "sourceRef": "pencom-remittance",
+      "verification": "draft",
+      "note": "The Commission cites the Pension Reform Act 2004 as remittance within 7 days of the day the employee is paid, and a secondary source gives 7 working days under the 2014 Act. The due rule here cannot say 'after the salary is paid'; it takes the seventh working day of the following month, which assumes salary is paid at month end."
+    },
+    {
+      "id": "nsitf-monthly",
+      "nameKey": "country.ng.return.nsitf",
+      "authority": "Nigeria Social Insurance Trust Fund",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 16 },
+      "sourceRef": "gx-nigeria-payroll",
+      "verification": "draft",
+      "note": "From a secondary source; the Fund's page cited names the monthly contribution but no due day was found. Confirm against the Employees' Compensation Act 2010 and the Fund's notices."
+    }
+  ]
+}
