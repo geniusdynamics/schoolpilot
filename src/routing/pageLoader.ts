@@ -4,6 +4,27 @@
 import React from 'react';
 import { logger } from '@/utils/logging';
 
+type PageLoader = () => Promise<{ default: React.ComponentType<any> }>;
+
+const lazyPages = new WeakMap<PageLoader, React.LazyExoticComponent<React.ComponentType<any>>>();
+
+/**
+ * The lazy component for one page loader, made once.
+ *
+ * A route table that calls React.lazy while it renders gives every page a new component type each time
+ * it renders, so React unmounts the page that is showing and mounts it again. A page that redirects
+ * (a moved Settings tab) then never gets to run the effect that does the redirect, and a page with a
+ * form loses what was typed whenever the navigation reloads.
+ */
+export const lazyPage = (load: PageLoader): React.LazyExoticComponent<React.ComponentType<any>> => {
+  let component = lazyPages.get(load);
+  if (!component) {
+    component = React.lazy(load);
+    lazyPages.set(load, component);
+  }
+  return component;
+};
+
 // Static glob patterns at module level (required by Vite)
 const allPageModules = {
   ...import.meta.glob('../modules/*/pages/*.tsx'),
@@ -98,7 +119,7 @@ export const getPageComponent = (
   for (const key of possibleKeys) {
     if (modulePages[key]) {
       logger.debug('✅ [pageLoader] Found component via key:', key);
-      return React.lazy(modulePages[key] as () => Promise<{ default: React.ComponentType<any> }>);
+      return lazyPage(modulePages[key] as PageLoader);
     }
   }
 
@@ -111,7 +132,7 @@ export const getPageComponent = (
 
   if (matchingKey) {
     logger.debug('✅ [pageLoader] Found component via fallback search:', matchingKey);
-    return React.lazy(modulePages[matchingKey] as () => Promise<{ default: React.ComponentType<any> }>);
+    return lazyPage(modulePages[matchingKey] as PageLoader);
   }
 
   // Cross-module fallback: a navigation entry can point at a page that lives in ANOTHER module —
@@ -125,7 +146,7 @@ export const getPageComponent = (
   );
   if (crossModuleKey) {
     logger.debug('✅ [pageLoader] Found component in another module:', crossModuleKey);
-    return React.lazy(pageModules[crossModuleKey] as () => Promise<{ default: React.ComponentType<any> }>);
+    return lazyPage(pageModules[crossModuleKey] as PageLoader);
   }
 
   // Debug: List all available keys for this module

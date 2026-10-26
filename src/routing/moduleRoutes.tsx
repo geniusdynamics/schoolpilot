@@ -3,7 +3,6 @@
 
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { moduleRegistry } from '../core/moduleRegistry';
 
@@ -13,7 +12,7 @@ import Spinner from '../components/ui/Spinner';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { LoginPage, DashboardPage, ErrorTrackingTest, ROUTE_PATHS } from './routeConfig';
 
-import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
+import { pageModules, dashboardModules, getPageComponent, lazyPage } from './pageLoader';
 import { ModuleRouteLoader } from './ModuleRouteLoader';
 import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from './redirectMap';
 import { isModuleDashboardRoot } from '../services/tabs/moduleDashboardUrl';
@@ -156,7 +155,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         const dashboardExport = dashboardModules[dashboardKey];
         if (!dashboardExport) return null;
 
-        const DashboardComponent = lazy(dashboardExport as () => Promise<{ default: React.ComponentType<any> }>);
+        const DashboardComponent = lazyPage(dashboardExport as () => Promise<{ default: React.ComponentType<any> }>);
 
         return (
           <Route
@@ -193,7 +192,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
             const modularKey = `../modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
             if (modularImportFn) {
-              PageComponent = lazy(modularImportFn as () => Promise<{ default: React.ComponentType<any> }>);
+              PageComponent = lazyPage(modularImportFn as () => Promise<{ default: React.ComponentType<any> }>);
             }
           }
           if (!PageComponent) return null;
