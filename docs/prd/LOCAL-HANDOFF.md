@@ -1,6 +1,20 @@
 # Continuing the PRD on your own machine (local Claude Code)
 
-## 0z. Right now — P5-W2 in flight (2026-10-26; updated at every checkpoint)
+## 0y. Paused by the Claude session limit (2026-10-27 00:40 Nairobi; resets 02:10)
+
+P5-W2 is complete on `prd/P5-W2` (A03, B01, B02, C01, plus B03 from W3; wave gate 8/8, log `workflow-log/P5-W2-2026-10-26.md`).
+Three sub-agents stopped mid-work when the limit hit. Resume each by its OpenChamber session id (model `claude-code/claude-sonnet-5-5`):
+
+| Task | Session | Worktree state at the stop | Resume with |
+| --- | --- | --- | --- |
+| P5-D01 verifier | `ses_e866196e0ffe56F9EwcFDdmUl2` | `p5d01-verify` clean at `05b88ba` (implementer done, pushed) | rerun the whole verification (brief: the D01 verifier prompt; `_briefs/P5-D01.md`) |
+| P5-C02 Uganda | `ses_e86725c2fffeQopt7nD7Lvi2k7` | `p5c02` on `prd/P5-C02`, no commit, 1 changed file | continue from the worktree state (`_briefs/P5-C-PACKS.md`) |
+| P5-C03 Nigeria | `ses_e86727220ffeablVeuCqvLxyHW` | `p5c03` on `prd/P5-C03`, local commit `fa533c6` not pushed, 1 changed file | continue: finish, gate (`--base prd/P5-W2`), push |
+
+Then: verifiers for C02 and C03, integrate approved tasks into `prd/P5-W2`, launch C04, C05, C06 (same brief), the P5 phase exit, then P6.
+Open PRs (by the owner, from the links in the session): the two UI branches and `prd/P5-W2`.
+
+## 0z. P5-W2 in flight (2026-10-26)
 
 **Done and merged: P0 to P4 (134 tasks) and P5-W1 (A01 #47, A02 #50).** P5 is 2/13, P6 is 0/11. The ledger,
 `workflow-log/PROGRESS.md` and `workflow-log/WAVE-MAP.md` agree with this block.
