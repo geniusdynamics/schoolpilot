@@ -29,24 +29,20 @@ const SchoolAndPeoplePage: React.FC = () => {
   const { t } = useTranslation('settings');
 
   // Keyed by the shared tab list, so a tab added to or removed from it fails to compile here.
-  const bodies: Record<SettingsTabId<'/settings/school'>, Omit<SettingsHubTab, 'id'>> = {
+  const bodies: Record<SettingsTabId<'/settings/school'>, Pick<SettingsHubTab, 'icon' | 'render'>> = {
     'school-profile': {
-      label: t('schoolPeople.tabs.profile', 'School Profile'),
       icon: <IdentificationIcon className="w-4 h-4" />,
       render: () => <SettingsSchoolProfileContent />,
     },
     users: {
-      label: t('schoolPeople.tabs.users', 'Users & Roles'),
       icon: <UsersIcon className="w-4 h-4" />,
       render: () => <SettingsUsersContent />,
     },
     workflows: {
-      label: t('schoolPeople.tabs.workflows', 'Workflows'),
       icon: <ArrowsRightLeftIcon className="w-4 h-4" />,
       render: () => <SettingsWorkflowsContent />,
     },
     audit: {
-      label: t('schoolPeople.tabs.audit', 'Audit Log'),
       icon: <ClockIcon className="w-4 h-4" />,
       render: () => <AuditLogContent />,
     },
@@ -54,9 +50,9 @@ const SchoolAndPeoplePage: React.FC = () => {
 
   return (
     <SettingsHub
-      title={t('schoolPeople.title', 'School & People')}
-      info={t('schoolPeople.subtitle', 'The school profile, the people who sign in and what they may do, the approval workflows, and who changed what')}
-      tabs={HUB.tabs.map((id) => ({ id, ...bodies[id] }))}
+      title={t(HUB.title.key, HUB.title.text)}
+      info={t(HUB.info.key, HUB.info.text)}
+      tabs={HUB.tabs.map((tab) => ({ id: tab.id, label: t(tab.label.key, tab.label.text), ...bodies[tab.id] }))}
       defaultTab={HUB.defaultTab}
       movedTabs={MOVED_TABS}
       colorScheme="emerald"

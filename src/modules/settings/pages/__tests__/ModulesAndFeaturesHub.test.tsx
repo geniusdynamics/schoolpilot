@@ -15,7 +15,7 @@ vi.mock('../../components/ModulesTab', () => ({ ModulesTab: () => <div>modules b
 vi.mock('../../components/FeaturesTab', () => ({ FeaturesTab: () => <div>features body</div> }));
 vi.mock('../PluginSettingsPage', () => ({ PluginSettingsContent: () => <div>plugins body</div> }));
 
-import { SETTINGS_HUBS } from '../../hubTabs';
+import { SETTINGS_HUBS, tabIdsOf } from '../../hubTabs';
 import ModulesAndFeaturesPage from '../ModulesAndFeaturesPage';
 
 /** What each tab of the hub shows, by the id its address names. */
@@ -49,7 +49,7 @@ describe('the Modules & Features hub', () => {
     expect(SETTINGS_HUBS['/settings/modules'].defaultTab).toBe('modules');
   });
 
-  it.each(SETTINGS_HUBS['/settings/modules'].tabs)('opens the %s tab from its address, as the shared tab list names it', (id) => {
+  it.each(tabIdsOf('/settings/modules'))('opens the %s tab from its address, as the shared tab list names it', (id) => {
     renderAt(`/settings/modules?tab=${id}`);
 
     expect(screen.getByText(BODY_OF_TAB[id])).toBeTruthy();
@@ -58,7 +58,7 @@ describe('the Modules & Features hub', () => {
   it('offers exactly the tabs the shared list names', () => {
     renderAt('/settings/modules');
 
-    expect(screen.getAllByRole('tab')).toHaveLength(SETTINGS_HUBS['/settings/modules'].tabs.length);
+    expect(screen.getAllByRole('tab')).toHaveLength(tabIdsOf('/settings/modules').length);
   });
 
   it('opens on the modules when the address names a tab the hub does not have', () => {

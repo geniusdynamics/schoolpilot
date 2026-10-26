@@ -17,7 +17,7 @@ vi.mock('../SettingsUsersPage', () => ({ SettingsUsersContent: () => <div>users 
 vi.mock('../SettingsWorkflowsPage', () => ({ SettingsWorkflowsContent: () => <div>workflows body</div> }));
 vi.mock('../AuditLogPage', () => ({ AuditLogContent: () => <div>audit log body</div> }));
 
-import { SETTINGS_HUBS } from '../../hubTabs';
+import { SETTINGS_HUBS, tabIdsOf } from '../../hubTabs';
 import SchoolAndPeoplePage from '../SchoolAndPeoplePage';
 
 /** What each tab of the hub shows, by the id its address names. */
@@ -67,7 +67,7 @@ describe('the School & People hub', () => {
     expect(SETTINGS_HUBS['/settings/school'].defaultTab).toBe('school-profile');
   });
 
-  it.each(SETTINGS_HUBS['/settings/school'].tabs)('opens the %s tab from its address, as the shared tab list names it', (id) => {
+  it.each(tabIdsOf('/settings/school'))('opens the %s tab from its address, as the shared tab list names it', (id) => {
     renderAt(`/settings/school?tab=${id}`);
 
     expect(screen.getByText(BODY_OF_TAB[id])).toBeTruthy();
@@ -76,7 +76,7 @@ describe('the School & People hub', () => {
   it('offers exactly the tabs the shared list names, in its order', () => {
     renderAt('/settings/school');
 
-    expect(screen.getAllByRole('tab')).toHaveLength(SETTINGS_HUBS['/settings/school'].tabs.length);
+    expect(screen.getAllByRole('tab')).toHaveLength(tabIdsOf('/settings/school').length);
   });
 
   it('opens the tab a link asks for', () => {

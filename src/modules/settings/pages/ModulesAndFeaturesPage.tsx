@@ -18,19 +18,16 @@ const ModulesAndFeaturesPage: React.FC = () => {
   const { t } = useTranslation('settings');
 
   // Keyed by the shared tab list, so a tab added to or removed from it fails to compile here.
-  const bodies: Record<SettingsTabId<'/settings/modules'>, Omit<SettingsHubTab, 'id'>> = {
+  const bodies: Record<SettingsTabId<'/settings/modules'>, Pick<SettingsHubTab, 'icon' | 'render'>> = {
     modules: {
-      label: t('modulesFeatures.tabs.modules', 'Modules'),
       icon: <ViewColumnsIcon className="w-4 h-4" />,
       render: () => <ModulesTab />,
     },
     features: {
-      label: t('modulesFeatures.tabs.features', 'Features'),
       icon: <SparklesIcon className="w-4 h-4" />,
       render: () => <FeaturesTab />,
     },
     plugins: {
-      label: t('modulesFeatures.tabs.plugins', 'Plugins'),
       icon: <PuzzlePieceIcon className="w-4 h-4" />,
       render: () => <PluginSettingsContent />,
     },
@@ -38,9 +35,9 @@ const ModulesAndFeaturesPage: React.FC = () => {
 
   return (
     <SettingsHub
-      title={t('modulesFeatures.title', 'Modules & Features')}
-      info={t('modulesFeatures.subtitle', 'What this installation runs and shows: the modules, the features that can be switched, and the plugins')}
-      tabs={HUB.tabs.map((id) => ({ id, ...bodies[id] }))}
+      title={t(HUB.title.key, HUB.title.text)}
+      info={t(HUB.info.key, HUB.info.text)}
+      tabs={HUB.tabs.map((tab) => ({ id: tab.id, label: t(tab.label.key, tab.label.text), ...bodies[tab.id] }))}
       defaultTab={HUB.defaultTab}
       colorScheme="purple"
     />

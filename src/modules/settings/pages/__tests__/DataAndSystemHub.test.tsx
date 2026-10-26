@@ -20,7 +20,7 @@ vi.mock('../../components/BackendSyncSettings', () => ({ BackendSyncSettings: ()
 vi.mock('../../components/DataIntegrityTab', () => ({ DataIntegrityTab: () => <div>integrity body</div> }));
 vi.mock('../../components/StorageWarning', () => ({ StorageWarning: () => <div>storage warning</div> }));
 
-import { SETTINGS_HUBS } from '../../hubTabs';
+import { SETTINGS_HUBS, tabIdsOf } from '../../hubTabs';
 import DataAndSystemPage from '../DataAndSystemPage';
 
 /** What each tab of the hub shows, by the id its address names. */
@@ -71,7 +71,7 @@ describe('the Data & System hub', () => {
     expect(SETTINGS_HUBS['/settings/system'].defaultTab).toBe('data-layer');
   });
 
-  it.each(SETTINGS_HUBS['/settings/system'].tabs)('opens the %s tab from its address, as the shared tab list names it', (id) => {
+  it.each(tabIdsOf('/settings/system'))('opens the %s tab from its address, as the shared tab list names it', (id) => {
     renderAt(`/settings/system?tab=${id}`);
 
     expect(screen.getByText(BODY_OF_TAB[id])).toBeTruthy();
@@ -80,7 +80,7 @@ describe('the Data & System hub', () => {
   it('offers exactly the tabs the shared list names', () => {
     renderAt('/settings/system');
 
-    expect(screen.getAllByRole('tab')).toHaveLength(SETTINGS_HUBS['/settings/system'].tabs.length);
+    expect(screen.getAllByRole('tab')).toHaveLength(tabIdsOf('/settings/system').length);
   });
 
   it('puts the sync conflicts and the sync settings on the one Sync tab, not on two', () => {
