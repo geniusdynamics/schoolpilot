@@ -4,7 +4,7 @@
 import { flattenTree, type TranslationTree } from './catalogue';
 
 /** Locales whose core namespaces must be complete. English is the source and is never listed. */
-export const COMPLETE_LOCALES: readonly string[] = ['sw'];
+export const COMPLETE_LOCALES: readonly string[] = ['sw', 'fr'];
 
 export type ProblemKind = 'missing' | 'extra' | 'empty' | 'untranslated' | 'placeholder';
 
