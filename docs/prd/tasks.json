@@ -4329,10 +4329,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "b1b3945",
+      "notes": "gate PASS, pushed prd/P5-B03 (on B02); verifier running; pt/ar drafts, no native review | verified (approved); integrated on prd/P5-W2. Draft translations, no native review; verifier's term notes (pt cartao/corrente, ar fixed plurals and side words) go to native reviewers",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-C01",
@@ -4533,9 +4533,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-D01 (started early, no W2 dependency)",
       "completed_at": null
     },
     {
