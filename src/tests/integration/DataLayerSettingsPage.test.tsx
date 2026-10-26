@@ -9,7 +9,6 @@ import { useAppData } from '@/hooks/useAppData';
 import { useDataMode } from '@/hooks/useDataMode';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/data/DataServiceFactory';
-import { backendArchitecture } from '@/config/backendArchitecture';
 import { screen, waitFor, within } from '@testing-library/react';
 import type { Mock } from 'vitest';
 
