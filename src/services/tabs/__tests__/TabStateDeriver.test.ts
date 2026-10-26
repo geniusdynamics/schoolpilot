@@ -11,6 +11,10 @@ const NAMES: Record<string, string> = {
   'navigation:hr.title': 'Human Resources',
   'navigation:portal.title': 'Portal',
   'entities.payments': 'Payments',
+  'navigation:settings.title': 'Settings',
+  'navigation:settings.schoolPeople': 'School & People',
+  'navigation:settings.modulesFeatures': 'Modules & Features',
+  'navigation:settings.dataSystem': 'Data & System',
 };
 
 describe('TabStateDeriver', () => {
@@ -84,6 +88,33 @@ describe('TabStateDeriver', () => {
 
     it('does not rewrite a dashboard page nested deeper in a module', () => {
       expect(deriver.deriveTab('/reports/analytics/dashboard').url).toBe('/reports/analytics/dashboard');
+    });
+  });
+
+  describe('a Settings hub', () => {
+    it.each([
+      ['/settings/school', 'School & People'],
+      ['/settings/modules', 'Modules & Features'],
+      ['/settings/system', 'Data & System'],
+    ])('is named for what it holds: %s is %s', (url, title) => {
+      expect(deriver.deriveTab(url).title).toBe(title);
+    });
+
+    it('keeps its name whichever tab of the hub is open, and stays the one workspace tab', () => {
+      const profile = deriver.deriveTab('/settings/school');
+      const users = deriver.deriveTab('/settings/school?tab=users');
+
+      expect(users.title).toBe('School & People');
+      expect(users.id).toBe(profile.id);
+    });
+
+    it('names the Settings overview for the module', () => {
+      expect(deriver.deriveTab('/settings').title).toBe('Settings');
+    });
+
+    it('does not rename a page of another module that happens to share the last word of its address', () => {
+      expect(deriver.deriveTab('/administration/school').title).toBe('School');
+      expect(deriver.deriveTab('/administration/system').title).toBe('System');
     });
   });
 });

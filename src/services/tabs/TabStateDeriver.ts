@@ -46,6 +46,13 @@ const ENTITY_NAMES: Record<string, string> = {
   users: 'entities.users'
 };
 
+// The Settings hubs are named for what they hold, not for the last segment of their address.
+const SETTINGS_HUB_NAMES: Record<string, string> = {
+  school: 'navigation:settings.schoolPeople',
+  modules: 'navigation:settings.modulesFeatures',
+  system: 'navigation:settings.dataSystem'
+};
+
 export class TabStateDeriver {
   private t: (key: string, options?: any) => string;
 
@@ -232,7 +239,7 @@ export class TabStateDeriver {
 
       if (entity) {
         // List view
-        return this.getEntityName(entity);
+        return this.getEntityName(entity, module);
       }
 
       // Module dashboard
@@ -311,10 +318,10 @@ export class TabStateDeriver {
     return this.capitalize(module);
   }
 
-  private getEntityName(entity?: string): string {
+  private getEntityName(entity?: string, module?: string): string {
     if (!entity) return '';
 
-    const key = ENTITY_NAMES[entity];
+    const key = (module === 'settings' ? SETTINGS_HUB_NAMES[entity] : undefined) ?? ENTITY_NAMES[entity];
     if (key) {
       const translated = this.t(key);
       // i18next returns the raw key on a miss instead of throwing, so treat an
