@@ -8,10 +8,14 @@ import { Link } from 'react-router-dom';
 import { ExclamationTriangleIcon } from '@/components/ui/icons';
 import { getSQLiteStorageStatus, subscribeSQLiteStorageStatus } from '@/services/database/SQLiteWASMProvider';
 
+import { judgeStorage } from '../data/overview';
+
 /** Why the browser's storage is not safe, or null when it is (or has not been opened yet, which is a moment). */
 function useStorageProblem(): string | null {
   const { t } = useTranslation('settings');
   const status = useSyncExternalStore(subscribeSQLiteStorageStatus, getSQLiteStorageStatus);
+
+  if (judgeStorage(status) !== 'at-risk') return null;
 
   if (status.mode === 'memory') {
     return t(
@@ -22,13 +26,10 @@ function useStorageProblem(): string | null {
   if (status.mode === 'unavailable') {
     return t('dataSystem.storage.unavailable', "This browser could not open storage for the school's data, so nothing can be saved.");
   }
-  if (status.persisted === false) {
-    return t(
-      'dataSystem.storage.notPersisted',
-      "This browser has not granted persistent storage, so it may clear the school's data when space runs low."
-    );
-  }
-  return null;
+  return t(
+    'dataSystem.storage.notPersisted',
+    "This browser has not granted persistent storage, so it may clear the school's data when space runs low."
+  );
 }
 
 export const StorageWarning: React.FC = () => {

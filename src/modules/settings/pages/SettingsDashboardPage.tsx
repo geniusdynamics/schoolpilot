@@ -1,323 +1,209 @@
-// ABOUTME: This component renders the dashboard for the Settings module.
-// ABOUTME: It displays system overview, quick settings access, and module status.
+// ABOUTME: The Settings overview: what this installation is set up as - who can sign in, what runs, whether the school profile is
+// ABOUTME: set, whether the browser keeps the data - from the real thing, what needs attention, and where each setting lives.
 
-import React from 'react';
-import { CogIcon, UsersIcon, CircleStackIcon, ClockIcon, IdentificationIcon, ShieldCheckIcon, ArrowRightIcon, WrenchIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+import React, { useMemo, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+
 import Card from '@/components/ui/Card';
-import ModuleDashboardShell, {
-  DashboardMetric,
-  DashboardNotification,
-  DashboardQuickAction,
-  DashboardAlertBanner,
-} from '@/components/ModuleDashboardShell';
+import { ClockIcon, CogIcon, IdentificationIcon, ShieldCheckIcon, UsersIcon, ViewColumnsIcon } from '@/components/ui/icons';
+import Spinner from '@/components/ui/Spinner';
+import ModuleDashboardShell, { type DashboardMetric } from '@/components/ModuleDashboardShell';
+import { moduleRegistry } from '@/core/moduleRegistry';
+import { useAppData } from '@/hooks/useAppData';
+import { getSQLiteStorageStatus, subscribeSQLiteStorageStatus } from '@/services/database/SQLiteWASMProvider';
+
+import { SETTINGS_HUBS, tabAddress, type SettingsHubPath } from '../hubTabs';
+import { countModules } from '../data/moduleOverview';
+import { factsOf, whatNeedsAttention, type AttentionCode } from '../data/overview';
+
+const HUB_PATHS = Object.keys(SETTINGS_HUBS) as SettingsHubPath[];
+const RECENT_ACTIVITY_COUNT = 5;
+
+interface AuditEntry {
+  readonly id?: string | number;
+  readonly action?: string | null;
+  readonly table_name?: string | null;
+  readonly changed_at?: string | null;
+}
+
+const timeOf = (entry: AuditEntry): number => {
+  const time = entry.changed_at ? Date.parse(entry.changed_at) : NaN;
+  return Number.isNaN(time) ? 0 : time;
+};
 
 export const SettingsDashboardContent: React.FC = () => {
-  const {
-    loading,
-    students,
-    staff,
-    users,
-    roles,
-    modules,
-    schoolProfile,
-  } = useAppData();
-
   const { t } = useTranslation('settings');
+  const { loading, users, schoolProfile, auditLogs } = useAppData();
+  const storage = useSyncExternalStore(subscribeSQLiteStorageStatus, getSQLiteStorageStatus);
+  const modules = useMemo(() => countModules(moduleRegistry), []);
 
-  const pageIsLoading = loading.all || loading.students || loading.staff || loading.users;
-
-  if (pageIsLoading) {
-    return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
+  if (loading.all || loading.users) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
-  // Calculate stats for the dashboard
-  const totalStudents = (students || []).length;
-  const totalStaff = (staff || []).length;
-  const totalUsers = (users || []).length;
-  const totalRoles = (roles || []).length;
-  const activeModules = (modules || []).filter((m: any) => m.enabled || m.active).length;
-  const inactiveModules = (modules || []).length - activeModules;
-  const systemStatus = 'Active';
-  const hasProfile = !!schoolProfile;
-  const adminUsers = (users || []).filter((u: any) => u.role === 'admin' || u.is_admin).length;
+  const facts = factsOf({ users: users ?? [], schoolProfile, modules, storage });
+  const attention = whatNeedsAttention(facts);
 
-  // Enhanced metrics with trends and color schemes
   const metrics: DashboardMetric[] = [
     {
       key: 'users',
-      label: t('userManagement.totalUsers') || 'Total Users',
-      value: totalUsers.toLocaleString(),
+      label: t('overview.metrics.users', 'Users'),
+      value: facts.users.active.toLocaleString(),
+      description: t('overview.metrics.usersNote', 'Accounts that can sign in'),
       icon: <UsersIcon className="h-6 w-6" />,
-      trend: totalUsers > 0 ? 'up' : 'neutral',
-      trendValue: `${adminUsers} admins`,
-      to: '/settings/unified',
+      trend: 'neutral',
+      trendValue: t('overview.metrics.usersTotal', '{{count}} accounts', { count: facts.users.total }),
+      to: tabAddress('/settings/school', 'users'),
       colorScheme: 'emerald',
-      description: 'System user accounts',
-    },
-    {
-      key: 'students',
-      label: 'Total Students',
-      value: totalStudents.toLocaleString(),
-      icon: <UsersIcon className="h-6 w-6" />,
-      trend: 'neutral',
-      trendValue: 'Enrolled',
-      to: '/administration/students',
-      colorScheme: 'blue',
-      description: 'Student accounts',
-    },
-    {
-      key: 'staff',
-      label: 'Total Staff',
-      value: totalStaff.toLocaleString(),
-      icon: <UsersIcon className="h-6 w-6" />,
-      trend: 'neutral',
-      trendValue: 'Active staff',
-      to: '/administration/staff',
-      colorScheme: 'violet',
-      description: 'Staff accounts',
-    },
-    {
-      key: 'system-status',
-      label: 'System Status',
-      value: systemStatus,
-      icon: <CogIcon className="h-6 w-6" />,
-      trend: 'up',
-      trendValue: 'Operational',
-      to: '/settings/unified',
-      colorScheme: 'orange',
-      description: 'All systems active',
-    },
-  ];
-
-  // Alert banners
-  const alertBanners: DashboardAlertBanner[] = [
-    {
-      type: 'message',
-      count: activeModules,
-      label: 'Active Modules',
-      description: 'Features enabled',
-      to: '/settings/modules',
-    },
-    {
-      type: 'task',
-      count: inactiveModules,
-      label: 'Inactive Modules',
-      description: 'Can be enabled',
-      to: '/settings/modules',
-    },
-    {
-      type: 'approval',
-      count: totalRoles,
-      label: 'User Roles',
-      description: 'Permission sets',
-      to: '/settings/unified',
-    },
-    {
-      type: hasProfile ? 'message' : 'overdue',
-      count: hasProfile ? 1 : 0,
-      label: 'School Profile',
-      description: hasProfile ? 'Configured' : 'Needs setup',
-      to: '/settings/school-profile',
-    },
-  ];
-
-  // Enhanced quick actions with descriptions
-  const quickActions: DashboardQuickAction[] = [
-    {
-      key: 'unified',
-      label: t('navigation.settings.unified') || 'Unified Settings',
-      description: 'All settings in one place',
-      to: '/settings/unified',
-      icon: <CogIcon className="h-5 w-5" />,
-      colorScheme: 'orange',
-    },
-    {
-      key: 'features',
-      label: t('navigation.settings.features') || 'Features',
-      description: 'Toggle system features',
-      to: '/settings/features',
-      icon: <WrenchIcon className="h-5 w-5" />,
-      colorScheme: 'amber',
     },
     {
       key: 'modules',
-      label: t('navigation.settings.modules') || 'Modules',
-      description: 'Manage active modules',
+      label: t('overview.metrics.modules', 'Modules running'),
+      value: t('overview.metrics.modulesValue', '{{running}} of {{total}}', { running: facts.modules.running, total: facts.modules.total }),
+      icon: <ViewColumnsIcon className="h-6 w-6" />,
+      trend: facts.modules.withProblems > 0 ? 'down' : 'up',
+      trendValue:
+        facts.modules.withProblems > 0
+          ? t('overview.metrics.modulesProblems', '{{count}} with problems', { count: facts.modules.withProblems })
+          : t('overview.metrics.modulesFine', 'No problems'),
       to: '/settings/modules',
-      icon: <CircleStackIcon className="h-5 w-5" />,
       colorScheme: 'cyan',
     },
     {
       key: 'profile',
-      label: t('navigation.settings.schoolProfile') || 'School Profile',
-      description: 'School information',
-      to: '/settings/school-profile',
-      icon: <IdentificationIcon className="h-5 w-5" />,
-      colorScheme: 'emerald',
+      label: t('overview.metrics.profile', 'School profile'),
+      value: facts.profileSet ? t('overview.metrics.profileSet', 'Set') : t('overview.metrics.profileNotSet', 'Not set'),
+      icon: <IdentificationIcon className="h-6 w-6" />,
+      to: '/settings/school',
+      colorScheme: facts.profileSet ? 'violet' : 'rose',
     },
     {
-      key: 'audit',
-      label: t('navigation.settings.auditLog') || 'Audit Log',
-      description: 'System activity log',
-      to: '/settings/audit-log',
-      icon: <ClockIcon className="h-5 w-5" />,
-      colorScheme: 'violet',
-    },
-    {
-      key: 'data',
-      label: t('navigation.settings.dataManagement') || 'Data Management',
-      description: 'Import/export data',
-      to: '/settings/data-management',
-      icon: <CircleStackIcon className="h-5 w-5" />,
-      colorScheme: 'blue',
+      key: 'storage',
+      label: t('overview.metrics.storage', 'Browser storage'),
+      value:
+        facts.storage === 'durable'
+          ? t('overview.metrics.storageDurable', 'Durable')
+          : facts.storage === 'at-risk'
+            ? t('overview.metrics.storageAtRisk', 'At risk')
+            : t('overview.metrics.storageChecking', 'Checking'),
+      icon: <ShieldCheckIcon className="h-6 w-6" />,
+      to: tabAddress('/settings/system', 'health'),
+      colorScheme: facts.storage === 'at-risk' ? 'rose' : 'orange',
     },
   ];
 
-  const notifications: DashboardNotification[] = [
-    {
-      id: 'system-state',
-      title: 'System Health',
-      message: systemStatus === 'Active'
-        ? `System operational. ${activeModules} modules active, ${totalUsers} users registered.`
-        : 'System status requires attention.',
-      severity: systemStatus === 'Active' ? 'normal' : 'high',
+  const attentionText: Record<AttentionCode, { title: string; message: string }> = {
+    'no-administrator': {
+      title: t('overview.attention.noAdministrator.title', 'No administrator can sign in'),
+      message: t('overview.attention.noAdministrator.message', 'Every account that administers the school is inactive. Add or reactivate one.'),
     },
-    {
-      id: 'security-status',
-      title: 'Security Overview',
-      message: adminUsers > 0
-        ? `${adminUsers} administrators configured. ${totalRoles} role types active.`
-        : 'No administrators configured. Set up admin accounts for system access.',
-      severity: adminUsers === 0 ? 'high' : 'normal',
+    'storage-at-risk': {
+      title: t('overview.attention.storage.title', 'Browser storage is not safe'),
+      message: t('overview.attention.storage.message', "The browser may lose the school's data. See System Health for why."),
     },
-    {
-      id: 'profile-status',
-      title: 'School Profile',
-      message: hasProfile
-        ? 'School profile is configured and ready.'
-        : 'School profile not configured. Complete setup for better branding.',
-      severity: hasProfile ? 'normal' : 'warning',
+    'no-profile': {
+      title: t('overview.attention.profile.title', 'School profile is not set'),
+      message: t('overview.attention.profile.message', "Add the school's name and details."),
     },
-  ];
+    'module-problems': {
+      title: t('overview.attention.modules.title', 'Modules with problems'),
+      message: t('overview.attention.modules.message', 'Some modules are missing something they need. See Modules for which.'),
+    },
+  };
 
-  // Recent settings activity
-  const recentActivity = [
-    { action: 'User permissions updated', time: '30 minutes ago', type: 'security' },
-    { action: 'Module configuration changed', time: '2 hours ago', type: 'module' },
-    { action: 'Audit log exported', time: '1 day ago', type: 'audit' },
-    { action: 'School profile updated', time: '3 days ago', type: 'profile' },
-  ];
+  const recent = [...((auditLogs ?? []) as AuditEntry[])]
+    .sort((a, b) => timeOf(b) - timeOf(a))
+    .slice(0, RECENT_ACTIVITY_COUNT);
 
   return (
     <ModuleDashboardShell
-      title={t('navigation.settings.dashboard') || 'Settings Dashboard'}
-      subtitle="Configure modules, users, school profile settings, and system governance in one place."
+      title={t('overview.title', 'Settings')}
+      subtitle={t('overview.subtitle', "What this installation is set up as, and where to change it.")}
       heroIcon={<CogIcon className="h-8 w-8 text-white" />}
       accentColor="orange"
       metrics={metrics}
-      alertBanners={alertBanners}
-      quickActions={quickActions}
-      quickNavCards={true}
-      notifications={notifications}
     >
-      {/* Additional Settings Info Panels */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* System Status */}
-        <Card title="System Status" className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-surface-muted-fg">Active Modules</span>
-              <span className="font-semibold text-emerald-600">{activeModules}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-surface-muted-fg">Inactive Modules</span>
-              <span className="font-semibold text-amber-600">{inactiveModules}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-surface-muted-fg">User Roles</span>
-              <span className="font-semibold text-violet-600">{totalRoles}</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-surface-muted-fg">Admin Users</span>
-              <span className="font-semibold text-primary-600">{adminUsers}</span>
-            </div>
-          </div>
+      <section aria-label={t('overview.attention.title', 'Needs attention')}>
+        <Card title={t('overview.attention.title', 'Needs attention')}>
+          {attention.length === 0 ? (
+            <p className="text-sm text-green-700">{t('overview.attention.none', 'Nothing needs attention.')}</p>
+          ) : (
+            <ul className="space-y-2">
+              {attention.map((item) => (
+                <li key={item.code}>
+                  <Link
+                    to={item.to}
+                    className={`block rounded-lg border p-3 ${
+                      item.severity === 'high' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold text-surface-foreground">{attentionText[item.code].title}</span>
+                    <span className="block text-sm text-surface-muted-fg">{attentionText[item.code].message}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
+      </section>
 
-        {/* Recent Activity */}
-        <Card title="Recent Activity" className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="space-y-3">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-start gap-3 py-2">
-                <div className={`
-                  flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0
-                  ${activity.type === 'security' ? 'bg-rose-100 text-rose-600' :
-                    activity.type === 'module' ? 'bg-cyan-100 text-cyan-600' :
-                    activity.type === 'audit' ? 'bg-violet-100 text-violet-600' :
-                    'bg-emerald-100 text-emerald-600'}
-                `}>
-                  {activity.type === 'security' ? <ShieldCheckIcon className="h-4 w-4" /> :
-                   activity.type === 'module' ? <CircleStackIcon className="h-4 w-4" /> :
-                   activity.type === 'audit' ? <ClockIcon className="h-4 w-4" /> :
-                   <IdentificationIcon className="h-4 w-4" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-surface-foreground">{activity.action}</p>
-                  <p className="text-xs text-surface-muted-fg flex items-center gap-1">
-                    <ClockIcon className="h-3 w-3" />
-                    {activity.time}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+      <section aria-label={t('overview.hubs', 'Where settings live')} className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {HUB_PATHS.map((path) => {
+          const hub = SETTINGS_HUBS[path];
+          return (
+            <div key={path} data-testid={`hub-${path}`} className="rounded-xl border border-surface-border bg-surface-card p-4">
+              <h2 className="text-base font-semibold text-surface-foreground">
+                <Link to={path} className="hover:underline">
+                  {t(hub.title.key, hub.title.text)}
+                </Link>
+              </h2>
+              <p className="mt-1 text-sm text-surface-muted-fg">{t(hub.info.key, hub.info.text)}</p>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {hub.tabs.map((tab) => (
+                  <li key={tab.id}>
+                    <Link
+                      to={tabAddress(path, tab.id)}
+                      className="inline-block rounded-full bg-surface-accent px-3 py-1 text-xs font-medium text-surface-foreground hover:bg-primary-50"
+                    >
+                      {t(tab.label.key, tab.label.text)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </section>
 
-        {/* Quick Overview */}
-        <Card title="Quick Overview" className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-emerald-50 p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-700">{totalUsers}</p>
-                <p className="text-xs text-emerald-600">Total Users</p>
-              </div>
-              <div className="rounded-lg bg-primary-50 p-3 text-center">
-                <p className="text-2xl font-bold text-primary-700">{adminUsers}</p>
-                <p className="text-xs text-primary-600">Admins</p>
-              </div>
-            </div>
-            <div className="rounded-lg bg-cyan-50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-cyan-700">Module Utilization</span>
-                <span className="font-bold text-cyan-700">
-                  {(modules || []).length > 0 ? `${Math.round((activeModules / (modules || []).length) * 100)}%` : '0%'}
-                </span>
-              </div>
-              <div className="w-full bg-cyan-200 rounded-full h-2 mt-2">
-                <div
-                  className="bg-cyan-500 h-2 rounded-full"
-                  style={{ width: `${(modules || []).length > 0 ? (activeModules / (modules || []).length) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
-            <div className="rounded-lg bg-violet-50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-violet-700">School Profile</span>
-                <span className={`font-bold ${hasProfile ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {hasProfile ? 'Complete' : 'Incomplete'}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => window.location.hash = '#/settings/unified'}
-              className="w-full py-2 px-4 bg-surface-accent hover:bg-gray-200 rounded-lg text-sm font-medium text-surface-foreground transition-colors flex items-center justify-center gap-2"
-            >
-              Open Settings <ArrowRightIcon className="h-4 w-4" />
-            </button>
-          </div>
+      <section aria-label={t('overview.recent.title', 'Recent activity')}>
+        <Card title={t('overview.recent.title', 'Recent activity')}>
+          {recent.length === 0 ? (
+            <p className="text-sm text-surface-muted-fg">{t('overview.recent.none', 'No activity recorded yet.')}</p>
+          ) : (
+            <ul className="space-y-2">
+              {recent.map((entry, index) => (
+                <li key={entry.id ?? index} data-testid="recent-activity-entry" className="flex items-start gap-3">
+                  <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-surface-muted-fg" />
+                  <div>
+                    <p className="text-sm font-medium text-surface-foreground">
+                      {[entry.action, entry.table_name].filter(Boolean).join(' ')}
+                    </p>
+                    <p className="text-xs text-surface-muted-fg">
+                      {entry.changed_at ? new Date(entry.changed_at).toLocaleString() : ''}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link to={tabAddress('/settings/school', 'audit')} className="mt-3 inline-block text-sm font-medium text-primary-600 hover:underline">
+            {t('overview.recent.all', 'See the audit log')}
+          </Link>
         </Card>
       </section>
     </ModuleDashboardShell>

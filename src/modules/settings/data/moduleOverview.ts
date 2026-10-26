@@ -1,6 +1,8 @@
 // ABOUTME: What the Modules tab says of each module: whether it is running, what it cannot run without, what it can use
 // ABOUTME: when it is there, and which modules need it. Read from the module registry as it is; it changes nothing.
 
+import type { ModuleRegistry } from '@/core/moduleRegistry';
+import { ModuleDependencyValidator } from '@/core/services/ModuleDependencyValidator';
 import type { ModuleDependency, ModuleMetadata } from '@/core/types';
 
 /** The part of the module registry this reads. */
@@ -68,4 +70,18 @@ export function describeModules(registry: ModuleRegistryView): ModuleRow[] {
       };
     })
     .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/** How many modules there are, how many are running, and how many have a dependency problem. */
+export function countModules(registry: Pick<ModuleRegistry, 'getAllMetadata' | 'getEnabledModules' | 'getMetadata'>): {
+  readonly total: number;
+  readonly running: number;
+  readonly withProblems: number;
+} {
+  const rows = describeModules(registry);
+  return {
+    total: rows.length,
+    running: rows.filter((row) => row.running).length,
+    withProblems: ModuleDependencyValidator.generateCompatibilityReport(registry).modulesWithIssues,
+  };
 }

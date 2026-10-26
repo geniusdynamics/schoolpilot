@@ -5,11 +5,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { ModuleMetadata } from '@/core/types';
 
-import { describeModules } from '../moduleOverview';
+import { countModules, describeModules } from '../moduleOverview';
 
 const registryOf = (modules: ModuleMetadata[], enabled: string[]) => ({
   getAllMetadata: () => modules,
   getEnabledModules: () => enabled,
+  getMetadata: (id: string) => modules.find((module) => module.id === id),
 });
 
 const ADMINISTRATION: ModuleMetadata = { id: 'administration', name: 'navigation:administration.title', version: '1.0.0' };
@@ -81,5 +82,20 @@ describe('describeModules', () => {
 
     expect(row.requires).toEqual([]);
     expect(row.optional).toEqual([]);
+  });
+});
+
+describe('countModules', () => {
+  it('counts the modules, the ones running, and the ones with a dependency problem', () => {
+    // Academics needs administration, which is not running: one module has a problem.
+    const counts = countModules(registryOf([ADMINISTRATION, ACADEMICS], ['academics']));
+
+    expect(counts).toEqual({ total: 2, running: 1, withProblems: 1 });
+  });
+
+  it('finds no problem when every module has what it needs', () => {
+    const counts = countModules(registryOf([ADMINISTRATION, ACADEMICS], ['administration', 'academics']));
+
+    expect(counts).toEqual({ total: 2, running: 2, withProblems: 0 });
   });
 });
