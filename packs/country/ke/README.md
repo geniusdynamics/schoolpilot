@@ -12,7 +12,7 @@ the URL, not that a Kenyan lawyer or accountant has reviewed the pack. The Kiswa
 
 | Id | Document | Publisher | URL |
 | --- | --- | --- | --- |
-| `cap110` | Public Holidays Act, Cap. 110 (Schedule Part I; the section on a holiday that falls on a Sunday) | National Council for Law Reporting (Kenya Law) | https://www.kenyalaw.org/lex/actview.xql?actid=CAP.+110 |
+| `cap110` | Public Holidays Act, Cap. 110 (Schedule Part I; the section on a holiday that falls on a Sunday) | National Council for Law Reporting (Kenya Law) | https://kenyalaw.org/akn/ke/act/1912/21/eng@2022-12-31 |
 | `gazette-idd-2024` | Gazette Notice No. 4339, 9 April 2024: Wednesday 10 April 2024 a public holiday to mark Idd-ul-Fitr | Government Printer | https://new.kenyalaw.org/akn/ke/officialGazette/gazette/2024-04-09/46/eng@2024-04-09/source |
 | `gazette-idd-2025` | Gazette Notice No. 3861, 28 March 2025: Monday 31 March 2025 | Government Printer | https://new.kenyalaw.org/akn/ke/officialGazette/2025-03-28/62/eng@2025-03-28/source |
 | `gazette-idd-2026` | Gazette Notice No. 3955, 18 March 2026: Friday 20 March 2026 | Government Printer | https://new.kenyalaw.org/akn/ke/officialGazette/2026-03-18/50/eng@2026-03-18/source |
@@ -21,7 +21,7 @@ the URL, not that a Kenyan lawyer or accountant has reviewed the pack. The Kiswa
 | `klrc-first-schedule` | Constitution of Kenya, 2010, First Schedule: Counties | Kenya Law Reform Commission | https://klrc.go.ke/index.php/constitution-of-kenya/163-schedules-schedules/165-first-schedule-counties/434-1-counties |
 | `kra-pin-format` | KRA PIN structure (A or P, nine digits, a letter; eleven characters) | Kenya Revenue Authority | https://www.kra.go.ke/services/service/16 |
 | `kra-paye` | Pay As You Earn: due date of the PAYE return and payment | Kenya Revenue Authority | https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye |
-| `kra-ahl-notice` | Public notice: Collection of the Affordable Housing Levy by KRA | Kenya Revenue Authority | https://kra.go.ke/news-center/public-notices/2099-collection-of-the-affordable-housing-levy-by-kenya-revenue-authority |
+| `kra-ahl-notice` | Public notice: Collection of the Affordable Housing Levy by KRA | Kenya Revenue Authority | https://www.kra.go.ke/news-center/public-notices/2099-collection-of-the-affordable-housing-levy-by-kenya-revenue-authority-2 |
 | `kra-simplified-paye` | Step by step guide for filing the simplified PAYE return | Kenya Revenue Authority | https://www.kra.go.ke/images/publications/STEP-BY-STEP-GUIDE-FOR-THE-SIMPLIFIED-PAYE-RETURN.pdf |
 | `pwc-kenya-other-taxes` | Kenya, Individual: Other taxes (secondary) | PwC Worldwide Tax Summaries | https://taxsummaries.pwc.com/kenya/individual/other-taxes |
 
