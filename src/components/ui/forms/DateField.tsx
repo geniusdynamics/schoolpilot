@@ -3,6 +3,7 @@
 
 import React, { useCallback, useState } from 'react';
 import DatePicker from './DatePicker';
+import type { CalendarId } from '@/domain/calendar';
 import { generateId } from '@/utils/accessibility';
 
 export interface DateFieldProps {
@@ -30,6 +31,8 @@ export interface DateFieldProps {
   showTime?: boolean;
   /** Display/typing locale; defaults to en-KE (dd/mm/yyyy). */
   locale?: string;
+  /** The calendar the field shows and takes dates in; the value stays a Gregorian `YYYY-MM-DD`. The locale's own by default. */
+  calendar?: CalendarId;
   name?: string;
   id?: string;
   'aria-label'?: string;
@@ -76,6 +79,7 @@ export const DateField: React.FC<DateFieldProps> = ({
   disabledDates = [],
   showTime = false,
   locale = 'en-KE',
+  calendar,
   id,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
@@ -116,6 +120,7 @@ export const DateField: React.FC<DateFieldProps> = ({
         disabledDates={disabledDates.map(toDate).filter((d): d is Date => d !== null)}
         showTime={showTime}
         locale={locale}
+        calendar={calendar}
         aria-label={ariaLabel ?? label}
         aria-describedby={ariaDescribedBy}
         aria-invalid={ariaInvalid}
