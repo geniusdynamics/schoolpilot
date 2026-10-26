@@ -9,7 +9,7 @@ import {
   isLegitimatelyIdentical,
   type Problem,
 } from '../completeness';
-import { UNTRANSLATABLE } from '../untranslatable';
+import { UNTRANSLATABLE, UNTRANSLATABLE_BY_LOCALE, allowlistFor } from '../untranslatable';
 import { CORE_NAMESPACES, FALLBACK_LOCALE } from '../namespaces';
 
 const english = {
@@ -107,14 +107,23 @@ describe('the real catalogue', () => {
         namespace,
         catalogue[FALLBACK_LOCALE][namespace],
         catalogue[locale]?.[namespace] ?? {},
-        UNTRANSLATABLE
+        allowlistFor(locale)
       );
       expect(problems.map((problem) => `${problem.kind} ${problem.namespace}:${problem.key}`)).toEqual([]);
     }
   );
 
+  it('keeps a locale-specific allowlist entry out of the other locales', () => {
+    expect(allowlistFor('fr')['navigation:finance.transport']).toBeDefined();
+    expect(allowlistFor('sw')['navigation:finance.transport']).toBeUndefined();
+    expect(allowlistFor('sw')['common:appName']).toBeDefined();
+  });
+
   it('gives every allowlist entry a reason', () => {
-    for (const [id, reason] of Object.entries(UNTRANSLATABLE)) {
+    const everyEntry = [UNTRANSLATABLE, ...Object.values(UNTRANSLATABLE_BY_LOCALE)].flatMap((list) =>
+      Object.entries(list)
+    );
+    for (const [id, reason] of everyEntry) {
       expect(reason.trim(), id).not.toBe('');
     }
   });

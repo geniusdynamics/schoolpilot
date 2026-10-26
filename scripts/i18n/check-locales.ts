@@ -5,7 +5,7 @@ import path from 'node:path';
 import { buildCatalogue } from '../../src/i18n/catalogue';
 import { COMPLETE_LOCALES, checkLocaleNamespace, type Problem } from '../../src/i18n/completeness';
 import { CORE_NAMESPACES, FALLBACK_LOCALE } from '../../src/i18n/namespaces';
-import { UNTRANSLATABLE } from '../../src/i18n/untranslatable';
+import { allowlistFor } from '../../src/i18n/untranslatable';
 import { readSources } from './sources';
 
 // `--root <dir>` points the check at another tree (the test fixtures); `--locales a,b` overrides the locale list.
@@ -26,7 +26,7 @@ for (const locale of locales) {
   const found: Problem[] = [];
   for (const namespace of CORE_NAMESPACES) {
     const english = catalogue[FALLBACK_LOCALE]?.[namespace] ?? {};
-    const problems = checkLocaleNamespace(namespace, english, catalogue[locale]?.[namespace] ?? {}, UNTRANSLATABLE);
+    const problems = checkLocaleNamespace(namespace, english, catalogue[locale]?.[namespace] ?? {}, allowlistFor(locale));
     checked += 1;
     found.push(...problems);
   }
