@@ -4385,9 +4385,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C02 from prd/P5-W2",
       "completed_at": null
     },
     {
@@ -4414,9 +4414,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C03 from prd/P5-W2",
       "completed_at": null
     },
     {
@@ -4533,9 +4533,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-D01 (started early, no W2 dependency)",
+      "status": "review",
+      "commit": "05b88ba",
+      "notes": "worker on prd/P5-D01 (started early, no W2 dependency) | gate PASS, pushed prd/P5-D01; verifier running. Pack is draft until a payroll accountant confirms; HR pages not wired yet (follow-up)",
       "completed_at": null
     },
     {
