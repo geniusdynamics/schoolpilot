@@ -4356,10 +4356,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "review",
-      "commit": "73d76b0",
-      "notes": "worker on prd/P5-C01 (worktree p5c01) | gate PASS, pushed prd/P5-C01; open: public application wizard cannot pass step 1 (intendedClassId rendered in step 3), pre-existing",
-      "completed_at": null
+      "status": "done",
+      "commit": "99fbc40",
+      "notes": "worker on prd/P5-C01 (worktree p5c01) | gate PASS, pushed prd/P5-C01; open: public application wizard cannot pass step 1 (intendedClassId rendered in step 3), pre-existing | verified (approved): schema, vectors, Easter 1900-2100 vs an independent algorithm, 47 counties vs Council of Governors, no statutory rates; cited URLs fixed after review. Open follow-ups: PublicApplicationPage wizard cannot pass step 1 (pre-existing); its county select has no UI test; Idd-ul-Fitr only 2024-2026; Kiswahili labels unreviewed",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-C02",
