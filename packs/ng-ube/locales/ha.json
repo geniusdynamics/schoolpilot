@@ -1,0 +1,55 @@
+{
+  "labels": {
+    "block.header": "Rahoton makaranta na zango",
+    "block.learner": "Ɗalibi",
+    "block.attendance": "Halarta",
+    "block.results": "Sakamakon darussa",
+    "block.summary": "Taƙaitawa",
+    "block.domains": "Halayya da ƙwarewar hannu",
+    "block.comments": "Sharhi",
+    "block.progression": "Sakamakon gaba ɗaya da zuwa aji na gaba",
+    "block.calendar": "Zango na gaba zai fara",
+    "block.fees": "Kuɗin makaranta",
+    "block.signatures": "Sa hannu",
+    "block.verification": "Tabbatarwa",
+    "report.primary-term": "Rahoton zangon karatu na firamare",
+    "report.jss-term": "Rahoton zangon karatu na ƙaramar sakandare"
+  },
+  "descriptors": {
+    "ng_waec_9": {
+      "A1": "Mafi kyau",
+      "B2": "Mai kyau sosai",
+      "B3": "Mai kyau",
+      "C4": "Mai nasara da yabo",
+      "C5": "Mai nasara da yabo",
+      "C6": "Mai nasara da yabo",
+      "D7": "Ya ci",
+      "E8": "Ya ci",
+      "F9": "Bai ci ba"
+    },
+    "ng_domain_rating_5": {
+      "5": "Mafi girman matsayi",
+      "4": "Sama da matsakaici",
+      "3": "Matsakaici",
+      "2": "Ƙasa da matsakaici",
+      "1": "Mafi ƙarancin matsayi"
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A1",
+      "text": "Zango mai kyau ƙwarai. Ka ci gaba da irin wannan ƙoƙari a kowane darasi."
+    },
+    {
+      "scope": "overall",
+      "band": "C6",
+      "text": "Zango matsakaici. Ƙarin motsa jiki a gida zai ɗaga darussan da suka raunana."
+    },
+    {
+      "scope": "overall",
+      "band": "F9",
+      "text": "Zango mai wahala. Don Allah ku gana da malamin aji domin shirya ƙarin taimako."
+    }
+  ]
+}

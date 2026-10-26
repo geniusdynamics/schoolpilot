@@ -1,0 +1,55 @@
+{
+  "labels": {
+    "block.header": "Terminal report",
+    "block.learner": "Pupil",
+    "block.attendance": "Attendance",
+    "block.results": "Subject results",
+    "block.summary": "Summary",
+    "block.domains": "Affective and psychomotor domains",
+    "block.comments": "Comments",
+    "block.progression": "Cumulative result and promotion",
+    "block.calendar": "Next term begins",
+    "block.fees": "Fees",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.primary-term": "Primary terminal report",
+    "report.jss-term": "Junior secondary terminal report"
+  },
+  "descriptors": {
+    "ng_waec_9": {
+      "A1": "Excellent",
+      "B2": "Very good",
+      "B3": "Good",
+      "C4": "Credit",
+      "C5": "Credit",
+      "C6": "Credit",
+      "D7": "Pass",
+      "E8": "Pass",
+      "F9": "Fail"
+    },
+    "ng_domain_rating_5": {
+      "5": "Highest rating",
+      "4": "Above the middle rating",
+      "3": "Middle rating",
+      "2": "Below the middle rating",
+      "1": "Lowest rating"
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A1",
+      "text": "An excellent term. Keep up the same effort in every subject."
+    },
+    {
+      "scope": "overall",
+      "band": "C6",
+      "text": "A fair term. More practice at home will lift the weaker subjects."
+    },
+    {
+      "scope": "overall",
+      "band": "F9",
+      "text": "A difficult term. Please meet the class teacher to agree a plan for extra support."
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "$comment": "Conformance vectors for the NG country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as the nominal date the Public Holidays Act names and the date it is observed on: the Act gives a weekend holiday no day in lieu (section 5), so the two are equal. Muslim festivals are listed only for 2026, whose declarations the pack cites. Democracy Day is 29 May to 2019-06-09 and 12 June from 2019-06-10 (draft dates, see README).",
+  "country": "NG",
+  "identifiers": [
+    { "scheme": "ng.nin", "value": "12345678901", "valid": true, "normalised": "12345678901" },
+    { "scheme": "ng.nin", "value": " 123 4567 8901 ", "valid": true, "normalised": "12345678901" },
+    { "scheme": "ng.nin", "value": "1234-5678-901", "valid": true, "normalised": "12345678901" },
+    { "scheme": "ng.nin", "value": "1234567890", "valid": false },
+    { "scheme": "ng.nin", "value": "123456789012", "valid": false },
+    { "scheme": "ng.nin", "value": "1234567890A", "valid": false },
+    { "scheme": "ng.nin", "value": "", "valid": false },
+    { "scheme": "ng.birth_certificate", "value": "BC-2015-00123", "valid": true, "normalised": "BC-2015-00123" },
+    { "scheme": "ng.birth_certificate", "value": "   ", "valid": false },
+    { "scheme": "ng.tin", "value": "12345678-0001", "valid": true, "normalised": "12345678-0001" },
+    { "scheme": "ng.rsa_pin", "value": "PEN100123456789", "valid": true, "normalised": "PEN100123456789" },
+    { "scheme": "ng.trcn_number", "value": "  123456  ", "valid": true, "normalised": "123456" },
+    { "scheme": "ng.passport", "value": "A01234567", "valid": true, "normalised": "A01234567" }
+  ],
+  "easterSunday": {
+    "2018": "2018-04-01",
+    "2019": "2019-04-21",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2018,
+      "days": [
+        { "id": "new-year", "nominal": "2018-01-01", "observed": "2018-01-01" },
+        { "id": "good-friday", "nominal": "2018-03-30", "observed": "2018-03-30" },
+        { "id": "easter-monday", "nominal": "2018-04-02", "observed": "2018-04-02" },
+        { "id": "workers-day", "nominal": "2018-05-01", "observed": "2018-05-01" },
+        { "id": "democracy-day-may29", "nominal": "2018-05-29", "observed": "2018-05-29" },
+        { "id": "independence-day", "nominal": "2018-10-01", "observed": "2018-10-01" },
+        { "id": "christmas-day", "nominal": "2018-12-25", "observed": "2018-12-25" },
+        { "id": "boxing-day", "nominal": "2018-12-26", "observed": "2018-12-26" }
+      ]
+    },
+    {
+      "year": 2019,
+      "days": [
+        { "id": "new-year", "nominal": "2019-01-01", "observed": "2019-01-01" },
+        { "id": "good-friday", "nominal": "2019-04-19", "observed": "2019-04-19" },
+        { "id": "easter-monday", "nominal": "2019-04-22", "observed": "2019-04-22" },
+        { "id": "workers-day", "nominal": "2019-05-01", "observed": "2019-05-01" },
+        { "id": "democracy-day-may29", "nominal": "2019-05-29", "observed": "2019-05-29" },
+        { "id": "democracy-day", "nominal": "2019-06-12", "observed": "2019-06-12" },
+        { "id": "independence-day", "nominal": "2019-10-01", "observed": "2019-10-01" },
+        { "id": "christmas-day", "nominal": "2019-12-25", "observed": "2019-12-25" },
+        { "id": "boxing-day", "nominal": "2019-12-26", "observed": "2019-12-26" }
+      ]
+    },
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "id-el-fitr", "nominal": "2026-03-19", "observed": "2026-03-19" },
+        { "id": "id-el-fitr-2", "nominal": "2026-03-20", "observed": "2026-03-20" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "workers-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "id-el-kabir", "nominal": "2026-05-27", "observed": "2026-05-27" },
+        { "id": "id-el-kabir-2", "nominal": "2026-05-28", "observed": "2026-05-28" },
+        { "id": "democracy-day", "nominal": "2026-06-12", "observed": "2026-06-12" },
+        { "id": "id-el-maulud", "nominal": "2026-08-25", "observed": "2026-08-25" },
+        { "id": "independence-day", "nominal": "2026-10-01", "observed": "2026-10-01" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "boxing-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "workers-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "democracy-day", "nominal": "2027-06-12", "observed": "2027-06-12" },
+        { "id": "independence-day", "nominal": "2027-10-01", "observed": "2027-10-01" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "boxing-day", "nominal": "2027-12-26", "observed": "2027-12-26" }
+      ]
+    }
+  ]
+}

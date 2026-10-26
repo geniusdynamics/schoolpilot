@@ -1,0 +1,23 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "SS1",
+        "SS2"
+      ],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.term_average",
+        "gte": 40
+      }
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "SS3"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

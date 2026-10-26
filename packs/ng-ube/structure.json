@@ -1,0 +1,138 @@
+{
+  "stages": [
+    {
+      "code": "PRI",
+      "name": "Primary",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ]
+    },
+    {
+      "code": "JSS",
+      "name": "Junior Secondary School",
+      "levels": [
+        "JSS1",
+        "JSS2",
+        "JSS3"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "P1",
+      "name": "Primary 1",
+      "ordinal": 1,
+      "next": "P2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P2",
+      "name": "Primary 2",
+      "ordinal": 2,
+      "next": "P3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P3",
+      "name": "Primary 3",
+      "ordinal": 3,
+      "next": "P4",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P4",
+      "name": "Primary 4",
+      "ordinal": 4,
+      "next": "P5",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P5",
+      "name": "Primary 5",
+      "ordinal": 5,
+      "next": "P6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P6",
+      "name": "Primary 6",
+      "ordinal": 6,
+      "next": "JSS1",
+      "is_stage_exit": true,
+      "national_assessment": null
+    },
+    {
+      "code": "JSS1",
+      "name": "JSS 1",
+      "ordinal": 7,
+      "next": "JSS2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "JSS2",
+      "name": "JSS 2",
+      "ordinal": 8,
+      "next": "JSS3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "JSS3",
+      "name": "JSS 3",
+      "ordinal": 9,
+      "next": null,
+      "is_stage_exit": false,
+      "national_assessment": "BECE"
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "First term",
+        "typical": [
+          "09-08",
+          "12-18"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Second term",
+        "typical": [
+          "01-12",
+          "04-03"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Third term",
+        "typical": [
+          "04-20",
+          "07-24"
+        ],
+        "half_term": true
+      }
+    ],
+    "note": "The session runs September to July in three terms. The state ministry of education publishes the exact term dates each year; the setup wizard pre-fills these typical windows and the school confirms."
+  }
+}

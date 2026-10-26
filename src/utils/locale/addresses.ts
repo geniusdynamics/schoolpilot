@@ -105,19 +105,7 @@ const ADDRESS_SCHEMAS: Readonly<Record<string, CountryAddressSchema>> = {
     line1LabelKey: LINE1_LABEL,
     line2LabelKey: LINE2_LABEL,
   },
-  NG: {
-    country: 'NG',
-    levels: [
-      { key: 'state', labelKey: 'address.ng.state', required: true },
-      { key: 'lga', labelKey: 'address.ng.lga', required: true },
-    ],
-    hasCity: true,
-    cityRequired: false,
-    postalCodeRequired: false,
-    postalCodeLabelKey: POSTAL_LABEL,
-    line1LabelKey: LINE1_LABEL,
-    line2LabelKey: LINE2_LABEL,
-  },
+  NG: packAddressSchema('NG'),
   GH: {
     country: 'GH',
     levels: [
