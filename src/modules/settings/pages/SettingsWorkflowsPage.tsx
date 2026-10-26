@@ -363,8 +363,8 @@ export const SettingsWorkflowsContent: React.FC = () => {
     },
     {
       header: t('tableHeaders.actions'), 
-      key: 'id' as keyof Workflow,
-      render: (value: any, item: Workflow) => (
+      key: 'actions',
+      render: (_value: any, item: Workflow) => (
         <div className="space-x-1">
           {canUpdateWorkflows && (
             <Button 
@@ -409,8 +409,8 @@ export const SettingsWorkflowsContent: React.FC = () => {
     { header: t('tableHeaders.order'), key: 'sequence_order' as keyof WorkflowState },
     {
       header: t('tableHeaders.actions'), 
-      key: 'id' as keyof WorkflowState,
-      render: (value: any, item: WorkflowState) => (
+      key: 'actions',
+      render: (_value: any, item: WorkflowState) => (
         <div className="space-x-1">
           {canManageWorkflowStates && (
             <>
