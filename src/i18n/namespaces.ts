@@ -12,7 +12,7 @@
 export const FALLBACK_LOCALE = 'en';
 
 /** Locales the app ships. `pseudo` is generated at load time, never a file on disk. */
-export const SUPPORTED_LOCALES = ['en', 'fr', 'sw', 'rw'] as const;
+export const SUPPORTED_LOCALES = ['en', 'fr', 'sw', 'rw', 'pt', 'ar'] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 

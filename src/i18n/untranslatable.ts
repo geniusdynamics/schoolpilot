@@ -16,6 +16,10 @@ export const UNTRANSLATABLE_BY_LOCALE: Readonly<Record<string, Allowlist>> = {
     'navigation:portal.title': 'Portal is the loanword used as-is in Kiswahili software for a self-service web area.',
     'navigation:title': 'Portal is the loanword used as-is in Kiswahili software for a self-service web area.',
   },
+  pt: {
+    'navigation:portal.title': 'Portal is the ordinary Portuguese word for a self-service web area, spelled as in English.',
+    'navigation:title': 'Portal is the ordinary Portuguese word for a self-service web area, spelled as in English.',
+  },
   fr: {
     'common:actions': FRENCH_COGNATE,
     'common:common.actions': FRENCH_COGNATE,

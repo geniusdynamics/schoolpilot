@@ -71,6 +71,16 @@ describe('the loaded catalogue', () => {
     expect(registered).toContain(PSEUDO_LOCALE);
     expect(getLocaleDefinition('en')?.direction).toBe('ltr');
     expect(isRtl('en')).toBe(false);
-    expect(isRtl('ar')).toBe(false);
+    expect(isRtl('pt')).toBe(false);
+    expect(isRtl('ar')).toBe(true);
+  });
+
+  it('lists Portuguese and Arabic with their own names, Arabic as right to left', () => {
+    expect(getLocaleDefinition('pt')).toMatchObject({ nativeName: 'Português', direction: 'ltr' });
+    expect(getLocaleDefinition('ar')).toMatchObject({
+      nativeName: 'العربية',
+      direction: 'rtl',
+    });
+    expect(SUPPORTED_LOCALES).toEqual(expect.arrayContaining(['pt', 'ar']));
   });
 });
