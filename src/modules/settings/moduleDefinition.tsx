@@ -38,10 +38,10 @@ const settingsModule: ModuleDefinition = {
       showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:settings.systemManagement',
+      name: 'navigation:settings.dataSystem',
       path: '/settings/system',
       icon: CircleStackIcon,
-      page: 'SystemManagementPage',
+      page: 'DataAndSystemPage',
       showInModes: ['standard', 'fullwidth'],
     },
     {
@@ -56,13 +56,6 @@ const settingsModule: ModuleDefinition = {
       path: '/settings/modules',
       icon: ViewColumnsIcon,
       page: 'ModulesAndFeaturesPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
-    {
-      name: 'navigation:settings.dataIntegrity',
-      path: '/settings/data-integrity',
-      icon: ShieldCheckIcon,
-      page: 'DataIntegrityPage',
       showInModes: ['standard', 'fullwidth'],
     },
 
@@ -130,6 +123,15 @@ const settingsModule: ModuleDefinition = {
       redirectTo: '/settings/system?tab=backup',
     },
     {
+      name: 'navigation:settings.dataIntegrity',
+      path: '/settings/data-integrity',
+      icon: ShieldCheckIcon,
+      page: 'DataIntegrityPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=integrity',
+    },
+    {
       name: 'navigation:settings.schoolProfile',
       path: '/settings/school-profile',
       icon: IdentificationIcon,
@@ -181,7 +183,7 @@ const settingsModule: ModuleDefinition = {
   routes: [
     { path: '/settings', page: 'SettingsDashboardPage' },
     { path: '/settings/configuration', page: 'ConfigurationPage' },
-    { path: '/settings/system', page: 'SystemManagementPage' },
+    { path: '/settings/system', page: 'DataAndSystemPage' },
     { path: '/settings/school', page: 'SchoolAndPeoplePage' },
     { path: '/settings/modules', page: 'ModulesAndFeaturesPage' },
   ],

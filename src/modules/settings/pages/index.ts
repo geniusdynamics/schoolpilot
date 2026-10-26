@@ -2,7 +2,7 @@
 // ABOUTME: Centralizes all settings page exports for the module definition
 
 export { default as ConfigurationPage } from './ConfigurationPage';
-export { default as SystemManagementPage } from './SystemManagementPage';
+export { default as DataAndSystemPage } from './DataAndSystemPage';
 export { default as SchoolAndPeoplePage } from './SchoolAndPeoplePage';
 export { default as ModulesAndFeaturesPage } from './ModulesAndFeaturesPage';
 export { default as DataIntegrityPage } from './DataIntegrityPage';

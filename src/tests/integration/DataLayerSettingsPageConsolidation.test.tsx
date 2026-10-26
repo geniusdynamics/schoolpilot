@@ -88,17 +88,13 @@ vi.mock('../../components/BackendConfiguration', () => ({
   BackendConfiguration: () => <div>Backend Configuration Panel</div>,
 }));
 
-vi.mock('../../components/SyncManagementPanel', () => ({
-  default: () => <div>Sync Management Panel</div>,
-}));
-
 describe('DataLayerSettingsPage consolidation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('confirm', mocks.confirm);
   });
 
-  it('renders the consolidated configuration workflow and sync tab', async () => {
+  it('renders the consolidated configuration workflow, with sync on a tab of its own', () => {
     render(
       <MemoryRouter>
         <DataLayerSettingsPage />
@@ -106,12 +102,10 @@ describe('DataLayerSettingsPage consolidation', () => {
     );
 
     expect(screen.getByText('Unified Data Management')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sync management/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Database Type')).toBeInTheDocument();
     expect(screen.getByLabelText('Backend Configuration')).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole('button', { name: /sync management/i }));
-    expect(screen.getByText('Sync Management Panel')).toBeInTheDocument();
+    // Sync is the hub's Sync tab, not a second strip inside this page.
+    expect(screen.queryByRole('button', { name: /sync management/i })).toBeNull();
   });
 
   it('applies a compatible production configuration from the consolidated selectors', async () => {

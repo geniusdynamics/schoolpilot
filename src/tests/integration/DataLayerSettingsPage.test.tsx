@@ -49,10 +49,6 @@ vi.mock('@/components/ui/ConfirmDialog', () => ({
 }));
 
 // Mock heavy child components
-vi.mock('@/components/SyncManagementPanel', () => ({
-  default: () => <div data-testid="sync-management-panel">Sync Management Panel</div>,
-}));
-
 vi.mock('@/components/BackendConfiguration', () => ({
   BackendConfiguration: () => <div data-testid="backend-configuration">Backend Configuration</div>,
 }));
@@ -159,24 +155,24 @@ describe('DataLayerSettingsPage Integration Tests', () => {
         renderPage();
       });
 
-      expect(screen.getByText('Data Layer Settings')).toBeInTheDocument();
+      expect(screen.getByText(/unified data management/i)).toBeInTheDocument();
     });
 
-    it('should display the correct page title', async () => {
+    it('should leave the page title to the hub it sits in', async () => {
       await act(async () => {
         renderPage();
       });
 
-      expect(screen.getByRole('heading', { name: /data layer settings/i })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: /data layer settings/i })).toBeNull();
     });
 
-    it('should render all tab navigation buttons', async () => {
+    it('should carry no tab strip of its own: sync lives on its own tab of the hub', async () => {
       await act(async () => {
         renderPage();
       });
 
-      expect(screen.getByRole('button', { name: 'Configuration' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Sync Management' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Sync Management' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Configuration' })).toBeNull();
     });
 
     it('should display current status summary', async () => {
@@ -187,41 +183,6 @@ describe('DataLayerSettingsPage Integration Tests', () => {
       expect(screen.getByText(/current status/i)).toBeInTheDocument();
       expect(screen.getByText(/mode:/i)).toBeInTheDocument();
       expect(screen.getByText(/provider:/i)).toBeInTheDocument();
-    });
-  });
-
-  describe('Tab Navigation', () => {
-    it('should switch between tabs correctly', async () => {
-      const user = userEvent.setup();
-
-      await act(async () => {
-        renderPage();
-      });
-
-      // Default tab is the configuration tab
-      expect(screen.getByText(/unified data management/i)).toBeInTheDocument();
-
-      // Switch to sync management tab
-      await user.click(screen.getByRole('button', { name: /sync management/i }));
-      expect(screen.getByTestId('sync-management-panel')).toBeInTheDocument();
-
-      // Switch back to configuration tab
-      await user.click(screen.getByRole('button', { name: /configuration/i }));
-      expect(screen.getByText(/unified data management/i)).toBeInTheDocument();
-    });
-
-    it('should maintain tab state during interactions', async () => {
-      const user = userEvent.setup();
-
-      await act(async () => {
-        renderPage();
-      });
-
-      await user.click(screen.getByRole('button', { name: /sync management/i }));
-      expect(screen.getByTestId('sync-management-panel')).toBeInTheDocument();
-
-      await user.click(screen.getByRole('button', { name: /configuration/i }));
-      expect(screen.getByText(/unified data management/i)).toBeInTheDocument();
     });
   });
 
@@ -552,20 +513,19 @@ describe('DataLayerSettingsPage Integration Tests', () => {
       expect(within(providerSelect).getByRole('option', { name: 'LiveStore' })).toBeInTheDocument();
     });
 
-    it('should maintain state consistency across tab switches', async () => {
+    it('should keep the chosen mode when the page re-renders', async () => {
       const user = userEvent.setup();
 
+      let view: ReturnType<typeof render>;
       await act(async () => {
-        renderPage();
+        view = renderPage();
       });
 
       // Change mode to production
       const radios = screen.getAllByRole('radio');
       await user.click(radios[1]);
 
-      // Switch to sync tab and back
-      await user.click(screen.getByRole('button', { name: /sync management/i }));
-      await user.click(screen.getByRole('button', { name: /configuration/i }));
+      view!.rerender(<DataLayerSettingsPage />);
 
       // Mode selection should be preserved
       const radiosAgain = screen.getAllByRole('radio');
