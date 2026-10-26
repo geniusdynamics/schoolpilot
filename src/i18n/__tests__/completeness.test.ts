@@ -113,6 +113,10 @@ describe('the real catalogue', () => {
     }
   );
 
+  it('requires sw, fr, pt and ar to be complete', () => {
+    expect([...COMPLETE_LOCALES].sort()).toEqual(['ar', 'fr', 'pt', 'sw']);
+  });
+
   it('keeps a locale-specific allowlist entry out of the other locales', () => {
     expect(allowlistFor('fr')['navigation:finance.transport']).toBeDefined();
     expect(allowlistFor('sw')['navigation:finance.transport']).toBeUndefined();

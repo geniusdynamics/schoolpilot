@@ -95,6 +95,30 @@ describe('an Arabic subtree', () => {
   });
 });
 
+describe('the bare Arabic and Portuguese locale codes the app ships', () => {
+  it('renders ar right to left and publishes it on the document', () => {
+    render(
+      <LocaleDirectionProvider locale="ar">
+        <PageHeader title="Students" />
+      </LocaleDirectionProvider>
+    );
+
+    expect(document.querySelector('[data-locale-root]')).toHaveAttribute('dir', 'rtl');
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl');
+    expect(document.documentElement).toHaveAttribute('lang', 'ar');
+  });
+
+  it('renders pt left to right', () => {
+    render(
+      <LocaleDirectionProvider locale="pt">
+        <PageHeader title="Students" />
+      </LocaleDirectionProvider>
+    );
+
+    expect(document.querySelector('[data-locale-root]')).toHaveAttribute('dir', 'ltr');
+  });
+});
+
 describe('a left-to-right subtree', () => {
   it('stays ltr, so the logical utilities are not hard-coded to mirror', () => {
     render(
