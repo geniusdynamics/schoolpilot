@@ -4192,10 +4192,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "bc93bf7",
+      "notes": "merged in #47 (80092e7); test follow-up fa37faf",
+      "completed_at": "2026-10-24"
     },
     {
       "id": "P5-A02",
@@ -4219,10 +4219,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "803b8d8",
+      "notes": "merged in #50 (192c8df)",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P5-A03",
@@ -4249,9 +4249,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "implemented on prd/P5-A03 @949c97b, gate running, awaiting independent verification",
       "completed_at": null
     },
     {
@@ -4276,9 +4276,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-B01 (worktree p5b01)",
       "completed_at": null
     },
     {
@@ -4302,9 +4302,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-B02, after B01 (worktree p5b01)",
       "completed_at": null
     },
     {
@@ -4356,9 +4356,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C01 (worktree p5c01)",
       "completed_at": null
     },
     {
