@@ -4249,10 +4249,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "implemented on prd/P5-A03 @949c97b, gate running, awaiting independent verification",
-      "completed_at": null
+      "status": "done",
+      "commit": "b8d4a0c",
+      "notes": "implemented on prd/P5-A03 @949c97b, gate running, awaiting independent verification | gate PASS (tsc 2306/2500, 488 related tests); pushed prd/P5-A03; independent verifier running | verified: independent verifier approved (ICU oracle 1850-2150 in 3 time zones, picker probes, gate G1-G8 after rerunning a load flake); non-blocking: ET locales now default to the Ethiopian calendar (owner to confirm), Gregorian year 0099 now accepted",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-B01",
@@ -4276,9 +4276,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-B01 (worktree p5b01)",
+      "status": "review",
+      "commit": "1c2d626",
+      "notes": "worker on prd/P5-B01 (worktree p5b01) | gate PASS, pushed prd/P5-B01; verifier running",
       "completed_at": null
     },
     {
@@ -4302,9 +4302,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-B02, after B01 (worktree p5b01)",
+      "status": "review",
+      "commit": "c7fd19c",
+      "notes": "worker on prd/P5-B02, after B01 (worktree p5b01) | gate PASS, pushed prd/P5-B02; verifier running",
       "completed_at": null
     },
     {
@@ -4356,9 +4356,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-C01 (worktree p5c01)",
+      "status": "review",
+      "commit": "73d76b0",
+      "notes": "worker on prd/P5-C01 (worktree p5c01) | gate PASS, pushed prd/P5-C01; open: public application wizard cannot pass step 1 (intendedClassId rendered in step 3), pre-existing",
       "completed_at": null
     },
     {
