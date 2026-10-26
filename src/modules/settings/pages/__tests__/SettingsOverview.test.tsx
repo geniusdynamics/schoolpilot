@@ -17,6 +17,7 @@ const state = vi.hoisted(() => ({
   loading: { all: false, users: false } as Record<string, boolean>,
   users: [] as unknown[],
   schoolProfile: null as unknown,
+  profileLoading: false,
   auditLogs: [] as unknown[],
   storage: { mode: 'opfs-sahpool', persisted: true } as { mode: string; persisted: boolean | null },
   modules: [] as unknown[],
@@ -27,8 +28,15 @@ vi.mock('@/hooks/useAppData', () => ({
   useAppData: () => ({
     loading: state.loading,
     users: state.users,
-    schoolProfile: state.schoolProfile,
     auditLogs: state.auditLogs,
+  }),
+}));
+
+// The school profile is the school_details document the setup wizard writes. App data does not carry it.
+vi.mock('@/hooks/useDatabaseDocument', () => ({
+  useDatabaseDocument: (collection: string) => ({
+    data: collection === 'school_details' ? state.schoolProfile : null,
+    loading: state.profileLoading,
   }),
 }));
 
@@ -68,6 +76,7 @@ beforeEach(() => {
   state.loading = { all: false, users: false };
   state.users = [ADMIN, TEACHER, LEFT];
   state.schoolProfile = { name: 'Hillside Academy' };
+  state.profileLoading = false;
   state.auditLogs = [];
   state.storage = { mode: 'opfs-sahpool', persisted: true };
   state.modules = [
@@ -112,6 +121,37 @@ describe('the Settings overview', () => {
     renderPage();
 
     expect(within(tile('School profile')).getByText('Not set')).toBeTruthy();
+  });
+
+  it('counts one login as one account, and several as accounts', () => {
+    state.users = [ADMIN];
+    const { unmount } = renderPage();
+    expect(within(tile('Users')).getByText('1 account')).toBeTruthy();
+    unmount();
+
+    state.users = [ADMIN, TEACHER, LEFT];
+    renderPage();
+    expect(within(tile('Users')).getByText('3 accounts')).toBeTruthy();
+  });
+
+  it('counts one module with a problem as one, and several as problems', () => {
+    state.enabled = ['academics'];
+    const { unmount } = renderPage();
+    expect(within(tile('Modules running')).getByText('1 with a problem')).toBeTruthy();
+    unmount();
+
+    state.modules = [
+      ...state.modules,
+      {
+        id: 'library',
+        name: 'navigation:library.title',
+        version: '1.0.0',
+        dependencies: [{ moduleId: 'administration', version: '^1.0.0', required: true }],
+      },
+    ];
+    state.enabled = ['academics', 'library'];
+    renderPage();
+    expect(within(tile('Modules running')).getByText('2 with problems')).toBeTruthy();
   });
 });
 
@@ -216,5 +256,14 @@ describe('what it does not claim', () => {
     renderPage();
 
     expect(screen.queryByText('Users')).toBeNull();
+  });
+
+  it('waits for the school profile before saying whether it is set, instead of saying it is not', () => {
+    state.schoolProfile = null;
+    state.profileLoading = true;
+    renderPage();
+
+    expect(screen.queryByText('Not set')).toBeNull();
+    expect(screen.queryByText('School profile')).toBeNull();
   });
 });

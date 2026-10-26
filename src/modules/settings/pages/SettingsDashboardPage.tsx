@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { type DashboardMetric } from '@/components/ModuleDashboardShell';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import { useAppData } from '@/hooks/useAppData';
+import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import { getSQLiteStorageStatus, subscribeSQLiteStorageStatus } from '@/services/database/SQLiteWASMProvider';
 
 import { SETTINGS_HUBS, tabAddress, type SettingsHubPath } from '../hubTabs';
@@ -34,11 +35,13 @@ const timeOf = (entry: AuditEntry): number => {
 
 export const SettingsDashboardContent: React.FC = () => {
   const { t } = useTranslation('settings');
-  const { loading, users, schoolProfile, auditLogs } = useAppData();
+  const { loading, users, auditLogs } = useAppData();
+  // The profile is the school_details document the setup wizard writes; app data does not carry it.
+  const { data: schoolProfile, loading: profileLoading } = useDatabaseDocument<Record<string, unknown>>('school_details');
   const storage = useSyncExternalStore(subscribeSQLiteStorageStatus, getSQLiteStorageStatus);
   const modules = useMemo(() => countModules(moduleRegistry), []);
 
-  if (loading.all || loading.users) {
+  if (loading.all || loading.users || (profileLoading && !schoolProfile)) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -57,7 +60,10 @@ export const SettingsDashboardContent: React.FC = () => {
       description: t('overview.metrics.usersNote', 'Accounts that can sign in'),
       icon: <UsersIcon className="h-6 w-6" />,
       trend: 'neutral',
-      trendValue: t('overview.metrics.usersTotal', '{{count}} accounts', { count: facts.users.total }),
+      trendValue:
+        facts.users.total === 1
+          ? t('overview.metrics.usersTotalOne', '1 account')
+          : t('overview.metrics.usersTotal', '{{count}} accounts', { count: facts.users.total }),
       to: tabAddress('/settings/school', 'users'),
       colorScheme: 'emerald',
     },
@@ -68,9 +74,11 @@ export const SettingsDashboardContent: React.FC = () => {
       icon: <ViewColumnsIcon className="h-6 w-6" />,
       trend: facts.modules.withProblems > 0 ? 'down' : 'up',
       trendValue:
-        facts.modules.withProblems > 0
-          ? t('overview.metrics.modulesProblems', '{{count}} with problems', { count: facts.modules.withProblems })
-          : t('overview.metrics.modulesFine', 'No problems'),
+        facts.modules.withProblems === 0
+          ? t('overview.metrics.modulesFine', 'No problems')
+          : facts.modules.withProblems === 1
+            ? t('overview.metrics.modulesProblemOne', '1 with a problem')
+            : t('overview.metrics.modulesProblems', '{{count}} with problems', { count: facts.modules.withProblems }),
       to: '/settings/modules',
       colorScheme: 'cyan',
     },
