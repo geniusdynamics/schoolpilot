@@ -2,6 +2,12 @@
 // ABOUTME: and ward, Uganda district, sub-county and parish, Nigeria state and LGA, and so on), the
 // ABOUTME: fields in order, and the locale's line order for printing one.
 
+import {
+  ADDRESS_LINE1_LABEL,
+  ADDRESS_LINE2_LABEL,
+  ADDRESS_POSTAL_CODE_LABEL,
+  countryAddressSchema,
+} from '@/domain/country';
 import type { Address } from '@/domain/schema/people';
 
 import { activeLocale, resolveLocale } from './locales';
@@ -38,9 +44,16 @@ export interface AddressField {
   readonly kind: 'line' | 'level' | 'city' | 'region' | 'postal_code';
 }
 
-const POSTAL_LABEL = 'address.postal_code';
-const LINE1_LABEL = 'address.line1';
-const LINE2_LABEL = 'address.line2';
+const POSTAL_LABEL = ADDRESS_POSTAL_CODE_LABEL;
+const LINE1_LABEL = ADDRESS_LINE1_LABEL;
+const LINE2_LABEL = ADDRESS_LINE2_LABEL;
+
+/** The address schema a country's pack declares; the countries that ship a pack take theirs from it. */
+function packAddressSchema(country: string): CountryAddressSchema {
+  const schema = countryAddressSchema(country);
+  if (!schema) throw new Error(`No country pack for ${country}`);
+  return schema;
+}
 
 /**
  * The address hierarchies of spec 06 §6, plus the countries the app's own packs cover.
@@ -49,20 +62,7 @@ const LINE2_LABEL = 'address.line2';
  * country's form follows. `required` is what the country's postal service needs, not a preference.
  */
 const ADDRESS_SCHEMAS: Readonly<Record<string, CountryAddressSchema>> = {
-  KE: {
-    country: 'KE',
-    levels: [
-      { key: 'county', labelKey: 'address.ke.county', required: true },
-      { key: 'sub_county', labelKey: 'address.ke.sub_county', required: true },
-      { key: 'ward', labelKey: 'address.ke.ward', required: false },
-    ],
-    hasCity: true,
-    cityRequired: false,
-    postalCodeRequired: false,
-    postalCodeLabelKey: POSTAL_LABEL,
-    line1LabelKey: LINE1_LABEL,
-    line2LabelKey: LINE2_LABEL,
-  },
+  KE: packAddressSchema('KE'),
   UG: {
     country: 'UG',
     levels: [

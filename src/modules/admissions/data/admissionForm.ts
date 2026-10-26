@@ -8,6 +8,7 @@ import {
   RepositoryInvariantError,
   RepositoryValidationError,
 } from '@/data/repository';
+import { identifierSchemesFor, validateIdentifier, type OwnerType } from '@/domain/country';
 import { asId } from '@/domain/ids';
 import {
   GENDERS,
@@ -22,7 +23,6 @@ import {
 import { ENTRY_REASONS } from '@/domain/schema';
 import {
   ServiceError,
-  KEMIS_UPI_SCHEME,
   type EntryReason,
   type GuardianRelationship,
   type ResidenceStatus,
@@ -209,7 +209,33 @@ export const admissionFormSchema = z
         message: 'Choose a scheme and enter the value, or leave both empty.',
       });
     }
+
+    // A whole identifier is checked against the format its scheme's country pack states.
+    addIdentifierValueIssue(ctx, 'identifier_value', values.identifier_scheme, values.identifier_value);
+    addIdentifierValueIssue(
+      ctx,
+      'guardian_identifier_value',
+      values.guardian_identifier_scheme,
+      values.guardian_identifier_value
+    );
   });
+
+/** The country a scheme id belongs to: the prefix of `ke.national_id` is `KE`. */
+function countryOfScheme(scheme: string): string {
+  return scheme.split('.')[0]?.toUpperCase() ?? '';
+}
+
+/** Adds the pack's refusal of an identifier value to the field that holds it. */
+function addIdentifierValueIssue(
+  ctx: z.RefinementCtx,
+  field: 'identifier_value' | 'guardian_identifier_value',
+  scheme: string,
+  value: string
+): void {
+  if (scheme === '' || value === '') return;
+  const result = validateIdentifier(countryOfScheme(scheme), scheme, value);
+  if (!result.ok) ctx.addIssue({ code: 'custom', path: [field], message: result.message });
+}
 
 /** A field problem, addressed by the form field it belongs to. */
 export interface AdmissionFormIssue {
@@ -253,20 +279,26 @@ export function typedGuardianSource(guardian: GuardianDraftValues): GuardianSour
   };
 }
 
+/** The value an identifier is stored as: its country pack's normalised form, else the trimmed text. */
+function storedIdentifierValue(scheme: string, value: string): string {
+  const result = validateIdentifier(countryOfScheme(scheme), scheme, value);
+  return result.ok ? result.value : value.trim();
+}
+
 /** The identifiers the form collects. */
 function identifiersOf(values: AdmissionFormValues): AdmissionIdentifierInput[] {
   const identifiers: AdmissionIdentifierInput[] = [];
   if (values.identifier_scheme && values.identifier_value) {
     identifiers.push({
       scheme: values.identifier_scheme,
-      value: values.identifier_value.trim(),
+      value: storedIdentifierValue(values.identifier_scheme, values.identifier_value),
       owner: 'learner',
     });
   }
   if (values.guardian_identifier_scheme && values.guardian_identifier_value) {
     identifiers.push({
       scheme: values.guardian_identifier_scheme,
-      value: values.guardian_identifier_value.trim(),
+      value: storedIdentifierValue(values.guardian_identifier_scheme, values.guardian_identifier_value),
       owner: 'guardian',
       guardianIndex: 0,
     });
@@ -452,15 +484,16 @@ export function describeAdmissionFailure(
   };
 }
 
+/** The country whose identifier schemes the admission form offers. */
+const ADMISSION_COUNTRY = 'KE';
+
+/** The schemes of the country pack that apply to one kind of owner, as the form's select lists them. */
+function offeredSchemes(ownerType: OwnerType): readonly { readonly value: string; readonly label: string }[] {
+  return identifierSchemesFor(ADMISSION_COUNTRY, ownerType).map(({ value, label }) => ({ value, label }));
+}
+
 /** The identifier schemes the country pack records for a learner. */
-export const LEARNER_IDENTIFIER_SCHEMES = [
-  { value: KEMIS_UPI_SCHEME, label: 'KEMIS unique pupil identifier (UPI)' },
-  { value: 'ke.birth_certificate', label: 'Birth certificate number' },
-  { value: 'ke.national_id', label: 'National ID' },
-] as const;
+export const LEARNER_IDENTIFIER_SCHEMES = offeredSchemes('learner');
 
 /** The identifier schemes a guardian commonly holds. */
-export const GUARDIAN_IDENTIFIER_SCHEMES = [
-  { value: 'ke.national_id', label: 'National ID' },
-  { value: 'ke.birth_certificate', label: 'Birth certificate number' },
-] as const;
+export const GUARDIAN_IDENTIFIER_SCHEMES = offeredSchemes('guardian');

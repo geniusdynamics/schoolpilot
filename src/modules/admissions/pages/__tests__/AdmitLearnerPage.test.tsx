@@ -113,7 +113,7 @@ beforeEach(() => {
         owner_type: 'learner',
         owner_id: OTHER_LEARNER,
         scheme: 'ke.national_id',
-        value: 'ID-9001',
+        value: '90010001',
       },
     ],
   });
@@ -306,12 +306,25 @@ describe('AdmitLearnerPage', () => {
     renderPage();
     await fillAdmission();
     type('guardian_identifier_scheme', 'ke.national_id');
-    type('guardian_identifier_value', 'ID-9001');
+    type('guardian_identifier_value', '90010001');
     submit();
 
     const failure = await screen.findByTestId('admission-failure');
     expect(failure).toHaveAttribute('data-field', 'guardian_identifier_value');
     expect(failure).toHaveTextContent(/Guardian identifier: This identifier already belongs to another person/);
+    expect((repository.rows.learner ?? []).length).toBe(1);
+  });
+
+  it('blocks a malformed national ID before the service is called and names the field', async () => {
+    renderPage();
+    await fillAdmission();
+    type('guardian_identifier_scheme', 'ke.national_id');
+    type('guardian_identifier_value', 'ID-9001');
+    submit();
+
+    const failure = await screen.findByTestId('admission-failure');
+    expect(failure).toHaveAttribute('data-field', 'guardian_identifier_value');
+    expect(failure).toHaveTextContent(/Guardian identifier: Not a valid National ID/);
     expect((repository.rows.learner ?? []).length).toBe(1);
   });
 

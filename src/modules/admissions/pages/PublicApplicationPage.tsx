@@ -24,6 +24,7 @@ import {
   UploadIcon,
   DocumentReportIcon,
 } from '@/components/ui/icons';
+import { addressLevelChoices } from '@/domain/country';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   ApplicationFormData,
@@ -515,12 +516,19 @@ export const PublicApplicationPageContent: React.FC = () => {
             onChange={handleInputChange}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <Select
               name="county"
               label={t('application.fields.county', 'County')}
               value={formData.county}
               onChange={handleInputChange}
-            />
+            >
+              <option value="">{t('application.fields.selectCounty', 'Select county')}</option>
+              {addressLevelChoices('KE', 'county', formData.county).map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </Select>
             <Input
               name="subCounty"
               label={t('application.fields.subCounty', 'Sub-County')}
