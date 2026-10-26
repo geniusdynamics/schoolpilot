@@ -1,0 +1,385 @@
+{
+  "$comment": "Country Payroll Pack schema. Spec 05 §9 (payroll is an interface: a country pack supplies statutory rules as effective-dated data, never hard-coded) and spec 06 §10 (payroll packs are in the pack registry as data, validated by schema, versioned). Amounts are decimal strings in major units and rates are decimal fractions as strings, so no float is ever read from a pack.",
+  "$id": "https://schemas.schoolpilot.app/payroll-pack/v1/payroll.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Country Payroll Pack",
+  "description": "Statutory payroll rules of one country as effective-dated tables: income tax bands and reliefs, social security, health insurance, levies, the order the rules apply in, the rounding rule and the statutory return layouts.",
+  "type": "object",
+  "required": ["id", "country", "currency", "version", "verification", "sources", "rounding", "inputs", "order", "rules", "returns"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Pack identifier such as ke-payroll."
+    },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "ISO 3166-1 alpha-2 country code."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 code of the currency every amount of the pack is counted in; it must be a code of the money module's currency table."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+      "description": "Semantic version of the pack."
+    },
+    "verification": { "$ref": "#/$defs/verification" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" },
+      "description": "The official documents the rules cite. A rule's sourceRef names one of them by id."
+    },
+    "rounding": {
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["half_up", "half_down", "half_even", "up", "down"],
+          "description": "How a computed line that falls between two minor units is rounded: once, on the exact result of the line."
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/inputDeclaration" },
+      "description": "The named amounts a staff pay profile may supply besides pay lines (premiums paid, pension contributions and so on). A rule may only read a declared input."
+    },
+    "order": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/ruleId" },
+      "description": "The order the rules apply in. A rule that reads another rule's result comes after it."
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/rule" },
+      "description": "Effective-dated rule entries. Entries of one ruleId must not overlap; a date with no entry is refused at computation time."
+    },
+    "returns": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/returnLayout" },
+      "description": "Statutory return export layouts: ordered column lists only."
+    }
+  },
+  "$defs": {
+    "verification": {
+      "enum": ["verified", "draft"],
+      "description": "verified: every figure was read from the cited official source. draft: at least one figure was not confirmed from an official source and a payroll accountant must confirm it."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Calendar date as YYYY-MM-DD; a runtime check rejects impossible dates."
+    },
+    "ruleId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "maxLength": 40
+    },
+    "key": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$",
+      "maxLength": 60
+    },
+    "money": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+      "description": "A non-negative amount in major units as decimal text, for example 2400.00."
+    },
+    "rate": {
+      "type": "string",
+      "pattern": "^(?:0|1)(?:\\.[0-9]+)?$",
+      "description": "A rate as a decimal fraction as text: 0.0275 is 2.75 per cent."
+    },
+    "source": {
+      "type": "object",
+      "required": ["id", "title", "publisher", "url", "retrieved"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/key" },
+        "title": { "type": "string", "minLength": 1 },
+        "publisher": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^https://" },
+        "retrieved": { "$ref": "#/$defs/date" },
+        "note": { "type": "string" }
+      }
+    },
+    "inputDeclaration": {
+      "type": "object",
+      "required": ["key", "labelKey", "deductedFromPay"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "labelKey": { "$ref": "#/$defs/key" },
+        "deductedFromPay": {
+          "type": "boolean",
+          "description": "True when the amount is also taken out of net pay (an employee pension contribution); false when it only feeds a relief or deduction (premiums or interest paid elsewhere)."
+        }
+      }
+    },
+    "base": {
+      "enum": ["gross_pay", "basic_pay"],
+      "description": "The pay a percentage or an earnings limit is read against."
+    },
+    "party": {
+      "enum": ["employee", "employer"]
+    },
+    "amountSource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["from", "ruleId", "party"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "const": "rule" },
+            "ruleId": { "$ref": "#/$defs/ruleId" },
+            "party": { "$ref": "#/$defs/party" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["from", "key"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "const": "input" },
+            "key": { "$ref": "#/$defs/key" }
+          }
+        }
+      ],
+      "description": "Where an amount comes from: the result of an earlier rule for one party, or a declared input."
+    },
+    "ruleCommon": {
+      "type": "object",
+      "required": ["ruleId", "kind", "labelKey", "effectiveFrom", "effectiveTo", "sourceRef", "verification"],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/ruleId" },
+        "kind": { "enum": ["income_tax", "social_security", "health_insurance", "levy"] },
+        "labelKey": { "$ref": "#/$defs/key" },
+        "effectiveFrom": { "$ref": "#/$defs/date" },
+        "effectiveTo": {
+          "oneOf": [{ "$ref": "#/$defs/date" }, { "type": "null" }],
+          "description": "Last day the entry applies, or null while it is current."
+        },
+        "sourceRef": { "$ref": "#/$defs/key" },
+        "verification": { "$ref": "#/$defs/verification" },
+        "note": { "type": "string" },
+        "params": { "type": "object" },
+        "notModelled": { "type": "string" }
+      }
+    },
+    "rule": {
+      "oneOf": [
+        { "$ref": "#/$defs/incomeTaxRule" },
+        { "$ref": "#/$defs/socialSecurityRule" },
+        { "$ref": "#/$defs/healthInsuranceRule" },
+        { "$ref": "#/$defs/levyRule" },
+        { "$ref": "#/$defs/notModelledRule" }
+      ]
+    },
+    "notModelledRule": {
+      "description": "A period the pack knows a rule applied but does not model; computing a payslip in it is refused rather than guessed.",
+      "type": "object",
+      "allOf": [{ "$ref": "#/$defs/ruleCommon" }],
+      "required": ["notModelled"],
+      "not": { "required": ["params"] },
+      "unevaluatedProperties": false
+    },
+    "incomeTaxRule": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/ruleCommon" },
+        {
+          "properties": {
+            "kind": { "const": "income_tax" },
+            "params": { "$ref": "#/$defs/incomeTaxParams" }
+          },
+          "required": ["params"],
+          "not": { "required": ["notModelled"] }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "incomeTaxParams": {
+      "type": "object",
+      "required": ["bands", "personalRelief", "taxableDeductions", "reliefs"],
+      "additionalProperties": false,
+      "properties": {
+        "bands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["upTo", "rate"],
+            "additionalProperties": false,
+            "properties": {
+              "upTo": {
+                "oneOf": [{ "$ref": "#/$defs/money" }, { "type": "null" }],
+                "description": "Cumulative upper bound of the band in taxable pay per month; null for the open top band."
+              },
+              "rate": { "$ref": "#/$defs/rate" }
+            }
+          }
+        },
+        "personalRelief": { "$ref": "#/$defs/money" },
+        "taxableDeductions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "labelKey", "capMonthly", "sources"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/key" },
+              "labelKey": { "$ref": "#/$defs/key" },
+              "capMonthly": { "oneOf": [{ "$ref": "#/$defs/money" }, { "type": "null" }] },
+              "sources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/amountSource" } }
+            }
+          },
+          "description": "Amounts deducted from taxable pay before the bands apply, each group capped per month."
+        },
+        "reliefs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "labelKey", "rate", "capMonthly", "source"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/key" },
+              "labelKey": { "$ref": "#/$defs/key" },
+              "rate": { "$ref": "#/$defs/rate" },
+              "capMonthly": { "oneOf": [{ "$ref": "#/$defs/money" }, { "type": "null" }] },
+              "source": { "$ref": "#/$defs/amountSource" }
+            }
+          },
+          "description": "Reliefs subtracted from the tax computed on the bands: a rate of an amount, capped per month."
+        }
+      }
+    },
+    "socialSecurityRule": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/ruleCommon" },
+        {
+          "properties": {
+            "kind": { "const": "social_security" },
+            "params": { "$ref": "#/$defs/socialSecurityParams" }
+          },
+          "required": ["params"],
+          "not": { "required": ["notModelled"] }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "socialSecurityParams": {
+      "type": "object",
+      "required": ["base", "lowerEarningsLimit", "upperEarningsLimit", "employeeRate", "employerRate"],
+      "additionalProperties": false,
+      "properties": {
+        "base": { "$ref": "#/$defs/base" },
+        "lowerEarningsLimit": { "$ref": "#/$defs/money" },
+        "upperEarningsLimit": { "$ref": "#/$defs/money" },
+        "employeeRate": { "$ref": "#/$defs/rate" },
+        "employerRate": { "$ref": "#/$defs/rate" }
+      }
+    },
+    "healthInsuranceRule": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/ruleCommon" },
+        {
+          "properties": {
+            "kind": { "const": "health_insurance" },
+            "params": { "$ref": "#/$defs/healthInsuranceParams" }
+          },
+          "required": ["params"],
+          "not": { "required": ["notModelled"] }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "healthInsuranceParams": {
+      "type": "object",
+      "required": ["base", "rate", "minimum", "maximum"],
+      "additionalProperties": false,
+      "properties": {
+        "base": { "$ref": "#/$defs/base" },
+        "rate": { "$ref": "#/$defs/rate" },
+        "minimum": { "$ref": "#/$defs/money" },
+        "maximum": { "oneOf": [{ "$ref": "#/$defs/money" }, { "type": "null" }] }
+      }
+    },
+    "levyRule": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/ruleCommon" },
+        {
+          "properties": {
+            "kind": { "const": "levy" },
+            "params": { "$ref": "#/$defs/levyParams" }
+          },
+          "required": ["params"],
+          "not": { "required": ["notModelled"] }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "levyParams": {
+      "type": "object",
+      "required": ["base", "employeeRate", "employerRate", "employerFlat"],
+      "additionalProperties": false,
+      "properties": {
+        "base": { "$ref": "#/$defs/base" },
+        "employeeRate": { "oneOf": [{ "$ref": "#/$defs/rate" }, { "type": "null" }] },
+        "employerRate": { "oneOf": [{ "$ref": "#/$defs/rate" }, { "type": "null" }] },
+        "employerFlat": {
+          "oneOf": [{ "$ref": "#/$defs/money" }, { "type": "null" }],
+          "description": "A flat employer amount per employee per month, for a levy that is not a percentage."
+        }
+      }
+    },
+    "returnLayout": {
+      "type": "object",
+      "required": ["id", "labelKey", "authority", "effectiveFrom", "effectiveTo", "sourceRef", "verification", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/key" },
+        "labelKey": { "$ref": "#/$defs/key" },
+        "authority": { "type": "string", "minLength": 1 },
+        "effectiveFrom": { "$ref": "#/$defs/date" },
+        "effectiveTo": { "oneOf": [{ "$ref": "#/$defs/date" }, { "type": "null" }] },
+        "sourceRef": { "$ref": "#/$defs/key" },
+        "verification": { "$ref": "#/$defs/verification" },
+        "note": { "type": "string" },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["key", "labelKey", "source"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "$ref": "#/$defs/key" },
+              "labelKey": { "$ref": "#/$defs/key" },
+              "source": {
+                "type": "string",
+                "pattern": "^(?:employeeId|periodStart|periodEnd|grossPay|taxablePay|netPay|line:[A-Za-z][A-Za-z0-9_.]*)$",
+                "description": "A payslip field: employeeId, periodStart, periodEnd, grossPay, taxablePay, netPay, or line:<code> for the amount of a payslip line."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
