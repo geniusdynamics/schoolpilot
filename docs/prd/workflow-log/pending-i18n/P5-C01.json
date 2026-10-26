@@ -1,0 +1,13 @@
+{
+  "task": "P5-C01",
+  "note": "New admissions string used with an inline English default in PublicApplicationPage. Merge into the central `admissions` namespace under application.fields. Translate for fr, rw, sw. The country pack's own labels (packs/country/ke/locales) are translated inside the pack, not here.",
+  "en": {
+    "admissions": {
+      "application": {
+        "fields": {
+          "selectCounty": "Select county"
+        }
+      }
+    }
+  }
+}

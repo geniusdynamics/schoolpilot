@@ -62,6 +62,43 @@ describe('ApplicationFormPage', () => {
     expect(document.querySelector('[name="guardianFirstName"]')).toBeNull();
   });
 
+  it('offers the counties of the Kenya country pack and stores the county name', async () => {
+    render(<ApplicationFormPageContent />);
+    type('firstName', 'Achieng');
+    type('lastName', 'Otieno');
+    type('dateOfBirth', '2014-03-15');
+    type('gender', 'Female');
+    type('intendedClassId', 'form-1');
+    clickNext();
+    await waitFor(() => expect(field('guardianFirstName')).toBeInTheDocument());
+
+    const county = field('county');
+    expect(county.tagName).toBe('SELECT');
+    const names = Array.from(county.querySelectorAll('option'))
+      .map((option) => option.value)
+      .filter((value) => value !== '');
+    expect(names).toHaveLength(47);
+    expect(names[0]).toBe('Mombasa');
+    expect(names).toContain("Murang'a");
+    expect(names[46]).toBe('Nairobi');
+
+    type('county', "Murang'a");
+    expect((field('county') as HTMLSelectElement).value).toBe("Murang'a");
+  });
+
+  it('keeps sub-county as free text', async () => {
+    render(<ApplicationFormPageContent />);
+    type('firstName', 'Achieng');
+    type('lastName', 'Otieno');
+    type('dateOfBirth', '2014-03-15');
+    type('gender', 'Female');
+    type('intendedClassId', 'form-1');
+    clickNext();
+    await waitFor(() => expect(field('subCounty')).toBeInTheDocument());
+
+    expect(field('subCounty').tagName).toBe('INPUT');
+  });
+
   it('walks all four steps and submits the complete application', async () => {
     render(<ApplicationFormPageContent />);
 

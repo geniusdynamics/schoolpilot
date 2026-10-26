@@ -1,0 +1,334 @@
+{
+  "$comment": "Implements spec 06 section 10 (packs are data, validated by schema, versioned), section 6 (address hierarchies) and spec 05 section 9 (statutory returns). One country pack document lives at packs/country/<cc>/country.json; its labels live in locales/<language>.json (curriculum-pack locale schema). A statutory return names its authority, frequency and due rule and carries no rate, band or amount: contribution rates are effective-dated payroll data (task P5-D01), never part of a country pack.",
+  "$id": "https://schemas.schoolpilot.app/country-pack/v1/country.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Country pack",
+  "description": "What one country contributes to the platform: identifier schemes, the address hierarchy, public holidays and the statutory returns a school files.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "kind",
+    "country",
+    "name",
+    "version",
+    "verification",
+    "sources",
+    "defaults",
+    "identifiers",
+    "addressHierarchy",
+    "holidays",
+    "statutoryReturns"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "id": {
+      "type": "string",
+      "pattern": "^country-[a-z]{2}$",
+      "description": "country-<cc>, the lower-case ISO 3166-1 alpha-2 code of the country."
+    },
+    "kind": { "const": "country" },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "ISO 3166-1 alpha-2, upper case."
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "version": { "$ref": "#/$defs/semver" },
+    "verification": {
+      "$ref": "#/$defs/verification",
+      "description": "verified only when every datum in the pack is verified; otherwise draft."
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 },
+      "description": "What still needs checking, one sentence each."
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" },
+      "uniqueItems": true
+    },
+    "defaults": {
+      "type": "object",
+      "required": ["currency", "languages", "timeZone", "phoneRegion", "calendar", "weekStartsOn"],
+      "properties": {
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "ISO 4217." },
+        "languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$" }
+        },
+        "timeZone": { "type": "string", "minLength": 1, "description": "An IANA time zone." },
+        "phoneRegion": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "calendar": { "type": "string", "enum": ["gregorian"] },
+        "weekStartsOn": { "type": "integer", "minimum": 0, "maximum": 6, "description": "0 is Sunday." }
+      },
+      "additionalProperties": false
+    },
+    "identifiers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/identifier" },
+      "description": "The identifier schemes people hold in this country. A scheme id is unique within the pack (checked beyond the schema)."
+    },
+    "addressHierarchy": { "$ref": "#/$defs/addressHierarchy" },
+    "holidays": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/holiday" }
+    },
+    "statutoryReturns": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/statutoryReturn" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "isoDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "verification": { "type": "string", "enum": ["draft", "verified"] },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 80 },
+    "labelKey": { "type": "string", "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$", "maxLength": 120 },
+    "ownerType": { "type": "string", "enum": ["learner", "guardian", "staff"] },
+    "source": {
+      "type": "object",
+      "required": ["id", "title", "publisher", "url", "accessed"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "publisher": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "url": { "type": "string", "pattern": "^https://" },
+        "accessed": { "$ref": "#/$defs/isoDate" }
+      },
+      "additionalProperties": false
+    },
+    "identifier": {
+      "type": "object",
+      "required": ["scheme", "labelKey", "appliesTo", "validation", "hintKey", "example", "verification"],
+      "if": {
+        "properties": { "verification": { "const": "verified" } },
+        "required": ["verification"]
+      },
+      "then": {
+        "required": ["sourceRef"]
+      },
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "pattern": "^[a-z]{2}\\.[a-z0-9_]+$",
+          "description": "<cc>.<name>; the prefix is checked against the pack's country beyond the schema."
+        },
+        "labelKey": { "$ref": "#/$defs/labelKey" },
+        "appliesTo": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ownerType" }
+        },
+        "order": {
+          "type": "object",
+          "description": "Where the scheme sits in the list offered for an owner type; lower first, unranked schemes follow in pack order.",
+          "properties": {
+            "learner": { "type": "integer", "minimum": 1 },
+            "guardian": { "type": "integer", "minimum": 1 },
+            "staff": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "validation": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["type", "pattern", "normalise"],
+              "properties": {
+                "type": { "const": "pattern" },
+                "pattern": { "type": "string", "minLength": 1, "description": "An ECMAScript regular expression the normalised value must match in full." },
+                "normalise": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": { "type": "string", "enum": ["trim", "remove_spaces", "remove_hyphens", "uppercase"] },
+                  "description": "Applied in a fixed order (trim, remove spaces, remove hyphens, upper-case) before the pattern is tested; the normalised value is what is stored."
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": { "const": "free" }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "hintKey": { "$ref": "#/$defs/labelKey" },
+        "example": { "type": "string", "maxLength": 100, "description": "An illustrative shape, never a real number." },
+        "sourceRef": { "$ref": "#/$defs/slug", "description": "Required for a verified scheme; a draft scheme with no published format has none." },
+        "verification": { "$ref": "#/$defs/verification" },
+        "note": { "type": "string", "minLength": 1, "maxLength": 500 }
+      },
+      "additionalProperties": false
+    },
+    "addressLevel": {
+      "type": "object",
+      "required": ["key", "labelKey", "required"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "labelKey": { "$ref": "#/$defs/labelKey" },
+        "required": { "type": "boolean" },
+        "options": {
+          "type": "object",
+          "required": ["values"],
+          "properties": {
+            "values": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["code", "name"],
+                "properties": {
+                  "code": { "type": "string", "minLength": 1, "maxLength": 20 },
+                  "name": { "type": "string", "minLength": 1, "maxLength": 200 }
+                },
+                "additionalProperties": false
+              }
+            },
+            "sourceRef": { "$ref": "#/$defs/slug" },
+            "verification": { "$ref": "#/$defs/verification" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "addressHierarchy": {
+      "type": "object",
+      "required": ["levels", "hasCity", "cityRequired", "postalCode"],
+      "properties": {
+        "levels": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/addressLevel" }
+        },
+        "hasCity": { "type": "boolean" },
+        "cityRequired": { "type": "boolean" },
+        "postalCode": {
+          "type": "object",
+          "required": ["required"],
+          "properties": {
+            "required": { "type": "boolean" },
+            "pattern": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "holidayRule": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "month", "day"],
+          "properties": {
+            "type": { "const": "fixed" },
+            "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+            "day": { "type": "integer", "minimum": 1, "maximum": 31 }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "offsetDays"],
+          "properties": {
+            "type": { "const": "easter" },
+            "offsetDays": { "type": "integer", "minimum": -60, "maximum": 60, "description": "Days from Easter Sunday: Good Friday is -2, Easter Monday is 1." }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "dates"],
+          "properties": {
+            "type": { "const": "byYear" },
+            "dates": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": { "pattern": "^[0-9]{4}$" },
+              "additionalProperties": { "$ref": "#/$defs/isoDate" },
+              "description": "The date for each year the authority has published; a year that is not listed has no such holiday in this pack."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "holiday": {
+      "type": "object",
+      "required": ["id", "nameKey", "rule", "effectiveFrom", "effectiveTo", "observed", "sourceRef", "verification"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "nameKey": { "$ref": "#/$defs/labelKey" },
+        "rule": { "$ref": "#/$defs/holidayRule" },
+        "effectiveFrom": { "$ref": "#/$defs/isoDate" },
+        "effectiveTo": {
+          "oneOf": [{ "$ref": "#/$defs/isoDate" }, { "type": "null" }],
+          "description": "The last date the holiday rule applies to, inclusive; null while it is current."
+        },
+        "observed": {
+          "type": "string",
+          "enum": ["none", "sunday_to_monday"],
+          "description": "sunday_to_monday: a holiday on a Sunday is observed on the first following day that is not itself a holiday."
+        },
+        "sourceRef": { "$ref": "#/$defs/slug" },
+        "verification": { "$ref": "#/$defs/verification" },
+        "note": { "type": "string", "minLength": 1, "maxLength": 500 }
+      },
+      "additionalProperties": false
+    },
+    "dueRule": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "day"],
+          "properties": {
+            "type": { "const": "day_of_following_month" },
+            "day": { "type": "integer", "minimum": 1, "maximum": 31 }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "workingDay"],
+          "properties": {
+            "type": { "const": "working_day_of_following_month" },
+            "workingDay": { "type": "integer", "minimum": 1, "maximum": 23 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "statutoryReturn": {
+      "type": "object",
+      "required": ["id", "nameKey", "authority", "frequency", "due", "sourceRef", "verification"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "nameKey": { "$ref": "#/$defs/labelKey" },
+        "authority": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "frequency": { "type": "string", "enum": ["monthly", "quarterly", "annual", "per_event"] },
+        "due": { "$ref": "#/$defs/dueRule" },
+        "sourceRef": { "$ref": "#/$defs/slug" },
+        "verification": { "$ref": "#/$defs/verification" },
+        "note": { "type": "string", "minLength": 1, "maxLength": 500 }
+      },
+      "additionalProperties": false
+    }
+  }
+}
