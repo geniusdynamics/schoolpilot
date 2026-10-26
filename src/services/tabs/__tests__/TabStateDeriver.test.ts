@@ -116,5 +116,22 @@ describe('TabStateDeriver', () => {
       expect(deriver.deriveTab('/administration/school').title).toBe('School');
       expect(deriver.deriveTab('/administration/system').title).toBe('System');
     });
+
+    // A reload rebuilds the tab list from the address alone, with no translations to look names up in.
+    describe('with no translation to look its name up in', () => {
+      const untranslated = new TabStateDeriver((key) => key);
+
+      it.each([
+        ['/settings/school', 'School & People'],
+        ['/settings/modules?tab=plugins', 'Modules & Features'],
+        ['/settings/system?tab=sync', 'Data & System'],
+      ])('is still named for what it holds: %s is %s', (url, title) => {
+        expect(untranslated.deriveTab(url).title).toBe(title);
+      });
+
+      it('still names a page of another module for its address', () => {
+        expect(untranslated.deriveTab('/administration/school').title).toBe('School');
+      });
+    });
   });
 });

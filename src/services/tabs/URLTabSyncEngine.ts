@@ -27,8 +27,16 @@ export class URLTabSyncEngine {
   private lastState: ParsedTabState | null = null;
   private isProcessing = false;
   private readonly deriver = new TabStateDeriver((key, options) => {
+    // A module's title (navigation:finance.title) is the module's own name. Any other navigation key is not
+    // a module's title, so it comes back as it is and the deriver names the page itself: reading every one as
+    // its first segment turned each Settings hub into "Settings" after a reload.
+    const moduleTitle = /^navigation:([^.]+)\.title$/.exec(key);
+    if (moduleTitle) {
+      return this.formatFallbackLabel(moduleTitle[1]);
+    }
+
     if (key.startsWith('navigation:')) {
-      return this.formatFallbackLabel(key.replace('navigation:', '').split('.')[0] || 'dashboard');
+      return key;
     }
 
     if (key.startsWith('entities.')) {
