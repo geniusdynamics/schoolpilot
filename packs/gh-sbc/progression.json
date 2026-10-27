@@ -1,0 +1,22 @@
+{
+  "progression": [
+    {
+      "levels": ["B1", "B2", "B3", "B4", "B5"],
+      "rule": "class_council",
+      "suggest": { "metric": "annual.term_average", "gte": 30 }
+    },
+    {
+      "levels": ["B6"],
+      "rule": "stage_transition",
+      "to_stage": "JHS"
+    },
+    {
+      "levels": ["B7", "B8"],
+      "rule": "class_council",
+      "suggest": { "metric": "annual.term_average", "gte": 30 }
+    }
+  ],
+  "graduation": [
+    { "levels": ["B9"], "rule": "graduate" }
+  ]
+}

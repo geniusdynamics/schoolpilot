@@ -1,0 +1,150 @@
+{
+  "vectors": [
+    {
+      "name": "Foundation Phase: school-based assessment is the whole mark, 80 is level 7",
+      "programme": "za-caps",
+      "input": { "SBA": "80/100" },
+      "expect": { "za-foundation": { "exact_total": 80, "total": 80, "percent": 80, "grade": "7" } }
+    },
+    {
+      "name": "Foundation Phase: 79 is level 6",
+      "programme": "za-caps",
+      "input": { "SBA": "79/100" },
+      "expect": { "za-foundation": { "exact_total": 79, "total": 79, "percent": 79, "grade": "6" } }
+    },
+    {
+      "name": "Intermediate Phase: SBA 45 of 75 and exam 15 of 25 total 60, the lower boundary of level 5",
+      "programme": "za-caps",
+      "input": { "SBA": "45/75", "EXAM": "15/25" },
+      "expect": { "za-intermediate": { "exact_total": 60, "total": 60, "percent": 60, "grade": "5" } }
+    },
+    {
+      "name": "Intermediate Phase: a total of 59 is the top of level 4",
+      "programme": "za-caps",
+      "input": { "SBA": "44/75", "EXAM": "15/25" },
+      "expect": { "za-intermediate": { "exact_total": 59, "total": 59, "percent": 59, "grade": "4" } }
+    },
+    {
+      "name": "Senior Phase: SBA 20 of 40 and exam 30 of 60 total 50, the lower boundary of level 4",
+      "programme": "za-caps",
+      "input": { "SBA": "20/40", "EXAM": "30/60" },
+      "expect": { "za-senior": { "exact_total": 50, "total": 50, "percent": 50, "grade": "4" } }
+    },
+    {
+      "name": "Senior Phase: a total of 49 is the top of level 3",
+      "programme": "za-caps",
+      "input": { "SBA": "20/40", "EXAM": "29/60" },
+      "expect": { "za-senior": { "exact_total": 49, "total": 49, "percent": 49, "grade": "3" } }
+    },
+    {
+      "name": "Senior Phase: raw marks out of 80 and 150 are scaled to 40 and 60 before they are added",
+      "programme": "za-caps",
+      "input": { "SBA": "32/80", "EXAM": "90/150" },
+      "expect": { "za-senior": { "exact_total": 52, "total": 52, "percent": 52, "grade": "4" } }
+    },
+    {
+      "name": "Grades 10 and 11: SBA 10 of 25 and exam 30 of 75 total 40, the lower boundary of level 3",
+      "programme": "za-caps",
+      "input": { "SBA": "10/25", "EXAM": "30/75" },
+      "expect": { "za-fet": { "exact_total": 40, "total": 40, "percent": 40, "grade": "3" } }
+    },
+    {
+      "name": "Grades 10 and 11: a total of 39 is the top of level 2",
+      "programme": "za-caps",
+      "input": { "SBA": "10/25", "EXAM": "29/75" },
+      "expect": { "za-fet": { "exact_total": 39, "total": 39, "percent": 39, "grade": "2" } }
+    },
+    {
+      "name": "Grade 12: SBA 8 of 25 and exam 22 of 75 total 30, the lower boundary of level 2",
+      "programme": "za-caps",
+      "input": { "SBA": "8/25", "EXAM": "22/75" },
+      "expect": { "za-nsc": { "exact_total": 30, "total": 30, "percent": 30, "grade": "2" } }
+    },
+    {
+      "name": "Grade 12: a total of 29 is level 1, not achieved",
+      "programme": "za-caps",
+      "input": { "SBA": "8/25", "EXAM": "21/75" },
+      "expect": { "za-nsc": { "exact_total": 29, "total": 29, "percent": 29, "grade": "1" } }
+    },
+    {
+      "name": "Grade 12: a full SBA and exam 55 of 75 total 80, level 7",
+      "programme": "za-caps",
+      "input": { "SBA": "25/25", "EXAM": "55/75" },
+      "expect": { "za-nsc": { "exact_total": 80, "total": 80, "percent": 80, "grade": "7" } }
+    },
+    {
+      "name": "Grade 12: a final mark of 70.3 rounds down to 70 (policy example), level 6",
+      "programme": "za-caps",
+      "input": { "SBA": "20/25", "EXAM": "50.3/75" },
+      "expect": { "za-nsc": { "exact_total": 70.3, "total": 70, "percent": 70, "grade": "6" } }
+    },
+    {
+      "name": "Grade 12: a final mark of 70.6 rounds up to 71 (policy example), level 6",
+      "programme": "za-caps",
+      "input": { "SBA": "20/25", "EXAM": "50.6/75" },
+      "expect": { "za-nsc": { "exact_total": 70.6, "total": 71, "percent": 71, "grade": "6" } }
+    },
+    {
+      "name": "Term average of four subjects, kept to two places",
+      "programme": "za-caps",
+      "input": { "HL": 70, "FAL": 60, "MAT": 55, "LO": 80 },
+      "expect": { "term_average": { "value": 66.25 } }
+    },
+    {
+      "name": "NSC counts: 40 percent in four subjects, 30 percent in six, the home language at 40",
+      "programme": "za-caps",
+      "input": { "HL": 62, "FAL": 45, "MAT": 38, "LO": 71, "LSC": 41, "PSC": 33, "GEO": 29 },
+      "expect": {
+        "nsc_subjects_at_40": { "value": 4 },
+        "nsc_subjects_at_30": { "value": 6 },
+        "nsc_home_language_at_40": { "value": 1 }
+      }
+    },
+    {
+      "name": "NSC counts: three subjects at 40 and six at 30, but the home language is at 38",
+      "programme": "za-caps",
+      "input": { "HL": 38, "FAL": 55, "MAT": 31, "LO": 60, "LSC": 30, "PSC": 29, "GEO": 52 },
+      "expect": {
+        "nsc_subjects_at_40": { "value": 3 },
+        "nsc_subjects_at_30": { "value": 6 },
+        "nsc_home_language_at_40": { "value": 0 }
+      }
+    },
+    {
+      "name": "Grade R moves on automatically",
+      "programme": "za-caps",
+      "input": { "leaving_level": "GR" },
+      "expect": { "progression": { "level": "GR", "rule": "automatic", "next_level": "G1" } }
+    },
+    {
+      "name": "Grade 2 with a home language of 50 is suggested for promotion",
+      "programme": "za-caps",
+      "input": { "leaving_level": "G2", "HL": 50 },
+      "expect": { "progression": { "level": "G2", "rule": "class_council", "suggest": "promote", "next_level": "G3" } }
+    },
+    {
+      "name": "Grade 2 with a home language of 49 is referred to the council",
+      "programme": "za-caps",
+      "input": { "leaving_level": "G2", "HL": 49 },
+      "expect": { "progression": { "level": "G2", "rule": "class_council", "suggest": "refer_to_council", "next_level": "G3" } }
+    },
+    {
+      "name": "Grade 5 is judged against a threshold rule and moves to Grade 6",
+      "programme": "za-caps",
+      "input": { "leaving_level": "G5", "HL": 50, "FAL": 40, "MAT": 40 },
+      "expect": { "progression": { "level": "G5", "rule": "threshold", "next_level": "G6" } }
+    },
+    {
+      "name": "Grade 9 is judged against a threshold rule and moves to Grade 10",
+      "programme": "za-caps",
+      "input": { "leaving_level": "G9", "HL": 55, "FAL": 45, "MAT": 41 },
+      "expect": { "progression": { "level": "G9", "rule": "threshold", "next_level": "G10" } }
+    },
+    {
+      "name": "Grade 10 is judged against the home-language threshold and moves to Grade 11",
+      "programme": "za-caps",
+      "input": { "leaving_level": "G10", "HL": 40 },
+      "expect": { "progression": { "level": "G10", "rule": "threshold", "next_level": "G11" } }
+    }
+  ]
+}

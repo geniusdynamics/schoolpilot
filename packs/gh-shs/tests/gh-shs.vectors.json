@@ -1,0 +1,142 @@
+{
+  "vectors": [
+    {
+      "name": "CA 24 of 30 and exam 56 of 70 total 80, the lower boundary of A",
+      "programme": "gh-shs",
+      "input": { "CA": "24/30", "EXAM": "56/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 80, "total": 80, "percent": 80, "grade": "A" } }
+    },
+    {
+      "name": "A total of 79 is the top of B",
+      "programme": "gh-shs",
+      "input": { "CA": "24/30", "EXAM": "55/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 79, "total": 79, "percent": 79, "grade": "B" } }
+    },
+    {
+      "name": "A total of 70 is the lower boundary of B",
+      "programme": "gh-shs",
+      "input": { "CA": "21/30", "EXAM": "49/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 70, "total": 70, "percent": 70, "grade": "B" } }
+    },
+    {
+      "name": "A total of 69 is the top of C",
+      "programme": "gh-shs",
+      "input": { "CA": "21/30", "EXAM": "48/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 69, "total": 69, "percent": 69, "grade": "C" } }
+    },
+    {
+      "name": "A total of 60 is the lower boundary of C",
+      "programme": "gh-shs",
+      "input": { "CA": "18/30", "EXAM": "42/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 60, "total": 60, "percent": 60, "grade": "C" } }
+    },
+    {
+      "name": "A total of 59 is the top of D",
+      "programme": "gh-shs",
+      "input": { "CA": "18/30", "EXAM": "41/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 59, "total": 59, "percent": 59, "grade": "D" } }
+    },
+    {
+      "name": "A total of 50 is the lower boundary of D",
+      "programme": "gh-shs",
+      "input": { "CA": "15/30", "EXAM": "35/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 50, "total": 50, "percent": 50, "grade": "D" } }
+    },
+    {
+      "name": "A total of 49 is the top of E",
+      "programme": "gh-shs",
+      "input": { "CA": "15/30", "EXAM": "34/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 49, "total": 49, "percent": 49, "grade": "E" } }
+    },
+    {
+      "name": "A total of 40 is the lower boundary of E",
+      "programme": "gh-shs",
+      "input": { "CA": "12/30", "EXAM": "28/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 40, "total": 40, "percent": 40, "grade": "E" } }
+    },
+    {
+      "name": "A total of 39 is the top of F",
+      "programme": "gh-shs",
+      "input": { "CA": "12/30", "EXAM": "27/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 39, "total": 39, "percent": 39, "grade": "F" } }
+    },
+    {
+      "name": "A total of 30 is the lower boundary of F",
+      "programme": "gh-shs",
+      "input": { "CA": "9/30", "EXAM": "21/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 30, "total": 30, "percent": 30, "grade": "F" } }
+    },
+    {
+      "name": "A total of 29 is the top of G",
+      "programme": "gh-shs",
+      "input": { "CA": "9/30", "EXAM": "20/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 29, "total": 29, "percent": 29, "grade": "G" } }
+    },
+    {
+      "name": "A total of 20 is the lower boundary of G",
+      "programme": "gh-shs",
+      "input": { "CA": "6/30", "EXAM": "14/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 20, "total": 20, "percent": 20, "grade": "G" } }
+    },
+    {
+      "name": "A total of 19 is U, ungraded",
+      "programme": "gh-shs",
+      "input": { "CA": "6/30", "EXAM": "13/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 19, "total": 19, "percent": 19, "grade": "U" } }
+    },
+    {
+      "name": "An exact total of 39.5 rounds half-up to 40 and is E",
+      "programme": "gh-shs",
+      "input": { "CA": "12/30", "EXAM": "27.5/70" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 39.5, "total": 40, "percent": 40, "grade": "E" } }
+    },
+    {
+      "name": "Raw marks out of 10 and 100 are scaled to 30 and 70 before they are added",
+      "programme": "gh-shs",
+      "input": { "CA": "8/10", "EXAM": "70/100" },
+      "expect": { "gh-shs-ca-exam": { "exact_total": 73, "total": 73, "percent": 73, "grade": "B" } }
+    },
+    {
+      "name": "Term total and average of six subjects, the average kept to two places",
+      "programme": "gh-shs",
+      "input": { "ENG": 75, "MAT": 62, "ISC": 58, "BIO": 81, "CHE": 49, "PHY": 70 },
+      "expect": { "term_total": { "value": 395 }, "term_average": { "value": 65.83 } }
+    },
+    {
+      "name": "Four credits among seven subjects, with English and Mathematics both credits",
+      "programme": "gh-shs",
+      "input": {
+        "ENG": { "grade": "C6" },
+        "MAT": { "grade": "B3" },
+        "ISC": { "grade": "A1" },
+        "BIO": { "grade": "C4" },
+        "CHE": { "grade": "D7" },
+        "PHY": { "grade": "E8" },
+        "GEO": { "grade": "F9" }
+      },
+      "expect": { "credits_count": { "value": 4 }, "core_credits": { "value": 2 } }
+    },
+    {
+      "name": "D7 in English is a pass, not a credit, so only Mathematics counts as a core credit",
+      "programme": "gh-shs",
+      "input": {
+        "ENG": { "grade": "D7" },
+        "MAT": { "grade": "C6" },
+        "ISC": { "grade": "B2" }
+      },
+      "expect": { "credits_count": { "value": 2 }, "core_credits": { "value": 1 } }
+    },
+    {
+      "name": "SHS 1 with a year average of 40 is suggested for promotion",
+      "programme": "gh-shs",
+      "input": { "leaving_level": "SHS1", "term_average": 40 },
+      "expect": { "progression": { "level": "SHS1", "rule": "class_council", "suggest": "promote", "next_level": "SHS2" } }
+    },
+    {
+      "name": "SHS 2 with a year average of 39 is referred to the council",
+      "programme": "gh-shs",
+      "input": { "leaving_level": "SHS2", "term_average": 39 },
+      "expect": { "progression": { "level": "SHS2", "rule": "class_council", "suggest": "refer_to_council", "next_level": "SHS3" } }
+    }
+  ]
+}

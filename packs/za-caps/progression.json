@@ -1,0 +1,34 @@
+{
+  "progression": [
+    {
+      "levels": ["GR"],
+      "rule": "automatic"
+    },
+    {
+      "levels": ["G1", "G2", "G3"],
+      "rule": "class_council",
+      "suggest": { "metric": "annual.HL", "gte": 50 }
+    },
+    {
+      "levels": ["G4", "G5", "G6", "G7", "G8", "G9"],
+      "rule": "threshold",
+      "conditions": [
+        { "metric": "annual.HL", "gte": 50 },
+        { "metric": "annual.FAL", "gte": 40 },
+        { "metric": "annual.MAT", "gte": 40 }
+      ],
+      "else": "repeat_or_council"
+    },
+    {
+      "levels": ["G10", "G11"],
+      "rule": "threshold",
+      "conditions": [
+        { "metric": "annual.HL", "gte": 40 }
+      ],
+      "else": "repeat_or_council"
+    }
+  ],
+  "graduation": [
+    { "levels": ["G12"], "rule": "graduate" }
+  ]
+}

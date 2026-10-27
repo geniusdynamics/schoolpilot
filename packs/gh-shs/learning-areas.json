@@ -1,0 +1,59 @@
+{
+  "learning_areas": [
+    { "code": "ENG", "name": "English Language", "short_name": "English", "kind": "core", "group": "languages", "levels": ["SHS1", "SHS2", "SHS3"] },
+    { "code": "MAT", "name": "Mathematics (Core)", "short_name": "Maths", "kind": "core", "group": "mathematics", "levels": ["SHS1", "SHS2", "SHS3"] },
+    { "code": "ISC", "name": "Integrated Science", "short_name": "Int Science", "kind": "core", "group": "sciences", "levels": ["SHS1", "SHS2", "SHS3"] },
+    { "code": "SOS", "name": "Social Studies", "short_name": "Social St", "kind": "core", "group": "humanities", "levels": ["SHS1", "SHS2", "SHS3"] },
+    { "code": "EMT", "name": "Mathematics (Elective)", "short_name": "Elect Maths", "kind": "elective", "group": "mathematics", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGS", "PGA", "PBU", "PAG", "PVO"] },
+    { "code": "BIO", "name": "Biology", "short_name": "Biology", "kind": "elective", "group": "sciences", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGS", "PAG", "PVO"] },
+    { "code": "CHE", "name": "Chemistry", "short_name": "Chemistry", "kind": "elective", "group": "sciences", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGS", "PTE", "PVO"] },
+    { "code": "PHY", "name": "Physics", "short_name": "Physics", "kind": "elective", "group": "sciences", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGS", "PAG", "PTE", "PVO"] },
+    { "code": "GEO", "name": "Geography", "short_name": "Geography", "kind": "elective", "group": "humanities", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA", "PGS", "PAG"] },
+    { "code": "GAG", "name": "General Agriculture", "short_name": "Gen Agric", "kind": "elective", "group": "agriculture", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PAG", "PGS"] },
+    { "code": "ICT", "name": "ICT (Elective)", "short_name": "ICT", "kind": "elective", "group": "technology", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA", "PGS", "PBU", "PAG", "PTE", "PVO"] },
+    { "code": "FRE", "name": "French", "short_name": "French", "kind": "elective", "group": "languages", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA", "PGS", "PBU", "PAG", "PTE", "PVO"] },
+    { "code": "ARA", "name": "Arabic", "short_name": "Arabic", "kind": "elective", "group": "languages", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA"] },
+    { "code": "LIT", "name": "Literature in English", "short_name": "Literature", "kind": "elective", "group": "languages", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA", "PBU", "PVO"] },
+    { "code": "GOV", "name": "Government", "short_name": "Government", "kind": "elective", "group": "humanities", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA"] },
+    { "code": "HIS", "name": "History", "short_name": "History", "kind": "elective", "group": "humanities", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA"] },
+    { "code": "CRS", "name": "Christian Religious Studies", "short_name": "CRS", "kind": "elective", "group": "humanities", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA"] },
+    { "code": "IRS", "name": "Islamic Religious Studies", "short_name": "IRS", "kind": "elective", "group": "humanities", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA"] },
+    { "code": "ECO", "name": "Economics", "short_name": "Economics", "kind": "elective", "group": "business", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PGA", "PBU", "PVO"] },
+    { "code": "BMG", "name": "Business Management", "short_name": "Bus Mgt", "kind": "elective", "group": "business", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PBU"] },
+    { "code": "FAC", "name": "Financial Accounting", "short_name": "Fin Acc", "kind": "elective", "group": "business", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PBU"] },
+    { "code": "PCA", "name": "Principles of Cost Accounting", "short_name": "Cost Acc", "kind": "elective", "group": "business", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PBU"] },
+    { "code": "TDR", "name": "Technical Drawing", "short_name": "Tech Drawing", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "AEL", "name": "Applied Electricity", "short_name": "Applied Elec", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "AUM", "name": "Auto Mechanics", "short_name": "Auto Mech", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "BCN", "name": "Building Construction", "short_name": "Building", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "ELT", "name": "Electronics", "short_name": "Electronics", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "MTW", "name": "Metalwork", "short_name": "Metalwork", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "WDW", "name": "Woodwork", "short_name": "Woodwork", "kind": "elective", "group": "technical", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PTE"] },
+    { "code": "MIL", "name": "Management in Living", "short_name": "Mgt in Living", "kind": "elective", "group": "vocational", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PVO"] },
+    { "code": "CLT", "name": "Clothing and Textiles", "short_name": "Clothing", "kind": "elective", "group": "vocational", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PVO"] },
+    { "code": "FNN", "name": "Foods and Nutrition", "short_name": "Foods", "kind": "elective", "group": "vocational", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PVO"] },
+    { "code": "GKA", "name": "General Knowledge in Art", "short_name": "Gen Art", "kind": "elective", "group": "vocational", "levels": ["SHS1", "SHS2", "SHS3"], "pathways": ["PVO"] }
+  ],
+  "competencies": [
+    { "code": "CTP", "name": "Critical thinking and problem solving", "kind": "core_competency" },
+    { "code": "CRI", "name": "Creativity and innovation", "kind": "core_competency" },
+    { "code": "COL", "name": "Communication and collaboration", "kind": "core_competency" },
+    { "code": "CIG", "name": "Cultural identity and global citizenship", "kind": "core_competency" },
+    { "code": "PDL", "name": "Personal development and leadership", "kind": "core_competency" },
+    { "code": "DIG", "name": "Digital literacy", "kind": "core_competency" }
+  ],
+  "combination_rules": [
+    {
+      "levels": ["SHS1", "SHS2", "SHS3"],
+      "rule": "core_all",
+      "of": ["ENG", "MAT", "ISC", "SOS"]
+    },
+    {
+      "levels": ["SHS1", "SHS2", "SHS3"],
+      "rule": "electives",
+      "count": 3,
+      "max": 4,
+      "from_pathway": true
+    }
+  ]
+}
