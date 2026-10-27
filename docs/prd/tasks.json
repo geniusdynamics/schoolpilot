@@ -4385,10 +4385,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "review",
-      "commit": "030aff7",
-      "notes": "worker on prd/P5-C02 from prd/P5-W2 | gate PASS, pushed prd/P5-C02; verifier running",
-      "completed_at": null
+      "status": "done",
+      "commit": "9bfc3f9",
+      "notes": "worker on prd/P5-C02 from prd/P5-W2 | gate PASS, pushed prd/P5-C02; verifier running | verified (approved): 33 vectors recomputed by hand, mutation checks caught, gate PASS. All grading boundaries, divisions, points and CA/exam weights draft (UNEB unreachable); UG holiday dates draft; PLE 2020 table and General Paper guidelines PDFs not readable; English/Maths division cap deliberately not modelled; Kiswahili labels unreviewed",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C03",
