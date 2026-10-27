@@ -1,0 +1,118 @@
+{
+  "schemes": [
+    {
+      "code": "gh-lower-primary",
+      "levels": ["B1", "B2", "B3"],
+      "slots": [
+        { "code": "CA", "label": "Continuous assessment", "kind": "cat", "scale_to": 100 }
+      ],
+      "learning_area_score": { "op": "sum", "of": ["CA"], "out_of": 100 },
+      "grading_scale": "gh_basic_5",
+      "missing": { "CA": "incomplete" },
+      "rounding": [{ "stage": "learning_area_score", "precision": 0, "mode": "half_up" }],
+      "overridable": ["slots.*.scale_to"]
+    },
+    {
+      "code": "gh-upper-primary",
+      "levels": ["B4", "B5", "B6"],
+      "slots": [
+        { "code": "CA", "label": "Continuous assessment", "kind": "cat", "scale_to": 50 },
+        { "code": "EXAM", "label": "End-of-term examination", "kind": "end_term", "scale_to": 50 }
+      ],
+      "learning_area_score": { "op": "sum", "of": ["CA", "EXAM"], "out_of": 100 },
+      "grading_scale": "gh_basic_5",
+      "missing": { "CA": "incomplete", "EXAM": "incomplete" },
+      "rounding": [{ "stage": "learning_area_score", "precision": 0, "mode": "half_up" }],
+      "overridable": ["slots.*.scale_to"]
+    },
+    {
+      "code": "gh-jhs",
+      "levels": ["B7", "B8"],
+      "slots": [
+        { "code": "CA", "label": "Continuous assessment", "kind": "cat", "scale_to": 35 },
+        { "code": "EXAM", "label": "End-of-year examination", "kind": "end_term", "scale_to": 65 }
+      ],
+      "learning_area_score": { "op": "sum", "of": ["CA", "EXAM"], "out_of": 100 },
+      "grading_scale": "gh_basic_5",
+      "missing": { "CA": "incomplete", "EXAM": "incomplete" },
+      "rounding": [{ "stage": "learning_area_score", "precision": 0, "mode": "half_up" }],
+      "overridable": ["slots.*.scale_to"]
+    },
+    {
+      "code": "gh-bece",
+      "levels": ["B9"],
+      "slots": [
+        { "code": "CA", "label": "Continuous assessment", "kind": "cat", "scale_to": 30 },
+        { "code": "EXAM", "label": "Examination", "kind": "end_term", "scale_to": 70 }
+      ],
+      "learning_area_score": { "op": "sum", "of": ["CA", "EXAM"], "out_of": 100 },
+      "grading_scale": "gh_basic_5",
+      "missing": { "CA": "incomplete", "EXAM": "incomplete" },
+      "rounding": [{ "stage": "learning_area_score", "precision": 0, "mode": "half_up" }],
+      "overridable": ["slots.*.scale_to"]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "gh_basic_5",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 80, "max": 100 },
+        { "code": "B", "label": "B", "min": 65, "max": 79 },
+        { "code": "C", "label": "C", "min": 45, "max": 64 },
+        { "code": "D", "label": "D", "min": 30, "max": 44 },
+        { "code": "E", "label": "E", "min": 0, "max": 29 }
+      ],
+      "verification": "NaCCA National Pre-tertiary Education Curriculum Framework (2019), Table 3 (lower primary) and Table 4 (upper primary and JHS): A 80+, B 65-79, C 45-64, D 30-44, E 0-29. The same section 8.5.4.1 of the framework prints a different school scale (A 80-100, B 70-79, C 60-69, D 45-59, E 35-44, U up to 34); this pack uses Tables 3 and 4 and the bands are school-overridable. Bands are whole marks, so each scheme rounds the learning-area total half-up to a whole mark before lookup."
+    },
+    {
+      "code": "gh_bece_9",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "1", "label": "1", "min": 9, "max": 9, "points": 9 },
+        { "code": "2", "label": "2", "min": 8, "max": 8, "points": 8 },
+        { "code": "3", "label": "3", "min": 7, "max": 7, "points": 7 },
+        { "code": "4", "label": "4", "min": 6, "max": 6, "points": 6 },
+        { "code": "5", "label": "5", "min": 5, "max": 5, "points": 5 },
+        { "code": "6", "label": "6", "min": 4, "max": 4, "points": 4 },
+        { "code": "7", "label": "7", "min": 3, "max": 3, "points": 3 },
+        { "code": "8", "label": "8", "min": 2, "max": 2, "points": 2 },
+        { "code": "9", "label": "9", "min": 1, "max": 1, "points": 1 }
+      ],
+      "verification": "WAEC Ghana (BECE for school candidates) states a nine-point numerical scale with Grade 1 the highest performance and Grade 9 the lowest; no percentage range was found in any fetched WAEC or GES document, so the grades are entered results, not computed from a mark. The band's points are the reverse of the grade (grade 1 is 9 points, grade 9 is 1 point) because the best-n operator keeps the highest values; the BECE aggregate is 60 minus the best six points. The descriptors name only the highest and the lowest grade."
+    }
+  ],
+  "aggregations": [
+    { "code": "term_total", "op": "sum", "value": "score", "precision": 2 },
+    { "code": "term_average", "op": "mean", "value": "score", "precision": 2 },
+    {
+      "code": "bece_aggregate",
+      "op": "best_n",
+      "n": 6,
+      "value": "points",
+      "groups": [
+        { "require_all": ["ENG", "MAT", "SCI", "SOC"] },
+        { "fill_from": "any" }
+      ],
+      "then": { "op": "sum", "precision": 0 }
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "scope": "class_group",
+    "by": "term_average",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": true,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "mean",
+    "of": ["T1", "T2", "T3"],
+    "missing": "renormalise"
+  }
+}

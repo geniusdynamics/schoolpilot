@@ -1,0 +1,27 @@
+{
+  "labels": {
+    "block.header": "Umbiko wesikole",
+    "block.learner": "Umfundi",
+    "block.attendance": "Ukuya esikoleni",
+    "block.results": "Imiphumela yezifundo",
+    "block.summary": "Isifinyezo",
+    "block.comments": "Amazwana",
+    "block.progression": "Umphumela wonyaka nokuqhubekela phambili",
+    "block.calendar": "Itemu elilandelayo liqala nini",
+    "block.fees": "Izimali zesikole",
+    "block.signatures": "Ukusayina",
+    "block.verification": "Ukuqinisekisa",
+    "report.za-term": "Umbiko wesikole"
+  },
+  "descriptors": {
+    "za_achievement_7": {
+      "7": "Impumelelo ephambili",
+      "6": "Impumelelo ethokozisayo",
+      "5": "Impumelelo enhle kakhulu",
+      "4": "Impumelelo eyanelisayo",
+      "3": "Impumelelo ephakathi nendawo",
+      "2": "Impumelelo eyisisekelo",
+      "1": "Akuzange kufezekiswe"
+    }
+  }
+}

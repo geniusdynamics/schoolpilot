@@ -1,0 +1,16 @@
+{
+  "labels": {
+    "block.header": "Sukuu amanneɛbɔ",
+    "block.learner": "Ɔsuani",
+    "block.attendance": "Sukuu mu ba",
+    "block.results": "Adesua mu nsusuiɛ",
+    "block.summary": "Nsɛm tiawa",
+    "block.comments": "Nsɛm a wɔka",
+    "block.progression": "Afe no mu nsusuiɛ ne akɔ so",
+    "block.calendar": "Bere a ɛto so no fi ase",
+    "block.fees": "Sukuu ka",
+    "block.signatures": "Nsa hyɛ",
+    "block.verification": "Nokwaredi hwɛ",
+    "report.gh-basic-term": "Sukuu amanneɛbɔ a ɛfa bere no ho"
+  }
+}

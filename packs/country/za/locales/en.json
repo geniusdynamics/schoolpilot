@@ -1,0 +1,27 @@
+{
+  "labels": {
+    "country.za.identifier.id_number": "South African ID number",
+    "country.za.identifier.id_number.hint": "Thirteen digits, as printed on the ID.",
+    "country.za.identifier.lurits": "LURITS learner number",
+    "country.za.identifier.lurits.hint": "The learner number on the LURITS record.",
+    "country.za.identifier.tax_number": "SARS tax number",
+    "country.za.identifier.tax_number.hint": "The number on the SARS tax registration.",
+    "country.za.identifier.passport": "Passport number",
+    "country.za.identifier.passport.hint": "The number printed in the passport.",
+    "address.za.province": "Province",
+    "address.za.municipality": "Municipality",
+    "country.za.holiday.new_year": "New Year's Day",
+    "country.za.holiday.human_rights_day": "Human Rights Day",
+    "country.za.holiday.good_friday": "Good Friday",
+    "country.za.holiday.family_day": "Family Day",
+    "country.za.holiday.freedom_day": "Freedom Day",
+    "country.za.holiday.workers_day": "Workers' Day",
+    "country.za.holiday.youth_day": "Youth Day",
+    "country.za.holiday.womens_day": "National Women's Day",
+    "country.za.holiday.heritage_day": "Heritage Day",
+    "country.za.holiday.reconciliation_day": "Day of Reconciliation",
+    "country.za.holiday.christmas_day": "Christmas Day",
+    "country.za.holiday.goodwill_day": "Day of Goodwill",
+    "country.za.return.emp201": "Monthly employer declaration (EMP201)"
+  }
+}

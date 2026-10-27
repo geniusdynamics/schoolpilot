@@ -1,0 +1,85 @@
+{
+  "schemes": [
+    {
+      "code": "gh-shs-ca-exam",
+      "levels": ["SHS1", "SHS2", "SHS3"],
+      "slots": [
+        { "code": "CA", "label": "Continuous assessment", "kind": "cat", "scale_to": 30 },
+        { "code": "EXAM", "label": "End-of-term examination", "kind": "end_term", "scale_to": 70 }
+      ],
+      "learning_area_score": { "op": "sum", "of": ["CA", "EXAM"], "out_of": 100 },
+      "grading_scale": "gh_shs_letter",
+      "missing": { "CA": "incomplete", "EXAM": "incomplete" },
+      "rounding": [{ "stage": "learning_area_score", "precision": 0, "mode": "half_up" }],
+      "overridable": ["slots.*.scale_to"]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "gh_shs_letter",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 80, "max": 100 },
+        { "code": "B", "label": "B", "min": 70, "max": 79 },
+        { "code": "C", "label": "C", "min": 60, "max": 69 },
+        { "code": "D", "label": "D", "min": 50, "max": 59 },
+        { "code": "E", "label": "E", "min": 40, "max": 49 },
+        { "code": "F", "label": "F", "min": 30, "max": 39 },
+        { "code": "G", "label": "G", "min": 20, "max": 29 },
+        { "code": "U", "label": "U", "min": 0, "max": 19 }
+      ],
+      "verification": "NaCCA National Pre-tertiary Education Curriculum Framework (2019), Table 5, the scale of achievement at SHS: A 80+, B 70-79, C 60-69, D 50-59, E 40-49, F 30-39, G 20-29, U 0-19. The framework says the A to G scale is used for the WASSCE with U for ungraded; WAEC's own grades are A1 to F9 (scale gh_wassce_9). Bands are whole marks, so the scheme rounds the learning-area total half-up to a whole mark before lookup, and they are school-overridable."
+    },
+    {
+      "code": "gh_wassce_9",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A1", "label": "A1", "min": 9, "max": 9, "points": 9 },
+        { "code": "B2", "label": "B2", "min": 8, "max": 8, "points": 8 },
+        { "code": "B3", "label": "B3", "min": 7, "max": 7, "points": 7 },
+        { "code": "C4", "label": "C4", "min": 6, "max": 6, "points": 6 },
+        { "code": "C5", "label": "C5", "min": 5, "max": 5, "points": 5 },
+        { "code": "C6", "label": "C6", "min": 4, "max": 4, "points": 4 },
+        { "code": "D7", "label": "D7", "min": 3, "max": 3, "points": 3 },
+        { "code": "E8", "label": "E8", "min": 2, "max": 2, "points": 2 },
+        { "code": "F9", "label": "F9", "min": 1, "max": 1, "points": 1 }
+      ],
+      "verification": "The WASSCE grades A1 to F9 as WAEC awards them. WAEC Ghana publishes no percentage range in any fetched document, so the grades are entered results, not computed from a mark. The points rank the grades from nine (A1) to one (F9) and are not an admission score. The descriptors are the common remarks (Excellent to Fail) and are draft."
+    }
+  ],
+  "aggregations": [
+    { "code": "term_total", "op": "sum", "value": "score", "precision": 2 },
+    { "code": "term_average", "op": "mean", "value": "score", "precision": 2 },
+    {
+      "code": "credits_count",
+      "op": "count_where",
+      "value": "grade",
+      "where": { "op": "in", "values": ["A1", "B2", "B3", "C4", "C5", "C6"] }
+    },
+    {
+      "code": "core_credits",
+      "op": "count_where",
+      "value": "grade",
+      "over": ["ENG", "MAT"],
+      "where": { "op": "in", "values": ["A1", "B2", "B3", "C4", "C5", "C6"] }
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "scope": "class_group",
+    "by": "term_average",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": true,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "mean",
+    "of": ["T1", "T2", "T3"],
+    "missing": "renormalise"
+  }
+}

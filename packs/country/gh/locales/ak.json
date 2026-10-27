@@ -1,0 +1,24 @@
+{
+  "labels": {
+    "country.gh.identifier.ghana_card": "Ghana Card nɔma",
+    "country.gh.identifier.ghana_card.hint": "Nɔma a ɛwɔ Ghana Card no so.",
+    "country.gh.identifier.birth_certificate": "Awo nkrataa nɔma",
+    "country.gh.identifier.birth_certificate.hint": "Nɔma a ɛwɔ awo nkrataa no so.",
+    "country.gh.identifier.tin": "Tako ntuafo nɔma (TIN)",
+    "country.gh.identifier.tin.hint": "Nɔma a ɛwɔ tako nkrataa no so.",
+    "country.gh.identifier.ssnit_number": "SSNIT nɔma",
+    "country.gh.identifier.ssnit_number.hint": "Nɔma a ɛwɔ SSNIT kaad no so.",
+    "country.gh.identifier.passport": "Pasipɔɔte nɔma",
+    "country.gh.identifier.passport.hint": "Nɔma a wɔakyerɛw wɔ pasipɔɔte no mu.",
+    "address.gh.region": "Mantam",
+    "address.gh.district": "Mansin",
+    "country.gh.holiday.new_year": "Afe Foforo Da",
+    "country.gh.holiday.independence_day": "Ahofadi Da",
+    "country.gh.holiday.good_friday": "Fida Pa",
+    "country.gh.holiday.easter_monday": "Easter Dwoda",
+    "country.gh.holiday.may_day": "Adwumayɛfo Da (Mayi 1)",
+    "country.gh.holiday.christmas_day": "Kristmas Da",
+    "country.gh.holiday.boxing_day": "Boxing Da",
+    "country.gh.return.paye": "PAYE amanneɛbɔ"
+  }
+}

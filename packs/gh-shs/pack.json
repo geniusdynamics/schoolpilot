@@ -1,0 +1,47 @@
+{
+  "code": "gh-shs",
+  "name": "Ghana Senior High School - SHS 1 to SHS 3 (WASSCE)",
+  "version": "1.0.0",
+  "country": "GH",
+  "issuers": [
+    "NaCCA",
+    "Ghana Education Service",
+    "WAEC Ghana"
+  ],
+  "effective_from": "2025-09-01",
+  "languages": [
+    "en",
+    "ak"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "WASSCE for school candidates: the four core subjects, the programmes and options with their electives, three or four electives",
+      "issuer": "WAEC Ghana",
+      "url": "https://waecgh.org/home/wassce-school/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "National Pre-tertiary Education Curriculum Framework (2019): section 8 on assessment, Table 5 (SHS bands A to G and U), CA 30 percent",
+      "issuer": "NaCCA",
+      "url": "https://nacca.gov.gh/wp-content/uploads/2019/04/National-Pre-tertiary-Education-Curriculum-Framework-final.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Subject Combination Guidelines for Secondary Education: 7 to 9 subjects externally assessed (the NaCCA page summary was read, not the PDF)",
+      "issuer": "NaCCA",
+      "url": "https://nacca.gov.gh/subject-combination-guidelines-secondary-education/",
+      "retrieved": "2026-10-27"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a NaCCA, GES or WAEC Ghana officer. Firm (read 2026-10-27): the four WASSCE core subjects, the six programmes and a selection of their electives, three or four electives per candidate, NaCCA's SHS letter bands (Table 5) and its 30 percent continuous assessment. Open items, all listed in the README: (1) no percentage range for the WASSCE grades A1 to F9 was found, so none is modelled; the grades are entered results. (2) The elective list is a selection, not the full set. (3) A credit being A1 to C6 is the common reading and is not stated in a fetched Ghanaian document; the admission aggregate is not modelled. (4) The framework's SHS core subjects differ from the four WAEC cores; WAEC is followed for the examination. (5) Nothing fetched states how many CA marks WAEC receives; the framework's 30 percent is used and is overridable. (6) Promotion is a class-council suggestion at an annual average of 40; no national rule was found. (7) The Akan (Twi) labels are a draft translation that no native speaker has reviewed."
+  },
+  "overridable": [
+    "grading_scales.gh_shs_letter.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}
