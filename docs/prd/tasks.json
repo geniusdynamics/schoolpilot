@@ -177,12 +177,14 @@
         "A": "i18n & l10n infrastructure",
         "B": "Locales",
         "C": "Country & curriculum packs",
-        "D": "Payroll pack interface"
+        "D": "Payroll pack interface",
+        "Q": "Follow-ups opened by the phase"
       },
       "waves": {
         "P5-W1": "i18n infrastructure and locale formats (may start during P1)",
         "P5-W2": "Calendars, Kiswahili and French, country pack format",
-        "P5-W3": "Portuguese/Arabic, Africa curriculum packs, payroll interface; phase exit"
+        "P5-W3": "Portuguese/Arabic, Africa curriculum packs, payroll interface; phase exit",
+        "P5-W4": "Follow-ups opened by the phase exit"
       },
       "exit_criteria": [
         "sw, fr, pt, ar (RTL) locales complete for core flows; no hard-coded curriculum terms in core",
@@ -192,7 +194,7 @@
       ],
       "status": "not_started",
       "start_after": "P0-W5",
-      "completed_at": null
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P6",
@@ -4861,6 +4863,112 @@
       "commit": "082b71b",
       "notes": "Opened during W3 close-out per EXECUTION.md §9 (a flaky test gets a Q task) and the H03 reviewer's finding that --base <sha>^ silently gates zero files on Windows.",
       "completed_at": "2026-10-18"
+    },
+    {
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "deferred",
+      "commit": "",
+      "completed_at": null,
+      "id": "P5-Q01",
+      "phase": "P5",
+      "wave": "P5-W4",
+      "lane": "Q",
+      "size": "M",
+      "title": "Make the gate's own Windows-only suites skippable on Windows, and fix the crawlCrashPages hang",
+      "depends_on": [],
+      "files": [
+        "scripts/prd/__tests__/*",
+        "scripts/prd/fix-encoding.test.mjs",
+        "src/tests/crawlCrashPages.smoke.test.tsx"
+      ],
+      "acceptance": [
+        "node scripts/prd/gate.mjs phase measures P1 on Windows with the same failure set as CI"
+      ],
+      "test": "The gate phase run itself",
+      "reqs": [
+        "NFR-08"
+      ],
+      "notes": "Opened by the P5 phase exit: P1 could not be measured locally (6 failed files vs baseline 4; four Windows-only, two load flakes). | opened by the P5 phase exit as a follow-up; carried forward, not part of P5's exit bar"
+    },
+    {
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "deferred",
+      "commit": "",
+      "completed_at": null,
+      "id": "P5-Q02",
+      "phase": "P5",
+      "wave": "P5-W4",
+      "lane": "Q",
+      "size": "S",
+      "title": "Ghana bece_aggregate: rename to the points total, or make 60-minus expressible",
+      "depends_on": [],
+      "files": [
+        "packs/gh-sbc/*",
+        "packs/schema/aggregation.schema.json"
+      ],
+      "acceptance": [
+        "A consumer of the aggregation reads the BECE aggregate (13), not the points total (47)"
+      ],
+      "test": "Pack vectors",
+      "reqs": [],
+      "notes": "Verifier finding on P5-C05. | opened by the P5 phase exit as a follow-up; carried forward, not part of P5's exit bar"
+    },
+    {
+      "findings": [],
+      "spec": "",
+      "deps_install": false,
+      "status": "deferred",
+      "commit": "",
+      "completed_at": null,
+      "id": "P5-Q03",
+      "phase": "P5",
+      "wave": "P5-W4",
+      "lane": "Q",
+      "size": "S",
+      "title": "Francophone progression and term window against circular 268 and the spec",
+      "depends_on": [],
+      "files": [
+        "packs/fr-africa-ci/*",
+        "packs/fr-africa-sn/*"
+      ],
+      "acceptance": [
+        "CI 8.50-9.49 repeats and below 8.50 is excluded; SN term window matches the spec (October to July)"
+      ],
+      "test": "Pack vectors",
+      "reqs": [],
+      "notes": "Verifier findings on P5-C06. | opened by the P5 phase exit as a follow-up; carried forward, not part of P5's exit bar"
+    },
+    {
+      "findings": [],
+      "spec": "05 §9",
+      "deps_install": false,
+      "status": "deferred",
+      "commit": "",
+      "completed_at": null,
+      "id": "P5-Q04",
+      "phase": "P5",
+      "wave": "P5-W4",
+      "lane": "Q",
+      "size": "L",
+      "title": "Wire the payroll pack to the HR pages and the packs' report templates to report rendering",
+      "depends_on": [],
+      "files": [
+        "src/modules/hr/**",
+        "src/domain/payroll/**",
+        "src/domain/reports/**"
+      ],
+      "acceptance": [
+        "A payslip for a real staff profile is produced from the pack; a pack report template renders"
+      ],
+      "test": "Integration test",
+      "reqs": [
+        "FR-25"
+      ],
+      "notes": "The packs are data only today; nothing in the app consumes them. | opened by the P5 phase exit as a follow-up; carried forward, not part of P5's exit bar"
     }
   ]
 }

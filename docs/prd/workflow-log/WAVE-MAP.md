@@ -31,17 +31,12 @@ wave lands, not at the end.
 | P2 | 22/22 done, merged. |
 | P3 | 20/20 done, merged; phase-complete log written (#52). |
 | P4 | 12/12 done, merged; phase-complete log written (#52). |
-| P5 | 2/13 done. **W1 merged** (#47 A01, #50 A02). **W2 in flight** — A03, B01, B02, C01, below. W3 (B03, C02-C06, D01) waits on W2. |
-| P6 | 0/11. Its dependencies (P2, P3, P4) are done, so P6-W1 is runnable; it is queued behind P5. |
+| P5 | **13/13 done and merged; phase complete** (`P5-phase-complete-2026-10-27.md`). Four follow-ups opened as P5-Q01..Q04 and deferred. |
+| P6 | 0/11. W1 is runnable; several tasks need owner decisions (licence DR-03, pilot schools, 1.0 release). |
 
 ## In flight
 
-| Wave | Task | Branch | State |
-| --- | --- | --- | --- |
-| P5-W2 | A03 Ethiopian calendar and calendar abstraction in the date fields | `prd/P5-A03` | implemented (`949c97b`), gate running, then independent verification |
-| P5-W2 | B01 Kiswahili locale, core flows and the ke packs, with a completeness check | `prd/P5-B01` | implementer working |
-| P5-W2 | B02 French locale (reuses B01's checker) | `prd/P5-B02` | after B01 |
-| P5-W2 | C01 country pack format and the KE country pack | `prd/P5-C01` | implementer working |
+Nothing. P5's four waves and the three UI pull requests (#54, #55, #56) are merged into `consolidation`; the next work is P6.
 
 The wave branch is `prd/P5-W2`: tasks are integrated into it one at a time once verified, and it becomes one PR.
 
