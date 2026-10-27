@@ -1,0 +1,118 @@
+{
+  "stages": [
+    {
+      "code": "PRI",
+      "name": "Primary (P1 to P7)",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "P1",
+      "name": "Primary 1",
+      "ordinal": 1,
+      "typical_age": 6,
+      "next": "P2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P2",
+      "name": "Primary 2",
+      "ordinal": 2,
+      "typical_age": 7,
+      "next": "P3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P3",
+      "name": "Primary 3",
+      "ordinal": 3,
+      "typical_age": 8,
+      "next": "P4",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P4",
+      "name": "Primary 4",
+      "ordinal": 4,
+      "typical_age": 9,
+      "next": "P5",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P5",
+      "name": "Primary 5",
+      "ordinal": 5,
+      "typical_age": 10,
+      "next": "P6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P6",
+      "name": "Primary 6",
+      "ordinal": 6,
+      "typical_age": 11,
+      "next": "P7",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "P7",
+      "name": "Primary 7",
+      "ordinal": 7,
+      "typical_age": 12,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "PLE"
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "calendar_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term 1",
+        "typical": [
+          "02-01",
+          "05-01"
+        ]
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Term 2",
+        "typical": [
+          "05-25",
+          "08-28"
+        ]
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Term 3",
+        "typical": [
+          "09-14",
+          "12-04"
+        ]
+      }
+    ],
+    "note": "The Ministry of Education and Sports publishes exact term dates each year; the setup wizard pre-fills these typical windows and the school confirms. The windows are approximate and unconfirmed. P7 candidates sit the PLE in Term 3."
+  }
+}

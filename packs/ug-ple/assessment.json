@@ -1,0 +1,200 @@
+{
+  "schemes": [
+    {
+      "code": "ug-ple-internal",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "slots": [
+        {
+          "code": "CA",
+          "label": "Continuous assessment",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 30
+        },
+        {
+          "code": "ET",
+          "label": "End-of-term examination",
+          "kind": "end_term",
+          "scale_to": 70
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CA",
+          "ET"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "ple_subject",
+      "missing": {
+        "CA": "exclude",
+        "ET": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "ple_subject",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "D1",
+          "label": "D1",
+          "min": 90,
+          "max": 100,
+          "points": 1
+        },
+        {
+          "code": "D2",
+          "label": "D2",
+          "min": 80,
+          "max": 89,
+          "points": 2
+        },
+        {
+          "code": "C3",
+          "label": "C3",
+          "min": 70,
+          "max": 79,
+          "points": 3
+        },
+        {
+          "code": "C4",
+          "label": "C4",
+          "min": 60,
+          "max": 69,
+          "points": 4
+        },
+        {
+          "code": "C5",
+          "label": "C5",
+          "min": 55,
+          "max": 59,
+          "points": 5
+        },
+        {
+          "code": "C6",
+          "label": "C6",
+          "min": 50,
+          "max": 54,
+          "points": 6
+        },
+        {
+          "code": "P7",
+          "label": "P7",
+          "min": 45,
+          "max": 49,
+          "points": 7
+        },
+        {
+          "code": "P8",
+          "label": "P8",
+          "min": 40,
+          "max": 44,
+          "points": 8
+        },
+        {
+          "code": "F9",
+          "label": "F9",
+          "min": 0,
+          "max": 39,
+          "points": 9
+        }
+      ],
+      "verification": "The grade symbols and their points (D1 is 1 to F9 is 9, lower is better) follow platform spec 03 Appendix D. The percent boundaries are NOT confirmed against a UNEB source: no UNEB document with PLE cut-offs could be retrieved, so these are a school-overridable default for internal reports, not UNEB's boundaries. UNEB awards the national grade itself."
+    },
+    {
+      "code": "ple_divisions",
+      "kind": "numeric_bands",
+      "input": "aggregate",
+      "upper": "inclusive",
+      "bands": [
+        {
+          "code": "I",
+          "label": "Division I",
+          "min": 4,
+          "max": 12
+        },
+        {
+          "code": "II",
+          "label": "Division II",
+          "min": 13,
+          "max": 23
+        },
+        {
+          "code": "III",
+          "label": "Division III",
+          "min": 24,
+          "max": 29
+        },
+        {
+          "code": "IV",
+          "label": "Division IV",
+          "min": 30,
+          "max": 34
+        },
+        {
+          "code": "U",
+          "label": "Ungraded",
+          "min": 35,
+          "max": 36
+        }
+      ],
+      "verification": "UNEB's PLE 2020 divisional score distribution table confirms the divisions 1, 2, 3, 4, U and X (X is a candidate with no result and is not a band here). The aggregate range 4 to 36 comes from platform spec 03 Appendix D. The ranges I 4-12, II 13-23, III 24-29, IV 30-34 and U 35-36 are NOT confirmed against a UNEB source and stay draft; check them against the current UNEB circular before a school relies on a division."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "ple_division",
+      "op": "sum",
+      "over": [
+        "ENG",
+        "MTC",
+        "SCI",
+        "SST"
+      ],
+      "value": "grade_points",
+      "result_scale": "ple_divisions"
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "ple_division",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

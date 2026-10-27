@@ -1,0 +1,56 @@
+{
+  "vectors": [
+    {
+      "name": "Continuous assessment 16 and an exam of 64 total 80 and reach A",
+      "programme": "ug-lsc",
+      "input": { "CA.CA1": "16/20", "ET": "64/80" },
+      "expect": {
+        "ug-lsc-internal": { "exact_total": 80, "total": 80, "percent": 80, "grade": "A", "points": 5 }
+      }
+    },
+    {
+      "name": "A total of 79.5 rounds up to 80 and reaches A",
+      "programme": "ug-lsc",
+      "input": { "CA.CA1": "20/20", "ET": "59.5/80" },
+      "expect": {
+        "ug-lsc-internal": { "exact_total": 79.5, "total": 80, "percent": 80, "grade": "A", "points": 5 }
+      }
+    },
+    {
+      "name": "A total of 79.4 rounds down to 79 and stays in B",
+      "programme": "ug-lsc",
+      "input": { "CA.CA1": "20/20", "ET": "59.4/80" },
+      "expect": {
+        "ug-lsc-internal": { "exact_total": 79.4, "total": 79, "percent": 79, "grade": "B", "points": 4 }
+      }
+    },
+    {
+      "name": "Two continuous assessments average before scaling, total 49.5 rounds to 50 and reaches C",
+      "programme": "ug-lsc",
+      "input": { "CA.CA1": "10/20", "CA.CA2": "15/20", "ET": "37/80" },
+      "expect": {
+        "ug-lsc-internal": { "exact_total": 49.5, "total": 50, "percent": 50, "grade": "C", "points": 3 }
+      }
+    },
+    {
+      "name": "A total of 34.4 rounds to 34 and is the top of E",
+      "programme": "ug-lsc",
+      "input": { "CA.CA1": "10/20", "ET": "24.4/80" },
+      "expect": {
+        "ug-lsc-internal": { "exact_total": 34.4, "total": 34, "percent": 34, "grade": "E", "points": 1 }
+      }
+    },
+    {
+      "name": "A mean of 72 percent over three subjects is grade B",
+      "programme": "ug-lsc",
+      "input": { "ENG": 70, "MAT": 72, "BIO": 74 },
+      "expect": { "lsc_mean_percent": { "value": 72, "grade": "B", "points": 4 } }
+    },
+    {
+      "name": "Leaving Senior 3 is an automatic promotion to Senior 4",
+      "programme": "ug-lsc",
+      "input": { "leaving_level": "S3" },
+      "expect": { "progression": { "level": "S3", "rule": "automatic", "next_level": "S4" } }
+    }
+  ]
+}

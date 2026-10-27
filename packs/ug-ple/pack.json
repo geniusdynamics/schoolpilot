@@ -1,0 +1,53 @@
+{
+  "code": "ug-ple",
+  "name": "Uganda Primary (P1 to P7) - Primary Leaving Examination",
+  "version": "1.0.0",
+  "country": "UG",
+  "issuers": [
+    "UNEB",
+    "NCDC",
+    "Ministry of Education and Sports"
+  ],
+  "effective_from": "2026-01-01",
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "PLE 2020 divisional score distribution table by district (Divisions 1, 2, 3, 4, U and X)",
+      "issuer": "UNEB",
+      "url": "http://web.archive.org/web/2026id_/https://uneb.ac.ug/wp-content/uploads/2021/07/PLE2020_SUMMARY_STATISTICS.pdf",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "UNEB home page and Directorate of Examinations (mandate: end-of-cycle examinations at primary and secondary level)",
+      "issuer": "UNEB",
+      "url": "http://web.archive.org/web/20261018080826/https://uneb.ac.ug/executive-director/directorte_of_examinations/",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "National Curriculum Development Centre (curriculum and assessment publications)",
+      "issuer": "NCDC",
+      "url": "https://ncdc.go.ug/",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "title": "School calendars (the 2026 calendar is published as a scanned PDF)",
+      "issuer": "Ministry of Education and Sports",
+      "url": "https://www.education.go.ug/school-calendars/",
+      "retrieved": "2026-10-26"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a UNEB or NCDC officer. Confirmed from a UNEB document: the PLE reports divisions 1, 2, 3, 4, U and X. Taken from platform spec 03 Appendix D and not confirmed against a UNEB source: four examined subjects (English, Mathematics, Science, Social Studies), grades D1 (1) to F9 (9), aggregate 4 to 36. NOT confirmed (UNEB's live site was unreachable and its archived pages carry no grading rules): the division ranges (I 4-12, II 13-23, III 24-29, IV 30-34, U 35-36), the percent boundaries of the nine grades, the school-internal CA/exam weights, the term windows, and whether a failed English or Mathematics caps the division (no fail_if rule is modelled). The grade-to-percent scale is a school-overridable default, not a UNEB boundary: UNEB awards PLE grades itself from the candidate's marks."
+  },
+  "overridable": [
+    "grading_scales.ple_subject.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

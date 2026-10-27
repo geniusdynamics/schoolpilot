@@ -63,20 +63,7 @@ function packAddressSchema(country: string): CountryAddressSchema {
  */
 const ADDRESS_SCHEMAS: Readonly<Record<string, CountryAddressSchema>> = {
   KE: packAddressSchema('KE'),
-  UG: {
-    country: 'UG',
-    levels: [
-      { key: 'district', labelKey: 'address.ug.district', required: true },
-      { key: 'sub_county', labelKey: 'address.ug.sub_county', required: true },
-      { key: 'parish', labelKey: 'address.ug.parish', required: false },
-    ],
-    hasCity: true,
-    cityRequired: false,
-    postalCodeRequired: false,
-    postalCodeLabelKey: POSTAL_LABEL,
-    line1LabelKey: LINE1_LABEL,
-    line2LabelKey: LINE2_LABEL,
-  },
+  UG: packAddressSchema('UG'),
   TZ: {
     country: 'TZ',
     levels: [

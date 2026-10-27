@@ -1,0 +1,33 @@
+{
+  "labels": {
+    "country.ug.identifier.lin": "Learner Identification Number (LIN)",
+    "country.ug.identifier.lin.hint": "The number on the learner's record, kept as written.",
+    "country.ug.identifier.birth_certificate": "Birth certificate number",
+    "country.ug.identifier.birth_certificate.hint": "The number printed on the birth certificate.",
+    "country.ug.identifier.nin": "National Identification Number (NIN)",
+    "country.ug.identifier.nin.hint": "Fourteen characters starting with CM or CF.",
+    "country.ug.identifier.tin": "Tax Identification Number (TIN)",
+    "country.ug.identifier.tin.hint": "Ten digits.",
+    "country.ug.identifier.nssf_number": "NSSF number",
+    "country.ug.identifier.nssf_number.hint": "The member number on the NSSF card.",
+    "country.ug.identifier.passport": "Passport number",
+    "country.ug.identifier.passport.hint": "The number printed in the passport.",
+    "address.ug.district": "District",
+    "address.ug.sub_county": "Sub-county",
+    "address.ug.parish": "Parish",
+    "country.ug.holiday.new_year": "New Year's Day",
+    "country.ug.holiday.nrm_liberation_day": "NRM Liberation Day",
+    "country.ug.holiday.janani_luwum_day": "Archbishop Janani Luwum Day",
+    "country.ug.holiday.womens_day": "International Women's Day",
+    "country.ug.holiday.good_friday": "Good Friday",
+    "country.ug.holiday.easter_monday": "Easter Monday",
+    "country.ug.holiday.labour_day": "Labour Day",
+    "country.ug.holiday.martyrs_day": "Uganda Martyrs' Day",
+    "country.ug.holiday.heroes_day": "National Heroes' Day",
+    "country.ug.holiday.independence_day": "Independence Day",
+    "country.ug.holiday.christmas_day": "Christmas Day",
+    "country.ug.holiday.boxing_day": "Boxing Day",
+    "country.ug.return.paye": "PAYE return",
+    "country.ug.return.nssf": "NSSF contribution return"
+  }
+}

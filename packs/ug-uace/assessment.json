@@ -1,0 +1,99 @@
+{
+  "schemes": [
+    {
+      "code": "ug-uace-internal",
+      "levels": ["S5", "S6"],
+      "slots": [
+        {
+          "code": "CA",
+          "label": "Continuous assessment",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 30
+        },
+        {
+          "code": "ET",
+          "label": "End-of-term examination",
+          "kind": "end_term",
+          "scale_to": 70
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": ["CA", "ET"],
+        "out_of": 100
+      },
+      "grading_scale": "uace_principal",
+      "missing": {
+        "CA": "exclude",
+        "ET": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "uace_principal",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 80, "max": 100, "points": 6 },
+        { "code": "B", "label": "B", "min": 70, "max": 79, "points": 5 },
+        { "code": "C", "label": "C", "min": 60, "max": 69, "points": 4 },
+        { "code": "D", "label": "D", "min": 50, "max": 59, "points": 3 },
+        { "code": "E", "label": "E", "min": 40, "max": 49, "points": 2 },
+        { "code": "O", "label": "O", "min": 35, "max": 39, "points": 1 },
+        { "code": "F", "label": "F", "min": 0, "max": 34, "points": 0 }
+      ],
+      "verification": "UNEB's 2022 statement of release confirms letter grades with a principal pass of A to E and an O grade below it. The points (A 6 to F 0) follow platform spec 03 Appendix D. The percent boundaries are NOT confirmed against a UNEB source: they are a school-overridable default for internal reports, not UNEB's boundaries."
+    },
+    {
+      "code": "uace_subsidiary",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "S", "label": "Subsidiary pass", "min": 50, "max": 100, "points": 1 },
+        { "code": "F", "label": "Subsidiary fail", "min": 0, "max": 49, "points": 0 }
+      ],
+      "verification": "Platform spec 03 Appendix D states that a subsidiary (General Paper, Subsidiary Mathematics or ICT) contributes 1 point on a pass. The pass mark of 50 percent is NOT confirmed against a UNEB source and is a school-overridable default."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "uace_points",
+      "op": "sum",
+      "value": "points",
+      "precision": 0
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "uace_points",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

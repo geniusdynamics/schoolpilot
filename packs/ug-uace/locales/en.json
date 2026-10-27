@@ -1,0 +1,45 @@
+{
+  "labels": {
+    "block.header": "School report",
+    "block.learner": "Student",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.summary": "Summary",
+    "block.comments": "Class teacher's comments",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.advanced-term": "Term report"
+  },
+  "descriptors": {
+    "uace_principal": {
+      "A": "Excellent: complete command of the syllabus.",
+      "B": "Very good: strong command of the syllabus.",
+      "C": "Good: sound command, some gaps.",
+      "D": "Fair: gaps in key topics.",
+      "E": "Principal pass: limited command, revise key topics.",
+      "O": "Subsidiary-level pass: weak, intensive support needed.",
+      "F": "Fail: foundational revision needed."
+    },
+    "uace_subsidiary": {
+      "S": "Subsidiary pass.",
+      "F": "Subsidiary fail."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A",
+      "text": "An excellent term. Keep the same discipline in every subject."
+    },
+    {
+      "scope": "overall",
+      "band": "D",
+      "text": "A fair term. Plan weekly revision for the topics marked."
+    },
+    {
+      "scope": "overall",
+      "band": "F",
+      "text": "A difficult term. Agree a revision plan with the class teacher."
+    }
+  ]
+}
