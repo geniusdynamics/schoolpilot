@@ -1,0 +1,28 @@
+{
+  "learning_areas": [
+    { "code": "MAT", "name": "Mathematics", "short_name": "Maths", "kind": "core", "group": "mathematics", "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "S1", "S2", "S3"] },
+    { "code": "KIN", "name": "Kinyarwanda", "short_name": "Kinyarwanda", "kind": "core", "group": "languages", "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "S1", "S2", "S3"] },
+    { "code": "ENG", "name": "English", "short_name": "English", "kind": "core", "group": "languages", "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "S1", "S2", "S3"] },
+    { "code": "SRS", "name": "Social and Religious Studies", "short_name": "Social Studies", "kind": "core", "group": "social", "levels": ["P1", "P2", "P3", "P4", "P5", "P6"] },
+    { "code": "SET", "name": "Science and Elementary Technology", "short_name": "Science", "kind": "core", "group": "sciences", "levels": ["P1", "P2", "P3", "P4", "P5", "P6"] },
+    { "code": "BIO", "name": "Biology", "short_name": "Biology", "kind": "core", "group": "sciences", "levels": ["S1", "S2", "S3"] },
+    { "code": "CHE", "name": "Chemistry", "short_name": "Chemistry", "kind": "core", "group": "sciences", "levels": ["S1", "S2", "S3"] },
+    { "code": "PHY", "name": "Physics", "short_name": "Physics", "kind": "core", "group": "sciences", "levels": ["S1", "S2", "S3"] },
+    { "code": "GEO", "name": "Geography", "short_name": "Geography", "kind": "core", "group": "social", "levels": ["S1", "S2", "S3"] },
+    { "code": "HIS", "name": "History", "short_name": "History", "kind": "core", "group": "social", "levels": ["S1", "S2", "S3"] },
+    { "code": "ENT", "name": "Entrepreneurship", "short_name": "Entrepreneurship", "kind": "core", "group": "business", "levels": ["S1", "S2", "S3"] }
+  ],
+  "competencies": [],
+  "combination_rules": [
+    {
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6"],
+      "rule": "core_all",
+      "of": ["MAT", "KIN", "ENG", "SRS", "SET"]
+    },
+    {
+      "levels": ["S1", "S2", "S3"],
+      "rule": "core_all",
+      "of": ["MAT", "BIO", "CHE", "PHY", "GEO", "HIS", "KIN", "ENG", "ENT"]
+    }
+  ]
+}

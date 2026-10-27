@@ -1,0 +1,74 @@
+{
+    "code":  "tz-national",
+    "name":  "Tanzania national curriculum - Standard I to VII and Form I to IV (PSLE and CSEE)",
+    "version":  "1.0.0",
+    "country":  "TZ",
+    "issuers":  [
+                    "NECTA",
+                    "Ministry of Education, Science and Technology"
+                ],
+    "effective_from":  "2026-01-01",
+    "languages":  [
+                      "en",
+                      "sw"
+                  ],
+    "requires_engine":  "\u003e=1.0.0",
+    "sources":  [
+                    {
+                        "title":  "Certificate of Secondary Education Examination (CSEE): the seven core subjects, the optional subjects, at most ten subjects per sitting, eligibility through the Form Two assessment",
+                        "issuer":  "National Examinations Council of Tanzania (NECTA)",
+                        "url":  "https://www.necta.go.tz/pages/csee",
+                        "retrieved":  "2026-10-27"
+                    },
+                    {
+                        "title":  "NECTA home page: the examination types SFNA, PSLE, FTNA, CSEE and ACSEE",
+                        "issuer":  "National Examinations Council of Tanzania (NECTA)",
+                        "url":  "https://www.necta.go.tz",
+                        "retrieved":  "2026-10-27"
+                    },
+                    {
+                        "title":  "PSLE 2024 item response analysis, Social Studies: five paper grades A to E over 50 marks, pass grades A to C (read from the search index; the PDF would not fetch)",
+                        "issuer":  "National Examinations Council of Tanzania (NECTA)",
+                        "url":  "https://www.necta.go.tz/publications/Performance%20Analysis%20Books/Candidates\u0027%20Item%20Response%20Analysis%20(CIRA)%20Reports%20/PSLE/2024/03E_SOCIAL_STUDIES_AND_VOCATIONAL_SKILLS.pdf",
+                        "retrieved":  "2026-10-27"
+                    },
+                    {
+                        "title":  "Format for the Primary School Leaving Examination, effective 2024: the six subjects (read from the search index; the PDF would not fetch)",
+                        "issuer":  "National Examinations Council of Tanzania (NECTA)",
+                        "url":  "https://necta.go.tz/publications/Approved%20Exam%20Formats/PSLE_FORMAT_ENGLISH_2024.pdf",
+                        "retrieved":  "2026-10-27"
+                    },
+                    {
+                        "title":  "How NECTA grading works: CSEE grades A to F with points 1 to 5, divisions from the best seven subjects (7-17, 18-21, 22-25, 26-33, 34 or more) (secondary)",
+                        "issuer":  "Matokeo",
+                        "url":  "https://matokeo.co/pages/how-grading-works/",
+                        "retrieved":  "2026-10-27"
+                    },
+                    {
+                        "title":  "CSEE grades A to F by mark and the division bands (secondary; read from the search index, same table as Matokeo)",
+                        "issuer":  "Msingi",
+                        "url":  "https://www.msingischool.com/grading/csee-division-calculator",
+                        "retrieved":  "2026-10-27"
+                    },
+                    {
+                        "title":  "NECTA new grading system for the 2023 curriculum (secondary blog: the tables are images and could not be read, so the page only shows that the grading was revised)",
+                        "issuer":  "Darasa Huru",
+                        "url":  "https://darasahuru.ac.tz/necta-new-grading-system-final-form-four-csee-exams/",
+                        "retrieved":  "2026-10-27"
+                    }
+                ],
+    "verification":  {
+                         "status":  "draft",
+                         "verified_by":  [
+
+                                         ],
+                         "notes":  "Draft, not reviewed by a NECTA or Ministry officer. Firmest: the seven CSEE core subjects, optional groups and ten-subject ceiling (NECTA CSEE page, fetched); exam names (NECTA home page, fetched); PSLE paper grades and six subjects (NECTA PDFs, search index only). Open: (1) CSEE marks A 75-100, B 65-74, C 45-64, D 30-44, F 0-29, points 1 to 5 and divisions 7-17, 18-21, 22-25, 26-33, 34-35 come from secondary sources that agree; no fetched NECTA document states them, and NECTA revised its grading for the 2023 curriculum (tables unreadable), so they may be out of date. (2) The division adds the seven core subjects only: NECTA takes the best seven by lowest points and best_n takes the highest values; a candidate with other best seven needs school-entered points. (3) Other division conditions (minimum passes, conduct, Civics) differ by source and are not modelled. (4) ACSEE, Form V and VI: not confirmed, not modelled. (5) NECTA\u0027s continuous-assessment weights were not found: each scheme is one term paper (50 marks Standard I-VII, 100 Form I-IV). (6) The six PSLE subjects apply to every standard; Standard VI\u0027s assessment is not modelled. (7) Technical and home-economics subjects are not all listed. (8) Term dates are pre-fills. (9) Promotion thresholds (21 of 50, 30 of 100) are the pass grade lower bounds, a suggestion, not a national rule. (10) Swahili labels are a draft no native speaker reviewed."
+                     },
+    "overridable":  [
+                        "grading_scales.tz_csee_subject.bands",
+                        "grading_scales.tz_psle_subject.bands",
+                        "assessment.schemes.*.slots.*.scale_to",
+                        "reports.*.page"
+                    ]
+}
+
