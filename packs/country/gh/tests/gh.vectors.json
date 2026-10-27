@@ -1,0 +1,46 @@
+{
+  "$comment": "Conformance vectors for the GH country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false; every Ghanaian scheme is free text, so a vector shows that a value is kept as written and that an empty one is refused. Holiday vectors give, for a year, every public holiday as the nominal date and the date it is observed on; the pack observes a weekend holiday on its own day, so the two are equal (draft, see README).",
+  "country": "GH",
+  "identifiers": [
+    { "scheme": "gh.ghana_card", "value": "GHA-000000000-0", "valid": true, "normalised": "GHA-000000000-0" },
+    { "scheme": "gh.ghana_card", "value": "  as printed  ", "valid": true, "normalised": "as printed" },
+    { "scheme": "gh.ghana_card", "value": "", "valid": false },
+    { "scheme": "gh.birth_certificate", "value": "BC-2015-00123", "valid": true, "normalised": "BC-2015-00123" },
+    { "scheme": "gh.birth_certificate", "value": "   ", "valid": false },
+    { "scheme": "gh.tin", "value": "C0012345678", "valid": true, "normalised": "C0012345678" },
+    { "scheme": "gh.ssnit_number", "value": "C123456789012", "valid": true, "normalised": "C123456789012" },
+    { "scheme": "gh.passport", "value": "G0123456", "valid": true, "normalised": "G0123456" }
+  ],
+  "easterSunday": {
+    "2024": "2024-03-31",
+    "2025": "2025-04-20",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "independence-day", "nominal": "2026-03-06", "observed": "2026-03-06" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "may-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "boxing-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "independence-day", "nominal": "2027-03-06", "observed": "2027-03-06" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "may-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "boxing-day", "nominal": "2027-12-26", "observed": "2027-12-26" }
+      ]
+    }
+  ]
+}

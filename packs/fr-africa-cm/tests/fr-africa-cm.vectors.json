@@ -1,0 +1,103 @@
+{
+  "vectors": [
+    {
+      "name": "A subject mark of 14.5 out of 20 stays 14.5",
+      "programme": "fr-africa-cm",
+      "input": { "MOY": "14.5/20" },
+      "expect": { "fr-moyenne-matiere": { "exact_total": 14.5, "total": 14.5 } }
+    },
+    {
+      "name": "A mark of 28 out of 40 is scaled to 14 out of 20",
+      "programme": "fr-africa-cm",
+      "input": { "MOY": "28/40" },
+      "expect": { "fr-moyenne-matiere": { "exact_total": 14, "total": 14 } }
+    },
+    {
+      "name": "Moyenne of 8.5 weighted 4 and 4 has no mention",
+      "programme": "fr-africa-cm",
+      "input": {
+        "MAT": { "score": 8, "coefficient": 4 },
+        "FRA": { "score": 9, "coefficient": 4 }
+      },
+      "expect": { "moyenne_trimestrielle": { "value": 8.5, "grade": "INS" } }
+    },
+    {
+      "name": "A single mark of 9.99 is the top of the insufficient band",
+      "programme": "fr-africa-cm",
+      "input": { "MAT": { "score": 9.99, "coefficient": 1 } },
+      "expect": { "moyenne_trimestrielle": { "value": 9.99, "grade": "INS" } }
+    },
+    {
+      "name": "A moyenne of exactly 10 is Passable",
+      "programme": "fr-africa-cm",
+      "input": {
+        "MAT": { "score": 10, "coefficient": 4 },
+        "FRA": { "score": 10, "coefficient": 4 }
+      },
+      "expect": { "moyenne_trimestrielle": { "value": 10, "grade": "P" } }
+    },
+    {
+      "name": "A moyenne of exactly 12 is Assez bien",
+      "programme": "fr-africa-cm",
+      "input": { "MAT": { "score": 12, "coefficient": 3 }, "ANG": { "score": 12, "coefficient": 2 } },
+      "expect": { "moyenne_trimestrielle": { "value": 12, "grade": "AB" } }
+    },
+    {
+      "name": "A moyenne of exactly 14 is Bien",
+      "programme": "fr-africa-cm",
+      "input": { "MAT": { "score": 14, "coefficient": 3 } },
+      "expect": { "moyenne_trimestrielle": { "value": 14, "grade": "B" } }
+    },
+    {
+      "name": "A moyenne of exactly 16 is Tres bien",
+      "programme": "fr-africa-cm",
+      "input": { "MAT": { "score": 16, "coefficient": 3 } },
+      "expect": { "moyenne_trimestrielle": { "value": 16, "grade": "TB" } }
+    },
+    {
+      "name": "A moyenne of 20 is Tres bien",
+      "programme": "fr-africa-cm",
+      "input": { "MAT": { "score": 20, "coefficient": 3 } },
+      "expect": { "moyenne_trimestrielle": { "value": 20, "grade": "TB" } }
+    },
+    {
+      "name": "Four subjects weighted 4, 3, 2 and 1 average 12.2",
+      "programme": "fr-africa-cm",
+      "input": {
+        "MAT": { "score": 14, "coefficient": 4 },
+        "FRA": { "score": 11, "coefficient": 3 },
+        "ANG": { "score": 8, "coefficient": 2 },
+        "EPS": { "score": 17, "coefficient": 1 }
+      },
+      "expect": { "moyenne_trimestrielle": { "value": 12.2, "grade": "AB" } }
+    },
+    {
+      "name": "Marks of 10, 10 and 11 average 10.33, kept to two places",
+      "programme": "fr-africa-cm",
+      "input": {
+        "MAT": { "score": 10, "coefficient": 1 },
+        "FRA": { "score": 10, "coefficient": 1 },
+        "ANG": { "score": 11, "coefficient": 1 }
+      },
+      "expect": { "moyenne_trimestrielle": { "value": 10.33, "grade": "P" } }
+    },
+    {
+      "name": "6e with an annual moyenne of 10 is suggested for promotion",
+      "programme": "fr-africa-cm",
+      "input": { "leaving_level": "6E", "moyenne": 10 },
+      "expect": { "progression": { "level": "6E", "rule": "class_council", "suggest": "promote", "next_level": "5E" } }
+    },
+    {
+      "name": "4e with an annual moyenne of 9.99 is referred to the council",
+      "programme": "fr-africa-cm",
+      "input": { "leaving_level": "4E", "moyenne": 9.99 },
+      "expect": { "progression": { "level": "4E", "rule": "class_council", "suggest": "refer_to_council", "next_level": "3E" } }
+    },
+    {
+      "name": "1re with an annual moyenne of 12 is suggested for promotion",
+      "programme": "fr-africa-cm",
+      "input": { "leaving_level": "1ERE", "moyenne": 12 },
+      "expect": { "progression": { "level": "1ERE", "rule": "class_council", "suggest": "promote", "next_level": "TLE" } }
+    }
+  ]
+}

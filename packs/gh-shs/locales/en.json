@@ -1,0 +1,44 @@
+{
+  "labels": {
+    "block.header": "Terminal report",
+    "block.learner": "Student",
+    "block.attendance": "Attendance",
+    "block.results": "Subject results",
+    "block.summary": "Summary",
+    "block.comments": "Comments",
+    "block.progression": "Year result and promotion",
+    "block.calendar": "Next term begins",
+    "block.fees": "Fees",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.gh-shs-term": "Senior high school terminal report"
+  },
+  "descriptors": {
+    "gh_shs_letter": {
+      "A": "Achieved the basic competences exceptionally well",
+      "B": "Achieved the basic competences very well",
+      "C": "Achieved the basic competences well",
+      "D": "Achieved the basic competences satisfactorily",
+      "E": "Achieved a sufficient number of basic competences to exceed the minimum level",
+      "F": "Achieved the basic competences needed to be considered competent",
+      "G": "Achieved the minimum number of basic competences worthy of a grade",
+      "U": "Did not achieve the minimum level of competence"
+    },
+    "gh_wassce_9": {
+      "A1": "Excellent",
+      "B2": "Very good",
+      "B3": "Good",
+      "C4": "Credit",
+      "C5": "Credit",
+      "C6": "Credit",
+      "D7": "Pass",
+      "E8": "Pass",
+      "F9": "Fail"
+    }
+  },
+  "comment_bank": [
+    { "scope": "overall", "band": "A", "text": "An excellent term. Keep up the same effort in every subject." },
+    { "scope": "overall", "band": "C", "text": "A fair term. More private study will lift the weaker subjects before the WASSCE." },
+    { "scope": "overall", "band": "U", "text": "A difficult term. Please meet the class teacher to agree a plan for extra support." }
+  ]
+}

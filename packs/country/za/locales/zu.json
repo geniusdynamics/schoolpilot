@@ -1,0 +1,27 @@
+{
+  "labels": {
+    "country.za.identifier.id_number": "Inombolo yobuntu yaseNingizimu Afrika",
+    "country.za.identifier.id_number.hint": "Izinombolo eziyishumi nantathu, njengoba ziphrintiwe ku-ID.",
+    "country.za.identifier.lurits": "Inombolo yomfundi ye-LURITS",
+    "country.za.identifier.lurits.hint": "Inombolo yomfundi ekurekhodi ye-LURITS.",
+    "country.za.identifier.tax_number": "Inombolo yentela ye-SARS",
+    "country.za.identifier.tax_number.hint": "Inombolo ekubhaliselweni kwentela ye-SARS.",
+    "country.za.identifier.passport": "Inombolo yephasiphothi",
+    "country.za.identifier.passport.hint": "Inombolo ebhalwe ephasiphothini.",
+    "address.za.province": "Isifundazwe",
+    "address.za.municipality": "Umasipala",
+    "country.za.holiday.new_year": "Usuku Lonyaka Omusha",
+    "country.za.holiday.human_rights_day": "Usuku Lwamalungelo Abantu",
+    "country.za.holiday.good_friday": "ULwesihlanu Olwemisa",
+    "country.za.holiday.family_day": "Usuku Lomndeni",
+    "country.za.holiday.freedom_day": "Usuku Lwenkululeko",
+    "country.za.holiday.workers_day": "Usuku Lwabasebenzi",
+    "country.za.holiday.youth_day": "Usuku Lwentsha",
+    "country.za.holiday.womens_day": "Usuku Lwabesifazane",
+    "country.za.holiday.heritage_day": "Usuku Lwamagugu Ethu",
+    "country.za.holiday.reconciliation_day": "Usuku Lokubuyisana",
+    "country.za.holiday.christmas_day": "Usuku Lukakhisimusi",
+    "country.za.holiday.goodwill_day": "Usuku Lomusa",
+    "country.za.return.emp201": "Ukubika kwenyanga komqashi (EMP201)"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "labels": {
+    "block.header": "School report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Subject results",
+    "block.summary": "Summary",
+    "block.comments": "Comments",
+    "block.progression": "Year result and promotion",
+    "block.calendar": "Next term begins",
+    "block.fees": "Fees",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.za-term": "School report"
+  },
+  "descriptors": {
+    "za_achievement_7": {
+      "7": "Outstanding achievement",
+      "6": "Meritorious achievement",
+      "5": "Substantial achievement",
+      "4": "Adequate achievement",
+      "3": "Moderate achievement",
+      "2": "Elementary achievement",
+      "1": "Not achieved"
+    }
+  },
+  "comment_bank": [
+    { "scope": "overall", "band": "7", "text": "An outstanding term. Keep up the same effort in every subject." },
+    { "scope": "overall", "band": "4", "text": "A fair term. More practice at home will lift the weaker subjects." },
+    { "scope": "overall", "band": "1", "text": "A difficult term. Please meet the class teacher to agree a plan for extra support." }
+  ]
+}

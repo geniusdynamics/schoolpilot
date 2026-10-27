@@ -1,0 +1,19 @@
+{
+  "labels": {
+    "country.cm.identifier.national_id": "National identity card number",
+    "country.cm.identifier.national_id.hint": "The number printed on the national identity card.",
+    "country.cm.identifier.birth_certificate": "Birth certificate number",
+    "country.cm.identifier.birth_certificate.hint": "The number printed on the birth certificate.",
+    "address.cm.region": "Region",
+    "address.cm.division": "Division",
+    "country.cm.holiday.new_year": "New Year's Day",
+    "country.cm.holiday.youth_day": "Youth Day",
+    "country.cm.holiday.good_friday": "Good Friday",
+    "country.cm.holiday.labour_day": "Labour Day",
+    "country.cm.holiday.ascension": "Ascension Day",
+    "country.cm.holiday.national_day": "National Day",
+    "country.cm.holiday.assumption": "Assumption Day",
+    "country.cm.holiday.christmas_day": "Christmas Day",
+    "country.cm.return.monthly": "Monthly tax declaration and payment"
+  }
+}

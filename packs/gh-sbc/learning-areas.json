@@ -1,0 +1,44 @@
+{
+  "learning_areas": [
+    { "code": "ENG", "name": "English Language", "short_name": "English", "kind": "core", "group": "languages", "levels": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "GHL", "name": "Ghanaian Language", "short_name": "Gh Language", "kind": "core", "group": "languages", "levels": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "MAT", "name": "Mathematics", "short_name": "Maths", "kind": "core", "group": "mathematics", "levels": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "SCI", "name": "Science", "short_name": "Science", "kind": "core", "group": "sciences", "levels": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "OWP", "name": "Our World Our People", "short_name": "OWOP", "kind": "core", "group": "social", "levels": ["B1", "B2", "B3", "B4", "B5", "B6"] },
+    { "code": "HIS", "name": "History", "short_name": "History", "kind": "core", "group": "social", "levels": ["B1", "B2", "B3", "B4", "B5", "B6"] },
+    { "code": "SOC", "name": "Social Studies", "short_name": "Social St", "kind": "core", "group": "social", "levels": ["B7", "B8", "B9"] },
+    { "code": "RME", "name": "Religious and Moral Education", "short_name": "RME", "kind": "core", "group": "religion", "levels": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "CRA", "name": "Creative Arts", "short_name": "Creative Arts", "kind": "core", "group": "arts", "levels": ["B1", "B2", "B3", "B4", "B5", "B6"] },
+    { "code": "CAD", "name": "Creative Arts and Design", "short_name": "Creative Arts", "kind": "core", "group": "arts", "levels": ["B7", "B8", "B9"] },
+    { "code": "PHE", "name": "Physical Education (Physical Education and Health at JHS)", "short_name": "PE", "kind": "core", "group": "health", "levels": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "COM", "name": "Computing", "short_name": "Computing", "kind": "core", "group": "technology", "levels": ["B4", "B5", "B6", "B7", "B8", "B9"] },
+    { "code": "CTE", "name": "Career Technology", "short_name": "Career Tech", "kind": "core", "group": "technology", "levels": ["B7", "B8", "B9"] },
+    { "code": "FRE", "name": "French", "short_name": "French", "kind": "optional", "group": "languages", "levels": ["B4", "B5", "B6", "B7", "B8", "B9"], "alternatives": ["ARA"] },
+    { "code": "ARA", "name": "Arabic", "short_name": "Arabic", "kind": "optional", "group": "languages", "levels": ["B7", "B8", "B9"], "alternatives": ["FRE"] }
+  ],
+  "competencies": [
+    { "code": "CTP", "name": "Critical thinking and problem solving", "kind": "core_competency" },
+    { "code": "CRI", "name": "Creativity and innovation", "kind": "core_competency" },
+    { "code": "COL", "name": "Communication and collaboration", "kind": "core_competency" },
+    { "code": "CIG", "name": "Cultural identity and global citizenship", "kind": "core_competency" },
+    { "code": "PDL", "name": "Personal development and leadership", "kind": "core_competency" },
+    { "code": "DIG", "name": "Digital literacy", "kind": "core_competency" }
+  ],
+  "combination_rules": [
+    {
+      "levels": ["B1", "B2", "B3"],
+      "rule": "core_all",
+      "of": ["ENG", "GHL", "MAT", "SCI", "OWP", "HIS", "RME", "CRA", "PHE"]
+    },
+    {
+      "levels": ["B4", "B5", "B6"],
+      "rule": "core_all",
+      "of": ["ENG", "GHL", "MAT", "SCI", "OWP", "HIS", "RME", "CRA", "PHE", "COM"]
+    },
+    {
+      "levels": ["B7", "B8", "B9"],
+      "rule": "core_all",
+      "of": ["ENG", "GHL", "MAT", "SCI", "SOC", "RME", "CAD", "PHE", "COM", "CTE"]
+    }
+  ]
+}

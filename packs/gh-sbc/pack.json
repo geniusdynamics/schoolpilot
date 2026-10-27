@@ -1,0 +1,65 @@
+{
+  "code": "gh-sbc",
+  "name": "Ghana Basic Education - Basic 1 to JHS 3 (Standards-Based and Common Core curricula, BECE)",
+  "version": "1.0.0",
+  "country": "GH",
+  "issuers": [
+    "NaCCA",
+    "Ghana Education Service",
+    "WAEC Ghana"
+  ],
+  "effective_from": "2025-09-01",
+  "languages": [
+    "en",
+    "ak"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "National Pre-tertiary Education Curriculum Framework (2019): section 8 on assessment, Tables 3 to 7 (grade bands, CA and exam weights)",
+      "issuer": "NaCCA",
+      "url": "https://nacca.gov.gh/wp-content/uploads/2019/04/National-Pre-tertiary-Education-Curriculum-Framework-final.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Common Core Programme (CCP): the subject curricula for JHS 1 (Basic 7) to JHS 3 (Basic 9)",
+      "issuer": "NaCCA",
+      "url": "https://nacca.gov.gh/common-core-programme-ccp/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "New Standards-Based Curriculum (2019): subject curricula for Basic 1 to Basic 6",
+      "issuer": "NaCCA",
+      "url": "https://nacca.gov.gh/learning-areas-subjects/new-standards-based-curriculum-2019/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "BECE for school candidates: subjects, 30% CA and 70% external examination, nine-point scale with Grade 1 the highest",
+      "issuer": "WAEC Ghana",
+      "url": "https://waecgh.org/home/bece-school/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Regulations, Scheme and Structure of Examination for the Basic Education Certificate Examination (from 2024)",
+      "issuer": "WAEC Ghana",
+      "url": "https://waecgh.org/wp-content/uploads/2024/05/2024-BECE-GUIDELINES-SCHEME-AND-STRUCTURE.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "2026 School Selection Guidelines (CSSPS placement by BECE aggregate; the extracted PDF text is incomplete)",
+      "issuer": "Ministry of Education Ghana, CSSPS",
+      "url": "https://www.cssps.gov.gh/2026-School-Selection-Guidlines.pdf",
+      "retrieved": "2026-10-27"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a NaCCA, GES or WAEC Ghana officer. Firm (read 2026-10-27): the NaCCA subject lists of Basic 1 to 9, the five-band letter scale of Tables 3 and 4, the CA:exam weights of Tables 6 and 7, WAEC's 30:70 weighting, nine-point scale direction and BECE subject list. Open items, all listed in the README: (1) the framework prints a second school scale in section 8.5.4.1 (A 80-100, B 70-79, C 60-69, D 45-59, E 35-44, U to 34); Tables 3 and 4 are used. (2) No BECE percentage range for grades 1 to 9 was found, so none is modelled; the grades are entered results. (3) The BECE aggregate (four core subjects plus the best two others, lower is better) follows spec 03 Appendix H; no fetched source states it in full. (4) A scheme applies to a level, not a subject, so Basic 4 content subjects (65:35) and JHS languages and career technology (50:50) need a school override. (5) Lower primary is continuous assessment only. (6) Kindergarten is not modelled. (7) Promotion is a class-council suggestion at an annual average of 30; no national rule was found. (8) Typical term dates are pre-fills. (9) The Akan (Twi) labels are a draft translation that no native speaker has reviewed."
+  },
+  "overridable": [
+    "grading_scales.gh_basic_5.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

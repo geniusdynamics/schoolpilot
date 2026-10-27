@@ -1,0 +1,31 @@
+{
+  "labels": {
+    "block.header": "Report card",
+    "block.learner": "Student",
+    "block.attendance": "Attendance",
+    "block.results": "Marks by subject (out of 20, with coefficient)",
+    "block.summary": "Trimestre average and rank",
+    "block.comments": "Comments",
+    "block.progression": "Annual average and class council decision",
+    "block.calendar": "Next trimestre begins",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.college-trimestre": "College trimestre report",
+    "report.lycee-trimestre": "Lycee trimestre report"
+  },
+  "descriptors": {
+    "mentions_fr": {
+      "INS": "Insufficient (average below 10)",
+      "P": "Pass (Passable)",
+      "AB": "Fairly good (Assez bien)",
+      "B": "Good (Bien)",
+      "TB": "Very good (Tres bien)"
+    }
+  },
+  "comment_bank": [
+    { "scope": "overall", "band": "TB", "text": "An excellent trimestre: congratulations from the class council. Keep it up." },
+    { "scope": "overall", "band": "B", "text": "A good trimestre: encouragement. The effort must continue." },
+    { "scope": "overall", "band": "P", "text": "A passable result: steadier work is expected to improve." },
+    { "scope": "overall", "band": "INS", "text": "An insufficient result: a work warning is given and follow-up is needed." }
+  ]
+}

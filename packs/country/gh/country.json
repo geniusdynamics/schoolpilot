@@ -1,0 +1,233 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-gh",
+  "kind": "country",
+  "country": "GH",
+  "name": "Ghana",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "Every identifier scheme is free text: no source the pack cites publishes a format for the Ghana Card number, the birth certificate number, the TIN or the SSNIT number.",
+    "The 16 regions and their ISO 3166-2 codes are read from a secondary copy of the ISO table and are unconfirmed; no official Ghanaian region code list was fetched. The district (metropolitan, municipal or district assembly) is free text and no list is bundled.",
+    "No statute was fetched for the public holidays. The seven days listed are the ones a secondary list shows as fixed or Easter-dated; the Public Holidays and Commemorative Days Act's text and its amendments were not read, so every holiday is a draft.",
+    "Not modelled, because their dates and statuses changed between acts and no statute was read: Constitution Day, Republic Day, Founders' Day and Kwame Nkrumah Memorial Day, Farmers' Day (first Friday of December), Eid al-Fitr and Eid al-Adha (declared each year).",
+    "A holiday on a weekend is kept on that day here; the secondary list says the following Monday is usually declared, and the pack does not model those notices.",
+    "Only the PAYE due day is modelled, from the Ghana Revenue Authority. The SSNIT and tier-two pension remittance days were not found in a fetched source."
+  ],
+  "sources": [
+    {
+      "id": "gra-paye",
+      "title": "Pay As You Earn: monthly PAYE returns are filed on or before the fifteenth day of the month following the month of deduction",
+      "publisher": "Ghana Revenue Authority",
+      "url": "https://gra.gov.gh/domestic-tax/tax-types/paye/",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "public-holidays-gh",
+      "title": "Public holidays in Ghana (secondary list; the page cites no statute)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Public_holidays_in_Ghana",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "iso-3166-2-gh",
+      "title": "ISO 3166-2:GH: subdivision codes of Ghana (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:GH",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "nia",
+      "title": "National Identification Authority: the Ghana Card (the page states no number format)",
+      "publisher": "National Identification Authority",
+      "url": "https://nia.gov.gh/",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "GHS",
+    "languages": ["en", "ak"],
+    "timeZone": "Africa/Accra",
+    "phoneRegion": "GH",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "gh.ghana_card",
+      "labelKey": "country.gh.identifier.ghana_card",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 1, "guardian": 1, "staff": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.gh.identifier.ghana_card.hint",
+      "example": "as printed on the Ghana Card",
+      "sourceRef": "nia",
+      "verification": "draft",
+      "note": "The National Identification Authority issues the Ghana Card; no number format is stated in a source the pack cites, so none is claimed."
+    },
+    {
+      "scheme": "gh.birth_certificate",
+      "labelKey": "country.gh.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.gh.identifier.birth_certificate.hint",
+      "example": "as printed on the certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "gh.tin",
+      "labelKey": "country.gh.identifier.tin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.gh.identifier.tin.hint",
+      "example": "as printed on the tax identification certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "gh.ssnit_number",
+      "labelKey": "country.gh.identifier.ssnit_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.gh.identifier.ssnit_number.hint",
+      "example": "as printed on the SSNIT card",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "gh.passport",
+      "labelKey": "country.gh.identifier.passport",
+      "appliesTo": ["staff"],
+      "order": { "staff": 4 },
+      "validation": { "type": "free" },
+      "hintKey": "country.gh.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "region",
+        "labelKey": "address.gh.region",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "GH-AF", "name": "Ahafo" },
+            { "code": "GH-AH", "name": "Ashanti" },
+            { "code": "GH-BO", "name": "Bono" },
+            { "code": "GH-BE", "name": "Bono East" },
+            { "code": "GH-CP", "name": "Central" },
+            { "code": "GH-EP", "name": "Eastern" },
+            { "code": "GH-AA", "name": "Greater Accra" },
+            { "code": "GH-NE", "name": "North East" },
+            { "code": "GH-NP", "name": "Northern" },
+            { "code": "GH-OT", "name": "Oti" },
+            { "code": "GH-SV", "name": "Savannah" },
+            { "code": "GH-UE", "name": "Upper East" },
+            { "code": "GH-UW", "name": "Upper West" },
+            { "code": "GH-TV", "name": "Volta" },
+            { "code": "GH-WP", "name": "Western" },
+            { "code": "GH-WN", "name": "Western North" }
+          ],
+          "sourceRef": "iso-3166-2-gh",
+          "verification": "draft"
+        }
+      },
+      { "key": "district", "labelKey": "address.gh.district", "required": true }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.gh.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.gh.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 3, "day": 6 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.gh.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.gh.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    },
+    {
+      "id": "may-day",
+      "nameKey": "country.gh.holiday.may_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.gh.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    },
+    {
+      "id": "boxing-day",
+      "nameKey": "country.gh.holiday.boxing_day",
+      "rule": { "type": "fixed", "month": 12, "day": 26 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-gh",
+      "verification": "draft"
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "paye-monthly",
+      "nameKey": "country.gh.return.paye",
+      "authority": "Ghana Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 15 },
+      "sourceRef": "gra-paye",
+      "verification": "verified",
+      "note": "Stated by the Authority: monthly PAYE returns are filed on or before the fifteenth day of the month following the month in which the deduction was made."
+    }
+  ]
+}

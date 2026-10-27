@@ -1,0 +1,19 @@
+{
+  "labels": {
+    "country.sn.identifier.national_id": "National identity card number",
+    "country.sn.identifier.national_id.hint": "The number printed on the national identity card.",
+    "country.sn.identifier.birth_certificate": "Birth extract number",
+    "country.sn.identifier.birth_certificate.hint": "The number printed on the birth extract.",
+    "address.sn.region": "Region",
+    "address.sn.department": "Department",
+    "country.sn.holiday.new_year": "New Year's Day",
+    "country.sn.holiday.independence_day": "Independence Day",
+    "country.sn.holiday.easter_monday": "Easter Monday",
+    "country.sn.holiday.labour_day": "Labour Day",
+    "country.sn.holiday.ascension": "Ascension Day",
+    "country.sn.holiday.whit_monday": "Whit Monday",
+    "country.sn.holiday.assumption": "Assumption Day",
+    "country.sn.holiday.all_saints": "All Saints' Day",
+    "country.sn.holiday.christmas_day": "Christmas Day"
+  }
+}

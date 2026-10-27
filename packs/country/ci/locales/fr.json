@@ -1,0 +1,20 @@
+{
+  "labels": {
+    "country.ci.identifier.national_id": "Numéro de la carte nationale d'identité",
+    "country.ci.identifier.national_id.hint": "Le numéro imprimé sur la carte nationale d'identité.",
+    "country.ci.identifier.birth_certificate": "Numéro de l'extrait de naissance",
+    "country.ci.identifier.birth_certificate.hint": "Le numéro imprimé sur l'extrait de naissance.",
+    "address.ci.district": "District",
+    "address.ci.region": "Région",
+    "country.ci.holiday.new_year": "Jour de l'An",
+    "country.ci.holiday.easter_monday": "Lundi de Pâques",
+    "country.ci.holiday.labour_day": "Fête du Travail",
+    "country.ci.holiday.ascension": "Ascension",
+    "country.ci.holiday.whit_monday": "Lundi de Pentecôte",
+    "country.ci.holiday.independence_day": "Fête de l'Indépendance",
+    "country.ci.holiday.assumption": "Assomption",
+    "country.ci.holiday.all_saints": "Toussaint",
+    "country.ci.holiday.peace_day": "Journée nationale de la Paix",
+    "country.ci.holiday.christmas_day": "Noël"
+  }
+}

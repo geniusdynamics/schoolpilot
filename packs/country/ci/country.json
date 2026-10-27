@@ -1,0 +1,206 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-ci",
+  "kind": "country",
+  "country": "CI",
+  "name": "Côte d'Ivoire",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "No Ivorian statute or gazette was reachable for the public holidays: every holiday comes from a secondary source (Wikipedia) and is a draft. The statute that sets them was not found.",
+    "The Muslim festivals (the day after the Prophet's birthday, the day after Laylat al-Qadr, Korite, Tabaski) depend on the moon and are declared each year; no declaration was fetched, so none is listed and a year has none until its declaration is added.",
+    "National Peace Day (15 November) is stated by the source as established in 1996; the pack dates it from 2000 with the other holidays.",
+    "A holiday that falls on a Sunday is kept on its own day: no rule of observance was confirmed.",
+    "The 14 districts and their ISO 3166-2 codes are read from a secondary copy of the ISO table (in force since 27 November 2015), not from the official gazette. The region, the second level, is free text and no region list is bundled.",
+    "No identifier format was found in a fetched source: every scheme is free text.",
+    "No statutory return is listed: the CNPS and tax authority pages fetched give no due day for a school's monthly returns."
+  ],
+  "sources": [
+    {
+      "id": "iso-3166-2-ci",
+      "title": "ISO 3166-2:CI: subdivision codes of Cote d'Ivoire (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:CI",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "holidays-ci",
+      "title": "Public holidays in Ivory Coast (secondary)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Public_holidays_in_Ivory_Coast",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "XOF",
+    "languages": ["fr", "en"],
+    "timeZone": "Africa/Abidjan",
+    "phoneRegion": "CI",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "ci.national_id",
+      "labelKey": "country.ci.identifier.national_id",
+      "appliesTo": ["guardian", "staff"],
+      "order": { "guardian": 1, "staff": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ci.identifier.national_id.hint",
+      "example": "as printed on the national identity card",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ci.birth_certificate",
+      "labelKey": "country.ci.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ci.identifier.birth_certificate.hint",
+      "example": "as printed on the birth extract",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "district",
+        "labelKey": "address.ci.district",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "CI-AB", "name": "Abidjan" },
+            { "code": "CI-BS", "name": "Bas-Sassandra" },
+            { "code": "CI-CM", "name": "Comoé" },
+            { "code": "CI-DN", "name": "Denguélé" },
+            { "code": "CI-GD", "name": "Gôh-Djiboua" },
+            { "code": "CI-LC", "name": "Lacs" },
+            { "code": "CI-LG", "name": "Lagunes" },
+            { "code": "CI-MG", "name": "Montagnes" },
+            { "code": "CI-SM", "name": "Sassandra-Marahoué" },
+            { "code": "CI-SV", "name": "Savanes" },
+            { "code": "CI-VB", "name": "Vallée du Bandama" },
+            { "code": "CI-WR", "name": "Woroba" },
+            { "code": "CI-YM", "name": "Yamoussoukro" },
+            { "code": "CI-ZZ", "name": "Zanzan" }
+          ],
+          "sourceRef": "iso-3166-2-ci",
+          "verification": "draft"
+        }
+      },
+      { "key": "region", "labelKey": "address.ci.region", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.ci.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.ci.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    },
+    {
+      "id": "labour-day",
+      "nameKey": "country.ci.holiday.labour_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    },
+    {
+      "id": "ascension",
+      "nameKey": "country.ci.holiday.ascension",
+      "rule": { "type": "easter", "offsetDays": 39 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft",
+      "note": "The source says forty days after Easter; the Thursday that is thirty-nine days after Easter Sunday is meant."
+    },
+    {
+      "id": "whit-monday",
+      "nameKey": "country.ci.holiday.whit_monday",
+      "rule": { "type": "easter", "offsetDays": 50 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.ci.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 8, "day": 7 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft",
+      "note": "Independence from France in 1960."
+    },
+    {
+      "id": "assumption",
+      "nameKey": "country.ci.holiday.assumption",
+      "rule": { "type": "fixed", "month": 8, "day": 15 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    },
+    {
+      "id": "all-saints",
+      "nameKey": "country.ci.holiday.all_saints",
+      "rule": { "type": "fixed", "month": 11, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    },
+    {
+      "id": "peace-day",
+      "nameKey": "country.ci.holiday.peace_day",
+      "rule": { "type": "fixed", "month": 11, "day": 15 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft",
+      "note": "National Peace Day, established in 1996 according to the source."
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.ci.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-ci",
+      "verification": "draft"
+    }
+  ],
+  "statutoryReturns": []
+}
