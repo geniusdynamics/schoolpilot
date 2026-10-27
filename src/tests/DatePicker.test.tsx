@@ -294,34 +294,25 @@ describe('DatePicker Component', () => {
     });
 
     it('disables dates before minDate', async () => {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() + 5);
-      
-      render(<DatePicker minDate={minDate} />);
-      
+      // Fixed days, so the test does not depend on today's date or on which month the picker opens on:
+      // it opens on the month of the selected day, with minDate in the middle of it.
+      const minDate = new Date(2024, 5, 10, 15, 30);
+
+      render(<DatePicker minDate={minDate} value={new Date(2024, 5, 20)} />);
+
       const input = screen.getByRole('combobox');
       await user.click(input);
-      
+
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
-      
-      // Find a date before minDate and check if it's disabled
-      const dateButtons = screen.getAllByRole('button');
-      const pastDateButton = dateButtons.find(button => {
-        const buttonText = button.textContent;
-        if (buttonText && /^\d+$/.test(buttonText)) {
-          const day = parseInt(buttonText);
-          const testDate = new Date();
-          testDate.setDate(day);
-          return testDate < minDate;
-        }
-        return false;
-      });
-      
-      if (pastDateButton) {
-        expect(pastDateButton).toBeDisabled();
-      }
+
+      // Buttons carry their day as YYYY-MM-DD. Days before minDate are disabled; minDate's own day is not,
+      // whatever the time of day on minDate.
+      const day = (key: string) => document.querySelector<HTMLButtonElement>(`[data-date="${key}"]`);
+      expect(day('2024-06-09')).toBeDisabled();
+      expect(day('2024-06-10')).not.toBeDisabled();
+      expect(day('2024-06-11')).not.toBeDisabled();
     });
 
     it('disables specific dates', async () => {

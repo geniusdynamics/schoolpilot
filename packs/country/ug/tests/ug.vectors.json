@@ -1,0 +1,78 @@
+{
+  "$comment": "Conformance vectors for the UG country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as the nominal date and the date it is observed on after the Sunday rule. Every holiday and the Sunday rule are draft (see README): the dates follow the pack's rules, not a source the pack could read.",
+  "country": "UG",
+  "identifiers": [
+    { "scheme": "ug.nin", "value": "CM12345678ABCD", "valid": true, "normalised": "CM12345678ABCD" },
+    { "scheme": "ug.nin", "value": " cf 12345678 abcd ", "valid": true, "normalised": "CF12345678ABCD" },
+    { "scheme": "ug.nin", "value": "CX12345678ABCD", "valid": false },
+    { "scheme": "ug.nin", "value": "CM12345678ABC", "valid": false },
+    { "scheme": "ug.nin", "value": "", "valid": false },
+    { "scheme": "ug.tin", "value": "1000123456", "valid": true, "normalised": "1000123456" },
+    { "scheme": "ug.tin", "value": " 1000 123 456 ", "valid": true, "normalised": "1000123456" },
+    { "scheme": "ug.tin", "value": "100012345", "valid": false },
+    { "scheme": "ug.tin", "value": "100012345A", "valid": false },
+    { "scheme": "ug.lin", "value": "LIN-8001", "valid": true, "normalised": "LIN-8001" },
+    { "scheme": "ug.lin", "value": "   ", "valid": false },
+    { "scheme": "ug.birth_certificate", "value": "BC-123456", "valid": true, "normalised": "BC-123456" },
+    { "scheme": "ug.nssf_number", "value": "123456789", "valid": true, "normalised": "123456789" },
+    { "scheme": "ug.passport", "value": "B0123456", "valid": true, "normalised": "B0123456" }
+  ],
+  "easterSunday": {
+    "2024": "2024-03-31",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2024,
+      "days": [
+        { "id": "new-year", "nominal": "2024-01-01", "observed": "2024-01-01" },
+        { "id": "nrm-liberation-day", "nominal": "2024-01-26", "observed": "2024-01-26" },
+        { "id": "janani-luwum-day", "nominal": "2024-02-16", "observed": "2024-02-16" },
+        { "id": "womens-day", "nominal": "2024-03-08", "observed": "2024-03-08" },
+        { "id": "good-friday", "nominal": "2024-03-29", "observed": "2024-03-29" },
+        { "id": "easter-monday", "nominal": "2024-04-01", "observed": "2024-04-01" },
+        { "id": "labour-day", "nominal": "2024-05-01", "observed": "2024-05-01" },
+        { "id": "martyrs-day", "nominal": "2024-06-03", "observed": "2024-06-03" },
+        { "id": "heroes-day", "nominal": "2024-06-09", "observed": "2024-06-10" },
+        { "id": "independence-day", "nominal": "2024-10-09", "observed": "2024-10-09" },
+        { "id": "christmas-day", "nominal": "2024-12-25", "observed": "2024-12-25" },
+        { "id": "boxing-day", "nominal": "2024-12-26", "observed": "2024-12-26" }
+      ]
+    },
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "nrm-liberation-day", "nominal": "2026-01-26", "observed": "2026-01-26" },
+        { "id": "janani-luwum-day", "nominal": "2026-02-16", "observed": "2026-02-16" },
+        { "id": "womens-day", "nominal": "2026-03-08", "observed": "2026-03-09" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "labour-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "martyrs-day", "nominal": "2026-06-03", "observed": "2026-06-03" },
+        { "id": "heroes-day", "nominal": "2026-06-09", "observed": "2026-06-09" },
+        { "id": "independence-day", "nominal": "2026-10-09", "observed": "2026-10-09" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "boxing-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "nrm-liberation-day", "nominal": "2027-01-26", "observed": "2027-01-26" },
+        { "id": "janani-luwum-day", "nominal": "2027-02-16", "observed": "2027-02-16" },
+        { "id": "womens-day", "nominal": "2027-03-08", "observed": "2027-03-08" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "labour-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "martyrs-day", "nominal": "2027-06-03", "observed": "2027-06-03" },
+        { "id": "heroes-day", "nominal": "2027-06-09", "observed": "2027-06-09" },
+        { "id": "independence-day", "nominal": "2027-10-09", "observed": "2027-10-09" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "boxing-day", "nominal": "2027-12-26", "observed": "2027-12-27" }
+      ]
+    }
+  ]
+}

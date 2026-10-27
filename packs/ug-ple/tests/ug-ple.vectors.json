@@ -1,0 +1,102 @@
+{
+  "vectors": [
+    {
+      "name": "Four D1 grades give the lowest aggregate, 4, and Division I",
+      "programme": "ug-ple",
+      "input": { "ENG": "D1", "MTC": "D1", "SCI": "D1", "SST": "D1" },
+      "expect": { "ple_division": { "value": 4, "division": "I" } }
+    },
+    {
+      "name": "Aggregate 12 is the top of Division I",
+      "programme": "ug-ple",
+      "input": { "ENG": "D2", "MTC": "C3", "SCI": "C3", "SST": "C4" },
+      "expect": { "ple_division": { "value": 12, "division": "I" } }
+    },
+    {
+      "name": "Aggregate 13 is the bottom of Division II",
+      "programme": "ug-ple",
+      "input": { "ENG": "C3", "MTC": "C3", "SCI": "C3", "SST": "C4" },
+      "expect": { "ple_division": { "value": 13, "division": "II" } }
+    },
+    {
+      "name": "Aggregate 23 is the top of Division II",
+      "programme": "ug-ple",
+      "input": { "ENG": "C6", "MTC": "C6", "SCI": "C6", "SST": "C5" },
+      "expect": { "ple_division": { "value": 23, "division": "II" } }
+    },
+    {
+      "name": "Aggregate 24 is the bottom of Division III",
+      "programme": "ug-ple",
+      "input": { "ENG": "C6", "MTC": "C6", "SCI": "C6", "SST": "C6" },
+      "expect": { "ple_division": { "value": 24, "division": "III" } }
+    },
+    {
+      "name": "Aggregate 29 is the top of Division III",
+      "programme": "ug-ple",
+      "input": { "ENG": "P8", "MTC": "P8", "SCI": "P7", "SST": "C6" },
+      "expect": { "ple_division": { "value": 29, "division": "III" } }
+    },
+    {
+      "name": "Aggregate 30 is the bottom of Division IV",
+      "programme": "ug-ple",
+      "input": { "ENG": "P8", "MTC": "P8", "SCI": "P8", "SST": "C6" },
+      "expect": { "ple_division": { "value": 30, "division": "IV" } }
+    },
+    {
+      "name": "Aggregate 34 is the top of Division IV",
+      "programme": "ug-ple",
+      "input": { "ENG": "F9", "MTC": "P8", "SCI": "P8", "SST": "F9" },
+      "expect": { "ple_division": { "value": 34, "division": "IV" } }
+    },
+    {
+      "name": "Aggregate 35 is the bottom of Ungraded",
+      "programme": "ug-ple",
+      "input": { "ENG": "F9", "MTC": "F9", "SCI": "F9", "SST": "P8" },
+      "expect": { "ple_division": { "value": 35, "division": "U" } }
+    },
+    {
+      "name": "Four F9 grades give the highest aggregate, 36, and Ungraded",
+      "programme": "ug-ple",
+      "input": { "ENG": "F9", "MTC": "F9", "SCI": "F9", "SST": "F9" },
+      "expect": { "ple_division": { "value": 36, "division": "U" } }
+    },
+    {
+      "name": "Continuous assessment 25.5 and an exam of 49 total 74.5 and round up to 75, grade C3",
+      "programme": "ug-ple",
+      "input": { "CA.CA1": "24/30", "CA.CA2": "27/30", "ET": "56/80" },
+      "expect": {
+        "ug-ple-internal": { "exact_total": 74.5, "total": 75, "percent": 75, "grade": "C3", "points": 3 }
+      }
+    },
+    {
+      "name": "A total of 89.5 rounds up to 90 and reaches D1",
+      "programme": "ug-ple",
+      "input": { "CA.CA1": "30/30", "ET": "59.5/70" },
+      "expect": {
+        "ug-ple-internal": { "exact_total": 89.5, "total": 90, "percent": 90, "grade": "D1", "points": 1 }
+      }
+    },
+    {
+      "name": "A total of 89.4 rounds down to 89 and stays in D2",
+      "programme": "ug-ple",
+      "input": { "CA.CA1": "30/30", "ET": "59.4/70" },
+      "expect": {
+        "ug-ple-internal": { "exact_total": 89.4, "total": 89, "percent": 89, "grade": "D2", "points": 2 }
+      }
+    },
+    {
+      "name": "A total of 39.4 rounds to 39 and is the top of F9",
+      "programme": "ug-ple",
+      "input": { "CA.CA1": "10/30", "ET": "29.4/70" },
+      "expect": {
+        "ug-ple-internal": { "exact_total": 39.4, "total": 39, "percent": 39, "grade": "F9", "points": 9 }
+      }
+    },
+    {
+      "name": "Leaving Primary 6 is an automatic promotion to Primary 7",
+      "programme": "ug-ple",
+      "input": { "leaving_level": "P6" },
+      "expect": { "progression": { "level": "P6", "rule": "automatic", "next_level": "P7" } }
+    }
+  ]
+}

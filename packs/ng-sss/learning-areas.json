@@ -1,0 +1,188 @@
+{
+  "learning_areas": [
+    {
+      "code": "ENG",
+      "name": "English Language",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "MAT",
+      "name": "General Mathematics",
+      "short_name": "Math",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "CIV",
+      "name": "Civic Education",
+      "short_name": "Civic",
+      "kind": "core",
+      "group": "civic",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "TRD",
+      "name": "Trade and Entrepreneurship Studies",
+      "short_name": "Trade",
+      "kind": "core",
+      "group": "trades",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Bio",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["SCI"]
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chem",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["SCI"]
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Phys",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["SCI"]
+    },
+    {
+      "code": "FMT",
+      "name": "Further Mathematics",
+      "short_name": "Further Math",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["SCI"]
+    },
+    {
+      "code": "AGS",
+      "name": "Agricultural Science",
+      "short_name": "Agric Sci",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["SCI"]
+    },
+    {
+      "code": "LIT",
+      "name": "Literature in English",
+      "short_name": "Lit",
+      "kind": "elective",
+      "group": "arts",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["ART"]
+    },
+    {
+      "code": "GOV",
+      "name": "Government",
+      "short_name": "Govt",
+      "kind": "elective",
+      "group": "arts",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["ART"]
+    },
+    {
+      "code": "HIS",
+      "name": "History",
+      "short_name": "Hist",
+      "kind": "elective",
+      "group": "arts",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["ART"]
+    },
+    {
+      "code": "CRS",
+      "name": "Christian Religious Studies",
+      "short_name": "CRS",
+      "kind": "elective",
+      "group": "arts",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["ART"]
+    },
+    {
+      "code": "IRS",
+      "name": "Islamic Studies",
+      "short_name": "IS",
+      "kind": "elective",
+      "group": "arts",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["ART"]
+    },
+    {
+      "code": "ACC",
+      "name": "Financial Accounting",
+      "short_name": "Accounts",
+      "kind": "elective",
+      "group": "commercial",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["COM"]
+    },
+    {
+      "code": "COM",
+      "name": "Commerce",
+      "short_name": "Commerce",
+      "kind": "elective",
+      "group": "commercial",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["COM"]
+    },
+    {
+      "code": "ECO",
+      "name": "Economics",
+      "short_name": "Econ",
+      "kind": "elective",
+      "group": "commercial",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["COM", "ART"]
+    },
+    {
+      "code": "TDR",
+      "name": "Technical Drawing",
+      "short_name": "Tech Draw",
+      "kind": "elective",
+      "group": "technical",
+      "levels": ["SS1", "SS2", "SS3"],
+      "pathways": ["TEC"]
+    }
+  ],
+  "competencies": [
+    { "code": "PUN", "name": "Punctuality", "kind": "attitude" },
+    { "code": "NEA", "name": "Neatness", "kind": "attitude" },
+    { "code": "POL", "name": "Politeness", "kind": "attitude" },
+    { "code": "HON", "name": "Honesty", "kind": "attitude" },
+    { "code": "ATT", "name": "Attentiveness", "kind": "attitude" },
+    { "code": "LEA", "name": "Leadership", "kind": "attitude" },
+    { "code": "HWR", "name": "Handwriting", "kind": "core_competency" },
+    { "code": "GAM", "name": "Games", "kind": "core_competency" },
+    { "code": "CRA", "name": "Crafts", "kind": "core_competency" },
+    { "code": "DRA", "name": "Drawing", "kind": "core_competency" }
+  ],
+  "combination_rules": [
+    {
+      "levels": ["SS1", "SS2", "SS3"],
+      "rule": "core_all",
+      "of": ["ENG", "MAT", "CIV", "TRD"]
+    },
+    {
+      "levels": ["SS1", "SS2", "SS3"],
+      "rule": "electives",
+      "count": 4,
+      "max": 5,
+      "from_pathway": true
+    }
+  ]
+}

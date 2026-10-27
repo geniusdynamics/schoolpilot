@@ -1,0 +1,471 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-ke",
+  "kind": "country",
+  "country": "KE",
+  "name": "Kenya",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "Identifier formats other than the KRA PIN are not published in a source the pack cites: national ID is a lenient seven-or-eight-digit check and every other scheme is free text.",
+    "The names of the 10 October holiday, and the dates one name gives way to the next, come from news reports and have not been checked against the Gazette.",
+    "The due days of the NSSF, SHA and NITA returns come from secondary sources and are unconfirmed; NSSF sources disagree.",
+    "Idd-ul-Fitr is listed for the years 2024 to 2026 only, the years whose Gazette notice the pack cites; Idd-ul-Azha (Part II of the Schedule) and the general-election and swearing-in days are not modelled.",
+    "No sub-county or ward list is bundled: both are free text."
+  ],
+  "sources": [
+    {
+      "id": "cap110",
+      "title": "Public Holidays Act, Cap. 110 (Schedule, Part I; section on a holiday that falls on a Sunday)",
+      "publisher": "National Council for Law Reporting (Kenya Law)",
+      "url": "https://kenyalaw.org/akn/ke/act/1912/21/eng@2022-12-31",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "gazette-idd-2024",
+      "title": "Kenya Gazette Notice No. 4339 of 9 April 2024: Wednesday 10 April 2024 a public holiday to mark Idd-ul-Fitr",
+      "publisher": "Government Printer, Nairobi",
+      "url": "https://new.kenyalaw.org/akn/ke/officialGazette/gazette/2024-04-09/46/eng@2024-04-09/source",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "gazette-idd-2025",
+      "title": "Kenya Gazette Notice No. 3861 of 28 March 2025: Monday 31 March 2025 a public holiday to mark Idd-ul-Fitr",
+      "publisher": "Government Printer, Nairobi",
+      "url": "https://new.kenyalaw.org/akn/ke/officialGazette/2025-03-28/62/eng@2025-03-28/source",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "gazette-idd-2026",
+      "title": "Kenya Gazette Notice No. 3955 of 18 March 2026: Friday 20 March 2026 a public holiday to mark Idd-ul-Fitr",
+      "publisher": "Government Printer, Nairobi",
+      "url": "https://new.kenyalaw.org/akn/ke/officialGazette/2026-03-18/50/eng@2026-03-18/source",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "nation-oct10-names",
+      "title": "Huduma or Utamaduni day? Moi Day renamed twice between 2019 and 2020",
+      "publisher": "Daily Nation",
+      "url": "https://nation.africa/kenya/news/explainers/huduma-or-utamaduni-day-moi-day-renamed-twice-between-2019-and-2020--3980276",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "cog-counties",
+      "title": "The 47 Counties (names and numbers 1 to 47)",
+      "publisher": "Council of Governors",
+      "url": "https://cog.go.ke/the-47-counties/",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "klrc-first-schedule",
+      "title": "Constitution of Kenya, 2010, First Schedule: Counties",
+      "publisher": "Kenya Law Reform Commission",
+      "url": "https://klrc.go.ke/index.php/constitution-of-kenya/163-schedules-schedules/165-first-schedule-counties/434-1-counties",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "kra-pin-format",
+      "title": "KRA PIN structure: A or P, nine digits, a closing letter, eleven characters",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/services/service/16",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "kra-paye",
+      "title": "Pay As You Earn (PAYE): due date of the PAYE return and payment",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "kra-ahl-notice",
+      "title": "Public notice: Collection of the Affordable Housing Levy by Kenya Revenue Authority",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/news-center/public-notices/2099-collection-of-the-affordable-housing-levy-by-kenya-revenue-authority-2",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "kra-simplified-paye",
+      "title": "Step by step guide for filing of the simplified PAYE return (carries the Affordable Housing Levy and the NITA levy)",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/images/publications/STEP-BY-STEP-GUIDE-FOR-THE-SIMPLIFIED-PAYE-RETURN.pdf",
+      "accessed": "2026-10-26"
+    },
+    {
+      "id": "pwc-kenya-other-taxes",
+      "title": "Kenya, Individual: Other taxes (NSSF, SHIF and Affordable Housing Levy due dates)",
+      "publisher": "PwC Worldwide Tax Summaries",
+      "url": "https://taxsummaries.pwc.com/kenya/individual/other-taxes",
+      "accessed": "2026-10-26"
+    }
+  ],
+  "defaults": {
+    "currency": "KES",
+    "languages": ["en", "sw"],
+    "timeZone": "Africa/Nairobi",
+    "phoneRegion": "KE",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "ke.kemis_upi",
+      "labelKey": "country.ke.identifier.kemis_upi",
+      "appliesTo": ["learner"],
+      "order": { "learner": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ke.identifier.kemis_upi.hint",
+      "example": "as printed on the KEMIS record",
+      "verification": "draft",
+      "note": "The KEMIS Unique Personal Identifier has no published format the pack cites; it is kept as written."
+    },
+    {
+      "scheme": "ke.birth_certificate",
+      "labelKey": "country.ke.identifier.birth_certificate",
+      "appliesTo": ["learner", "guardian"],
+      "order": { "learner": 2, "guardian": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ke.identifier.birth_certificate.hint",
+      "example": "as printed on the certificate",
+      "verification": "draft",
+      "note": "Birth certificate numbers have no published format the pack cites; they are kept as written."
+    },
+    {
+      "scheme": "ke.national_id",
+      "labelKey": "country.ke.identifier.national_id",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 3, "guardian": 1, "staff": 1 },
+      "validation": { "type": "pattern", "pattern": "^[0-9]{7,8}$", "normalise": ["trim", "remove_spaces"] },
+      "hintKey": "country.ke.identifier.national_id.hint",
+      "example": "12345678",
+      "verification": "draft",
+      "note": "Seven or eight digits is a lenient working rule, not a published format; no official source is cited."
+    },
+    {
+      "scheme": "ke.kra_pin",
+      "labelKey": "country.ke.identifier.kra_pin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "pattern", "pattern": "^[AP][0-9]{9}[A-Z]$", "normalise": ["trim", "remove_spaces", "uppercase"] },
+      "hintKey": "country.ke.identifier.kra_pin.hint",
+      "example": "A000000000X",
+      "sourceRef": "kra-pin-format",
+      "verification": "verified",
+      "note": "Format only: a well-formed PIN is not proof that KRA issued it."
+    },
+    {
+      "scheme": "ke.nssf_number",
+      "labelKey": "country.ke.identifier.nssf_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ke.identifier.nssf_number.hint",
+      "example": "as printed on the NSSF card",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ke.sha_number",
+      "labelKey": "country.ke.identifier.sha_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 4 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ke.identifier.sha_number.hint",
+      "example": "as issued by the Social Health Authority",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ke.tsc_number",
+      "labelKey": "country.ke.identifier.tsc_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 5 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ke.identifier.tsc_number.hint",
+      "example": "as issued by the Teachers Service Commission",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ke.passport",
+      "labelKey": "country.ke.identifier.passport",
+      "appliesTo": ["staff"],
+      "order": { "staff": 6 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ke.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "county",
+        "labelKey": "address.ke.county",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "001", "name": "Mombasa" },
+            { "code": "002", "name": "Kwale" },
+            { "code": "003", "name": "Kilifi" },
+            { "code": "004", "name": "Tana River" },
+            { "code": "005", "name": "Lamu" },
+            { "code": "006", "name": "Taita-Taveta" },
+            { "code": "007", "name": "Garissa" },
+            { "code": "008", "name": "Wajir" },
+            { "code": "009", "name": "Mandera" },
+            { "code": "010", "name": "Marsabit" },
+            { "code": "011", "name": "Isiolo" },
+            { "code": "012", "name": "Meru" },
+            { "code": "013", "name": "Tharaka-Nithi" },
+            { "code": "014", "name": "Embu" },
+            { "code": "015", "name": "Kitui" },
+            { "code": "016", "name": "Machakos" },
+            { "code": "017", "name": "Makueni" },
+            { "code": "018", "name": "Nyandarua" },
+            { "code": "019", "name": "Nyeri" },
+            { "code": "020", "name": "Kirinyaga" },
+            { "code": "021", "name": "Murang'a" },
+            { "code": "022", "name": "Kiambu" },
+            { "code": "023", "name": "Turkana" },
+            { "code": "024", "name": "West Pokot" },
+            { "code": "025", "name": "Samburu" },
+            { "code": "026", "name": "Trans Nzoia" },
+            { "code": "027", "name": "Uasin Gishu" },
+            { "code": "028", "name": "Elgeyo-Marakwet" },
+            { "code": "029", "name": "Nandi" },
+            { "code": "030", "name": "Baringo" },
+            { "code": "031", "name": "Laikipia" },
+            { "code": "032", "name": "Nakuru" },
+            { "code": "033", "name": "Narok" },
+            { "code": "034", "name": "Kajiado" },
+            { "code": "035", "name": "Kericho" },
+            { "code": "036", "name": "Bomet" },
+            { "code": "037", "name": "Kakamega" },
+            { "code": "038", "name": "Vihiga" },
+            { "code": "039", "name": "Bungoma" },
+            { "code": "040", "name": "Busia" },
+            { "code": "041", "name": "Siaya" },
+            { "code": "042", "name": "Kisumu" },
+            { "code": "043", "name": "Homa Bay" },
+            { "code": "044", "name": "Migori" },
+            { "code": "045", "name": "Kisii" },
+            { "code": "046", "name": "Nyamira" },
+            { "code": "047", "name": "Nairobi" }
+          ],
+          "sourceRef": "klrc-first-schedule",
+          "verification": "verified"
+        }
+      },
+      { "key": "sub_county", "labelKey": "address.ke.sub_county", "required": true },
+      { "key": "ward", "labelKey": "address.ke.ward", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.ke.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.ke.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.ke.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "idd-ul-fitr",
+      "nameKey": "country.ke.holiday.idd_ul_fitr",
+      "rule": {
+        "type": "byYear",
+        "dates": { "2024": "2024-04-10", "2025": "2025-03-31", "2026": "2026-03-20" }
+      },
+      "effectiveFrom": "2024-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "gazette-idd-2026",
+      "verification": "verified",
+      "note": "The date is gazetted each year after the moon is sighted. 2024 is Gazette Notice 4339 (source gazette-idd-2024), 2025 is Notice 3861 (gazette-idd-2025), 2026 is Notice 3955 (gazette-idd-2026). A year not listed has no Idd-ul-Fitr here until its notice is added."
+    },
+    {
+      "id": "labour-day",
+      "nameKey": "country.ke.holiday.labour_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "madaraka-day",
+      "nameKey": "country.ke.holiday.madaraka_day",
+      "rule": { "type": "fixed", "month": 6, "day": 1 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "oct10-moi-day",
+      "nameKey": "country.ke.holiday.moi_day",
+      "rule": { "type": "fixed", "month": 10, "day": 10 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": "2019-10-09",
+      "observed": "sunday_to_monday",
+      "sourceRef": "nation-oct10-names",
+      "verification": "draft",
+      "note": "Moi Day. Whether 10 October was observed in every year to 2018 was disputed in court; the pack treats it as a holiday throughout."
+    },
+    {
+      "id": "oct10-huduma-day",
+      "nameKey": "country.ke.holiday.huduma_day",
+      "rule": { "type": "fixed", "month": 10, "day": 10 },
+      "effectiveFrom": "2019-10-10",
+      "effectiveTo": "2020-12-31",
+      "observed": "sunday_to_monday",
+      "sourceRef": "nation-oct10-names",
+      "verification": "draft",
+      "note": "Huduma Day from 2019. The end date is approximate."
+    },
+    {
+      "id": "oct10-utamaduni-day",
+      "nameKey": "country.ke.holiday.utamaduni_day",
+      "rule": { "type": "fixed", "month": 10, "day": 10 },
+      "effectiveFrom": "2021-01-01",
+      "effectiveTo": "2023-10-09",
+      "observed": "sunday_to_monday",
+      "sourceRef": "nation-oct10-names",
+      "verification": "draft",
+      "note": "Utamaduni Day. Both boundary dates are approximate."
+    },
+    {
+      "id": "oct10-mazingira-day",
+      "nameKey": "country.ke.holiday.mazingira_day",
+      "rule": { "type": "fixed", "month": 10, "day": 10 },
+      "effectiveFrom": "2023-10-10",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "draft",
+      "note": "The Schedule on the Kenya Law site names 10 October Mazingira Day. The first year the name applied is unconfirmed."
+    },
+    {
+      "id": "mashujaa-day",
+      "nameKey": "country.ke.holiday.mashujaa_day",
+      "rule": { "type": "fixed", "month": 10, "day": 20 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "jamhuri-day",
+      "nameKey": "country.ke.holiday.jamhuri_day",
+      "rule": { "type": "fixed", "month": 12, "day": 12 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.ke.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    },
+    {
+      "id": "boxing-day",
+      "nameKey": "country.ke.holiday.boxing_day",
+      "rule": { "type": "fixed", "month": 12, "day": 26 },
+      "effectiveFrom": "2010-08-27",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "cap110",
+      "verification": "verified"
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "paye-monthly",
+      "nameKey": "country.ke.return.paye",
+      "authority": "Kenya Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 9 },
+      "sourceRef": "kra-paye",
+      "verification": "verified",
+      "note": "The PAYE return is filed and the tax paid on or before this day of the following month."
+    },
+    {
+      "id": "ahl-monthly",
+      "nameKey": "country.ke.return.ahl",
+      "authority": "Kenya Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "working_day_of_following_month", "workingDay": 9 },
+      "sourceRef": "kra-ahl-notice",
+      "verification": "verified",
+      "note": "Due on the ninth working day after the end of the month the salary was due; declared in the PAYE return."
+    },
+    {
+      "id": "nssf-monthly",
+      "nameKey": "country.ke.return.nssf",
+      "authority": "National Social Security Fund",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 9 },
+      "sourceRef": "pwc-kenya-other-taxes",
+      "verification": "draft",
+      "note": "A secondary source gives the 9th; another secondary source gives the 15th. Confirm against the NSSF Act and the Fund's notices."
+    },
+    {
+      "id": "sha-monthly",
+      "nameKey": "country.ke.return.sha",
+      "authority": "Social Health Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 9 },
+      "sourceRef": "pwc-kenya-other-taxes",
+      "verification": "draft",
+      "note": "From a secondary source; confirm against the Social Health Insurance Act and the Authority's notices."
+    },
+    {
+      "id": "nita-levy-monthly",
+      "nameKey": "country.ke.return.nita",
+      "authority": "National Industrial Training Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 9 },
+      "sourceRef": "kra-simplified-paye",
+      "verification": "draft",
+      "note": "KRA's simplified PAYE return carries the NITA levy, so the PAYE day is assumed; confirm against NITA's own notice."
+    }
+  ]
+}

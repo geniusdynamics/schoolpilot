@@ -1,0 +1,100 @@
+{
+  "stages": [
+    {
+      "code": "SSS",
+      "name": "Senior Secondary School",
+      "levels": [
+        "SS1",
+        "SS2",
+        "SS3"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "SS1",
+      "name": "SS 1",
+      "ordinal": 10,
+      "next": "SS2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "SS2",
+      "name": "SS 2",
+      "ordinal": 11,
+      "next": "SS3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "SS3",
+      "name": "SS 3",
+      "ordinal": 12,
+      "next": null,
+      "is_stage_exit": false,
+      "national_assessment": "WASSCE"
+    }
+  ],
+  "pathways": [
+    {
+      "code": "SCI",
+      "name": "Science",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "ART",
+      "name": "Arts",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "COM",
+      "name": "Commercial",
+      "levels": ["SS1", "SS2", "SS3"]
+    },
+    {
+      "code": "TEC",
+      "name": "Technical",
+      "levels": ["SS1", "SS2", "SS3"]
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "First term",
+        "typical": [
+          "09-08",
+          "12-18"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Second term",
+        "typical": [
+          "01-12",
+          "04-03"
+        ],
+        "half_term": true
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Third term",
+        "typical": [
+          "04-20",
+          "07-24"
+        ],
+        "half_term": true
+      }
+    ],
+    "note": "The session runs September to July in three terms. The state ministry of education publishes the exact term dates each year; the setup wizard pre-fills these typical windows and the school confirms. SS 3 candidates sit the WASSCE or the NECO SSCE in the third term."
+  }
+}

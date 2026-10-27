@@ -1,0 +1,431 @@
+{
+  "$schema": "../schema.json",
+  "id": "ke-payroll",
+  "country": "KE",
+  "currency": "KES",
+  "version": "1.0.0",
+  "verification": "draft",
+  "sources": [
+    {
+      "id": "kra-paye",
+      "title": "Pay As You Earn (PAYE): individual income tax rates (bands) per the Finance Act 2023, effective 1 July 2023, and personal tax relief",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "kra-notice-2157",
+      "title": "Public notice 19/12/2024: Amendments to PAYE Computation Pursuant to the Tax Laws (Amendment) Act, 2024 (in force 27 December 2024, applicable to December 2024 and subsequent periods)",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/news-center/public-notices/2157-amendments-to-paye-computation-pursuant-to-the-tax-laws-amendment-act,-2024",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "kra-notice-2152",
+      "title": "Public notice 08/11/2024: Applicability of Insurance Relief to Contributions made to the Social Health Insurance Fund (SHIF)",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/news-center/public-notices/2152-applicability-of-insurance-relief-to-contributions-made-to-the-social-health-insurance-fund-shif",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "kra-notice-2099",
+      "title": "Public notice 21/03/2024: Collection of Affordable Housing Levy by Kenya Revenue Authority (1.5% employee and 1.5% employer of gross monthly salary, with effect from 19 March 2024)",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/news-center/public-notices/2099-collection-of-the-affordable-housing-levy-by-kenya-revenue-authority",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "kra-faq-reliefs",
+      "title": "KRA FAQ: Tax Reliefs (personal relief; insurance relief at 15% of premiums up to KShs 60,000 per annum)",
+      "publisher": "Kenya Revenue Authority",
+      "url": "https://www.kra.go.ke/component/kra_faq/faq/733",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "sha-premium-rates",
+      "title": "Premium Rates: SHIF contributions of 2.75% of gross monthly income, minimum KSh 300 per month, no upper limit",
+      "publisher": "Social Health Authority",
+      "url": "https://www.sha.go.ke/resources/premium-rates",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "sha-employer-terms",
+      "title": "SHA Employer Portal Terms and Conditions (effective date 1 October 2024)",
+      "publisher": "Social Health Authority",
+      "url": "https://employers.sha.go.ke/terms-and-conditions",
+      "retrieved": "2026-10-26",
+      "note": "States an effective date of 1 October 2024 for the employer portal's contribution terms; it does not cite the regulation that fixed the start of SHIF deductions."
+    },
+    {
+      "id": "nssf-notice-year-2",
+      "title": "Notice to Employers on the updated NSSF rates: Year 2 contribution rates, effective February 2024 payroll, per the Third Schedule of the NSSF Act 2013 (published as an image, read from the notice poster)",
+      "publisher": "National Social Security Fund",
+      "url": "https://www.nssf.or.ke/notice-to-employers-on-the-updated-nssf-rates",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "nssf-notice-year-4",
+      "title": "Notice to Employers: Year 4 (2026) NSSF contribution rates, effective February 2026, per the Third Schedule of the NSSF Act Cap 258; states that Year 3 rates ended on 31 January 2026 (published as an image, read from the notice)",
+      "publisher": "National Social Security Fund",
+      "url": "https://www.nssf.or.ke/notice-to-employers-year-4-2026-nssf-contribution-rates",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "id": "nssf-contribution-rates-2014",
+      "title": "New NSSF Member Contributions: the NSSF Act 2013 computation guidelines (upper earnings limit KES 18,000, lower earnings limit KES 6,000, 6% employee and 6% employer)",
+      "publisher": "National Social Security Fund",
+      "url": "https://www.nssf.or.ke/new-contribution-rates",
+      "retrieved": "2026-10-26",
+      "note": "A 2014 page describing the Act's first limits; it is not a Year 1 (2023) implementation notice."
+    },
+    {
+      "id": "nita-levy",
+      "title": "Levy Inspectorate: industrial training levy, currently Kshs. 50 per employee per month, not a deduction from payroll",
+      "publisher": "National Industrial Training Authority",
+      "url": "https://nita.go.ke/our-services/levy-inspectorate.html",
+      "retrieved": "2026-10-26",
+      "note": "The page states the amount that is current on the retrieval date and does not date it."
+    }
+  ],
+  "rounding": { "mode": "half_up" },
+  "inputs": [
+    { "key": "insurancePremiums", "labelKey": "input.insurancePremiums", "deductedFromPay": false },
+    { "key": "pensionContribution", "labelKey": "input.pensionContribution", "deductedFromPay": true },
+    { "key": "mortgageInterest", "labelKey": "input.mortgageInterest", "deductedFromPay": false },
+    { "key": "postRetirementMedical", "labelKey": "input.postRetirementMedical", "deductedFromPay": false }
+  ],
+  "order": ["nssf", "shif", "ahl", "nita", "paye"],
+  "rules": [
+    {
+      "ruleId": "nssf",
+      "kind": "social_security",
+      "labelKey": "rule.nssf",
+      "effectiveFrom": "2023-02-01",
+      "effectiveTo": "2024-01-31",
+      "sourceRef": "nssf-contribution-rates-2014",
+      "verification": "draft",
+      "note": "NSSF Year 1. The limits are the NSSF Act 2013's first limits (KES 6,000 and KES 18,000) from an NSSF page; no NSSF Year 1 implementation notice was fetched, so the period they applied to is unconfirmed.",
+      "params": {
+        "base": "gross_pay",
+        "lowerEarningsLimit": "6000.00",
+        "upperEarningsLimit": "18000.00",
+        "employeeRate": "0.06",
+        "employerRate": "0.06"
+      }
+    },
+    {
+      "ruleId": "nssf",
+      "kind": "social_security",
+      "labelKey": "rule.nssf",
+      "effectiveFrom": "2024-02-01",
+      "effectiveTo": "2025-01-31",
+      "sourceRef": "nssf-notice-year-2",
+      "verification": "verified",
+      "note": "NSSF Year 2: lower limit KES 7,000, upper limit KES 36,000, 6% employee and 6% employer, effective February 2024 payroll.",
+      "params": {
+        "base": "gross_pay",
+        "lowerEarningsLimit": "7000.00",
+        "upperEarningsLimit": "36000.00",
+        "employeeRate": "0.06",
+        "employerRate": "0.06"
+      }
+    },
+    {
+      "ruleId": "nssf",
+      "kind": "social_security",
+      "labelKey": "rule.nssf",
+      "effectiveFrom": "2025-02-01",
+      "effectiveTo": "2026-01-31",
+      "sourceRef": "nssf-notice-year-4",
+      "verification": "draft",
+      "note": "NSSF Year 3. The Year 4 notice confirms that Year 3 ended on 31 January 2026, but no NSSF document stating the Year 3 limits (KES 8,000 and KES 72,000) was fetched; they are the figures the secondary sources give and sit on the progression between the Year 2 and Year 4 notices.",
+      "params": {
+        "base": "gross_pay",
+        "lowerEarningsLimit": "8000.00",
+        "upperEarningsLimit": "72000.00",
+        "employeeRate": "0.06",
+        "employerRate": "0.06"
+      }
+    },
+    {
+      "ruleId": "nssf",
+      "kind": "social_security",
+      "labelKey": "rule.nssf",
+      "effectiveFrom": "2026-02-01",
+      "effectiveTo": null,
+      "sourceRef": "nssf-notice-year-4",
+      "verification": "verified",
+      "note": "NSSF Year 4: lower limit KES 9,000, upper limit KES 108,000, 6% employee and 6% employer, effective February 2026 payroll. Year 4 is the last year of the Third Schedule's phase-in; a later change to the limits needs a new entry.",
+      "params": {
+        "base": "gross_pay",
+        "lowerEarningsLimit": "9000.00",
+        "upperEarningsLimit": "108000.00",
+        "employeeRate": "0.06",
+        "employerRate": "0.06"
+      }
+    },
+    {
+      "ruleId": "shif",
+      "kind": "health_insurance",
+      "labelKey": "rule.shif",
+      "effectiveFrom": "2023-07-01",
+      "effectiveTo": "2024-09-30",
+      "sourceRef": "sha-employer-terms",
+      "verification": "draft",
+      "notModelled": "NHIF graduated contributions applied before the Social Health Insurance Act took effect; the NHIF table was not fetched and is not in this pack."
+    },
+    {
+      "ruleId": "shif",
+      "kind": "health_insurance",
+      "labelKey": "rule.shif",
+      "effectiveFrom": "2024-10-01",
+      "effectiveTo": null,
+      "sourceRef": "sha-premium-rates",
+      "verification": "draft",
+      "note": "The rate (2.75% of gross monthly income) and the minimum (KSh 300) are read from SHA. The start of employer deductions is taken as 1 October 2024 from the SHA employer portal terms' effective date, not from the regulation that fixed it, so the entry stays draft.",
+      "params": {
+        "base": "gross_pay",
+        "rate": "0.0275",
+        "minimum": "300.00",
+        "maximum": null
+      }
+    },
+    {
+      "ruleId": "ahl",
+      "kind": "levy",
+      "labelKey": "rule.ahl",
+      "effectiveFrom": "2023-07-01",
+      "effectiveTo": "2024-03-31",
+      "sourceRef": "kra-notice-2099",
+      "verification": "draft",
+      "notModelled": "The Affordable Housing Levy is collected under the Affordable Housing Act 2024 with effect from 19 March 2024; March 2024 is a part-month and any levy before the Act is not modelled."
+    },
+    {
+      "ruleId": "ahl",
+      "kind": "levy",
+      "labelKey": "rule.ahl",
+      "effectiveFrom": "2024-04-01",
+      "effectiveTo": null,
+      "sourceRef": "kra-notice-2099",
+      "verification": "verified",
+      "note": "1.5% of gross monthly salary by the employee and 1.5% by the employer (Affordable Housing Act 2024, collected by KRA with effect from 19 March 2024; the first whole month is April 2024).",
+      "params": {
+        "base": "gross_pay",
+        "employeeRate": "0.015",
+        "employerRate": "0.015",
+        "employerFlat": null
+      }
+    },
+    {
+      "ruleId": "nita",
+      "kind": "levy",
+      "labelKey": "rule.nita",
+      "effectiveFrom": "2023-07-01",
+      "effectiveTo": null,
+      "sourceRef": "nita-levy",
+      "verification": "draft",
+      "note": "KSh 50 per employee per month, paid by the employer and not deducted from pay (NITA). The NITA page states the current amount without a date, so its history from 2023-07-01 is unconfirmed. Whether an employer is liable (registration, number of employees) is not modelled.",
+      "params": {
+        "base": "gross_pay",
+        "employeeRate": null,
+        "employerRate": null,
+        "employerFlat": "50.00"
+      }
+    },
+    {
+      "ruleId": "paye",
+      "kind": "income_tax",
+      "labelKey": "rule.paye",
+      "effectiveFrom": "2023-07-01",
+      "effectiveTo": "2024-11-30",
+      "sourceRef": "kra-paye",
+      "verification": "draft",
+      "note": "Bands and personal relief (KRA PAYE page) and insurance relief (KRA FAQ) are read from KRA. Not confirmed from a fetched source and therefore draft: the Affordable Housing Relief (15% of the levy up to KSh 9,000 a month, as the Income Tax Act gave it before 27 December 2024) and whether the deduction of an employee's NSSF and pension contribution had a monthly cap in this period (none is applied). SHIF is not deductible in this period (KRA notice 08/11/2024).",
+      "params": {
+        "bands": [
+          { "upTo": "24000.00", "rate": "0.10" },
+          { "upTo": "32333.00", "rate": "0.25" },
+          { "upTo": "500000.00", "rate": "0.30" },
+          { "upTo": "800000.00", "rate": "0.325" },
+          { "upTo": null, "rate": "0.35" }
+        ],
+        "personalRelief": "2400.00",
+        "taxableDeductions": [
+          {
+            "id": "retirement",
+            "labelKey": "deduction.retirement",
+            "capMonthly": null,
+            "sources": [
+              { "from": "rule", "ruleId": "nssf", "party": "employee" },
+              { "from": "input", "key": "pensionContribution" }
+            ]
+          }
+        ],
+        "reliefs": [
+          {
+            "id": "insurance",
+            "labelKey": "relief.insurance",
+            "rate": "0.15",
+            "capMonthly": "5000.00",
+            "source": { "from": "input", "key": "insurancePremiums" }
+          },
+          {
+            "id": "ahl",
+            "labelKey": "relief.ahl",
+            "rate": "0.15",
+            "capMonthly": "9000.00",
+            "source": { "from": "rule", "ruleId": "ahl", "party": "employee" }
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "paye",
+      "kind": "income_tax",
+      "labelKey": "rule.paye",
+      "effectiveFrom": "2024-12-01",
+      "effectiveTo": null,
+      "sourceRef": "kra-notice-2157",
+      "verification": "draft",
+      "note": "From the December 2024 period (Tax Laws (Amendment) Act 2024, in force 27 December 2024): the Affordable Housing Levy deducted, SHIF contributions, a registered pension or provident contribution up to KSh 30,000 a month (the employee's NSSF contribution is such a contribution and shares that cap), mortgage interest up to KSh 30,000 a month and a post-retirement medical fund contribution up to KSh 15,000 a month are deducted from taxable pay; the Affordable Housing Relief and the Post-Retirement Medical Fund Relief cease. Bands and personal relief are those of the KRA PAYE page (Finance Act 2023); insurance relief is 15% of premiums up to KSh 60,000 a year (KRA FAQ), KSh 5,000 a month.",
+      "params": {
+        "bands": [
+          { "upTo": "24000.00", "rate": "0.10" },
+          { "upTo": "32333.00", "rate": "0.25" },
+          { "upTo": "500000.00", "rate": "0.30" },
+          { "upTo": "800000.00", "rate": "0.325" },
+          { "upTo": null, "rate": "0.35" }
+        ],
+        "personalRelief": "2400.00",
+        "taxableDeductions": [
+          {
+            "id": "retirement",
+            "labelKey": "deduction.retirement",
+            "capMonthly": "30000.00",
+            "sources": [
+              { "from": "rule", "ruleId": "nssf", "party": "employee" },
+              { "from": "input", "key": "pensionContribution" }
+            ]
+          },
+          {
+            "id": "shif",
+            "labelKey": "deduction.shif",
+            "capMonthly": null,
+            "sources": [{ "from": "rule", "ruleId": "shif", "party": "employee" }]
+          },
+          {
+            "id": "ahl",
+            "labelKey": "deduction.ahl",
+            "capMonthly": null,
+            "sources": [{ "from": "rule", "ruleId": "ahl", "party": "employee" }]
+          },
+          {
+            "id": "mortgage",
+            "labelKey": "deduction.mortgage",
+            "capMonthly": "30000.00",
+            "sources": [{ "from": "input", "key": "mortgageInterest" }]
+          },
+          {
+            "id": "postRetirementMedical",
+            "labelKey": "deduction.postRetirementMedical",
+            "capMonthly": "15000.00",
+            "sources": [{ "from": "input", "key": "postRetirementMedical" }]
+          }
+        ],
+        "reliefs": [
+          {
+            "id": "insurance",
+            "labelKey": "relief.insurance",
+            "rate": "0.15",
+            "capMonthly": "5000.00",
+            "source": { "from": "input", "key": "insurancePremiums" }
+          }
+        ]
+      }
+    }
+  ],
+  "returns": [
+    {
+      "id": "kra_paye_return",
+      "labelKey": "return.kraPaye",
+      "authority": "Kenya Revenue Authority",
+      "effectiveFrom": "2023-07-01",
+      "effectiveTo": null,
+      "sourceRef": "kra-notice-2157",
+      "verification": "draft",
+      "note": "A column list built from the payslip fields the PAYE return reports. The official iTax P10 file layout (column set and order) was not fetched, so this is not that layout.",
+      "columns": [
+        { "key": "employee_id", "labelKey": "column.employeeId", "source": "employeeId" },
+        { "key": "period_start", "labelKey": "column.periodStart", "source": "periodStart" },
+        { "key": "gross_pay", "labelKey": "column.grossPay", "source": "grossPay" },
+        { "key": "taxable_pay", "labelKey": "column.taxablePay", "source": "taxablePay" },
+        { "key": "paye", "labelKey": "column.paye", "source": "line:paye" }
+      ]
+    },
+    {
+      "id": "nssf_return",
+      "labelKey": "return.nssf",
+      "authority": "National Social Security Fund",
+      "effectiveFrom": "2023-02-01",
+      "effectiveTo": null,
+      "sourceRef": "nssf-notice-year-4",
+      "verification": "draft",
+      "note": "A column list built from the payslip fields an NSSF return reports. The NSSF returns file layout was not fetched.",
+      "columns": [
+        { "key": "employee_id", "labelKey": "column.employeeId", "source": "employeeId" },
+        { "key": "period_start", "labelKey": "column.periodStart", "source": "periodStart" },
+        { "key": "gross_pay", "labelKey": "column.grossPay", "source": "grossPay" },
+        { "key": "employee_contribution", "labelKey": "column.nssfEmployee", "source": "line:nssf.employee" },
+        { "key": "employer_contribution", "labelKey": "column.nssfEmployer", "source": "line:nssf.employer" }
+      ]
+    },
+    {
+      "id": "sha_return",
+      "labelKey": "return.sha",
+      "authority": "Social Health Authority",
+      "effectiveFrom": "2024-10-01",
+      "effectiveTo": null,
+      "sourceRef": "sha-premium-rates",
+      "verification": "draft",
+      "note": "A column list built from the payslip fields a SHIF remittance reports. The SHA employer portal's upload layout was not fetched.",
+      "columns": [
+        { "key": "employee_id", "labelKey": "column.employeeId", "source": "employeeId" },
+        { "key": "period_start", "labelKey": "column.periodStart", "source": "periodStart" },
+        { "key": "gross_pay", "labelKey": "column.grossPay", "source": "grossPay" },
+        { "key": "shif_contribution", "labelKey": "column.shif", "source": "line:shif.employee" }
+      ]
+    },
+    {
+      "id": "ahl_return",
+      "labelKey": "return.ahl",
+      "authority": "Kenya Revenue Authority",
+      "effectiveFrom": "2024-04-01",
+      "effectiveTo": null,
+      "sourceRef": "kra-notice-2099",
+      "verification": "draft",
+      "note": "A column list built from the payslip fields the Affordable Housing Levy declaration reports (sheet M of the PAYE return per the KRA notice). The sheet's column layout was not fetched.",
+      "columns": [
+        { "key": "employee_id", "labelKey": "column.employeeId", "source": "employeeId" },
+        { "key": "period_start", "labelKey": "column.periodStart", "source": "periodStart" },
+        { "key": "gross_pay", "labelKey": "column.grossPay", "source": "grossPay" },
+        { "key": "employee_levy", "labelKey": "column.ahlEmployee", "source": "line:ahl.employee" },
+        { "key": "employer_levy", "labelKey": "column.ahlEmployer", "source": "line:ahl.employer" }
+      ]
+    },
+    {
+      "id": "nita_return",
+      "labelKey": "return.nita",
+      "authority": "National Industrial Training Authority",
+      "effectiveFrom": "2023-07-01",
+      "effectiveTo": null,
+      "sourceRef": "nita-levy",
+      "verification": "draft",
+      "note": "A column list built from the payslip fields; the NITA levy return layout was not fetched.",
+      "columns": [
+        { "key": "employee_id", "labelKey": "column.employeeId", "source": "employeeId" },
+        { "key": "period_start", "labelKey": "column.periodStart", "source": "periodStart" },
+        { "key": "levy", "labelKey": "column.nita", "source": "line:nita.employer" }
+      ]
+    }
+  ]
+}

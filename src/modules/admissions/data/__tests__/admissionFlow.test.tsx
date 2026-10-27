@@ -68,7 +68,7 @@ describe('admitting a learner on a real repository', () => {
     type('identifier_scheme', 'ke.kemis_upi');
     type('identifier_value', 'UPI-E2E-1');
     type('guardian_identifier_scheme', 'ke.national_id');
-    type('guardian_identifier_value', 'ID-E2E-1');
+    type('guardian_identifier_value', '20202020');
     fireEvent.submit(document.querySelector('form') as HTMLFormElement);
 
     const result = await screen.findByTestId('admission-result', {}, { timeout: 10_000 });
@@ -109,7 +109,7 @@ describe('admitting a learner on a real repository', () => {
       where: { owner_id: guardian?.id },
     });
     expect(guardianIdentifiers.items.map((row) => [row.scheme, row.value])).toEqual([
-      ['ke.national_id', 'ID-E2E-1'],
+      ['ke.national_id', '20202020'],
     ]);
 
     const enrolments = await fixture.repository.list('enrolment', {

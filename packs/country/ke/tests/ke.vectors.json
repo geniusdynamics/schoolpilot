@@ -1,0 +1,118 @@
+{
+  "$comment": "Conformance vectors for the KE country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as the nominal date the Act names and the date it is observed on after the Sunday rule (Public Holidays Act, Cap. 110). Idd-ul-Fitr is listed only for years whose Gazette notice the pack cites. The names of the 10 October day before 2024 and the boundaries between them are draft (see README).",
+  "country": "KE",
+  "identifiers": [
+    { "scheme": "ke.kra_pin", "value": "A123456789Z", "valid": true, "normalised": "A123456789Z" },
+    { "scheme": "ke.kra_pin", "value": " p051234567k ", "valid": true, "normalised": "P051234567K" },
+    { "scheme": "ke.kra_pin", "value": "a 123 456 789 z", "valid": true, "normalised": "A123456789Z" },
+    { "scheme": "ke.kra_pin", "value": "X12345678", "valid": false },
+    { "scheme": "ke.kra_pin", "value": "A12345678Z", "valid": false },
+    { "scheme": "ke.kra_pin", "value": "A1234567890", "valid": false },
+    { "scheme": "ke.kra_pin", "value": "B123456789Z", "valid": false },
+    { "scheme": "ke.kra_pin", "value": "123456789AB", "valid": false },
+    { "scheme": "ke.kra_pin", "value": "", "valid": false },
+    { "scheme": "ke.national_id", "value": "12345678", "valid": true, "normalised": "12345678" },
+    { "scheme": "ke.national_id", "value": "1234567", "valid": true, "normalised": "1234567" },
+    { "scheme": "ke.national_id", "value": " 12 345 678 ", "valid": true, "normalised": "12345678" },
+    { "scheme": "ke.national_id", "value": "123456", "valid": false },
+    { "scheme": "ke.national_id", "value": "123456789", "valid": false },
+    { "scheme": "ke.national_id", "value": "ID-9001", "valid": false },
+    { "scheme": "ke.national_id", "value": "", "valid": false },
+    { "scheme": "ke.kemis_upi", "value": "UPI-8001", "valid": true, "normalised": "UPI-8001" },
+    { "scheme": "ke.kemis_upi", "value": "  abc123  ", "valid": true, "normalised": "abc123" },
+    { "scheme": "ke.kemis_upi", "value": "   ", "valid": false },
+    { "scheme": "ke.birth_certificate", "value": "BC-123456", "valid": true, "normalised": "BC-123456" },
+    { "scheme": "ke.birth_certificate", "value": "", "valid": false },
+    { "scheme": "ke.passport", "value": "AK0123456", "valid": true, "normalised": "AK0123456" },
+    { "scheme": "ke.tsc_number", "value": "123456", "valid": true, "normalised": "123456" },
+    { "scheme": "ke.nssf_number", "value": "123456789", "valid": true, "normalised": "123456789" },
+    { "scheme": "ke.sha_number", "value": "SHA-1234", "valid": true, "normalised": "SHA-1234" }
+  ],
+  "easterSunday": {
+    "2022": "2022-04-17",
+    "2024": "2024-03-31",
+    "2025": "2025-04-20",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2022,
+      "days": [
+        { "id": "new-year", "nominal": "2022-01-01", "observed": "2022-01-01" },
+        { "id": "good-friday", "nominal": "2022-04-15", "observed": "2022-04-15" },
+        { "id": "easter-monday", "nominal": "2022-04-18", "observed": "2022-04-18" },
+        { "id": "labour-day", "nominal": "2022-05-01", "observed": "2022-05-02" },
+        { "id": "madaraka-day", "nominal": "2022-06-01", "observed": "2022-06-01" },
+        { "id": "oct10-utamaduni-day", "nominal": "2022-10-10", "observed": "2022-10-10" },
+        { "id": "mashujaa-day", "nominal": "2022-10-20", "observed": "2022-10-20" },
+        { "id": "jamhuri-day", "nominal": "2022-12-12", "observed": "2022-12-12" },
+        { "id": "boxing-day", "nominal": "2022-12-26", "observed": "2022-12-26" },
+        { "id": "christmas-day", "nominal": "2022-12-25", "observed": "2022-12-27" }
+      ]
+    },
+    {
+      "year": 2024,
+      "days": [
+        { "id": "new-year", "nominal": "2024-01-01", "observed": "2024-01-01" },
+        { "id": "good-friday", "nominal": "2024-03-29", "observed": "2024-03-29" },
+        { "id": "easter-monday", "nominal": "2024-04-01", "observed": "2024-04-01" },
+        { "id": "idd-ul-fitr", "nominal": "2024-04-10", "observed": "2024-04-10" },
+        { "id": "labour-day", "nominal": "2024-05-01", "observed": "2024-05-01" },
+        { "id": "madaraka-day", "nominal": "2024-06-01", "observed": "2024-06-01" },
+        { "id": "oct10-mazingira-day", "nominal": "2024-10-10", "observed": "2024-10-10" },
+        { "id": "mashujaa-day", "nominal": "2024-10-20", "observed": "2024-10-21" },
+        { "id": "jamhuri-day", "nominal": "2024-12-12", "observed": "2024-12-12" },
+        { "id": "christmas-day", "nominal": "2024-12-25", "observed": "2024-12-25" },
+        { "id": "boxing-day", "nominal": "2024-12-26", "observed": "2024-12-26" }
+      ]
+    },
+    {
+      "year": 2025,
+      "days": [
+        { "id": "new-year", "nominal": "2025-01-01", "observed": "2025-01-01" },
+        { "id": "idd-ul-fitr", "nominal": "2025-03-31", "observed": "2025-03-31" },
+        { "id": "good-friday", "nominal": "2025-04-18", "observed": "2025-04-18" },
+        { "id": "easter-monday", "nominal": "2025-04-21", "observed": "2025-04-21" },
+        { "id": "labour-day", "nominal": "2025-05-01", "observed": "2025-05-01" },
+        { "id": "madaraka-day", "nominal": "2025-06-01", "observed": "2025-06-02" },
+        { "id": "oct10-mazingira-day", "nominal": "2025-10-10", "observed": "2025-10-10" },
+        { "id": "mashujaa-day", "nominal": "2025-10-20", "observed": "2025-10-20" },
+        { "id": "jamhuri-day", "nominal": "2025-12-12", "observed": "2025-12-12" },
+        { "id": "christmas-day", "nominal": "2025-12-25", "observed": "2025-12-25" },
+        { "id": "boxing-day", "nominal": "2025-12-26", "observed": "2025-12-26" }
+      ]
+    },
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "idd-ul-fitr", "nominal": "2026-03-20", "observed": "2026-03-20" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "labour-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "madaraka-day", "nominal": "2026-06-01", "observed": "2026-06-01" },
+        { "id": "oct10-mazingira-day", "nominal": "2026-10-10", "observed": "2026-10-10" },
+        { "id": "mashujaa-day", "nominal": "2026-10-20", "observed": "2026-10-20" },
+        { "id": "jamhuri-day", "nominal": "2026-12-12", "observed": "2026-12-12" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "boxing-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "labour-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "madaraka-day", "nominal": "2027-06-01", "observed": "2027-06-01" },
+        { "id": "oct10-mazingira-day", "nominal": "2027-10-10", "observed": "2027-10-11" },
+        { "id": "mashujaa-day", "nominal": "2027-10-20", "observed": "2027-10-20" },
+        { "id": "jamhuri-day", "nominal": "2027-12-12", "observed": "2027-12-13" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "boxing-day", "nominal": "2027-12-26", "observed": "2027-12-27" }
+      ]
+    }
+  ]
+}

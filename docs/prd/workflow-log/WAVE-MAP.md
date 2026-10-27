@@ -1,4 +1,4 @@
-# Wave map — 2026-10-24
+# Wave map — 2026-10-26
 
 The live index of what is merged, what is in flight, and what each wave still owes. Update it when a
 wave lands, not at the end.
@@ -17,6 +17,10 @@ wave lands, not at the end.
 | #46 | **P4-W2** — A02 the sync protocol and C01 server authentication. |
 | #47 | **P5-W1** — A01 the i18n infrastructure. |
 | #48 | **P4-D01** — encrypted backups, restore, the restore drill, GP-8; and the first-run fix below. |
+| #49 | **P4-W3** — packaging, sequences, server RBAC, OIDC SSO, the health page and hardening. |
+| #50 | **P5-A02** — locale formats and right-to-left layout. |
+| #51 | **P4-W4** — GP-7, the multi-device golden path, and the P4 ledger. |
+| #52 | The **P3 and P4 phase exits** — probe fix, baseline, phase-complete logs. |
 
 ## Phases
 
@@ -25,22 +29,25 @@ wave lands, not at the end.
 | P0 | 52/52 done, merged. |
 | P1 | 28/28 done, merged. |
 | P2 | 22/22 done, merged. |
-| P3 | 20/20 done, merged. **Phase-exit gate owed a quiet re-run** — its two failures were a stale dev server holding the probe's port and load from agents running alongside, not code. |
-| P4 | **W1 and W2 merged. W3 in flight** (D02 and D04 integrated; A03, C02, C03, D03 building). W4 waits on A03. |
-| P5 | **W1 merged.** A02 is committed on its branch and not yet in a PR. W2/W3 not started. |
-| P6 | Not started — it depends on P2, P3 **and** P4. |
+| P3 | 20/20 done, merged; phase-complete log written (#52). |
+| P4 | 12/12 done, merged; phase-complete log written (#52). |
+| P5 | 2/13 done. **W1 merged** (#47 A01, #50 A02). **W2 in flight** — A03, B01, B02, C01, below. W3 (B03, C02-C06, D01) waits on W2. |
+| P6 | 0/11. Its dependencies (P2, P3, P4) are done, so P6-W1 is runnable; it is queued behind P5. |
 
 ## In flight
 
-| Wave | Task | Branch | Based on |
+| Wave | Task | Branch | State |
 | --- | --- | --- | --- |
-| P4-W3 | A03 server-allocated sequences and device number blocks | `prd/P4-A03` | `prd/P4-W3` |
-| P4-W3 | C02 server-side RBAC, scopes and maker-checker | `prd/P4-C02` | `prd/P4-W3` |
-| P4-W3 | C03 OIDC SSO for staff | `prd/P4-C03` | `prd/P4-W3` |
-| P4-W3 | D03 System Health page and diagnostic bundle | `prd/P4-D03` | `prd/P4-W3` |
-| P5-W1 | A02 locale formats and RTL layout | `prd/P5-A02` | `consolidation` |
+| P5-W2 | A03 Ethiopian calendar and calendar abstraction in the date fields | `prd/P5-A03` | implemented (`949c97b`), gate running, then independent verification |
+| P5-W2 | B01 Kiswahili locale, core flows and the ke packs, with a completeness check | `prd/P5-B01` | implementer working |
+| P5-W2 | B02 French locale (reuses B01's checker) | `prd/P5-B02` | after B01 |
+| P5-W2 | C01 country pack format and the KE country pack | `prd/P5-C01` | implementer working |
 
-Open PRs: **#49** — `prd/P4-W3`, carrying D02 and D04, opened when the wave's first task landed.
+The wave branch is `prd/P5-W2`: tasks are integrated into it one at a time once verified, and it becomes one PR.
+
+Pushed, no PR yet (opening one needs the owner or a GitHub login on this machine):
+`prd/ui-brand-home-module-names` (the module-dashboard and brand-home work) and `prd/ui-settings-hubs`
+(the Settings overview and three hubs, stacked on it; see `UI-brand-and-settings-hubs-2026-10-26.md`).
 
 ## A clean merge is not a working merge
 

@@ -1,0 +1,30 @@
+{
+  "vectors": [
+    { "name": "A term mark of 70 is grade A, the lowest A, grade value 6", "programme": "rw-cbc", "input": { "TERM": "70/100" }, "expect": { "rw-term": { "exact_total": 70, "total": 70, "percent": 70, "grade": "A", "points": 6 } } },
+    { "name": "A term mark of 69 is grade B, grade value 5", "programme": "rw-cbc", "input": { "TERM": "69/100" }, "expect": { "rw-term": { "exact_total": 69, "total": 69, "percent": 69, "grade": "B", "points": 5 } } },
+    { "name": "A term mark of 65 is grade B, the lowest B", "programme": "rw-cbc", "input": { "TERM": "65/100" }, "expect": { "rw-term": { "exact_total": 65, "total": 65, "percent": 65, "grade": "B", "points": 5 } } },
+    { "name": "A term mark of 64 is grade C, grade value 4", "programme": "rw-cbc", "input": { "TERM": "64/100" }, "expect": { "rw-term": { "exact_total": 64, "total": 64, "percent": 64, "grade": "C", "points": 4 } } },
+    { "name": "A term mark of 60 is grade C, the lowest C", "programme": "rw-cbc", "input": { "TERM": "60/100" }, "expect": { "rw-term": { "exact_total": 60, "total": 60, "percent": 60, "grade": "C", "points": 4 } } },
+    { "name": "A term mark of 59 is grade D, grade value 3", "programme": "rw-cbc", "input": { "TERM": "59/100" }, "expect": { "rw-term": { "exact_total": 59, "total": 59, "percent": 59, "grade": "D", "points": 3 } } },
+    { "name": "A term mark of 50 is grade D, the lowest D", "programme": "rw-cbc", "input": { "TERM": "50/100" }, "expect": { "rw-term": { "exact_total": 50, "total": 50, "percent": 50, "grade": "D", "points": 3 } } },
+    { "name": "A term mark of 49 is grade E, grade value 2", "programme": "rw-cbc", "input": { "TERM": "49/100" }, "expect": { "rw-term": { "exact_total": 49, "total": 49, "percent": 49, "grade": "E", "points": 2 } } },
+    { "name": "A term mark of 40 is grade E, the lowest E", "programme": "rw-cbc", "input": { "TERM": "40/100" }, "expect": { "rw-term": { "exact_total": 40, "total": 40, "percent": 40, "grade": "E", "points": 2 } } },
+    { "name": "A term mark of 39 is grade S, grade value 1", "programme": "rw-cbc", "input": { "TERM": "39/100" }, "expect": { "rw-term": { "exact_total": 39, "total": 39, "percent": 39, "grade": "S", "points": 1 } } },
+    { "name": "A term mark of 20 is grade S, the lowest S", "programme": "rw-cbc", "input": { "TERM": "20/100" }, "expect": { "rw-term": { "exact_total": 20, "total": 20, "percent": 20, "grade": "S", "points": 1 } } },
+    { "name": "A term mark of 19 is grade F, grade value 0", "programme": "rw-cbc", "input": { "TERM": "19/100" }, "expect": { "rw-term": { "exact_total": 19, "total": 19, "percent": 19, "grade": "F", "points": 0 } } },
+    { "name": "A term mark of 0 is grade F", "programme": "rw-cbc", "input": { "TERM": "0/100" }, "expect": { "rw-term": { "exact_total": 0, "total": 0, "percent": 0, "grade": "F", "points": 0 } } },
+    { "name": "A mark of 69.5 rounds half-up to 70 and is grade A", "programme": "rw-cbc", "input": { "TERM": "69.5/100" }, "expect": { "rw-term": { "exact_total": 69.5, "total": 70, "percent": 70, "grade": "A", "points": 6 } } },
+    { "name": "A mark of 38 of 40 is scaled to 95 and is grade A", "programme": "rw-cbc", "input": { "TERM": "38/40" }, "expect": { "rw-term": { "exact_total": 95, "total": 95, "percent": 95, "grade": "A", "points": 6 } } },
+    { "name": "Five grade A PLE subjects give the maximum aggregate of 30", "programme": "rw-cbc", "input": { "MAT": "A", "KIN": "A", "ENG": "A", "SRS": "A", "SET": "A" }, "expect": { "ple_aggregate": { "value": 30 } } },
+    { "name": "A PLE candidate with grades A, B, C, D and E has an aggregate of 20", "programme": "rw-cbc", "input": { "MAT": "A", "KIN": "B", "ENG": "C", "SRS": "D", "SET": "E" }, "expect": { "ple_aggregate": { "value": 20 } } },
+    { "name": "Five grade F PLE subjects give the minimum aggregate of 0", "programme": "rw-cbc", "input": { "MAT": "F", "KIN": "F", "ENG": "F", "SRS": "F", "SET": "F" }, "expect": { "ple_aggregate": { "value": 0 } } },
+    { "name": "Nine grade A O-level subjects give the maximum aggregate of 54", "programme": "rw-cbc", "input": { "MAT": "A", "BIO": "A", "CHE": "A", "PHY": "A", "GEO": "A", "HIS": "A", "KIN": "A", "ENG": "A", "ENT": "A" }, "expect": { "olevel_aggregate": { "value": 54 } } },
+    { "name": "An O-level candidate with a mix of grades has an aggregate of 36", "programme": "rw-cbc", "input": { "MAT": "B", "BIO": "C", "CHE": "D", "PHY": "E", "GEO": "A", "HIS": "B", "KIN": "A", "ENG": "C", "ENT": "S" }, "expect": { "olevel_aggregate": { "value": 36 } } },
+    { "name": "Nine grade F O-level subjects give the minimum aggregate of 0", "programme": "rw-cbc", "input": { "MAT": "F", "BIO": "F", "CHE": "F", "PHY": "F", "GEO": "F", "HIS": "F", "KIN": "F", "ENG": "F", "ENT": "F" }, "expect": { "olevel_aggregate": { "value": 0 } } },
+    { "name": "Term total and average of six subjects, the average kept to two places", "programme": "rw-cbc", "input": { "MAT": 75, "KIN": 62, "ENG": 58, "BIO": 81, "CHE": 49, "PHY": 70 }, "expect": { "term_total": { "value": 395 }, "term_average": { "value": 65.83 } } },
+    { "name": "An average of 70.5 is kept, not rounded to a whole mark", "programme": "rw-cbc", "input": { "MAT": 70, "KIN": 71 }, "expect": { "term_average": { "value": 70.5 } } },
+    { "name": "Primary 3 with a year average of 41 is suggested for promotion", "programme": "rw-cbc", "input": { "leaving_level": "P3", "term_average": 41 }, "expect": { "progression": { "level": "P3", "rule": "class_council", "suggest": "promote", "next_level": "P4" } } },
+    { "name": "Senior 2 with a year average of 39 is referred to the council", "programme": "rw-cbc", "input": { "leaving_level": "S2", "term_average": 39 }, "expect": { "progression": { "level": "S2", "rule": "class_council", "suggest": "refer_to_council", "next_level": "S3" } } },
+    { "name": "Leaving Primary 6 is a stage transition into secondary", "programme": "rw-cbc", "input": { "leaving_level": "P6" }, "expect": { "progression": { "level": "P6", "rule": "stage_transition", "to_stage": "SEC", "next_level": "S1" } } }
+  ]
+}

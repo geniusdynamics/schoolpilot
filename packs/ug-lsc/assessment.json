@@ -1,0 +1,87 @@
+{
+  "schemes": [
+    {
+      "code": "ug-lsc-internal",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "slots": [
+        {
+          "code": "CA",
+          "label": "Continuous assessment and project",
+          "kind": "cat",
+          "multi": true,
+          "combine": "mean",
+          "scale_to": 20
+        },
+        {
+          "code": "ET",
+          "label": "End-of-term examination",
+          "kind": "end_term",
+          "scale_to": 80
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": ["CA", "ET"],
+        "out_of": 100
+      },
+      "grading_scale": "lsc_grade",
+      "missing": {
+        "CA": "exclude",
+        "ET": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "lsc_grade",
+      "kind": "numeric_bands",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 80, "max": 100, "points": 5 },
+        { "code": "B", "label": "B", "min": 65, "max": 79, "points": 4 },
+        { "code": "C", "label": "C", "min": 50, "max": 64, "points": 3 },
+        { "code": "D", "label": "D", "min": 35, "max": 49, "points": 2 },
+        { "code": "E", "label": "E", "min": 0, "max": 34, "points": 1 }
+      ],
+      "verification": "A school-overridable default for internal reports, NOT a UNEB or NCDC scale. UNEB's achievement levels for the competency-based UCE could not be retrieved, so no national boundary is claimed. The bands are whole percentages, so the scheme rounds the learning-area total half-up before lookup."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "lsc_mean_percent",
+      "op": "mean",
+      "value": "score",
+      "precision": 0,
+      "result_scale": "lsc_grade"
+    }
+  ],
+  "ranking": {
+    "enabled": false,
+    "scope": "class_group",
+    "by": "lsc_mean_percent",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": false,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "weighted_mean",
+    "of": {
+      "T1": 0.3,
+      "T2": 0.3,
+      "T3": 0.4
+    },
+    "missing": "renormalise"
+  }
+}

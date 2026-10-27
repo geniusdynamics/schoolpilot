@@ -1,0 +1,145 @@
+{
+  "schemes": [
+    {
+      "code": "tz-primary-term",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"],
+      "slots": [
+        {
+          "code": "EXAM",
+          "label": "Term paper",
+          "kind": "end_term",
+          "scale_to": 50
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": ["EXAM"],
+        "out_of": 50
+      },
+      "grading_scale": "tz_psle_subject",
+      "missing": {
+        "EXAM": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    },
+    {
+      "code": "tz-secondary-term",
+      "levels": ["F1", "F2", "F3", "F4"],
+      "slots": [
+        {
+          "code": "EXAM",
+          "label": "Term paper",
+          "kind": "end_term",
+          "scale_to": 100
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": ["EXAM"],
+        "out_of": 100
+      },
+      "grading_scale": "tz_csee_subject",
+      "missing": {
+        "EXAM": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "tz_psle_subject",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 82, "max": 100 },
+        { "code": "B", "label": "B", "min": 62, "max": 81 },
+        { "code": "C", "label": "C", "min": 42, "max": 61 },
+        { "code": "D", "label": "D", "min": 22, "max": 41 },
+        { "code": "E", "label": "E", "min": 0, "max": 21 }
+      ],
+      "verification": "NECTA's 2024 PSLE item response analysis (read from the search index; the PDF would not fetch) analyses each paper of 50 marks into five grades: A 41-50 Excellent, B 31-40 Very Good, C 21-30 Good, D 11-20 Satisfactory, E 0-10 Unsatisfactory, the pass grades being A to C. The scheme looks a grade up by percent, so the bands are those marks as percents of 50: 41 of 50 is 82 percent and 40 of 50 is 80 percent. The scheme rounds the paper mark half-up to a whole mark first, so a percent between two whole marks (81 percent, 40.5 of 50) does not arise at 50 marks and falls into the lower grade if a school changes the paper's maximum. The grade a candidate receives for the whole examination (an average grade over the six papers) and its boundaries were not found, so no overall grade is modelled."
+    },
+    {
+      "code": "tz_csee_subject",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 75, "max": 100, "points": 1 },
+        { "code": "B", "label": "B", "min": 65, "max": 74, "points": 2 },
+        { "code": "C", "label": "C", "min": 45, "max": 64, "points": 3 },
+        { "code": "D", "label": "D", "min": 30, "max": 44, "points": 4 },
+        { "code": "F", "label": "F", "min": 0, "max": 29, "points": 5 }
+      ],
+      "verification": "Draft, from secondary sources only: three school-results and calculator sites (Matokeo, Msingi and a results site) agree on A 75-100 (1 point), B 65-74 (2), C 45-64 (3), D 30-44 (4) and F 0-29 (5). No NECTA document fetched states these marks, and NECTA revised its grading for the 2023 curriculum (the revised tables could not be read), so the scale may be out of date. Lower points are better. The table is a school default for internal examinations. Bands are whole marks, so the scheme rounds the term paper half-up before lookup."
+    },
+    {
+      "code": "tz_csee_division",
+      "kind": "division",
+      "input": "total_points",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "I", "label": "I", "min": 7, "max": 17 },
+        { "code": "II", "label": "II", "min": 18, "max": 21 },
+        { "code": "III", "label": "III", "min": 22, "max": 25 },
+        { "code": "IV", "label": "IV", "min": 26, "max": 33 },
+        { "code": "0", "label": "0", "min": 34, "max": 35 }
+      ],
+      "verification": "Draft, from the same secondary sources as the CSEE grades: the points of a candidate's best seven subjects add up to 7-17 for Division I, 18-21 for II, 22-25 for III, 26-33 for IV and 34-35 for Division 0. The pack adds the points of the seven core subjects (the aggregation csee_division), because best_n takes the highest values and NECTA's best seven take the lowest points. A conduct assessment, a pass in Civics and a minimum number of passes are stated differently by different sources and are not modelled."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "term_total",
+      "op": "sum",
+      "value": "score",
+      "precision": 2
+    },
+    {
+      "code": "term_average",
+      "op": "mean",
+      "value": "score",
+      "precision": 2
+    },
+    {
+      "code": "csee_division",
+      "op": "sum_points",
+      "value": "points",
+      "over": ["CIV", "HIS", "GEO", "KIS", "ENG", "BIO", "BMA"],
+      "result_scale": "tz_csee_division"
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "scope": "class_group",
+    "by": "term_average",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": true,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "mean",
+    "of": ["T1", "T2"],
+    "missing": "renormalise"
+  }
+}

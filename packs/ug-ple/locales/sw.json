@@ -1,0 +1,58 @@
+{
+  "labels": {
+    "block.header": "Ripoti ya shule",
+    "block.learner": "Mwanafunzi",
+    "block.attendance": "Mahudhurio",
+    "block.results": "Matokeo",
+    "block.summary": "Muhtasari",
+    "block.comments": "Maoni ya mwalimu wa darasa",
+    "block.progression": "Maendeleo",
+    "block.signatures": "Sahihi",
+    "block.verification": "Uthibitisho",
+    "report.primary-term": "Ripoti ya muhula",
+    "report.ple-candidate-p7": "Ripoti ya mtahiniwa wa PLE, Darasa la Saba"
+  },
+  "descriptors": {
+    "ple_subject": {
+      "D1": "Ufaulu wa juu: uelewa bora wa somo.",
+      "D2": "Ufaulu wa juu: uelewa mzuri sana wa somo.",
+      "C3": "Wastani mzuri: kazi nzuri, juu ya kiwango cha kufaulu.",
+      "C4": "Wastani mzuri: kazi nzuri kwenye kiwango cha kufaulu.",
+      "C5": "Wastani: inaridhisha, mada kadhaa zinahitaji marudio.",
+      "C6": "Wastani: karibu na kiwango cha kufaulu.",
+      "P7": "Kufaulu kidogo: uelewa wa msingi, rudia mada kuu.",
+      "P8": "Kufaulu kidogo: dhaifu, msaada wa mara kwa mara unahitajika.",
+      "F9": "Kutofaulu: marudio ya misingi yanahitajika."
+    },
+    "ple_divisions": {
+      "I": "Daraja la I: daraja la juu zaidi.",
+      "II": "Daraja la II: matokeo mazuri.",
+      "III": "Daraja la III: matokeo ya wastani.",
+      "IV": "Daraja la IV: ufaulu wa chini.",
+      "U": "Bila daraja."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "I",
+      "text": "Muhula bora. Endelea na juhudi hizo hizo katika masomo yote."
+    },
+    {
+      "scope": "overall",
+      "band": "II",
+      "text": "Muhula mzuri. Imarisha masomo dhaifu ili ufikie Daraja la I."
+    },
+    {
+      "scope": "overall",
+      "band": "IV",
+      "text": "Muhula mgumu. Panga ratiba ya marudio pamoja na mwalimu wa darasa na tumia kazi za likizo."
+    },
+    {
+      "scope": "learning_area",
+      "band": "C4",
+      "learning_area": "MTC",
+      "text": "Hesabu za msingi zimeeleweka; fanya mazoezi ya kutatua matatizo kila wiki."
+    }
+  ]
+}

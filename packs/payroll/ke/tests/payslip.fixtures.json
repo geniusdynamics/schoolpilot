@@ -1,0 +1,746 @@
+[
+  {
+    "id": "ke-2024-10-basic-30000",
+    "verification": "draft",
+    "source": "Hand computation. Gross 30,000.00. NSSF Year 2 (limits 7,000 and 36,000, 6%): tier I 6% x 7,000 = 420.00, tier II 6% x (30,000 - 7,000) = 1,380.00, employee 1,800.00 and employer 1,800.00. SHIF 2.75% x 30,000 = 825.00 (above the 300.00 minimum). Affordable Housing Levy 1.5% x 30,000 = 450.00 each side. NITA 50.00 (employer). PAYE under the pre-December-2024 rules: taxable pay = 30,000.00 - NSSF 1,800.00 = 28,200.00 (SHIF and the levy are not deductible yet); tax 10% x 24,000 = 2,400.00 plus 25% x (28,200 - 24,000) = 1,050.00 = 3,450.00; less personal relief 2,400.00 and Affordable Housing Relief 15% x 450.00 = 67.50 gives PAYE 982.50. Net = 30,000.00 - (1,800.00 + 825.00 + 450.00 + 982.50) = 25,942.50. Draft because the pre-December-2024 rules and the SHIF start are draft entries in the pack.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2024-10-01",
+        "end": "2024-10-31"
+      },
+      "basicPay": "30000.00",
+      "allowances": [],
+      "inputs": {},
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "30000.00",
+      "taxablePay": "28200.00",
+      "totalDeductions": "4057.50",
+      "employerCost": "2300.00",
+      "netPay": "25942.50",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "30000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "1800.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "1800.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "825.00"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "450.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "450.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "28200.00"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "3450.00"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye.relief.ahl",
+          "kind": "memo",
+          "amount": "67.50"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "982.50"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2024-11-basic-100000",
+    "verification": "draft",
+    "source": "Hand computation, last period under the pre-December-2024 PAYE rules. Gross 100,000.00. NSSF Year 2: 420.00 + 6% x (36,000 - 7,000) = 1,740.00 -> 2,160.00 each side (the upper limit caps the pensionable pay at 36,000). SHIF 2.75% x 100,000 = 2,750.00. Levy 1.5% = 1,500.00 each side. Taxable pay = 100,000.00 - 2,160.00 = 97,840.00. Tax 2,400.00 + 25% x 8,333 = 2,083.25 + 30% x (97,840 - 32,333 = 65,507) = 19,652.10 = 24,135.35; less personal relief 2,400.00 and Affordable Housing Relief 15% x 1,500.00 = 225.00 gives PAYE 21,510.35. Net = 100,000.00 - (2,160.00 + 2,750.00 + 1,500.00 + 21,510.35) = 72,079.65.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2024-11-01",
+        "end": "2024-11-30"
+      },
+      "basicPay": "100000.00",
+      "allowances": [],
+      "inputs": {},
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "100000.00",
+      "taxablePay": "97840.00",
+      "totalDeductions": "27920.35",
+      "employerCost": "3710.00",
+      "netPay": "72079.65",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "100000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "2160.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "2160.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "2750.00"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "1500.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "1500.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "97840.00"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "24135.35"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye.relief.ahl",
+          "kind": "memo",
+          "amount": "225.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "21510.35"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2024-12-basic-100000",
+    "verification": "draft",
+    "source": "Hand computation, same salary as the November 2024 fixture, first period under the Tax Laws (Amendment) Act 2024 rules (KRA notice 19/12/2024): the levy, SHIF and NSSF are deducted from taxable pay and the Affordable Housing Relief ceases. Taxable pay = 100,000.00 - 2,160.00 - 2,750.00 - 1,500.00 = 93,590.00. Tax 2,400.00 + 2,083.25 + 30% x (93,590 - 32,333 = 61,257) = 18,377.10 = 22,860.35; less personal relief 2,400.00 gives PAYE 20,460.35. Net = 100,000.00 - (2,160.00 + 2,750.00 + 1,500.00 + 20,460.35) = 73,129.65. Draft only because the SHIF start is a draft entry.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2024-12-01",
+        "end": "2024-12-31"
+      },
+      "basicPay": "100000.00",
+      "allowances": [],
+      "inputs": {},
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "100000.00",
+      "taxablePay": "93590.00",
+      "totalDeductions": "26870.35",
+      "employerCost": "3710.00",
+      "netPay": "73129.65",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "100000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "2160.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "2160.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "2750.00"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "1500.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "1500.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "93590.00"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "22860.35"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "20460.35"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2025-01-allowances-pension-insurance",
+    "verification": "draft",
+    "source": "Hand computation. Gross = 120,000 + 30,000 + 5,000 = 155,000.00; taxable gross = 150,000.00 (the transport allowance is not taxable). NSSF Year 2: 2,160.00 each side. SHIF 2.75% x 155,000 = 4,262.50. Levy 1.5% x 155,000 = 2,325.00 each side. Deductions from taxable pay: retirement group NSSF 2,160.00 + pension 10,000.00 = 12,160.00 (under the 30,000 cap), SHIF 4,262.50, levy 2,325.00; taxable pay = 150,000.00 - 18,747.50 = 131,252.50. Tax 2,400.00 + 2,083.25 + 30% x (131,252.50 - 32,333 = 98,919.50) = 29,675.85 = 34,159.10; less personal relief 2,400.00 and insurance relief 15% x 12,000 = 1,800.00 gives PAYE 29,959.10. The 10,000.00 pension contribution is also taken from pay. Net = 155,000.00 - (2,160.00 + 4,262.50 + 2,325.00 + 29,959.10 + 10,000.00) = 106,293.40. Draft only because the SHIF start is a draft entry.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2025-01-01",
+        "end": "2025-01-31"
+      },
+      "basicPay": "120000.00",
+      "allowances": [
+        {
+          "code": "housing",
+          "label": "House allowance",
+          "amount": "30000.00",
+          "taxable": true
+        },
+        {
+          "code": "transport",
+          "label": "Transport (non-taxable)",
+          "amount": "5000.00",
+          "taxable": false
+        }
+      ],
+      "inputs": {
+        "pensionContribution": "10000.00",
+        "insurancePremiums": "12000.00"
+      },
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "155000.00",
+      "taxablePay": "131252.50",
+      "totalDeductions": "48706.60",
+      "employerCost": "4535.00",
+      "netPay": "106293.40",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "120000.00"
+        },
+        {
+          "code": "allowance.housing",
+          "kind": "earning",
+          "amount": "30000.00"
+        },
+        {
+          "code": "allowance.transport",
+          "kind": "earning",
+          "amount": "5000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "2160.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "2160.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "4262.50"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "2325.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "2325.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "131252.50"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "34159.10"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "1800.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "29959.10"
+        },
+        {
+          "code": "input.pensionContribution",
+          "kind": "deduction",
+          "amount": "10000.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2025-06-shif-minimum",
+    "verification": "draft",
+    "source": "Hand computation. Gross 10,000.00. NSSF Year 3 (limits 8,000 and 72,000, a draft entry): 6% x 8,000 = 480.00 + 6% x (10,000 - 8,000) = 120.00 -> 600.00 each side. SHIF 2.75% x 10,000 = 275.00, below the 300.00 minimum, so 300.00. Levy 1.5% = 150.00 each side. Taxable pay = 10,000.00 - 600.00 - 300.00 - 150.00 = 8,950.00; tax 10% x 8,950 = 895.00, which the personal relief 2,400.00 wipes out: PAYE 0.00 (it never goes below zero). Net = 10,000.00 - (600.00 + 300.00 + 150.00) = 8,950.00. Draft: NSSF Year 3 limits and the SHIF start are draft entries.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2025-06-01",
+        "end": "2025-06-30"
+      },
+      "basicPay": "10000.00",
+      "allowances": [],
+      "inputs": {},
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "10000.00",
+      "taxablePay": "8950.00",
+      "totalDeductions": "1050.00",
+      "employerCost": "800.00",
+      "netPay": "8950.00",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "10000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "600.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "600.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "300.00"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "150.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "150.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "8950.00"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "895.00"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2026-02-basic-250000-allowance",
+    "verification": "draft",
+    "source": "Hand computation. Gross 300,000.00. NSSF Year 4 (NSSF notice, limits 9,000 and 108,000): 6% x 9,000 = 540.00 + 6% x (108,000 - 9,000) = 5,940.00 -> 6,480.00 each side (the upper limit caps the pensionable pay). SHIF 2.75% x 300,000 = 8,250.00. Levy 1.5% = 4,500.00 each side. Taxable pay = 300,000.00 - 6,480.00 - 8,250.00 - 4,500.00 = 280,770.00. Tax 2,400.00 + 2,083.25 + 30% x (280,770 - 32,333 = 248,437) = 74,531.10 = 79,014.35; less personal relief 2,400.00 gives PAYE 76,614.35. Net = 300,000.00 - (6,480.00 + 8,250.00 + 4,500.00 + 76,614.35) = 204,155.65. Draft only because the SHIF start is a draft entry.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2026-02-01",
+        "end": "2026-02-28"
+      },
+      "basicPay": "250000.00",
+      "allowances": [
+        {
+          "code": "housing",
+          "label": "House allowance",
+          "amount": "50000.00",
+          "taxable": true
+        }
+      ],
+      "inputs": {},
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "300000.00",
+      "taxablePay": "280770.00",
+      "totalDeductions": "95844.35",
+      "employerCost": "11030.00",
+      "netPay": "204155.65",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "250000.00"
+        },
+        {
+          "code": "allowance.housing",
+          "kind": "earning",
+          "amount": "50000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "6480.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "6480.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "8250.00"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "4500.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "4500.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "280770.00"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "79014.35"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "76614.35"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2026-03-top-band-1000000",
+    "verification": "draft",
+    "source": "Hand computation reaching every band. Gross 1,000,000.00. NSSF Year 4: 6,480.00 each side. SHIF 27,500.00. Levy 15,000.00 each side. Taxable pay = 1,000,000.00 - 6,480.00 - 27,500.00 - 15,000.00 = 951,020.00. Tax 2,400.00 + 2,083.25 + 30% x 467,667 = 140,300.10 + 32.5% x 300,000 = 97,500.00 + 35% x (951,020 - 800,000 = 151,020) = 52,857.00 = 295,140.35; less personal relief 2,400.00 gives PAYE 292,740.35. Net = 1,000,000.00 - (6,480.00 + 27,500.00 + 15,000.00 + 292,740.35) = 658,279.65. Draft only because the SHIF start is a draft entry.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2026-03-01",
+        "end": "2026-03-31"
+      },
+      "basicPay": "1000000.00",
+      "allowances": [],
+      "inputs": {},
+      "otherDeductions": []
+    },
+    "expected": {
+      "grossPay": "1000000.00",
+      "taxablePay": "951020.00",
+      "totalDeductions": "341720.35",
+      "employerCost": "21530.00",
+      "netPay": "658279.65",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "1000000.00"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "6480.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "6480.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "27500.00"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "15000.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "15000.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "951020.00"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "295140.35"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "292740.35"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ke-2026-04-rounding-and-other-deduction",
+    "verification": "draft",
+    "source": "Hand computation of the half-up rounding, each line rounded once. Gross 33,333.33. NSSF Year 4: tier I 540.00; tier II 6% x (33,333.33 - 9,000) = 6% x 24,333.33 = 1,459.9998 -> 1,460.00; total 2,000.00 each side. SHIF 2.75% x 33,333.33 = 916.666575 -> 916.67. Levy 1.5% x 33,333.33 = 499.99995 -> 500.00 each side. Taxable pay = 33,333.33 - 2,000.00 - 916.67 - 500.00 = 29,916.66. Tax 10% x 24,000 = 2,400.00 + 25% x (29,916.66 - 24,000 = 5,916.66) = 1,479.165, summed exactly to 3,879.165 and rounded once -> 3,879.17; less personal relief 2,400.00 gives PAYE 1,479.17. The 1,500.00 loan repayment comes out of pay after the statutory lines. Net = 33,333.33 - (2,000.00 + 916.67 + 500.00 + 1,479.17 + 1,500.00) = 26,937.49. Draft only because the SHIF start is a draft entry.",
+    "input": {
+      "employeeId": "EMP-001",
+      "period": {
+        "start": "2026-04-01",
+        "end": "2026-04-30"
+      },
+      "basicPay": "33333.33",
+      "allowances": [],
+      "inputs": {},
+      "otherDeductions": [
+        {
+          "code": "sacco_loan",
+          "label": "SACCO loan repayment",
+          "amount": "1500.00"
+        }
+      ]
+    },
+    "expected": {
+      "grossPay": "33333.33",
+      "taxablePay": "29916.66",
+      "totalDeductions": "6395.84",
+      "employerCost": "2550.00",
+      "netPay": "26937.49",
+      "lines": [
+        {
+          "code": "basic_pay",
+          "kind": "earning",
+          "amount": "33333.33"
+        },
+        {
+          "code": "nssf.employee",
+          "kind": "deduction",
+          "amount": "2000.00"
+        },
+        {
+          "code": "nssf.employer",
+          "kind": "employer_cost",
+          "amount": "2000.00"
+        },
+        {
+          "code": "shif.employee",
+          "kind": "deduction",
+          "amount": "916.67"
+        },
+        {
+          "code": "ahl.employee",
+          "kind": "deduction",
+          "amount": "500.00"
+        },
+        {
+          "code": "ahl.employer",
+          "kind": "employer_cost",
+          "amount": "500.00"
+        },
+        {
+          "code": "nita.employer",
+          "kind": "employer_cost",
+          "amount": "50.00"
+        },
+        {
+          "code": "paye.taxable_pay",
+          "kind": "memo",
+          "amount": "29916.66"
+        },
+        {
+          "code": "paye.tax_before_relief",
+          "kind": "memo",
+          "amount": "3879.17"
+        },
+        {
+          "code": "paye.personal_relief",
+          "kind": "memo",
+          "amount": "2400.00"
+        },
+        {
+          "code": "paye.relief.insurance",
+          "kind": "memo",
+          "amount": "0.00"
+        },
+        {
+          "code": "paye",
+          "kind": "deduction",
+          "amount": "1479.17"
+        },
+        {
+          "code": "other.sacco_loan",
+          "kind": "deduction",
+          "amount": "1500.00"
+        }
+      ]
+    }
+  }
+]
