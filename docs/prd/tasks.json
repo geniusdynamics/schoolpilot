@@ -4385,9 +4385,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-C02 from prd/P5-W2",
+      "status": "review",
+      "commit": "030aff7",
+      "notes": "worker on prd/P5-C02 from prd/P5-W2 | gate PASS, pushed prd/P5-C02; verifier running",
       "completed_at": null
     },
     {
@@ -4504,9 +4504,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C06 from prd/P5-W2",
       "completed_at": null
     },
     {
