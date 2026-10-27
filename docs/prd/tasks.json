@@ -4474,10 +4474,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "review",
-      "commit": "7d97174",
-      "notes": "worker on prd/P5-C05 from prd/P5-W2 | gate PASS 8/8 (684 tests), pushed prd/P5-C05; verifier running",
-      "completed_at": null
+      "status": "done",
+      "commit": "132f0bf",
+      "notes": "worker on prd/P5-C05 from prd/P5-W2 | gate PASS 8/8 (684 tests), pushed prd/P5-C05; verifier running | verified (approved by a DeepSeek Flash verifier after the Sonnet one stalled): 36 vectors recomputed by hand, mutations caught, 6+ sources fetched (gov.za via Wayback: live page returned 500). Draft: Ghana percent boundaries, BECE/WASSCE aggregates, credits, promotion thresholds, Akan/isiZulu labels. Follow-ups: gh-sbc bece_aggregate emits points (47) not the aggregate (13) - rename or make 60-minus expressible; ZA EMP201 note understates its source; za-caps cites Tables 4/17/19 but not Table 9",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C06",
