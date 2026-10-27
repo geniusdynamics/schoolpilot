@@ -3,7 +3,6 @@
 
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { moduleRegistry } from '../core/moduleRegistry';
 
@@ -13,11 +12,7 @@ import Spinner from '../components/ui/Spinner';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { LoginPage, DashboardPage, ErrorTrackingTest, ROUTE_PATHS } from './routeConfig';
 
-// Settings hub pages — explicitly imported to prevent routing order bugs
-import ConfigurationPage from '../modules/settings/pages/ConfigurationPage';
-import SystemManagementPage from '../modules/settings/pages/SystemManagementPage';
-import SchoolOperationsPage from '../modules/settings/pages/SchoolOperationsPage';
-import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
+import { pageModules, dashboardModules, getPageComponent, lazyPage } from './pageLoader';
 import { ModuleRouteLoader } from './ModuleRouteLoader';
 import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from './redirectMap';
 import { isModuleDashboardRoot } from '../services/tabs/moduleDashboardUrl';
@@ -141,45 +136,6 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         }
       />
 
-      {/* Explicit Settings Hub Routes — order matters to prevent routing bugs */}
-      <Route
-        path="/settings/configuration"
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <ConfigurationPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings/system"
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <SystemManagementPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings/school"
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <SchoolOperationsPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Legacy Settings Routes — redirect to hub pages */}
-      {/* /settings itself is the module root and holds the Settings dashboard, so it is not redirected. */}
-      <Route path={ROUTE_PATHS.SETTINGS_UNIFIED} element={<Navigate to="/settings/configuration?tab=unified" replace />} />
-      <Route path={ROUTE_PATHS.SETTINGS_FEATURES} element={<Navigate to="/settings/configuration?tab=features" replace />} />
-      <Route path={ROUTE_PATHS.SETTINGS_DATA_LAYER} element={<Navigate to="/settings/system?tab=data-layer" replace />} />
-      <Route path={ROUTE_PATHS.SETTINGS_AUDIT_LOG} element={<Navigate to="/settings/school?tab=audit" replace />} />
-
       {/* Portal: the "hub" page has been removed; the dashboard is an independent page at /portal,
           and the old /portal/dashboard address redirects there (see redirectMap). */}
 
@@ -191,15 +147,15 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         const metadata = moduleRegistry.getMetadata(moduleId);
         if (!metadata || moduleId === 'dashboard') return null;
 
-        // A module's dashboard is its root page, named for the module. Settings is the exception: its
-        // dashboard is a tab of a hub, and /settings/dashboard redirects there.
+        // A module's dashboard is its root page, named for the module; the old /module/dashboard address
+        // redirects there (see redirectMap).
         const dashboardPath = isModuleDashboardRoot(moduleId) ? `/${moduleId}` : `/${moduleId}/dashboard`;
         const dashboardKey = `../modules/${moduleId}/pages/${moduleId.charAt(0).toUpperCase() + moduleId.slice(1)}DashboardPage.tsx`;
 
         const dashboardExport = dashboardModules[dashboardKey];
         if (!dashboardExport) return null;
 
-        const DashboardComponent = lazy(dashboardExport as () => Promise<{ default: React.ComponentType<any> }>);
+        const DashboardComponent = lazyPage(dashboardExport as () => Promise<{ default: React.ComponentType<any> }>);
 
         return (
           <Route
@@ -236,7 +192,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
             const modularKey = `../modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
             if (modularImportFn) {
-              PageComponent = lazy(modularImportFn as () => Promise<{ default: React.ComponentType<any> }>);
+              PageComponent = lazyPage(modularImportFn as () => Promise<{ default: React.ComponentType<any> }>);
             }
           }
           if (!PageComponent) return null;

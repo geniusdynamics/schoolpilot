@@ -13,9 +13,6 @@ export const PerformanceMonitor = lazy(() => import('../components/PerformanceMo
 
 // Settings pages — explicitly lazy-loaded to ensure correct routing order
 // (prevents settings sub-routes from accidentally matching the audit log page)
-export const SettingsPage = lazy(() => import('../modules/settings/pages/SettingsPage'));
-export const UnifiedSettingsPage = lazy(() => import('../modules/settings/pages/UnifiedSettingsPage'));
-export const FeatureSettingsPage = lazy(() => import('../modules/settings/pages/FeatureSettingsPage'));
 export const DataLayerSettingsPage = lazy(() => import('../modules/settings/pages/DataLayerSettingsPage'));
 export const AuditLogPage = lazy(() => import('../modules/settings/pages/AuditLogPage'));
 

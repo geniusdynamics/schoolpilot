@@ -47,10 +47,6 @@ vi.mock('../routeConfig', () => ({
   },
 }));
 
-vi.mock('../../modules/settings/pages/ConfigurationPage', () => ({ __esModule: true, default: () => null }));
-vi.mock('../../modules/settings/pages/SystemManagementPage', () => ({ __esModule: true, default: () => null }));
-vi.mock('../../modules/settings/pages/SchoolOperationsPage', () => ({ __esModule: true, default: () => null }));
-
 // Keep the real glob keys (so a missing page file is still caught) but swap each page for a stub
 // that reports which file it stands for, avoiding loading every real page and its providers.
 vi.mock('../pageLoader', async (importOriginal) => {

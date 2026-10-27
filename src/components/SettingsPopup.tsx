@@ -39,7 +39,8 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
   
   const settingsMenu = useMemo(() => {
     try {
-      const menu = settingsModule?.children || [];
+      // The sidebars hide a deprecated item, an old address that only redirects; so does this list.
+      const menu = (settingsModule?.children || []).filter((item: any) => item != null && item.deprecated !== true);
       return menu;
     } catch (error) {
       logger.error('[SettingsPopup] Error getting settings menu:', error);

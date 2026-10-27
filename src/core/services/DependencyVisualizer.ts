@@ -1,24 +1,26 @@
 // ABOUTME: Dependency visualizer service
 // ABOUTME: Generates dependency graph data and reports for visualization
 
-import { moduleRegistry } from '../moduleRegistry';
+import { moduleRegistry, type ModuleRegistry } from '../moduleRegistry';
 
 class DependencyVisualizer {
   /**
-   * Generate dependency graph data for visualization
+   * Generate dependency graph data for visualization. The registry is the application's own unless
+   * a caller hands one in.
    */
-  static generateGraphData(): { 
+  static generateGraphData(registry: Pick<ModuleRegistry, 'getAllMetadata' | 'getEnabledModules'> = moduleRegistry): { 
     nodes: Array<{ id: string; name: string; version: string; status: 'enabled' | 'disabled' }>;
     edges: Array<{ from: string; to: string; type: 'required' | 'optional' }>;
   } {
-    const modules = moduleRegistry.getAllMetadata();
-    const enabledModules = moduleRegistry.getEnabledModules();
+    const modules = registry.getAllMetadata();
+    // getEnabledModules() returns the ids of the enabled modules, not the modules.
+    const enabledModules = registry.getEnabledModules();
     
     const nodes = modules.map(module => ({
       id: module.id,
       name: module.name,
       version: module.version,
-      status: enabledModules.some(m => m.id === module.id) ? 'enabled' : 'disabled'
+      status: enabledModules.includes(module.id) ? 'enabled' as const : 'disabled' as const
     }));
     
     const edges: Array<{ from: string; to: string; type: 'required' | 'optional' }> = [];

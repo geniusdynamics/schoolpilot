@@ -2,7 +2,7 @@
 // ABOUTME: dashboard's - a heading no bigger than the main one's, a small icon tile beside it, tight spacing.
 
 import React from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -96,6 +96,24 @@ describe('ModuleDashboardShell', () => {
 
       expect(screen.queryByTestId('hero-icon')).toBeNull();
       expect(screen.getByRole('heading', { level: 1 })).toBeTruthy();
+    });
+  });
+
+  describe('what it asks React to do with its keys', () => {
+    it('draws metrics and quick actions without React warning that a key is spread into JSX', () => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      try {
+        renderShell({
+          metrics: [{ key: 'users', label: 'Users', value: 3, to: '/settings/school' }],
+          quickActions: [{ key: 'profile', label: 'School profile', to: '/settings/school' }],
+          quickNavCards: true,
+        });
+
+        const spread = errors.mock.calls.filter((call) => String(call[0]).includes('is being spread into JSX'));
+        expect(spread).toHaveLength(0);
+      } finally {
+        errors.mockRestore();
+      }
     });
   });
 });

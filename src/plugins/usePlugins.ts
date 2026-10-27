@@ -16,6 +16,10 @@ interface UsePluginsResult {
   deactivatePlugin: (pluginId: string) => Promise<void>;
   unloadPlugin: (pluginId: string) => Promise<void>;
   getPlugin: (pluginId: string) => LoadedPlugin | undefined;
+  /** What a plugin has saved of its settings: only the keys that were set. */
+  getPluginSettings: (pluginId: string) => Record<string, unknown>;
+  /** Saves one setting of a plugin, and keeps it. */
+  setPluginSetting: (pluginId: string, key: string, value: unknown) => Promise<void>;
 }
 
 /**
@@ -84,6 +88,16 @@ export function usePlugins(): UsePluginsResult {
     [manager]
   );
 
+  const getPluginSettings = useCallback(
+    (pluginId: string) => manager.getPluginSettings(pluginId),
+    [manager]
+  );
+
+  const setPluginSetting = useCallback(
+    (pluginId: string, key: string, value: unknown) => manager.setPluginSetting(pluginId, key, value),
+    [manager]
+  );
+
   return {
     plugins,
     activePlugins: plugins.filter(p => p.status === 'active'),
@@ -92,6 +106,8 @@ export function usePlugins(): UsePluginsResult {
     deactivatePlugin,
     unloadPlugin,
     getPlugin,
+    getPluginSettings,
+    setPluginSetting,
   };
 }
 

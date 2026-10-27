@@ -1,5 +1,5 @@
 // ABOUTME: Settings module definition for modular system
-// ABOUTME: Exports the module definition for the settings module with hub-and-spoke navigation
+// ABOUTME: An overview page and three hubs, with every old address redirecting to where its page lives now
 
 import { ModuleDefinition } from '@/core/types';
 import { AdjustmentsHorizontalIcon, ArrowsRightLeftIcon, CircleStackIcon, ClockIcon, CogIcon, DocumentTextIcon, HomeIcon, IdentificationIcon, PuzzlePieceIcon, ShieldCheckIcon, SparklesIcon, UsersIcon, ViewColumnsIcon, WrenchIcon } from '@/components/ui/icons';
@@ -20,72 +20,70 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    // The module's dashboard is its root page, like every other module's, not a tab of a hub.
+    // The module's overview is its root page, like every other module's dashboard, and comes first.
     {
-      name: 'navigation:settings.dashboard',
+      name: 'navigation:settings.overview',
       path: '/settings',
       icon: HomeIcon,
       page: 'SettingsDashboardPage',
       showInModes: ['standard', 'fullwidth'],
     },
 
-    // Hub pages - shown in standard mode
+    // The three hubs. Their tabs are listed in hubTabs, which the hubs and the overview are built from.
+    {
+      name: 'navigation:settings.schoolPeople',
+      path: '/settings/school',
+      icon: IdentificationIcon,
+      page: 'SchoolAndPeoplePage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:settings.modulesFeatures',
+      path: '/settings/modules',
+      icon: ViewColumnsIcon,
+      page: 'ModulesAndFeaturesPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:settings.dataSystem',
+      path: '/settings/system',
+      icon: CircleStackIcon,
+      page: 'DataAndSystemPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+
+    // Old addresses - shown in fullwidth mode, each redirecting to where its page lives now.
     {
       name: 'navigation:settings.configuration',
       path: '/settings/configuration',
       icon: CogIcon,
-      page: 'ConfigurationPage',
-      showInModes: ['standard', 'fullwidth'],
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings',
     },
-    {
-      name: 'navigation:settings.systemManagement',
-      path: '/settings/system',
-      icon: CircleStackIcon,
-      page: 'SystemManagementPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
-    {
-      name: 'navigation:settings.schoolOperations',
-      path: '/settings/school',
-      icon: IdentificationIcon,
-      page: 'SchoolOperationsPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
-    {
-      name: 'navigation:settings.dataIntegrity',
-      path: '/settings/data-integrity',
-      icon: ShieldCheckIcon,
-      page: 'DataIntegrityPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
-
-    // Legacy pages - shown in fullwidth mode with redirects to hub tabs
     {
       name: 'navigation:settings.unified',
       path: '/settings/unified',
       icon: AdjustmentsHorizontalIcon,
-      page: 'UnifiedSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/configuration?tab=unified',
-    },
-    {
-      name: 'navigation:settings.features',
-      path: '/settings/features',
-      icon: SparklesIcon,
-      page: 'FeatureSettingsPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/settings/configuration?tab=features',
+      redirectTo: '/settings',
     },
     {
       name: 'navigation:settings.general',
       path: '/settings/general',
       icon: WrenchIcon,
-      page: 'SettingsGeneralPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/configuration?tab=general',
+      redirectTo: '/settings',
+    },
+    {
+      name: 'navigation:settings.features',
+      path: '/settings/features',
+      icon: SparklesIcon,
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/modules?tab=features',
     },
     {
       name: 'navigation:settings.dataLayer',
@@ -94,25 +92,15 @@ const settingsModule: ModuleDefinition = {
       page: 'DataLayerSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/system?tab=data-layer',
-    },
-    {
-      name: 'navigation:settings.modules',
-      path: '/settings/modules',
-      icon: ViewColumnsIcon,
-      page: 'ModuleManagementPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/settings/system?tab=modules',
+      redirectTo: '/settings/system',
     },
     {
       name: 'navigation:settings.dependencyReport',
       path: '/settings/dependency-report',
       icon: DocumentTextIcon,
-      page: 'ModuleDependencyReportPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/system?tab=dependencies',
+      redirectTo: '/settings/modules',
     },
     {
       name: 'navigation:settings.plugins',
@@ -121,7 +109,7 @@ const settingsModule: ModuleDefinition = {
       page: 'PluginSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/system?tab=plugins',
+      redirectTo: '/settings/modules?tab=plugins',
     },
     {
       name: 'navigation:settings.databaseBackup',
@@ -133,13 +121,31 @@ const settingsModule: ModuleDefinition = {
       redirectTo: '/settings/system?tab=backup',
     },
     {
+      name: 'navigation:settings.dataIntegrity',
+      path: '/settings/data-integrity',
+      icon: ShieldCheckIcon,
+      page: 'DataIntegrityPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=integrity',
+    },
+    {
+      // Linked from the old dashboard, but no page ever sat here. Its name says what it was meant to be.
+      name: 'navigation:settings.dataManagement',
+      path: '/settings/data-management',
+      icon: DatabaseIcon,
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system',
+    },
+    {
       name: 'navigation:settings.schoolProfile',
       path: '/settings/school-profile',
       icon: IdentificationIcon,
       page: 'SettingsSchoolProfilePage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/school?tab=school-profile',
+      redirectTo: '/settings/school',
     },
     {
       name: 'navigation:settings.users',
@@ -172,15 +178,20 @@ const settingsModule: ModuleDefinition = {
       name: 'navigation:settings.tabs',
       path: '/settings/tabs',
       icon: ViewColumnsIcon,
-      page: 'TabSettingsPage',
       showInModes: ['fullwidth'],
       deprecated: true,
-      redirectTo: '/settings/school?tab=tabs',
+      redirectTo: '/settings/school',
     },
   ],
-  // The dashboard is also a declared route: the module root renders it. The old /settings/dashboard
-  // address redirects here from the shared redirect map.
-  routes: [{ path: '/settings', page: 'SettingsDashboardPage' }],
+  // The pages the module serves at an address of their own. They are declared here, not in the router, so
+  // that they are routable as soon as the module is registered and not only once navigation has loaded.
+  // The old /settings/dashboard address redirects to the module root from the shared redirect map.
+  routes: [
+    { path: '/settings', page: 'SettingsDashboardPage' },
+    { path: '/settings/school', page: 'SchoolAndPeoplePage' },
+    { path: '/settings/modules', page: 'ModulesAndFeaturesPage' },
+    { path: '/settings/system', page: 'DataAndSystemPage' },
+  ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
     {
@@ -261,6 +272,52 @@ const settingsModule: ModuleDefinition = {
       description: 'Can view permission configurations',
       resource: 'permissions',
       action: 'view',
+      moduleId: 'settings'
+    },
+    // The workflows page checks these five; they were never declared, so nobody could hold them.
+    {
+      id: 'settings.workflows.view',
+      name: 'View Workflows',
+      description: 'Can view approval workflows and their states',
+      resource: 'workflows',
+      action: 'read',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.create',
+      name: 'Create Workflows',
+      description: 'Can create approval workflows',
+      resource: 'workflows',
+      action: 'create',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.update',
+      name: 'Update Workflows',
+      description: 'Can rename approval workflows',
+      resource: 'workflows',
+      action: 'update',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.delete',
+      name: 'Delete Workflows',
+      description: 'Can delete approval workflows and their states',
+      resource: 'workflows',
+      action: 'delete',
+      feature: 'workflow-management',
+      moduleId: 'settings'
+    },
+    {
+      id: 'settings.workflows.manage_states',
+      name: 'Manage Workflow States',
+      description: 'Can add, reorder and remove the states of a workflow',
+      resource: 'workflows',
+      action: 'execute',
+      feature: 'workflow-management',
       moduleId: 'settings'
     },
   ],

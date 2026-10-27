@@ -98,3 +98,34 @@ export const getRedirectForRoute = (path: string): string | undefined => {
   if (stripped !== path && DEPRECATED_ROUTE_REDIRECTS[stripped]) return DEPRECATED_ROUTE_REDIRECTS[stripped];
   return undefined;
 };
+
+/** A navigation item as far as redirects go: one that has moved says where its page went. */
+export interface RedirectingNavigationItem {
+  path?: string;
+  deprecated?: boolean;
+  redirectTo?: string;
+  children?: readonly RedirectingNavigationItem[];
+}
+
+const pathnameOf = (path: string): string => path.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase() || '/';
+
+const withDescendants = (items: readonly RedirectingNavigationItem[]): RedirectingNavigationItem[] =>
+  items.flatMap((item) => [item, ...withDescendants(item.children ?? [])]);
+
+/**
+ * Where an address redirects to, or undefined when it is a page.
+ *
+ * The router builds its redirect routes from these same two places in this same order: a deprecated
+ * navigation item that names where its page went, then the shared map. Whatever asks has to agree with the
+ * router, or it takes for a page an address the router is about to leave.
+ */
+export const resolveRedirect = (
+  path: string,
+  navigationItems: readonly RedirectingNavigationItem[] = []
+): string | undefined => {
+  const pathname = pathnameOf(path);
+  const declared = withDescendants(navigationItems).find(
+    (item) => item.deprecated === true && item.redirectTo && item.path && pathnameOf(item.path) === pathname
+  );
+  return declared?.redirectTo ?? getRedirectForRoute(path) ?? getRedirectForRoute(pathname);
+};

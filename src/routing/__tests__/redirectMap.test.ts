@@ -3,9 +3,59 @@
 
 import { describe, it, expect } from 'vitest';
 import { MODULE_DASHBOARD_ROOTS } from '@/services/tabs/moduleDashboardUrl';
-import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from '../redirectMap';
+import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute, resolveRedirect } from '../redirectMap';
 
 describe('redirectMap', () => {
+  describe('resolveRedirect', () => {
+    const navigation = [
+      {
+        path: '/settings',
+        isGroup: true,
+        children: [
+          { path: '/settings/school' },
+          { path: '/settings/unified', deprecated: true, redirectTo: '/settings' },
+          { path: '/settings/features', deprecated: true, redirectTo: '/settings/modules?tab=features' },
+          { path: '/settings/orphaned', deprecated: true },
+          { path: '/settings/live', redirectTo: '/settings' },
+        ],
+      },
+    ];
+
+    it('finds where a deprecated navigation item says its page went, however deep it is nested', () => {
+      expect(resolveRedirect('/settings/unified', navigation)).toBe('/settings');
+      expect(resolveRedirect('/settings/features', navigation)).toBe('/settings/modules?tab=features');
+    });
+
+    it('finds it whatever the query string, hash, trailing slash or case of the address', () => {
+      expect(resolveRedirect('/settings/unified?x=1', navigation)).toBe('/settings');
+      expect(resolveRedirect('/settings/unified/', navigation)).toBe('/settings');
+      expect(resolveRedirect('/Settings/Unified#top', navigation)).toBe('/settings');
+    });
+
+    it('falls back to the shared map, which needs no navigation at all', () => {
+      expect(resolveRedirect('/administration/departments')).toBe('/administration/organization?tab=departments');
+      expect(resolveRedirect('/finance/dashboard', [])).toBe('/finance');
+      expect(resolveRedirect('/Finance/Dashboard/')).toBe('/finance');
+    });
+
+    it('takes what the navigation item says over the shared map, as the router does', () => {
+      const own = [{ path: '/finance/dashboard', deprecated: true, redirectTo: '/finance/elsewhere' }];
+
+      expect(resolveRedirect('/finance/dashboard', own)).toBe('/finance/elsewhere');
+    });
+
+    it('says nothing about a page', () => {
+      expect(resolveRedirect('/settings/school', navigation)).toBeUndefined();
+      expect(resolveRedirect('/settings', navigation)).toBeUndefined();
+      expect(resolveRedirect('/dashboard', navigation)).toBeUndefined();
+    });
+
+    it('says nothing for a deprecated item that names no destination, nor for a live one that does', () => {
+      expect(resolveRedirect('/settings/orphaned', navigation)).toBeUndefined();
+      expect(resolveRedirect('/settings/live', navigation)).toBeUndefined();
+    });
+  });
+
   describe('getRedirectForRoute', () => {
     it('returns correct redirect for known deprecated routes', () => {
       expect(getRedirectForRoute('/administration/departments')).toBe(

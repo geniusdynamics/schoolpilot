@@ -1,24 +1,18 @@
 // ABOUTME: Settings pages barrel export
 // ABOUTME: Centralizes all settings page exports for the module definition
 
-export { default as ConfigurationPage } from './ConfigurationPage';
-export { default as SystemManagementPage } from './SystemManagementPage';
-export { default as SchoolOperationsPage } from './SchoolOperationsPage';
-export { default as DataIntegrityPage } from './DataIntegrityPage';
+export { default as SettingsDashboardPage } from './SettingsDashboardPage';
+export { default as SchoolAndPeoplePage } from './SchoolAndPeoplePage';
+export { default as ModulesAndFeaturesPage } from './ModulesAndFeaturesPage';
+export { default as DataAndSystemPage } from './DataAndSystemPage';
 
-export { SettingsContent } from './SettingsPage';
-export { UnifiedSettingsContent } from './UnifiedSettingsPage';
-export { FeatureSettingsContent } from './FeatureSettingsPage';
-export { SettingsGeneralContent } from './SettingsGeneralPage';
-export { DataLayerSettingsContent } from './DataLayerSettingsPage';
-export { ModuleManagementContent } from './ModuleManagementPage';
-export { ModuleDependencyReportContent } from './ModuleDependencyReportPage';
-export { PluginSettingsContent } from './PluginSettingsPage';
+// The bodies of the hubs' tabs.
 export { SettingsSchoolProfileContent } from './SettingsSchoolProfilePage';
 export { SettingsUsersContent } from './SettingsUsersPage';
 export { SettingsWorkflowsContent } from './SettingsWorkflowsPage';
 export { AuditLogContent } from './AuditLogPage';
-export { TabSettingsContent } from './TabSettingsPage';
-export { SettingsDashboardContent } from './SettingsDashboardPage';
+export { PluginSettingsContent } from './PluginSettingsPage';
+export { DataLayerSettingsContent } from './DataLayerSettingsPage';
 export { DatabaseBackupContent } from './DatabaseBackupPage';
+export { default as DataIntegrityPage } from './DataIntegrityPage';
 export { SystemHealthContent } from './SystemHealthPage';

@@ -39,7 +39,11 @@ vi.mock('@/components/SecondarySidebar', () => ({
 }));
 
 const layoutMocks = vi.hoisted(() => ({
-  navigationItems: [] as Array<{ path?: string }>,
+  navigationItems: [] as Array<{
+    path?: string;
+    isGroup?: boolean;
+    children?: Array<{ path?: string; deprecated?: boolean; redirectTo?: string }>;
+  }>,
   getMainModules: () => [],
   hasModuleAccess: async () => true,
   hasPermission: async () => true,
@@ -91,6 +95,57 @@ describe('Layout route mirror', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/#/dashboard');
     sessionStorage.clear();
+    layoutMocks.navigationItems = [];
+  });
+
+  // The router leaves an address that only redirects at once, and the tab for where it lands opens then. The
+  // mirror used to open a tab for the old address first: every old Settings address left a tab named for
+  // itself ("Unified", "General") behind, and at the tab limit the oldest real tab was closed to make room.
+  it('creates no tab for an address a navigation item has marked as moved', async () => {
+    layoutMocks.navigationItems = [
+      {
+        path: '/settings',
+        isGroup: true,
+        children: [{ path: '/settings/unified', deprecated: true, redirectTo: '/settings' }],
+      },
+    ];
+    renderLayout('/settings/unified');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('tab-paths')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('tab-paths').textContent).not.toContain('/settings/unified');
+    expect(sessionStorage.getItem('sp_tabs_v2')).toBeNull();
+  });
+
+  it('creates no tab for an address the shared redirect map has moved either', async () => {
+    renderLayout('/administration/departments');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('tab-paths')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('tab-paths').textContent).not.toContain('/administration/departments');
+    expect(sessionStorage.getItem('sp_tabs_v2')).toBeNull();
+  });
+
+  it('still opens a tab for a page of the same module that has not moved', async () => {
+    layoutMocks.navigationItems = [
+      {
+        path: '/settings',
+        isGroup: true,
+        children: [
+          { path: '/settings/unified', deprecated: true, redirectTo: '/settings' },
+          { path: '/settings/school' },
+        ],
+      },
+    ];
+    renderLayout('/settings/school');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('tab-paths').textContent).toContain('/settings/school');
+    });
   });
 
   it('creates no tab and persists nothing for a direct 404 visit', async () => {

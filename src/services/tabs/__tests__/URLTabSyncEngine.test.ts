@@ -315,6 +315,37 @@ describe('URLTabSyncEngine', () => {
     });
   });
 
+  describe('the Settings tabs after a reload', () => {
+    // The tab list is rebuilt from the address alone, so a hub has to be named from what the code knows:
+    // it used to come back as "Settings", the first word of its translation key, for the overview and every hub.
+    it('keep their names: the overview is Settings, each hub is named for what it holds', () => {
+      const engine = new URLTabSyncEngine();
+      const query = new URLSearchParams();
+      ['/dashboard', '/settings', '/settings/school', '/settings/modules?tab=features', '/settings/system?tab=sync'].forEach((url) =>
+        query.append('tab', url)
+      );
+      query.set('a', '1');
+
+      const parsed = engine.parseURL(`/?${query.toString()}#/settings`);
+
+      expect(parsed.tabs.map((tab) => tab.title)).toEqual([
+        'Dashboard',
+        'Settings',
+        'School & People',
+        'Modules & Features',
+        'Data & System',
+      ]);
+    });
+
+    it('still name the other modules for the module', () => {
+      const engine = new URLTabSyncEngine();
+
+      const parsed = engine.parseURL('/?tab=/dashboard&tab=/finance&tab=/administration/school&a=1#/finance');
+
+      expect(parsed.tabs.map((tab) => tab.title)).toEqual(['Dashboard', 'Finance', 'School']);
+    });
+  });
+
   describe('a module dashboard saved under its old /module/dashboard address', () => {
     it('restores it from the compact URL at the module root, named for the module', () => {
       const engine = new URLTabSyncEngine();

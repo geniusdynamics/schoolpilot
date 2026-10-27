@@ -209,7 +209,7 @@ const AlertBannerItem: React.FC<DashboardAlertBanner> = ({ type, count, label, d
 };
 
 // Enhanced Metric Card Component
-const EnhancedMetricCard: React.FC<DashboardMetric> = ({ label, value, description, icon, trend, trendValue, to, onClick, colorScheme = 'blue' }) => {
+const EnhancedMetricCard: React.FC<Omit<DashboardMetric, 'key'>> = ({ label, value, description, icon, trend, trendValue, to, onClick, colorScheme = 'blue' }) => {
   const colors = colorSchemes[colorScheme];
   const clickable = Boolean(to || onClick);
 
@@ -266,7 +266,7 @@ const EnhancedMetricCard: React.FC<DashboardMetric> = ({ label, value, descripti
 };
 
 // Quick Nav Card Component
-const QuickNavCard: React.FC<DashboardQuickAction> = ({ label, description, icon, to, onClick, colorScheme = 'blue' }) => {
+const QuickNavCard: React.FC<Omit<DashboardQuickAction, 'key'>> = ({ label, description, icon, to, onClick, colorScheme = 'blue' }) => {
   const colors = colorSchemes[colorScheme];
   const navigate = useNavigate();
 
@@ -345,8 +345,8 @@ const ModuleDashboardShell: React.FC<ModuleDashboardShellProps> = ({
       {/* Enhanced Metrics */}
       {metrics.length > 0 && (
         <section aria-label="Key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-          {metrics.map((metric) => (
-            <EnhancedMetricCard key={metric.key} {...metric} />
+          {metrics.map(({ key, ...metric }) => (
+            <EnhancedMetricCard key={key} {...metric} />
           ))}
         </section>
       )}
@@ -359,8 +359,8 @@ const ModuleDashboardShell: React.FC<ModuleDashboardShellProps> = ({
               <div className="xl:col-span-2">
                 <h2 className="text-sm font-semibold text-surface-muted-fg uppercase tracking-wider mb-3">Quick Navigation</h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {quickActions.map((action) => (
-                    <QuickNavCard key={action.key} {...action} />
+                  {quickActions.map(({ key, ...action }) => (
+                    <QuickNavCard key={key} {...action} />
                   ))}
                 </div>
               </div>

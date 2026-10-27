@@ -86,17 +86,13 @@ vi.mock('../../components/BackendConfiguration', () => ({
   BackendConfiguration: () => <div>Backend Configuration Panel</div>,
 }));
 
-vi.mock('../../components/SyncManagementPanel', () => ({
-  default: () => <div>Sync Management Panel</div>,
-}));
-
 describe('Data management settings workflow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('confirm', mocks.confirm);
   });
 
-  it('completes the centralized configuration workflow without losing access to sync controls', async () => {
+  it('completes the centralized configuration workflow: apply a configuration, then reset it', async () => {
     render(
       <MemoryRouter>
         <DataLayerSettingsPage />
@@ -111,10 +107,6 @@ describe('Data management settings workflow', () => {
     expect(mocks.setUserDatabaseConfig).toHaveBeenCalled();
     expect(mocks.updateConfig).toHaveBeenCalled();
 
-    await userEvent.click(screen.getByRole('button', { name: /sync management/i }));
-    expect(screen.getByText('Sync Management Panel')).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole('button', { name: /configuration/i }));
     await userEvent.click(screen.getByRole('button', { name: /reset/i }));
 
     expect(mocks.resetToDefaultConfig).toHaveBeenCalled();

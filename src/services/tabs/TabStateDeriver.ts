@@ -8,6 +8,7 @@ import { logger } from '@/utils/logging';
  */
 
 import { useTranslation } from 'react-i18next';
+import { SETTINGS_HUBS } from '@/modules/settings/hubTabs';
 import { canonicalTabUrl } from './moduleDashboardUrl';
 import type { Tab, URLParseResult } from './types';
 
@@ -44,6 +45,15 @@ const ENTITY_NAMES: Record<string, string> = {
   loans: 'entities.loans',
   meals: 'entities.meals',
   users: 'entities.users'
+};
+
+// The Settings hubs are named for what they hold, not for the last segment of their address. The key is the
+// sidebar's label for the hub; the title is what stands when there is no translation to look the key up in,
+// which is the case for a tab list rebuilt from the address after a reload.
+const SETTINGS_HUB_NAMES: Record<string, { key: string; title: string }> = {
+  school: { key: 'navigation:settings.schoolPeople', title: SETTINGS_HUBS['/settings/school'].title.text },
+  modules: { key: 'navigation:settings.modulesFeatures', title: SETTINGS_HUBS['/settings/modules'].title.text },
+  system: { key: 'navigation:settings.dataSystem', title: SETTINGS_HUBS['/settings/system'].title.text }
 };
 
 export class TabStateDeriver {
@@ -232,7 +242,7 @@ export class TabStateDeriver {
 
       if (entity) {
         // List view
-        return this.getEntityName(entity);
+        return this.getEntityName(entity, module);
       }
 
       // Module dashboard
@@ -311,10 +321,11 @@ export class TabStateDeriver {
     return this.capitalize(module);
   }
 
-  private getEntityName(entity?: string): string {
+  private getEntityName(entity?: string, module?: string): string {
     if (!entity) return '';
 
-    const key = ENTITY_NAMES[entity];
+    const hub = module === 'settings' ? SETTINGS_HUB_NAMES[entity] : undefined;
+    const key = hub?.key ?? ENTITY_NAMES[entity];
     if (key) {
       const translated = this.t(key);
       // i18next returns the raw key on a miss instead of throwing, so treat an
@@ -323,7 +334,7 @@ export class TabStateDeriver {
         return translated;
       }
     }
-    return this.capitalize(entity);
+    return hub?.title ?? this.capitalize(entity);
   }
 
   private fallbackTitle(module: string, entity?: string, view?: string): string {

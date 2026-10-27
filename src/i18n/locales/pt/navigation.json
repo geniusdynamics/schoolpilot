@@ -254,6 +254,10 @@
     "feeCollection": "Cobrança de propinas"
   },
   "settings": {
+    "overview": "Vista geral",
+    "schoolPeople": "Escola e pessoas",
+    "modulesFeatures": "Módulos e funcionalidades",
+    "dataSystem": "Dados e sistema",
     "title": "Definições",
     "description": "Configuração e gestão do sistema",
     "unified": "Definições unificadas",

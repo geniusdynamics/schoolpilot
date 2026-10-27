@@ -26,7 +26,9 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         isGroup: true,
         children: [
           { name: 'settings.features', path: '/settings/features', icon: () => null },
-          { name: 'settings.database', path: '/settings/database', icon: () => null }
+          { name: 'settings.database', path: '/settings/database', icon: () => null },
+          // An old address that only redirects: the sidebar hides it, so the popup must too.
+          { name: 'settings.unified', path: '/settings/unified', icon: () => null, deprecated: true, redirectTo: '/settings' }
         ]
       }
     ]
@@ -63,5 +65,17 @@ describe('SettingsPopup navigation', () => {
 
     expect(openTabMock).toHaveBeenCalledWith('/settings/features', { pinned: false });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('offers the pages that exist, not the old addresses that only redirect', () => {
+    render(
+      <MemoryRouter>
+        <SettingsPopup open={true} onClose={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: /settings.features/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /settings.database/i })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /settings.unified/i })).toBeNull();
   });
 });

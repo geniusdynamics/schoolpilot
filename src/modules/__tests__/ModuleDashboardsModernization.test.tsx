@@ -14,7 +14,6 @@ import LibraryDashboardPage from '@/modules/library/pages/LibraryDashboardPage';
 import NutritionDashboardPage from '@/modules/nutrition/pages/NutritionDashboardPage';
 import ReportsDashboardPage from '@/modules/reports/pages/ReportsDashboardPage';
 import SettingsDashboardPage from '@/modules/settings/pages/SettingsDashboardPage';
-import SettingsPage from '@/modules/settings/pages/SettingsPage';
 
 const mockUseAppData = vi.fn();
 const mockUseAdmissionsData = vi.fn();
@@ -215,7 +214,6 @@ describe('Module dashboard modernization', () => {
       <NutritionDashboardPage key="nutrition" />,
       <ReportsDashboardPage key="reports" />,
       <SettingsDashboardPage key="settings-dashboard" />,
-      <SettingsPage key="settings-main" />,
     ];
 
     for (const page of pages) {

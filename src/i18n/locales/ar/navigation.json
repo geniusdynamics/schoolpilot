@@ -254,6 +254,10 @@
     "feeCollection": "تحصيل الرسوم"
   },
   "settings": {
+    "overview": "نظرة عامة",
+    "schoolPeople": "المدرسة والأشخاص",
+    "modulesFeatures": "الوحدات والميزات",
+    "dataSystem": "البيانات والنظام",
     "title": "الإعدادات",
     "description": "إعداد النظام وإدارته",
     "unified": "الإعدادات الموحّدة",

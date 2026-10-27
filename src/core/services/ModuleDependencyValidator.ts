@@ -143,16 +143,14 @@ class ModuleDependencyValidator {
     const graph = new Map<string, string[]>();
     const cycles: string[][] = [];
     
-    // Build dependency graph including both required and optional dependencies
+    // Build the graph from required dependencies only. A module uses an optional one when it is there and
+    // does without it when it is not, so an optional link cannot stop anything from loading: administration
+    // optionally integrates with finance, which requires administration, and that is not a cycle.
     for (const module of modules) {
-      const requiredDeps = (module.dependencies || []).map(d => 
-        typeof d === 'string' ? d : d.moduleId
-      );
-      const optionalDeps = (module.optionalDependencies || []).map(d => 
-        typeof d === 'string' ? d : d.moduleId
-      );
-      const allDeps = [...requiredDeps, ...optionalDeps];
-      graph.set(module.id, allDeps);
+      const requiredDeps = (module.dependencies || [])
+        .filter(d => typeof d === 'string' || d.required)
+        .map(d => typeof d === 'string' ? d : d.moduleId);
+      graph.set(module.id, requiredDeps);
     }
     
     // Detect cycles using DFS
@@ -243,6 +241,9 @@ class ModuleDependencyValidator {
     }>;
   } {
     const modules = moduleRegistry.getAllMetadata();
+    // The registry hands back the ids of the enabled modules, not the modules: a version is read
+    // from the dependency's metadata.
+    const enabledModules: string[] = moduleRegistry.getEnabledModules();
     const issues: Array<{
       moduleId: string;
       type: 'missing' | 'version' | 'circular';
@@ -251,26 +252,26 @@ class ModuleDependencyValidator {
 
     // Check each module's dependencies
     for (const module of modules) {
-      const enabledModules = moduleRegistry.getEnabledModules();
       const dependencies = module.dependencies || [];
 
       for (const dep of dependencies) {
         const depId = typeof dep === 'string' ? dep : dep.moduleId;
-        const depModule = enabledModules.find(m => m.id === depId);
+        const depEnabled = enabledModules.includes(depId);
 
-        if (!depModule && (typeof dep === 'string' || dep.required)) {
+        if (!depEnabled && (typeof dep === 'string' || dep.required)) {
           issues.push({
             moduleId: module.id,
             type: 'missing',
             details: `Required dependency '${depId}' not found`
           });
-        } else if (typeof dep !== 'string' && depModule && dep.version) {
+        } else if (typeof dep !== 'string' && depEnabled && dep.version) {
           // Check version compatibility
-          if (!semver.satisfies(depModule.version, dep.version)) {
+          const foundVersion = moduleRegistry.getMetadata(depId)?.version;
+          if (foundVersion && !semver.satisfies(foundVersion, dep.version)) {
             issues.push({
               moduleId: module.id,
               type: 'version',
-              details: `Version mismatch for '${depId}': required ${dep.version}, found ${depModule.version}`
+              details: `Version mismatch for '${depId}': required ${dep.version}, found ${foundVersion}`
             });
           }
         }

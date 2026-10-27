@@ -134,19 +134,20 @@ const LoginPage: React.FC = () => {
     setSuccess(t('auth.createAdministrator.created', 'Administrator created. Sign in with your new account.'));
   };
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
-
-  const getSafeRedirectPath = (): string => {
+  // Where a successful sign-in goes: the page that sent the visitor here, or the dashboard.
+  const redirectPath = ((): string => {
     const candidatePath = location.state?.from?.pathname;
     if (!candidatePath || candidatePath === '/' || candidatePath === '/login') {
       return '/dashboard';
     }
     return candidatePath;
-  };
+  })();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, navigate, redirectPath]);
 
   // Demo users for quick login
   const demoUsers = [
@@ -167,10 +168,10 @@ const LoginPage: React.FC = () => {
       
       if (result.success) {
         setSuccess('Login successful! Redirecting...');
-        
-        // Redirect to intended page or dashboard
-        const redirectPath = getSafeRedirectPath();
-        setTimeout(() => navigate(redirectPath, { replace: true }), 1000);
+
+        // At once: a timer left running here outlived this page and sent a visitor who had already
+        // moved on back to where they signed in.
+        navigate(redirectPath, { replace: true });
       } else if (result.reason === 'no-administrator') {
         setLoginState({ mode: 'live', status: 'needs-administrator' });
       } else {
@@ -197,9 +198,8 @@ const LoginPage: React.FC = () => {
       
       if (result.success) {
         setSuccess(`Logged in as ${demoUser.role}! Redirecting...`);
-        
-        const redirectPath = getSafeRedirectPath();
-        setTimeout(() => navigate(redirectPath, { replace: true }), 1000);
+
+        navigate(redirectPath, { replace: true });
       } else {
         setError(result.message);
       }

@@ -1,6 +1,6 @@
-// ABOUTME: Settings page that runs the integrity checks over the canonical tables, groups the
-// ABOUTME: findings by kind, shows what each proposed fix would do and applies only the fixes
-// ABOUTME: the user consents to.
+// ABOUTME: The body of the Data integrity tab of Settings: runs the integrity checks over the canonical
+// ABOUTME: tables, groups the findings by kind, shows what each proposed fix would do and applies only
+// ABOUTME: the fixes the user consents to. The hub it sits in supplies the title.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,6 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   AlertTriangleIcon,
   CheckCircleIcon,
@@ -167,7 +166,6 @@ export const DataIntegrityContent: React.FC<DataIntegrityPageProps> = ({ adapter
   if (!adapter) {
     return (
       <div className="space-y-3">
-        <PageHeaderWithTabs title={t('integrity.title', 'Data integrity')} />
         <Card title={t('integrity.notConnectedTitle', 'The data layer is not connected')}>
           <p className="text-sm text-surface-muted-fg">
             {t(
@@ -182,23 +180,22 @@ export const DataIntegrityContent: React.FC<DataIntegrityPageProps> = ({ adapter
 
   return (
     <div className="space-y-3">
-      <PageHeaderWithTabs
-        title={t('integrity.title', 'Data integrity')}
-        info={t(
-          'integrity.subtitle',
-          'The checks look for references that point at a row that is not there, references that do not hold an id, learners without a class group and ids that are used twice. Nothing is changed until you agree to a fix.'
-        )}
-        action={
-          <Button
-            onClick={() => void runChecks()}
-            variant="outline"
-            loading={running}
-            leftIcon={<RefreshCwIcon className="h-4 w-4" />}
-          >
-            {t('integrity.checkAgain', 'Check again')}
-          </Button>
-        }
-      />
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-sm text-surface-muted-fg">
+          {t(
+            'integrity.subtitle',
+            'The checks look for references that point at a row that is not there, references that do not hold an id, learners without a class group and ids that are used twice. Nothing is changed until you agree to a fix.'
+          )}
+        </p>
+        <Button
+          onClick={() => void runChecks()}
+          variant="outline"
+          loading={running}
+          leftIcon={<RefreshCwIcon className="h-4 w-4" />}
+        >
+          {t('integrity.checkAgain', 'Check again')}
+        </Button>
+      </div>
 
       {error && (
         <div
