@@ -64,34 +64,8 @@ function packAddressSchema(country: string): CountryAddressSchema {
 const ADDRESS_SCHEMAS: Readonly<Record<string, CountryAddressSchema>> = {
   KE: packAddressSchema('KE'),
   UG: packAddressSchema('UG'),
-  TZ: {
-    country: 'TZ',
-    levels: [
-      { key: 'region', labelKey: 'address.tz.region', required: true },
-      { key: 'district', labelKey: 'address.tz.district', required: true },
-      { key: 'ward', labelKey: 'address.tz.ward', required: false },
-    ],
-    hasCity: true,
-    cityRequired: false,
-    postalCodeRequired: false,
-    postalCodeLabelKey: POSTAL_LABEL,
-    line1LabelKey: LINE1_LABEL,
-    line2LabelKey: LINE2_LABEL,
-  },
-  RW: {
-    country: 'RW',
-    levels: [
-      { key: 'province', labelKey: 'address.rw.province', required: true },
-      { key: 'district', labelKey: 'address.rw.district', required: true },
-      { key: 'sector', labelKey: 'address.rw.sector', required: false },
-    ],
-    hasCity: true,
-    cityRequired: false,
-    postalCodeRequired: false,
-    postalCodeLabelKey: POSTAL_LABEL,
-    line1LabelKey: LINE1_LABEL,
-    line2LabelKey: LINE2_LABEL,
-  },
+  TZ: packAddressSchema('TZ'),
+  RW: packAddressSchema('RW'),
   NG: packAddressSchema('NG'),
   GH: {
     country: 'GH',

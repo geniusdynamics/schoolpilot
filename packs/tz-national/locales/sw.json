@@ -1,0 +1,40 @@
+{
+  "labels": {
+    "block.header": "Ripoti ya muhula",
+    "block.learner": "Mwanafunzi",
+    "block.attendance": "Mahudhurio",
+    "block.results": "Matokeo ya masomo",
+    "block.summary": "Muhtasari",
+    "block.comments": "Maoni",
+    "block.progression": "Matokeo ya mwaka na kupanda darasa",
+    "block.calendar": "Muhula ujao unaanza",
+    "block.fees": "Ada",
+    "block.signatures": "Sahihi",
+    "block.verification": "Uthibitisho",
+    "report.primary-term": "Ripoti ya muhula ya shule ya msingi",
+    "report.secondary-term": "Ripoti ya muhula ya shule ya sekondari"
+  },
+  "descriptors": {
+    "tz_psle_subject": {
+      "A": "Bora",
+      "B": "Nzuri sana",
+      "C": "Nzuri",
+      "D": "Inaridhisha",
+      "E": "Hairidhishi"
+    },
+    "tz_csee_subject": {
+      "A": "Bora",
+      "B": "Nzuri sana",
+      "C": "Nzuri",
+      "D": "Inaridhisha",
+      "F": "Kufeli"
+    },
+    "tz_csee_division": {
+      "I": "Daraja la Kwanza",
+      "II": "Daraja la Pili",
+      "III": "Daraja la Tatu",
+      "IV": "Daraja la Nne",
+      "0": "Daraja Sifuri"
+    }
+  }
+}
