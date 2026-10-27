@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "block.header": "Terminal report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Subject results",
+    "block.summary": "Summary",
+    "block.comments": "Comments",
+    "block.progression": "Result for the year and promotion",
+    "block.calendar": "Next term begins",
+    "block.fees": "Fees",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.primary-term": "Primary terminal report",
+    "report.secondary-term": "Secondary terminal report"
+  },
+  "descriptors": {
+    "rw_core_7": {
+      "A": "Excellent",
+      "B": "Very good",
+      "C": "Good",
+      "D": "Satisfactory",
+      "E": "Adequate",
+      "S": "Fair",
+      "F": "Fail"
+    }
+  }
+}

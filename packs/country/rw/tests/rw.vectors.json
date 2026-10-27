@@ -1,0 +1,78 @@
+{
+  "$comment": "Conformance vectors for the RW country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as its nominal date and the date it is observed on: a Sunday holiday moves to the next day that is not itself a holiday, a Saturday holiday is kept (the Order's Saturday and compensation rules are not modelled, see the README), 7 April never moves. Umuganura is listed for 2025 to 2027 only; Eid el Fitr and Eid al-Adha are in no year.",
+  "country": "RW",
+  "identifiers": [
+    { "scheme": "rw.nid", "value": "1199080012345678", "valid": true, "normalised": "1199080012345678" },
+    { "scheme": "rw.nid", "value": " 1 1990 8 0012345 6 78 ", "valid": true, "normalised": "1199080012345678" },
+    { "scheme": "rw.nid", "value": "1-1990-8-0012345-6-78", "valid": true, "normalised": "1199080012345678" },
+    { "scheme": "rw.nid", "value": "119908001234567", "valid": false },
+    { "scheme": "rw.nid", "value": "11990800123456789", "valid": false },
+    { "scheme": "rw.nid", "value": "119908001234567X", "valid": false },
+    { "scheme": "rw.nid", "value": "", "valid": false },
+    { "scheme": "rw.birth_certificate", "value": "BC/2015/00123", "valid": true, "normalised": "BC/2015/00123" },
+    { "scheme": "rw.birth_certificate", "value": "   ", "valid": false },
+    { "scheme": "rw.tin", "value": "102345678", "valid": true, "normalised": "102345678" },
+    { "scheme": "rw.rssb_number", "value": "  12345678  ", "valid": true, "normalised": "12345678" },
+    { "scheme": "rw.passport", "value": "PC123456", "valid": true, "normalised": "PC123456" }
+  ],
+  "easterSunday": {
+    "2018": "2018-04-01",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2018,
+      "days": [
+        { "id": "new-year", "nominal": "2018-01-01", "observed": "2018-01-01" },
+        { "id": "day-after-new-year", "nominal": "2018-01-02", "observed": "2018-01-02" },
+        { "id": "heroes-day", "nominal": "2018-02-01", "observed": "2018-02-01" },
+        { "id": "good-friday", "nominal": "2018-03-30", "observed": "2018-03-30" },
+        { "id": "easter-monday", "nominal": "2018-04-02", "observed": "2018-04-02" },
+        { "id": "genocide-memorial-day", "nominal": "2018-04-07", "observed": "2018-04-07" },
+        { "id": "labour-day", "nominal": "2018-05-01", "observed": "2018-05-01" },
+        { "id": "independence-day", "nominal": "2018-07-01", "observed": "2018-07-02" },
+        { "id": "liberation-day", "nominal": "2018-07-04", "observed": "2018-07-04" },
+        { "id": "assumption-day", "nominal": "2018-08-15", "observed": "2018-08-15" },
+        { "id": "christmas-day", "nominal": "2018-12-25", "observed": "2018-12-25" },
+        { "id": "boxing-day", "nominal": "2018-12-26", "observed": "2018-12-26" }
+      ]
+    },
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "day-after-new-year", "nominal": "2026-01-02", "observed": "2026-01-02" },
+        { "id": "heroes-day", "nominal": "2026-02-01", "observed": "2026-02-02" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "genocide-memorial-day", "nominal": "2026-04-07", "observed": "2026-04-07" },
+        { "id": "labour-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "independence-day", "nominal": "2026-07-01", "observed": "2026-07-01" },
+        { "id": "liberation-day", "nominal": "2026-07-04", "observed": "2026-07-04" },
+        { "id": "umuganura-day", "nominal": "2026-08-01", "observed": "2026-08-01" },
+        { "id": "assumption-day", "nominal": "2026-08-15", "observed": "2026-08-15" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "boxing-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "day-after-new-year", "nominal": "2027-01-02", "observed": "2027-01-02" },
+        { "id": "heroes-day", "nominal": "2027-02-01", "observed": "2027-02-01" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "genocide-memorial-day", "nominal": "2027-04-07", "observed": "2027-04-07" },
+        { "id": "labour-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "independence-day", "nominal": "2027-07-01", "observed": "2027-07-01" },
+        { "id": "liberation-day", "nominal": "2027-07-04", "observed": "2027-07-05" },
+        { "id": "umuganura-day", "nominal": "2027-08-06", "observed": "2027-08-06" },
+        { "id": "assumption-day", "nominal": "2027-08-15", "observed": "2027-08-16" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "boxing-day", "nominal": "2027-12-26", "observed": "2027-12-27" }
+      ]
+    }
+  ]
+}

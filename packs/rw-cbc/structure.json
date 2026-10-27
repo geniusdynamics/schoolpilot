@@ -1,0 +1,34 @@
+{
+  "stages": [
+    {
+      "code": "PRI",
+      "name": "Primary",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6"]
+    },
+    {
+      "code": "SEC",
+      "name": "Ordinary-level secondary",
+      "levels": ["S1", "S2", "S3"]
+    }
+  ],
+  "levels": [
+    { "code": "P1", "name": "Primary 1", "ordinal": 1, "next": "P2", "is_stage_exit": false, "national_assessment": null },
+    { "code": "P2", "name": "Primary 2", "ordinal": 2, "next": "P3", "is_stage_exit": false, "national_assessment": null },
+    { "code": "P3", "name": "Primary 3", "ordinal": 3, "next": "P4", "is_stage_exit": false, "national_assessment": null },
+    { "code": "P4", "name": "Primary 4", "ordinal": 4, "next": "P5", "is_stage_exit": false, "national_assessment": null },
+    { "code": "P5", "name": "Primary 5", "ordinal": 5, "next": "P6", "is_stage_exit": false, "national_assessment": null },
+    { "code": "P6", "name": "Primary 6", "ordinal": 6, "next": "S1", "is_stage_exit": true, "national_assessment": "PLE" },
+    { "code": "S1", "name": "Senior 1", "ordinal": 7, "next": "S2", "is_stage_exit": false, "national_assessment": null },
+    { "code": "S2", "name": "Senior 2", "ordinal": 8, "next": "S3", "is_stage_exit": false, "national_assessment": null },
+    { "code": "S3", "name": "Senior 3", "ordinal": 9, "next": null, "is_stage_exit": false, "national_assessment": "OLEVEL" }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      { "code": "T1", "kind": "term", "sequence": 1, "name": "Term 1", "typical": ["09-01", "12-12"], "half_term": true },
+      { "code": "T2", "kind": "term", "sequence": 2, "name": "Term 2", "typical": ["01-05", "04-03"], "half_term": true },
+      { "code": "T3", "kind": "term", "sequence": 3, "name": "Term 3", "typical": ["04-20", "07-10"], "half_term": true }
+    ],
+    "note": "The school year has three terms. The Ministry of Education publishes each year's calendar and no calendar was fetched for this pack, so the typical windows are unverified pre-fills the school confirms."
+  }
+}

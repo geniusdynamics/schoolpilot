@@ -1,0 +1,373 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-tz",
+  "kind": "country",
+  "country": "TZ",
+  "name": "Tanzania",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "The NIDA number format (20 digits) is from a secondary validator page read from the search index; NIDA publishes no format a fetched page states. Every other identifier is free text.",
+    "The 31 regions are the ISO 3166-2:TZ list read from a secondary copy of the ISO table (Wikipedia, fetched); no official Tanzanian code list was found. No district or ward list is bundled: both are free text.",
+    "The Public Holidays Act (Cap. 35) text was read from the search index only (the OAG revised edition and the TanzLII copy are PDFs that would not fetch; the tanzanialaws.com copy returned 404). Karume Day and Saba Saba are not in the Schedule as read and are kept as draft, as presidential declarations listed by the Bank of Tanzania for 2025.",
+    "Nyerere Day (14 October) is in the revised Schedule read from the search index (R.E. 2023, with GN 486 of 2022); the date it began is not confirmed.",
+    "Id-ul-Fitr, Id-el-Haj and Maulidi depend on the moon: the Act gives two days for Id-ul-Fitr, but the only dates found are the Bank of Tanzania's list for 2025, one date each, read from the search index. No other year is listed.",
+    "The Act moves a holiday that falls on a Saturday or a Sunday to the next day that is not itself a holiday (section 4). The pack's observed rule covers only the Sunday; a Saturday holiday is kept on its own day here.",
+    "The PAYE and SDL due day (the 7th of the month after) is stated by the Tanzania Revenue Authority; the TRA pages would not fetch, so both are draft. NSSF, PSSSF and WCF are due 'within one month after month end', which the due rules cannot state, so they are not modelled."
+  ],
+  "sources": [
+    {
+      "id": "public-holidays-act",
+      "title": "Public Holidays Act, Cap. 35 R.E. 2023: sections 2 to 4 and the Schedule (read from the search index; the PDF would not fetch)",
+      "publisher": "Office of the Attorney General, Tanzania",
+      "url": "https://oagmis.oag.go.tz/portal/acts/revised/140/download",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "bot-holidays-2025",
+      "title": "Public holidays 2025, listing Karume Day, Saba Saba, Nane Nane, Nyerere Day and the moon-dependent days (read from the search index; the PDF would not fetch)",
+      "publisher": "Bank of Tanzania",
+      "url": "https://www.bot.go.tz/webdocs/Other/PUBLIC%20HOLIDAYS%202025.pdf",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "iso-3166-2-tz",
+      "title": "ISO 3166-2:TZ: subdivision codes of Tanzania (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:TZ",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "nida-nin-validator",
+      "title": "Tanzania NIDA National Identification Number validator: 20 digits (secondary; read from the search index)",
+      "publisher": "ValidateList",
+      "url": "https://validatelist.com/validate/national-id/tanzania/",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "tra-paying-taxes",
+      "title": "Paying taxes: PAYE and the Skills Development Levy are payable within seven days after the end of the month (read from the search index; the page would not fetch)",
+      "publisher": "Tanzania Revenue Authority",
+      "url": "https://www.tra.go.tz/page/paying-taxes",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "TZS",
+    "languages": ["en", "sw"],
+    "timeZone": "Africa/Dar_es_Salaam",
+    "phoneRegion": "TZ",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "tz.nida",
+      "labelKey": "country.tz.identifier.nida",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 1, "guardian": 1, "staff": 1 },
+      "validation": { "type": "pattern", "pattern": "^[0-9]{20}$", "normalise": ["trim", "remove_spaces", "remove_hyphens"] },
+      "hintKey": "country.tz.identifier.nida.hint",
+      "example": "19900101123456789012",
+      "sourceRef": "nida-nin-validator",
+      "verification": "draft",
+      "note": "Format only: twenty digits, from a secondary source. A well-formed number is not proof that NIDA issued it."
+    },
+    {
+      "scheme": "tz.birth_certificate",
+      "labelKey": "country.tz.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.tz.identifier.birth_certificate.hint",
+      "example": "as printed on the certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "tz.tin",
+      "labelKey": "country.tz.identifier.tin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.tz.identifier.tin.hint",
+      "example": "as printed on the taxpayer identification certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "tz.nssf_number",
+      "labelKey": "country.tz.identifier.nssf_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.tz.identifier.nssf_number.hint",
+      "example": "as printed on the membership card",
+      "verification": "draft",
+      "note": "No published format the pack cites. Public servants belong to PSSSF, which has its own number."
+    },
+    {
+      "scheme": "tz.passport",
+      "labelKey": "country.tz.identifier.passport",
+      "appliesTo": ["staff"],
+      "order": { "staff": 4 },
+      "validation": { "type": "free" },
+      "hintKey": "country.tz.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "region",
+        "labelKey": "address.tz.region",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "TZ-01", "name": "Arusha" },
+            { "code": "TZ-02", "name": "Dar es Salaam" },
+            { "code": "TZ-03", "name": "Dodoma" },
+            { "code": "TZ-27", "name": "Geita" },
+            { "code": "TZ-04", "name": "Iringa" },
+            { "code": "TZ-05", "name": "Kagera" },
+            { "code": "TZ-06", "name": "Kaskazini Pemba" },
+            { "code": "TZ-07", "name": "Kaskazini Unguja" },
+            { "code": "TZ-28", "name": "Katavi" },
+            { "code": "TZ-08", "name": "Kigoma" },
+            { "code": "TZ-09", "name": "Kilimanjaro" },
+            { "code": "TZ-10", "name": "Kusini Pemba" },
+            { "code": "TZ-11", "name": "Kusini Unguja" },
+            { "code": "TZ-12", "name": "Lindi" },
+            { "code": "TZ-26", "name": "Manyara" },
+            { "code": "TZ-13", "name": "Mara" },
+            { "code": "TZ-14", "name": "Mbeya" },
+            { "code": "TZ-15", "name": "Mjini Magharibi" },
+            { "code": "TZ-16", "name": "Morogoro" },
+            { "code": "TZ-17", "name": "Mtwara" },
+            { "code": "TZ-18", "name": "Mwanza" },
+            { "code": "TZ-29", "name": "Njombe" },
+            { "code": "TZ-19", "name": "Pwani" },
+            { "code": "TZ-20", "name": "Rukwa" },
+            { "code": "TZ-21", "name": "Ruvuma" },
+            { "code": "TZ-22", "name": "Shinyanga" },
+            { "code": "TZ-30", "name": "Simiyu" },
+            { "code": "TZ-23", "name": "Singida" },
+            { "code": "TZ-31", "name": "Songwe" },
+            { "code": "TZ-24", "name": "Tabora" },
+            { "code": "TZ-25", "name": "Tanga" }
+          ],
+          "sourceRef": "iso-3166-2-tz",
+          "verification": "draft"
+        }
+      },
+      { "key": "district", "labelKey": "address.tz.district", "required": true },
+      { "key": "ward", "labelKey": "address.tz.ward", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.tz.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the Schedule as read from the search index."
+    },
+    {
+      "id": "revolution-day",
+      "nameKey": "country.tz.holiday.revolution_day",
+      "rule": { "type": "fixed", "month": 1, "day": 12 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "Zanzibar Revolution Day, in the Schedule."
+    },
+    {
+      "id": "karume-day",
+      "nameKey": "country.tz.holiday.karume_day",
+      "rule": { "type": "fixed", "month": 4, "day": 7 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "bot-holidays-2025",
+      "verification": "draft",
+      "note": "Not in the Schedule as read; observed each year by presidential declaration (Bank of Tanzania list for 2025). Whether it applied from 2000 is unconfirmed."
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.tz.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the Schedule."
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.tz.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the Schedule."
+    },
+    {
+      "id": "union-day",
+      "nameKey": "country.tz.holiday.union_day",
+      "rule": { "type": "fixed", "month": 4, "day": 26 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the Schedule."
+    },
+    {
+      "id": "workers-day",
+      "nameKey": "country.tz.holiday.workers_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "International Workers' Day, in the Schedule."
+    },
+    {
+      "id": "saba-saba",
+      "nameKey": "country.tz.holiday.saba_saba",
+      "rule": { "type": "fixed", "month": 7, "day": 7 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "bot-holidays-2025",
+      "verification": "draft",
+      "note": "Named in the 1964 Schedule (search index) but not in the revised Schedule as read; the Bank of Tanzania lists it for 2025."
+    },
+    {
+      "id": "peasants-day",
+      "nameKey": "country.tz.holiday.peasants_day",
+      "rule": { "type": "fixed", "month": 8, "day": 8 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "Peasants' Day (Nane Nane), in the Schedule."
+    },
+    {
+      "id": "nyerere-day",
+      "nameKey": "country.tz.holiday.nyerere_day",
+      "rule": { "type": "fixed", "month": 10, "day": 14 },
+      "effectiveFrom": "2022-07-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the revised Schedule (R.E. 2023). The start date follows GN 486 of 2022, whose date was not confirmed; 1 July 2022 is an approximation."
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.tz.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 12, "day": 9 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "Independence and Republic Day, in the Schedule."
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.tz.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the Schedule."
+    },
+    {
+      "id": "boxing-day",
+      "nameKey": "country.tz.holiday.boxing_day",
+      "rule": { "type": "fixed", "month": 12, "day": 26 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "public-holidays-act",
+      "verification": "draft",
+      "note": "In the Schedule."
+    },
+    {
+      "id": "id-ul-fitr",
+      "nameKey": "country.tz.holiday.id_ul_fitr",
+      "rule": { "type": "byYear", "dates": { "2025": "2025-03-29" } },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "bot-holidays-2025",
+      "verification": "draft",
+      "note": "The Act gives two days; the Bank of Tanzania list for 2025 shows one (29 March). No other year is listed until its date is added."
+    },
+    {
+      "id": "id-el-haj",
+      "nameKey": "country.tz.holiday.id_el_haj",
+      "rule": { "type": "byYear", "dates": { "2025": "2025-06-06" } },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "bot-holidays-2025",
+      "verification": "draft",
+      "note": "One day. The 2025 list marks the date as subject to the moon."
+    },
+    {
+      "id": "maulidi-day",
+      "nameKey": "country.tz.holiday.maulidi_day",
+      "rule": { "type": "byYear", "dates": { "2025": "2025-09-04" } },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "bot-holidays-2025",
+      "verification": "draft",
+      "note": "The 2025 list marks the date as subject to the moon."
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "paye-monthly",
+      "nameKey": "country.tz.return.paye",
+      "authority": "Tanzania Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 7 },
+      "sourceRef": "tra-paying-taxes",
+      "verification": "draft",
+      "note": "PAYE is payable within seven days after the end of the month; the TRA page was read from the search index only. A date that falls on a weekend or holiday rolls to the next working day according to a secondary calendar; the due rule does not model it."
+    },
+    {
+      "id": "sdl-monthly",
+      "nameKey": "country.tz.return.sdl",
+      "authority": "Tanzania Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 7 },
+      "sourceRef": "tra-paying-taxes",
+      "verification": "draft",
+      "note": "The Skills Development Levy is payable within seven days after the end of the month. A secondary guide lists registered educational institutions among the exempt employers; whether a school owes it is for the school's adviser."
+    }
+  ]
+}

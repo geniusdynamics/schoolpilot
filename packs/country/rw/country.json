@@ -1,0 +1,311 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-rw",
+  "kind": "country",
+  "country": "RW",
+  "name": "Rwanda",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "The national identification number is 16 digits (World Bank and ID4Africa descriptions, read from the search index); the first digit is 1 for a citizen, 2 for a refugee and 3 for a foreigner. The pack validates the length only. Every other identifier is free text.",
+    "The four provinces and the City of Kigali carry ISO 3166-2:RW codes read from a secondary copy of the ISO table (Wikipedia, fetched). No district, sector or cell list is bundled: they are free text.",
+    "The holiday list is Presidential Order 54 of 2017, shown on RwandaLII as the latest version (fetched). A secondary site says a 2022 Presidential Order (062/01) repeats the list; that order was not fetched, so whether the 2017 order is still the current text is unconfirmed.",
+    "Umuganura is 'the Friday of the first week of August' in the Order, which a date rule cannot state, so its dates are listed by year. The government's holiday page (fetched) lists 1 August 2026, a Saturday, not the first Friday (7 August); the pack follows the page for 2026 and marks the day draft. Other years are the first Friday of August by the Order's wording.",
+    "Eid el Fitr and Eid al-Adha are announced each year by the Rwanda Muslim Association (the Order). No announcement was fetched, so no date is listed for any year.",
+    "The Order moves a holiday that falls on a weekend to the following working day, except 7 April, and compensates two consecutive weekend holidays in one working day (Article 4). The pack's observed rule covers the Sunday move only; a Saturday holiday is kept on its own day here, and the compensation rules are not modelled.",
+    "PAYE and RSSB contributions are due on the 15th of the month after (the Rwanda Revenue Authority pages, fetched). Quarterly PAYE for small taxpayers is not modelled."
+  ],
+  "sources": [
+    {
+      "id": "presidential-order-54-2017",
+      "title": "Presidential Order 54 of 2017 determining Official Public Holidays: Articles 3 and 4 (Official Gazette 11 of 13 March 2017)",
+      "publisher": "RwandaLII (Laws.Africa)",
+      "url": "https://rwandalii.org/akn/rw/act/po/2017/54/eng@2017-03-13",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "govrw-holidays",
+      "title": "Holidays 2026",
+      "publisher": "Government of Rwanda",
+      "url": "https://www.gov.rw/holidays",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "iso-3166-2-rw",
+      "title": "ISO 3166-2:RW: subdivision codes of Rwanda (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:RW",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "id4d-rwanda",
+      "title": "Country Diagnostic: Rwanda (the 16-digit National Identity Number; read from the search index)",
+      "publisher": "World Bank (ID4D)",
+      "url": "https://thedocs.worldbank.org/en/doc/573111524689463285-0190022018/original/RwandaID4DDiagnosticWeb040318.pdf",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "rra-paye",
+      "title": "Pay Employment tax (PAYE): declared and paid by the 15th of the month following the tax period",
+      "publisher": "Rwanda Revenue Authority",
+      "url": "https://www.rra.gov.rw/en/domestic-tax-services/employment-tax-paye/pay-paye",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "rra-rssb",
+      "title": "Declaration and payment of RSSB contributions: monthly, not later than the 15th of the following month",
+      "publisher": "Rwanda Revenue Authority",
+      "url": "https://www.rra.gov.rw/en/domestic-tax-services/rssb-contributions/declaration-payment-of-rssb-contributions",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "RWF",
+    "languages": ["en", "rw"],
+    "timeZone": "Africa/Kigali",
+    "phoneRegion": "RW",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "rw.nid",
+      "labelKey": "country.rw.identifier.nid",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 1, "guardian": 1, "staff": 1 },
+      "validation": { "type": "pattern", "pattern": "^[0-9]{16}$", "normalise": ["trim", "remove_spaces", "remove_hyphens"] },
+      "hintKey": "country.rw.identifier.nid.hint",
+      "example": "1199080012345678",
+      "sourceRef": "id4d-rwanda",
+      "verification": "draft",
+      "note": "Format only: sixteen digits. The last two are a check the issuer keeps secret, so the pack cannot verify them. A well-formed number is not proof that NIDA issued it."
+    },
+    {
+      "scheme": "rw.birth_certificate",
+      "labelKey": "country.rw.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.rw.identifier.birth_certificate.hint",
+      "example": "as printed on the certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "rw.tin",
+      "labelKey": "country.rw.identifier.tin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.rw.identifier.tin.hint",
+      "example": "as printed on the taxpayer registration certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "rw.rssb_number",
+      "labelKey": "country.rw.identifier.rssb_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.rw.identifier.rssb_number.hint",
+      "example": "as issued by the Rwanda Social Security Board",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "rw.passport",
+      "labelKey": "country.rw.identifier.passport",
+      "appliesTo": ["staff"],
+      "order": { "staff": 4 },
+      "validation": { "type": "free" },
+      "hintKey": "country.rw.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "province",
+        "labelKey": "address.rw.province",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "RW-01", "name": "City of Kigali" },
+            { "code": "RW-02", "name": "Eastern" },
+            { "code": "RW-03", "name": "Northern" },
+            { "code": "RW-05", "name": "Southern" },
+            { "code": "RW-04", "name": "Western" }
+          ],
+          "sourceRef": "iso-3166-2-rw",
+          "verification": "draft"
+        }
+      },
+      { "key": "district", "labelKey": "address.rw.district", "required": true },
+      { "key": "sector", "labelKey": "address.rw.sector", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.rw.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "day-after-new-year",
+      "nameKey": "country.rw.holiday.day_after_new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 2 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "heroes-day",
+      "nameKey": "country.rw.holiday.heroes_day",
+      "rule": { "type": "fixed", "month": 2, "day": 1 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified",
+      "note": "The government page lists 2 February 2026, the Monday after a Sunday 1 February, which the Sunday rule reproduces."
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.rw.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.rw.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "genocide-memorial-day",
+      "nameKey": "country.rw.holiday.genocide_memorial_day",
+      "rule": { "type": "fixed", "month": 4, "day": 7 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified",
+      "note": "Genocide perpetrated against the Tutsi Memorial Day. Article 4 excepts it from the weekend move."
+    },
+    {
+      "id": "labour-day",
+      "nameKey": "country.rw.holiday.labour_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.rw.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 7, "day": 1 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "liberation-day",
+      "nameKey": "country.rw.holiday.liberation_day",
+      "rule": { "type": "fixed", "month": 7, "day": 4 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "umuganura-day",
+      "nameKey": "country.rw.holiday.umuganura_day",
+      "rule": { "type": "byYear", "dates": { "2025": "2025-08-01", "2026": "2026-08-01", "2027": "2027-08-06" } },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "draft",
+      "note": "The Order says the Friday of the first week of August. 2025 and 2027 are the first Friday of August by that wording; 2026 is the government page's date (a Saturday), which differs from the first Friday, 7 August. Other years are not listed."
+    },
+    {
+      "id": "assumption-day",
+      "nameKey": "country.rw.holiday.assumption_day",
+      "rule": { "type": "fixed", "month": 8, "day": 15 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.rw.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    },
+    {
+      "id": "boxing-day",
+      "nameKey": "country.rw.holiday.boxing_day",
+      "rule": { "type": "fixed", "month": 12, "day": 26 },
+      "effectiveFrom": "2017-03-13",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "presidential-order-54-2017",
+      "verification": "verified"
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "paye-monthly",
+      "nameKey": "country.rw.return.paye",
+      "authority": "Rwanda Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 15 },
+      "sourceRef": "rra-paye",
+      "verification": "verified",
+      "note": "Declared and paid by the 15th of the month following the tax period. A taxpayer with annual turnover below the authority's threshold may declare quarterly; that is not modelled."
+    },
+    {
+      "id": "rssb-monthly",
+      "nameKey": "country.rw.return.rssb",
+      "authority": "Rwanda Social Security Board, collected through the Rwanda Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 15 },
+      "sourceRef": "rra-rssb",
+      "verification": "verified",
+      "note": "Declared and remitted monthly, not later than the 15th day of the following month, even where PAYE is declared quarterly."
+    }
+  ]
+}

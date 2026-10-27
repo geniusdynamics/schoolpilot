@@ -1,0 +1,259 @@
+{
+  "learning_areas": [
+    {
+      "code": "PKIS",
+      "name": "Kiswahili",
+      "short_name": "Kiswahili",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "PENG",
+      "name": "English Language",
+      "short_name": "English",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "PSOC",
+      "name": "Social Studies and Vocational Skills",
+      "short_name": "Social Studies",
+      "kind": "core",
+      "group": "social",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "PMAT",
+      "name": "Mathematics",
+      "short_name": "Maths",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "PSCI",
+      "name": "Science and Technology",
+      "short_name": "Science",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "PCIV",
+      "name": "Civic and Moral Education",
+      "short_name": "Civic",
+      "kind": "core",
+      "group": "social",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "CIV",
+      "name": "Civics",
+      "short_name": "Civics",
+      "kind": "core",
+      "group": "social",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "HIS",
+      "name": "History",
+      "short_name": "History",
+      "kind": "core",
+      "group": "social",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "GEO",
+      "name": "Geography",
+      "short_name": "Geography",
+      "kind": "core",
+      "group": "social",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "KIS",
+      "name": "Kiswahili",
+      "short_name": "Kiswahili",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "ENG",
+      "name": "English Language",
+      "short_name": "English",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Biology",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "BMA",
+      "name": "Basic Mathematics",
+      "short_name": "Basic Maths",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Physics",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chemistry",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "COM",
+      "name": "Commerce",
+      "short_name": "Commerce",
+      "kind": "elective",
+      "group": "business",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "BKP",
+      "name": "Book Keeping",
+      "short_name": "Book Keeping",
+      "kind": "elective",
+      "group": "business",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "FNU",
+      "name": "Food and Human Nutrition",
+      "short_name": "Food and Nutrition",
+      "kind": "elective",
+      "group": "home_economics",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "TDM",
+      "name": "Textiles and Garment Construction",
+      "short_name": "Textiles",
+      "kind": "elective",
+      "group": "home_economics",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "BKN",
+      "name": "Bible Knowledge",
+      "short_name": "Bible Knowledge",
+      "kind": "optional",
+      "group": "religion",
+      "levels": ["F1", "F2", "F3", "F4"],
+      "alternatives": ["EDK"]
+    },
+    {
+      "code": "EDK",
+      "name": "Elimu ya Dini ya Kiislamu",
+      "short_name": "Dini ya Kiislamu",
+      "kind": "optional",
+      "group": "religion",
+      "levels": ["F1", "F2", "F3", "F4"],
+      "alternatives": ["BKN"]
+    },
+    {
+      "code": "FNA",
+      "name": "Fine Art",
+      "short_name": "Fine Art",
+      "kind": "optional",
+      "group": "arts",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "MUS",
+      "name": "Music",
+      "short_name": "Music",
+      "kind": "optional",
+      "group": "arts",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "PHE",
+      "name": "Physical Education",
+      "short_name": "PE",
+      "kind": "optional",
+      "group": "arts",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "FRE",
+      "name": "French Language",
+      "short_name": "French",
+      "kind": "optional",
+      "group": "languages",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "LIT",
+      "name": "Literature in English",
+      "short_name": "Literature",
+      "kind": "optional",
+      "group": "languages",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "ARA",
+      "name": "Arabic Language",
+      "short_name": "Arabic",
+      "kind": "optional",
+      "group": "languages",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "AGR",
+      "name": "Agricultural Science",
+      "short_name": "Agriculture",
+      "kind": "optional",
+      "group": "sciences",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "ICS",
+      "name": "Information and Computer Studies",
+      "short_name": "ICS",
+      "kind": "optional",
+      "group": "technology",
+      "levels": ["F1", "F2", "F3", "F4"]
+    },
+    {
+      "code": "AMA",
+      "name": "Additional Mathematics",
+      "short_name": "Add Maths",
+      "kind": "optional",
+      "group": "mathematics",
+      "levels": ["F1", "F2", "F3", "F4"]
+    }
+  ],
+  "competencies": [],
+  "combination_rules": [
+    {
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"],
+      "rule": "core_all",
+      "of": ["PKIS", "PENG", "PSOC", "PMAT", "PSCI", "PCIV"]
+    },
+    {
+      "levels": ["F1", "F2", "F3", "F4"],
+      "rule": "core_all",
+      "of": ["CIV", "HIS", "GEO", "KIS", "ENG", "BIO", "BMA"]
+    }
+  ]
+}

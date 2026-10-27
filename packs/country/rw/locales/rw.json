@@ -1,0 +1,32 @@
+{
+  "labels": {
+    "country.rw.identifier.nid": "Nimero y'indangamuntu (NIN)",
+    "country.rw.identifier.nid.hint": "Imibare cumi n'itandatu, nk'uko iri ku ndangamuntu.",
+    "country.rw.identifier.birth_certificate": "Nimero y'icyemezo cy'amavuko",
+    "country.rw.identifier.birth_certificate.hint": "Nimero yanditse ku cyemezo cy'amavuko.",
+    "country.rw.identifier.tin": "Nimero y'umusoreshwa (TIN)",
+    "country.rw.identifier.tin.hint": "Nimero iri ku cyemezo cy'iyandikishwa ry'umusoreshwa.",
+    "country.rw.identifier.rssb_number": "Nimero ya RSSB",
+    "country.rw.identifier.rssb_number.hint": "Nimero yatanzwe n'Ikigo cy'Igihugu cy'Ubwiteganyirize bw'Abaturage (RSSB).",
+    "country.rw.identifier.passport": "Nimero ya pasiporo",
+    "country.rw.identifier.passport.hint": "Nimero yanditse muri pasiporo.",
+    "address.rw.province": "Intara",
+    "address.rw.district": "Akarere",
+    "address.rw.sector": "Umurenge",
+    "country.rw.holiday.new_year": "Ubunani",
+    "country.rw.holiday.day_after_new_year": "Umunsi ukurikira Ubunani",
+    "country.rw.holiday.heroes_day": "Umunsi w'Intwari",
+    "country.rw.holiday.good_friday": "Ku wa Gatanu Mutagatifu",
+    "country.rw.holiday.easter_monday": "Ku wa mbere wa Pasika",
+    "country.rw.holiday.genocide_memorial_day": "Umunsi wo Kwibuka Jenoside yakorewe Abatutsi",
+    "country.rw.holiday.labour_day": "Umunsi Mukuru w'Umurimo",
+    "country.rw.holiday.independence_day": "Umunsi w'Ubwigenge",
+    "country.rw.holiday.liberation_day": "Umunsi wo Kwibohora",
+    "country.rw.holiday.umuganura_day": "Umunsi w'Umuganura",
+    "country.rw.holiday.assumption_day": "Ijyanwa mu Ijuru rya Bikira Mariya",
+    "country.rw.holiday.christmas_day": "Noheli",
+    "country.rw.holiday.boxing_day": "Umunsi ukurikira Noheli",
+    "country.rw.return.paye": "Imenyekanisha rya PAYE",
+    "country.rw.return.rssb": "Imenyekanisha ry'imisanzu ya RSSB"
+  }
+}

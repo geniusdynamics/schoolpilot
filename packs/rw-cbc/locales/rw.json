@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "block.header": "Raporo y'igihembwe",
+    "block.learner": "Umunyeshuri",
+    "block.attendance": "Ubwitabire",
+    "block.results": "Amanota y'amasomo",
+    "block.summary": "Incamake",
+    "block.comments": "Ibitekerezo",
+    "block.progression": "Ibisubizo by'umwaka no kwimuka",
+    "block.calendar": "Igihembwe gikurikira gitangira",
+    "block.fees": "Amafaranga y'ishuri",
+    "block.signatures": "Imikono",
+    "block.verification": "Igenzura",
+    "report.primary-term": "Raporo y'igihembwe y'amashuri abanza",
+    "report.secondary-term": "Raporo y'igihembwe y'amashuri yisumbuye"
+  },
+  "descriptors": {
+    "rw_core_7": {
+      "A": "Indashyikirwa",
+      "B": "Ni nziza cyane",
+      "C": "Ni nziza",
+      "D": "Irashimishije",
+      "E": "Irahagije",
+      "S": "Iringaniye",
+      "F": "Ntiyatsinze"
+    }
+  }
+}

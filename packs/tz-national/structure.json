@@ -1,0 +1,49 @@
+{
+  "stages": [
+    {
+      "code": "PRI",
+      "name": "Primary",
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6", "STD7"]
+    },
+    {
+      "code": "SEC",
+      "name": "Ordinary-level secondary",
+      "levels": ["F1", "F2", "F3", "F4"]
+    }
+  ],
+  "levels": [
+    { "code": "STD1", "name": "Standard I", "ordinal": 1, "next": "STD2", "is_stage_exit": false, "national_assessment": null },
+    { "code": "STD2", "name": "Standard II", "ordinal": 2, "next": "STD3", "is_stage_exit": false, "national_assessment": null },
+    { "code": "STD3", "name": "Standard III", "ordinal": 3, "next": "STD4", "is_stage_exit": false, "national_assessment": null },
+    { "code": "STD4", "name": "Standard IV", "ordinal": 4, "next": "STD5", "is_stage_exit": false, "national_assessment": "SFNA" },
+    { "code": "STD5", "name": "Standard V", "ordinal": 5, "next": "STD6", "is_stage_exit": false, "national_assessment": null },
+    { "code": "STD6", "name": "Standard VI", "ordinal": 6, "next": "STD7", "is_stage_exit": false, "national_assessment": null },
+    { "code": "STD7", "name": "Standard VII", "ordinal": 7, "next": "F1", "is_stage_exit": true, "national_assessment": "PSLE" },
+    { "code": "F1", "name": "Form I", "ordinal": 8, "next": "F2", "is_stage_exit": false, "national_assessment": null },
+    { "code": "F2", "name": "Form II", "ordinal": 9, "next": "F3", "is_stage_exit": false, "national_assessment": "FTNA" },
+    { "code": "F3", "name": "Form III", "ordinal": 10, "next": "F4", "is_stage_exit": false, "national_assessment": null },
+    { "code": "F4", "name": "Form IV", "ordinal": 11, "next": null, "is_stage_exit": false, "national_assessment": "CSEE" }
+  ],
+  "calendar_template": {
+    "year_kind": "calendar_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term 1",
+        "typical": ["01-06", "06-20"],
+        "half_term": true
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Term 2",
+        "typical": ["07-06", "12-05"],
+        "half_term": true
+      }
+    ],
+    "note": "The school year is the calendar year in two terms with a mid-term break in each. The Ministry of Education, Science and Technology publishes the exact term dates each year and no calendar was fetched for this pack; the setup wizard pre-fills these typical windows and the school confirms."
+  }
+}

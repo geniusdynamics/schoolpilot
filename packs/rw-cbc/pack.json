@@ -1,0 +1,59 @@
+{
+  "code": "rw-cbc",
+  "name": "Rwanda competence-based curriculum - Primary 1 to 6 and Senior 1 to 3 (PLE and O-level)",
+  "version": "1.0.0",
+  "country": "RW",
+  "issuers": [
+    "REB",
+    "NESA",
+    "Ministry of Education"
+  ],
+  "effective_from": "2026-01-01",
+  "languages": [
+    "en",
+    "rw"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "P6 and S3 national examinations results released: the grade value 6 (highest) to 0, PLE aggregate 30 over 5 subjects, O-level aggregate 54 over 9 compulsory subjects, advanced level 60",
+      "issuer": "Ministry of Education (MINEDUC)",
+      "url": "https://www.mineduc.gov.rw/news-detail/p6-and-s3-national-examinations-results-released",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "MINEDUC releases S6 examination results 2021-2022: seven-point scale 6 to 0, subsidiary subjects two-point, maximum weighted aggregate 60, minimum 9",
+      "issuer": "Ministry of Education (MINEDUC)",
+      "url": "https://www.mineduc.gov.rw/news-detail/mineduc-releases-s6-examinations-results-for-the-school-year-2021-2022",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Summary note on Ministerial instructions governing national examinations: seven-point core scale A to F with values 6 to 0 (read from the search index; the PDF would not fetch)",
+      "issuer": "NESA",
+      "url": "https://www.nesa.gov.rw/fileadmin/user_upload/NESA/Examination_Process/Summary_Note_on_Minisiterial_Instructions_Governing_National_Examinations_Signed.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "National examination body introduces new grading system: the mark range of each grade, the five PLE subjects, divisions removed (secondary, news report)",
+      "issuer": "KT Press",
+      "url": "https://www.ktpress.rw/2022/08/rwanda-national-examination-body-introduces-new-grading-system/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "MINEDUC releases P6 and S3 examination results 2021: the nine O-level subjects (read from the search index; the page was not fetched)",
+      "issuer": "Ministry of Education (MINEDUC)",
+      "url": "https://www.mineduc.gov.rw/news-detail/mineduc-releases-p6-and-s3-examinations-results-for-the-school-year-2021",
+      "retrieved": "2026-10-27"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a REB, NESA or MINEDUC officer. Firmest (MINEDUC pages, fetched): the seven-point scale with grade values 6 to 0, the PLE aggregate of 30 over five subjects and the O-level aggregate of 54 over nine compulsory subjects, all counted. Open: (1) The mark range of each grade (A 70-100, B 65-69, C 60-64, D 50-59, E 40-49, S 20-39, F 0-19) is from a news report (KT Press); the NESA summary note that states the grades and values could only be read from the search index, and no fetched official page gives the ranges. (2) The five PLE subjects are from KT Press and the nine O-level subjects from a MINEDUC release read from the search index; one secondary list names French and a combined geography-history group instead, so the list may differ by year. (3) S4 to S6 (general education combinations), TVET and TTC are not modelled: only the maximum 60 and minimum 9 of the weighted aggregate are confirmed, not the subject weights. (4) NESA's weights of the papers and a pass mark for the PLE or O-level were not found, so the aggregates are plain sums with no pass band. (5) Internal term marking: no weights of continuous assessment against the examination were found, so the scheme is one term mark out of 100, overridable. (6) The P1 to P3 subject list is not confirmed; the PLE subjects are applied to every primary level. (7) Term dates are pre-fills; the school year's start (September, as the spec says since 2022/23) was not verified. (8) Promotion at an average of 40 is a suggestion, not a national rule. (9) The Kinyarwanda labels are a draft translation no native speaker reviewed."
+  },
+  "overridable": [
+    "grading_scales.rw_core_7.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "code": "primary-term",
+  "name": "Primary terminal report",
+  "levels": ["P1", "P2", "P3", "P4", "P5", "P6"],
+  "page": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "blocks": [
+    { "type": "header", "label_key": "block.header" },
+    { "type": "learner", "label_key": "block.learner" },
+    { "type": "attendance", "label_key": "block.attendance" },
+    {
+      "type": "results_table",
+      "label_key": "block.results",
+      "columns": ["slots", "total", "grade", "position", "class_mean", "highest", "lowest", "remark"]
+    },
+    { "type": "summary", "label_key": "block.summary" },
+    { "type": "comments", "label_key": "block.comments" },
+    { "type": "progression", "label_key": "block.progression" },
+    { "type": "calendar", "label_key": "block.calendar" },
+    { "type": "fees", "label_key": "block.fees" },
+    { "type": "signatures", "label_key": "block.signatures" },
+    { "type": "verification", "label_key": "block.verification" }
+  ],
+  "comment_max_length": 500
+}

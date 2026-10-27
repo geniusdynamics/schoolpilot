@@ -1,0 +1,32 @@
+{
+  "labels": {
+    "country.rw.identifier.nid": "National Identification Number (NIN)",
+    "country.rw.identifier.nid.hint": "Sixteen digits, as printed on the national ID card.",
+    "country.rw.identifier.birth_certificate": "Birth certificate number",
+    "country.rw.identifier.birth_certificate.hint": "The number printed on the birth certificate.",
+    "country.rw.identifier.tin": "Taxpayer Identification Number (TIN)",
+    "country.rw.identifier.tin.hint": "The number on the taxpayer registration certificate.",
+    "country.rw.identifier.rssb_number": "RSSB number",
+    "country.rw.identifier.rssb_number.hint": "The number issued by the Rwanda Social Security Board.",
+    "country.rw.identifier.passport": "Passport number",
+    "country.rw.identifier.passport.hint": "The number printed in the passport.",
+    "address.rw.province": "Province",
+    "address.rw.district": "District",
+    "address.rw.sector": "Sector",
+    "country.rw.holiday.new_year": "New Year's Day",
+    "country.rw.holiday.day_after_new_year": "Day after New Year's Day",
+    "country.rw.holiday.heroes_day": "National Heroes' Day",
+    "country.rw.holiday.good_friday": "Good Friday",
+    "country.rw.holiday.easter_monday": "Easter Monday",
+    "country.rw.holiday.genocide_memorial_day": "Genocide against the Tutsi Memorial Day",
+    "country.rw.holiday.labour_day": "Labour Day",
+    "country.rw.holiday.independence_day": "Independence Day",
+    "country.rw.holiday.liberation_day": "Liberation Day",
+    "country.rw.holiday.umuganura_day": "Umuganura Day",
+    "country.rw.holiday.assumption_day": "Assumption Day",
+    "country.rw.holiday.christmas_day": "Christmas Day",
+    "country.rw.holiday.boxing_day": "Boxing Day",
+    "country.rw.return.paye": "PAYE declaration",
+    "country.rw.return.rssb": "RSSB contributions declaration"
+  }
+}
