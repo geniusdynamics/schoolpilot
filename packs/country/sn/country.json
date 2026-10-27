@@ -1,0 +1,195 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-sn",
+  "kind": "country",
+  "country": "SN",
+  "name": "Senegal",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "No Senegalese statute or official gazette was reachable: every public holiday comes from a secondary source (Wikipedia) and is a draft. The statute that sets them was not found.",
+    "The Muslim festivals (Korite, Tabaski, Maouloud, Tamkharit) and the Grand Magal of Touba depend on the moon and are declared each year; no declaration was fetched, so none is listed and a year has none until its declaration is added.",
+    "A holiday that falls on a Sunday is kept on its own day: no rule of observance was confirmed.",
+    "The regions and their ISO 3166-2 codes are read from a secondary copy of the ISO table, not from the official gazette; the 14 regions are those the table lists after the creation of Kaffrine, Kedougou and Sedhiou.",
+    "No department list is bundled: the department is free text.",
+    "No identifier format was found in a fetched source: every scheme is free text.",
+    "No statutory return is listed: no fetched Senegalese source gives a due day (DGID pages name the returns but not their dates)."
+  ],
+  "sources": [
+    {
+      "id": "iso-3166-2-sn",
+      "title": "ISO 3166-2:SN: subdivision codes of Senegal (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:SN",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "holidays-sn",
+      "title": "Public holidays in Senegal (secondary)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Public_holidays_in_Senegal",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "XOF",
+    "languages": ["fr", "en"],
+    "timeZone": "Africa/Dakar",
+    "phoneRegion": "SN",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "sn.national_id",
+      "labelKey": "country.sn.identifier.national_id",
+      "appliesTo": ["guardian", "staff"],
+      "order": { "guardian": 1, "staff": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.sn.identifier.national_id.hint",
+      "example": "as printed on the national identity card",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "sn.birth_certificate",
+      "labelKey": "country.sn.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.sn.identifier.birth_certificate.hint",
+      "example": "as printed on the birth extract",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "region",
+        "labelKey": "address.sn.region",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "SN-DK", "name": "Dakar" },
+            { "code": "SN-DB", "name": "Diourbel" },
+            { "code": "SN-FK", "name": "Fatick" },
+            { "code": "SN-KA", "name": "Kaffrine" },
+            { "code": "SN-KL", "name": "Kaolack" },
+            { "code": "SN-KE", "name": "Kédougou" },
+            { "code": "SN-KD", "name": "Kolda" },
+            { "code": "SN-LG", "name": "Louga" },
+            { "code": "SN-MT", "name": "Matam" },
+            { "code": "SN-SL", "name": "Saint-Louis" },
+            { "code": "SN-SE", "name": "Sédhiou" },
+            { "code": "SN-TC", "name": "Tambacounda" },
+            { "code": "SN-TH", "name": "Thiès" },
+            { "code": "SN-ZG", "name": "Ziguinchor" }
+          ],
+          "sourceRef": "iso-3166-2-sn",
+          "verification": "draft"
+        }
+      },
+      { "key": "department", "labelKey": "address.sn.department", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.sn.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.sn.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 4, "day": 4 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft",
+      "note": "Independence from France in 1960."
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.sn.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    },
+    {
+      "id": "labour-day",
+      "nameKey": "country.sn.holiday.labour_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    },
+    {
+      "id": "ascension",
+      "nameKey": "country.sn.holiday.ascension",
+      "rule": { "type": "easter", "offsetDays": 39 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft",
+      "note": "The source says forty days after Easter; the Thursday that is thirty-nine days after Easter Sunday is meant."
+    },
+    {
+      "id": "whit-monday",
+      "nameKey": "country.sn.holiday.whit_monday",
+      "rule": { "type": "easter", "offsetDays": 50 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    },
+    {
+      "id": "assumption",
+      "nameKey": "country.sn.holiday.assumption",
+      "rule": { "type": "fixed", "month": 8, "day": 15 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    },
+    {
+      "id": "all-saints",
+      "nameKey": "country.sn.holiday.all_saints",
+      "rule": { "type": "fixed", "month": 11, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.sn.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-sn",
+      "verification": "draft"
+    }
+  ],
+  "statutoryReturns": []
+}

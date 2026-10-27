@@ -67,6 +67,9 @@ const ADDRESS_SCHEMAS: Readonly<Record<string, CountryAddressSchema>> = {
   TZ: packAddressSchema('TZ'),
   RW: packAddressSchema('RW'),
   NG: packAddressSchema('NG'),
+  SN: packAddressSchema('SN'),
+  CI: packAddressSchema('CI'),
+  CM: packAddressSchema('CM'),
   GH: packAddressSchema('GH'),
   ZA: packAddressSchema('ZA'),
   GB: {

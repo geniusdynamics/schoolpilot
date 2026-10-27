@@ -1,0 +1,73 @@
+{
+  "schemes": [
+    {
+      "code": "fr-moyenne-matiere",
+      "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"],
+      "slots": [
+        {
+          "code": "MOY",
+          "label": "Moyenne de la matiere pour le trimestre",
+          "kind": "cat",
+          "scale_to": 20
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": ["MOY"],
+        "out_of": 20
+      },
+      "grading_scale": "mentions_fr",
+      "missing": {
+        "MOY": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 2,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": ["slots.*.scale_to"]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "mentions_fr",
+      "kind": "numeric_bands",
+      "input": "mark_20",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "INS", "label": "Insuffisant", "min": 0, "max": 9.99 },
+        { "code": "P", "label": "Passable", "min": 10, "max": 11.99 },
+        { "code": "AB", "label": "Assez bien", "min": 12, "max": 13.99 },
+        { "code": "B", "label": "Bien", "min": 14, "max": 15.99 },
+        { "code": "TB", "label": "Tres bien", "min": 16, "max": 20 }
+      ],
+      "verification": "Draft. Passable from 10, Assez bien from 12, Bien from 14 and Tres bien from 16 on a mark out of 20 are the wording of the Cameroon decree 95-035 on the baccalaureates (article 21 to 22, read from a scanned image by OCR); the decree applies to the baccalaureate, and no text applying the mentions to a school's trimestre moyenne was found. A moyenne is kept to two places, so each band ends one hundredth below the next; below 10 there is no mention (the code INS only names that band). The wording of Passable's lower bound was garbled by the OCR and is taken as the admission mark of 10. Bands are school-overridable. The scale kind is numeric_bands with a mark_out_of_20 input because the assessment engine's scale preparation does not yet accept the kind mark_out_of_20 (only out_of_20), and the pack loader projects out_of_20 to mark_out_of_20."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "moyenne_trimestrielle",
+      "op": "weighted_mean",
+      "value": "score_20",
+      "weights": "coefficient",
+      "precision": 2,
+      "result_scale": "mentions_fr"
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "scope": "class_group",
+    "by": "moyenne_trimestrielle",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": true,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "mean",
+    "of": ["T1", "T2", "T3"],
+    "missing": "renormalise"
+  }
+}

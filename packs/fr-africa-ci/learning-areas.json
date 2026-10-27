@@ -1,0 +1,17 @@
+{
+  "learning_areas": [
+    { "code": "FRA", "name": "Francais", "short_name": "Fra", "kind": "core", "group": "languages", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "ANG", "name": "Anglais", "short_name": "Ang", "kind": "core", "group": "languages", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "LV2", "name": "Langue vivante 2 (allemand ou espagnol)", "short_name": "LV2", "kind": "optional", "group": "languages", "coefficient": 1, "levels": ["4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "MAT", "name": "Mathematiques", "short_name": "Maths", "kind": "core", "group": "mathematics", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "PC", "name": "Physique-Chimie", "short_name": "PC", "kind": "core", "group": "sciences", "coefficient": 1, "levels": ["5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "SVT", "name": "Sciences de la Vie et de la Terre", "short_name": "SVT", "kind": "core", "group": "sciences", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "HG", "name": "Histoire-Geographie", "short_name": "HG", "kind": "core", "group": "humanities", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "PHI", "name": "Philosophie", "short_name": "Philo", "kind": "core", "group": "humanities", "coefficient": 1, "levels": ["TLE"] },
+    { "code": "EDHC", "name": "Education aux Droits de l'Homme et a la Citoyennete", "short_name": "EDHC", "kind": "core", "group": "humanities", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "ART", "name": "Arts plastiques et Education musicale", "short_name": "Arts", "kind": "core", "group": "arts", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E"] },
+    { "code": "EPS", "name": "Education physique et sportive", "short_name": "EPS", "kind": "core", "group": "sport", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] },
+    { "code": "CON", "name": "Conduite", "short_name": "Cond", "kind": "core", "group": "conduct", "coefficient": 1, "levels": ["6E", "5E", "4E", "3E", "2NDE", "1ERE", "TLE"] }
+  ],
+  "competencies": []
+}

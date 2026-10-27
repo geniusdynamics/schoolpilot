@@ -1,0 +1,31 @@
+{
+  "labels": {
+    "block.header": "Bulletin de notes",
+    "block.learner": "Élève",
+    "block.attendance": "Assiduité",
+    "block.results": "Notes par matière (sur 20, avec coefficient)",
+    "block.summary": "Moyenne du trimestre et rang",
+    "block.comments": "Appréciations",
+    "block.progression": "Moyenne annuelle et décision du conseil de classe",
+    "block.calendar": "Rentrée du prochain trimestre",
+    "block.signatures": "Signatures",
+    "block.verification": "Vérification",
+    "report.college-trimestre": "Bulletin trimestriel du collège",
+    "report.lycee-trimestre": "Bulletin trimestriel du lycée"
+  },
+  "descriptors": {
+    "mentions_fr": {
+      "INS": "Insuffisant (moyenne inférieure à 10)",
+      "P": "Passable",
+      "AB": "Assez bien",
+      "B": "Bien",
+      "TB": "Très bien"
+    }
+  },
+  "comment_bank": [
+    { "scope": "overall", "band": "TB", "text": "Excellent trimestre : félicitations du conseil de classe. Continuez ainsi." },
+    { "scope": "overall", "band": "B", "text": "Bon trimestre : encouragements. Les efforts doivent se poursuivre." },
+    { "scope": "overall", "band": "P", "text": "Résultats passables : un travail plus régulier est attendu pour progresser." },
+    { "scope": "overall", "band": "INS", "text": "Résultats insuffisants : un avertissement de travail est donné, un suivi est nécessaire." }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "$comment": "Conformance vectors for the SN country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as the nominal date its rule names and the date it is observed on; the pack models no day in lieu, so the two are equal. No Muslim festival is listed: no declaration was fetched.",
+  "country": "SN",
+  "identifiers": [
+    { "scheme": "sn.national_id", "value": "1 234 567 890 123", "valid": true, "normalised": "1 234 567 890 123" },
+    { "scheme": "sn.national_id", "value": "  A1234567  ", "valid": true, "normalised": "A1234567" },
+    { "scheme": "sn.national_id", "value": "   ", "valid": false },
+    { "scheme": "sn.birth_certificate", "value": "2015/123/ABC", "valid": true, "normalised": "2015/123/ABC" },
+    { "scheme": "sn.birth_certificate", "value": "", "valid": false }
+  ],
+  "easterSunday": {
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "independence-day", "nominal": "2026-04-04", "observed": "2026-04-04" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "labour-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "ascension", "nominal": "2026-05-14", "observed": "2026-05-14" },
+        { "id": "whit-monday", "nominal": "2026-05-25", "observed": "2026-05-25" },
+        { "id": "assumption", "nominal": "2026-08-15", "observed": "2026-08-15" },
+        { "id": "all-saints", "nominal": "2026-11-01", "observed": "2026-11-01" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "independence-day", "nominal": "2027-04-04", "observed": "2027-04-04" },
+        { "id": "labour-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "ascension", "nominal": "2027-05-06", "observed": "2027-05-06" },
+        { "id": "whit-monday", "nominal": "2027-05-17", "observed": "2027-05-17" },
+        { "id": "assumption", "nominal": "2027-08-15", "observed": "2027-08-15" },
+        { "id": "all-saints", "nominal": "2027-11-01", "observed": "2027-11-01" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "stages": [
+    {
+      "code": "COL",
+      "name": "Premier cycle (college)",
+      "levels": ["6E", "5E", "4E", "3E"]
+    },
+    {
+      "code": "LYC",
+      "name": "Second cycle (lycee)",
+      "levels": ["2NDE", "1ERE", "TLE"]
+    }
+  ],
+  "levels": [
+    { "code": "6E", "name": "6e", "ordinal": 7, "next": "5E", "is_stage_exit": false, "national_assessment": null },
+    { "code": "5E", "name": "5e", "ordinal": 8, "next": "4E", "is_stage_exit": false, "national_assessment": null },
+    { "code": "4E", "name": "4e", "ordinal": 9, "next": "3E", "is_stage_exit": false, "national_assessment": null },
+    { "code": "3E", "name": "3e", "ordinal": 10, "next": "2NDE", "is_stage_exit": true, "national_assessment": "BFEM" },
+    { "code": "2NDE", "name": "2nde", "ordinal": 11, "next": "1ERE", "is_stage_exit": false, "national_assessment": null },
+    { "code": "1ERE", "name": "1re", "ordinal": 12, "next": "TLE", "is_stage_exit": false, "national_assessment": null },
+    { "code": "TLE", "name": "Terminale", "ordinal": 13, "next": null, "is_stage_exit": false, "national_assessment": "BAC" }
+  ],
+  "calendar_template": {
+    "year_kind": "academic_year",
+    "periods": [
+      { "code": "T1", "kind": "term", "sequence": 1, "name": "Premier trimestre", "typical": ["09-15", "12-20"], "half_term": false },
+      { "code": "T2", "kind": "term", "sequence": 2, "name": "Deuxieme trimestre", "typical": ["01-05", "03-31"], "half_term": false },
+      { "code": "T3", "kind": "term", "sequence": 3, "name": "Troisieme trimestre", "typical": ["04-10", "07-10"], "half_term": false }
+    ],
+    "note": "The school year runs from September to July in three trimestres. The Ministry publishes the exact dates each year; the windows here are typical and unconfirmed, and the school confirms them in the setup wizard."
+  }
+}
