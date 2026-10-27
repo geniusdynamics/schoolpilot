@@ -4504,10 +4504,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-C06 from prd/P5-W2",
-      "completed_at": null
+      "status": "done",
+      "commit": "61a2b31",
+      "notes": "worker on prd/P5-C06 from prd/P5-W2 | verified (approved by a DeepSeek Flash verifier): 16 checks recomputed, mutations caught, CI circulars 268/270/279 and the CM decree OCR'd and matched, vectors 43/43, ISO codes checked. All data draft; empty string verified. Follow-ups: SN structure says Sep-Jul vs spec Oct-Jul; CI progression sends 8.5-9.49 to council instead of redoublement/exclusion; annual 1-2-2 rule only declared, no vector; data strings ASCII-folded vs accented locale files; country data from Wikipedia/secondary ISO, no gazette",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-D01",
