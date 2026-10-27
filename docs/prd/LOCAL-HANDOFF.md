@@ -1,6 +1,22 @@
 # Continuing the PRD on your own machine (local Claude Code)
 
-## 0y. Paused by the Claude session limit (2026-10-27 00:40 Nairobi; resets 02:10)
+## 0x. P5 complete, P6 next (2026-10-27)
+
+**P0 to P5 are done and merged.** P5 finished 13/13 (PRs #53 and #56) and the UI branches merged too (#54, #55). The phase log is
+`workflow-log/P5-phase-complete-2026-10-27.md`. `consolidation` is the integration branch and this checkout sits on it.
+
+**Before P6:** four follow-ups were opened by the phase exit and deferred - P5-Q01 (the gate's own Windows-only suites, so P1 can be
+measured locally), P5-Q02 (Ghana BECE aggregate), P5-Q03 (Francophone progression), P5-Q04 (wire the packs into HR and reports). And
+the items only people can close: native-speaker review of every locale, the payroll accountant's sign-off on the Kenya pack,
+country-pack stewards, the public application wizard's step 1, and the Ethiopian-calendar default for ET locales.
+
+**How P5 was verified, and its one waiver.** Every task was checked by an independent verifier agent. The phase gate passed G1-G8, the
+production build and the school-ops probe (15/16, floor 14). P1 (the full suite) **failed locally** on Windows with six files - four
+platform-only, two load flakes that pass alone - and is **waived in favour of CI**, whose "Unit tests (no failures beyond
+knownFailingFiles)" step passed on all three pull requests. Read the waiver section of the phase log before trusting a local
+full-suite run, and run the probe with `--port` because 5299 is the owner's dev server.
+
+## 0y. Paused by the Claude session limit (2026-10-27 00:40 Nairobi; resets 02:10) - history
 
 P5-W2 is complete on `prd/P5-W2` (A03, B01, B02, C01, plus B03 from W3; wave gate 8/8, log `workflow-log/P5-W2-2026-10-26.md`).
 Three sub-agents stopped mid-work when the limit hit. Resume each by its OpenChamber session id (model `claude-code/claude-sonnet-5-5`):
