@@ -1,0 +1,155 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-za",
+  "kind": "country",
+  "country": "ZA",
+  "name": "South Africa",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "The South African identity number is modelled as thirteen digits. No source the pack cites states the format, so the scheme is a draft; the check digit is not validated. The other schemes are free text.",
+    "The nine province names are read from the government's provinces page; the ISO 3166-2 codes (ZA-EC, ZA-KZN and so on) come from a secondary copy of the ISO table and are unconfirmed. The municipality is free text and no list is bundled.",
+    "The twelve public holidays and the Sunday rule are read from the government's public holidays page, which states them from the Public Holidays Act 36 of 1994. The Act's own text was not fetched, so its amendments were not checked.",
+    "One-off holidays (for example an election day or a day declared by the President) and school holidays are not modelled.",
+    "The SARS monthly employer return (EMP201) is listed, but the due day was not found in a fetched SARS page and is a draft."
+  ],
+  "sources": [
+    {
+      "id": "gov-za-holidays",
+      "title": "Public holidays in South Africa: twelve days under the Public Holidays Act 36 of 1994; a holiday on a Sunday is observed on the Monday",
+      "publisher": "South African Government",
+      "url": "https://www.gov.za/about-sa/public-holidays",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "gov-za-provinces",
+      "title": "South Africa's provinces",
+      "publisher": "South African Government",
+      "url": "https://www.gov.za/about-sa/south-africas-provinces",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "iso-3166-2-za",
+      "title": "ISO 3166-2:ZA: subdivision codes of South Africa (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:ZA",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "sars-paye",
+      "title": "Pay As You Earn: employer declarations (EMP201 and EMP501); the page states no EMP201 due day",
+      "publisher": "South African Revenue Service",
+      "url": "https://www.sars.gov.za/types-of-tax/pay-as-you-earn/",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "ZAR",
+    "languages": ["en", "zu"],
+    "timeZone": "Africa/Johannesburg",
+    "phoneRegion": "ZA",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "za.id_number",
+      "labelKey": "country.za.identifier.id_number",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 1, "guardian": 1, "staff": 1 },
+      "validation": { "type": "pattern", "pattern": "^[0-9]{13}$", "normalise": ["trim", "remove_spaces", "remove_hyphens"] },
+      "hintKey": "country.za.identifier.id_number.hint",
+      "example": "8001015009087",
+      "verification": "draft",
+      "note": "Thirteen digits; the format is common knowledge but no fetched source states it, and the check digit is not validated. A well-formed number is not proof that Home Affairs issued it."
+    },
+    {
+      "scheme": "za.lurits",
+      "labelKey": "country.za.identifier.lurits",
+      "appliesTo": ["learner"],
+      "order": { "learner": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.za.identifier.lurits.hint",
+      "example": "as shown on the LURITS record",
+      "verification": "draft",
+      "note": "The learner record number of the Learner Unit Record Information and Tracking System; no published format the pack cites."
+    },
+    {
+      "scheme": "za.tax_number",
+      "labelKey": "country.za.identifier.tax_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.za.identifier.tax_number.hint",
+      "example": "as printed on the SARS tax registration",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "za.passport",
+      "labelKey": "country.za.identifier.passport",
+      "appliesTo": ["learner", "staff"],
+      "order": { "learner": 3, "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.za.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "province",
+        "labelKey": "address.za.province",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "ZA-EC", "name": "Eastern Cape" },
+            { "code": "ZA-FS", "name": "Free State" },
+            { "code": "ZA-GP", "name": "Gauteng" },
+            { "code": "ZA-KZN", "name": "KwaZulu-Natal" },
+            { "code": "ZA-LP", "name": "Limpopo" },
+            { "code": "ZA-MP", "name": "Mpumalanga" },
+            { "code": "ZA-NW", "name": "North West" },
+            { "code": "ZA-NC", "name": "Northern Cape" },
+            { "code": "ZA-WC", "name": "Western Cape" }
+          ],
+          "sourceRef": "gov-za-provinces",
+          "verification": "draft"
+        }
+      },
+      { "key": "municipality", "labelKey": "address.za.municipality", "required": true }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": true }
+  },
+  "holidays": [
+    { "id": "new-year", "nameKey": "country.za.holiday.new_year", "rule": { "type": "fixed", "month": 1, "day": 1 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "human-rights-day", "nameKey": "country.za.holiday.human_rights_day", "rule": { "type": "fixed", "month": 3, "day": 21 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "good-friday", "nameKey": "country.za.holiday.good_friday", "rule": { "type": "easter", "offsetDays": -2 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "family-day", "nameKey": "country.za.holiday.family_day", "rule": { "type": "easter", "offsetDays": 1 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "freedom-day", "nameKey": "country.za.holiday.freedom_day", "rule": { "type": "fixed", "month": 4, "day": 27 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "workers-day", "nameKey": "country.za.holiday.workers_day", "rule": { "type": "fixed", "month": 5, "day": 1 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "youth-day", "nameKey": "country.za.holiday.youth_day", "rule": { "type": "fixed", "month": 6, "day": 16 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "womens-day", "nameKey": "country.za.holiday.womens_day", "rule": { "type": "fixed", "month": 8, "day": 9 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "heritage-day", "nameKey": "country.za.holiday.heritage_day", "rule": { "type": "fixed", "month": 9, "day": 24 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "reconciliation-day", "nameKey": "country.za.holiday.reconciliation_day", "rule": { "type": "fixed", "month": 12, "day": 16 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "christmas-day", "nameKey": "country.za.holiday.christmas_day", "rule": { "type": "fixed", "month": 12, "day": 25 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" },
+    { "id": "goodwill-day", "nameKey": "country.za.holiday.goodwill_day", "rule": { "type": "fixed", "month": 12, "day": 26 }, "effectiveFrom": "2000-01-01", "effectiveTo": null, "observed": "sunday_to_monday", "sourceRef": "gov-za-holidays", "verification": "verified" }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "emp201-monthly",
+      "nameKey": "country.za.return.emp201",
+      "authority": "South African Revenue Service",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 7 },
+      "sourceRef": "sars-paye",
+      "verification": "draft",
+      "note": "The seventh of the following month is the commonly stated due day; the fetched SARS page names the EMP201 return but not its due day. Confirm against the SARS notice."
+    }
+  ]
+}

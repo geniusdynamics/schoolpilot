@@ -1,0 +1,119 @@
+{
+  "vectors": [
+    {
+      "name": "BECE-style scheme: CA 24 of 30 and exam 56 of 70 total 80, the lower boundary of A",
+      "programme": "gh-sbc",
+      "input": { "CA": "24/30", "EXAM": "56/70" },
+      "expect": { "gh-bece": { "exact_total": 80, "total": 80, "percent": 80, "grade": "A" } }
+    },
+    {
+      "name": "BECE-style scheme: a total of 79 is the top of B",
+      "programme": "gh-sbc",
+      "input": { "CA": "24/30", "EXAM": "55/70" },
+      "expect": { "gh-bece": { "exact_total": 79, "total": 79, "percent": 79, "grade": "B" } }
+    },
+    {
+      "name": "BECE-style scheme: a total of 65 is the lower boundary of B",
+      "programme": "gh-sbc",
+      "input": { "CA": "15/30", "EXAM": "50/70" },
+      "expect": { "gh-bece": { "exact_total": 65, "total": 65, "percent": 65, "grade": "B" } }
+    },
+    {
+      "name": "BECE-style scheme: a total of 64 is the top of C",
+      "programme": "gh-sbc",
+      "input": { "CA": "15/30", "EXAM": "49/70" },
+      "expect": { "gh-bece": { "exact_total": 64, "total": 64, "percent": 64, "grade": "C" } }
+    },
+    {
+      "name": "Upper primary scheme: CA 20 of 50 and exam 25 of 50 total 45, the lower boundary of C",
+      "programme": "gh-sbc",
+      "input": { "CA": "20/50", "EXAM": "25/50" },
+      "expect": { "gh-upper-primary": { "exact_total": 45, "total": 45, "percent": 45, "grade": "C" } }
+    },
+    {
+      "name": "Upper primary scheme: a total of 44 is the top of D",
+      "programme": "gh-sbc",
+      "input": { "CA": "20/50", "EXAM": "24/50" },
+      "expect": { "gh-upper-primary": { "exact_total": 44, "total": 44, "percent": 44, "grade": "D" } }
+    },
+    {
+      "name": "JHS scheme: raw marks out of 10 and 50 are scaled to 35 and 65, and 56.5 rounds half-up to 57",
+      "programme": "gh-sbc",
+      "input": { "CA": "5/10", "EXAM": "30/50" },
+      "expect": { "gh-jhs": { "exact_total": 56.5, "total": 57, "percent": 57, "grade": "C" } }
+    },
+    {
+      "name": "JHS scheme: CA 10 of 35 and exam 20 of 65 total 30, the lower boundary of D",
+      "programme": "gh-sbc",
+      "input": { "CA": "10/35", "EXAM": "20/65" },
+      "expect": { "gh-jhs": { "exact_total": 30, "total": 30, "percent": 30, "grade": "D" } }
+    },
+    {
+      "name": "Lower primary scheme: continuous assessment alone, 29 is E",
+      "programme": "gh-sbc",
+      "input": { "CA": "29/100" },
+      "expect": { "gh-lower-primary": { "exact_total": 29, "total": 29, "percent": 29, "grade": "E" } }
+    },
+    {
+      "name": "Term total and average of six subjects, the average kept to two places",
+      "programme": "gh-sbc",
+      "input": { "ENG": 72, "MAT": 65, "SCI": 58, "SOC": 81, "RME": 49, "GHL": 70 },
+      "expect": { "term_total": { "value": 395 }, "term_average": { "value": 65.83 } }
+    },
+    {
+      "name": "BECE aggregate: the four core grades 2, 3, 1 and 4 plus the best two others, grades 1 and 2, sum to 13 (60 minus 47 points)",
+      "programme": "gh-sbc",
+      "input": {
+        "ENG": { "grade": "2", "points": 8 },
+        "MAT": { "grade": "3", "points": 7 },
+        "SCI": { "grade": "1", "points": 9 },
+        "SOC": { "grade": "4", "points": 6 },
+        "GHL": { "grade": "5", "points": 5 },
+        "RME": { "grade": "3", "points": 7 },
+        "CAD": { "grade": "2", "points": 8 },
+        "CTE": { "grade": "6", "points": 4 },
+        "COM": { "grade": "4", "points": 6 },
+        "PHE": { "grade": "1", "points": 9 }
+      },
+      "expect": { "bece_aggregate": { "value": 47 } }
+    },
+    {
+      "name": "BECE aggregate: a weak core subject still counts, so grades 9, 8, 7 and 6 plus two grade 1s sum to 32 (60 minus 28 points)",
+      "programme": "gh-sbc",
+      "input": {
+        "ENG": { "grade": "9", "points": 1 },
+        "MAT": { "grade": "8", "points": 2 },
+        "SCI": { "grade": "7", "points": 3 },
+        "SOC": { "grade": "6", "points": 4 },
+        "GHL": { "grade": "1", "points": 9 },
+        "RME": { "grade": "1", "points": 9 },
+        "CAD": { "grade": "2", "points": 8 }
+      },
+      "expect": { "bece_aggregate": { "value": 28 } }
+    },
+    {
+      "name": "Basic 3 with a year average of 30 is suggested for promotion",
+      "programme": "gh-sbc",
+      "input": { "leaving_level": "B3", "term_average": 30 },
+      "expect": { "progression": { "level": "B3", "rule": "class_council", "suggest": "promote", "next_level": "B4" } }
+    },
+    {
+      "name": "Basic 3 with a year average of 29 is referred to the council",
+      "programme": "gh-sbc",
+      "input": { "leaving_level": "B3", "term_average": 29 },
+      "expect": { "progression": { "level": "B3", "rule": "class_council", "suggest": "refer_to_council", "next_level": "B4" } }
+    },
+    {
+      "name": "Basic 6 moves to the junior high stage",
+      "programme": "gh-sbc",
+      "input": { "leaving_level": "B6" },
+      "expect": { "progression": { "level": "B6", "rule": "stage_transition", "to_stage": "JHS", "next_level": "B7" } }
+    },
+    {
+      "name": "JHS 2 with a year average of 45 is suggested for promotion to JHS 3",
+      "programme": "gh-sbc",
+      "input": { "leaving_level": "B8", "term_average": 45 },
+      "expect": { "progression": { "level": "B8", "rule": "class_council", "suggest": "promote", "next_level": "B9" } }
+    }
+  ]
+}

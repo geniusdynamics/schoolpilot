@@ -1,0 +1,52 @@
+{
+  "code": "za-caps",
+  "name": "South Africa National Curriculum Statement (CAPS) - Grade R to Grade 12 (NSC)",
+  "version": "1.0.0",
+  "country": "ZA",
+  "issuers": [
+    "Department of Basic Education",
+    "Umalusi"
+  ],
+  "effective_from": "2025-01-01",
+  "languages": [
+    "en",
+    "zu"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "National policy on the programme and promotion requirements of the NCS Grades R-12 (Gazette 36042 of 2012, amended to 2015)",
+      "issuer": "Department of Basic Education",
+      "url": "https://www.education.gov.za/LinkClick.aspx?fileticket=--ph1R-R4vQ%3d&tabid=419&portalid=0&mid=4018",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "National Curriculum Statements Grades R-12: policy documents, CAPS and the National Protocol for Assessment (listed, not read)",
+      "issuer": "Department of Basic Education",
+      "url": "https://www.education.gov.za/Curriculum/NationalCurriculumStatementsGradesR-12.aspx",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Curriculum Assessment Policy Statements (CAPS): the Foundation, Intermediate, Senior and FET phase documents (listed, not read)",
+      "issuer": "Department of Basic Education",
+      "url": "https://www.education.gov.za/Curriculum/CurriculumAssessmentPolicyStatements(CAPS).aspx",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "National Senior Certificate (NSC) examinations",
+      "issuer": "Department of Basic Education",
+      "url": "https://www.education.gov.za/Curriculum/NationalSeniorCertificate(NSC)Examinations.aspx",
+      "retrieved": "2026-10-27"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a Department of Basic Education or Umalusi officer. Firm (read 2026-10-27 from the promotion policy, Gazette 36042 amended to 2015): the subjects of each phase, the seven achievement levels and bands, the SBA:exam weights of each phase, the 40 and 30 percent NSC pass thresholds. Open items, all listed in the README: (1) amendments after 2015 were not checked. (2) The CAPS phase documents and the National Protocol for Assessment were listed but not read, so task counts, practical assessment tasks and the Life Orientation exception (100 percent SBA) are not modelled; a scheme applies to a level, not a subject. (3) Promotion is modelled in part: Grades 4 to 9 with the home language (50), first additional language (40) and mathematics (40) conditions only; the other-subject conditions cannot be expressed as a threshold; Grades 1 to 3 are guidelines and use the home language alone; Grades 10 and 11 use the 40 percent home language condition only. (4) The NSC Bachelor, Diploma and Higher Certificate categories, the admission point score and the one-subject 2 percent condonation are not modelled. (5) Typical term dates are pre-fills. (6) Grade R moves on automatically because the policy's definition of progression excludes it. (7) The isiZulu labels are a draft translation that no native speaker has reviewed."
+  },
+  "overridable": [
+    "grading_scales.za_achievement_7.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

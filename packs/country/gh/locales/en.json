@@ -1,0 +1,24 @@
+{
+  "labels": {
+    "country.gh.identifier.ghana_card": "Ghana Card number",
+    "country.gh.identifier.ghana_card.hint": "The number printed on the Ghana Card.",
+    "country.gh.identifier.birth_certificate": "Birth certificate number",
+    "country.gh.identifier.birth_certificate.hint": "The number printed on the birth certificate.",
+    "country.gh.identifier.tin": "Tax Identification Number (TIN)",
+    "country.gh.identifier.tin.hint": "The number on the tax identification certificate.",
+    "country.gh.identifier.ssnit_number": "SSNIT number",
+    "country.gh.identifier.ssnit_number.hint": "The number on the SSNIT card.",
+    "country.gh.identifier.passport": "Passport number",
+    "country.gh.identifier.passport.hint": "The number printed in the passport.",
+    "address.gh.region": "Region",
+    "address.gh.district": "District",
+    "country.gh.holiday.new_year": "New Year's Day",
+    "country.gh.holiday.independence_day": "Independence Day",
+    "country.gh.holiday.good_friday": "Good Friday",
+    "country.gh.holiday.easter_monday": "Easter Monday",
+    "country.gh.holiday.may_day": "May Day",
+    "country.gh.holiday.christmas_day": "Christmas Day",
+    "country.gh.holiday.boxing_day": "Boxing Day",
+    "country.gh.return.paye": "PAYE return"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "$comment": "Conformance vectors for the ZA country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as the nominal date and the date it is observed on: a Sunday holiday is observed on the first following day that is not itself a holiday (Public Holidays Act, as stated on gov.za). 2026 and 2027 match the government's published lists; 2022 shows a Sunday Christmas moved past Boxing Day.",
+  "country": "ZA",
+  "identifiers": [
+    { "scheme": "za.id_number", "value": "8001015009087", "valid": true, "normalised": "8001015009087" },
+    { "scheme": "za.id_number", "value": " 800101 5009 087 ", "valid": true, "normalised": "8001015009087" },
+    { "scheme": "za.id_number", "value": "800101-5009-087", "valid": true, "normalised": "8001015009087" },
+    { "scheme": "za.id_number", "value": "800101500908", "valid": false },
+    { "scheme": "za.id_number", "value": "80010150090871", "valid": false },
+    { "scheme": "za.id_number", "value": "800101500908A", "valid": false },
+    { "scheme": "za.id_number", "value": "", "valid": false },
+    { "scheme": "za.lurits", "value": "L-12345678", "valid": true, "normalised": "L-12345678" },
+    { "scheme": "za.lurits", "value": "   ", "valid": false },
+    { "scheme": "za.tax_number", "value": "0123456789", "valid": true, "normalised": "0123456789" },
+    { "scheme": "za.passport", "value": "A01234567", "valid": true, "normalised": "A01234567" }
+  ],
+  "easterSunday": {
+    "2022": "2022-04-17",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2022,
+      "days": [
+        { "id": "new-year", "nominal": "2022-01-01", "observed": "2022-01-01" },
+        { "id": "human-rights-day", "nominal": "2022-03-21", "observed": "2022-03-21" },
+        { "id": "good-friday", "nominal": "2022-04-15", "observed": "2022-04-15" },
+        { "id": "family-day", "nominal": "2022-04-18", "observed": "2022-04-18" },
+        { "id": "freedom-day", "nominal": "2022-04-27", "observed": "2022-04-27" },
+        { "id": "workers-day", "nominal": "2022-05-01", "observed": "2022-05-02" },
+        { "id": "youth-day", "nominal": "2022-06-16", "observed": "2022-06-16" },
+        { "id": "womens-day", "nominal": "2022-08-09", "observed": "2022-08-09" },
+        { "id": "heritage-day", "nominal": "2022-09-24", "observed": "2022-09-24" },
+        { "id": "reconciliation-day", "nominal": "2022-12-16", "observed": "2022-12-16" },
+        { "id": "goodwill-day", "nominal": "2022-12-26", "observed": "2022-12-26" },
+        { "id": "christmas-day", "nominal": "2022-12-25", "observed": "2022-12-27" }
+      ]
+    },
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "human-rights-day", "nominal": "2026-03-21", "observed": "2026-03-21" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "family-day", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "freedom-day", "nominal": "2026-04-27", "observed": "2026-04-27" },
+        { "id": "workers-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "youth-day", "nominal": "2026-06-16", "observed": "2026-06-16" },
+        { "id": "womens-day", "nominal": "2026-08-09", "observed": "2026-08-10" },
+        { "id": "heritage-day", "nominal": "2026-09-24", "observed": "2026-09-24" },
+        { "id": "reconciliation-day", "nominal": "2026-12-16", "observed": "2026-12-16" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "goodwill-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "human-rights-day", "nominal": "2027-03-21", "observed": "2027-03-22" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "family-day", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "freedom-day", "nominal": "2027-04-27", "observed": "2027-04-27" },
+        { "id": "workers-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "youth-day", "nominal": "2027-06-16", "observed": "2027-06-16" },
+        { "id": "womens-day", "nominal": "2027-08-09", "observed": "2027-08-09" },
+        { "id": "heritage-day", "nominal": "2027-09-24", "observed": "2027-09-24" },
+        { "id": "reconciliation-day", "nominal": "2027-12-16", "observed": "2027-12-16" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "goodwill-day", "nominal": "2027-12-26", "observed": "2027-12-27" }
+      ]
+    }
+  ]
+}

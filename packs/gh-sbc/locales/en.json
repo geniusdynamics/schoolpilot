@@ -1,0 +1,41 @@
+{
+  "labels": {
+    "block.header": "Terminal report",
+    "block.learner": "Pupil",
+    "block.attendance": "Attendance",
+    "block.results": "Subject results",
+    "block.summary": "Summary",
+    "block.comments": "Comments",
+    "block.progression": "Year result and promotion",
+    "block.calendar": "Next term begins",
+    "block.fees": "Fees",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.gh-basic-term": "Basic school terminal report"
+  },
+  "descriptors": {
+    "gh_basic_5": {
+      "A": "Achieved the basic competences exceptionally well",
+      "B": "Achieved the basic competences well",
+      "C": "Achieved the basic competences",
+      "D": "Achieved the minimum number of basic competences",
+      "E": "Not achieved the majority of the basic competences"
+    },
+    "gh_bece_9": {
+      "1": "Highest performance",
+      "2": "Grade 2",
+      "3": "Grade 3",
+      "4": "Grade 4",
+      "5": "Grade 5",
+      "6": "Grade 6",
+      "7": "Grade 7",
+      "8": "Grade 8",
+      "9": "Lowest performance"
+    }
+  },
+  "comment_bank": [
+    { "scope": "overall", "band": "A", "text": "An excellent term. Keep up the same effort in every subject." },
+    { "scope": "overall", "band": "C", "text": "A fair term. More reading at home will lift the weaker subjects." },
+    { "scope": "overall", "band": "E", "text": "A difficult term. Please meet the class teacher to agree a plan for extra support." }
+  ]
+}

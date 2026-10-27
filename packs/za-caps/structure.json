@@ -1,0 +1,37 @@
+{
+  "stages": [
+    { "code": "FND", "name": "Foundation Phase", "levels": ["GR", "G1", "G2", "G3"] },
+    { "code": "INT", "name": "Intermediate Phase", "levels": ["G4", "G5", "G6"] },
+    { "code": "SNR", "name": "Senior Phase", "levels": ["G7", "G8", "G9"] },
+    { "code": "FET", "name": "Further Education and Training Phase", "levels": ["G10", "G11", "G12"] }
+  ],
+  "levels": [
+    { "code": "GR", "name": "Grade R", "ordinal": 0, "next": "G1", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G1", "name": "Grade 1", "ordinal": 1, "next": "G2", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G2", "name": "Grade 2", "ordinal": 2, "next": "G3", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G3", "name": "Grade 3", "ordinal": 3, "next": "G4", "is_stage_exit": true, "national_assessment": null },
+    { "code": "G4", "name": "Grade 4", "ordinal": 4, "next": "G5", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G5", "name": "Grade 5", "ordinal": 5, "next": "G6", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G6", "name": "Grade 6", "ordinal": 6, "next": "G7", "is_stage_exit": true, "national_assessment": null },
+    { "code": "G7", "name": "Grade 7", "ordinal": 7, "next": "G8", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G8", "name": "Grade 8", "ordinal": 8, "next": "G9", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G9", "name": "Grade 9", "ordinal": 9, "next": "G10", "is_stage_exit": true, "national_assessment": null },
+    { "code": "G10", "name": "Grade 10", "ordinal": 10, "next": "G11", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G11", "name": "Grade 11", "ordinal": 11, "next": "G12", "is_stage_exit": false, "national_assessment": null },
+    { "code": "G12", "name": "Grade 12", "ordinal": 12, "next": null, "is_stage_exit": false, "national_assessment": "NSC" }
+  ],
+  "pathways": [
+    { "code": "GEN", "name": "Academic (General)", "levels": ["G10", "G11", "G12"] },
+    { "code": "TPW", "name": "Technical", "levels": ["G10", "G11", "G12"] }
+  ],
+  "calendar_template": {
+    "year_kind": "calendar_year",
+    "periods": [
+      { "code": "T1", "kind": "term", "sequence": 1, "name": "Term 1", "typical": ["01-14", "03-27"], "half_term": false },
+      { "code": "T2", "kind": "term", "sequence": 2, "name": "Term 2", "typical": ["04-08", "06-26"], "half_term": false },
+      { "code": "T3", "kind": "term", "sequence": 3, "name": "Term 3", "typical": ["07-21", "09-25"], "half_term": false },
+      { "code": "T4", "kind": "term", "sequence": 4, "name": "Term 4", "typical": ["10-06", "12-10"], "half_term": false }
+    ],
+    "note": "The school year runs from January to December in four terms. The Department of Basic Education publishes the exact dates each year; the setup wizard pre-fills these typical windows and the school confirms. The Grade 12 NSC examination is written in October and November."
+  }
+}
