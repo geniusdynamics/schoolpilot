@@ -1,0 +1,39 @@
+{
+  "labels": {
+    "block.header": "School report",
+    "block.learner": "Learner",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.summary": "Summary",
+    "block.comments": "Class teacher's comments",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.lower-secondary-term": "Term report"
+  },
+  "descriptors": {
+    "lsc_grade": {
+      "A": "Outstanding: competences secure across the subject.",
+      "B": "Good: competences largely secure.",
+      "C": "Satisfactory: some competences need strengthening.",
+      "D": "Basic: key competences need support.",
+      "E": "Not yet secure: foundational support needed."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A",
+      "text": "An excellent term. Keep applying your learning in projects."
+    },
+    {
+      "scope": "overall",
+      "band": "C",
+      "text": "A steady term. Focus on the topics marked for revision."
+    },
+    {
+      "scope": "overall",
+      "band": "E",
+      "text": "A difficult term. Agree a support plan with the class teacher."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "progression": [
+    {
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "rule": "automatic"
+    }
+  ],
+  "graduation": [
+    {
+      "levels": [
+        "P7"
+      ],
+      "rule": "graduate"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "labels": {
+    "block.header": "Ripoti ya shule",
+    "block.learner": "Mwanafunzi",
+    "block.attendance": "Mahudhurio",
+    "block.results": "Matokeo",
+    "block.summary": "Muhtasari",
+    "block.comments": "Maoni ya mwalimu wa darasa",
+    "block.signatures": "Sahihi",
+    "block.verification": "Uthibitisho",
+    "report.lower-secondary-term": "Ripoti ya muhula"
+  },
+  "descriptors": {
+    "lsc_grade": {
+      "A": "Bora kabisa: umahiri umeimarika katika somo zima.",
+      "B": "Nzuri: umahiri umeimarika kwa kiasi kikubwa.",
+      "C": "Inaridhisha: baadhi ya umahiri unahitaji kuimarishwa.",
+      "D": "Ya msingi: umahiri muhimu unahitaji msaada.",
+      "E": "Bado haujaimarika: msaada wa misingi unahitajika."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A",
+      "text": "Muhula bora. Endelea kutumia ulichojifunza katika miradi."
+    },
+    {
+      "scope": "overall",
+      "band": "C",
+      "text": "Muhula wa wastani. Zingatia mada zilizotajwa kwa marudio."
+    },
+    {
+      "scope": "overall",
+      "band": "E",
+      "text": "Muhula mgumu. Panga mpango wa msaada pamoja na mwalimu wa darasa."
+    }
+  ]
+}

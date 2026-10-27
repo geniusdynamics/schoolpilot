@@ -1,0 +1,73 @@
+{
+  "stages": [
+    {
+      "code": "ADV",
+      "name": "Advanced Secondary (S5 and S6)",
+      "levels": ["S5", "S6"]
+    }
+  ],
+  "levels": [
+    {
+      "code": "S5",
+      "name": "Senior 5",
+      "ordinal": 12,
+      "typical_age": 17,
+      "next": "S6",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "S6",
+      "name": "Senior 6",
+      "ordinal": 13,
+      "typical_age": 18,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "UACE"
+    }
+  ],
+  "pathways": [
+    {
+      "code": "PCM",
+      "name": "Physics, Chemistry, Mathematics",
+      "levels": ["S5", "S6"]
+    },
+    {
+      "code": "BCM",
+      "name": "Biology, Chemistry, Mathematics",
+      "levels": ["S5", "S6"]
+    },
+    {
+      "code": "HEG",
+      "name": "History, Economics, Geography",
+      "levels": ["S5", "S6"]
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "calendar_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term 1",
+        "typical": ["02-01", "05-01"]
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Term 2",
+        "typical": ["05-25", "08-28"]
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Term 3",
+        "typical": ["09-14", "12-04"]
+      }
+    ],
+    "note": "The Ministry of Education and Sports publishes exact term dates each year; the setup wizard pre-fills these typical windows and the school confirms. The windows are approximate and unconfirmed. S6 candidates sit the UACE in Term 3."
+  }
+}

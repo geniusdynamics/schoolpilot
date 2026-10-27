@@ -1,0 +1,122 @@
+{
+  "learning_areas": [
+    {
+      "code": "ENG",
+      "name": "English Language",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "KIS",
+      "name": "Kiswahili",
+      "short_name": "Kis",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "MAT",
+      "name": "Mathematics",
+      "short_name": "Math",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Bio",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chem",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Phys",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "GEO",
+      "name": "Geography",
+      "short_name": "Geog",
+      "kind": "core",
+      "group": "humanities",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "HPE",
+      "name": "History and Political Education",
+      "short_name": "Hist",
+      "kind": "core",
+      "group": "humanities",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "REL",
+      "name": "Religious Education",
+      "short_name": "RE",
+      "kind": "core",
+      "group": "humanities",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "ENT",
+      "name": "Entrepreneurship Education",
+      "short_name": "Ent",
+      "kind": "core",
+      "group": "applied",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "PHE",
+      "name": "Physical Education",
+      "short_name": "PE",
+      "kind": "core",
+      "group": "applied",
+      "levels": ["S1", "S2", "S3", "S4"],
+      "national_code": null,
+      "components": []
+    }
+  ],
+  "competencies": [],
+  "combination_rules": [
+    {
+      "levels": ["S1", "S2", "S3", "S4"],
+      "rule": "core_all",
+      "of": ["ENG", "MAT"]
+    }
+  ]
+}

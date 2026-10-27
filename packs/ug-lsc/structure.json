@@ -1,0 +1,88 @@
+{
+  "stages": [
+    {
+      "code": "LSC",
+      "name": "Lower Secondary (S1 to S4)",
+      "levels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "code": "S1",
+      "name": "Senior 1",
+      "ordinal": 8,
+      "typical_age": 13,
+      "next": "S2",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "S2",
+      "name": "Senior 2",
+      "ordinal": 9,
+      "typical_age": 14,
+      "next": "S3",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "S3",
+      "name": "Senior 3",
+      "ordinal": 10,
+      "typical_age": 15,
+      "next": "S4",
+      "is_stage_exit": false,
+      "national_assessment": null
+    },
+    {
+      "code": "S4",
+      "name": "Senior 4",
+      "ordinal": 11,
+      "typical_age": 16,
+      "next": null,
+      "is_stage_exit": true,
+      "national_assessment": "UCE"
+    }
+  ],
+  "calendar_template": {
+    "year_kind": "calendar_year",
+    "periods": [
+      {
+        "code": "T1",
+        "kind": "term",
+        "sequence": 1,
+        "name": "Term 1",
+        "typical": [
+          "02-01",
+          "05-01"
+        ]
+      },
+      {
+        "code": "T2",
+        "kind": "term",
+        "sequence": 2,
+        "name": "Term 2",
+        "typical": [
+          "05-25",
+          "08-28"
+        ]
+      },
+      {
+        "code": "T3",
+        "kind": "term",
+        "sequence": 3,
+        "name": "Term 3",
+        "typical": [
+          "09-14",
+          "12-04"
+        ]
+      }
+    ],
+    "note": "The Ministry of Education and Sports publishes exact term dates each year; the setup wizard pre-fills these typical windows and the school confirms. The windows are approximate and unconfirmed. S4 candidates sit the UCE in Term 3."
+  }
+}

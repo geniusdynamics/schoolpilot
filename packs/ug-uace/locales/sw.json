@@ -1,0 +1,45 @@
+{
+  "labels": {
+    "block.header": "Ripoti ya shule",
+    "block.learner": "Mwanafunzi",
+    "block.attendance": "Mahudhurio",
+    "block.results": "Matokeo",
+    "block.summary": "Muhtasari",
+    "block.comments": "Maoni ya mwalimu wa darasa",
+    "block.signatures": "Sahihi",
+    "block.verification": "Uthibitisho",
+    "report.advanced-term": "Ripoti ya muhula"
+  },
+  "descriptors": {
+    "uace_principal": {
+      "A": "Bora kabisa: umeelewa mtaala wote vizuri.",
+      "B": "Nzuri sana: uelewa mkubwa wa mtaala.",
+      "C": "Nzuri: uelewa thabiti, kuna mapengo machache.",
+      "D": "Wastani: mapengo katika mada muhimu.",
+      "E": "Ufaulu wa somo kuu: uelewa mdogo, rudia mada kuu.",
+      "O": "Ufaulu wa kiwango cha somo la ziada: dhaifu, msaada wa karibu unahitajika.",
+      "F": "Kutofaulu: marudio ya misingi yanahitajika."
+    },
+    "uace_subsidiary": {
+      "S": "Ufaulu wa somo la ziada.",
+      "F": "Kutofaulu somo la ziada."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "A",
+      "text": "Muhula bora. Endelea na nidhamu hiyo katika masomo yote."
+    },
+    {
+      "scope": "overall",
+      "band": "D",
+      "text": "Muhula wa wastani. Panga marudio ya kila wiki kwa mada zilizotajwa."
+    },
+    {
+      "scope": "overall",
+      "band": "F",
+      "text": "Muhula mgumu. Panga ratiba ya marudio pamoja na mwalimu wa darasa."
+    }
+  ]
+}

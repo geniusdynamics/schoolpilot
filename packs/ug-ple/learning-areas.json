@@ -1,0 +1,118 @@
+{
+  "learning_areas": [
+    {
+      "code": "ENG",
+      "name": "English Language",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "examined",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "MTC",
+      "name": "Mathematics",
+      "short_name": "Math",
+      "kind": "core",
+      "group": "examined",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "SCI",
+      "name": "Integrated Science",
+      "short_name": "Sci",
+      "kind": "core",
+      "group": "examined",
+      "levels": [
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "SST",
+      "name": "Social Studies",
+      "short_name": "SST",
+      "kind": "core",
+      "group": "examined",
+      "levels": [
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "national_code": null,
+      "components": []
+    },
+    {
+      "code": "RE",
+      "name": "Religious Education",
+      "short_name": "RE",
+      "kind": "core",
+      "group": "school",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "national_code": null,
+      "components": []
+    }
+  ],
+  "competencies": [],
+  "combination_rules": [
+    {
+      "levels": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "MTC"
+      ]
+    },
+    {
+      "levels": [
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "rule": "core_all",
+      "of": [
+        "ENG",
+        "MTC",
+        "SCI",
+        "SST"
+      ]
+    }
+  ]
+}
