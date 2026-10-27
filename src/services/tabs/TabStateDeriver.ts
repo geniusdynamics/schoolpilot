@@ -8,6 +8,7 @@ import { logger } from '@/utils/logging';
  */
 
 import { useTranslation } from 'react-i18next';
+import { canonicalTabUrl } from './moduleDashboardUrl';
 import type { Tab, URLParseResult } from './types';
 
 // Module display names mapping
@@ -55,7 +56,9 @@ export class TabStateDeriver {
   /**
    * Derive a tab from a URL
    */
-  deriveTab(url: string, options?: import('./types').TabOptions): Tab {
+  deriveTab(requestedUrl: string, options?: import('./types').TabOptions): Tab {
+    // A module's dashboard is its root page; the old /module/dashboard spelling lands on the same tab.
+    const url = canonicalTabUrl(requestedUrl);
     const parsed = this.parseURL(url);
     const { module, entity, entityId, view } = parsed;
 
@@ -154,7 +157,7 @@ export class TabStateDeriver {
    */
   parseURL(url: string): URLParseResult {
     try {
-      const urlObj = new URL(url, window.location.origin);
+      const urlObj = new URL(canonicalTabUrl(url), window.location.origin);
       const pathname = urlObj.pathname;
       const parts = pathname.split('/').filter(Boolean);
 

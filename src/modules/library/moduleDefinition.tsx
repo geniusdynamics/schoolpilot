@@ -21,7 +21,7 @@ export const libraryModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:library.dashboard', path: '/library/dashboard', icon: BookOpenIcon, page: 'LibraryDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:library.dashboard', path: '/library', icon: BookOpenIcon, page: 'LibraryDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:library.resources', path: '/library/resources', icon: BookOpenIcon, page: 'LibraryResourcesHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:library.books', path: '/library/books', icon: BookOpenIcon, page: 'BooksPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/library/resources?tab=books' },
     { name: 'navigation:library.bookCategories', path: '/library/book-categories', icon: DocumentTextIcon, page: 'BookCategoriesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/library/resources?tab=categories' },
@@ -34,7 +34,7 @@ export const libraryModule: ModuleDefinition = {
     { name: 'navigation:library.settings', path: '/library/settings', icon: DocumentTextIcon, page: 'LibrarySettingsPage', showInModes: ['standard', 'fullwidth'] },
   ],
   routes: [
-    { path: '/library/dashboard', page: 'LibraryDashboardPage' },
+    { path: '/library', page: 'LibraryDashboardPage' },
     { path: '/library/resources', page: 'LibraryResourcesHubPage' },
     { path: '/library/books', page: 'BooksPage' },
     { path: '/library/book-categories', page: 'BookCategoriesPage' },

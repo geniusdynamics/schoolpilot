@@ -14,9 +14,31 @@ import { useSchoolProfile } from '../hooks/useSchoolProfile';
 const PRODUCT_NAME = 'schoolpilot';
 const notifications = 3; // Example notification count
 
-const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModuleSelect?: (moduleKey: string) => void }> = ({ onSettings }) => {
+/** The logo and the name sit side by side; the same layout whether or not they are a button. */
+const BRAND_LAYOUT = 'flex items-center gap-2 sm:gap-3 min-w-0';
+
+interface HeaderProps {
+  onSettings: () => void;
+  currentModule?: string;
+  onModuleSelect?: (moduleKey: string) => void;
+  /**
+   * Takes the user to the main dashboard. The header renders without a router, so where "home" is,
+   * and what it closes on the way, is the layout's to decide; without this the brand is a plain label.
+   */
+  onHome?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onSettings, onHome }) => {
   const { config } = useUnifiedConfig();
   const { schoolName } = useSchoolProfile();
+  const brand = (
+    <>
+      <div aria-hidden className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">
+        E
+      </div>
+      <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block truncate max-w-[16rem]" title={schoolName ?? PRODUCT_NAME}>{schoolName ?? PRODUCT_NAME}</span>
+    </>
+  );
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = useRef(0);
@@ -45,12 +67,21 @@ const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModul
       style={{ height: '48px' }}
     >
       <div className="max-w-full mx-auto flex items-center justify-between h-12 px-3 sm:px-6">
-        {/* Leading: Logo & App Name */}
+        {/* Leading: Logo & App Name. With a handler it is one button back to the main dashboard. */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">
-            E
-          </div>
-          <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block truncate max-w-[16rem]" title={schoolName ?? PRODUCT_NAME}>{schoolName ?? PRODUCT_NAME}</span>
+          {onHome ? (
+            <button
+              type="button"
+              onClick={onHome}
+              title="Go to the main dashboard"
+              aria-label="Go to the main dashboard"
+              className={`${BRAND_LAYOUT} -ms-1.5 rounded-2xl px-1.5 py-1 transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400`}
+            >
+              {brand}
+            </button>
+          ) : (
+            <div className={BRAND_LAYOUT}>{brand}</div>
+          )}
           <TemporaryDataBadge />
         </div>
         

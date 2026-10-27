@@ -39,7 +39,7 @@ export const administrationModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Hub pages (visible in BOTH standard and fullwidth modes)
-    { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: AcademicCapIcon, page: 'AdministrationDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.dashboard', path: '/administration', icon: AcademicCapIcon, page: 'AdministrationDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentDirectoryPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.promotionRun', path: '/administration/promotion', icon: AcademicCapIcon, page: 'PromotionRunPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffDirectoryPage', showInModes: ['standard', 'fullwidth'] },

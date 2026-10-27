@@ -2,6 +2,7 @@
 // ABOUTME: Ensures all deprecated routes resolve to correct hub+tab destinations
 
 import { describe, it, expect } from 'vitest';
+import { MODULE_DASHBOARD_ROOTS } from '@/services/tabs/moduleDashboardUrl';
 import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from '../redirectMap';
 
 describe('redirectMap', () => {
@@ -35,7 +36,7 @@ describe('redirectMap', () => {
       // Verify redirects point at valid routes. Most stay inside
       // /administration; a few intentionally cross modules (e.g. Applications
       // moved to the Admissions module).
-      adminRedirects.forEach(([path, redirect]) => {
+      adminRedirects.forEach(([, redirect]) => {
         expect(redirect).toMatch(/^\//);
         expect(redirect).not.toMatch(/undefined/);
       });
@@ -44,6 +45,16 @@ describe('redirectMap', () => {
       expect(getRedirectForRoute('/administration/applications')).toBe(
         '/admissions/applications-hub'
       );
+    });
+
+    it("sends each module dashboard's old /module/dashboard address to the module root", () => {
+      for (const moduleId of MODULE_DASHBOARD_ROOTS) {
+        expect(getRedirectForRoute(`/${moduleId}/dashboard`)).toBe(`/${moduleId}`);
+      }
+    });
+
+    it('sends the old settings dashboard address to the module root, not into a hub tab', () => {
+      expect(getRedirectForRoute('/settings/dashboard')).toBe('/settings');
     });
 
     it('handles cross-module redirects', () => {

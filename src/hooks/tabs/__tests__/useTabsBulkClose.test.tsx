@@ -63,8 +63,8 @@ const initialState = (): ParsedTabState => ({
  * The router is given that same URL: the hook re-reads the tab list from the routed location, so the
  * location and the URL the engine writes have to agree, exactly as they do on the app's first load.
  */
-function renderTabs() {
-  const url = urlTabSyncEngine.createURL(initialState());
+function renderTabs(state: ParsedTabState = initialState()) {
+  const url = urlTabSyncEngine.createURL(state);
   window.history.replaceState(null, '', url);
   const routed = new URL(url);
   const entry = `${routed.pathname}${routed.search}`;
@@ -143,5 +143,55 @@ describe('the tab context menu closes', () => {
 
     expect(ids(result)).toEqual([dashboard, applications]);
     expect(result.current.activeTabId).toBe(applications);
+  });
+});
+
+describe('replacing the whole session, as the school name in the header does', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    window.history.replaceState(null, '', '/');
+  });
+
+  /** A pinned dashboard, a pinned finance tab and a working tab: what "close all" would leave two of. */
+  const pinnedSession = (): ParsedTabState => ({
+    tabs: [
+      { id: 'tab-dashboard', url: '/dashboard', title: 'Dashboard', module: 'dashboard', pinned: true, isDirty: false },
+      { id: 'tab-finance', url: '/finance', title: 'Finance', module: 'finance', pinned: true, isDirty: false },
+      {
+        id: 'tab-academics-students-list',
+        url: '/academics/students',
+        title: 'Students',
+        module: 'academics',
+        entity: 'students',
+        pinned: false,
+        isDirty: false,
+      },
+    ],
+    activeTabId: 'tab-academics-students-list',
+  });
+
+  it('closes every tab, the pinned ones too, and leaves one pinned dashboard - in the hook and in the URL', async () => {
+    const { result } = renderTabs(pinnedSession());
+    expect(ids(result)).toHaveLength(3);
+
+    await act(async () => {
+      await result.current.switchModuleSession('/dashboard', { preservePinned: false, refresh: false, pinned: true });
+    });
+
+    expect(result.current.tabs.map((tab) => tab.url)).toEqual(['/dashboard']);
+    expect(result.current.tabs[0]).toMatchObject({ module: 'dashboard', pinned: true });
+    expect(result.current.activeTabId).toBe(result.current.tabs[0]?.id);
+
+    // The tab list the engine wrote to the address bar says the same, so a reload does not bring any
+    // of the closed tabs back.
+    expect(new URL(window.location.href).searchParams.getAll('tab')).toEqual(['/dashboard']);
+  });
+
+  it('is not what the tab menu\'s "close all" does: that keeps the pinned tabs', () => {
+    const { result } = renderTabs(pinnedSession());
+
+    act(() => result.current.closeAllTabs());
+
+    expect(result.current.tabs.map((tab) => tab.url)).toEqual(['/dashboard', '/finance']);
   });
 });

@@ -45,6 +45,8 @@ vi.mock('../PrimarySidebar', () => ({
     <div>
       <button onClick={() => onModuleSelect('academics')}>open-academics</button>
       <button onClick={() => onModuleSelect('finance')}>open-finance</button>
+      <button onClick={() => onModuleSelect('hr')}>open-hr</button>
+      <button onClick={() => onModuleSelect('nutrition')}>open-nutrition</button>
     </div>
   )
 }));
@@ -86,14 +88,32 @@ vi.mock('../../hooks/useDynamicNavigation', () => ({
         name: 'navigation:academics.title',
         modulePath: '/academics',
         isGroup: true,
-        children: [{ name: 'academics.dashboard', path: '/academics/dashboard' }]
+        children: [{ name: 'academics.dashboard', path: '/academics' }]
       },
       {
         id: 'finance',
         name: 'navigation:finance.title',
         modulePath: '/finance',
         isGroup: true,
-        children: [{ name: 'finance.dashboard', path: '/finance/dashboard' }]
+        children: [{ name: 'finance.dashboard', path: '/finance' }]
+      },
+      {
+        id: 'hr',
+        name: 'navigation:hr.title',
+        modulePath: '/hr',
+        isGroup: true,
+        // The dashboard is a module's root page, and it is not always its first entry.
+        children: [
+          { name: 'hr.staff', path: '/hr/staff' },
+          { name: 'hr.dashboard', path: '/hr' }
+        ]
+      },
+      {
+        id: 'nutrition',
+        name: 'navigation:nutrition.title',
+        modulePath: '/nutrition',
+        isGroup: true,
+        children: []
       }
     ],
     navigationItems: [
@@ -162,7 +182,7 @@ describe('LayoutNew module tab sessions', () => {
 
   it('opens same-module submenu in a tab and switches module session when switching module', async () => {
     render(
-      <MemoryRouter initialEntries={['/academics/dashboard']}>
+      <MemoryRouter initialEntries={['/academics']}>
         <LayoutNew />
       </MemoryRouter>
     );
@@ -176,7 +196,7 @@ describe('LayoutNew module tab sessions', () => {
     await waitFor(() => {
       // Module switching from the primary sidebar goes through switchModuleSession
       expect(switchModuleSessionMock).toHaveBeenCalledWith(
-        '/finance/dashboard',
+        '/finance',
         expect.objectContaining({
           preservePinned: true,
           refresh: false,
@@ -187,9 +207,36 @@ describe('LayoutNew module tab sessions', () => {
     });
   });
 
+  it('opens a module at its dashboard even when the dashboard is not its first page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/academics']}>
+        <LayoutNew />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText('open-hr'));
+    await waitFor(() => {
+      expect(switchModuleSessionMock).toHaveBeenCalledWith('/hr', expect.any(Object));
+    });
+    expect(switchModuleSessionMock).not.toHaveBeenCalledWith('/hr/staff', expect.any(Object));
+  });
+
+  it('opens a module that lists no pages at its root, which is where its dashboard is', async () => {
+    render(
+      <MemoryRouter initialEntries={['/academics']}>
+        <LayoutNew />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText('open-nutrition'));
+    await waitFor(() => {
+      expect(switchModuleSessionMock).toHaveBeenCalledWith('/nutrition', expect.any(Object));
+    });
+  });
+
   it('opens a tab when submenu route points to a different module', async () => {
     render(
-      <MemoryRouter initialEntries={['/academics/dashboard']}>
+      <MemoryRouter initialEntries={['/academics']}>
         <LayoutNew />
       </MemoryRouter>
     );

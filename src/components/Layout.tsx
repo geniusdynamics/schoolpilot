@@ -99,14 +99,17 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const moduleDashboardRoute = useCallback((moduleId: string) => {
     const modules = getMainModules();
     const selectedModule = modules.find(module => normalizeModuleId(module.modulePath || module.path || module.name) === moduleId);
-    const preferredChild = selectedModule?.children?.find(child => child.path?.includes('/dashboard'));
-    const firstChildPath = selectedModule?.children?.find(child => !!child.path)?.path;
-    const moduleBasePath = selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`;
-    const fallbackDashboardPath = moduleId === 'dashboard'
-      ? '/dashboard'
-      : `${moduleBasePath.replace(/\/$/, '')}/dashboard`;
+    const children = selectedModule?.children ?? [];
+    const moduleBasePath = (selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`).replace(/\/$/, '') || '/';
 
-    return preferredChild?.path || firstChildPath || fallbackDashboardPath;
+    // A module's dashboard is its root page (/finance), and it is not always the first entry in the
+    // module's navigation. The older /module/dashboard spelling is still recognised.
+    const rootChild = children.find(child => child.path && normalizeRoutePath(child.path) === moduleBasePath);
+    const legacyChild = children.find(child => child.path?.includes('/dashboard'));
+    const firstChildPath = children.find(child => !!child.path)?.path;
+    const fallbackDashboardPath = moduleId === 'dashboard' ? '/dashboard' : moduleBasePath;
+
+    return rootChild?.path || legacyChild?.path || firstChildPath || fallbackDashboardPath;
   }, [getMainModules]);
 
   const canRestorePinnedTab = useCallback(async (tab: Tab) => {
@@ -257,6 +260,16 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     openTab('/dashboard', { pinned: true });
   }, [openTab]);
   
+  // The school name in the header: close every tab - the pinned ones too - and open the main
+  // dashboard as the one fresh, pinned tab. The tab menu's "close all" keeps pinned tabs, so it is not
+  // used here: the whole session is replaced in a single step, which also leaves no moment with no tab.
+  const handleGoHome = useCallback(() => {
+    const alreadyHome = tabs.length === 1 && tabs[0]?.path === '/dashboard' && location.pathname === '/dashboard';
+    if (alreadyHome) return;
+
+    void switchModuleSession('/dashboard', { preservePinned: false, refresh: false, pinned: true });
+  }, [tabs, location.pathname, switchModuleSession]);
+
   // Handle navigation item click from secondary sidebar
   const handleNavItemClick = useCallback(async (item: { path: string; name?: string }) => {
     if (!item.path) return;
@@ -324,6 +337,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex flex-col min-h-screen w-screen bg-slate-100">
       <Header
         onSettings={() => setShowSettings(true)}
+        onHome={handleGoHome}
         currentModule={selectedModuleKey}
         onModuleSelect={handleModuleSelect}
       />

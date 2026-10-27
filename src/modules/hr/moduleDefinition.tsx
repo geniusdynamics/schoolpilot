@@ -22,7 +22,7 @@ export const hrModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Dashboard (always visible)
-    { name: 'navigation:hr.dashboard', path: '/hr/dashboard', icon: UserGroupIcon, page: 'HRDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:hr.dashboard', path: '/hr', icon: UserGroupIcon, page: 'HRDashboardPage', showInModes: ['standard', 'fullwidth'] },
 
     // Hub pages (standard mode)
     { name: 'navigation:hr.payroll', path: '/hr/payroll', icon: CurrencyDollarIcon, page: 'PayrollPage', showInModes: ['standard', 'fullwidth'] },
@@ -58,7 +58,7 @@ export const hrModule: ModuleDefinition = {
     ]
   },
   routes: [
-    { path: '/hr/dashboard', page: 'HRDashboardPage' },
+    { path: '/hr', page: 'HRDashboardPage' },
     { path: '/hr/payroll', page: 'PayrollPage' },
     { path: '/hr/staff-bio-data', page: 'StaffBioDataPage' },
     { path: '/hr/payroll-item-types', page: 'PayrollItemTypesPage' },

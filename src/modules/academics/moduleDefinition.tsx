@@ -15,7 +15,7 @@ export const academicsModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Dashboard (always visible)
-    { name: 'navigation:academics.dashboard', path: '/academics/dashboard', icon: AcademicCapIcon, page: 'AcademicsDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:academics.dashboard', path: '/academics', icon: AcademicCapIcon, page: 'AcademicsDashboardPage', showInModes: ['standard', 'fullwidth'] },
 
     // Hub pages (standard mode)
     { name: 'navigation:academics.subjects', path: '/academics/subjects', icon: BookOpenIcon, page: 'SubjectsHubPage', showInModes: ['standard', 'fullwidth'] },
@@ -102,7 +102,7 @@ export const academicsModule: ModuleDefinition = {
     ]
   },
   routes: [
-    { path: '/academics/dashboard', page: 'AcademicsDashboardPage' },
+    { path: '/academics', page: 'AcademicsDashboardPage' },
     { path: '/academics/subjects', page: 'SubjectsHubPage' },
     { path: '/academics/allocations', page: 'CurriculumAllocationsPage' },
     { path: '/academics/exam-setup', page: 'ExamSetupPage' },

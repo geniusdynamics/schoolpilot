@@ -20,6 +20,7 @@ import SchoolOperationsPage from '../modules/settings/pages/SchoolOperationsPage
 import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
 import { ModuleRouteLoader } from './ModuleRouteLoader';
 import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from './redirectMap';
+import { isModuleDashboardRoot } from '../services/tabs/moduleDashboardUrl';
 
 /** Standard loading spinner fallback for full-page Suspense boundaries */
 const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
@@ -173,15 +174,14 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
       />
 
       {/* Legacy Settings Routes — redirect to hub pages */}
-      <Route path={ROUTE_PATHS.SETTINGS} element={<Navigate to="/settings/configuration?tab=settings" replace />} />
+      {/* /settings itself is the module root and holds the Settings dashboard, so it is not redirected. */}
       <Route path={ROUTE_PATHS.SETTINGS_UNIFIED} element={<Navigate to="/settings/configuration?tab=unified" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_FEATURES} element={<Navigate to="/settings/configuration?tab=features" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_DATA_LAYER} element={<Navigate to="/settings/system?tab=data-layer" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_AUDIT_LOG} element={<Navigate to="/settings/school?tab=audit" replace />} />
 
-      {/* Portal: /portal → /portal/dashboard — the portal's "hub" page has been
-          removed; the dashboard is now an independent page at /portal/dashboard. */}
-      <Route path="/portal" element={<Navigate to="/portal/dashboard" replace />} />
+      {/* Portal: the "hub" page has been removed; the dashboard is an independent page at /portal,
+          and the old /portal/dashboard address redirects there (see redirectMap). */}
 
       {/* Dynamic Deprecated Routes -> Redirect to Data Management */}
       {generateDeprecatedRouteRedirects()}
@@ -191,7 +191,9 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         const metadata = moduleRegistry.getMetadata(moduleId);
         if (!metadata || moduleId === 'dashboard') return null;
 
-        const dashboardPath = `/${moduleId}/dashboard`;
+        // A module's dashboard is its root page, named for the module. Settings is the exception: its
+        // dashboard is a tab of a hub, and /settings/dashboard redirects there.
+        const dashboardPath = isModuleDashboardRoot(moduleId) ? `/${moduleId}` : `/${moduleId}/dashboard`;
         const dashboardKey = `../modules/${moduleId}/pages/${moduleId.charAt(0).toUpperCase() + moduleId.slice(1)}DashboardPage.tsx`;
 
         const dashboardExport = dashboardModules[dashboardKey];
