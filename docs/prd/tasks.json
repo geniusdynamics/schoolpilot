@@ -4444,10 +4444,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "review",
-      "commit": "562aced",
-      "notes": "worker on prd/P5-C04 from prd/P5-W2 | gate PASS 8/8 (683 tests), pushed prd/P5-C04; verifier running",
-      "completed_at": null
+      "status": "done",
+      "commit": "a136949",
+      "notes": "worker on prd/P5-C04 from prd/P5-W2 | gate PASS 8/8 (683 tests), pushed prd/P5-C04; verifier running | verified (approved): 15+ vectors recomputed by hand, mutations caught, 8 sources fetched; gate PASS; addresses.ts conflict with UG resolved at integration (UG, TZ, RW all from packs; 659 tests green). All NECTA divisions/points, REB grading ranges and weights draft; Saturday-holiday rule not modelled; TZ moon-dependent holidays 2025 only; TZ country pack all draft",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C05",
@@ -4474,9 +4474,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P5-C05 from prd/P5-W2",
+      "status": "review",
+      "commit": "7d97174",
+      "notes": "worker on prd/P5-C05 from prd/P5-W2 | gate PASS 8/8 (684 tests), pushed prd/P5-C05; verifier running",
       "completed_at": null
     },
     {
