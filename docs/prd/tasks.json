@@ -4414,10 +4414,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "review",
-      "commit": "eecda7d",
-      "notes": "worker on prd/P5-C03 from prd/P5-W2 | gate PASS, pushed prd/P5-C03; verifier running",
-      "completed_at": null
+      "status": "done",
+      "commit": "ad10a46",
+      "notes": "worker on prd/P5-C03 from prd/P5-W2 | gate PASS, pushed prd/P5-C03; verifier running | verified: 24 grading vectors recomputed by hand, 37 states vs ISO 3166-2, sources fetched; gate re-run green after a rebase onto the fix for a date-dependent DatePicker test (verifier's only blocker). All four packs draft: WAEC percentage boundaries, CA/exam split, ng-sss subject list unconfirmed; Hausa labels unreviewed; NERDC PDF not machine-read by verifier",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C04",
