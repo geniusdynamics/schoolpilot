@@ -1,0 +1,77 @@
+{
+  "vectors": [
+    {
+      "name": "PCM with A, B, C principals and a General Paper and Sub-Math pass total 17 points",
+      "programme": "ug-uace",
+      "input": {
+        "PHY": "A",
+        "CHE": "B",
+        "MAT": "C",
+        "GP": { "grade": "S", "points": 1 },
+        "SUBMATH": { "grade": "S", "points": 1 }
+      },
+      "expect": { "uace_points": { "value": 17 } }
+    },
+    {
+      "name": "Three principal A grades and two subsidiary passes give the maximum of 20",
+      "programme": "ug-uace",
+      "input": {
+        "BIO": "A",
+        "CHE": "A",
+        "MAT": "A",
+        "GP": { "grade": "S", "points": 1 },
+        "SUBICT": { "grade": "S", "points": 1 }
+      },
+      "expect": { "uace_points": { "value": 20 } }
+    },
+    {
+      "name": "A principal O is worth 1 point and an F with a failed General Paper is worth none",
+      "programme": "ug-uace",
+      "input": {
+        "HIS": "O",
+        "ECO": "F",
+        "GEO": "E",
+        "GP": { "grade": "F", "points": 0 }
+      },
+      "expect": { "uace_points": { "value": 3 } }
+    },
+    {
+      "name": "A total of 79.5 rounds up to 80 and reaches principal A with 6 points",
+      "programme": "ug-uace",
+      "input": { "CA.CA1": "30/30", "ET": "49.5/70" },
+      "expect": {
+        "ug-uace-internal": { "exact_total": 79.5, "total": 80, "percent": 80, "grade": "A", "points": 6 }
+      }
+    },
+    {
+      "name": "A total of 79.4 rounds down to 79 and stays at principal B",
+      "programme": "ug-uace",
+      "input": { "CA.CA1": "30/30", "ET": "49.4/70" },
+      "expect": {
+        "ug-uace-internal": { "exact_total": 79.4, "total": 79, "percent": 79, "grade": "B", "points": 5 }
+      }
+    },
+    {
+      "name": "A total of 34.6 rounds up to 35 and reaches O with 1 point",
+      "programme": "ug-uace",
+      "input": { "CA.CA1": "10/30", "ET": "24.6/70" },
+      "expect": {
+        "ug-uace-internal": { "exact_total": 34.6, "total": 35, "percent": 35, "grade": "O", "points": 1 }
+      }
+    },
+    {
+      "name": "A total of 34.4 rounds down to 34 and is F with no points",
+      "programme": "ug-uace",
+      "input": { "CA.CA1": "10/30", "ET": "24.4/70" },
+      "expect": {
+        "ug-uace-internal": { "exact_total": 34.4, "total": 34, "percent": 34, "grade": "F", "points": 0 }
+      }
+    },
+    {
+      "name": "Leaving Senior 5 is an automatic promotion to Senior 6",
+      "programme": "ug-uace",
+      "input": { "leaving_level": "S5" },
+      "expect": { "progression": { "level": "S5", "rule": "automatic", "next_level": "S6" } }
+    }
+  ]
+}

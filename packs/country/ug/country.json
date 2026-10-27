@@ -1,0 +1,266 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-ug",
+  "kind": "country",
+  "country": "UG",
+  "name": "Uganda",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "No identifier format is published in a source the pack cites: the Learner Identification Number, birth certificate, NSSF number and passport are free text, and the National Identification Number and TIN patterns are working rules from memory of their usual shape.",
+    "The Public Holidays Act itself could not be read (the ULII text was blocked to the fetcher), so every holiday, the date of each and the Sunday rule are draft. The Act is only confirmed to exist by ULII's own listing.",
+    "Eid-ul-Fitr and Eid-ul-Adha, and any one-off day declared by statutory instrument, are not modelled: no declaration was read.",
+    "Holidays are modelled from 2020-01-01, the start of this pack's coverage, not from the date each was enacted.",
+    "No district, sub-county or parish list is bundled: no official list with codes was reachable. All three levels are free text.",
+    "Only the PAYE return due day is confirmed from URA; the NSSF due day is unconfirmed.",
+    "The Kiswahili labels are a draft translation that no native speaker has reviewed."
+  ],
+  "sources": [
+    {
+      "id": "ulii-public-holidays",
+      "title": "ULII legislation search for 'public holidays': lists the Public Holidays Act (Act 23 of 1965) and the Declaration of a Public Holiday, 2026 (the Act's text was not readable)",
+      "publisher": "Uganda Legal Information Institute (Law Reporting Committee of the Judiciary)",
+      "url": "https://ulii.org/legislation/?q=public+holidays",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "ura-returns",
+      "title": "Domestic taxes: returns (monthly returns, including PAYE, are due on the 15th day of the month following the return period)",
+      "publisher": "Uganda Revenue Authority",
+      "url": "https://ura.go.ug/en/domestic-taxes/returns/",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "UGX",
+    "languages": ["en", "sw"],
+    "timeZone": "Africa/Kampala",
+    "phoneRegion": "UG",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "ug.lin",
+      "labelKey": "country.ug.identifier.lin",
+      "appliesTo": ["learner"],
+      "order": { "learner": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ug.identifier.lin.hint",
+      "example": "as printed on the learner's record",
+      "verification": "draft",
+      "note": "The Learner Identification Number has no published format the pack cites; it is kept as written."
+    },
+    {
+      "scheme": "ug.birth_certificate",
+      "labelKey": "country.ug.identifier.birth_certificate",
+      "appliesTo": ["learner", "guardian"],
+      "order": { "learner": 2, "guardian": 2 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ug.identifier.birth_certificate.hint",
+      "example": "as printed on the certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ug.nin",
+      "labelKey": "country.ug.identifier.nin",
+      "appliesTo": ["learner", "guardian", "staff"],
+      "order": { "learner": 3, "guardian": 1, "staff": 1 },
+      "validation": { "type": "pattern", "pattern": "^C[MF][0-9A-Z]{12}$", "normalise": ["trim", "remove_spaces", "uppercase"] },
+      "hintKey": "country.ug.identifier.nin.hint",
+      "example": "CM00000000XXXX",
+      "verification": "draft",
+      "note": "Fourteen characters starting CM or CF is a working rule from the usual shape of the number; no NIRA source is cited."
+    },
+    {
+      "scheme": "ug.tin",
+      "labelKey": "country.ug.identifier.tin",
+      "appliesTo": ["staff"],
+      "order": { "staff": 2 },
+      "validation": { "type": "pattern", "pattern": "^[0-9]{10}$", "normalise": ["trim", "remove_spaces"] },
+      "hintKey": "country.ug.identifier.tin.hint",
+      "example": "1000000000",
+      "verification": "draft",
+      "note": "Ten digits is a working rule; no URA source is cited."
+    },
+    {
+      "scheme": "ug.nssf_number",
+      "labelKey": "country.ug.identifier.nssf_number",
+      "appliesTo": ["staff"],
+      "order": { "staff": 3 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ug.identifier.nssf_number.hint",
+      "example": "as printed on the NSSF card",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "ug.passport",
+      "labelKey": "country.ug.identifier.passport",
+      "appliesTo": ["staff"],
+      "order": { "staff": 4 },
+      "validation": { "type": "free" },
+      "hintKey": "country.ug.identifier.passport.hint",
+      "example": "as printed in the passport",
+      "verification": "draft",
+      "note": "Passport numbers differ by issuing country; no format is claimed."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      { "key": "district", "labelKey": "address.ug.district", "required": true },
+      { "key": "sub_county", "labelKey": "address.ug.sub_county", "required": true },
+      { "key": "parish", "labelKey": "address.ug.parish", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.ug.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft",
+      "note": "From the Public Holidays Act as remembered; the Act's text was not read. The Sunday rule is also unconfirmed."
+    },
+    {
+      "id": "nrm-liberation-day",
+      "nameKey": "country.ug.holiday.nrm_liberation_day",
+      "rule": { "type": "fixed", "month": 1, "day": 26 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "janani-luwum-day",
+      "nameKey": "country.ug.holiday.janani_luwum_day",
+      "rule": { "type": "fixed", "month": 2, "day": 16 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "womens-day",
+      "nameKey": "country.ug.holiday.womens_day",
+      "rule": { "type": "fixed", "month": 3, "day": 8 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.ug.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "easter-monday",
+      "nameKey": "country.ug.holiday.easter_monday",
+      "rule": { "type": "easter", "offsetDays": 1 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "labour-day",
+      "nameKey": "country.ug.holiday.labour_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "martyrs-day",
+      "nameKey": "country.ug.holiday.martyrs_day",
+      "rule": { "type": "fixed", "month": 6, "day": 3 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "heroes-day",
+      "nameKey": "country.ug.holiday.heroes_day",
+      "rule": { "type": "fixed", "month": 6, "day": 9 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "independence-day",
+      "nameKey": "country.ug.holiday.independence_day",
+      "rule": { "type": "fixed", "month": 10, "day": 9 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.ug.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    },
+    {
+      "id": "boxing-day",
+      "nameKey": "country.ug.holiday.boxing_day",
+      "rule": { "type": "fixed", "month": 12, "day": 26 },
+      "effectiveFrom": "2020-01-01",
+      "effectiveTo": null,
+      "observed": "sunday_to_monday",
+      "sourceRef": "ulii-public-holidays",
+      "verification": "draft"
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "paye-monthly",
+      "nameKey": "country.ug.return.paye",
+      "authority": "Uganda Revenue Authority",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 15 },
+      "sourceRef": "ura-returns",
+      "verification": "verified",
+      "note": "URA states that monthly returns, including PAYE, are due on the 15th day of the month following the return period."
+    },
+    {
+      "id": "nssf-monthly",
+      "nameKey": "country.ug.return.nssf",
+      "authority": "National Social Security Fund",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 15 },
+      "sourceRef": "ura-returns",
+      "verification": "draft",
+      "note": "The 15th is assumed to match PAYE; no NSSF source was read. Confirm against the NSSF Act and the Fund's notices."
+    }
+  ]
+}

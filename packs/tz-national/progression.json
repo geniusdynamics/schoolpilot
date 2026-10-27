@@ -1,0 +1,31 @@
+{
+  "progression": [
+    {
+      "levels": ["STD1", "STD2", "STD3", "STD4", "STD5", "STD6"],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.term_average",
+        "gte": 21
+      }
+    },
+    {
+      "levels": ["STD7"],
+      "rule": "stage_transition",
+      "to_stage": "SEC"
+    },
+    {
+      "levels": ["F1", "F2", "F3"],
+      "rule": "class_council",
+      "suggest": {
+        "metric": "annual.term_average",
+        "gte": 30
+      }
+    }
+  ],
+  "graduation": [
+    {
+      "levels": ["F4"],
+      "rule": "graduate"
+    }
+  ]
+}

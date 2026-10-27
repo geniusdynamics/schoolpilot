@@ -34,6 +34,22 @@ export const LOCALES: readonly LocaleDefinition[] = [
   { code: 'sw', name: 'Kiswahili', nativeName: 'Kiswahili', direction: 'ltr' },
   { code: 'rw', name: 'Kinyarwanda', nativeName: 'Ikinyarwanda', direction: 'ltr' },
   {
+    code: 'pt',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    direction: 'ltr',
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: 'HH:mm',
+  },
+  {
+    code: 'ar',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    direction: 'rtl',
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: 'hh:mm A',
+  },
+  {
     code: 'pseudo',
     name: 'Pseudo-locale',
     nativeName: 'Pseudo-locale',

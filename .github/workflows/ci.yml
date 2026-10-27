@@ -144,7 +144,10 @@ jobs:
 
   e2e:
     name: Golden paths (persistent SQLite)
-    runs-on: ubuntu-latest
+    # Pinned: `ubuntu-latest` moved to 24.04+ and Playwright's browser build in this repo (1.55) has no
+    # binary for 26.04, so `playwright install --with-deps chromium` fails there. Move this on when
+    # Playwright is upgraded to a release that supports the newer image.
+    runs-on: ubuntu-24.04
     # GP-1-lite, GP-6 and the finance golden path are three long real-browser journeys; the finance
     # one alone measured 7.1 minutes on a cold dev server.
     timeout-minutes: 45

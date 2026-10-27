@@ -1,0 +1,58 @@
+{
+  "labels": {
+    "block.header": "School report",
+    "block.learner": "Pupil",
+    "block.attendance": "Attendance",
+    "block.results": "Results",
+    "block.summary": "Summary",
+    "block.comments": "Class teacher's comments",
+    "block.progression": "Progression",
+    "block.signatures": "Signatures",
+    "block.verification": "Verification",
+    "report.primary-term": "Term report",
+    "report.ple-candidate-p7": "Primary 7 PLE candidate report"
+  },
+  "descriptors": {
+    "ple_subject": {
+      "D1": "Distinction: excellent grasp of the subject.",
+      "D2": "Distinction: very good grasp of the subject.",
+      "C3": "Credit: good work, above the credit standard.",
+      "C4": "Credit: sound work at the credit standard.",
+      "C5": "Credit: satisfactory, some topics need revision.",
+      "C6": "Credit: just at the credit standard.",
+      "P7": "Pass: basic understanding, revise the key topics.",
+      "P8": "Pass: weak, regular support needed.",
+      "F9": "Fail: foundational revision needed."
+    },
+    "ple_divisions": {
+      "I": "Division I: the highest division.",
+      "II": "Division II: a good result.",
+      "III": "Division III: an average result.",
+      "IV": "Division IV: a low pass.",
+      "U": "Ungraded."
+    }
+  },
+  "comment_bank": [
+    {
+      "scope": "overall",
+      "band": "I",
+      "text": "An excellent term. Keep the same effort in every subject."
+    },
+    {
+      "scope": "overall",
+      "band": "II",
+      "text": "A good term. Strengthen the weaker subjects to reach Division I."
+    },
+    {
+      "scope": "overall",
+      "band": "IV",
+      "text": "A difficult term. Agree a revision plan with the class teacher and use the holiday work."
+    },
+    {
+      "scope": "learning_area",
+      "band": "C4",
+      "learning_area": "MTC",
+      "text": "The basic operations are secure; practise problem solving every week."
+    }
+  ]
+}

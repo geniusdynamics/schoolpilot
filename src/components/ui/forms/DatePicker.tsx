@@ -9,6 +9,7 @@ import {
   createAriaDescribedBy,
   announceToScreenReader
 } from '@/utils/accessibility';
+import { calendarForLocale, getCalendar, type CalendarId, type CalendarSystem } from '@/domain/calendar';
 import { dateEntryPattern, startOfLocaleWeek, weekdayLabels } from '@/utils/locale';
 
 export interface DatePickerProps {
@@ -28,6 +29,11 @@ export interface DatePickerProps {
   showTime?: boolean;
   format?: string;
   locale?: string;
+  /**
+   * The calendar the field shows and takes dates in. The value stays a Gregorian `Date`; the calendar changes how
+   * it is read, typed and stepped through. Defaults to the locale's own: Ethiopian for an Ethiopian locale.
+   */
+  calendar?: CalendarId;
   className?: string;
   // Range selection props
   isRange?: boolean;
@@ -66,15 +72,19 @@ const getDatePattern = (locale: string): DatePattern => {
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-const formatWithPattern = (date: Date, pattern: DatePattern): string =>
-  pattern.order
-    .map((part) =>
-      part === 'day' ? pad2(date.getDate()) : part === 'month' ? pad2(date.getMonth() + 1) : String(date.getFullYear()).padStart(4, '0')
-    )
+/** The day as the calendar names it, written in the locale's order: the Ethiopian 01/01/2016 for 12 September 2023. */
+const formatWithPattern = (date: Date, pattern: DatePattern, system: CalendarSystem): string => {
+  const { year, month, day } = system.fromGregorian(date);
+  return pattern.order
+    .map((part) => (part === 'day' ? pad2(day) : part === 'month' ? pad2(month) : String(year).padStart(4, '0')))
     .join(pattern.separator);
+};
 
-/** Parses typed text in the locale order (or ISO yyyy-mm-dd). Returns null unless it is a real date. */
-const parseWithPattern = (text: string, pattern: DatePattern): Date | null => {
+/**
+ * Parses typed text in the locale order (or ISO yyyy-mm-dd) as a date of the calendar, and returns the Gregorian day
+ * it falls on. Returns null unless it is a real date of that calendar.
+ */
+const parseWithPattern = (text: string, pattern: DatePattern, system: CalendarSystem): Date | null => {
   const trimmed = text.trim();
   const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(trimmed);
   const numbers = iso ? null : trimmed.split(/[^\d]+/).filter(Boolean);
@@ -88,16 +98,11 @@ const parseWithPattern = (text: string, pattern: DatePattern): Date | null => {
       ));
   if (values.year.length !== 4 || values.month.length > 2 || values.day.length > 2) return null;
 
-  const year = Number(values.year);
-  const month = Number(values.month) - 1;
-  const day = Number(values.day);
-  const date = new Date(year, month, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
-  return date;
+  const calendarDate = { year: Number(values.year), month: Number(values.month), day: Number(values.day) };
+  return system.isValidDate(calendarDate) ? system.toGregorian(calendarDate) : null;
 };
 
 const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
 const dateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const DatePicker: React.FC<DatePickerProps> = ({
@@ -116,6 +121,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   showTime = false,
 
   locale = 'en-US',
+  calendar,
   className = '',
   isRange = false,
   rangeValue,
@@ -130,10 +136,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const [generatedId] = useState(() => generateId('datepicker'));
   const id = providedId || generatedId;
   const pattern = useMemo(() => getDatePattern(locale), [locale]);
+  const system = useMemo(() => getCalendar(calendar ?? calendarForLocale(locale)), [calendar, locale]);
   const typeable = !isRange && !showTime;
 
   const [calendarState, setCalendarState] = useState<CalendarState>({
-    currentMonth: startOfMonth(value || new Date()),
+    currentMonth: system.startOfMonth(value || new Date()),
     selectedDate: value || null,
     selectedRange: rangeValue || [null, null],
     focusedDate: value || new Date(),
@@ -151,6 +158,10 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const formatDate = useCallback((date: Date | null): string => {
     if (!date) return '';
     if (showTime) {
+      if (system.id !== 'gregorian') {
+        const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(date);
+        return `${formatWithPattern(date, pattern, system)} ${time}`;
+      }
       return new Intl.DateTimeFormat(locale, {
         year: 'numeric',
         month: '2-digit',
@@ -159,8 +170,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
         minute: '2-digit',
       }).format(date);
     }
-    return formatWithPattern(date, pattern);
-  }, [locale, showTime, pattern]);
+    return formatWithPattern(date, pattern, system);
+  }, [locale, showTime, pattern, system]);
 
   const [inputText, setInputText] = useState(() => formatDate(value || null));
   const [textInvalid, setTextInvalid] = useState(false);
@@ -174,14 +185,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
       return prevKey === valueKey ? prev : { ...prev, selectedDate: next };
     });
     setInputText(current => {
-      const parsed = parseWithPattern(current, pattern);
+      const parsed = parseWithPattern(current, pattern, system);
       const currentKey = parsed ? parsed.getTime() : null;
       if (current !== '' && currentKey === valueKey) return current;
       if (current === '' && valueKey === null) return current;
       return formatDate(next);
     });
     setTextInvalid(false);
-  }, [valueKey, pattern, formatDate]);
+  }, [valueKey, pattern, system, formatDate]);
 
   // Check if date is disabled (day granularity)
   const isDateDisabled = useCallback((date: Date): boolean => {
@@ -209,13 +220,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
     startTransition(() => {
       setCalendarState(prev => {
         const anchor = (isRange ? prev.selectedRange[0] : prev.selectedDate) || defaultAnchor();
-        return { ...prev, isOpen: true, currentMonth: startOfMonth(anchor), focusedDate: anchor };
+        return { ...prev, isOpen: true, currentMonth: system.startOfMonth(anchor), focusedDate: anchor };
       });
     });
 
     // Announce to screen readers
     announceToScreenReader('Calendar opened');
-  }, [disabled, startTransition, isRange, defaultAnchor]);
+  }, [disabled, startTransition, isRange, defaultAnchor, system]);
 
   // Close calendar
   const closeCalendar = useCallback((returnFocus = true) => {
@@ -274,7 +285,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       return;
     }
 
-    const parsed = parseWithPattern(text, pattern);
+    const parsed = parseWithPattern(text, pattern, system);
     const complete = text.replace(/\D/g, '').length >= 8 || parsed !== null;
     if (!parsed || isDateDisabled(parsed)) {
       setTextInvalid(complete);
@@ -285,13 +296,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
     setCalendarState(prev => ({
       ...prev,
       selectedDate: parsed,
-      currentMonth: startOfMonth(parsed),
+      currentMonth: system.startOfMonth(parsed),
       focusedDate: parsed,
     }));
     if (!calendarState.selectedDate || calendarState.selectedDate.getTime() !== parsed.getTime()) {
       onChange?.(parsed);
     }
-  }, [pattern, isDateDisabled, onChange, calendarState.selectedDate]);
+  }, [pattern, system, isDateDisabled, onChange, calendarState.selectedDate]);
 
   // Leaving the field with unusable text restores the last valid date
   const handleInputBlur = useCallback(() => {
@@ -313,7 +324,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     }
     if (e.key === 'Enter') {
       e.preventDefault();
-      const parsed = typeable ? parseWithPattern(inputText, pattern) : null;
+      const parsed = typeable ? parseWithPattern(inputText, pattern, system) : null;
       if (parsed && !isDateDisabled(parsed)) {
         setInputText(formatDate(parsed));
         if (calendarState.isOpen) closeCalendar();
@@ -326,7 +337,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       e.preventDefault();
       openCalendar();
     }
-  }, [openCalendar, closeCalendar, calendarState.isOpen, typeable, inputText, pattern, isDateDisabled, formatDate]);
+  }, [openCalendar, closeCalendar, calendarState.isOpen, typeable, inputText, pattern, system, isDateDisabled, formatDate]);
 
   // Handle keyboard navigation in calendar
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -343,7 +354,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     if (!onDay && target !== event.currentTarget) return;
 
     const currentFocused = calendarState.focusedDate || new Date();
-    const newFocused = new Date(currentFocused);
+    let newFocused = new Date(currentFocused);
 
     switch (key) {
       case 'Enter':
@@ -363,17 +374,21 @@ const DatePicker: React.FC<DatePickerProps> = ({
       case 'ArrowDown':
         newFocused.setDate(newFocused.getDate() + 7);
         break;
-      case 'Home':
-        newFocused.setDate(1);
+      case 'Home': {
+        const { year, month } = system.fromGregorian(currentFocused);
+        newFocused = system.toGregorian({ year, month, day: 1 });
         break;
-      case 'End':
-        newFocused.setDate(new Date(newFocused.getFullYear(), newFocused.getMonth() + 1, 0).getDate());
+      }
+      case 'End': {
+        const { year, month } = system.fromGregorian(currentFocused);
+        newFocused = system.toGregorian({ year, month, day: system.daysInMonth(year, month) });
         break;
+      }
       case 'PageUp':
-        newFocused.setMonth(newFocused.getMonth() - 1);
+        newFocused = system.addMonths(currentFocused, -1);
         break;
       case 'PageDown':
-        newFocused.setMonth(newFocused.getMonth() + 1);
+        newFocused = system.addMonths(currentFocused, 1);
         break;
       default:
         return;
@@ -381,8 +396,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
     event.preventDefault();
     gridFocusRef.current = true;
-    setCalendarState(prev => ({ ...prev, focusedDate: newFocused, currentMonth: startOfMonth(newFocused) }));
-  }, [calendarState.focusedDate, closeCalendar, handleDateSelect]);
+    const focusedDate = newFocused;
+    setCalendarState(prev => ({ ...prev, focusedDate, currentMonth: system.startOfMonth(focusedDate) }));
+  }, [calendarState.focusedDate, closeCalendar, handleDateSelect, system]);
 
   // Move DOM focus to the focused day while the keyboard drives the grid
   useEffect(() => {
@@ -395,49 +411,44 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
   const showMonth = useCallback((month: Date) => {
     setCalendarState(prev => {
-      const day = prev.focusedDate?.getDate() ?? 1;
-      const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+      const target = system.fromGregorian(month);
+      const day = prev.focusedDate ? system.fromGregorian(prev.focusedDate).day : 1;
       return {
         ...prev,
         currentMonth: month,
-        focusedDate: new Date(month.getFullYear(), month.getMonth(), Math.min(day, lastDay)),
+        focusedDate: system.toGregorian({ ...target, day: Math.min(day, system.daysInMonth(target.year, target.month)) }),
       };
     });
-    announceToScreenReader(`Navigated to ${month.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}`);
-  }, [locale]);
+    announceToScreenReader(`Navigated to ${system.formatMonthYear(month, locale)}`);
+  }, [locale, system]);
 
   // Navigate to previous month
   const navigateToPreviousMonth = useCallback(() => {
-    const { currentMonth } = calendarState;
-    showMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  }, [calendarState, showMonth]);
+    showMonth(system.addMonths(calendarState.currentMonth, -1));
+  }, [calendarState.currentMonth, showMonth, system]);
 
   // Navigate to next month
   const navigateToNextMonth = useCallback(() => {
-    const { currentMonth } = calendarState;
-    showMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  }, [calendarState, showMonth]);
+    showMonth(system.addMonths(calendarState.currentMonth, 1));
+  }, [calendarState.currentMonth, showMonth, system]);
 
-  const monthNames = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat(locale, { month: 'long' });
-    return Array.from({ length: 12 }, (_, m) => formatter.format(new Date(2000, m, 1)));
-  }, [locale]);
+  /** The month and year the popover shows, as the calendar names them. */
+  const shownMonth = useMemo(() => system.fromGregorian(calendarState.currentMonth), [system, calendarState.currentMonth]);
+
+  const monthNames = useMemo(() => system.monthNames(locale), [system, locale]);
 
   const yearOptions = useMemo(() => {
-    const thisYear = new Date().getFullYear();
-    const shown = calendarState.currentMonth.getFullYear();
-    let first = minDate ? minDate.getFullYear() : thisYear - 100;
-    let last = maxDate ? maxDate.getFullYear() : thisYear + 20;
-    first = Math.min(first, shown);
-    last = Math.max(last, shown);
+    const thisYear = system.fromGregorian(new Date()).year;
+    let first = minDate ? system.fromGregorian(minDate).year : thisYear - 100;
+    let last = maxDate ? system.fromGregorian(maxDate).year : thisYear + 20;
+    first = Math.min(first, shownMonth.year);
+    last = Math.max(last, shownMonth.year);
     return Array.from({ length: last - first + 1 }, (_, i) => first + i);
-  }, [minDate, maxDate, calendarState.currentMonth]);
+  }, [system, minDate, maxDate, shownMonth.year]);
 
   // Generate calendar days, from the locale's own first day of the week
   const generateCalendarDays = useCallback(() => {
-    const year = calendarState.currentMonth.getFullYear();
-    const month = calendarState.currentMonth.getMonth();
-    const startDate = startOfLocaleWeek(new Date(year, month, 1), locale);
+    const startDate = startOfLocaleWeek(system.startOfMonth(calendarState.currentMonth), locale);
 
     const days: Date[] = [];
     const current = new Date(startDate);
@@ -449,12 +460,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
     }
 
     return days;
-  }, [calendarState.currentMonth, locale]);
+  }, [calendarState.currentMonth, locale, system]);
 
   // Check if date is in current month
   const isCurrentMonth = useCallback((date: Date): boolean => {
-    return date.getMonth() === calendarState.currentMonth.getMonth();
-  }, [calendarState.currentMonth]);
+    return system.fromGregorian(date).month === shownMonth.month;
+  }, [system, shownMonth.month]);
 
   // Check if date is selected
   const isDateSelected = useCallback((date: Date): boolean => {
@@ -633,18 +644,15 @@ const DatePicker: React.FC<DatePickerProps> = ({
             </button>
 
             <h2 className="sr-only" aria-live="polite">
-              {calendarState.currentMonth.toLocaleDateString(locale, {
-                month: 'long',
-                year: 'numeric'
-              })}
+              {system.formatMonthYear(calendarState.currentMonth, locale)}
             </h2>
 
             <div className="flex items-center gap-2">
               <select
                 aria-label={t('common:datePicker.month', 'Month')}
                 className={selectClasses}
-                value={calendarState.currentMonth.getMonth()}
-                onChange={(e) => showMonth(new Date(calendarState.currentMonth.getFullYear(), Number(e.target.value), 1))}
+                value={shownMonth.month - 1}
+                onChange={(e) => showMonth(system.toGregorian({ year: shownMonth.year, month: Number(e.target.value) + 1, day: 1 }))}
               >
                 {monthNames.map((name, m) => (
                   <option key={name} value={m}>{name}</option>
@@ -653,8 +661,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
               <select
                 aria-label={t('common:datePicker.year', 'Year')}
                 className={selectClasses}
-                value={calendarState.currentMonth.getFullYear()}
-                onChange={(e) => showMonth(new Date(Number(e.target.value), calendarState.currentMonth.getMonth(), 1))}
+                value={shownMonth.year}
+                onChange={(e) => showMonth(system.toGregorian({ year: Number(e.target.value), month: shownMonth.month, day: 1 }))}
               >
                 {yearOptions.map((year) => (
                   <option key={year} value={year}>{year}</option>
@@ -718,16 +726,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
                   onFocus={() => setCalendarState(prev => ({ ...prev, focusedDate: date }))}
                   disabled={isDisabled}
                   className={dayClasses}
-                  aria-label={`${date.toLocaleDateString(locale, {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}${isSelected ? ', selected' : ''}${isDisabled ? ', disabled' : ''}`}
+                  aria-label={`${system.formatLong(date, locale)}${isSelected ? ', selected' : ''}${isDisabled ? ', disabled' : ''}`}
                   aria-selected={isSelected}
                   tabIndex={isFocused ? 0 : -1}
                 >
-                  {date.getDate()}
+                  {system.fromGregorian(date).day}
                 </button>
               );
             })}

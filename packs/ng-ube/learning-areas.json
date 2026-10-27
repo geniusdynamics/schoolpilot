@@ -1,0 +1,234 @@
+{
+  "learning_areas": [
+    {
+      "code": "ENG",
+      "name": "English Studies",
+      "short_name": "Eng",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "MAT",
+      "name": "Mathematics",
+      "short_name": "Math",
+      "kind": "core",
+      "group": "mathematics",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "NGL",
+      "name": "Nigerian Language (one of Hausa, Igbo or Yoruba)",
+      "short_name": "Nig Lang",
+      "kind": "core",
+      "group": "languages",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "BSC",
+      "name": "Basic Science",
+      "short_name": "Basic Sci",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["P1", "P2", "P3"]
+    },
+    {
+      "code": "BST",
+      "name": "Basic Science and Technology",
+      "short_name": "Basic Sci Tech",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["P4", "P5", "P6"]
+    },
+    {
+      "code": "INS",
+      "name": "Intermediate Science",
+      "short_name": "Inter Sci",
+      "kind": "core",
+      "group": "sciences",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "PHE",
+      "name": "Physical and Health Education",
+      "short_name": "PHE",
+      "kind": "core",
+      "group": "health",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "BDL",
+      "name": "Basic Digital Literacy",
+      "short_name": "Digital Lit",
+      "kind": "core",
+      "group": "technology",
+      "levels": ["P4", "P5", "P6"]
+    },
+    {
+      "code": "DGT",
+      "name": "Digital Technologies",
+      "short_name": "Digital Tech",
+      "kind": "core",
+      "group": "technology",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "CRS",
+      "name": "Christian Religious Studies (for Christian pupils only)",
+      "short_name": "CRS",
+      "kind": "optional",
+      "group": "religion",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"],
+      "alternatives": ["ISL"]
+    },
+    {
+      "code": "ISL",
+      "name": "Islamic Studies (for Muslim pupils only)",
+      "short_name": "IS",
+      "kind": "optional",
+      "group": "religion",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"],
+      "alternatives": ["CRS"]
+    },
+    {
+      "code": "NHI",
+      "name": "Nigerian History",
+      "short_name": "Nig History",
+      "kind": "core",
+      "group": "social",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "SCS",
+      "name": "Social and Citizenship Studies",
+      "short_name": "Soc Citizen",
+      "kind": "core",
+      "group": "social",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "CCA",
+      "name": "Cultural and Creative Arts",
+      "short_name": "CCA",
+      "kind": "core",
+      "group": "arts",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "PVS",
+      "name": "Pre-vocational Studies",
+      "short_name": "Pre-voc",
+      "kind": "core",
+      "group": "vocational",
+      "levels": ["P4", "P5", "P6"]
+    },
+    {
+      "code": "BUS",
+      "name": "Business Studies",
+      "short_name": "Business",
+      "kind": "core",
+      "group": "business",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "FRE",
+      "name": "French (optional)",
+      "short_name": "French",
+      "kind": "optional",
+      "group": "languages",
+      "levels": ["P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "ARA",
+      "name": "Arabic Language (optional)",
+      "short_name": "Arabic",
+      "kind": "optional",
+      "group": "languages",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "SPV",
+      "name": "Trade: Solar Photovoltaic installation and maintenance",
+      "short_name": "Solar PV",
+      "kind": "elective",
+      "group": "trades",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "FGM",
+      "name": "Trade: Fashion design and garment making",
+      "short_name": "Fashion",
+      "kind": "elective",
+      "group": "trades",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "LVF",
+      "name": "Trade: Livestock farming",
+      "short_name": "Livestock",
+      "kind": "elective",
+      "group": "trades",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "BCO",
+      "name": "Trade: Beauty and cosmetology",
+      "short_name": "Beauty",
+      "kind": "elective",
+      "group": "trades",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "CHG",
+      "name": "Trade: Computer hardware and GSM repairs",
+      "short_name": "Hardware",
+      "kind": "elective",
+      "group": "trades",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    },
+    {
+      "code": "HCP",
+      "name": "Trade: Horticulture and crop production",
+      "short_name": "Horticulture",
+      "kind": "elective",
+      "group": "trades",
+      "levels": ["JSS1", "JSS2", "JSS3"]
+    }
+  ],
+  "competencies": [
+    { "code": "PUN", "name": "Punctuality", "kind": "attitude" },
+    { "code": "NEA", "name": "Neatness", "kind": "attitude" },
+    { "code": "POL", "name": "Politeness", "kind": "attitude" },
+    { "code": "HON", "name": "Honesty", "kind": "attitude" },
+    { "code": "ATT", "name": "Attentiveness", "kind": "attitude" },
+    { "code": "LEA", "name": "Leadership", "kind": "attitude" },
+    { "code": "HWR", "name": "Handwriting", "kind": "core_competency" },
+    { "code": "GAM", "name": "Games", "kind": "core_competency" },
+    { "code": "CRA", "name": "Crafts", "kind": "core_competency" },
+    { "code": "DRA", "name": "Drawing", "kind": "core_competency" }
+  ],
+  "combination_rules": [
+    {
+      "levels": ["P1", "P2", "P3"],
+      "rule": "core_all",
+      "of": ["ENG", "MAT", "NGL", "BSC", "PHE", "CRS|ISL", "NHI", "SCS", "CCA"]
+    },
+    {
+      "levels": ["P4", "P5", "P6"],
+      "rule": "core_all",
+      "of": ["ENG", "MAT", "NGL", "BST", "PHE", "BDL", "CRS|ISL", "NHI", "SCS", "CCA", "PVS"]
+    },
+    {
+      "levels": ["JSS1", "JSS2", "JSS3"],
+      "rule": "core_all",
+      "of": ["ENG", "MAT", "NGL", "INS", "PHE", "DGT", "CRS|ISL", "NHI", "SCS", "CCA", "BUS"]
+    },
+    {
+      "levels": ["JSS1", "JSS2", "JSS3"],
+      "rule": "group",
+      "group": "trades",
+      "min": 1,
+      "max": 1
+    }
+  ]
+}

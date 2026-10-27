@@ -1,0 +1,60 @@
+{
+  "code": "ug-uace",
+  "name": "Uganda Advanced Secondary (S5 and S6) - UACE",
+  "version": "1.0.0",
+  "country": "UG",
+  "issuers": [
+    "UNEB",
+    "NCDC",
+    "Ministry of Education and Sports"
+  ],
+  "effective_from": "2026-01-01",
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "2022 UACE Statement of Release of Results (principal pass level A-E, A-O; one principal and two subsidiary passes for admission)",
+      "issuer": "UNEB",
+      "url": "http://web.archive.org/web/20260616031044/https://uneb.ac.ug/wp-content/uploads/2023/03/2022-UACE-STATEMENT-OF-RELEASE-OF-RESULTS-ED.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "UACE 2016 timetable (subject and paper codes: P210, P220, P230, P235, P245, P250, P310, P425, P510, P515, P525, P530, S101, S475, S850)",
+      "issuer": "UNEB",
+      "url": "http://web.archive.org/web/2026id_/http://uneb.ac.ug:80/wp-content/uploads/2014/07/UACE%202016.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "General Paper Assessment Guidelines, Advanced Secondary Curriculum (project 10% and extended essay 10% contribute 20% of the final grade)",
+      "issuer": "NCDC",
+      "url": "https://ncdc.go.ug/wp-content/uploads/2026/07/General-Paper-Assessment-Guidelines_Final-edit-24.07.2026_Web-file.pdf",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "NCDC Releases Assessment Guidelines to Support Effective Implementation of the Advanced Secondary Curriculum",
+      "issuer": "NCDC",
+      "url": "https://ncdc.go.ug/2026/07/27/ncdc-releases-assessment-guidelines-to-support-effective-implementation-of-the-advanced-secondary-curriculum/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "School calendars (the 2026 calendar is published as a scanned PDF)",
+      "issuer": "Ministry of Education and Sports",
+      "url": "https://www.education.go.ug/school-calendars/",
+      "retrieved": "2026-10-27"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft, not reviewed by a UNEB or NCDC officer. Confirmed from UNEB's 2022 statement of release: principal subjects are graded with letters, a principal pass is A to E, and a further grade O sits below E (reported as 'A-O'). Subject codes come from UNEB's 2016 timetable, i.e. the legacy syllabuses, and may change under the Advanced Secondary Curriculum. Confirmed from NCDC: the Advanced Secondary Curriculum is competency-based and General Paper's continuous assessment contributes 20% (project 10%, extended essay 10%). NOT confirmed against a UNEB source: points A 6, B 5, C 4, D 3, E 2, O 1, F 0 and 1 point for a subsidiary pass (platform spec 03 Appendix D), the percent boundaries of every grade, the subsidiary pass mark, the rule on how many principal subjects count, subject papers and maxima, and UNEB's grading under the Advanced Secondary Curriculum (not yet published in a source reachable here). Combinations PCM, BCM and HEG come from spec 03 and are not an official list. The percent scales are school-overridable defaults for internal reports."
+  },
+  "overridable": [
+    "grading_scales.uace_principal.bands",
+    "grading_scales.uace_subsidiary.bands",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

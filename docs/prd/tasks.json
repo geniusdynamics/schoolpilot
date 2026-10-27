@@ -4192,10 +4192,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "bc93bf7",
+      "notes": "merged in #47 (80092e7); test follow-up fa37faf",
+      "completed_at": "2026-10-24"
     },
     {
       "id": "P5-A02",
@@ -4219,10 +4219,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "803b8d8",
+      "notes": "merged in #50 (192c8df)",
+      "completed_at": "2026-10-25"
     },
     {
       "id": "P5-A03",
@@ -4249,10 +4249,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "2ff8cf2",
+      "notes": "implemented on prd/P5-A03 @949c97b, gate running, awaiting independent verification | gate PASS (tsc 2306/2500, 488 related tests); pushed prd/P5-A03; independent verifier running | verified: independent verifier approved (ICU oracle 1850-2150 in 3 time zones, picker probes, gate G1-G8 after rerunning a load flake); non-blocking: ET locales now default to the Ethiopian calendar (owner to confirm), Gregorian year 0099 now accepted | integrated on prd/P5-W2",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-B01",
@@ -4276,10 +4276,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "b849842",
+      "notes": "worker on prd/P5-B01 (worktree p5b01) | gate PASS, pushed prd/P5-B01; verifier running | verified (approved). Draft translations, no native review. Verifier's term notes (sw Utegemezaji/Ukokotoaji/Hesabu/Vyumba, fr 'TB' for tableau de bord, Filieres) go to the native reviewer",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-B02",
@@ -4302,10 +4302,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "d2996e7",
+      "notes": "worker on prd/P5-B02, after B01 (worktree p5b01) | gate PASS, pushed prd/P5-B02; verifier running | verified (approved). Draft translations, no native review",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-B03",
@@ -4329,10 +4329,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "b1b3945",
+      "notes": "gate PASS, pushed prd/P5-B03 (on B02); verifier running; pt/ar drafts, no native review | verified (approved); integrated on prd/P5-W2. Draft translations, no native review; verifier's term notes (pt cartao/corrente, ar fixed plurals and side words) go to native reviewers",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-C01",
@@ -4356,10 +4356,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "99fbc40",
+      "notes": "worker on prd/P5-C01 (worktree p5c01) | gate PASS, pushed prd/P5-C01; open: public application wizard cannot pass step 1 (intendedClassId rendered in step 3), pre-existing | verified (approved): schema, vectors, Easter 1900-2100 vs an independent algorithm, 47 counties vs Council of Governors, no statutory rates; cited URLs fixed after review. Open follow-ups: PublicApplicationPage wizard cannot pass step 1 (pre-existing); its county select has no UI test; Idd-ul-Fitr only 2024-2026; Kiswahili labels unreviewed",
+      "completed_at": "2026-10-26"
     },
     {
       "id": "P5-C02",
@@ -4385,10 +4385,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "9bfc3f9",
+      "notes": "worker on prd/P5-C02 from prd/P5-W2 | gate PASS, pushed prd/P5-C02; verifier running | verified (approved): 33 vectors recomputed by hand, mutation checks caught, gate PASS. All grading boundaries, divisions, points and CA/exam weights draft (UNEB unreachable); UG holiday dates draft; PLE 2020 table and General Paper guidelines PDFs not readable; English/Maths division cap deliberately not modelled; Kiswahili labels unreviewed",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C03",
@@ -4414,10 +4414,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "ad10a46",
+      "notes": "worker on prd/P5-C03 from prd/P5-W2 | gate PASS, pushed prd/P5-C03; verifier running | verified: 24 grading vectors recomputed by hand, 37 states vs ISO 3166-2, sources fetched; gate re-run green after a rebase onto the fix for a date-dependent DatePicker test (verifier's only blocker). All four packs draft: WAEC percentage boundaries, CA/exam split, ng-sss subject list unconfirmed; Hausa labels unreviewed; NERDC PDF not machine-read by verifier",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C04",
@@ -4444,10 +4444,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "a136949",
+      "notes": "worker on prd/P5-C04 from prd/P5-W2 | gate PASS 8/8 (683 tests), pushed prd/P5-C04; verifier running | verified (approved): 15+ vectors recomputed by hand, mutations caught, 8 sources fetched; gate PASS; addresses.ts conflict with UG resolved at integration (UG, TZ, RW all from packs; 659 tests green). All NECTA divisions/points, REB grading ranges and weights draft; Saturday-holiday rule not modelled; TZ moon-dependent holidays 2025 only; TZ country pack all draft",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P5-C05",
@@ -4474,9 +4474,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
+      "status": "review",
+      "commit": "7d97174",
+      "notes": "worker on prd/P5-C05 from prd/P5-W2 | gate PASS 8/8 (684 tests), pushed prd/P5-C05; verifier running",
       "completed_at": null
     },
     {
@@ -4504,9 +4504,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C06 from prd/P5-W2",
       "completed_at": null
     },
     {
@@ -4533,10 +4533,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "3631fdf",
+      "notes": "worker on prd/P5-D01 (started early, no W2 dependency) | gate PASS, pushed prd/P5-D01; verifier running. Pack is draft until a payroll accountant confirms; HR pages not wired yet (follow-up) | verified (approved): 8 fixtures recomputed independently to the cent, figures checked against KRA/SHA/NSSF/NITA, no rates in code (mutation test); PAYE 2024-12 flag corrected to draft after review. Open: accountant sign-off, HR pages not wired, NSSF Y1/Y3 and return layouts draft, entries never expire (effectiveTo null)",
+      "completed_at": "2026-10-27"
     },
     {
       "id": "P6-E01",

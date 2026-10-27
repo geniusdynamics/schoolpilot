@@ -1,0 +1,33 @@
+{
+  "labels": {
+    "country.ug.identifier.lin": "Nambari ya utambulisho wa mwanafunzi (LIN)",
+    "country.ug.identifier.lin.hint": "Nambari iliyo kwenye rekodi ya mwanafunzi, kama ilivyoandikwa.",
+    "country.ug.identifier.birth_certificate": "Nambari ya cheti cha kuzaliwa",
+    "country.ug.identifier.birth_certificate.hint": "Nambari iliyochapishwa kwenye cheti cha kuzaliwa.",
+    "country.ug.identifier.nin": "Nambari ya kitambulisho cha taifa (NIN)",
+    "country.ug.identifier.nin.hint": "Herufi kumi na nne zinazoanza na CM au CF.",
+    "country.ug.identifier.tin": "Nambari ya mlipakodi (TIN)",
+    "country.ug.identifier.tin.hint": "Tarakimu kumi.",
+    "country.ug.identifier.nssf_number": "Nambari ya NSSF",
+    "country.ug.identifier.nssf_number.hint": "Nambari ya mwanachama kwenye kadi ya NSSF.",
+    "country.ug.identifier.passport": "Nambari ya pasipoti",
+    "country.ug.identifier.passport.hint": "Nambari iliyochapishwa kwenye pasipoti.",
+    "address.ug.district": "Wilaya",
+    "address.ug.sub_county": "Gombolola",
+    "address.ug.parish": "Parokia",
+    "country.ug.holiday.new_year": "Siku ya Mwaka Mpya",
+    "country.ug.holiday.nrm_liberation_day": "Siku ya Ukombozi ya NRM",
+    "country.ug.holiday.janani_luwum_day": "Siku ya Askofu Mkuu Janani Luwum",
+    "country.ug.holiday.womens_day": "Siku ya Kimataifa ya Wanawake",
+    "country.ug.holiday.good_friday": "Ijumaa Kuu",
+    "country.ug.holiday.easter_monday": "Jumatatu ya Pasaka",
+    "country.ug.holiday.labour_day": "Siku ya Wafanyakazi",
+    "country.ug.holiday.martyrs_day": "Siku ya Mashahidi wa Uganda",
+    "country.ug.holiday.heroes_day": "Siku ya Mashujaa wa Taifa",
+    "country.ug.holiday.independence_day": "Siku ya Uhuru",
+    "country.ug.holiday.christmas_day": "Siku ya Krismasi",
+    "country.ug.holiday.boxing_day": "Siku ya Boxing",
+    "country.ug.return.paye": "Ritani ya PAYE",
+    "country.ug.return.nssf": "Ritani ya michango ya NSSF"
+  }
+}

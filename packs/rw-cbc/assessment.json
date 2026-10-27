@@ -1,0 +1,95 @@
+{
+  "schemes": [
+    {
+      "code": "rw-term",
+      "levels": ["P1", "P2", "P3", "P4", "P5", "P6", "S1", "S2", "S3"],
+      "slots": [
+        {
+          "code": "TERM",
+          "label": "Term mark",
+          "kind": "end_term",
+          "scale_to": 100
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": ["TERM"],
+        "out_of": 100
+      },
+      "grading_scale": "rw_core_7",
+      "missing": {
+        "TERM": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "rw_core_7",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A", "label": "A", "min": 70, "max": 100, "points": 6 },
+        { "code": "B", "label": "B", "min": 65, "max": 69, "points": 5 },
+        { "code": "C", "label": "C", "min": 60, "max": 64, "points": 4 },
+        { "code": "D", "label": "D", "min": 50, "max": 59, "points": 3 },
+        { "code": "E", "label": "E", "min": 40, "max": 49, "points": 2 },
+        { "code": "S", "label": "S", "min": 20, "max": 39, "points": 1 },
+        { "code": "F", "label": "F", "min": 0, "max": 19, "points": 0 }
+      ],
+      "verification": "Draft. NESA and MINEDUC (fetched) confirm a seven-point scale for core subjects with grade values 6 (A, excellent) down to 0 (F, fail); the grades B 5, C 4, D 3, E 2 and S 1 are from the NESA summary note read from the search index. The mark ranges A 70-100, B 65-69, C 60-64, D 50-59, E 40-49, S 20-39 and F 0-19 are from a news report (KT Press, 2022) and no fetched official page states them. Rounded half-up to a whole mark before lookup. The table is a school default for internal examinations."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "term_total",
+      "op": "sum",
+      "value": "score",
+      "precision": 2
+    },
+    {
+      "code": "term_average",
+      "op": "mean",
+      "value": "score",
+      "precision": 2
+    },
+    {
+      "code": "ple_aggregate",
+      "op": "sum",
+      "value": "points",
+      "over": ["MAT", "KIN", "ENG", "SRS", "SET"],
+      "precision": 0
+    },
+    {
+      "code": "olevel_aggregate",
+      "op": "sum",
+      "value": "points",
+      "over": ["MAT", "BIO", "CHE", "PHY", "GEO", "HIS", "KIN", "ENG", "ENT"],
+      "precision": 0
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "scope": "class_group",
+    "by": "term_average",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": true,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "mean",
+    "of": ["T1", "T2", "T3"],
+    "missing": "renormalise"
+  }
+}

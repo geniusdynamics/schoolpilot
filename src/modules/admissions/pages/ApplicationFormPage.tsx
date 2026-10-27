@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircleIcon, UserIcon, AcademicCapIcon, UsersIcon, EyeIcon } from '@/components/ui/icons';
+import { addressLevelChoices } from '@/domain/country';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   ApplicationFormData,
@@ -322,12 +323,19 @@ export const ApplicationFormPageContent: React.FC = () => {
             onChange={handleInputChange}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <Select
               name="county"
               label="County"
               value={formData.county}
               onChange={handleInputChange}
-            />
+            >
+              <option value="">Select county</option>
+              {addressLevelChoices('KE', 'county', formData.county).map(name => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </Select>
             <Input
               name="subCounty"
               label="Sub-County"

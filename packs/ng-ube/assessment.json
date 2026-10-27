@@ -1,0 +1,129 @@
+{
+  "schemes": [
+    {
+      "code": "ng-ca-exam",
+      "levels": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "JSS1",
+        "JSS2",
+        "JSS3"
+      ],
+      "slots": [
+        {
+          "code": "CA1",
+          "label": "First continuous assessment",
+          "kind": "cat",
+          "scale_to": 20
+        },
+        {
+          "code": "CA2",
+          "label": "Second continuous assessment",
+          "kind": "cat",
+          "scale_to": 20
+        },
+        {
+          "code": "EXAM",
+          "label": "End-of-term examination",
+          "kind": "end_term",
+          "scale_to": 60
+        }
+      ],
+      "learning_area_score": {
+        "op": "sum",
+        "of": [
+          "CA1",
+          "CA2",
+          "EXAM"
+        ],
+        "out_of": 100
+      },
+      "grading_scale": "ng_waec_9",
+      "missing": {
+        "CA1": "incomplete",
+        "CA2": "incomplete",
+        "EXAM": "incomplete"
+      },
+      "rounding": [
+        {
+          "stage": "learning_area_score",
+          "precision": 0,
+          "mode": "half_up"
+        }
+      ],
+      "overridable": [
+        "slots.*.scale_to"
+      ]
+    }
+  ],
+  "grading_scales": [
+    {
+      "code": "ng_waec_9",
+      "kind": "letter",
+      "input": "percent",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "A1", "label": "A1", "min": 75, "max": 100 },
+        { "code": "B2", "label": "B2", "min": 70, "max": 74 },
+        { "code": "B3", "label": "B3", "min": 65, "max": 69 },
+        { "code": "C4", "label": "C4", "min": 60, "max": 64 },
+        { "code": "C5", "label": "C5", "min": 55, "max": 59 },
+        { "code": "C6", "label": "C6", "min": 50, "max": 54 },
+        { "code": "D7", "label": "D7", "min": 45, "max": 49 },
+        { "code": "E8", "label": "E8", "min": 40, "max": 44 },
+        { "code": "F9", "label": "F9", "min": 0, "max": 39 }
+      ],
+      "verification": "Draft school scale in the style of the WASSCE: A1 75-100, B2 70-74, B3 65-69, C4 60-64, C5 55-59, C6 50-54, D7 45-49, E8 40-44, F9 0-39 (spec 03 Appendix G; the same table is printed by secondary sources). WAEC and NECO award each subject's grades themselves, so the table is a school default, not a published cut-off, and bands are school-overridable. A1 to C6 are the credit grades, D7 and E8 passes and F9 a fail. The grade is the printed symbol; the descriptor wording lives in the locale files. Bands are whole marks, so the scheme rounds the learning-area total half-up to a whole mark before lookup."
+    },
+    {
+      "code": "ng_domain_rating_5",
+      "kind": "rubric",
+      "input": "rubric_level",
+      "upper": "inclusive",
+      "bands": [
+        { "code": "5", "label": "5", "min": 5, "max": 5, "points": 5 },
+        { "code": "4", "label": "4", "min": 4, "max": 4, "points": 4 },
+        { "code": "3", "label": "3", "min": 3, "max": 3, "points": 3 },
+        { "code": "2", "label": "2", "min": 2, "max": 2, "points": 2 },
+        { "code": "1", "label": "1", "min": 1, "max": 1, "points": 1 }
+      ],
+      "verification": "Spec 03 Appendix G states that affective and psychomotor traits are rated 1 to 5. No official wording for the five levels was found, so the descriptors name only the highest and lowest and are draft."
+    }
+  ],
+  "aggregations": [
+    {
+      "code": "term_total",
+      "op": "sum",
+      "value": "score",
+      "precision": 2
+    },
+    {
+      "code": "term_average",
+      "op": "mean",
+      "value": "score",
+      "precision": 2
+    }
+  ],
+  "ranking": {
+    "enabled": true,
+    "scope": "class_group",
+    "by": "term_average",
+    "ties": "competition_1224",
+    "only_complete": true,
+    "show_on_report": true,
+    "show_out_of": true
+  },
+  "annual": {
+    "op": "mean",
+    "of": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "missing": "renormalise"
+  }
+}

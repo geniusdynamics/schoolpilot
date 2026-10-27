@@ -1,6 +1,59 @@
 # Continuing the PRD on your own machine (local Claude Code)
 
-## 0a. Current state — P3 complete, paused before P4 (2026-10-23)
+## 0y. Paused by the Claude session limit (2026-10-27 00:40 Nairobi; resets 02:10)
+
+P5-W2 is complete on `prd/P5-W2` (A03, B01, B02, C01, plus B03 from W3; wave gate 8/8, log `workflow-log/P5-W2-2026-10-26.md`).
+Three sub-agents stopped mid-work when the limit hit. Resume each by its OpenChamber session id (model `claude-code/claude-sonnet-5-5`):
+
+| Task | Session | Worktree state at the stop | Resume with |
+| --- | --- | --- | --- |
+| P5-D01 verifier | `ses_e866196e0ffe56F9EwcFDdmUl2` | `p5d01-verify` clean at `05b88ba` (implementer done, pushed) | rerun the whole verification (brief: the D01 verifier prompt; `_briefs/P5-D01.md`) |
+| P5-C02 Uganda | `ses_e86725c2fffeQopt7nD7Lvi2k7` | `p5c02` on `prd/P5-C02`, no commit, 1 changed file | continue from the worktree state (`_briefs/P5-C-PACKS.md`) |
+| P5-C03 Nigeria | `ses_e86727220ffeablVeuCqvLxyHW` | `p5c03` on `prd/P5-C03`, local commit `fa533c6` not pushed, 1 changed file | continue: finish, gate (`--base prd/P5-W2`), push |
+
+Then: verifiers for C02 and C03, integrate approved tasks into `prd/P5-W2`, launch C04, C05, C06 (same brief), the P5 phase exit, then P6.
+Open PRs (by the owner, from the links in the session): the two UI branches and `prd/P5-W2`.
+
+## 0z. P5-W2 in flight (2026-10-26)
+
+**Done and merged: P0 to P4 (134 tasks) and P5-W1 (A01 #47, A02 #50).** P5 is 2/13, P6 is 0/11. The ledger,
+`workflow-log/PROGRESS.md` and `workflow-log/WAVE-MAP.md` agree with this block.
+
+**This wave is P5-W2** (Ethiopian calendar, Kiswahili, French, country pack format), on the wave branch `prd/P5-W2`.
+Tasks run in parallel in their own worktrees and are integrated into the wave branch one at a time, once verified:
+
+| Task | What | Branch and worktree | State |
+| --- | --- | --- | --- |
+| P5-A03 | Calendar abstraction, Ethiopian calendar in the date fields | `prd/P5-A03`, `.claude/worktrees/p5a03` | implemented, gate running, then independent verification |
+| P5-B01 | Kiswahili core flows and ke packs, plus the locale completeness check | `prd/P5-B01`, `.claude/worktrees/p5b01` | implementer working |
+| P5-B02 | French core flows (reuses B01's checker) | `prd/P5-B02`, same worktree | after B01 |
+| P5-C01 | Country pack format and the KE pack, used by the admission and application forms | `prd/P5-C01`, `.claude/worktrees/p5c01` | implementer working |
+
+**Then:** P5-W3 (B03 Portuguese and Arabic, C02 to C06 the country and curriculum packs, D01 the payroll interface and
+KE payroll pack) and the P5 phase exit (`node scripts/prd/gate.mjs phase --probe`), then P6. Tasks an agent cannot finish
+alone are called out in the wave logs: native-speaker review of every locale, the E04 pilot schools, the E01 licence
+decision (DR-03) and the 1.0 release.
+
+**Resume commands** (from the main checkout or any worktree):
+
+```
+node scripts/prd/prd.mjs status            # phases, last done, next runnable per lane
+node scripts/prd/prd.mjs wave P5-W2        # the wave's tasks with readiness
+git worktree list                          # task worktrees; the implementer briefs are in .claude/worktrees/_briefs/
+```
+
+Integrating a verified task: in `.claude/worktrees/p5w2`, `git merge --squash prd/<task>`, run
+`node scripts/prd/gate.mjs task --base schoolpilot/consolidation --task <id>`, commit with the ledger update in the same commit
+(`node scripts/prd/prd.mjs set <id> done --commit <sha>`), push `prd/P5-W2`.
+
+**Sub-agents run on `claude-code/claude-sonnet-5-5`** (the owner's instruction); the default model route has no
+credential and fails at once. Implementer and verifier are different agents.
+
+**Pushed and not merged, no PR yet** (opening one needs the owner or a GitHub login on this machine; `gh` is not signed in
+here): `prd/ui-brand-home-module-names` and, stacked on it, `prd/ui-settings-hubs`. Merge the first, then the second, with
+merge commits. Read `workflow-log/UI-brand-and-settings-hubs-2026-10-26.md`.
+
+## 0a. History — P3 complete, paused before P4 (2026-10-23)
 
 **Phases P0 (52), P1 (28), P2 (22) and P3 (20) are done and merged.** Read
 [`workflow-log/P3-W4-2026-10-23.md`](./workflow-log/P3-W4-2026-10-23.md) and the newest P3 log for the

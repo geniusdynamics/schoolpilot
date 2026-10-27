@@ -1,0 +1,236 @@
+{
+  "vectors": [
+    {
+      "name": "CA 14 + 16 and exam 45 total 75, the lower A1 boundary",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "14/20",
+        "CA2": "16/20",
+        "EXAM": "45/60"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 75,
+          "total": 75,
+          "percent": 75,
+          "grade": "A1"
+        }
+      }
+    },
+    {
+      "name": "CA 14 + 15 and exam 45 total 74, the top of B2",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "14/20",
+        "CA2": "15/20",
+        "EXAM": "45/60"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 74,
+          "total": 74,
+          "percent": 74,
+          "grade": "B2"
+        }
+      }
+    },
+    {
+      "name": "Raw marks out of 10, 50 and 100 are scaled to 20, 20 and 60 before they are added",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "8/10",
+        "CA2": "35/50",
+        "EXAM": "70/100"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 72,
+          "total": 72,
+          "percent": 72,
+          "grade": "B2"
+        }
+      }
+    },
+    {
+      "name": "An exact total of 49.6 rounds half-up to 50 and is C6, the lowest credit",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "9/20",
+        "CA2": "10/20",
+        "EXAM": "51/100"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 49.6,
+          "total": 50,
+          "percent": 50,
+          "grade": "C6"
+        }
+      }
+    },
+    {
+      "name": "An exact total of 49.3 rounds to 49 and is D7, a pass below credit",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "9/20",
+        "CA2": "10/20",
+        "EXAM": "50.5/100"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 49.3,
+          "total": 49,
+          "percent": 49,
+          "grade": "D7"
+        }
+      }
+    },
+    {
+      "name": "A total of 40 is E8, the lowest pass",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "10/20",
+        "CA2": "10/20",
+        "EXAM": "20/60"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 40,
+          "total": 40,
+          "percent": 40,
+          "grade": "E8"
+        }
+      }
+    },
+    {
+      "name": "A total of 39 is F9",
+      "programme": "ng-sss",
+      "input": {
+        "CA1": "10/20",
+        "CA2": "10/20",
+        "EXAM": "19/60"
+      },
+      "expect": {
+        "ng-ca-exam": {
+          "exact_total": 39,
+          "total": 39,
+          "percent": 39,
+          "grade": "F9"
+        }
+      }
+    },
+    {
+      "name": "Term total and average of six subjects, the average kept to two places",
+      "programme": "ng-sss",
+      "input": {
+        "ENG": 75,
+        "MAT": 62,
+        "CIV": 58,
+        "BIO": 81,
+        "CHE": 49,
+        "PHY": 70
+      },
+      "expect": {
+        "term_total": {
+          "value": 395
+        },
+        "term_average": {
+          "value": 65.83
+        }
+      }
+    },
+    {
+      "name": "Five credits among eight subjects, with English and Mathematics both credits",
+      "programme": "ng-sss",
+      "input": {
+        "ENG": {
+          "grade": "C6"
+        },
+        "MAT": {
+          "grade": "B3"
+        },
+        "CIV": {
+          "grade": "A1"
+        },
+        "BIO": {
+          "grade": "C4"
+        },
+        "CHE": {
+          "grade": "D7"
+        },
+        "PHY": {
+          "grade": "E8"
+        },
+        "FMT": {
+          "grade": "F9"
+        },
+        "AGS": {
+          "grade": "C5"
+        }
+      },
+      "expect": {
+        "credits_count": {
+          "value": 5
+        },
+        "core_credits": {
+          "value": 2
+        }
+      }
+    },
+    {
+      "name": "D7 in English is a pass, not a credit, so only Mathematics counts as a core credit",
+      "programme": "ng-sss",
+      "input": {
+        "ENG": {
+          "grade": "D7"
+        },
+        "MAT": {
+          "grade": "C6"
+        },
+        "CIV": {
+          "grade": "B2"
+        }
+      },
+      "expect": {
+        "credits_count": {
+          "value": 2
+        },
+        "core_credits": {
+          "value": 1
+        }
+      }
+    },
+    {
+      "name": "SS 1 with a session average of 41 is suggested for promotion",
+      "programme": "ng-sss",
+      "input": {
+        "leaving_level": "SS1",
+        "term_average": 41
+      },
+      "expect": {
+        "progression": {
+          "level": "SS1",
+          "rule": "class_council",
+          "suggest": "promote",
+          "next_level": "SS2"
+        }
+      }
+    },
+    {
+      "name": "SS 2 with a session average of 39 is referred to the council",
+      "programme": "ng-sss",
+      "input": {
+        "leaving_level": "SS2",
+        "term_average": 39
+      },
+      "expect": {
+        "progression": {
+          "level": "SS2",
+          "rule": "class_council",
+          "suggest": "refer_to_council",
+          "next_level": "SS3"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "$comment": "Conformance vectors for the TZ country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as its nominal date and the date it is observed on: a Sunday holiday moves to the next day that is not itself a holiday, a Saturday holiday is kept (the Saturday rule of section 4 is not modelled, see the README). Moon-dependent days are listed for 2025 only.",
+  "country": "TZ",
+  "identifiers": [
+    { "scheme": "tz.nida", "value": "19900101123456789012", "valid": true, "normalised": "19900101123456789012" },
+    { "scheme": "tz.nida", "value": " 19900101 12345 67890 12 ", "valid": true, "normalised": "19900101123456789012" },
+    { "scheme": "tz.nida", "value": "19900101-12345-67890-12", "valid": true, "normalised": "19900101123456789012" },
+    { "scheme": "tz.nida", "value": "1990010112345678901", "valid": false },
+    { "scheme": "tz.nida", "value": "199001011234567890123", "valid": false },
+    { "scheme": "tz.nida", "value": "1990010112345678901A", "valid": false },
+    { "scheme": "tz.nida", "value": "", "valid": false },
+    { "scheme": "tz.birth_certificate", "value": "RITA-2015-004512", "valid": true, "normalised": "RITA-2015-004512" },
+    { "scheme": "tz.birth_certificate", "value": "   ", "valid": false },
+    { "scheme": "tz.tin", "value": "123-456-789", "valid": true, "normalised": "123-456-789" },
+    { "scheme": "tz.nssf_number", "value": "  1234567  ", "valid": true, "normalised": "1234567" },
+    { "scheme": "tz.passport", "value": "TAE123456", "valid": true, "normalised": "TAE123456" }
+  ],
+  "easterSunday": {
+    "2021": "2021-04-04",
+    "2025": "2025-04-20",
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2021,
+      "days": [
+        { "id": "new-year", "nominal": "2021-01-01", "observed": "2021-01-01" },
+        { "id": "revolution-day", "nominal": "2021-01-12", "observed": "2021-01-12" },
+        { "id": "good-friday", "nominal": "2021-04-02", "observed": "2021-04-02" },
+        { "id": "easter-monday", "nominal": "2021-04-05", "observed": "2021-04-05" },
+        { "id": "karume-day", "nominal": "2021-04-07", "observed": "2021-04-07" },
+        { "id": "union-day", "nominal": "2021-04-26", "observed": "2021-04-26" },
+        { "id": "workers-day", "nominal": "2021-05-01", "observed": "2021-05-01" },
+        { "id": "saba-saba", "nominal": "2021-07-07", "observed": "2021-07-07" },
+        { "id": "peasants-day", "nominal": "2021-08-08", "observed": "2021-08-09" },
+        { "id": "independence-day", "nominal": "2021-12-09", "observed": "2021-12-09" },
+        { "id": "christmas-day", "nominal": "2021-12-25", "observed": "2021-12-25" },
+        { "id": "boxing-day", "nominal": "2021-12-26", "observed": "2021-12-27" }
+      ]
+    },
+    {
+      "year": 2025,
+      "days": [
+        { "id": "new-year", "nominal": "2025-01-01", "observed": "2025-01-01" },
+        { "id": "revolution-day", "nominal": "2025-01-12", "observed": "2025-01-13" },
+        { "id": "id-ul-fitr", "nominal": "2025-03-29", "observed": "2025-03-29" },
+        { "id": "karume-day", "nominal": "2025-04-07", "observed": "2025-04-07" },
+        { "id": "good-friday", "nominal": "2025-04-18", "observed": "2025-04-18" },
+        { "id": "easter-monday", "nominal": "2025-04-21", "observed": "2025-04-21" },
+        { "id": "union-day", "nominal": "2025-04-26", "observed": "2025-04-26" },
+        { "id": "workers-day", "nominal": "2025-05-01", "observed": "2025-05-01" },
+        { "id": "id-el-haj", "nominal": "2025-06-06", "observed": "2025-06-06" },
+        { "id": "saba-saba", "nominal": "2025-07-07", "observed": "2025-07-07" },
+        { "id": "peasants-day", "nominal": "2025-08-08", "observed": "2025-08-08" },
+        { "id": "maulidi-day", "nominal": "2025-09-04", "observed": "2025-09-04" },
+        { "id": "nyerere-day", "nominal": "2025-10-14", "observed": "2025-10-14" },
+        { "id": "independence-day", "nominal": "2025-12-09", "observed": "2025-12-09" },
+        { "id": "christmas-day", "nominal": "2025-12-25", "observed": "2025-12-25" },
+        { "id": "boxing-day", "nominal": "2025-12-26", "observed": "2025-12-26" }
+      ]
+    },
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "revolution-day", "nominal": "2026-01-12", "observed": "2026-01-12" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "easter-monday", "nominal": "2026-04-06", "observed": "2026-04-06" },
+        { "id": "karume-day", "nominal": "2026-04-07", "observed": "2026-04-07" },
+        { "id": "union-day", "nominal": "2026-04-26", "observed": "2026-04-27" },
+        { "id": "workers-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "saba-saba", "nominal": "2026-07-07", "observed": "2026-07-07" },
+        { "id": "peasants-day", "nominal": "2026-08-08", "observed": "2026-08-08" },
+        { "id": "nyerere-day", "nominal": "2026-10-14", "observed": "2026-10-14" },
+        { "id": "independence-day", "nominal": "2026-12-09", "observed": "2026-12-09" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" },
+        { "id": "boxing-day", "nominal": "2026-12-26", "observed": "2026-12-26" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "revolution-day", "nominal": "2027-01-12", "observed": "2027-01-12" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "easter-monday", "nominal": "2027-03-29", "observed": "2027-03-29" },
+        { "id": "karume-day", "nominal": "2027-04-07", "observed": "2027-04-07" },
+        { "id": "union-day", "nominal": "2027-04-26", "observed": "2027-04-26" },
+        { "id": "workers-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "saba-saba", "nominal": "2027-07-07", "observed": "2027-07-07" },
+        { "id": "peasants-day", "nominal": "2027-08-08", "observed": "2027-08-09" },
+        { "id": "nyerere-day", "nominal": "2027-10-14", "observed": "2027-10-14" },
+        { "id": "independence-day", "nominal": "2027-12-09", "observed": "2027-12-09" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" },
+        { "id": "boxing-day", "nominal": "2027-12-26", "observed": "2027-12-27" }
+      ]
+    }
+  ]
+}

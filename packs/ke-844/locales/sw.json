@@ -10,7 +10,23 @@
     "block.signatures": "Sahihi",
     "block.verification": "Uthibitisho",
     "report.term-f1-f3": "Ripoti ya muhula",
-    "report.kcse-candidate-f4": "Ripoti ya mtihani wa KCSE"
+    "report.kcse-candidate-f4": "Ripoti ya mtahiniwa wa KCSE"
+  },
+  "descriptors": {
+    "kcse_subject": {
+      "A": "Bora kabisa: karatasi zote zimeeleweka vizuri.",
+      "A-": "Nzuri sana: uwezo mkubwa katika karatasi zote.",
+      "B+": "Nzuri: juu ya kiwango cha kufaulu.",
+      "B": "Nzuri: kwenye kiwango cha kufaulu.",
+      "B-": "Wastani mzuri: karibu na kiwango cha kufaulu.",
+      "C+": "Wastani mzuri: umeelewa vizuri katika karatasi zilizo imara zaidi.",
+      "C": "Wastani: matokeo yanatofautiana kati ya karatasi.",
+      "C-": "Chini ya wastani: mada muhimu zinahitaji marudio.",
+      "D+": "Dhaifu: rudia mada kuu.",
+      "D": "Dhaifu: mapengo makubwa.",
+      "D-": "Dhaifu sana: msaada wa karibu unahitajika.",
+      "E": "Hafifu: marudio ya misingi yanahitajika."
+    }
   },
   "comment_bank": [
     {
@@ -27,6 +43,12 @@
       "scope": "overall",
       "band": "E",
       "text": "Muhula mgumu. Panga ratiba ya marudio pamoja na mwalimu wa darasa."
+    },
+    {
+      "scope": "learning_area",
+      "band": "C+",
+      "learning_area": "BIO",
+      "text": "Karatasi za nadharia zimeeleweka; tumia muda zaidi kwenye uandishi wa ripoti za mazoezi ya vitendo."
     }
   ]
 }

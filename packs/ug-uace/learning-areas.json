@@ -1,0 +1,284 @@
+{
+  "learning_areas": [
+    {
+      "code": "MAT",
+      "name": "Mathematics",
+      "short_name": "Math",
+      "kind": "elective",
+      "group": "mathematics",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P425",
+      "pathways": [
+        "PCM",
+        "BCM"
+      ],
+      "components": []
+    },
+    {
+      "code": "PHY",
+      "name": "Physics",
+      "short_name": "Phys",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P510",
+      "pathways": [
+        "PCM"
+      ],
+      "components": []
+    },
+    {
+      "code": "CHE",
+      "name": "Chemistry",
+      "short_name": "Chem",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P525",
+      "pathways": [
+        "PCM",
+        "BCM"
+      ],
+      "components": []
+    },
+    {
+      "code": "BIO",
+      "name": "Biology",
+      "short_name": "Bio",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P530",
+      "pathways": [
+        "BCM"
+      ],
+      "components": []
+    },
+    {
+      "code": "ECO",
+      "name": "Economics",
+      "short_name": "Econ",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P220",
+      "pathways": [
+        "HEG"
+      ],
+      "components": []
+    },
+    {
+      "code": "GEO",
+      "name": "Geography",
+      "short_name": "Geog",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P250",
+      "pathways": [
+        "HEG"
+      ],
+      "components": []
+    },
+    {
+      "code": "HIS",
+      "name": "History",
+      "short_name": "Hist",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P210",
+      "pathways": [
+        "HEG"
+      ],
+      "components": []
+    },
+    {
+      "code": "ENT",
+      "name": "Entrepreneurship Education",
+      "short_name": "Ent",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P230",
+      "components": []
+    },
+    {
+      "code": "LIT",
+      "name": "Literature in English",
+      "short_name": "Lit",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P310",
+      "components": []
+    },
+    {
+      "code": "CRE",
+      "name": "Christian Religious Education",
+      "short_name": "CRE",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P245",
+      "components": []
+    },
+    {
+      "code": "IRE",
+      "name": "Islamic Religious Education",
+      "short_name": "IRE",
+      "kind": "elective",
+      "group": "humanities",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P235",
+      "components": []
+    },
+    {
+      "code": "AGR",
+      "name": "Agriculture",
+      "short_name": "Agri",
+      "kind": "elective",
+      "group": "sciences",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "P515",
+      "components": []
+    },
+    {
+      "code": "GP",
+      "name": "General Paper",
+      "short_name": "GP",
+      "kind": "core",
+      "group": "subsidiary",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "S101",
+      "grade_scales": [
+        {
+          "levels": [
+            "S5",
+            "S6"
+          ],
+          "scale": "uace_subsidiary"
+        }
+      ],
+      "components": []
+    },
+    {
+      "code": "SUBMATH",
+      "name": "Subsidiary Mathematics",
+      "short_name": "SubMath",
+      "kind": "optional",
+      "group": "subsidiary",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "S475",
+      "grade_scales": [
+        {
+          "levels": [
+            "S5",
+            "S6"
+          ],
+          "scale": "uace_subsidiary"
+        }
+      ],
+      "components": []
+    },
+    {
+      "code": "SUBICT",
+      "name": "Subsidiary ICT",
+      "short_name": "SubICT",
+      "kind": "optional",
+      "group": "subsidiary",
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "national_code": "S850",
+      "grade_scales": [
+        {
+          "levels": [
+            "S5",
+            "S6"
+          ],
+          "scale": "uace_subsidiary"
+        }
+      ],
+      "components": []
+    }
+  ],
+  "competencies": [],
+  "combination_rules": [
+    {
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "rule": "core_all",
+      "of": [
+        "GP"
+      ]
+    },
+    {
+      "levels": [
+        "S5",
+        "S6"
+      ],
+      "rule": "electives",
+      "count": 3,
+      "of": [
+        "MAT",
+        "PHY",
+        "CHE",
+        "BIO",
+        "ECO",
+        "GEO",
+        "HIS",
+        "ENT",
+        "LIT",
+        "CRE",
+        "IRE",
+        "AGR"
+      ]
+    }
+  ]
+}

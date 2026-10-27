@@ -3,6 +3,8 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { countryAddressSchema } from '@/domain/country';
+
 import {
   ADDRESS_COUNTRIES,
   addressFieldsFor,
@@ -36,6 +38,24 @@ describe('country address schemas', () => {
     ]);
     expect(ADDRESS_COUNTRIES).toContain('ZA');
     expect(addressSchemaFor('ZZ').levels).toEqual([]);
+  });
+
+  it('takes the Kenyan hierarchy from the KE country pack', () => {
+    expect(addressSchemaFor('KE')).toEqual(countryAddressSchema('KE'));
+    expect(addressSchemaFor('ke').levels[0]).toEqual({
+      key: 'county',
+      labelKey: 'address.ke.county',
+      required: true,
+    });
+  });
+
+  it('keeps the other countries as they were', () => {
+    expect(addressSchemaFor('UG').levels[0]).toEqual({
+      key: 'district',
+      labelKey: 'address.ug.district',
+      required: true,
+    });
+    expect(addressSchemaFor('GB')).toMatchObject({ cityRequired: true, postalCodeRequired: true });
   });
 
   it('lists a country form fields in the order it collects them', () => {
