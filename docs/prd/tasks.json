@@ -4444,9 +4444,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C04 from prd/P5-W2",
       "completed_at": null
     },
     {
@@ -4474,9 +4474,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P5-C05 from prd/P5-W2",
       "completed_at": null
     },
     {
