@@ -286,7 +286,7 @@
       "effectiveFrom": "2024-12-01",
       "effectiveTo": null,
       "sourceRef": "kra-notice-2157",
-      "verification": "verified",
+      "verification": "draft",
       "note": "From the December 2024 period (Tax Laws (Amendment) Act 2024, in force 27 December 2024): the Affordable Housing Levy deducted, SHIF contributions, a registered pension or provident contribution up to KSh 30,000 a month (the employee's NSSF contribution is such a contribution and shares that cap), mortgage interest up to KSh 30,000 a month and a post-retirement medical fund contribution up to KSh 15,000 a month are deducted from taxable pay; the Affordable Housing Relief and the Post-Retirement Medical Fund Relief cease. Bands and personal relief are those of the KRA PAYE page (Finance Act 2023); insurance relief is 15% of premiums up to KSh 60,000 a year (KRA FAQ), KSh 5,000 a month.",
       "params": {
         "bands": [
