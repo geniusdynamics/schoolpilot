@@ -1,0 +1,198 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "id": "country-cm",
+  "kind": "country",
+  "country": "CM",
+  "name": "Cameroon",
+  "version": "1.0.0",
+  "verification": "draft",
+  "notes": [
+    "No Cameroonian statute or gazette was reachable for the public holidays: every holiday comes from a secondary source (Wikipedia) and is a draft. The statute that sets them was not found.",
+    "Korite and Tabaski depend on the moon and are declared each year; no declaration was fetched, so none is listed and a year has none until its declaration is added.",
+    "A holiday that falls on a Sunday is kept on its own day: no rule of observance was confirmed.",
+    "The 10 regions and their ISO 3166-2 codes are read from a secondary copy of the ISO table, not from the official gazette. The division, the second level, is free text and no division list is bundled.",
+    "No identifier format was found in a fetched source: every scheme is free text.",
+    "The one statutory return is read from a row of the Directorate General of Taxes' fiscal calendar that concerns road transporters (VS/IRPP + IS + TVA, a monthly declaration and payment within 15 days of the month); whether it applies unchanged to a school's payroll withholding is unconfirmed.",
+    "The pack covers the Francophone subsystem; the Anglophone subsystem (GCE) is a separate programme and not modelled by a country pack."
+  ],
+  "sources": [
+    {
+      "id": "iso-3166-2-cm",
+      "title": "ISO 3166-2:CM: subdivision codes of Cameroon (secondary copy of the ISO table)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/ISO_3166-2:CM",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "holidays-cm",
+      "title": "Public holidays in Cameroon (secondary)",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Public_holidays_in_Cameroon",
+      "accessed": "2026-10-27"
+    },
+    {
+      "id": "dgi-calendrier-fiscal",
+      "title": "Calendrier fiscal (monthly deposits within the first 15 days; VS/IRPP + IS + TVA monthly declaration and payment 15 days after the month, road-transporter table)",
+      "publisher": "Direction Generale des Impots, Cameroon",
+      "url": "https://www.impots.cm/fr/calendrier-fiscal",
+      "accessed": "2026-10-27"
+    }
+  ],
+  "defaults": {
+    "currency": "XAF",
+    "languages": ["fr", "en"],
+    "timeZone": "Africa/Douala",
+    "phoneRegion": "CM",
+    "calendar": "gregorian",
+    "weekStartsOn": 1
+  },
+  "identifiers": [
+    {
+      "scheme": "cm.national_id",
+      "labelKey": "country.cm.identifier.national_id",
+      "appliesTo": ["guardian", "staff"],
+      "order": { "guardian": 1, "staff": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.cm.identifier.national_id.hint",
+      "example": "as printed on the national identity card",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    },
+    {
+      "scheme": "cm.birth_certificate",
+      "labelKey": "country.cm.identifier.birth_certificate",
+      "appliesTo": ["learner"],
+      "order": { "learner": 1 },
+      "validation": { "type": "free" },
+      "hintKey": "country.cm.identifier.birth_certificate.hint",
+      "example": "as printed on the birth certificate",
+      "verification": "draft",
+      "note": "No published format the pack cites."
+    }
+  ],
+  "addressHierarchy": {
+    "levels": [
+      {
+        "key": "region",
+        "labelKey": "address.cm.region",
+        "required": true,
+        "options": {
+          "values": [
+            { "code": "CM-AD", "name": "Adamaoua" },
+            { "code": "CM-CE", "name": "Centre" },
+            { "code": "CM-ES", "name": "Est" },
+            { "code": "CM-EN", "name": "Extrême-Nord" },
+            { "code": "CM-LT", "name": "Littoral" },
+            { "code": "CM-NO", "name": "Nord" },
+            { "code": "CM-NW", "name": "Nord-Ouest" },
+            { "code": "CM-SU", "name": "Sud" },
+            { "code": "CM-SW", "name": "Sud-Ouest" },
+            { "code": "CM-OU", "name": "Ouest" }
+          ],
+          "sourceRef": "iso-3166-2-cm",
+          "verification": "draft"
+        }
+      },
+      { "key": "division", "labelKey": "address.cm.division", "required": false }
+    ],
+    "hasCity": true,
+    "cityRequired": false,
+    "postalCode": { "required": false }
+  },
+  "holidays": [
+    {
+      "id": "new-year",
+      "nameKey": "country.cm.holiday.new_year",
+      "rule": { "type": "fixed", "month": 1, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    },
+    {
+      "id": "youth-day",
+      "nameKey": "country.cm.holiday.youth_day",
+      "rule": { "type": "fixed", "month": 2, "day": 11 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    },
+    {
+      "id": "good-friday",
+      "nameKey": "country.cm.holiday.good_friday",
+      "rule": { "type": "easter", "offsetDays": -2 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    },
+    {
+      "id": "labour-day",
+      "nameKey": "country.cm.holiday.labour_day",
+      "rule": { "type": "fixed", "month": 5, "day": 1 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    },
+    {
+      "id": "ascension",
+      "nameKey": "country.cm.holiday.ascension",
+      "rule": { "type": "easter", "offsetDays": 39 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft",
+      "note": "The source says 39 days after Easter."
+    },
+    {
+      "id": "national-day",
+      "nameKey": "country.cm.holiday.national_day",
+      "rule": { "type": "fixed", "month": 5, "day": 20 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    },
+    {
+      "id": "assumption",
+      "nameKey": "country.cm.holiday.assumption",
+      "rule": { "type": "fixed", "month": 8, "day": 15 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    },
+    {
+      "id": "christmas-day",
+      "nameKey": "country.cm.holiday.christmas_day",
+      "rule": { "type": "fixed", "month": 12, "day": 25 },
+      "effectiveFrom": "2000-01-01",
+      "effectiveTo": null,
+      "observed": "none",
+      "sourceRef": "holidays-cm",
+      "verification": "draft"
+    }
+  ],
+  "statutoryReturns": [
+    {
+      "id": "monthly-vs-irpp-tva",
+      "nameKey": "country.cm.return.monthly",
+      "authority": "Direction Generale des Impots (tax centre of the employer)",
+      "frequency": "monthly",
+      "due": { "type": "day_of_following_month", "day": 15 },
+      "sourceRef": "dgi-calendrier-fiscal",
+      "verification": "draft",
+      "note": "From a row of the fiscal calendar for road transporters (Art 91 CGI): monthly declaration and payment 15 days after the month. Whether the same day applies to a school's withholding is unconfirmed; no rate is stated."
+    }
+  ]
+}

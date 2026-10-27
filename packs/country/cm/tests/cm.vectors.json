@@ -1,0 +1,43 @@
+{
+  "$comment": "Conformance vectors for the CM country pack. Identifier vectors give the value as typed and either the normalised value it is stored as or valid=false. Holiday vectors give, for a year, every public holiday as the nominal date its rule names and the date it is observed on; the pack models no day in lieu, so the two are equal. No Muslim festival is listed: no declaration was fetched.",
+  "country": "CM",
+  "identifiers": [
+    { "scheme": "cm.national_id", "value": "112233445", "valid": true, "normalised": "112233445" },
+    { "scheme": "cm.national_id", "value": "  CE-998877  ", "valid": true, "normalised": "CE-998877" },
+    { "scheme": "cm.national_id", "value": "   ", "valid": false },
+    { "scheme": "cm.birth_certificate", "value": "N°2015/0123/DLA", "valid": true, "normalised": "N°2015/0123/DLA" },
+    { "scheme": "cm.birth_certificate", "value": "", "valid": false }
+  ],
+  "easterSunday": {
+    "2026": "2026-04-05",
+    "2027": "2027-03-28"
+  },
+  "holidays": [
+    {
+      "year": 2026,
+      "days": [
+        { "id": "new-year", "nominal": "2026-01-01", "observed": "2026-01-01" },
+        { "id": "youth-day", "nominal": "2026-02-11", "observed": "2026-02-11" },
+        { "id": "good-friday", "nominal": "2026-04-03", "observed": "2026-04-03" },
+        { "id": "labour-day", "nominal": "2026-05-01", "observed": "2026-05-01" },
+        { "id": "ascension", "nominal": "2026-05-14", "observed": "2026-05-14" },
+        { "id": "national-day", "nominal": "2026-05-20", "observed": "2026-05-20" },
+        { "id": "assumption", "nominal": "2026-08-15", "observed": "2026-08-15" },
+        { "id": "christmas-day", "nominal": "2026-12-25", "observed": "2026-12-25" }
+      ]
+    },
+    {
+      "year": 2027,
+      "days": [
+        { "id": "new-year", "nominal": "2027-01-01", "observed": "2027-01-01" },
+        { "id": "youth-day", "nominal": "2027-02-11", "observed": "2027-02-11" },
+        { "id": "good-friday", "nominal": "2027-03-26", "observed": "2027-03-26" },
+        { "id": "labour-day", "nominal": "2027-05-01", "observed": "2027-05-01" },
+        { "id": "ascension", "nominal": "2027-05-06", "observed": "2027-05-06" },
+        { "id": "national-day", "nominal": "2027-05-20", "observed": "2027-05-20" },
+        { "id": "assumption", "nominal": "2027-08-15", "observed": "2027-08-15" },
+        { "id": "christmas-day", "nominal": "2027-12-25", "observed": "2027-12-25" }
+      ]
+    }
+  ]
+}

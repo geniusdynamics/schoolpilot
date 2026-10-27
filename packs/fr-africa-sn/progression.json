@@ -1,0 +1,25 @@
+{
+  "progression": [
+    {
+      "levels": ["6E", "5E", "4E"],
+      "rule": "class_council",
+      "suggest": { "metric": "annual.moyenne", "gte": 10 }
+    },
+    {
+      "levels": ["3E"],
+      "rule": "stage_transition",
+      "to_stage": "LYC"
+    },
+    {
+      "levels": ["2NDE", "1ERE"],
+      "rule": "class_council",
+      "suggest": { "metric": "annual.moyenne", "gte": 10 }
+    }
+  ],
+  "graduation": [
+    {
+      "levels": ["TLE"],
+      "rule": "graduate"
+    }
+  ]
+}

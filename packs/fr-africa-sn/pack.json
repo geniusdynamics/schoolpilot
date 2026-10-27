@@ -1,0 +1,44 @@
+{
+  "code": "fr-africa-sn",
+  "name": "Senegal - enseignement moyen et secondaire general, 6e a Terminale (BFEM et baccalaureat)",
+  "version": "1.0.0",
+  "country": "SN",
+  "issuers": [
+    "Ministere de l'Education Nationale",
+    "Office du Baccalaureat"
+  ],
+  "effective_from": "2026-10-01",
+  "languages": ["fr", "en"],
+  "requires_engine": ">=1.0.0",
+  "sources": [
+    {
+      "title": "Ministere de l'Education Nationale du Senegal (site; the page on the education system describes the preschool, elementary, middle and secondary levels but states no grading rule)",
+      "issuer": "Ministere de l'Education Nationale, Senegal",
+      "url": "https://education.sn/system-educatifs",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Office du baccalaureat du Senegal (site; publishes the 2026 examination calendar and papers, no grading rule)",
+      "issuer": "Office du baccalaureat, Universite Cheikh Anta Diop",
+      "url": "https://officedubac.sn/",
+      "retrieved": "2026-10-27"
+    },
+    {
+      "title": "Decret n°95-035 du 24 fevrier 1995 portant organisation des baccalaureats de l'enseignement secondaire (Cameroon; the four mentions; read by OCR)",
+      "issuer": "Office du Baccalaureat du Cameroun",
+      "url": "https://officedubac.cm/wp-content/uploads/2025/03/Decret-N%C2%B095-035-du-24-fevrier-1995-portant-organisation-des-baccalaureats-de-lenseignement-secondaire.pdf",
+      "retrieved": "2026-10-27"
+    }
+  ],
+  "verification": {
+    "status": "draft",
+    "verified_by": [],
+    "notes": "Draft and the weakest of the three Francophone packs: no fetched Senegalese official text states a grading rule, so nothing here is confirmed for Senegal. The structure (6e to 3e, 2nde to terminale, BFEM at the end of the first cycle, baccalaureat at the end of the second), the marks out of 20, the coefficient-weighted moyenne, the three trimestres, the annual moyenne as the mean of the three, the promotion threshold of 10 and the mention bands (Passable from 10, Assez bien from 12, Bien from 14, Tres bien from 16, the wording of the Cameroon decree 95-035) are all from spec 03 Appendix J and that decree, not from a Senegalese source. Open items: (1) every subject coefficient is 1, a neutral default the school replaces from the Ministry's table (overridable). (2) Whether the secondary school year is divided into trimestres or semestres in Senegal is unconfirmed; the pack uses trimestres. (3) The conseil de classe rules, the annual moyenne and the mentions of the Senegalese baccalaureat are unconfirmed. (4) Series (L, S, STEG and the others) are not modelled. (5) Primary education (CFEE) is not modelled. (6) The moyenne kept to two places and rounded half-up is an assumption. (7) The English labels are a translation of the French; the French labels are drafts no native speaker has reviewed."
+  },
+  "overridable": [
+    "grading_scales.mentions_fr.bands",
+    "learning_areas.*.coefficient",
+    "assessment.schemes.*.slots.*.scale_to",
+    "reports.*.page"
+  ]
+}

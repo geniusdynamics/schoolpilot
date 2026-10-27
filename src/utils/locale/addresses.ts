@@ -106,6 +106,9 @@ const ADDRESS_SCHEMAS: Readonly<Record<string, CountryAddressSchema>> = {
     line2LabelKey: LINE2_LABEL,
   },
   NG: packAddressSchema('NG'),
+  SN: packAddressSchema('SN'),
+  CI: packAddressSchema('CI'),
+  CM: packAddressSchema('CM'),
   GH: {
     country: 'GH',
     levels: [
