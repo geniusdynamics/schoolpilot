@@ -4804,9 +4804,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "blocked",
       "commit": null,
-      "notes": "",
+      "notes": "Owner: Mr Genius. No pilot school enrolled. Kit at docs/prd/workflow-log/pilots/ (plan, sign-off, feedback log, metrics); needs one school per flagship pack for a full term and a signed sign-off. Packs remain verification: draft.",
       "completed_at": null
     },
     {
@@ -4831,9 +4831,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "blocked",
       "commit": null,
-      "notes": "",
+      "notes": "Owner: Mr Genius. Blocked on E04 sign-offs, pack/translation/payroll reviews, P0-era upgrade verification and the tag/channel decision. Draft release notes and proposed LTS policy at docs/releases/1.0.md and CHANGELOG.md; no tag cut.",
       "completed_at": null
     },
     {

@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - not released
+
+This is the 1.0 release candidate entry, not an announcement. The release gate, upgrade notes,
+known issues and the proposed stable/LTS policy are in [`docs/releases/1.0.md`](docs/releases/1.0.md).
+The entry becomes `1.0.0` with a date when the E04 pilot sign-offs and the owner's tag decision are
+complete.
+
+### Added
+
+- Multi-curriculum academic core: academic years and periods, levels, class groups, subjects,
+  timetable, teaching groups, enrolment.
+- Learner, guardian, staff and identifier records, with the consent fields the schema records.
+- Attendance registers and marks, leave-outs, conduct and health records.
+- Finance: fee structures, billing runs, invoices, payments and receipts, allocation, statements,
+  credit notes, the ledger and its reports, and accounting exports.
+- Assessment: grading schemes, marks entry, report cards, published reports and promotion runs.
+- Guardian/learner portal: balances, pay-link seam, published reports, attendance, notices and
+  consent.
+- Curriculum, country and payroll packs with a schema and a vector runner. The shipped packs are
+  drafts; each `pack.json` lists the unverified items.
+- KEMIS/KNEC registration exports, messaging providers behind an outbox, and accounting journal
+  exports for QuickBooks, Xero, Odoo and ERPNext.
+- Plug-in SDK and manifest, with compatibility and permission contracts. The host does not load
+  third-party plug-ins yet.
+- Role, administrator, deployment, pack-authoring, SDK and data-protection guides, with walkthrough
+  scripts.
+- Apache-2.0 code licence, CC-BY-4.0 pack-data licence, `NOTICE`, `CONTRIBUTING`,
+  `CODE_OF_CONDUCT`, `SECURITY` and the RFC process.
+
+### Changed
+
+- Receipts from the Student Payments dialog and the cashier now share the year-scoped
+  `RCT/YYYY/NNNNNN` sequence; the dialog no longer counts existing receipt numbers.
+- The admissions and finance sidebar labels that rendered as translation keys now have English
+  labels, with draft translations for sw/fr/pt/ar/rw.
+- Backup **Download** writes the stored backup payload as a JSON file.
+- The Attendance **View** tab reads saved registers instead of showing a placeholder.
+- The hub guide states that the hub serves the API and health/discovery endpoints, not the browser
+  application.
+
+### Fixed
+
+- The attendance view, backup download and receipt-series defects recorded by P6-D01.
+- The settings user edit form no longer resets on every keystroke.
+
+### Security
+
+- Secret and dependency scans run in the task gate; the dependency advisory baseline is a ratchet.
+- The security policy and the vulnerability-reporting route are published.
+
+### Known issues
+
+- Every curriculum pack is `verification: draft`; translations and payroll statutory data have not
+  had native-speaker/accountant review.
+- A guardian-only login cannot reach module routes; the portal is tested by linking a staff login to
+  a guardian.
+- No payment provider is configured; the fees page shows that state.
+- The plug-in SDK is not wired into the host.
+- The hub does not serve the browser app.
+- Portal Lighthouse/3G/low-end-device performance and the Raspberry Pi installer are unmeasured.
+- E04 pilot sign-offs and the E05 tag remain outstanding.
+
 ## [refactor-batch-2] - 2026-03-31
 
 ### Added
