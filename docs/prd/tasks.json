@@ -4752,10 +4752,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P6-C01",
-      "completed_at": null
+      "status": "done",
+      "commit": "594919c",
+      "notes": "worker on prd/P6-C01 | gate PASS; 238 tests incl. 59 portal; guardian E2E at 390px passed (not in CI golden paths, single clean run); portal chunk 48.6 KB raw/12.7 KB gzip; authorisation in the data layer; consent limited to schema fields; no pay provider configured; guardian-only login cannot reach module routes in this build; Lighthouse/3G/device/PWA offline not measured",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-D01",
