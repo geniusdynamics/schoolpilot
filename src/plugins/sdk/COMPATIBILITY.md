@@ -61,7 +61,8 @@ plug-in author can see what not to build a business on.
 
 ## What a breaking change means in practice
 
-A major version means a plug-in published against `1.x` may not load on `2.0.0`. The host's compatibility
-check (`isCompatible`) refuses it before the plug-in's module runs, rather than loading it and misbehaving.
-A plug-in author then publishes a release whose `sdkVersion` range includes `2.0.0`, and the compatibility
-test for that plug-in (`validateManifest` + `isCompatible`) is what proves it.
+A major version means a plug-in published against `1.x` may not load on `2.0.0`. The compatibility check
+(`isCompatible`) refuses it before the plug-in's module runs — once the host calls that check; it does not
+yet, so an author must call it (see [`docs/extensions/plugins.md`](../../docs/extensions/plugins.md),
+*Not wired into the host yet*). A plug-in author then publishes a release whose `sdkVersion` range includes
+`2.0.0`, and the compatibility test for that plug-in (`validateManifest` + `isCompatible`) is what proves it.

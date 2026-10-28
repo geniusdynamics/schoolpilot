@@ -19,8 +19,14 @@ every one declares the range of SDK versions it supports (`sdkVersion`).
 
 The two engine manifests were renamed from "Grading Engine (POC)" and "Fee Calculator (POC)" to the names
 spec 06 §10 gives them. Only the display name, the description and the menu/route titles changed; the
-manifest ids, directory names, hook names and public APIs are unchanged, so saved settings, feature flags
-and anything holding a plug-in id keep working.
+manifest ids, directory names and public APIs are unchanged, so saved settings, feature flags and anything
+holding a plug-in id keep working.
+
+One manifest needed a correction rather than a rename: `fee-calculator/plugin.json` listed four hooks the
+catalogue does not publish. They now read `fees.beforeCalculate`, `fees.afterCalculate`,
+`fees.applyDiscounts` and `fees.generateSchedule`, matching the hook catalogue and the runtime module — three
+were the same hook spelled `fee.*`, and `fee.applyPenalty` was a different hook, not a rename. The hooks the
+module actually registers in `index.ts` were already `fees.*` and did not change.
 
 ## Dormant (enabled by a feature flag)
 
