@@ -32,8 +32,8 @@ function readManifest(file: string): unknown {
 }
 
 describe('builtin manifests', () => {
-  it('finds the manifests to check', () => {
-    expect(manifestFiles().length).toBeGreaterThanOrEqual(11);
+  it('finds exactly the twelve manifests to check', () => {
+    expect(manifestFiles().length).toBe(12);
   });
 
   it.each(manifestFiles())('$dir validates against the SDK schema', ({ dir, file }) => {

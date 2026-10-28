@@ -1,17 +1,34 @@
 # Writing a plug-in
 
-A plug-in extends SchoolPilot without changing it: it declares what it needs in a manifest, and the host
-loads it, checks it and hands it a context. Everything a plug-in may use is exported from
+A plug-in extends SchoolPilot without changing it: it declares what it needs in a manifest, and the host is
+meant to load it, check it and hand it a context. Everything a plug-in may use is exported from
 `src/plugins/sdk/index.ts`; the promise about versions is in
 [`src/plugins/sdk/COMPATIBILITY.md`](../../src/plugins/sdk/COMPATIBILITY.md).
+
+## Not wired into the host yet
+
+This release ships the SDK and its tests, not the host wiring around them. Today the application:
+
+- does **not** validate manifests at load time,
+- does **not** call `isCompatible` when installing a plug-in,
+- does **not** render anything from the slot registry,
+- does **not** publish the service hooks (`learner.admitted`, `invoice.posted`, `report.published`), and
+- does **not** enforce the sandbox through the plug-in context: `PluginManager.createPluginContext` builds a
+  context without consulting `PluginSecuritySandbox`.
+
+So an author cannot rely on the host to catch any of it. **Call `validateManifest` and `isCompatible`
+yourself** before you ship, and treat the registry, the bus and the sandbox as the contract the host will
+enforce once that wiring lands. Nothing below is weaker than that wiring will be; some of it simply is not
+connected yet.
 
 A worked example lives in [`src/plugins/examples/birthday-notices/`](../../src/plugins/examples/birthday-notices/):
 a dashboard widget of upcoming learner birthdays that imports nothing but the SDK.
 
 ## 1. The manifest
 
-`plugin.json` describes the plug-in. The schema is strict: a field the SDK does not know is refused, so a
-typo such as `permisions` is a load-time error rather than a capability that silently does nothing.
+`plugin.json` describes the plug-in. The schema is strict: a field the SDK does not know is refused by
+`validateManifest`, so a typo such as `permisions` fails loudly instead of becoming a capability that
+silently does nothing. (The app does not run that check for you yet — see above.)
 
 ```json
 {
@@ -144,7 +161,7 @@ Rules that are enforced, not advisory:
 
 ## 4. UI extension slots
 
-The host renders four slots (spec 06 §10):
+The host provides four slots (spec 06 §10), which it will render once the wiring lands:
 
 | Slot | Where it appears |
 | --- | --- |
@@ -153,8 +170,8 @@ The host renders four slots (spec 06 §10):
 | `report-block` | A section appended to a generated report. |
 | `payment-method` | A payment method a school can offer at checkout. |
 
-`registerSlot(pluginId, contribution)` validates and stores what you add; `getSlots(slot)` is what the host
-reads, ordered by `order` then id. A contribution is:
+`registerSlot(pluginId, contribution)` validates and stores what you add; `getSlots(slot)` is what a host
+renderer will read, ordered by `order` then id. A contribution is:
 
 ```ts
 {
@@ -188,7 +205,8 @@ The hook catalogue also includes the UI hooks (`ui.branding.*`, `ui.label.resolv
 `ui.footer.render`), the engine hooks (`grading.*`, `fees.*`) and the integration hooks
 (`backend.provider.register`, `sync.*`, `data.*`, `realtime.*`) that the builtin plug-ins use.
 `KNOWN_HOOK_NAMES` is the complete list; a name outside it is refused by both the manifest schema and the
-bus.
+bus. That refusal is the SDK's, not the manager's: `PluginManager.addHook` accepts any string, so an unknown
+hook passed through the manager is silently never fired — only `ServiceHookBus` refuses unknown names.
 
 ## 6. Server routes
 
@@ -217,7 +235,8 @@ pnpm vitest run src/plugins/sdk path/to/your-plugin
 - Declare `sdkVersion` as the range you have actually tested against. If you use a feature added in SDK
   `1.3.0`, declare `^1.3.0` so older cores refuse you instead of half-loading you.
 - List only the permissions, slots and hooks you use; the manifest is what the school reads before granting.
-- Ship the manifest beside the module. The host validates the manifest before any of your code runs.
+- Ship the manifest beside the module, and validate it yourself: until the host wiring lands, nothing checks
+  it at load — see *Not wired into the host yet*.
 - For the official registry, the manifest is versioned and signed by the maintainers (spec 06 §10); a
   self-hosted school installs the same directory as a local plug-in.
 
