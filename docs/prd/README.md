@@ -145,6 +145,6 @@ met; phase completion log written (`workflow-log/`); `PROGRESS.md` updated; base
 | --- | --- | --- | --- |
 | DR-01 | Schema/validation library (zod vs JSON Schema + codegen) | P1 W1 | P1-A01 |
 | DR-02 | Sync engine (SQLite↔Postgres layer vs PouchDB↔CouchDB) | P4 W1 | P4-A01 |
-| DR-03 | Licence (AGPL-3.0 vs MIT/Apache-2.0); pack data licence | P6 W1 | P6-E01 |
+| DR-03 | Licence — decided: Apache-2.0 for the code, CC-BY-4.0 for pack data ([DR-03](workflow-log/decisions/DR-03.md)) | P6 W1 | P6-E01 |
 | DR-04 | Query cache (TanStack Query vs custom store) | P1 W1 | P1-B01 |
 | DR-05 | PDF rendering (browser print-to-PDF vs library in worker) | P2 W1 | P2-D01 |

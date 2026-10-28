@@ -1,10 +1,11 @@
 ﻿import { logger } from '@/utils/logging';
 
 /**
- * Fee Calculator POC Plugin
- * 
- * Proof-of-concept plugin demonstrating Go WASM-based fee calculation.
- * This plugin showcases how shared Go engines can be used for financial calculations.
+ * Billing Service Plugin
+ *
+ * Builtin engine that computes a learner's fees from fee items and discounts and generates the
+ * payment schedule. It prefers the shared Go WebAssembly calculator and falls back to the
+ * JavaScript implementation when the module is not loaded.
  */
 
 import type { PluginManifest, PluginModule, PluginContext } from '../../types';
@@ -97,14 +98,16 @@ export interface FeeCalculatorAPI {
 
 export const manifest: PluginManifest = {
   id: 'poc-fee-calculator',
-  name: 'Fee Calculator (POC)',
+  name: 'Billing Service',
   version: '1.0.0',
+  sdkVersion: '^1.0.0',
   type: 'engine',
   category: 'builtin',
   entry: './index.ts',
-  description: 'Proof-of-concept fee calculation engine with WASM support',
+  description: "Billing service: computes a learner's fees from fee items and discounts and generates the payment schedule",
   author: 'SchoolPilot3 Team',
   license: 'MIT',
+  permissions: ['settings:access', 'code:execute'],
   
   engine: {
     wasmFile: '/wasm/fees.wasm',
@@ -175,15 +178,15 @@ export const manifest: PluginManifest = {
     {
       path: '/plugins/fee-calculator',
       component: 'FeeCalculatorPage',
-      title: 'Fee Calculator',
+      title: 'Billing Service',
       icon: 'CurrencyDollarIcon',
     },
   ],
-  
+
   menuItems: [
     {
       id: 'fee-calculator',
-      label: 'Fee Calculator',
+      label: 'Billing Service',
       icon: 'CurrencyDollarIcon',
       route: '/plugins/fee-calculator',
       order: 101,
@@ -220,7 +223,7 @@ class FeeCalculator implements FeeCalculatorAPI {
         this.wasmReady = true;
         logger.info('[FeeCalculator] WASM engine loaded');
       }
-    } catch (_error) {
+    } catch {
       logger.warn('[FeeCalculator] WASM not available, using JavaScript fallback');
       this.wasmReady = false;
     }

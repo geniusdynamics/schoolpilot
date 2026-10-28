@@ -2,6 +2,20 @@
 
 A comprehensive education management system built with React, TypeScript, and Vite featuring modular architecture and dual-mode data layer for both development and production environments.
 
+## Project status
+
+This is work in progress, not a finished release. What a reader can rely on today:
+
+- **Works**: demo mode with generated data, hub navigation across the modules, learner and
+  staff records, fees, invoices and receipts, curriculum and grading for the shipped packs,
+  and the test suite plus the PRD quality gate.
+- **Draft**: every locale other than English is machine-produced and has not been reviewed by
+  a native speaker. The country packs for UG, NG, GH, ZA, SN, CI and CM carry draft data; the
+  payroll pack needs an accountant to confirm the statutory rates before a school uses it to
+  pay staff.
+- **Broken**: step 1 of the public application wizard does not submit. Use the staff-side
+  admissions pages to capture applications in the meantime.
+
 ## Quickstart
 
 ```bash
@@ -29,6 +43,8 @@ pnpm typecheck        # TypeScript check — see also: pnpm check:ratchet
 pnpm test:run         # full test suite once
 pnpm vitest run src/tests/DataGrid.test.tsx   # targeted tests
 pnpm build            # production build (vite + PWA)
+pnpm secret:scan      # secret scan over the tracked files
+node scripts/prd/gate.mjs task --base <ref> --task <task-id>   # PRD task gate (typecheck, related tests, lint)
 ```
 
 New here? Read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and
@@ -438,6 +454,7 @@ Comprehensive documentation is available in the `docs/` directory:
 
 - **Architecture Guide**: `docs/architecture.md` - Detailed technical architecture
 - **Feature List**: `docs/feature-list.md` - Complete feature documentation
+- **Plug-in SDK**: `docs/extensions/plugins.md` - Writing a plug-in, the permission model and the compatibility promise
 - **Development Guides**: Various `*-dev-guide.md` files
 - **Project Reports**: Recap files and workflow documentation
 
@@ -456,7 +473,9 @@ The build process creates an optimized production bundle with:
 ## 🌐 Internationalization
 
 The application supports multiple languages through i18next:
-- **Supported Languages**: English (default), French
+- **Locales in the repository**: English (the source of truth), Swahili, French, Kinyarwanda,
+  Portuguese and Arabic; the translations were machine-produced and have not been reviewed
+  by a native speaker yet, so expect wording to change.
 - **Namespace Organization**: Separate translation files per module
 - **Dynamic Loading**: Translations loaded based on detected language
 - **Fallback System**: Graceful fallback to English for missing translations
@@ -514,6 +533,12 @@ modules/[module]/data/types.ts # Module-specific types
 
 This project follows modular architecture principles. Please refer to the documentation in the `docs/` directory for detailed development guidelines.
 
+By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md); report a
+vulnerability privately per [SECURITY.md](SECURITY.md). Setup, the test-first
+rule, the pull-request checklist and how to propose a pack correction are in
+[CONTRIBUTING.md](CONTRIBUTING.md). Changes to the domain model, a pack schema or
+the plug-in SDK need an RFC first: see [docs/rfcs](docs/rfcs/README.md).
+
 ### Development Guidelines
 1. **Module-First**: Add new features within appropriate modules
 2. **Type Safety**: Maintain comprehensive TypeScript coverage
@@ -522,9 +547,18 @@ This project follows modular architecture principles. Please refer to the docume
 5. **Responsive Design**: Ensure mobile compatibility
 6. **Documentation**: Update relevant documentation files
 
-## 📄 License
+## 📄 Licence
 
-This project is proprietary software. All rights reserved.
+The application code is licensed under the [Apache License, Version 2.0](LICENSE). See
+[`NOTICE`](NOTICE) for the attribution that must be retained in redistributions.
+
+The curriculum, country and payroll packs under [`packs/`](packs) are data licensed under
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/);
+see [`packs/LICENSE`](packs/LICENSE). Each pack's `README.md` cites the official sources its
+data came from, and those citations must stay with the data and with any adaptation.
+
+The decision and its rationale are recorded in
+[`docs/prd/workflow-log/decisions/DR-03.md`](docs/prd/workflow-log/decisions/DR-03.md).
 
 ## 🆘 Support
 

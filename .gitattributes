@@ -1,0 +1,15 @@
+# Keep the index normalised so a Windows checkout does not churn snapshots and diffs.
+* text=auto
+
+# Binary assets: never diff, merge or convert line endings.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.zip binary
+*.pdf binary

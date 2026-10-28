@@ -2,6 +2,8 @@
   "id": "com.schoolpilot.sms-mock",
   "name": "SMS Provider (Mock)",
   "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "permissions": ["settings:access"],
   "type": "integration",
   "category": "builtin",
   "entry": "./index.ts",

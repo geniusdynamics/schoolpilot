@@ -8,7 +8,7 @@
  */
 
 import type { PluginManifest, PluginModule, PluginContext } from '../../types';
-import { getEntitlements } from '../../../services/plugin/FeatureEntitlements';
+import { getEntitlements } from '@/services/plugin/FeatureEntitlements';
 
 // ============================================================================
 // Types
@@ -50,12 +50,14 @@ export const manifest: PluginManifest = {
   id: 'builtin-whitelabel',
   name: 'White-Label Branding',
   version: '1.0.0',
+  sdkVersion: '^1.0.0',
   type: 'whitelabel',
   category: 'builtin',
   entry: './index.ts',
   description: 'Customize application branding including name, logo, colors, and UI labels',
   author: 'SchoolPilot3 Team',
   license: 'MIT',
+  permissions: ['settings:access', 'ui:inject', 'menu:modify'],
   
   hooks: [
     'ui.branding.header',

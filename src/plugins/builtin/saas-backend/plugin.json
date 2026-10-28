@@ -2,6 +2,8 @@
   "id": "com.schoolpilot.saas-backend",
   "name": "SchoolPilot SaaS Backend",
   "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "permissions": ["settings:access"],
   "type": "integration",
   "entry": "./index.ts",
   "description": "Connect to SchoolPilot's custom Go SaaS backend with GraphQL and REST APIs",

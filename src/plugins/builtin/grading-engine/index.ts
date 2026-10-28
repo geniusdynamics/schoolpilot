@@ -1,10 +1,11 @@
 ﻿import { logger } from '@/utils/logging';
 
 /**
- * Grading Engine POC Plugin
- * 
- * Proof-of-concept plugin demonstrating Go WASM-based grading calculation.
- * This plugin showcases how shared Go engines can be used in the client.
+ * Results Engine Plugin
+ *
+ * Builtin engine that turns assessment scores into grades, ranks and pass or fail outcomes.
+ * It prefers the shared Go WebAssembly grader and falls back to the JavaScript implementation
+ * when the module is not loaded.
  */
 
 import type { PluginManifest, PluginModule, PluginContext } from '../../types';
@@ -53,14 +54,16 @@ export interface GradingEngineAPI {
 
 export const manifest: PluginManifest = {
   id: 'poc-grading-engine',
-  name: 'Grading Engine (POC)',
+  name: 'Results Engine',
   version: '1.0.0',
+  sdkVersion: '^1.0.0',
   type: 'engine',
   category: 'builtin',
   entry: './index.ts',
-  description: 'Proof-of-concept grading engine with WASM support',
+  description: 'Results engine: turns assessment scores into grades, ranks and pass or fail outcomes',
   author: 'SchoolPilot3 Team',
   license: 'MIT',
+  permissions: ['settings:access', 'code:execute'],
   
   engine: {
     wasmFile: '/wasm/grading.wasm',
@@ -115,15 +118,15 @@ export const manifest: PluginManifest = {
     {
       path: '/plugins/grading-engine',
       component: 'GradingEnginePage',
-      title: 'Grading Engine',
+      title: 'Results Engine',
       icon: 'CalculatorIcon',
     },
   ],
-  
+
   menuItems: [
     {
       id: 'grading-engine',
-      label: 'Grading Engine',
+      label: 'Results Engine',
       icon: 'CalculatorIcon',
       route: '/plugins/grading-engine',
       order: 100,
@@ -159,7 +162,7 @@ class GradingEngine implements GradingEngineAPI {
         this.wasmReady = true;
         logger.info('[GradingEngine] WASM engine loaded');
       }
-    } catch (_error) {
+    } catch {
       logger.warn('[GradingEngine] WASM not available, using JavaScript fallback');
       this.wasmReady = false;
     }
