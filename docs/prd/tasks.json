@@ -209,7 +209,8 @@
         "B": "Integrations",
         "C": "Portal",
         "D": "Documentation",
-        "E": "Governance & release"
+        "E": "Governance & release",
+        "Q": "Quality and security fixes opened during the phase"
       },
       "waves": {
         "P6-W1": "Licence, hygiene, governance, plug-in SDK",
@@ -4560,10 +4561,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "12398fc",
+      "notes": "Apache-2.0 + CC-BY-4.0, DR-03 recorded",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-E02",
@@ -4584,10 +4585,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "3090a11",
+      "notes": "159 assistant files untracked (kept on disk), 8 dead files deleted with proof, .gitattributes added; duplicate pages/services listed for later",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-E03",
@@ -4612,10 +4613,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "248c8c4",
+      "notes": "governance docs; owner-only values are TODO: owner to confirm",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-A01",
@@ -4969,6 +4970,34 @@
         "FR-25"
       ],
       "notes": "The packs are data only today; nothing in the app consumes them. | opened by the P5 phase exit as a follow-up; carried forward, not part of P5's exit bar"
+    },
+    {
+      "id": "P6-Q01",
+      "phase": "P6",
+      "wave": "P6-W1",
+      "lane": "Q",
+      "size": "S",
+      "title": "Dependency ratchet: drop the MCP tool packages and pin undici",
+      "depends_on": [],
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/security/dependency-baseline.json"
+      ],
+      "acceptance": [
+        "node scripts/prd/gate.mjs task passes G8 with no new advisories"
+      ],
+      "test": "dependency scan",
+      "reqs": [
+        "G7"
+      ],
+      "findings": [],
+      "spec": "",
+      "deps_install": true,
+      "status": "done",
+      "commit": "89be58b",
+      "notes": "Opened mid-wave: four advisories published after the baseline blocked every gate. | gate PASS incl. G8 (77 known, 25 stale dropped); MCP dev tooling removed, undici pinned to 7.x with three advisories recorded as accepted risk",
+      "completed_at": "2026-10-28"
     }
   ]
 }
