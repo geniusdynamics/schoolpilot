@@ -40,10 +40,10 @@ export const portalModule: ModuleDefinition = {
       showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:portal.results',
-      path: '/portal/results',
+      name: 'navigation:portal.reports',
+      path: '/portal/reports',
       icon: ChartBarIcon,
-      page: 'PortalResultsPage',
+      page: 'PortalReportsPage',
       showInModes: ['standard', 'fullwidth'],
     },
     {
@@ -72,9 +72,10 @@ export const portalModule: ModuleDefinition = {
     'student-dashboard',
     'parent-dashboard',
     'view-attendance',
-    'view-results',
+    'view-reports',
     'view-fees',
     'view-announcements',
+    'manage-consent',
   ],
   dependencies: [
     {

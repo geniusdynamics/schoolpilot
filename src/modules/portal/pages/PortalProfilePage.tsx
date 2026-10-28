@@ -1,342 +1,225 @@
-// ABOUTME: Portal profile page showing user profile, contact info, and academic details
-// ABOUTME: Displays student-specific info (class, stream) or parent-specific info (linked children)
+// ABOUTME: The portal profile: who is signed in, the learner's identifying details, and — for a
+// ABOUTME: guardian — the contact and reporting consent the schema records, which can be changed.
+
+import { withPortalRepository } from '../data/withPortalRepository';
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Card from '@/components/ui/Card';
+
 import Button from '@/components/ui/Button';
-import {
-  UserCircleIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  GlobeAltIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  CogIcon,
-} from '@/components/ui/icons';
+import Card from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import { PREFERRED_CHANNELS } from '@/domain/schema';
+import { useToast } from '@/hooks/useToast';
 
-type UserRole = 'student' | 'parent' | 'guardian';
+import { PortalShell } from '../components/PortalShell';
+import { usePortalConsent } from '../data/usePortalSession';
+import type { PortalConsent } from '../data/portalConsent';
 
-interface StudentInfo {
-  admissionNo: string;
-  fullName: string;
-  className: string;
-  streamName: string;
-  enrollmentDate: string;
-  academicYear: string;
+interface ConsentDraft {
+  readonly receivesReports: boolean;
+  readonly receivesSms: boolean;
+  readonly preferredChannel: string;
+  readonly preferredLanguage: string;
 }
 
-interface ChildInfo {
-  id: string;
-  fullName: string;
-  admissionNo: string;
-  className: string;
-  streamName: string;
-}
+const draftOf = (consent: PortalConsent): ConsentDraft => ({
+  receivesReports: consent.receivesReports,
+  receivesSms: consent.receivesSms,
+  preferredChannel: consent.preferredChannel,
+  preferredLanguage: consent.preferredLanguage ?? '',
+});
 
-interface UserProfile {
-  role: UserRole;
-  displayName: string;
-  email: string;
-  phone: string;
-  address: string;
-  photoPath?: string | null;
-  student?: StudentInfo | null;
-  children?: ChildInfo[];
-}
+const ConsentPanel: React.FC<{
+  readonly consent: PortalConsent;
+  readonly onSave: (consent: PortalConsent, draft: ConsentDraft) => Promise<void>;
+}> = ({ consent, onSave }) => {
+  const { t } = useTranslation('portal');
+  const [draft, setDraft] = useState<ConsentDraft>(() => draftOf(consent));
+  const [busy, setBusy] = useState(false);
 
-// Mock profile data
-const mockProfile: UserProfile = {
-  role: 'student',
-  displayName: 'John Doe',
-  email: 'john.doe@school.edu',
-  phone: '+254 700 123 456',
-  address: '123 School Lane, Nairobi, Kenya',
-  photoPath: null,
-  student: {
-    admissionNo: 'ADM-2026-001',
-    fullName: 'John Doe',
-    className: 'Form 1',
-    streamName: 'A',
-    enrollmentDate: '2026-01-06',
-    academicYear: '2026',
-  },
-  children: [],
-};
+  const save = async () => {
+    setBusy(true);
+    try {
+      await onSave(consent, draft);
+    } finally {
+      setBusy(false);
+    }
+  };
 
-const mockParentProfile: UserProfile = {
-  role: 'parent',
-  displayName: 'Jane Doe',
-  email: 'jane.doe@email.com',
-  phone: '+254 700 789 012',
-  address: '123 School Lane, Nairobi, Kenya',
-  photoPath: null,
-  student: null,
-  children: [
-    {
-      id: 'STU001',
-      fullName: 'John Doe',
-      admissionNo: 'ADM-2026-001',
-      className: 'Form 1',
-      streamName: 'A',
-    },
-    {
-      id: 'STU002',
-      fullName: 'Sarah Doe',
-      admissionNo: 'ADM-2024-015',
-      className: 'Form 3',
-      streamName: 'B',
-    },
-  ],
-};
+  const fieldId = `consent-${consent.linkId}`;
 
-const roleLabels: Record<UserRole, string> = {
-  student: 'Student',
-  parent: 'Parent/Guardian',
-  guardian: 'Guardian',
+  return (
+    <fieldset className="space-y-3 border-t border-surface-border pt-3 first:border-0 first:pt-0">
+      <legend className="text-sm font-medium text-surface-foreground">{consent.learnerName}</legend>
+
+      <label className="flex min-h-11 items-center gap-3 text-sm text-surface-foreground">
+        <input
+          type="checkbox"
+          className="h-5 w-5"
+          checked={draft.receivesReports}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, receivesReports: event.target.checked }))
+          }
+        />
+        {t('profile.receivesReports', 'Send me this child’s term reports')}
+      </label>
+
+      <label className="flex min-h-11 items-center gap-3 text-sm text-surface-foreground">
+        <input
+          type="checkbox"
+          className="h-5 w-5"
+          checked={draft.receivesSms}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, receivesSms: event.target.checked }))
+          }
+        />
+        {t('profile.receivesSms', 'Send me SMS about this child')}
+      </label>
+
+      <div>
+        <label htmlFor={fieldId} className="mb-1 block text-sm font-medium text-surface-foreground">
+          {t('profile.preferredChannel', 'Preferred contact channel')}
+        </label>
+        <select
+          id={fieldId}
+          value={draft.preferredChannel}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, preferredChannel: event.target.value }))
+          }
+          className="min-h-11 w-full rounded-md border border-surface-border bg-surface-card px-3 py-2 text-sm text-surface-foreground"
+        >
+          {PREFERRED_CHANNELS.map((channel) => (
+            <option key={channel} value={channel}>
+              {channel}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <Input
+        label={t('profile.preferredLanguage', 'Preferred language')}
+        value={draft.preferredLanguage}
+        onChange={(event) =>
+          setDraft((current) => ({ ...current, preferredLanguage: event.target.value }))
+        }
+        placeholder="en"
+      />
+
+      <Button size="sm" onClick={() => void save()} loading={busy} disabled={busy}>
+        {t('common.save', 'Save')}
+      </Button>
+    </fieldset>
+  );
 };
 
 export const PortalProfileContent: React.FC = () => {
   const { t } = useTranslation('portal');
-  const [profile, setProfile] = useState<UserProfile>(mockProfile);
-  const [isEditing, setIsEditing] = useState(false);
+  const toast = useToast();
+  const { session, consents, loading, error, save } = usePortalConsent();
+  const learner = session.selectedLearner;
 
-  // Toggle between student and parent profiles for demonstration
-  const switchRole = (role: UserRole) => {
-    if (role === 'parent') {
-      setProfile(mockParentProfile);
-    } else {
-      setProfile(mockProfile);
+  const saveConsentFor = async (consent: PortalConsent, draft: ConsentDraft) => {
+    try {
+      await save({
+        consent,
+        receivesReports: draft.receivesReports,
+        receivesSms: draft.receivesSms,
+        preferredChannel: draft.preferredChannel,
+        preferredLanguage: draft.preferredLanguage,
+      });
+      toast.showSuccess(
+        t('profile.consentSaved', 'Your consent preferences were saved.')
+      );
+    } catch (cause) {
+      toast.showError(
+        cause instanceof Error ? cause.message : t('profile.consentFailed', 'The change was not saved.')
+      );
     }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // In a real app, this would save to the backend
-  };
-
-  const avatarInitials = profile.displayName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
   return (
-    <div className="space-y-3">
-      {/* Role Switcher (for demonstration) */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-surface-muted-fg">View as:</span>
-        <div className="flex items-center gap-1 bg-surface-accent rounded-lg p-1">
-          {(['student', 'parent'] as UserRole[]).map((role) => (
-            <button
-              key={role}
-              onClick={() => switchRole(role)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
-                profile.role === role
-                  ? 'bg-surface-card text-surface-foreground shadow-sm'
-                  : 'text-surface-muted-fg hover:text-surface-foreground'
-              }`}
-            >
-              {role}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Profile Header Card */}
-      <Card className="border-slate-200 bg-surface-card shadow-sm">
-        <div className="flex flex-col sm:flex-row items-center gap-6 px-6 py-6">
-          {/* Avatar */}
-          {profile.photoPath ? (
-            <img
-              src={profile.photoPath}
-              alt={profile.displayName}
-              className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-semibold shadow-md">
-              {avatarInitials}
-            </div>
-          )}
-
-          {/* Profile Info */}
-          <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-2xl font-semibold text-surface-foreground">{profile.displayName}</h1>
-            <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
-              <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-50 text-indigo-700">
-                {roleLabels[profile.role]}
-              </span>
-              {profile.student && (
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-50 text-emerald-700">
-                  {profile.student.className} {profile.student.streamName}
-                </span>
-              )}
-            </div>
-            {profile.student && (
-              <p className="text-sm text-surface-muted-fg mt-1">
-                Admission: {profile.student.admissionNo} &middot; Since {new Date(profile.student.enrollmentDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-              </p>
-            )}
-          </div>
-
-          {/* Action Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          >
-            {isEditing ? t('profile.saveProfile') : t('profile.editProfile')}
-          </Button>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Personal Information */}
-        <Card title={t('profile.personalInfo')} className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <UserCircleIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-              <div>
-                <p className="text-xs text-surface-muted-fg">Full Name</p>
-                <p className="text-sm font-medium text-surface-foreground">{profile.displayName}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <EnvelopeIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-              <div>
-                <p className="text-xs text-surface-muted-fg">Email</p>
-                <p className="text-sm font-medium text-surface-foreground">{profile.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <PhoneIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-              <div>
-                <p className="text-xs text-surface-muted-fg">Phone</p>
-                <p className="text-sm font-medium text-surface-foreground">{profile.phone}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <GlobeAltIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs text-surface-muted-fg">Address</p>
-                <p className="text-sm font-medium text-surface-foreground">{profile.address}</p>
-              </div>
-            </div>
-          </div>
+    <PortalShell session={session} title={t('profile.title', 'My profile')}>
+      {error ? (
+        <Card className="border-rose-200 bg-rose-50">
+          <p role="alert" className="text-sm text-rose-700">
+            {error}
+          </p>
         </Card>
+      ) : null}
 
-        {/* Academic Information (for students) */}
-        {profile.student && (
-          <Card title={t('profile.academicInfo')} className="border-slate-200 bg-surface-card shadow-sm">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-surface-muted-fg">Admission Number</p>
-                  <p className="text-sm font-mono font-medium text-surface-foreground">{profile.student.admissionNo}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-surface-muted-fg">Class & Stream</p>
-                  <p className="text-sm font-medium text-surface-foreground">{profile.student.className} - {profile.student.streamName}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-surface-muted-fg">Enrollment Date</p>
-                  <p className="text-sm font-medium text-surface-foreground">
-                    {new Date(profile.student.enrollmentDate).toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <AcademicCapIcon className="w-5 h-5 text-surface-muted-fg flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-surface-muted-fg">Academic Year</p>
-                  <p className="text-sm font-medium text-surface-foreground">{profile.student.academicYear}</p>
-                </div>
-              </div>
+      {learner ? (
+        <Card title={t('profile.academicInfo', 'Learner')} className="border-slate-200 bg-surface-card">
+          <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-surface-muted-fg">{t('profile.name', 'Name')}</dt>
+              <dd className="font-medium text-surface-foreground">{learner.name}</dd>
             </div>
-          </Card>
-        )}
+            <div>
+              <dt className="text-surface-muted-fg">{t('profile.admission', 'Admission number')}</dt>
+              <dd className="font-medium text-surface-foreground">{learner.admissionNumber}</dd>
+            </div>
+            <div>
+              <dt className="text-surface-muted-fg">{t('profile.class', 'Class')}</dt>
+              <dd className="font-medium text-surface-foreground">{learner.className ?? '—'}</dd>
+            </div>
+          </dl>
+        </Card>
+      ) : null}
 
-        {/* Linked Children (for parents/guardians) */}
-        {profile.role !== 'student' && profile.children && profile.children.length > 0 && (
-          <Card
-            title={`Linked Children (${profile.children.length})`}
-            className="border-slate-200 bg-surface-card shadow-sm lg:col-span-2"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {profile.children.map((child) => (
-                <div
-                  key={child.id}
-                  className="flex items-center gap-4 rounded-lg border border-surface-border p-4 hover:bg-surface-muted transition-colors"
-                >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-                    {child.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-surface-foreground truncate">{child.fullName}</p>
-                    <p className="text-xs text-surface-muted-fg">{child.admissionNo}</p>
-                    <p className="text-xs text-emerald-600 font-medium">{child.className} - {child.streamName}</p>
-                  </div>
-                  <UsersIcon className="w-5 h-5 text-gray-300 flex-shrink-0" />
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-      </div>
+      {session.role === 'guardian' ? (
+        <Card
+          title={t('profile.consent', 'Consent and contact preferences')}
+          className="border-slate-200 bg-surface-card"
+          info={t(
+            'profile.consentInfo',
+            'These are the consent choices the school records for each child: whether reports and SMS are sent, and the channel and language to use.'
+          )}
+        >
+          {loading && consents.length === 0 ? (
+            <p className="text-sm text-surface-muted-fg">{t('common.loading', 'Loading…')}</p>
+          ) : null}
 
-      {/* Settings Placeholder */}
-      <Card title="Settings & Preferences" className="border-slate-200 bg-surface-card shadow-sm">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <CogIcon className="w-5 h-5 text-surface-muted-fg" />
-              <div>
-                <p className="text-sm font-medium text-surface-foreground">Notification Preferences</p>
-                <p className="text-xs text-surface-muted-fg">Configure email and SMS notifications</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">Configure</Button>
+          {consents.length === 0 && !loading ? (
+            <p className="text-sm text-surface-muted-fg">
+              {t('profile.noConsent', 'The school has not recorded contact preferences for your children yet.')}
+            </p>
+          ) : null}
+
+          <div className="space-y-4">
+            {consents.map((consent) => (
+              <ConsentPanel key={consent.linkId} consent={consent} onSave={saveConsentFor} />
+            ))}
           </div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <CogIcon className="w-5 h-5 text-surface-muted-fg" />
-              <div>
-                <p className="text-sm font-medium text-surface-foreground">Language</p>
-                <p className="text-xs text-surface-muted-fg">Current: English</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">Change</Button>
-          </div>
-          <div className="flex items-center justify-between py-3">
-            <div className="flex items-center gap-3">
-              <CogIcon className="w-5 h-5 text-surface-muted-fg" />
-              <div>
-                <p className="text-sm font-medium text-surface-foreground">Change Password</p>
-                <p className="text-xs text-surface-muted-fg">Update your account password</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">Update</Button>
-          </div>
-        </div>
+
+          <p className="mt-4 text-xs text-surface-muted-fg">
+            {t(
+              'profile.consentScope',
+              'The school’s records hold these contact and reporting consents. Marketing, photography and data-sharing consents are not recorded in this system yet, so they cannot be changed here.'
+            )}
+          </p>
+        </Card>
+      ) : null}
+
+      <Card title={t('profile.account', 'Account')} className="border-slate-200 bg-surface-card">
+        <p className="text-sm text-surface-foreground">
+          {session.role === 'guardian'
+            ? t('profile.signedInGuardian', 'Signed in as a guardian: {{name}}', {
+                name: session.displayName,
+              })
+            : t('profile.signedInLearner', 'Signed in as a learner.')}
+        </p>
+        <p className="mt-2 text-xs text-surface-muted-fg">
+          {t(
+            'profile.accountHelp',
+            'Ask the school office to change the details on this account or to link another child.'
+          )}
+        </p>
       </Card>
-    </div>
+    </PortalShell>
   );
 };
 
-const PortalProfilePage: React.FC = () => {
-  return <PortalProfileContent />;
-};
+const PortalProfilePage: React.FC = withPortalRepository(() => <PortalProfileContent />);
 
 export default PortalProfilePage;
