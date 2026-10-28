@@ -522,9 +522,18 @@ This project follows modular architecture principles. Please refer to the docume
 5. **Responsive Design**: Ensure mobile compatibility
 6. **Documentation**: Update relevant documentation files
 
-## 📄 License
+## 📄 Licence
 
-This project is proprietary software. All rights reserved.
+The application code is licensed under the [Apache License, Version 2.0](LICENSE). See
+[`NOTICE`](NOTICE) for the attribution that must be retained in redistributions.
+
+The curriculum, country and payroll packs under [`packs/`](packs) are data licensed under
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/);
+see [`packs/LICENSE`](packs/LICENSE). Each pack's `README.md` cites the official sources its
+data came from, and those citations must stay with the data and with any adaptation.
+
+The decision and its rationale are recorded in
+[`docs/prd/workflow-log/decisions/DR-03.md`](docs/prd/workflow-log/decisions/DR-03.md).
 
 ## 🆘 Support
 
