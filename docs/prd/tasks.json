@@ -4670,10 +4670,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P6-B01",
-      "completed_at": null
+      "status": "done",
+      "commit": "e0fa134",
+      "notes": "worker on prd/P6-B01 | gate PASS first run; 87 tests; KNEC index-number, subject and entry-code rules verified from the 2024 KCSE user guide PDF; every file layout is draft (no KEMIS/KNEC layout reachable) and listed",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-B02",
@@ -4696,9 +4696,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P6-B02",
       "completed_at": null
     },
     {
@@ -4723,9 +4723,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P6-B03",
       "completed_at": null
     },
     {
