@@ -33,7 +33,7 @@ import {
 } from '../data/canonicalFinance';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { recordPayment, refusalMessage, reversePayment } from '../services/canonicalFinanceService';
-import { useCashierRuntimePort, type CashierPaymentsPort } from './cashier/runtime';
+import type { CashierPaymentsPort } from './cashier/runtime';
 import type { Id } from '@/domain/ids';
 
 const CHANNELS = ['cash', 'bank_deposit', 'cheque', 'mobile_money', 'card', 'in_kind'] as const;
@@ -56,8 +56,6 @@ export const StudentPaymentsPageContent: React.FC<StudentPaymentsPageContentProp
 }) => {
   const finance = useCanonicalFinance();
   const repository = useFinanceRepository();
-  const runtimePort = useCashierRuntimePort();
-  const port = paymentsPort !== undefined ? paymentsPort : runtimePort;
   const confirm = useConfirm();
   const { showSuccess, showError } = useToast();
 
@@ -136,6 +134,13 @@ export const StudentPaymentsPageContent: React.FC<StudentPaymentsPageContentProp
           typeof (amount as Money).amount_minor !== 'number'
         ) {
           throw new Error('Enter the amount that was paid.');
+        }
+        let port = paymentsPort;
+        if (port === undefined) {
+          // Open the payments core only when a payment is actually taken: it brings the ledger and
+          // sequence schemas with it, and the list does not need them.
+          const { openCashierRuntime } = await import('./cashier/runtime');
+          port = await openCashierRuntime(repository);
         }
         if (!port) {
           throw new Error('The payments service is not ready yet.');
