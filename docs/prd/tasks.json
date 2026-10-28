@@ -4640,10 +4640,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "66f18ad",
+      "notes": "verified (approved after the fix commit d141f8b corrected two documentation findings); SDK is real code, host wiring not done - recorded in the guide",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-B01",
@@ -4670,9 +4670,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P6-B01",
       "completed_at": null
     },
     {
@@ -4752,9 +4752,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P6-C01",
       "completed_at": null
     },
     {
@@ -4776,9 +4776,9 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
+      "status": "in_progress",
       "commit": null,
-      "notes": "",
+      "notes": "worker on prd/P6-D01",
       "completed_at": null
     },
     {
