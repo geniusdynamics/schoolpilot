@@ -514,6 +514,12 @@ modules/[module]/data/types.ts # Module-specific types
 
 This project follows modular architecture principles. Please refer to the documentation in the `docs/` directory for detailed development guidelines.
 
+By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md); report a
+vulnerability privately per [SECURITY.md](SECURITY.md). Setup, the test-first
+rule, the pull-request checklist and how to propose a pack correction are in
+[CONTRIBUTING.md](CONTRIBUTING.md). Changes to the domain model, a pack schema or
+the plug-in SDK need an RFC first: see [docs/rfcs](docs/rfcs/README.md).
+
 ### Development Guidelines
 1. **Module-First**: Add new features within appropriate modules
 2. **Type Safety**: Maintain comprehensive TypeScript coverage
