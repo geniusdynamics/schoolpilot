@@ -4696,10 +4696,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P6-B02",
-      "completed_at": null
+      "status": "done",
+      "commit": "027ef1b",
+      "notes": "worker on prd/P6-B02 | gate PASS; 78 tests; one plug-in with a provider setting; no message sent; Twilio/WhatsApp signatures verified against RFC vectors and Node HMAC; AT/SMTP/WhatsApp draft fields listed",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-B03",
