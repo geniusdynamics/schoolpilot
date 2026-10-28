@@ -1,0 +1,40 @@
+{
+  "id": "ke.education.kemis-register",
+  "name": "KEMIS Learner Register",
+  "version": "0.1.0",
+  "sdkVersion": "^1.0.0",
+  "type": "integration",
+  "category": "private",
+  "entry": "./index.ts",
+  "description": "Writes the school's learner register as a CSV file for the Kenyan national education management information system, with the UPI, the learner's details, the class, the admission number and the guardian contact.",
+  "author": "SchoolPilot",
+  "license": "Apache-2.0",
+  "permissions": ["data:read", "settings:access"],
+  "privileges": {
+    "dataRead": ["learner", "identifier", "enrolment", "class_group", "guardian", "learner_guardian"]
+  },
+  "settings": [
+    {
+      "key": "institutionCode",
+      "label": "Institution code",
+      "type": "string",
+      "required": true,
+      "validation": { "max": 30 },
+      "description": "The school code as printed on the school's KEMIS record"
+    },
+    {
+      "key": "guardianContacts",
+      "label": "Include guardian contacts",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Fill in the guardian name, relationship and phone; the columns stay in the header either way"
+    },
+    {
+      "key": "byteOrderMark",
+      "label": "Start the file with a byte-order mark",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Excel needs it to read the file as UTF-8; turn it off if the portal rejects the leading bytes"
+    }
+  ]
+}
