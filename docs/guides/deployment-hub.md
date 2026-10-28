@@ -104,9 +104,13 @@ Three mechanisms, in the order a client would use them.
    path a client uses when it is told nothing at all: browse the service type, read the SRV and the
    TXT, connect to the host name it just learned, and pin the fingerprint it was handed.
 2. **The host name.** The hub is reachable as `<name>.local` — the machine's name by default, or
-   whatever `--name` was given (`--name stmarys` gives `https://stmarys.local:8443`, which is what
-   staff actually type). Windows 10 1803+, macOS and iOS resolve `.local` natively; on Linux the
-   installer installs `libnss-mdns` when it can.
+   whatever `--name` was given (`--name stmarys` gives `https://stmarys.local:8443`, the address a
+   client uses for the hub's API). Windows 10 1803+, macOS and iOS resolve `.local` natively; on
+   Linux the installer installs `libnss-mdns` when it can. **The hub does not serve the browser
+   application:** it answers `/health`, `/.well-known/schoolpilot-hub` and `/api/**`, so opening
+   `https://stmarys.local:8443` in a browser shows the health or descriptor response, not the app.
+   Staff open the app from wherever it is served; see
+   [What a hub gives you today](deployment/lan-hub-windows.md#what-a-hub-gives-you-today).
 3. **The well-known descriptor.** `GET /.well-known/schoolpilot-hub` answers with the service type,
    protocol version, port, instance and host names, addresses and the TLS fingerprint, so a client
    that reached the hub by address can confirm what answered before it pins anything.
@@ -262,7 +266,7 @@ Windows-mounted checkout, which is slower than a local one.
 | `the hub did not answer within 120s` | read `<root>/logs/hub.log`. The common causes are below. |
 | `was compiled against a different Node.js version` | the machine's PATH held a different Node when `npm ci` ran. The installer checks for this and rebuilds once; if it still fails, install `build-essential` and `python3` (Ubuntu) or the Node.js build tools (Windows) and run the installer again. |
 | `invalid ELF header` or a Windows binary on Linux | the hub was started from a directory other than its own, so tsconfig's `@/*` paths resolved into another checkout. The launchers `cd` into `<root>/app`; start the hub with `run-hub.sh` / `run-hub.ps1` rather than by hand. |
-| Browser cannot reach `https://<name>.local:8443` | check that `.local` resolves (`ping <name>.local`; install `libnss-mdns` on Linux), that UDP 5353 and TCP 8443 are open, and that the client is on the same subnet. Fall back to `https://<address>:8443`. |
+| A client cannot reach `https://<name>.local:8443` | check that `.local` resolves (`ping <name>.local`; install `libnss-mdns` on Linux), that UDP 5353 and TCP 8443 are open, and that the client is on the same subnet. A browser at that address gets the hub's health response, not the app (see [What a hub gives you today](deployment/lan-hub-windows.md#what-a-hub-gives-you-today)); fall back to `https://<address>:8443` for the API. |
 | Browser warns about the certificate | expected: it is self-signed. Install `<root>/data/tls/hub-cert.pem` as trusted, or confirm the fingerprint against `hub-fingerprint.txt`. |
 | `port 8443 is already in use` | something else holds the port. `ss -ltnp` (Linux) or `Get-NetTCPConnection -State Listen -LocalPort 8443` (Windows), then stop it or pass `--port`. |
 | The hub will not start after a reinstall | `<root>/logs/hub.log`, then run `<root>/run-hub.sh` in the foreground to see it live. |
