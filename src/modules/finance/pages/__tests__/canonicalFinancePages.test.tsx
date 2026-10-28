@@ -28,6 +28,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
+import type { CashierPaymentsPort } from '../cashier/runtime';
 import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
 import {
   createFinanceRepositoryDouble,
@@ -340,7 +341,7 @@ function seed(): FinanceRepositoryDouble {
       {
         id: '0f0f0f0f-0f0f-7f0f-8f0f-0f0f0f0f0f0f',
         institution_id: INSTITUTION,
-        number: 'RCT-000001',
+        number: 'RCT/2027/000001',
         payment_id: PAYMENT,
         issued_at: '2026-10-01T09:00:00.000Z',
         status: 'issued',
@@ -380,6 +381,7 @@ let repository: FinanceRepositoryDouble;
 beforeEach(() => {
   toast.showSuccess.mockClear();
   toast.showError.mockClear();
+  nextReceiptNumber.mockClear();
   repository = seed();
 });
 
@@ -392,12 +394,17 @@ const renderPage = (ui: React.ReactElement) =>
     </MemoryRouter>
   );
 
+const nextReceiptNumber = vi.fn(async () => 'RCT/2027/000002');
+const paymentsPort = { nextReceiptNumber } as unknown as CashierPaymentsPort;
+const renderPaymentsPage = () =>
+  renderPage(<StudentPaymentsPageContent paymentsPort={paymentsPort} />);
+
 const dialog = async () => screen.findByRole('dialog');
 
 describe('every migrated finance page renders from the repository', () => {
   const cases: readonly [string, React.ReactElement, string | RegExp][] = [
     ['fee schedules', <FeeTemplatesContent />, 'Form 1 2027'],
-    ['student payments', <StudentPaymentsPageContent />, 'RCT-000001'],
+    ['student payments', <StudentPaymentsPageContent />, 'RCT/2027/000001'],
     ['payment allocation', <PaymentAllocationPageContent />, 'Payment allocation'],
     ['fee adjustments', <FeeAdjustmentsPageContent />, 'CNT-000001'],
     ['fines', <FeesFinesPageContent />, 'Damaged textbook'],
@@ -405,7 +412,7 @@ describe('every migrated finance page renders from the repository', () => {
     ['opening balances', <StudentOpeningBalancesPageContent />, 'INV-000003'],
     ['collection summary', <FeeCollectionSummaryPageContent />, 'Tuition'],
     ['financial summary', <StudentFinancialSummaryPageContent />, 'Jane Wanjiru'],
-    ['students paid book', <StudentsPaidBookPageContent />, 'RCT-000001'],
+    ['students paid book', <StudentsPaidBookPageContent />, 'RCT/2027/000001'],
     ['fees due', <FeesDueReportPageContent />, 'Jane Wanjiru'],
     ['votehead statement', <VoteheadStatementPageContent />, 'Votehead statement'],
     ['previous session fees', <PreviousSessionFeesPageContent />, 'INV-000004'],
@@ -422,8 +429,8 @@ describe('every migrated finance page renders from the repository', () => {
 
 describe('writes reach the repository', () => {
   it('records a payment with the exact minor units and issues a receipt', async () => {
-    renderPage(<StudentPaymentsPageContent />);
-    await screen.findByText('RCT-000001');
+    renderPaymentsPage();
+    await screen.findByText('RCT/2027/000001');
     fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
     const modal = await dialog();
 
@@ -438,6 +445,14 @@ describe('writes reach the repository', () => {
     expect(payment).toBeDefined();
     expect(payment?.learner_id).toBe(LEARNER);
     expect((repository.rows.receipt ?? []).length).toBe(2);
+    expect(nextReceiptNumber).toHaveBeenCalledWith({
+      institutionId: INSTITUTION,
+      receivedAt: expect.any(String),
+    });
+    const issued = (repository.rows.receipt ?? []).find(
+      (row) => row.number === 'RCT/2027/000002'
+    );
+    expect(issued).toBeDefined();
   });
 
   it('allocates a posted payment and marks the invoice paid', async () => {
@@ -500,8 +515,8 @@ describe('writes reach the repository', () => {
 
 describe('the posting freeze is the repository’s rule', () => {
   it('surfaces the refusal when a posted payment is edited', async () => {
-    renderPage(<StudentPaymentsPageContent />);
-    await screen.findByText('RCT-000001');
+    renderPaymentsPage();
+    await screen.findByText('RCT/2027/000001');
     fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
     const modal = await dialog();
     fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '2000.00' } });
@@ -532,8 +547,8 @@ describe('the posting freeze is the repository’s rule', () => {
 
 describe('money never drifts through a float', () => {
   it('adds a payment of 15 000.05 as the integer 1 500 005', async () => {
-    renderPage(<StudentPaymentsPageContent />);
-    await screen.findByText('RCT-000001');
+    renderPaymentsPage();
+    await screen.findByText('RCT/2027/000001');
     fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
     const modal = await dialog();
     fireEvent.click(within(modal).getByRole('combobox', { name: /Learner/ }));
@@ -726,8 +741,8 @@ describe('a charge is posted as a one-line invoice', () => {
 
 describe('a form refuses what it cannot save', () => {
   it('keeps the payment dialog open when the learner is missing', async () => {
-    renderPage(<StudentPaymentsPageContent />);
-    await screen.findByText('RCT-000001');
+    renderPaymentsPage();
+    await screen.findByText('RCT/2027/000001');
     fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
     const modal = await dialog();
 
@@ -743,8 +758,8 @@ describe('a form refuses what it cannot save', () => {
     const create = vi
       .spyOn(repository, 'create')
       .mockRejectedValueOnce(new Error('Database is read-only'));
-    renderPage(<StudentPaymentsPageContent />);
-    await screen.findByText('RCT-000001');
+    renderPaymentsPage();
+    await screen.findByText('RCT/2027/000001');
     fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
     const modal = await dialog();
 
@@ -797,8 +812,8 @@ describe('a form refuses what it cannot save', () => {
   });
 
   it('refuses a payment of zero before it writes anything', async () => {
-    renderPage(<StudentPaymentsPageContent />);
-    await screen.findByText('RCT-000001');
+    renderPaymentsPage();
+    await screen.findByText('RCT/2027/000001');
     fireEvent.click(screen.getByRole('button', { name: /Record payment/i }));
     const modal = await dialog();
 

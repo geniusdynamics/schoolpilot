@@ -33,6 +33,7 @@ import {
 } from '../data/canonicalFinance';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { recordPayment, refusalMessage, reversePayment } from '../services/canonicalFinanceService';
+import { useCashierRuntimePort, type CashierPaymentsPort } from './cashier/runtime';
 import type { Id } from '@/domain/ids';
 
 const CHANNELS = ['cash', 'bank_deposit', 'cheque', 'mobile_money', 'card', 'in_kind'] as const;
@@ -45,9 +46,18 @@ interface PaymentDraft {
   readonly row: RepositoryRow<'payment'> | null;
 }
 
-export const StudentPaymentsPageContent: React.FC = () => {
+interface StudentPaymentsPageContentProps {
+  /** A payments port supplied by a test or a host; the app opens the cashier runtime. */
+  readonly paymentsPort?: CashierPaymentsPort | null;
+}
+
+export const StudentPaymentsPageContent: React.FC<StudentPaymentsPageContentProps> = ({
+  paymentsPort,
+}) => {
   const finance = useCanonicalFinance();
   const repository = useFinanceRepository();
+  const runtimePort = useCashierRuntimePort();
+  const port = paymentsPort !== undefined ? paymentsPort : runtimePort;
   const confirm = useConfirm();
   const { showSuccess, showError } = useToast();
 
@@ -127,14 +137,29 @@ export const StudentPaymentsPageContent: React.FC = () => {
         ) {
           throw new Error('Enter the amount that was paid.');
         }
+        if (!port) {
+          throw new Error('The payments service is not ready yet.');
+        }
+        const receivedAt =
+          typeof values.received_at === 'string'
+            ? values.received_at
+            : new Date().toISOString();
+        const institutionId =
+          finance.learners.find((learner) => learner.id === learnerId)?.institution_id ??
+          (await repository.get('learner', asId<'learner'>(learnerId)))?.institution_id;
+        if (!institutionId) {
+          throw new Error('The selected learner no longer exists.');
+        }
+        const receiptNumber = await port.nextReceiptNumber({
+          institutionId,
+          receivedAt,
+        });
         const result = await recordPayment(repository, {
           learnerId,
           amount: amount as Money,
           channel: (values.channel as RepositoryRow<'payment'>['channel']) ?? 'cash',
-          receivedAt:
-            typeof values.received_at === 'string'
-              ? values.received_at
-              : new Date().toISOString(),
+          receivedAt,
+          receiptNumber,
           ...(typeof values.reference === 'string' && values.reference
             ? { reference: values.reference }
             : {}),

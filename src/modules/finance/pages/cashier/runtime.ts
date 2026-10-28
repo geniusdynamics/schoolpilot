@@ -36,6 +36,12 @@ import { useFinanceRepository, type FinanceRepository } from '../../data/canonic
 /** What the cashier screen asks of the payments core. The service composition satisfies it. */
 export interface CashierPaymentsPort {
   recordPayment(input: RecordPaymentInput): Promise<RecordedPayment>;
+  /** The next receipt number from the same sequence the cashier screen uses. */
+  nextReceiptNumber(input: {
+    readonly institutionId: string;
+    readonly receivedAt: string;
+    readonly cashierUserId?: string;
+  }): Promise<string>;
   openSession(input: OpenSessionInput): Promise<CashierSession>;
   closeSession(input: CloseSessionInput): Promise<SessionClose>;
   session(id: string): Promise<CashierSession | null>;
@@ -93,6 +99,17 @@ export function openCashierRuntime(
 
     return {
       recordPayment: (input) => payments.recordPayment(input),
+      nextReceiptNumber: async (input) => {
+        const year = /^\d{4}/.test(input.receivedAt)
+          ? Number(input.receivedAt.slice(0, 4))
+          : new Date().getFullYear();
+        const issued = await sequences.issue('receipt', {
+          institution: input.institutionId,
+          year,
+          cashier: input.cashierUserId ?? 'unassigned',
+        });
+        return issued.number;
+      },
       openSession: (input) => sessions.open(input),
       closeSession: (input) => sessions.close(input),
       session: (id) => sessions.session(id),
