@@ -28,9 +28,10 @@ class group (homeroom teacher) or on the teaching group. Nothing you can click c
    totals for the register you are editing.
 
 The other tabs on the page: **Dynamic Tracker** (attendance as it is happening), **Attendance View**
-(which currently shows a placeholder — "Attendance records will appear here" — so the per-learner
-history is not readable on screen yet) and **Reports** (attendance reports). Use **Search** on the
-register to find a learner by name or admission number in a long class.
+(read a saved register: choose the class and date, and the tab shows each learner's mark, with
+present/absent/late totals; it is read-only, so correct a mark on **Manual Entry**) and **Reports**
+(attendance reports). Use **Search** on the register to find a learner by name or admission number
+in a long class.
 
 A register is per class group per day. Taking the same day twice overwrites rather than duplicates,
 so a corrected register is safe to save again.
