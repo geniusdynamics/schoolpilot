@@ -4776,10 +4776,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P6-D01",
-      "completed_at": null
+      "status": "done",
+      "commit": "ad275bf",
+      "notes": "worker on prd/P6-D01 | gate PASS; 15/16 spec 08 section 8 deliverables written (videos outstanding, scripts only); deployment steps marked untested; found: untranslated sidebar keys (admissions/finance), backup Download only toasts, hub does not serve the browser app",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-E04",
