@@ -49,6 +49,9 @@ node scripts/prd/gate.mjs task --base <ref> --task <task-id>   # PRD task gate (
 
 New here? Read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and
 [ARCHITECTURE.md](ARCHITECTURE.md) for how the pieces fit together.
+Running a school rather than the code? Start at [docs/guides](docs/guides/README.md): role guides for
+the registrar, bursar, teachers, exams officer and head teacher, plus the administrator's guide,
+deployment guides, pack authoring, the plug-in SDK and data protection.
 ## 🎯 Overview
 
 SchoolPilot3 is an enterprise-grade SchoolPilot that handles all aspects of educational administration, from student management to financial operations. Built with modern web technologies, it features a sophisticated dual-mode architecture that supports both development (persistent SQLite database) and production (PouchDB/local database) environments.
@@ -452,6 +455,7 @@ Utility scripts are located in the `scripts/` directory:
 
 Comprehensive documentation is available in the `docs/` directory:
 
+- **User and operator guides**: [docs/guides](docs/guides/README.md) - role guides (registrar, bursar, class and subject teacher, exams officer, head teacher), administrator, deployment, pack authoring, plug-in SDK and data protection
 - **Architecture Guide**: `docs/architecture.md` - Detailed technical architecture
 - **Feature List**: `docs/feature-list.md` - Complete feature documentation
 - **Plug-in SDK**: `docs/extensions/plugins.md` - Writing a plug-in, the permission model and the compatibility promise

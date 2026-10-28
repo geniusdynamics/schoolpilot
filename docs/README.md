@@ -10,6 +10,7 @@ Welcome to the SchoolPilot3 documentation. This directory contains comprehensive
 - [Product Requirements & Delivery Plan](prd/README.md) - Phases, tasks, gates, parallel execution and workflow logs ([progress](prd/workflow-log/PROGRESS.md))
 
 ### Getting Started
+- [SchoolPilot guides](guides/README.md) - Role guides, administrator, deployment, pack authoring, plug-in SDK and data protection
 - [Developer Onboarding](guides/onboarding.md) - New developer setup and introduction
 - [Code Structure Guide](guides/code-structure-dev-guide.md) - Project organization and conventions
 - [Quick Start Guide](tabs/QUICK_START_TABBED_WORKSPACE.md) - Get started with the tabbed workspace
@@ -64,6 +65,7 @@ Welcome to the SchoolPilot3 documentation. This directory contains comprehensive
 - [State Management](architecture/STATE_MANAGEMENT_GUIDELINES.md) - State management patterns
 - [Performance Optimization](architecture/advanced-database-handler-architecture.md) - Performance tuning
 - [Self-Hosting Deployment](SELF_HOSTING_DEPLOYMENT.md) - Deployment guide
+- [Deployment guides](guides/deployment/) - Single device, LAN hub on Windows/Ubuntu/Raspberry Pi, and hosted
 
 ### API Documentation
 - [API Specification](specs/api-spec.md) - API reference
