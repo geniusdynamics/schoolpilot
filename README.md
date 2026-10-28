@@ -454,6 +454,7 @@ Comprehensive documentation is available in the `docs/` directory:
 
 - **Architecture Guide**: `docs/architecture.md` - Detailed technical architecture
 - **Feature List**: `docs/feature-list.md` - Complete feature documentation
+- **Plug-in SDK**: `docs/extensions/plugins.md` - Writing a plug-in, the permission model and the compatibility promise
 - **Development Guides**: Various `*-dev-guide.md` files
 - **Project Reports**: Recap files and workflow documentation
 
