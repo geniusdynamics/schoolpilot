@@ -4723,10 +4723,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "in_progress",
-      "commit": null,
-      "notes": "worker on prd/P6-B03",
-      "completed_at": null
+      "status": "done",
+      "commit": "80e5aba",
+      "notes": "worker on prd/P6-B03 | gate PASS; 57 tests; QuickBooks/Xero/Odoo/ERPNext formats from fetched docs (Xero CSV header, QuickBooks Class/date, Odoo ids draft); Sage omitted rather than invented; no real ledger touched",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-C01",
