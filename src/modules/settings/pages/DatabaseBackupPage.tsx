@@ -92,6 +92,23 @@ const DatabaseBackupPage: React.FC = () => {
     }
   };
 
+  const handleDownloadBackup = (record: BackupRecord) => {
+    if (!record.payload_json) {
+      toast.showWarning(`Backup ${record.filename} has no stored data to download.`);
+      return;
+    }
+    const blob = new Blob([record.payload_json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = record.filename || `schoolpilot-backup-${record.id}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    toast.showSuccess(`Downloaded ${record.filename}.`);
+  };
+
   const handleRestoreBackup = async () => {
     const record = backups.find(b => b.id === selectedBackupId);
     if (!record?.payload_json) {
@@ -131,7 +148,7 @@ const DatabaseBackupPage: React.FC = () => {
     { key: 'description', header: 'Description', width: 250, sortable: false },
     { key: 'id', header: 'Actions', width: 160, sortable: false, render: (_value, item) => (
       <div className="flex gap-1">
-        <Button size="sm" variant="ghost" leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />} onClick={() => toast.showInfo(`Downloading: ${item.filename}`)}>Download</Button>
+        <Button size="sm" variant="ghost" leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />} onClick={() => handleDownloadBackup(item)}>Download</Button>
         <Button size="sm" variant="ghost" leftIcon={<TrashIcon className="w-4 h-4" />} onClick={() => void handleDeleteBackup(item)}>Delete</Button>
       </div>
     )},
