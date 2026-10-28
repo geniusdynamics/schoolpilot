@@ -2,6 +2,8 @@
   "id": "com.schoolpilot.frappe-integration",
   "name": "Frappe Integration",
   "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "permissions": ["settings:access"],
   "type": "integration",
   "entry": "./index.ts",
   "description": "Connect to Frappe Framework using the official Frappe React SDK with real-time updates and optimized React hooks",

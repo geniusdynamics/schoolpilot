@@ -1,0 +1,40 @@
+{
+  "id": "com.example.birthday-notices",
+  "name": "Learner Birthday Notices",
+  "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "type": "widget",
+  "category": "community",
+  "entry": "./index.ts",
+  "description": "A dashboard widget that lists learners with birthdays in the next few days, kept current from the learner-admitted hook.",
+  "author": "SchoolPilot extensions example",
+  "license": "MIT",
+  "permissions": ["data:read", "ui:inject"],
+  "slots": ["dashboard-widget"],
+  "hooks": ["learner.admitted"],
+  "settings": [
+    {
+      "key": "daysAhead",
+      "label": "Days ahead",
+      "type": "number",
+      "defaultValue": 7,
+      "validation": { "min": 1, "max": 60 },
+      "description": "How many days ahead to look for birthdays"
+    },
+    {
+      "key": "includeWeekends",
+      "label": "Include weekend birthdays",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Show a birthday that falls on a Saturday or Sunday"
+    },
+    {
+      "key": "noticeTemplate",
+      "label": "Notice text",
+      "type": "string",
+      "defaultValue": "{name} turns {age} on {date}",
+      "validation": { "max": 120 },
+      "description": "Text shown for each learner; uses {name}, {age}, {date} and {days}"
+    }
+  ]
+}

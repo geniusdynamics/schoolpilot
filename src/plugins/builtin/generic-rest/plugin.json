@@ -2,6 +2,8 @@
   "id": "com.schoolpilot.generic-rest",
   "name": "Generic REST API",
   "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "permissions": ["settings:access"],
   "type": "integration",
   "entry": "./index.ts",
   "description": "Connect to any REST API with configurable endpoints, authentication, and field mappings",

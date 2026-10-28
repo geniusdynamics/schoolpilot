@@ -75,6 +75,7 @@ export interface PluginManifest {
   category?: PluginCategory;
   
   // Compatibility
+  sdkVersion?: string;           // SDK semver range the plugin supports, e.g. ^1.0.0 (see src/plugins/sdk)
   minAppVersion?: string;        // Minimum SchoolPilot version
   maxAppVersion?: string;        // Maximum compatible version
   requires?: string[];           // Plugin dependencies
