@@ -86,3 +86,18 @@ playwright-report/
 
 # Harness artifacts: browser captures and local session state from a dev run.
 .openchamber/
+
+# Assistant/IDE configuration stays on the machine that wrote it. The PRD sub-agent workflow
+# (docs/prd/EXECUTION.md) lives in .claude/workflows and the prd-builder skill in
+# .claude/skills/prd-builder: those two are project documentation and stay tracked.
+.trae/
+.agents/
+.zcodeignore
+.claude/*
+!.claude/workflows/
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/prd-builder/
+
+# Local analysis scratch space (generated while investigating, never part of the app).
+analysis/

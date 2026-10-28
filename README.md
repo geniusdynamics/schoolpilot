@@ -2,6 +2,20 @@
 
 A comprehensive education management system built with React, TypeScript, and Vite featuring modular architecture and dual-mode data layer for both development and production environments.
 
+## Project status
+
+This is work in progress, not a finished release. What a reader can rely on today:
+
+- **Works**: demo mode with generated data, hub navigation across the modules, learner and
+  staff records, fees, invoices and receipts, curriculum and grading for the shipped packs,
+  and the test suite plus the PRD quality gate.
+- **Draft**: every locale other than English is machine-produced and has not been reviewed by
+  a native speaker. The country packs for UG, NG, GH, ZA, SN, CI and CM carry draft data; the
+  payroll pack needs an accountant to confirm the statutory rates before a school uses it to
+  pay staff.
+- **Broken**: step 1 of the public application wizard does not submit. Use the staff-side
+  admissions pages to capture applications in the meantime.
+
 ## Quickstart
 
 ```bash
@@ -29,6 +43,8 @@ pnpm typecheck        # TypeScript check — see also: pnpm check:ratchet
 pnpm test:run         # full test suite once
 pnpm vitest run src/tests/DataGrid.test.tsx   # targeted tests
 pnpm build            # production build (vite + PWA)
+pnpm secret:scan      # secret scan over the tracked files
+node scripts/prd/gate.mjs task --base <ref> --task <task-id>   # PRD task gate (typecheck, related tests, lint)
 ```
 
 New here? Read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and
@@ -456,7 +472,9 @@ The build process creates an optimized production bundle with:
 ## 🌐 Internationalization
 
 The application supports multiple languages through i18next:
-- **Supported Languages**: English (default), French
+- **Locales in the repository**: English (the source of truth), Swahili, French, Kinyarwanda,
+  Portuguese and Arabic; the translations were machine-produced and have not been reviewed
+  by a native speaker yet, so expect wording to change.
 - **Namespace Organization**: Separate translation files per module
 - **Dynamic Loading**: Translations loaded based on detected language
 - **Fallback System**: Graceful fallback to English for missing translations
