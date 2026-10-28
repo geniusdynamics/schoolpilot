@@ -1,0 +1,56 @@
+Pack data licence
+=================
+
+The curriculum, country and payroll packs under `packs/` are data, and they are
+licensed under Creative Commons Attribution 4.0 International (CC-BY-4.0).
+The code that loads and serves those packs is licensed under the Apache License,
+Version 2.0 (see the `LICENSE` file at the repository root).
+
+This file summarises the licence in plain language. It is not the licence and it
+is not a substitute for the legal code: the legal code is the licence.
+
+Canonical legal code
+--------------------
+
+    https://creativecommons.org/licenses/by/4.0/legalcode.en
+
+Deed (human-readable summary)
+-----------------------------
+
+    https://creativecommons.org/licenses/by/4.0/
+
+You are free to:
+
+- **Share** — copy and redistribute the pack data in any medium or format.
+- **Adapt** — remix, transform and build upon the pack data for any purpose,
+  including commercially.
+
+Under the following terms:
+
+- **Attribution** — you must give appropriate credit, provide a link to the
+  licence, and indicate if changes were made. You may do so in any reasonable
+  manner, but not in any way that suggests the licensor endorses you or your use.
+- **No additional restrictions** — you may not apply legal terms or technological
+  measures that legally restrict others from doing anything the licence permits.
+
+No warranties are given. The licence may not give you all of the permissions
+necessary for your intended use; other rights such as publicity, privacy or moral
+rights may limit how you use the material.
+
+Attribution for these packs
+---------------------------
+
+Each pack directory has a `README.md` that cites the official sources the pack
+data was derived from (curriculum authority, gazette or regulation, examination
+body, and the like), together with the pack's verification status. Those citations
+are the attribution this licence requires: keep them with the pack data, keep them
+with any adaptation, and state what you changed. Do not remove or replace them.
+
+Suggested attribution line for a redistribution of a pack:
+
+    Based on SchoolPilot pack <pack-id> (https://github.com/geniusdynamics/schoolpilot),
+    licensed CC-BY-4.0. Changes: <what you changed>.
+
+The Apache License, Version 2.0 does not apply to the pack data, and CC-BY-4.0
+does not apply to the application code. Where a single repository contains both,
+each part keeps its own licence.
