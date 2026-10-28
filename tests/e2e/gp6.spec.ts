@@ -76,7 +76,7 @@ test.describe('GP-6 admission path', () => {
     let admissionNumber = '';
 
     await test.step('admit a learner and a guardian through the admission form', async () => {
-      await page.getByRole('button', { name: 'Admit learner' }).click();
+      await page.getByRole('main').getByRole('button', { name: 'Admit learner' }).click();
       await expect(page.getByRole('heading', { name: 'Admit learner' })).toBeVisible({
         timeout: UI_TIMEOUT,
       });

@@ -35,11 +35,9 @@ repository is not in a guide.
 
 ## Two things to know before you read them
 
-1. **Some sidebar entries have no English label yet.** A handful of navigation entries added after
-   the current translation was written render as their translation key — for example
-   `admissions.admitLearner`, `admissions.register`, `finance.cashier`, `finance.statements`. Every
-   step in these guides therefore gives the page's address as well as its name, and the address is
-   the reliable part. This is a translation gap in this build, not a mistake in the guides.
+1. **Every step gives the page's address as well as its name.** The admissions and finance sidebar
+   entries now carry English labels, but a school can rename a tab or a module, so the address
+   (`/admissions/admit`) remains the reliable part.
 2. **The role guides describe what the screens do, not what the system enforces.** The permission
    model exists and the hub applies it; the browser app's own writes do not consult it yet. Where
    that difference changes what an administrator should rely on, the

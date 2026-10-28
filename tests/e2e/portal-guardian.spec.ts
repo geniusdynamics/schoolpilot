@@ -89,7 +89,7 @@ test.describe('the guardian portal on a phone', () => {
     await test.step('admit a learner with a guardian', async () => {
       await go(page, '/admissions/register');
       await closeSidebar(page);
-      await page.getByRole('button', { name: 'Admit learner' }).click();
+      await page.getByRole('main').getByRole('button', { name: 'Admit learner' }).click();
       await expect(page.getByRole('heading', { name: 'Admit learner' })).toBeVisible();
 
       await page.locator('[name=given_name]').fill(LEARNER.firstName);

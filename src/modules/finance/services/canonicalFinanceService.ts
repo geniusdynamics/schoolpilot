@@ -264,8 +264,8 @@ export interface RecordPaymentInput {
   readonly receivedAt: string;
   readonly reference?: string;
   readonly invoiceId?: string;
-  /** The receipt number when the cashier sequence has already issued one. */
-  readonly receiptNumber?: string;
+  /** The number the cashier sequence issued for this receipt. */
+  readonly receiptNumber: string;
 }
 
 /** Records a posted payment and issues its receipt. */
@@ -277,12 +277,7 @@ export async function recordPayment(
   if (!learner) throw new Error('The selected learner no longer exists.');
   if (input.amount.amount_minor <= 0) throw new Error('A payment must be greater than zero.');
 
-  const receiptNumber =
-    input.receiptNumber ??
-    nextDocumentNumber(
-      'RCT',
-      (await listAll(repository, 'receipt')).map((receipt) => receipt.number)
-    );
+  const receiptNumber = input.receiptNumber;
 
   const write = async () => {
     const payment = await repository.create('payment', {

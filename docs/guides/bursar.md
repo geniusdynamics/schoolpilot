@@ -118,18 +118,15 @@ amount, a reference and — the part that matters — the invoice to allocate it
 invoice is what makes the invoice show as collected; an unallocated payment sits as learner credit
 until you use the **Payment Allocation** tab to place it.
 
-### 3.3 A warning about receipt numbers
+### 3.3 Receipt numbers
 
-Receipts issued at the cashier are numbered from the sequences module, in the year-scoped form
-`RCT/2027/000001`, and are never reused. Receipts issued from the **Student Payments** dialog are
-numbered by counting the existing receipt numbers (`RCT-000004`). That difference is a known defect
-in this build, not a policy: a receipt number from the dialog is not auditable in the way the
-cashier's is. If the school needs one receipt series, receipt at the counter.
+Every receipt — from the cashier or from the **Student Payments** dialog — is numbered from the same
+year-scoped sequence, in the form `RCT/2027/000001`, and a number is never reused. There is one
+auditable series whether you take the payment at the counter or record it here.
 
 ## 4. Statements
 
-**Finance → Statements** (`/finance/statements`; the sidebar entry currently shows as
-`finance.statements`).
+**Finance → Statements** (`/finance/statements`).
 
 1. **Statement for** — *A learner*, *A household* or *A sponsor*.
 2. Pick the learner/household/sponsor, and the **From** and **To** dates.

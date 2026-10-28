@@ -217,10 +217,11 @@ describe('recordPayment', () => {
       channel: 'mobile_money',
       receivedAt: '2027-02-02T09:00:00.000Z',
       reference: 'MPESA-1',
+      receiptNumber: 'RCT/2027/000001',
     });
     expect(payment.amount).toEqual(money(1_500_005));
     expect(payment.status).toBe('posted');
-    expect(receipt.number).toMatch(/^RCT-\d{6}$/);
+    expect(receipt.number).toBe('RCT/2027/000001');
     expect(receipt.payment_id).toBe(payment.id);
   });
 });
@@ -233,6 +234,7 @@ describe('allocatePayment', () => {
       amount: money(200_000),
       channel: 'cash',
       receivedAt: '2027-02-02T09:00:00.000Z',
+      receiptNumber: 'RCT/2027/000002',
     });
     const invoice = await repository.create('invoice', {
       institution_id: INSTITUTION,
@@ -259,6 +261,7 @@ describe('allocatePayment', () => {
       amount: money(100_000),
       channel: 'cash',
       receivedAt: '2027-02-02T09:00:00.000Z',
+      receiptNumber: 'RCT/2027/000003',
     });
     const invoice = await repository.create('invoice', {
       institution_id: INSTITUTION,
