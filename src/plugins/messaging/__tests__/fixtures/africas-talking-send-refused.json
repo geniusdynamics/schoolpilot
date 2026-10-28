@@ -1,0 +1,14 @@
+{
+  "SMSMessageData": {
+    "Message": "Sent to 0/1 Total Cost: 0",
+    "Recipients": [
+      {
+        "statusCode": 403,
+        "number": "+254711XXXYYY",
+        "status": "InvalidPhoneNumber",
+        "cost": "0",
+        "messageId": "None"
+      }
+    ]
+  }
+}

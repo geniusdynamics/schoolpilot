@@ -1,0 +1,133 @@
+{
+  "id": "builtin-messaging",
+  "name": "Messaging",
+  "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "type": "integration",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Sends SMS, WhatsApp and email through Africa’s Talking, Twilio, the WhatsApp Business Cloud API or SMTP, behind an outbox with retries, idempotency keys and a dead-letter view.",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "provides": [
+    "messaging.outbox",
+    "messaging.templates",
+    "messaging.provider.africas-talking",
+    "messaging.provider.twilio",
+    "messaging.provider.whatsapp",
+    "messaging.provider.smtp"
+  ],
+  "permissions": ["settings:access", "network:access"],
+  "settings": [
+    {
+      "key": "provider",
+      "label": "Provider",
+      "type": "select",
+      "defaultValue": "africas-talking",
+      "description": "Which provider the school sends through. The credentials for the selected provider come from the deployment configuration.",
+      "options": [
+        { "label": "Africa’s Talking (SMS)", "value": "africas-talking" },
+        { "label": "Twilio (SMS)", "value": "twilio" },
+        { "label": "WhatsApp Business (Cloud API)", "value": "whatsapp" },
+        { "label": "SMTP (email)", "value": "smtp" }
+      ]
+    },
+    {
+      "key": "senderId",
+      "label": "Sender id",
+      "type": "string",
+      "description": "The registered short code or alphanumeric sender id for SMS. A message may carry its own sender instead."
+    },
+    {
+      "key": "atUsername",
+      "label": "Africa’s Talking username",
+      "type": "string",
+      "description": "The Africa’s Talking application username."
+    },
+    {
+      "key": "atBaseUrl",
+      "label": "Africa’s Talking base URL",
+      "type": "string",
+      "defaultValue": "https://api.africastalking.com",
+      "description": "The Africa’s Talking API base URL."
+    },
+    {
+      "key": "atDeliveryReportIpAllowlist",
+      "label": "Delivery-report source allowlist",
+      "type": "string",
+      "description": "Comma-separated source addresses a delivery report may come from. Africa’s Talking signs no delivery report; with no allowlist configured, every report is refused."
+    },
+    {
+      "key": "twilioAccountSid",
+      "label": "Twilio account SID",
+      "type": "string",
+      "description": "The Twilio account SID, which identifies the account the message is sent from."
+    },
+    {
+      "key": "twilioFrom",
+      "label": "Twilio sender",
+      "type": "string",
+      "description": "The Twilio number or channel address the school sends from."
+    },
+    {
+      "key": "twilioMessagingServiceSid",
+      "label": "Twilio Messaging Service",
+      "type": "string",
+      "description": "A Twilio Messaging Service to send through instead of a single number. Set this or the sender, not both."
+    },
+    {
+      "key": "twilioStatusCallbackUrl",
+      "label": "Twilio status callback URL",
+      "type": "string",
+      "description": "The public URL Twilio posts status callbacks to. The X-Twilio-Signature covers this URL, so it must match exactly."
+    },
+    {
+      "key": "whatsappPhoneNumberId",
+      "label": "WhatsApp phone number id",
+      "type": "string",
+      "description": "The WhatsApp Business phone number id the messages are sent from."
+    },
+    {
+      "key": "whatsappApiVersion",
+      "label": "WhatsApp Graph API version",
+      "type": "string",
+      "defaultValue": "v23.0",
+      "description": "The Graph API version the Cloud API calls use."
+    },
+    {
+      "key": "whatsappDefaultLanguage",
+      "label": "WhatsApp default language",
+      "type": "string",
+      "defaultValue": "en",
+      "description": "The language code a WhatsApp template is sent in when the message names none."
+    },
+    {
+      "key": "smtpFromAddress",
+      "label": "Email sender address",
+      "type": "string",
+      "description": "The envelope sender and From address for email."
+    },
+    {
+      "key": "smtpFromName",
+      "label": "Email sender name",
+      "type": "string",
+      "description": "The display name on the From header."
+    },
+    {
+      "key": "smtpMessageIdDomain",
+      "label": "Message-ID domain",
+      "type": "string",
+      "description": "The domain the generated Message-ID is anchored to. Defaults to the sender address’s domain."
+    }
+  ],
+  "privileges": {
+    "dataRead": [],
+    "dataWrite": [],
+    "uiInject": false,
+    "menuModify": false,
+    "settingsAccess": true,
+    "networkAccess": true,
+    "fileSystemAccess": false,
+    "executeCode": false
+  }
+}
