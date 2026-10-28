@@ -1,0 +1,50 @@
+{
+  "resource": "Journal Entry",
+  "documents": [
+    {
+      "doctype": "Journal Entry",
+      "voucher_type": "Journal Entry",
+      "company": "Nova Schools",
+      "cheque_no": "INV/2027/T1/000123",
+      "posting_date": "2027-02-10",
+      "user_remark": "Term 1 fees for Amina Otieno",
+      "accounts": [
+        {
+          "account": "Fee receivables - NS",
+          "debit_in_account_currency": 1250,
+          "credit_in_account_currency": 0,
+          "user_remark": "Term 1 fees for Amina Otieno"
+        },
+        {
+          "account": "Fee revenue - NS",
+          "debit_in_account_currency": 0,
+          "credit_in_account_currency": 1250,
+          "user_remark": "Term 1 tuition"
+        }
+      ]
+    },
+    {
+      "doctype": "Journal Entry",
+      "voucher_type": "Journal Entry",
+      "company": "Nova Schools",
+      "cheque_no": "PAY/2027/T1/000045",
+      "posting_date": "2027-02-11",
+      "user_remark": "Bank deposit for term 1",
+      "accounts": [
+        {
+          "account": "Bank - NS",
+          "debit_in_account_currency": 500.55,
+          "credit_in_account_currency": 0,
+          "user_remark": "Bank deposit for term 1",
+          "cost_center": "Main campus"
+        },
+        {
+          "account": "Fee receivables - NS",
+          "debit_in_account_currency": 0,
+          "credit_in_account_currency": 500.55,
+          "user_remark": "Bank deposit for term 1"
+        }
+      ]
+    }
+  ]
+}
