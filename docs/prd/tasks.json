@@ -4640,10 +4640,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "66f18ad",
+      "notes": "verified (approved after the fix commit d141f8b corrected two documentation findings); SDK is real code, host wiring not done - recorded in the guide",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-B01",
@@ -4670,10 +4670,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "e0fa134",
+      "notes": "worker on prd/P6-B01 | gate PASS first run; 87 tests; KNEC index-number, subject and entry-code rules verified from the 2024 KCSE user guide PDF; every file layout is draft (no KEMIS/KNEC layout reachable) and listed",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-B02",
@@ -4696,10 +4696,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "027ef1b",
+      "notes": "worker on prd/P6-B02 | gate PASS; 78 tests; one plug-in with a provider setting; no message sent; Twilio/WhatsApp signatures verified against RFC vectors and Node HMAC; AT/SMTP/WhatsApp draft fields listed",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-B03",
@@ -4723,10 +4723,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "80e5aba",
+      "notes": "worker on prd/P6-B03 | gate PASS; 57 tests; QuickBooks/Xero/Odoo/ERPNext formats from fetched docs (Xero CSV header, QuickBooks Class/date, Odoo ids draft); Sage omitted rather than invented; no real ledger touched",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-C01",
@@ -4752,10 +4752,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "594919c",
+      "notes": "worker on prd/P6-C01 | gate PASS; 238 tests incl. 59 portal; guardian E2E at 390px passed (not in CI golden paths, single clean run); portal chunk 48.6 KB raw/12.7 KB gzip; authorisation in the data layer; consent limited to schema fields; no pay provider configured; guardian-only login cannot reach module routes in this build; Lighthouse/3G/device/PWA offline not measured",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-D01",
@@ -4776,10 +4776,10 @@
       "findings": [],
       "spec": "",
       "deps_install": false,
-      "status": "todo",
-      "commit": null,
-      "notes": "",
-      "completed_at": null
+      "status": "done",
+      "commit": "ad275bf",
+      "notes": "worker on prd/P6-D01 | gate PASS; 15/16 spec 08 section 8 deliverables written (videos outstanding, scripts only); deployment steps marked untested; found: untranslated sidebar keys (admissions/finance), backup Download only toasts, hub does not serve the browser app",
+      "completed_at": "2026-10-28"
     },
     {
       "id": "P6-E04",

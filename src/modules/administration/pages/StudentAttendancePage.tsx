@@ -15,6 +15,7 @@ import {
 import { ManualAttendanceContent } from './ManualAttendancePage';
 import { DynamicAttendanceContent } from './DynamicAttendancePage';
 import { AttendanceReportsContent } from './AttendanceReportsPage';
+import { StudentAttendanceView } from './StudentAttendanceView';
 
 interface HubTab {
   id: string;
@@ -45,7 +46,7 @@ const StudentAttendancePage: React.FC = () => {
       id: 'student-view',
       label: t('attendance.studentView', 'Attendance View'),
       icon: <UserGroupIcon className="w-4 h-4" />,
-      component: <div className="p-4"><UserGroupIcon className="w-6 h-6 text-surface-muted-fg" /> <span className="text-surface-muted-fg ml-2">Attendance records will appear here</span></div>,
+      component: <StudentAttendanceView />,
     },
     {
       id: 'reports',

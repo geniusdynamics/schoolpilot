@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
@@ -15,7 +15,8 @@ import { databaseService } from '@/services/database/databaseService';
 import { hashPassword, checkPasswordComplexity } from '@/utils/passwordHash';
 import { openCanonicalRepository } from '@/data/canonicalRepository';
 import { ensureCanonicalUser } from '@/data/canonicalIdentity';
-import { Repository } from '@/data/repository';
+import { Repository, MAX_LIMIT } from '@/data/repository';
+import { asId } from '@/domain/ids';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logging';
 import { userRoleLabel, userStatusLabel } from '../data/userDisplay';
@@ -44,7 +45,46 @@ export const SettingsUsersContent: React.FC = () => {
 
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [userInitialValues, setUserInitialValues] = useState<Record<string, any>>({ username: '', email: '', userType: '', isActive: true, role_id: undefined });
+  const [userInitialValues, setUserInitialValues] = useState<Record<string, any>>({ username: '', email: '', userType: '', isActive: true, role_id: undefined, person_ref: '' });
+  // The canonical learner and guardian rows a login can act as in the portal.
+  const [personOptions, setPersonOptions] = useState<{ value: string; label: string }[]>([]);
+  const [personLoading, setPersonLoading] = useState(false);
+
+  /**
+   * Loads the people a portal login can be linked to.
+   *
+   * A login's canonical `user` row carries a `person_ref`, and that reference is what the portal
+   * reads the learner or the guardian from; a login with none has no portal data to show.
+   */
+  const loadLinkablePeople = useCallback(async () => {
+    setPersonLoading(true);
+    try {
+      const repository = await openCanonicalRepository();
+      if (!(repository instanceof Repository)) {
+        setPersonOptions([]);
+        return;
+      }
+      const [guardians, learners] = await Promise.all([
+        repository.list('guardian', { limit: MAX_LIMIT }),
+        repository.list('learner', { limit: MAX_LIMIT }),
+      ]);
+      setPersonOptions([
+        ...guardians.items.map((guardian) => ({
+          value: `guardian:${guardian.id}`,
+          label: `Guardian: ${guardian.given_name} ${guardian.family_name}`,
+        })),
+        ...learners.items.map((learner) => ({
+          value: `learner:${learner.id}`,
+          label: `Learner: ${learner.given_name} ${learner.family_name} (${learner.admission_number})`,
+        })),
+      ]);
+    } catch (error) {
+      logger.error('Could not load the learners and guardians a login can be linked to:', error);
+      setPersonOptions([]);
+    } finally {
+      setPersonLoading(false);
+    }
+  }, []);
 
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
@@ -61,15 +101,16 @@ export const SettingsUsersContent: React.FC = () => {
   const openUserModal = (user?: User) => {
     setEditingUser(user || null);
     setUserInitialValues(user ?
-      { username: user.username, email: user.email, userType: user.userType, isActive: user.isActive, role_id: user.role_id } :
-      { username: '', email: '', userType: '', isActive: true, role_id: undefined }
+      { username: user.username, email: user.email, userType: user.userType, isActive: user.isActive, role_id: user.role_id, person_ref: '' } :
+      { username: '', email: '', userType: '', isActive: true, role_id: undefined, person_ref: '' }
     );
     setIsUserModalOpen(true);
+    void loadLinkablePeople();
   };
   const closeUserModal = () => {
     setIsUserModalOpen(false);
     setEditingUser(null);
-    setUserInitialValues({ username: '', email: '', userType: '', isActive: true, role_id: undefined });
+    setUserInitialValues({ username: '', email: '', userType: '', isActive: true, role_id: undefined, person_ref: '' });
   };
 
   // Role Modal
@@ -190,6 +231,23 @@ export const SettingsUsersContent: React.FC = () => {
     }
   ];
 
+  // The form re-seeds its state whenever `initialData` changes identity, so the edit values are
+  // memoised: a fresh object on every render would reset what the user is typing.
+  const userFormInitialData = useMemo(
+    () =>
+      editingUser
+        ? {
+            username: editingUser.username,
+            email: editingUser.email ?? '',
+            userType: editingUser.userType ?? '',
+            isActive: editingUser.isActive,
+            role_id: editingUser.role_id,
+            person_ref: '',
+          }
+        : userInitialValues,
+    [editingUser, userInitialValues]
+  );
+
   return (
     <div className="space-y-3">
       <Card title="User Accounts Management" info="Create, edit, and manage user accounts and their roles." actions={
@@ -217,9 +275,7 @@ export const SettingsUsersContent: React.FC = () => {
         isOpen={isUserModalOpen}
         onClose={closeUserModal}
         title={editingUser ? 'Edit User' : 'Add New User'}
-        initialData={editingUser
-          ? { username: editingUser.username, email: editingUser.email, userType: editingUser.userType, isActive: editingUser.isActive, role_id: editingUser.role_id }
-          : userInitialValues}
+        initialData={userFormInitialData}
         submitLabel={editingUser ? 'Save Changes' : 'Add User'}
         cancelLabel="Cancel"
         onSubmit={async (values) => {
@@ -262,15 +318,34 @@ export const SettingsUsersContent: React.FC = () => {
           // The login is the platform's; the canonical model keeps its own `user` row, and a canonical
           // write that names an actor references that row. Without this the login has no canonical
           // identity at all, and nothing can link it to a staff record.
+          // The person reference is what the portal reads a guardian or a learner from, so it is
+          // written on the same canonical row the login resolves to.
+          const person = String(values.person_ref ?? '');
           try {
             const canonical = await openCanonicalRepository();
             if (canonical instanceof Repository) {
-              await ensureCanonicalUser(canonical, {
+              const canonicalUser = await ensureCanonicalUser(canonical, {
                 username,
                 passwordHash:
                   passwordHash ??
                   (typeof editingUser?.hashed_password === 'string' ? editingUser.hashed_password : ''),
               });
+              if (canonicalUser && person.startsWith('guardian:')) {
+                await canonical.update(
+                  'user',
+                  canonicalUser.id,
+                  { person_ref: { type: 'guardian', id: asId<'guardian'>(person.slice('guardian:'.length)) } },
+                  { expectedVersion: canonicalUser.rowVersion }
+                );
+              }
+              if (canonicalUser && person.startsWith('learner:')) {
+                await canonical.update(
+                  'user',
+                  canonicalUser.id,
+                  { person_ref: { type: 'learner', id: asId<'learner'>(person.slice('learner:'.length)) } },
+                  { expectedVersion: canonicalUser.rowVersion }
+                );
+              }
             }
           } catch (error) {
             // The login itself is written; a missing canonical identity is a gap the school can see,
@@ -288,6 +363,7 @@ export const SettingsUsersContent: React.FC = () => {
           { name: 'password', label: editingUser ? 'New Password (leave blank to keep current)' : 'Password', type: 'password', helperText: 'Must be at least 8 characters with uppercase, lowercase, number, and special character', validate: (v) => { const pw = String(v ?? ''); if (!editingUser && !pw) return t('Password is required for new users'); if (pw) { const c = checkPasswordComplexity(pw); if (!c.valid) return c.errors.join(', '); } return null; } },
           { name: 'userType', label: 'User Type', type: 'select', required: true, placeholder: 'Select User Type', options: USER_TYPES.map(type => ({ value: type, label: type })), validate: (v) => !v ? t('User Type is required') : null },
           { name: 'role_id', label: 'Role', type: 'select', placeholder: 'Select Role', options: (roles || []).map((role: Role) => ({ value: role.id, label: role.name })) },
+          { name: 'person_ref', label: 'Linked learner or guardian (portal access)', type: 'select', placeholder: personLoading ? 'Loading people…' : 'Not linked', helperText: 'A learner login sees only that learner; a guardian login sees the children linked to that guardian.', options: personOptions },
           { name: 'isActive', label: 'Is Active User', type: 'checkbox' },
         ]}
       />

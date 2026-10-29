@@ -1,0 +1,40 @@
+{
+  "ManualJournals": [
+    {
+      "Narration": "Term 1 fees for Amina Otieno",
+      "Date": "2027-02-10",
+      "Status": "DRAFT",
+      "LineAmountTypes": "NoTax",
+      "JournalLines": [
+        {
+          "Description": "Term 1 fees for Amina Otieno",
+          "LineAmount": 1250,
+          "AccountCode": "1100"
+        },
+        {
+          "Description": "Term 1 tuition",
+          "LineAmount": -1250,
+          "AccountCode": "4000"
+        }
+      ]
+    },
+    {
+      "Narration": "Bank deposit for term 1",
+      "Date": "2027-02-11",
+      "Status": "DRAFT",
+      "LineAmountTypes": "NoTax",
+      "JournalLines": [
+        {
+          "Description": "Bank deposit for term 1",
+          "LineAmount": 500.55,
+          "AccountCode": "1020"
+        },
+        {
+          "Description": "Bank deposit for term 1",
+          "LineAmount": -500.55,
+          "AccountCode": "1100"
+        }
+      ]
+    }
+  ]
+}

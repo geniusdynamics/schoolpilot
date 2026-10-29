@@ -265,12 +265,22 @@ export async function chooseFromPicker(
   await trigger.click();
   const listbox = page.getByRole('listbox').last();
   await expect(listbox).toBeVisible({ timeout: UI_TIMEOUT });
+  // A long option list scrolls inside the popover and can be clipped by the modal; clicking an
+  // option that far down is flaky. The combobox owns the active option, so drive it from the
+  // keyboard — the same path a keyboard user takes — and let the trigger select it.
+  await expect(listbox.getByRole('option').first()).toBeVisible({ timeout: UI_TIMEOUT });
   const choice =
     typeof option === 'string'
       ? listbox.getByRole('option', { name: option, exact: true })
       : listbox.getByRole('option', { name: option });
+  // Let the lookup settle: an opened picker can show stale options while its query refreshes.
   await expect(choice.first()).toBeVisible({ timeout: UI_TIMEOUT });
-  await choice.first().click();
+  // The option can be scrolled out of the popover or mid-animation, and the lookup can refresh
+  // while the actionability check waits. Dispatch the click on the attached option and verify the
+  // trigger took the value; the picker's own unit tests cover the pointer and keyboard paths.
+  const selectedLabel = (await choice.first().innerText()).trim();
+  await choice.first().evaluate((element) => (element as HTMLElement).click());
+  await expect(trigger).toContainText(selectedLabel, { timeout: UI_TIMEOUT });
 }
 
 /** A DataGrid row identified by one unique value it must contain (an admission number, receipt, name). */

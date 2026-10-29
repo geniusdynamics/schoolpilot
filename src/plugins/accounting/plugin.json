@@ -1,0 +1,60 @@
+{
+  "id": "builtin-accounting-connectors",
+  "name": "Accounting Connectors",
+  "version": "1.0.0",
+  "sdkVersion": "^1.0.0",
+  "type": "integration",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Journal exports for QuickBooks Online, Xero, Odoo and ERPNext, with a validated chart-of-accounts mapping and a refusal for anything that would post wrong.",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "permissions": ["data:read", "settings:access"],
+  "integration": {
+    "backendType": "accounting",
+    "providerId": "accounting-exports",
+    "providerClass": "AccountingExport",
+    "entities": ["journal"],
+    "authMethods": []
+  },
+  "settings": [
+    {
+      "key": "target",
+      "label": "Accounting system",
+      "type": "select",
+      "defaultValue": "quickbooks",
+      "required": true,
+      "description": "The system the journal export is written for",
+      "options": [
+        { "label": "QuickBooks Online (CSV import)", "value": "quickbooks" },
+        { "label": "Xero (manual journal CSV import)", "value": "xero" },
+        { "label": "Xero (Accounting API ManualJournals)", "value": "xero-api" },
+        { "label": "Odoo (account.move payload)", "value": "odoo" },
+        { "label": "ERPNext (Journal Entry payload)", "value": "erpnext" }
+      ]
+    },
+    {
+      "key": "mappingFile",
+      "label": "Chart of accounts mapping",
+      "type": "file",
+      "required": true,
+      "description": "The file that maps each school account to its target account, and names the journal or company the target posts into"
+    },
+    {
+      "key": "periodStart",
+      "label": "Export from",
+      "type": "string",
+      "required": true,
+      "validation": { "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+      "description": "The first day of the entries to export (YYYY-MM-DD)"
+    },
+    {
+      "key": "periodEnd",
+      "label": "Export to",
+      "type": "string",
+      "required": true,
+      "validation": { "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+      "description": "The last day of the entries to export (YYYY-MM-DD)"
+    }
+  ]
+}

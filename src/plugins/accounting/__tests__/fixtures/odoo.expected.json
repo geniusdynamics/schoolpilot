@@ -1,0 +1,45 @@
+{
+  "resource": "account.move",
+  "documents": [
+    {
+      "move_type": "entry",
+      "journal_id": 3,
+      "date": "2027-02-10",
+      "ref": "INV/2027/T1/000123",
+      "line_ids": [
+        {
+          "name": "Term 1 fees for Amina Otieno",
+          "account_id": 42,
+          "debit": 1250,
+          "credit": 0
+        },
+        {
+          "name": "Term 1 tuition",
+          "account_id": 43,
+          "debit": 0,
+          "credit": 1250
+        }
+      ]
+    },
+    {
+      "move_type": "entry",
+      "journal_id": 3,
+      "date": "2027-02-11",
+      "ref": "PAY/2027/T1/000045",
+      "line_ids": [
+        {
+          "name": "Bank deposit for term 1",
+          "account_id": 44,
+          "debit": 500.55,
+          "credit": 0
+        },
+        {
+          "name": "Bank deposit for term 1",
+          "account_id": 42,
+          "debit": 0,
+          "credit": 500.55
+        }
+      ]
+    }
+  ]
+}

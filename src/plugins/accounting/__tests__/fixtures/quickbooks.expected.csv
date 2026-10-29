@@ -1,0 +1,5 @@
+Journal No.,Journal Date,Account Name,Journal/Description,Debits,Credits,Class
+INV/2027/T1/000123,2027-02-10,Fee receivables,Term 1 fees for Amina Otieno,1250.00,,
+INV/2027/T1/000123,2027-02-10,Fee revenue,Term 1 tuition,,1250.00,
+PAY/2027/T1/000045,2027-02-11,Bank,Bank deposit for term 1,500.55,,Main campus
+PAY/2027/T1/000045,2027-02-11,Fee receivables,Bank deposit for term 1,,500.55,

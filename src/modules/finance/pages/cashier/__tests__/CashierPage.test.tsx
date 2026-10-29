@@ -110,6 +110,7 @@ function port(overrides: Partial<CashierPaymentsPort> = {}): CashierPaymentsPort
       },
       report: REPORT,
     })),
+    nextReceiptNumber: vi.fn(async () => 'RCT/2027/000001'),
     session: vi.fn(async () => OPEN_SESSION),
     openSessionFor: vi.fn(async () => null),
     zReport: vi.fn(async () => REPORT),
