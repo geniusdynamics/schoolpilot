@@ -36,6 +36,7 @@ interface StaffRecord {
   id: Id;
   first_name?: string;
   last_name?: string;
+  staff_no?: string;
   is_active?: boolean;
   designation_id?: Id | null;
   designation_title?: string | null;
@@ -362,14 +363,15 @@ export const TimetableEntriesContent: React.FC = () => {
               name="teacher_id"
               label="Teacher"
               value={formData.teacher_id || ''}
-              onChange={(e) => handleInputChange('teacher_id', e.target.value)}
+              onValueChange={(value) => handleInputChange('teacher_id', value as string)}
+              options={availableTeachers.map(teacher => ({
+                value: idOf(teacher.id),
+                label: `${fullName(teacher)}${teacher.staff_no ? ` (${teacher.staff_no})` : ''}`,
+              }))}
+              placeholder="Select Teacher"
+              searchable
               required
-            >
-              <option value="">Select Teacher</option>
-              {availableTeachers.map(teacher => (
-                <option key={teacher.id} value={idOf(teacher.id)}>{fullName(teacher)}</option>
-              ))}
-            </Select>
+            />
           </FormField>
         </FormSection>
       </DialogForm>

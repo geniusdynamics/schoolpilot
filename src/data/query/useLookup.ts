@@ -250,7 +250,7 @@ export function useLookup<E extends EntityName>(
         ...(filter ? { where: filter } : {}),
         search: { term, fields },
         includeDeleted: true,
-        limit: 25,
+        limit: 50,
       });
       return includeArchived ? page.items : page.items.filter((row) => !isArchived(row));
     };

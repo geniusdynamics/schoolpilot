@@ -219,6 +219,7 @@ const StudentClearancePage: React.FC = () => {
             value={formData.student_id}
             onChange={(value) => handleInputChange('student_id', value)}
             options={students.map((s) => ({ label: `${[s.first_name, s.last_name].filter(Boolean).join(' ')} (${s.admission_no})`, value: s.id }))}
+            searchable
             required
           />
           <Select

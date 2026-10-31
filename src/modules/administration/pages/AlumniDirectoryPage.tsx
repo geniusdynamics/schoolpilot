@@ -469,11 +469,11 @@ const AlumniDirectoryPage: React.FC = () => {
             onChange={() => {}}
             options={students
               .filter((s: any) => s.status !== 'Alumni')
-              .slice(0, 20)
               .map((s: any) => ({
                 label: `${s.first_name || ''} ${s.last_name || ''} (${s.admission_number || s.admissionNo || ''})`,
                 value: s.id || '',
               }))}
+            searchable
           />
           <Input label="Graduation Year" placeholder="e.g. 2024" value="" onChange={() => {}} />
           <Select

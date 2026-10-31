@@ -107,10 +107,17 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
       <Card title="Student Votehead Statement Report" info="Detailed statement of charges and payments for a selected student and period.">
         <div className="p-4 border-b mb-4 bg-surface-muted rounded-md filter-section">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label="Select Student" value={selectedStudentId || ''} onChange={e => setSelectedStudentId(e.target.value || undefined)} required>
-                    <option value="">-- Student --</option>
-                    {(students || []).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.admission_no})</option>)}
-                </Select>
+                <Select
+                    label="Select Student"
+                    value={selectedStudentId || ''}
+                    onValueChange={(value) => setSelectedStudentId((value as string) || undefined)}
+                    options={(students || []).map(s => ({
+                        value: s.id,
+                        label: `${s.first_name} ${s.last_name} (${s.admission_no})`,
+                    }))}
+                    searchable
+                    required
+                />
                 <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(e.target.value || undefined)} required>
                     <option value="">-- Period --</option>
                     {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
