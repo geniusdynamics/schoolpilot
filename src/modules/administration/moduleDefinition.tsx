@@ -109,7 +109,8 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/attendance', page: 'StudentAttendancePage' },
     { path: '/administration/staff/operations', page: 'StaffOperationsPage' },
     { path: '/administration/students/bulk-ops', page: 'StudentBulkOperationsPage' },
-    { path: '/administration/students/promotion', page: 'StudentPromotionPage' },
+    // Kept as an alias so old links land on the one canonical promotion run.
+    { path: '/administration/students/promotion', page: 'PromotionRunPage' },
     { path: '/administration/promotion', page: 'PromotionRunPage' },
     // Existing routes
     { path: '/administration/entry-marks', page: 'EntryMarksPage' },

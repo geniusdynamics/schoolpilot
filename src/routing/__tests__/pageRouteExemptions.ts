@@ -91,6 +91,7 @@ export const PAGE_ROUTE_EXEMPTIONS: readonly PageRouteExemption[] = [
   { key: 'administration/StaffWalletPage', reason: 'legacy page with no route entry; not reachable from navigation' },
   { key: 'administration/StudentBioDataPage', reason: 'legacy page with no route entry; not reachable from navigation' },
   { key: 'administration/StudentDetailPage', reason: 'superseded by StudentProfilePage; kept for its component tests' },
+  { key: 'administration/StudentPromotionPage', reason: 'superseded by the canonical PromotionRunPage; kept for its legacy hook tests' },
   { key: 'administration/StudentCategoriesPage', reason: 'deprecated route: its path redirects to /administration/student-life?tab=categories' },
   { key: 'administration/StudentIDCardsPage', reason: 'legacy page with no route entry; not reachable from navigation' },
   { key: 'administration/StudentMasterlistPage', reason: 'deprecated route: its path redirects to /reports/student-reports?tab=masterlist' },
