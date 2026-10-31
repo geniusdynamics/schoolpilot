@@ -153,7 +153,11 @@ export function EntityPicker<Row, Id extends string = string>({
     lookup.isFetching ?? (lookup.status === 'loading' || lookup.status === 'refreshing');
   const lookupSettled = lookup.status === 'success' || lookup.status === 'refreshing';
   const showEmptyState =
-    lookup.status === 'success' && !hasOptions && !hasLoadError && !searching;
+    lookup.status === 'success' &&
+    !hasOptions &&
+    !hasLoadError &&
+    !searching &&
+    searchTerm.trim().length === 0;
   // An empty lookup keeps its CTA reachable by Tab; the root blur handler closes
   // the popup once focus leaves. A populated list still closes on Tab as before.
   const tabEntersEmptyState = showEmptyState && Boolean(emptyState);

@@ -170,6 +170,24 @@ describe('EntityPicker conformance', () => {
     expect(screen.queryByRole('button', { name: 'Create class group' })).not.toBeInTheDocument();
   });
 
+  it('does not offer the empty-state CTA when a search has no matches', async () => {
+    const search = vi.fn(async () => []);
+    render(
+      <Harness
+        lookup={makeLookup([BLUE], { search, describe: (row) => row.name })}
+        emptyState={<button type="button">Create class group</button>}
+      />
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'Class group' }));
+    await user.type(screen.getByLabelText('Search options'), 'zzz');
+
+    await waitFor(() => expect(search).toHaveBeenCalledWith('zzz'));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Create class group' })).not.toBeInTheDocument()
+    );
+  });
+
   it('reaches the empty-state CTA with Tab and activates it with Enter', async () => {
     const onCreate = vi.fn();
     render(
