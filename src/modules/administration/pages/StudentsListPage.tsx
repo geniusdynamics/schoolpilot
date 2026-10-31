@@ -89,6 +89,28 @@ export const StudentsListContent: React.FC = () => {
   const [form, setForm] = useState<StudentFormState>(createInitialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterClass, setFilterClass] = useState('');
+  const [filterStream, setFilterStream] = useState('');
+
+  const classFilterOptions = useMemo(
+    () => [...new Set(learners.map((learner) => learner.current_class_name).filter(Boolean))].sort(),
+    [learners]
+  );
+  const streamFilterOptions = useMemo(() => {
+    const scoped = filterClass
+      ? learners.filter((learner) => learner.current_class_name === filterClass)
+      : learners;
+    return [...new Set(scoped.map((learner) => learner.current_class_stream_name).filter(Boolean))].sort();
+  }, [learners, filterClass]);
+  const visibleLearners = useMemo(
+    () =>
+      learners.filter(
+        (learner) =>
+          (!filterClass || learner.current_class_name === filterClass) &&
+          (!filterStream || learner.current_class_stream_name === filterStream)
+      ),
+    [learners, filterClass, filterStream]
+  );
 
   const openModal = useCallback((learner?: CanonicalLearner) => {
     setEditing(learner ?? null);
@@ -521,10 +543,41 @@ export const StudentsListContent: React.FC = () => {
           </div>
         }
       >
+        <div className="flex flex-wrap gap-3 border-t border-surface-border p-4">
+          <div className="min-w-[180px] flex-1">
+            <label className="mb-1 block text-xs font-medium text-surface-foreground">Class</label>
+            <select
+              value={filterClass}
+              onChange={(event) => {
+                setFilterClass(event.target.value);
+                setFilterStream('');
+              }}
+              className="w-full rounded-md border border-surface-border px-3 py-2 text-sm"
+            >
+              <option value="">All classes</option>
+              {classFilterOptions.map((className) => (
+                <option key={className} value={className}>{className}</option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-[180px] flex-1">
+            <label className="mb-1 block text-xs font-medium text-surface-foreground">Stream</label>
+            <select
+              value={filterStream}
+              onChange={(event) => setFilterStream(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2 text-sm"
+            >
+              <option value="">All streams</option>
+              {streamFilterOptions.map((stream) => (
+                <option key={stream} value={stream}>{stream}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="border-t border-surface-border">
           <DataGrid
             columns={columns}
-            data={learners.slice()}
+            data={visibleLearners}
             loading={pageIsLoading && !isModalOpen}
             sortable
             filterable
