@@ -39,6 +39,14 @@ export interface SchoolDetails {
   phone?: string | null;
   website?: string | null;
   principal?: string | null;
+  /** The format the admission service uses; an empty prefix or suffix is a real choice, not a default. */
+  admission_number_prefix?: string | null;
+  admission_number_suffix?: string | null;
+  admission_number_separator?: string | null;
+  admission_number_width?: string | null;
+  admission_number_include_year?: string | null;
+  /** A JSON array of per-level/per-programme overrides; the section name matches the level first. */
+  admission_number_sections?: string | null;
 }
 
 export interface User {

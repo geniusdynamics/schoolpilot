@@ -4,7 +4,12 @@
 
 import type { CreateInput, Repository, RepositoryRow, WriteOptions } from '@/data/repository';
 import { asId, type Id } from '@/domain/ids';
-import { nextSequenceNumber, sequenceYear } from '@/domain/sequences';
+import {
+  admissionNumberStartsWith,
+  nextAdmissionNumber as nextFormattedAdmissionNumber,
+  normaliseAdmissionNumberFormat,
+  type AdmissionNumberFormat,
+} from './admissionNumberFormat';
 
 import {
   claimIdentifier,
@@ -30,6 +35,11 @@ export interface AdmissionServiceOptions extends ServiceDependencies {
   readonly repository: Repository;
   /** The prefix of the admission numbers the service assigns; `ADM` when the caller does not say. */
   readonly admissionNumberPrefix?: string;
+  /**
+   * The school's admission-number format. The page resolves the per-section override and hands
+   * the resulting format in; the default is `ADM/{YYYY}/{SEQ:3}`.
+   */
+  readonly admissionNumberFormat?: AdmissionNumberFormat;
 }
 
 /** The medical record of a learner, as the admission form collects it. */
@@ -189,13 +199,16 @@ export class AdmissionService {
   private readonly repository: Repository;
   private readonly enrolments: EnrolmentService;
   private readonly guardians: GuardianService;
-  private readonly prefix: string;
+  private readonly admissionFormat: AdmissionNumberFormat;
   private readonly actor: string | undefined;
 
   constructor(options: AdmissionServiceOptions) {
     this.repository = options.repository;
     this.actor = options.actor;
-    this.prefix = options.admissionNumberPrefix ?? 'ADM';
+    this.admissionFormat = normaliseAdmissionNumberFormat(
+      options.admissionNumberFormat ??
+        (options.admissionNumberPrefix ? { prefix: options.admissionNumberPrefix } : undefined)
+    );
     this.enrolments = new EnrolmentService({
       repository: options.repository,
       ...(options.actor ? { actor: options.actor } : {}),
@@ -643,14 +656,18 @@ export class AdmissionService {
     institutionId: Id<'institution'>,
     date: string
   ): Promise<string> {
+    const prefix = admissionNumberStartsWith(this.admissionFormat, date);
     const page = await this.repository.list('learner', {
       where: { institution_id: institutionId },
+      ...(prefix ? { conditions: { admission_number: { startsWith: prefix } } } : {}),
+      orderBy: [{ field: 'admission_number', direction: 'desc' }],
       includeDeleted: true,
-      limit: 500,
+      limit: 1,
     });
-    return nextSequenceNumber(
+    return nextFormattedAdmissionNumber(
+      this.admissionFormat,
       page.items.map((row) => row.admission_number),
-      { prefix: this.prefix, year: sequenceYear(date), width: 3 }
+      date
     );
   }
 
