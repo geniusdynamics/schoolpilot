@@ -59,13 +59,13 @@ const FINANCE_REPORTS: readonly ReportLink[] = [
   {
     title: 'Overdue Report',
     description: 'Invoices past their due date, with the learner and balance.',
-    to: '/reports/overdue',
+    to: '/reports/finance?tab=fees-due',
     icon: <ClipboardDocumentListIcon className="h-5 w-5" />,
   },
   {
     title: 'Account Ledger',
     description: 'The posted ledger entries for an account, with a date range.',
-    to: '/reports/account-ledger',
+    to: '/finance/accounting-ops?tab=ledger',
     icon: <DocumentReportIcon className="h-5 w-5" />,
   },
   {
