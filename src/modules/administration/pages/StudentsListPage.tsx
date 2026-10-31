@@ -17,6 +17,7 @@ import {
   AcademicCapIcon,
   DeleteIcon,
   EditIcon,
+  EyeIcon,
   PlusIcon,
   UserCircleIcon,
   UsersIcon,
@@ -281,6 +282,19 @@ export const StudentsListContent: React.FC = () => {
               onClick={(event: React.MouseEvent) => {
                 event.stopPropagation();
                 event.preventDefault();
+                navigate(`/administration/students/${item.id}`);
+              }}
+              leftIcon={<EyeIcon className="h-4 w-4" />}
+              title="View"
+            >
+              View
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(event: React.MouseEvent) => {
+                event.stopPropagation();
+                event.preventDefault();
                 openModal(item);
               }}
               title="Edit"
@@ -303,7 +317,7 @@ export const StudentsListContent: React.FC = () => {
         ),
       },
     ],
-    [openModal, handleDelete]
+    [openModal, handleDelete, navigate]
   );
 
   const tabs = useMemo((): FormTab[] => {
