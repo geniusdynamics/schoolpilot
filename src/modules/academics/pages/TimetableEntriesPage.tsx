@@ -362,6 +362,7 @@ export const TimetableEntriesContent: React.FC = () => {
             <Select
               name="teacher_id"
               label="Teacher"
+              aria-label="Teacher"
               value={formData.teacher_id || ''}
               onValueChange={(value) => handleInputChange('teacher_id', value as string)}
               options={availableTeachers.map(teacher => ({

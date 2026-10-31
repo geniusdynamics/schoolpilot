@@ -109,6 +109,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select
                     label="Select Student"
+                    aria-label="Select Student"
                     value={selectedStudentId || ''}
                     onValueChange={(value) => setSelectedStudentId((value as string) || undefined)}
                     options={(students || []).map(s => ({
