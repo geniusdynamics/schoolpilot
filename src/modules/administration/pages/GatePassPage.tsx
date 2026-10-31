@@ -3,6 +3,7 @@ import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 
 import Button from '@/components/ui/Button';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -11,17 +12,22 @@ import { TicketIcon, PlusIcon, CheckIcon, XMarkIcon, PrinterIcon } from '@/compo
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { asId } from '@/domain/ids';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import type { GatePass, PassType, PassStatus } from '../data/types';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 export const GatePassContent: React.FC = () => {
   const { t } = useTranslation('administration');
+  const { learners, learnersLookup } = useCanonicalLearners();
   const gatePassesCollection = useDatabaseCollection<GatePass>('gate_passes');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   const initialFormData: Partial<GatePass> = {
@@ -49,6 +55,14 @@ export const GatePassContent: React.FC = () => {
       filtered = filtered.filter(p => p.pass_type === selectedType);
     }
 
+    if (selectedClass) {
+      filtered = filtered.filter(p => p.class_name === selectedClass);
+    }
+
+    if (selectedSection) {
+      filtered = filtered.filter(p => p.section === selectedSection);
+    }
+
     if (searchTerm) {
       filtered = filtered.filter(p =>
         (p.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
@@ -57,7 +71,23 @@ export const GatePassContent: React.FC = () => {
     }
 
     return filtered;
-  }, [gatePassesCollection.data, selectedStatus, selectedType, searchTerm]);
+  }, [gatePassesCollection.data, selectedStatus, selectedType, selectedClass, selectedSection, searchTerm]);
+
+  const classOptions = useMemo(
+    () => [...new Set(gatePassesCollection.data.map((pass) => pass.class_name).filter(Boolean))].sort(),
+    [gatePassesCollection.data]
+  );
+  const sectionOptions = useMemo(
+    () => [
+      ...new Set(
+        gatePassesCollection.data
+          .filter((pass) => !selectedClass || pass.class_name === selectedClass)
+          .map((pass) => pass.section)
+          .filter(Boolean)
+      ),
+    ].sort(),
+    [gatePassesCollection.data, selectedClass]
+  );
 
   const openModal = () => {
     setFormData(initialFormData);
@@ -76,8 +106,8 @@ export const GatePassContent: React.FC = () => {
 
   const toast = useToast();
   const handleSubmit = () => {
-    if (!formData.student_name || !formData.pass_type || !formData.reason) {
-      toast.showWarning('Student name, pass type, and reason are required.');
+    if (!formData.student_id || !formData.pass_type || !formData.reason) {
+      toast.showWarning('Student, pass type, and reason are required.');
       return;
     }
     logger.info('Creating gate pass:', formData);
@@ -275,6 +305,35 @@ export const GatePassContent: React.FC = () => {
               ))}
             </Select>
           </div>
+          <div className="flex-1 min-w-[180px]">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
+            <select
+              value={selectedClass}
+              onChange={(event) => {
+                setSelectedClass(event.target.value);
+                setSelectedSection('');
+              }}
+              className="w-full border border-surface-border rounded-md px-3 py-2"
+            >
+              <option value="">{t('common.allClasses', 'All classes')}</option>
+              {classOptions.map((className) => (
+                <option key={className} value={className}>{className}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[180px]">
+            <label className="block text-sm font-medium text-surface-foreground mb-1">Stream</label>
+            <select
+              value={selectedSection}
+              onChange={(event) => setSelectedSection(event.target.value)}
+              className="w-full border border-surface-border rounded-md px-3 py-2"
+            >
+              <option value="">All streams</option>
+              {sectionOptions.map((section) => (
+                <option key={section} value={section}>{section}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-surface-foreground mb-1">{t('common.search', 'Search')}</label>
             <input
@@ -373,47 +432,27 @@ export const GatePassContent: React.FC = () => {
         title="New Gate Pass"
       >
         <FormSection>
-          <FormField label="Student Name" required>
-            <input
-              type="text"
-              name="student_name"
-              value={formData.student_name}
-              onChange={handleInputChange}
-              placeholder="Student name"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Student ID">
-            <input
-              type="text"
-              name="student_id"
-              value={formData.student_id}
-              onChange={handleInputChange}
-              placeholder="Student ID"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Class">
-            <input
-              type="text"
-              name="class_name"
-              value={formData.class_name}
-              onChange={handleInputChange}
-              placeholder="Class"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Section">
-            <input
-              type="text"
-              name="section"
-              value={formData.section}
-              onChange={handleInputChange}
-              placeholder="Section"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+          <FormField label="Student" required>
+            <EntityPicker
+              value={formData.student_id ? asId<'learner'>(formData.student_id) : null}
+              onChange={(id) => {
+                const learner = learners.find((row) => row.id === id);
+                setFormData((current) => ({
+                  ...current,
+                  student_id: id ?? '',
+                  student_name: learner?.display_name ?? '',
+                  class_name: learner?.current_class_name ?? '',
+                  section: learner?.current_class_stream_name ?? '',
+                }));
+              }}
+              lookup={learnersLookup}
+              placeholder="Search by name or admission number"
+              allowClear
+              helperText={
+                formData.student_id
+                  ? `${formData.student_name}${formData.class_name ? ` · ${formData.class_name}${formData.section ? ` ${formData.section}` : ''}` : ''}`
+                  : 'The class and stream fill in from the learner directory.'
+              }
             />
           </FormField>
 

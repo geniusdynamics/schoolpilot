@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -6,8 +6,11 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { PlusIcon, EyeIcon, EditIcon, CheckCircleIcon } from '@/components/ui/icons';
+import { asId } from '@/domain/ids';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
@@ -17,7 +20,9 @@ import { useToast } from '@/hooks/useToast';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');
+  const { learners, learnersLookup } = useCanonicalLearners();
   const [cases, setCases] = useState<DisciplinaryCase[]>([]);
+  const [classFilter, setClassFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCase, setEditingCase] = useState<DisciplinaryCase | null>(null);
@@ -55,8 +60,18 @@ const DisciplinaryCasesPage: React.FC = () => {
     Appealed: 'bg-orange-100 text-orange-800'
   };
 
-  const handleInputChange = (name: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleInputChange = (
+    name: string,
+    value:
+      | string
+      | boolean
+      | React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const next =
+      typeof value === 'object' && value !== null && 'target' in value
+        ? value.target.value
+        : value;
+    setFormData((prev) => ({ ...prev, [name]: next }));
   };
 
   const openModal = (caseItem?: DisciplinaryCase) => {
@@ -182,6 +197,15 @@ const DisciplinaryCasesPage: React.FC = () => {
     loadData();
   }, []);
 
+  const classOptions = useMemo(
+    () => [...new Set(cases.map((item) => item.class_name).filter(Boolean))].sort(),
+    [cases]
+  );
+  const visibleCases = useMemo(
+    () => (classFilter ? cases.filter((item) => item.class_name === classFilter) : cases),
+    [cases, classFilter]
+  );
+
   const columns: DataGridColumn<DisciplinaryCase>[] = [
     { key: 'case_number', header: 'Case #', width: 110, sortable: true, filterable: true },
     { key: 'student_name', header: 'Student', width: 160, sortable: true, filterable: true },
@@ -192,7 +216,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       width: 130,
       sortable: true,
       filterable: true,
-      render: (value) => <Badge variant="neutral">{value}</Badge>
+      render: (value) => <Badge variant="secondary">{value}</Badge>
     },
     {
       key: 'severity',
@@ -265,8 +289,24 @@ const DisciplinaryCasesPage: React.FC = () => {
           </Button>
         }
       >
+        <div className="mb-4 flex flex-wrap gap-3">
+          <label className="min-w-[180px] flex-1 text-sm">
+            <span className="mb-1 block text-xs font-medium text-surface-foreground">Class</span>
+            <select
+              value={classFilter}
+              onChange={(event) => setClassFilter(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
+            >
+              <option value="">All classes</option>
+              {classOptions.map((className) => (
+                <option key={className} value={className}>{className}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
         <DataGrid
-          data={cases}
+          data={visibleCases}
           columns={columns}
           sortable={true}
           filterable={true}
@@ -300,7 +340,7 @@ const DisciplinaryCasesPage: React.FC = () => {
               </div>
               <div>
                 <label className="text-sm font-medium text-surface-foreground">Category</label>
-                <div className="mt-1"><Badge variant="neutral">{selectedCase.category}</Badge></div>
+                <div className="mt-1"><Badge variant="secondary">{selectedCase.category}</Badge></div>
               </div>
               <div>
                 <label className="text-sm font-medium text-surface-foreground">Severity</label>
@@ -391,19 +431,32 @@ const DisciplinaryCasesPage: React.FC = () => {
         }
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Student Name"
-              value={formData.student_name}
-              onChange={(value) => handleInputChange('student_name', value)}
-              required
-            />
-            <Input
-              label="Admission Number"
-              value={formData.admission_number}
-              onChange={(value) => handleInputChange('admission_number', value)}
-            />
-          </div>
+          <EntityPicker
+            label="Student"
+            value={formData.student_id ? asId<'learner'>(formData.student_id) : null}
+            onChange={(id) => {
+              const learner = learners.find((row) => row.id === id);
+              setFormData((current) => ({
+                ...current,
+                student_id: id ?? '',
+                student_name: learner?.display_name ?? '',
+                admission_number: learner?.admission_no ?? '',
+                class_name: learner
+                  ? [learner.current_class_name, learner.current_class_stream_name]
+                      .filter(Boolean)
+                      .join(' - ')
+                  : '',
+              }));
+            }}
+            lookup={learnersLookup}
+            placeholder="Search by name or admission number"
+            allowClear
+            helperText={
+              formData.student_id
+                ? `${formData.admission_number}${formData.class_name ? ` · ${formData.class_name}` : ''}`
+                : 'Search the canonical learner directory; the name, admission number and class fill in automatically.'
+            }
+          />
 
           <Select
             label="Category"
