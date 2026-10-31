@@ -28,13 +28,15 @@ export const StudentProfileContent: React.FC = () => {
   const enrolmentQuery = useEntityQuery(
     repository,
     'enrolment',
-    { where: { learner_id: studentId ?? '__missing__' }, limit: 20 },
+    {
+      where: { learner_id: studentId ?? '__missing__' },
+      conditions: { status: { in: ['active', 'repeating'] } },
+      limit: 1,
+    },
     { enabled }
   );
   const learner = learnerQuery.data?.items[0];
-  const placement = (enrolmentQuery.data?.items ?? []).find(
-    (row) => row.status === 'active' || row.status === 'repeating'
-  );
+  const placement = enrolmentQuery.data?.items[0];
   const classGroupId = placement?.class_group_id;
   const classGroupQuery = useEntityQuery(
     repository,
