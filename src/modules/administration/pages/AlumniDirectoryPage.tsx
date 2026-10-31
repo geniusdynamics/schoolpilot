@@ -7,9 +7,13 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 
-import { useCanonicalLearners } from '../data/useCanonicalLearners';
+import { asId } from '@/domain/ids';
+import { useToast } from '@/hooks/useToast';
+import { useWritableRepository } from '../data/useWritableRepository';
+import { useCanonicalLearners, type CanonicalLearner } from '../data/useCanonicalLearners';
 import { EnvelopeIcon, EyeIcon, PhoneIcon, PlusIcon } from '@/components/ui/icons';
 import {
   AlumniRecord,
@@ -17,167 +21,77 @@ import {
   AlumniCategory,
 } from '../data/alumniTypes';
 
-const AlumniDirectoryPage: React.FC = () => {
+interface AlumniMeta {
+  graduation_year?: string;
+  category?: AlumniCategory;
+  engagement_status?: AlumniEngagementStatus;
+  occupation?: string;
+  employer?: string;
+  newsletter?: boolean;
+  notes?: string;
+  added_at?: string;
+}
 
-  const { learners: students, isLoading: loading } = useCanonicalLearners();
+/** The alumni detail a learner carries in the canonical `attributes` JSON. */
+function alumniMeta(learner: CanonicalLearner): AlumniMeta {
+  const raw = learner.attributes.alumni;
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  return raw as AlumniMeta;
+}
+
+const AlumniDirectoryPage: React.FC = () => {
+  const repository = useWritableRepository();
+  const { learners, learnerRows, learnersLookup, isLoading: loading } = useCanonicalLearners();
+  const toast = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedGraduationYear, setSelectedGraduationYear] = useState<string>('');
   const [selectedAlumni, setSelectedAlumni] = useState<AlumniRecord | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [savingAlumni, setSavingAlumni] = useState(false);
+  const [alumniDraft, setAlumniDraft] = useState({
+    student_id: '',
+    graduation_year: String(new Date().getFullYear()),
+    category: AlumniCategory.GENERAL as AlumniCategory,
+    engagement_status: AlumniEngagementStatus.ACTIVE as AlumniEngagementStatus,
+    occupation: '',
+    employer: '',
+    newsletter: false,
+    notes: '',
+  });
 
-  // Generate mock alumni data from students with alumni status
-  const alumniRecords: AlumniRecord[] = useMemo(() => {
-    const studentsWithAlumniStatus = students.filter((s: any) =>
-      s.status === 'Alumni' || s.status === 'Transferred' || s.status === 'Withdrawn'
-    );
-
-    if (studentsWithAlumniStatus.length === 0) {
-      // If no students with alumni status exist, create sample records
-      return [
-        {
-          id: 'alumni-001',
-          student_id: 'stu-001',
-          admission_number: 'STU-2020-001',
-          first_name: 'James',
-          last_name: 'Mwangi',
-          gender: 'Male',
-          graduation_year: '2024',
-          graduation_class_name: 'Form 4',
-          graduation_stream_name: 'East',
-          phone: '+254712345678',
-          email: 'james.mwangi@email.com',
-          current_occupation: 'Software Engineer',
-          employer: 'Tech Corp Ltd',
-          current_city: 'Nairobi',
-          current_country: 'Kenya',
-          engagement_status: AlumniEngagementStatus.ACTIVE,
-          alumni_category: AlumniCategory.DISTINGUISHED,
-          is_newsletter_subscribed: true,
-          last_contact_date: '2026-05-15',
-          notes: 'Active alumni mentor for computer science students',
-          created_at: '2024-12-01T00:00:00Z',
-          updated_at: '2026-05-15T00:00:00Z',
-        },
-        {
-          id: 'alumni-002',
-          student_id: 'stu-002',
-          admission_number: 'STU-2019-045',
-          first_name: 'Grace',
-          last_name: 'Akinyi',
-          gender: 'Female',
-          graduation_year: '2023',
-          graduation_class_name: 'Form 4',
-          graduation_stream_name: 'West',
-          phone: '+254723456789',
-          email: 'grace.akinyi@email.com',
-          current_occupation: 'Medical Doctor',
-          employer: 'Kenyatta Hospital',
-          current_city: 'Nairobi',
-          current_country: 'Kenya',
-          engagement_status: AlumniEngagementStatus.ACTIVE,
-          alumni_category: AlumniCategory.MENTOR,
-          is_newsletter_subscribed: true,
-          last_contact_date: '2026-04-20',
-          notes: 'Medical career mentor',
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2026-04-20T00:00:00Z',
-        },
-        {
-          id: 'alumni-003',
-          student_id: 'stu-003',
-          admission_number: 'STU-2021-102',
-          first_name: 'Peter',
-          last_name: 'Kamau',
-          gender: 'Male',
-          graduation_year: '2023',
-          graduation_class_name: 'Form 4',
-          graduation_stream_name: 'East',
-          phone: '+254734567890',
-          current_occupation: 'University Student',
-          employer: 'University of Nairobi',
-          current_city: 'Nairobi',
-          current_country: 'Kenya',
-          engagement_status: AlumniEngagementStatus.INACTIVE,
-          alumni_category: AlumniCategory.GENERAL,
-          is_newsletter_subscribed: false,
-          last_contact_date: '2025-08-10',
-          created_at: '2023-12-01T00:00:00Z',
-          updated_at: '2025-08-10T00:00:00Z',
-        },
-        {
-          id: 'alumni-004',
-          student_id: 'stu-004',
-          admission_number: 'STU-2018-078',
-          first_name: 'Sarah',
-          last_name: 'Wanjiku',
-          gender: 'Female',
-          graduation_year: '2022',
-          graduation_class_name: 'Form 4',
-          graduation_stream_name: 'West',
-          phone: '+254745678901',
-          email: 'sarah.wanjiku@email.com',
-          current_occupation: 'Chartered Accountant',
-          employer: 'Deloitte Kenya',
-          current_city: 'Mombasa',
-          current_country: 'Kenya',
-          engagement_status: AlumniEngagementStatus.ACTIVE,
-          alumni_category: AlumniCategory.DONOR,
-          is_newsletter_subscribed: true,
-          last_contact_date: '2026-05-01',
-          notes: 'Regular donor to scholarship fund',
-          created_at: '2022-12-01T00:00:00Z',
-          updated_at: '2026-05-01T00:00:00Z',
-        },
-        {
-          id: 'alumni-005',
-          student_id: 'stu-005',
-          admission_number: 'STU-2020-156',
-          first_name: 'David',
-          last_name: 'Ochieng',
-          gender: 'Male',
-          graduation_year: '2024',
-          graduation_class_name: 'Form 4',
-          graduation_stream_name: 'East',
-          current_occupation: 'Civil Engineer',
-          employer: 'KPLC',
-          current_city: 'Kisumu',
-          current_country: 'Kenya',
-          engagement_status: AlumniEngagementStatus.LOST_CONTACT,
-          alumni_category: AlumniCategory.GENERAL,
-          is_newsletter_subscribed: false,
-          created_at: '2024-11-20T00:00:00Z',
-          updated_at: '2025-06-15T00:00:00Z',
-        },
-      ];
-    }
-
-    return studentsWithAlumniStatus.map((s: any, index: number) => ({
-      id: `alumni-${s.id || index}`,
-      student_id: s.id || `stu-${index}`,
-      admission_number: s.admission_number || s.admissionNo || `STU-${2000 + index}`,
-      first_name: s.first_name || s.firstName || '',
-      last_name: s.last_name || s.lastName || '',
-      gender: s.gender || '',
-      graduation_year: s.graduation_year || s.graduationYear || '2024',
-      graduation_class_name: s.class_name || s.className || null,
-      graduation_stream_name: s.stream_name || s.streamName || null,
-      phone: s.phone || null,
-      email: s.email || null,
-      current_occupation: s.current_occupation || null,
-      employer: s.employer || null,
-      current_city: s.current_city || null,
-      current_country: s.current_country || 'Kenya',
-      engagement_status: s.engagement_status || AlumniEngagementStatus.ACTIVE,
-      alumni_category: s.alumni_category || AlumniCategory.GENERAL,
-      is_newsletter_subscribed: s.is_newsletter_subscribed !== false,
-      last_contact_date: s.last_contact_date || null,
-      notes: s.notes || null,
-      created_at: s.created_at || new Date().toISOString(),
-      updated_at: s.updated_at || new Date().toISOString(),
-    }));
-  }, [students]);
+  const alumniRecords: AlumniRecord[] = useMemo(
+    () =>
+      learners
+        .filter((learner) => learner.status === 'Alumni')
+        .map((learner) => {
+          const meta = alumniMeta(learner);
+          const stamp = meta.added_at ?? learner.admission_date ?? new Date().toISOString();
+          return {
+            id: learner.id,
+            student_id: learner.id,
+            admission_number: learner.admission_no,
+            first_name: learner.first_name,
+            last_name: learner.last_name,
+            gender: learner.gender,
+            graduation_year: meta.graduation_year ?? '',
+            graduation_class_name: learner.current_class_name,
+            graduation_stream_name: learner.current_class_stream_name,
+            phone: learner.phone,
+            email: learner.email,
+            current_occupation: meta.occupation ?? '',
+            employer: meta.employer ?? '',
+            engagement_status: meta.engagement_status ?? AlumniEngagementStatus.ACTIVE,
+            alumni_category: meta.category ?? AlumniCategory.GENERAL,
+            is_newsletter_subscribed: meta.newsletter === true,
+            notes: meta.notes ?? learner.remarks,
+            created_at: stamp,
+            updated_at: stamp,
+          };
+        }),
+    [learners]
+  );
 
   const graduationYears = useMemo(() => {
     const years = new Set(alumniRecords.map(r => r.graduation_year).filter(Boolean));
@@ -208,6 +122,60 @@ const AlumniDirectoryPage: React.FC = () => {
 
     return results;
   }, [alumniRecords, searchQuery, selectedStatus, selectedGraduationYear]);
+
+  const closeAlumniModal = () => {
+    setIsAddModalOpen(false);
+    setAlumniDraft({
+      student_id: '',
+      graduation_year: String(new Date().getFullYear()),
+      category: AlumniCategory.GENERAL,
+      engagement_status: AlumniEngagementStatus.ACTIVE,
+      occupation: '',
+      employer: '',
+      newsletter: false,
+      notes: '',
+    });
+  };
+
+  const saveAlumniRecord = async () => {
+    const learnerRow = learnerRows.find((row) => row.id === alumniDraft.student_id);
+    const year = alumniDraft.graduation_year.trim();
+    if (!learnerRow || !year) {
+      toast.showWarning('Choose a learner and enter the graduation year.');
+      return;
+    }
+    setSavingAlumni(true);
+    try {
+      const learner = learners.find((row) => row.id === learnerRow.id);
+      const current = learner ? alumniMeta(learner) : {};
+      const attributes = {
+        ...(learnerRow.attributes ?? {}),
+        alumni: {
+          ...current,
+          graduation_year: year,
+          category: alumniDraft.category,
+          engagement_status: alumniDraft.engagement_status,
+          occupation: alumniDraft.occupation.trim(),
+          employer: alumniDraft.employer.trim(),
+          newsletter: alumniDraft.newsletter,
+          notes: alumniDraft.notes.trim(),
+          added_at: current.added_at ?? new Date().toISOString(),
+        },
+      };
+      await repository.update(
+        'learner',
+        asId<'learner'>(learnerRow.id),
+        { status: 'graduated', attributes },
+        { expectedVersion: learnerRow.rowVersion }
+      );
+      toast.showSuccess('Alumni record saved.');
+      closeAlumniModal();
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : 'Could not save the alumni record.');
+    } finally {
+      setSavingAlumni(false);
+    }
+  };
 
   const getEngagementBadge = (status: AlumniEngagementStatus) => {
     return (
@@ -328,14 +296,20 @@ const AlumniDirectoryPage: React.FC = () => {
           <Select
             placeholder="Filter by Status"
             value={selectedStatus}
-            onChange={(value) => setSelectedStatus(value)}
-            options={Object.values(AlumniEngagementStatus).map(s => ({ label: s, value: s }))}
+            onValueChange={(value) => setSelectedStatus(String(value))}
+            options={[
+              { label: 'All statuses', value: '' },
+              ...Object.values(AlumniEngagementStatus).map(s => ({ label: s, value: s })),
+            ]}
           />
           <Select
             placeholder="Filter by Graduation Year"
             value={selectedGraduationYear}
-            onChange={(value) => setSelectedGraduationYear(value)}
-            options={graduationYears.map(y => ({ label: y, value: y }))}
+            onValueChange={(value) => setSelectedGraduationYear(String(value))}
+            options={[
+              { label: 'All years', value: '' },
+              ...graduationYears.map(y => ({ label: y, value: y })),
+            ]}
           />
         </div>
 
@@ -448,44 +422,110 @@ const AlumniDirectoryPage: React.FC = () => {
         title="Add Alumni Record"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>
+            <Button variant="secondary" onClick={closeAlumniModal} disabled={savingAlumni}>
               Cancel
             </Button>
-            <Button onClick={() => setIsAddModalOpen(false)}>
+            <Button onClick={() => void saveAlumniRecord()} loading={savingAlumni}>
               Save Record
             </Button>
           </>
         }
       >
         <div className="space-y-4">
-          <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 text-sm text-primary-700">
-            Alumni records are typically created automatically when a student graduates and their status changes to "Alumni".
-            Use this form for manual records or bulk imports.
+          <div className="rounded-lg border border-primary-200 bg-primary-50 p-3 text-sm text-primary-700">
+            Search a learner by name or admission number. Saving marks the learner graduated and stores the alumni
+            details on the learner record, so the directory and portal have one source of truth.
           </div>
-          <Select
-            label="Select Student"
-            placeholder="Choose a student to convert to alumni..."
-            value=""
-            onChange={() => {}}
-            options={students
-              .filter((s: any) => s.status !== 'Alumni')
-              .map((s: any) => ({
-                label: `${s.first_name || ''} ${s.last_name || ''} (${s.admission_number || s.admissionNo || ''})`,
-                value: s.id || '',
+          <EntityPicker
+            label="Learner"
+            value={alumniDraft.student_id ? asId<'learner'>(alumniDraft.student_id) : null}
+            onChange={(id) => setAlumniDraft((current) => ({ ...current, student_id: id ?? '' }))}
+            lookup={learnersLookup}
+            filter={(row) => row.status !== 'graduated'}
+            placeholder="Search by name or admission number"
+            allowClear
+            helperText={
+              alumniDraft.student_id
+                ? (() => {
+                    const learner = learners.find((row) => row.id === alumniDraft.student_id);
+                    return learner
+                      ? `${learner.admission_no}${learner.current_class_name ? ` · ${learner.current_class_name} ${learner.current_class_stream_name}` : ''}`
+                      : '';
+                  })()
+                : 'The alumnus is chosen from the canonical learner directory.'
+            }
+          />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              label="Graduation Year"
+              placeholder="e.g. 2024"
+              value={alumniDraft.graduation_year}
+              onChange={(event) =>
+                setAlumniDraft((current) => ({ ...current, graduation_year: event.target.value }))
+              }
+            />
+            <Select
+              label="Alumni Category"
+              value={alumniDraft.category}
+              onValueChange={(value) =>
+                setAlumniDraft((current) => ({ ...current, category: value as AlumniCategory }))
+              }
+              options={Object.values(AlumniCategory).map((category) => ({
+                label: category,
+                value: category,
               }))}
-            searchable
+            />
+            <Input
+              label="Current Occupation"
+              placeholder="e.g. Software Engineer"
+              value={alumniDraft.occupation}
+              onChange={(event) =>
+                setAlumniDraft((current) => ({ ...current, occupation: event.target.value }))
+              }
+            />
+            <Input
+              label="Employer"
+              placeholder="e.g. Company Name"
+              value={alumniDraft.employer}
+              onChange={(event) =>
+                setAlumniDraft((current) => ({ ...current, employer: event.target.value }))
+              }
+            />
+            <Select
+              label="Engagement Status"
+              value={alumniDraft.engagement_status}
+              onValueChange={(value) =>
+                setAlumniDraft((current) => ({
+                  ...current,
+                  engagement_status: value as AlumniEngagementStatus,
+                }))
+              }
+              options={Object.values(AlumniEngagementStatus).map((status) => ({
+                label: status,
+                value: status,
+              }))}
+            />
+            <label className="flex items-center gap-2 self-end pb-2 text-sm text-surface-foreground">
+              <input
+                type="checkbox"
+                checked={alumniDraft.newsletter}
+                onChange={(event) =>
+                  setAlumniDraft((current) => ({ ...current, newsletter: event.target.checked }))
+                }
+                className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+              />
+              Subscribe to the alumni newsletter
+            </label>
+          </div>
+          <Textarea
+            label="Notes"
+            placeholder="Additional notes..."
+            value={alumniDraft.notes}
+            onChange={(event) =>
+              setAlumniDraft((current) => ({ ...current, notes: event.target.value }))
+            }
+            rows={3}
           />
-          <Input label="Graduation Year" placeholder="e.g. 2024" value="" onChange={() => {}} />
-          <Select
-            label="Alumni Category"
-            placeholder="Select category"
-            value=""
-            onChange={() => {}}
-            options={Object.values(AlumniCategory).map(c => ({ label: c, value: c }))}
-          />
-          <Input label="Current Occupation" placeholder="e.g. Software Engineer" value="" onChange={() => {}} />
-          <Input label="Employer" placeholder="e.g. Company Name" value="" onChange={() => {}} />
-          <Textarea label="Notes" placeholder="Additional notes..." value="" onChange={() => {}} rows={3} />
         </div>
       </Modal>
     </div>

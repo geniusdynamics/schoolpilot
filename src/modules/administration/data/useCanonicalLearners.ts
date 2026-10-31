@@ -99,6 +99,7 @@ export interface CanonicalLearner {
   readonly county: string;
   readonly religion: string;
   readonly remarks: string;
+  readonly attributes: Readonly<Record<string, unknown>>;
   readonly is_active: boolean;
   readonly deleted_at: string | null;
   readonly rowVersion: number;
@@ -193,6 +194,7 @@ export function toCanonicalLearner(
     county: row.address?.region ?? '',
     religion: attributeOf(row, 'religion'),
     remarks: attributeOf(row, 'remarks'),
+    attributes: row.attributes ?? {},
     is_active: row.status === 'enrolled',
     deleted_at: row.deleted_at ?? null,
     rowVersion: row.rowVersion,
