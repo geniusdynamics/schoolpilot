@@ -381,15 +381,16 @@ export async function savePrimaryGuardian(
 /** The canonical learners of the institution, with their class placement and primary contact. */
 export function useCanonicalLearners() {
   const repository = useCanonicalRepository();
-  const learnersQuery = useEntityQuery(repository, 'learner');
+  const learnersQuery = useEntityQuery(repository, 'learner', { limit: 500 });
   const learnersLookup = useLookup(repository, 'learner', {});
-  const enrolmentsQuery = useEntityQuery(repository, 'enrolment');
-  const classGroupsQuery = useEntityQuery(repository, 'class_group');
+  const enrolmentsQuery = useEntityQuery(repository, 'enrolment', { limit: 500 });
+  const classGroupsQuery = useEntityQuery(repository, 'class_group', { limit: 500 });
   const levels = useLookup(repository, 'level', {});
-  const guardiansQuery = useEntityQuery(repository, 'guardian');
-  const linksQuery = useEntityQuery(repository, 'learner_guardian');
+  const guardiansQuery = useEntityQuery(repository, 'guardian', { limit: 500 });
+  const linksQuery = useEntityQuery(repository, 'learner_guardian', { limit: 500 });
   const identifiersQuery = useEntityQuery(repository, 'identifier', {
     where: { owner_type: 'learner' },
+    limit: 500,
   });
 
   const classGroupById = useMemo(() => {
