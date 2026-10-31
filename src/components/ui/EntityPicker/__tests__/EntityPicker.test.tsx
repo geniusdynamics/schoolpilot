@@ -2,7 +2,7 @@
 // ABOUTME: Covers UUID round trip, live create/relabel, scoped filter, keyboard CTA, archived values and load states.
 
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import EntityPicker, { type EntityPickerLookup } from '../EntityPicker';
@@ -288,6 +288,38 @@ describe('EntityPicker conformance', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Could not load options.');
     expect(screen.queryByRole('button', { name: 'Create class group' })).not.toBeInTheDocument();
+  });
+
+  it('filters the options by the search text', async () => {
+    render(<Harness lookup={makeLookup([BLUE, GOLD])} />);
+
+    await user.click(screen.getByRole('combobox', { name: 'Class group' }));
+    await user.type(screen.getByLabelText('Search options'), 'Gold');
+
+    expect(screen.getByRole('option', { name: 'Grade 7 Gold' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Grade 7 Blue' })).not.toBeInTheDocument();
+  });
+
+  it('queries a remote lookup and selects a result outside the loaded options', async () => {
+    const search = vi.fn(async (term: string) => (term === 'gold' ? [GOLD] : []));
+    render(
+      <Harness
+        lookup={makeLookup([], {
+          search,
+          describe: (row) => row.name,
+        })}
+      />
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'Class group' }));
+    await user.type(screen.getByLabelText('Search options'), 'gold');
+
+    await waitFor(() => expect(search).toHaveBeenCalledWith('gold'));
+    await user.click(await screen.findByRole('option', { name: 'Grade 7 Gold' }));
+
+    expect(screen.getByRole('combobox', { name: 'Class group' })).toHaveTextContent(
+      'Grade 7 Gold'
+    );
   });
 
   it('marks an archived stored value and makes it clearable without opting in', async () => {

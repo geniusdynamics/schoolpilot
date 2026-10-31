@@ -76,6 +76,15 @@ export interface ListQuery {
   readonly where?: Readonly<Record<string, unknown>>;
   /** Operator filters, one per column. */
   readonly conditions?: Readonly<Record<string, FilterCondition>>;
+  /**
+   * Free-text search across several columns, OR-ed. A term is matched as a case-insensitive
+   * substring; `%` and `_` in the term are literals. Used by person pickers so a search does not
+   * have to load the whole school.
+   */
+  readonly search?: {
+    readonly term: string;
+    readonly fields: readonly string[];
+  };
   /** Sort order; the primary key is always appended as a stable tiebreaker. */
   readonly orderBy?: readonly OrderSpec[];
   /** Maximum rows in the page. Defaults to 50, capped at 500. */
