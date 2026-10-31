@@ -25,6 +25,11 @@ export interface UseLookupOptions<E extends EntityName> {
   readonly includeArchived?: boolean;
   /** How many rows the read may return. */
   readonly limit?: number;
+  /**
+   * The columns a free-text search reads. Defaults to the person fields of the entity: the
+   * admission number and names for a learner, the employee number and names for staff.
+   */
+  readonly searchFields?: readonly string[];
   /** A disabled lookup stays idle until it is enabled. */
   readonly enabled?: boolean;
 }
@@ -51,6 +56,14 @@ export interface LookupResult<E extends EntityName> {
   readonly isArchived: (row: RepositoryRow<E>) => boolean;
   /** The id of a row. The picker uses it when the id column is not `id`. */
   readonly getId: (row: RepositoryRow<E>) => Id<E>;
+  /** The label of a row that may not be in the loaded page, such as a remote search result. */
+  readonly describe: (row: RepositoryRow<E>) => string;
+  /** The text a local filter searches: the label plus the person's identifiers. */
+  readonly searchText: (row: RepositoryRow<E>) => string;
+  /** Reads one row by id, for a selected value outside the loaded page. */
+  readonly fetch: (id: Id<E>) => Promise<RepositoryRow<E> | null>;
+  /** Free-text search through the repository; absent when the entity has no default fields. */
+  readonly search?: (term: string) => Promise<readonly RepositoryRow<E>[]>;
 }
 
 /**
@@ -67,6 +80,17 @@ interface SharedLookup<E extends EntityName> {
 
 /** The number of rows a lookup reads when no limit is given. */
 const DEFAULT_LOOKUP_LIMIT = 500;
+
+/**
+ * The columns a person search reads. A learner is found by name or admission number, a staff
+ * member by name or employee number; the JSON arrays (middle names, phones) are searched as text.
+ */
+const DEFAULT_SEARCH_FIELDS: Partial<Record<EntityName, readonly string[]>> = {
+  learner: ['admission_number', 'given_name', 'middle_names', 'family_name', 'preferred_name'],
+  staff: ['employee_number', 'given_name', 'middle_names', 'family_name', 'preferred_name'],
+  guardian: ['given_name', 'middle_names', 'family_name', 'preferred_name', 'phones'],
+  user: ['username', 'email'],
+};
 
 /**
  * Reads the rows of one entity for a picker.
@@ -106,8 +130,10 @@ export function useLookup<E extends EntityName>(
     filter,
     includeArchived = false,
     limit = DEFAULT_LOOKUP_LIMIT,
+    searchFields,
     enabled = true,
   } = options;
+  const fields = searchFields ?? DEFAULT_SEARCH_FIELDS[entity];
 
   const key = queryKey(entity, {
     $lookup: { filter: filter ?? {} },
@@ -158,17 +184,77 @@ export function useLookup<E extends EntityName>(
   const labelRef = useRef(label);
   labelRef.current = label;
 
-  const labelFor = useMemo(
-    () =>
-      (id: Id<E>, fallback = ''): string => {
-        const row = shared.byId.get(id);
-        if (!row) return fallback;
-        const current = labelRef.current;
-        const text = current ? current(row) : labelOf(entity, row);
-        return isArchived(row) ? `${text} (archived)` : text;
-      },
-    [shared, entity, isArchived]
+  const describe = useCallback(
+    (row: RepositoryRow<E>): string => {
+      const current = labelRef.current;
+      const text = current ? current(row) : labelOf(entity, row);
+      return isArchived(row) ? `${text} (archived)` : text;
+    },
+    [entity, isArchived]
   );
+
+  const labelFor = useCallback(
+    (id: Id<E>, fallback = ''): string => {
+      const row = shared.byId.get(id);
+      return row ? describe(row) : fallback;
+    },
+    [shared, describe]
+  );
+
+  const searchText = useCallback(
+    (row: RepositoryRow<E>): string => {
+      const parts: string[] = [describe(row)];
+      for (const field of ['admission_number', 'employee_number', 'staff_no', 'email']) {
+        const value = fieldOf(row, field);
+        if (typeof value === 'string' && value) parts.push(value);
+      }
+      const phones = fieldOf(row, 'phones');
+      if (Array.isArray(phones)) {
+        for (const phone of phones) {
+          if (phone && typeof phone === 'object' && 'number' in phone) {
+            const number = (phone as { number?: unknown }).number;
+            if (typeof number === 'string') parts.push(number);
+          }
+        }
+      }
+      const emails = fieldOf(row, 'emails');
+      if (Array.isArray(emails)) {
+        for (const email of emails) {
+          if (email && typeof email === 'object' && 'address' in email) {
+            const address = (email as { address?: unknown }).address;
+            if (typeof address === 'string') parts.push(address);
+          }
+        }
+      }
+      return parts.join(' ').toLowerCase();
+    },
+    [describe]
+  );
+
+  const fetch = useCallback(
+    async (id: Id<E>): Promise<RepositoryRow<E> | null> => {
+      const page = await repository.list(entity, {
+        where: { [idField]: id },
+        includeDeleted: true,
+        limit: 1,
+      });
+      return page.items[0] ?? null;
+    },
+    [repository, entity, idField]
+  );
+
+  const search = useMemo(() => {
+    if (!fields || fields.length === 0) return undefined;
+    return async (term: string): Promise<readonly RepositoryRow<E>[]> => {
+      const page = await repository.list(entity, {
+        ...(filter ? { where: filter } : {}),
+        search: { term, fields },
+        includeDeleted: true,
+        limit: 50,
+      });
+      return includeArchived ? page.items : page.items.filter((row) => !isArchived(row));
+    };
+  }, [repository, entity, filter, fields, includeArchived, isArchived]);
 
   const resolve = useCallback((id: Id<E>) => shared.byId.get(id), [shared]);
   const getId = useCallback(
@@ -187,6 +273,10 @@ export function useLookup<E extends EntityName>(
       isFetching: snapshot.isFetching,
       isArchived,
       getId,
+      describe,
+      searchText,
+      fetch,
+      ...(search ? { search } : {}),
     }),
     [
       pickerOptions,
@@ -198,6 +288,10 @@ export function useLookup<E extends EntityName>(
       snapshot.isFetching,
       isArchived,
       getId,
+      describe,
+      searchText,
+      fetch,
+      search,
     ]
   );
 }

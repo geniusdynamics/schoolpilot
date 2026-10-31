@@ -2,7 +2,7 @@
 // ABOUTME: Reads and saves through useDatabaseDocument so the profile persists and refreshes live (SO-17);
 // ABOUTME: also (re-)opens the setup wizard, labelled as a re-run once school_details.setup_completed_at is set.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import { SchoolDetails } from '@/types';
@@ -42,6 +42,44 @@ export const SettingsSchoolProfileContent: React.FC = () => {
 
   const handleSchoolDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setSchoolDetails({ ...schoolDetails, [e.target.name]: e.target.value });
+  };
+
+  const admissionSections = useMemo(() => {
+    try {
+      const parsed = JSON.parse(schoolDetails.admission_number_sections ?? '[]');
+      return Array.isArray(parsed)
+        ? (parsed as Array<{ name: string; prefix?: string | null; suffix?: string | null }>)
+        : [];
+    } catch {
+      return [];
+    }
+  }, [schoolDetails.admission_number_sections]);
+
+  const writeAdmissionSections = (
+    rows: Array<{ name: string; prefix?: string | null; suffix?: string | null }>
+  ) => {
+    setSchoolDetails((current) => ({
+      ...current,
+      admission_number_sections: JSON.stringify(rows),
+    }));
+  };
+
+  const addAdmissionSection = () => {
+    writeAdmissionSections([...admissionSections, { name: '', prefix: '', suffix: '' }]);
+  };
+
+  const updateAdmissionSection = (
+    index: number,
+    field: 'name' | 'prefix' | 'suffix',
+    value: string
+  ) => {
+    const rows = [...admissionSections];
+    rows[index] = { ...rows[index], [field]: value };
+    writeAdmissionSections(rows);
+  };
+
+  const removeAdmissionSection = (index: number) => {
+    writeAdmissionSections(admissionSections.filter((_, row) => row !== index));
   };
 
   const toast = useToast();
@@ -125,6 +163,118 @@ export const SettingsSchoolProfileContent: React.FC = () => {
             <Input label={t('schoolProfile.mottoLabel')} name="motto" value={schoolDetails.motto || ''} onChange={handleSchoolDetailsChange} className="md:col-span-2"/>
             {/* logo_path would be a file upload in a real app */}
           </div>
+
+          <div className="mt-6 border-t border-surface-border pt-5">
+            <h3 className="text-base font-semibold text-surface-foreground">Admission numbers</h3>
+            <p className="mt-1 text-sm text-surface-muted-fg">
+              The number the admissions page assigns. Leave the prefix or suffix empty for a bare
+              number. A section override wins when its name matches the learner&apos;s level first,
+              then their programme.
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Input
+                label="Prefix"
+                name="admission_number_prefix"
+                value={schoolDetails.admission_number_prefix ?? 'ADM'}
+                onChange={handleSchoolDetailsChange}
+                placeholder="ADM"
+              />
+              <Input
+                label="Suffix"
+                name="admission_number_suffix"
+                value={schoolDetails.admission_number_suffix ?? ''}
+                onChange={handleSchoolDetailsChange}
+                placeholder="e.g. JSS"
+              />
+              <Input
+                label="Separator"
+                name="admission_number_separator"
+                value={schoolDetails.admission_number_separator ?? '/'}
+                onChange={handleSchoolDetailsChange}
+                placeholder="/"
+              />
+              <Input
+                label="Sequence width"
+                name="admission_number_width"
+                type="number"
+                value={schoolDetails.admission_number_width ?? '3'}
+                onChange={handleSchoolDetailsChange}
+              />
+              <Select
+                label="Include the year"
+                name="admission_number_include_year"
+                value={schoolDetails.admission_number_include_year ?? 'true'}
+                onChange={handleSchoolDetailsChange}
+              >
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </Select>
+            </div>
+
+            <div className="mt-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-sm font-semibold text-surface-foreground">
+                    Section overrides
+                  </h4>
+                  <p className="text-xs text-surface-muted-fg">
+                    For a school whose primary and junior secondary sections use different
+                    sequences. The name must match the level or programme name.
+                  </p>
+                </div>
+                <Button type="button" variant="secondary" onClick={addAdmissionSection}>
+                  Add section
+                </Button>
+              </div>
+              {admissionSections.length === 0 ? (
+                <p className="mt-3 text-sm text-surface-muted-fg">
+                  One format for the whole school.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  {admissionSections.map((section, index) => (
+                    <div
+                      key={`${section.name}-${index}`}
+                      className="grid grid-cols-1 items-end gap-3 rounded-lg border border-surface-border p-3 md:grid-cols-[1.4fr_1fr_1fr_auto]"
+                    >
+                      <Input
+                        label="Level or programme"
+                        value={section.name}
+                        onChange={(event) =>
+                          updateAdmissionSection(index, 'name', event.target.value)
+                        }
+                        placeholder="e.g. Junior Secondary"
+                      />
+                      <Input
+                        label="Prefix"
+                        value={section.prefix ?? ''}
+                        onChange={(event) =>
+                          updateAdmissionSection(index, 'prefix', event.target.value)
+                        }
+                        placeholder="Inherit"
+                      />
+                      <Input
+                        label="Suffix"
+                        value={section.suffix ?? ''}
+                        onChange={(event) =>
+                          updateAdmissionSection(index, 'suffix', event.target.value)
+                        }
+                        placeholder="Inherit"
+                      />
+                      <Button
+                        type="button"
+                        variant="danger"
+                        onClick={() => removeAdmissionSection(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="pt-2">
             <Button type="submit" disabled={isSaving || pageIsLoading}>
               {isSaving ? <Spinner size="sm" /> : t('schoolProfile.saveButton')}

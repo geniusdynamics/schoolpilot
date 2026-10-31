@@ -217,7 +217,7 @@ describe('StudentsListContent (P1-E01)', () => {
     fireEvent.click(within(dialog).getByRole('tab', { name: /Academic Details/i }));
     const picker = within(dialog).getByRole('combobox', { name: /Class Group/i });
     fireEvent.click(picker);
-    fireEvent.click(await screen.findByRole('option', { name: /Grade 7/ }));
+    fireEvent.click(await within(dialog).findByRole('option', { name: /Grade 7/ }));
 
     fireEvent.click(within(dialog).getByRole('button', { name: /Add Student/i }));
 

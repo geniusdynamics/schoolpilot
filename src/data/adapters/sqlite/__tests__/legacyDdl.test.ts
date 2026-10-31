@@ -1,5 +1,9 @@
 // ABOUTME: Guards byte-for-byte parity of legacy generated DDL against the gate base c8e67c5,
 // ABOUTME: covering every entry in collectionsDefinition rather than a hand-written sample.
+//
+// The school_details hash was renewed deliberately when the admission-number format columns were
+// added. They are nullable and the legacy SQLite provider adds missing columns on open, so an
+// existing school database gains them without a rewrite; every other collection must stay exact.
 
 import { createHash } from 'node:crypto';
 

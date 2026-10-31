@@ -72,6 +72,7 @@ const MarksEntryContent: React.FC = () => {
     teachingGroupMembers,
     marks,
     academicPeriods,
+    levels,
     learningAreaById,
     enrolmentById,
     learnerById,
@@ -81,9 +82,15 @@ const MarksEntryContent: React.FC = () => {
     label: (row) => `${row.name} (${row.kind.replace(/_/g, ' ')})`,
   });
   const groupLookup = useLookup(repository, 'teaching_group', { label: (row) => row.name });
+  const classGroupLookup = useLookup(repository, 'class_group', {
+    label: (row) =>
+      `${levels.find((level) => level.id === row.level_id)?.name ?? row.level_id} · ${row.name}`,
+  });
 
   const [assessmentId, setAssessmentId] = useState<Id<'assessment'> | null>(null);
+  const [classGroupId, setClassGroupId] = useState<Id<'class_group'> | null>(null);
   const [groupId, setGroupId] = useState<Id<'teaching_group'> | null>(null);
+  const [studentTerm, setStudentTerm] = useState('');
   const [draft, setDraft] = useState<{
     key: string;
     entries: Record<string, Entry>;
@@ -149,7 +156,7 @@ const MarksEntryContent: React.FC = () => {
   const shouldValidate = (enrolmentId: string) =>
     touched(enrolmentId) || marksForAssessment.has(enrolmentId);
 
-  const rows = useMemo(
+  const allRows = useMemo(
     () =>
       members.map((member) => {
         const enrolment = enrolmentById.get(member.enrolment_id);
@@ -158,6 +165,16 @@ const MarksEntryContent: React.FC = () => {
       }),
     [members, enrolmentById, learnerById, marksForAssessment]
   );
+
+  const visibleRows = useMemo(() => {
+    const term = studentTerm.trim().toLowerCase();
+    if (!term) return allRows;
+    return allRows.filter(({ learner, enrolment }) => {
+      const name = learner ? personName(learner).toLowerCase() : '';
+      const admission = (learner?.admission_number ?? enrolment?.learner_id ?? '').toLowerCase();
+      return name.includes(term) || admission.includes(term);
+    });
+  }, [allRows, studentTerm]);
 
   const learnerName = (learner: LearnerRow | undefined, enrolment: EnrolmentRow | undefined) =>
     learner ? personName(learner) : (enrolment?.learner_id ?? 'Unknown learner');
@@ -212,7 +229,7 @@ const MarksEntryContent: React.FC = () => {
     if (!assessment || !group || !learningAreaId) return;
 
     const found: EntryProblem[] = [];
-    for (const { member } of rows) {
+    for (const { member } of allRows) {
       for (const message of rowProblems(member.enrolment_id)) {
         found.push({ enrolmentId: member.enrolment_id, message });
       }
@@ -226,7 +243,7 @@ const MarksEntryContent: React.FC = () => {
     setSaving(true);
     setSummaryMessage(null);
     const failures: EntryProblem[] = [];
-    for (const { member, mark } of rows) {
+    for (const { member, mark } of allRows) {
       if (!shouldValidate(member.enrolment_id)) continue;
       const entry = entries[member.enrolment_id];
       if (!entry) continue;
@@ -282,6 +299,7 @@ const MarksEntryContent: React.FC = () => {
   }
 
   const selectableGroups = teachingGroups.filter((row) => {
+    if (classGroupId && !row.class_group_ids?.includes(classGroupId)) return false;
     if (!assessment) return true;
     const inYear = period ? row.academic_year_id === period.academic_year_id : true;
     const coversArea =
@@ -302,7 +320,18 @@ const MarksEntryContent: React.FC = () => {
         title={t('studentExamResultsEntry.title', 'Marks entry')}
         info="A mark belongs to one learner enrolment, one assessment and one learning area. The repository refuses a second mark for the same three, a learner outside the chosen teaching group, and a write made against a version someone else has moved on."
       >
-        <div className="grid grid-cols-1 gap-4 border rounded-md bg-surface-muted p-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 border rounded-md bg-surface-muted p-4 md:grid-cols-2 xl:grid-cols-4">
+          <EntityPicker
+            label="Class / stream"
+            value={classGroupId}
+            onChange={(next) => {
+              setClassGroupId(next);
+              setGroupId(null);
+            }}
+            lookup={classGroupLookup}
+            placeholder="All classes"
+            allowClear
+          />
           <EntityPicker
             label="Assessment"
             value={assessmentId}
@@ -329,16 +358,27 @@ const MarksEntryContent: React.FC = () => {
                 : 'The group fixes the learning area and its members.'
             }
           />
+          <Input
+            label="Search learners"
+            value={studentTerm}
+            onChange={(event) => setStudentTerm(event.target.value)}
+            placeholder="Name or admission number"
+            aria-label="Search learners"
+          />
         </div>
 
         {!assessment || !group ? (
           <p className="py-6 text-center text-surface-muted-fg">
             Choose an assessment and a teaching group to enter marks.
           </p>
-        ) : members.length === 0 ? (
+        ) : allRows.length === 0 ? (
           <p className="py-6 text-center text-surface-muted-fg">
             This teaching group has no members on {date}. Add memberships on the teaching groups
             screen first.
+          </p>
+        ) : visibleRows.length === 0 ? (
+          <p className="py-6 text-center text-surface-muted-fg">
+            No learner in this group matches “{studentTerm}”.
           </p>
         ) : (
           <div className="mt-6 space-y-4">
@@ -359,7 +399,7 @@ const MarksEntryContent: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ member, enrolment, learner, mark }) => {
+                {visibleRows.map(({ member, enrolment, learner, mark }) => {
                   const name = learnerName(learner, enrolment);
                   const entry = entries[member.enrolment_id] ?? entryFor(mark);
                   const current = rowProblems(member.enrolment_id);
@@ -368,7 +408,18 @@ const MarksEntryContent: React.FC = () => {
                   );
                   return (
                     <tr key={member.id} className="border-b border-surface-border last:border-b-0">
-                      <td className="py-2 pr-3">{name}</td>
+                      <td className="py-2 pr-3">
+                        {learner ? (
+                          <a
+                            href={`/administration/students/${learner.id}`}
+                            className="font-medium text-primary-700 hover:underline"
+                          >
+                            {name}
+                          </a>
+                        ) : (
+                          name
+                        )}
+                      </td>
                       <td className="py-2 pr-3">{learner?.admission_number ?? '—'}</td>
                       <td className="py-2 pr-3">
                         <Input

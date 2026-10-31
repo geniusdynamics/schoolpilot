@@ -19,7 +19,7 @@ export function canonicalStaffName(row: StaffRow): string {
 /** The canonical staff of the institution, with the lookup a picker binds to. */
 export function useCanonicalStaff() {
   const repository = useCanonicalRepository();
-  const staffQuery = useEntityQuery(repository, 'staff');
+  const staffQuery = useEntityQuery(repository, 'staff', { limit: 500 });
   const staffLookup = useLookup(repository, 'staff', {});
 
   const staff = useMemo(

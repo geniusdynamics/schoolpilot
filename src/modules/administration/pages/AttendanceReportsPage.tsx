@@ -1,94 +1,179 @@
-import React, { useState, useMemo } from 'react';
-import { withCanonicalRepository } from '../data/withCanonicalRepository';
-import { useCanonicalLearners } from '../data/useCanonicalLearners';
+// ABOUTME: Monthly attendance report over the canonical attendance sessions and marks, with class and stream filters.
+// ABOUTME: The report pages every session and mark in the month, so a large school is not truncated at one repository page.
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { DocumentTextIcon, CalendarIcon, UserIcon, ChartBarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { CalendarIcon, ChartBarIcon, DocumentTextIcon, UserIcon } from '@/components/ui/icons';
+import type { RepositoryRow } from '@/data/repository';
+import { listAll } from '@/data/listAll';
+
+import { useCanonicalRepository } from '../data/canonicalRepository';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import type { AttendanceReport } from '../data/types';
-import type { StudentAttendance } from '@/core/types';
-import { AttendanceStatus } from '@/core/types';
+
+interface Bucket {
+  present: number;
+  absent: number;
+  late: number;
+  total: number;
+}
+
+const emptyBucket = (): Bucket => ({ present: 0, absent: 0, late: 0, total: 0 });
 
 export const AttendanceReportsContent: React.FC = () => {
-
-  const { learners: students, isLoading } = useCanonicalLearners();
-  const attendanceCollection = useDatabaseCollection<StudentAttendance>('student_attendance');
+  const repository = useCanonicalRepository();
+  const { learners, isLoading: learnersLoading, classGroupRows } = useCanonicalLearners();
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [selectedClass, setSelectedClass] = useState('');
+  const [selectedStream, setSelectedStream] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sessions, setSessions] = useState<RepositoryRow<'attendance_session'>[]>([]);
+  const [marks, setMarks] = useState<RepositoryRow<'attendance_mark'>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
-  // Monthly per-student aggregates derived from live attendance records
-  const reports: AttendanceReport[] = useMemo(() => {
-    const studentById = new Map((students || []).map(s => [String(s.id), s]));
-    const monthPrefix = selectedMonth;
+  const reload = useCallback(() => setReloadToken((current) => current + 1), []);
 
-    interface Bucket {
-      present: number;
-      absent: number;
-      late: number;
-    }
-    const buckets = new Map<string, Bucket>();
+  useEffect(() => {
+    let cancelled = false;
 
-    attendanceCollection.data.forEach(record => {
-      if (!record.date || !record.date.startsWith(monthPrefix)) return;
-      if (record.student_id == null) return;
-
-      let bucket = buckets.get(String(record.student_id));
-      if (!bucket) {
-        bucket = { present: 0, absent: 0, late: 0 };
-        buckets.set(String(record.student_id), bucket);
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const start = `${selectedMonth}-01`;
+        const end = `${selectedMonth}-31`;
+        const nextSessions = await listAll(repository, 'attendance_session', {
+          conditions: { date: { greaterThanOrEqual: start, lessThanOrEqual: end } },
+          orderBy: [{ field: 'date', direction: 'asc' }],
+        });
+        const sessionIds = nextSessions.map((session) => session.id);
+        const nextMarks: RepositoryRow<'attendance_mark'>[] = [];
+        for (let index = 0; index < sessionIds.length; index += 500) {
+          const chunk = sessionIds.slice(index, index + 500);
+          nextMarks.push(
+            ...(await listAll(repository, 'attendance_mark', {
+              conditions: { attendance_session_id: { in: chunk } },
+            }))
+          );
+        }
+        if (!cancelled) {
+          setSessions(nextSessions);
+          setMarks(nextMarks);
+        }
+      } catch (caught) {
+        if (!cancelled) {
+          setSessions([]);
+          setMarks([]);
+          setError(caught instanceof Error ? caught.message : String(caught));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      if (record.status === AttendanceStatus.PRESENT) bucket.present += 1;
-      else if (record.status === AttendanceStatus.ABSENT) bucket.absent += 1;
-      else if (record.status === AttendanceStatus.LATE) bucket.late += 1;
-    });
+    };
 
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [repository, selectedMonth, reloadToken]);
+
+  const learnerById = useMemo(
+    () => new Map(learners.map((learner) => [learner.id, learner] as const)),
+    [learners]
+  );
+
+  const buckets = useMemo(() => {
+    const byLearner = new Map<string, Bucket>();
+    for (const mark of marks) {
+      const learnerId = mark.learner_id;
+      if (!learnerId) continue;
+      let bucket = byLearner.get(learnerId);
+      if (!bucket) {
+        bucket = emptyBucket();
+        byLearner.set(learnerId, bucket);
+      }
+      bucket.total += 1;
+      if (mark.status === 'present') bucket.present += 1;
+      else if (mark.status === 'late') bucket.late += 1;
+      else bucket.absent += 1;
+    }
+    return byLearner;
+  }, [marks]);
+
+  const reports = useMemo<AttendanceReport[]>(() => {
     const year = parseInt(selectedMonth.slice(0, 4), 10) || new Date().getFullYear();
-    const derived: AttendanceReport[] = [];
+    const term = searchTerm.trim().toLowerCase();
+    const rows: AttendanceReport[] = [];
 
-    buckets.forEach((bucket, studentId) => {
-      const student = studentById.get(studentId);
-      const classNameParts = [
-        student?.current_class_name,
-        student?.current_class_stream_name
-      ].filter(Boolean);
-      const totalDays = bucket.present + bucket.absent + bucket.late;
-      derived.push({
-        id: `${studentId}-${monthPrefix}`,
+    for (const [studentId, bucket] of buckets) {
+      const learner = learnerById.get(studentId);
+      if (selectedClass && learner?.current_class_name !== selectedClass) continue;
+      if (selectedStream && learner?.current_class_stream_name !== selectedStream) continue;
+      if (term) {
+        const name = learner?.display_name.toLowerCase() ?? '';
+        const admission = learner?.admission_no.toLowerCase() ?? '';
+        if (!name.includes(term) && !admission.includes(term)) continue;
+      }
+      rows.push({
+        id: `${studentId}-${selectedMonth}`,
         student_id: studentId,
-        student_name: student
-          ? (student.display_name || `${student.first_name} ${student.last_name}`.trim())
-          : (attendanceCollection.data.find(r => String(r.student_id) === studentId)?.student_name ?? 'Unknown'),
-        admission_no: student?.admission_no ?? '-',
-        class_id: String(student?.current_class_stream_id ?? ''),
-        class_name: classNameParts.length > 0 ? classNameParts.join(' - ') : '-',
-        month: monthPrefix,
+        student_name: learner?.display_name ?? 'Unknown learner',
+        admission_no: learner?.admission_no ?? '—',
+        class_id: learner?.class_group_id ?? '',
+        class_name: learner?.current_class_name || '—',
+        stream_name: learner?.current_class_stream_name || '—',
+        month: selectedMonth,
         year,
-        total_days: totalDays,
+        total_days: bucket.total,
         present_days: bucket.present,
         absent_days: bucket.absent,
         late_days: bucket.late,
-        percentage: totalDays > 0 ? Math.round((bucket.present / totalDays) * 1000) / 10 : 0
+        percentage: bucket.total > 0 ? Math.round((bucket.present / bucket.total) * 1000) / 10 : 0,
       });
-    });
-
-    let filtered = derived;
-
-    if (selectedClass) {
-      filtered = filtered.filter(r => r.class_name === selectedClass);
     }
 
-    if (searchTerm) {
-      filtered = filtered.filter(r =>
-        (r.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (r.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
-    }
+    return rows.sort(
+      (a, b) =>
+        a.class_name.localeCompare(b.class_name) ||
+        a.stream_name.localeCompare(b.stream_name) ||
+        a.student_name.localeCompare(b.student_name)
+    );
+  }, [buckets, learnerById, selectedMonth, selectedClass, selectedStream, searchTerm]);
 
-    return filtered;
-  }, [attendanceCollection.data, students, selectedMonth, selectedClass, searchTerm]);
+  const classOptions = useMemo(
+    () =>
+      [...new Set(learners.map((learner) => learner.current_class_name).filter(Boolean))].sort(
+        (a, b) => a.localeCompare(b)
+      ),
+    [learners]
+  );
+
+  const streamOptions = useMemo(() => {
+    const scoped = selectedClass
+      ? learners.filter((learner) => learner.current_class_name === selectedClass)
+      : learners;
+    return [...new Set(scoped.map((learner) => learner.current_class_stream_name).filter(Boolean))].sort(
+      (a, b) => a.localeCompare(b)
+    );
+  }, [learners, selectedClass]);
+
+  const totals = useMemo(
+    () => ({
+      total_students: reports.length,
+      avg_percentage:
+        reports.length > 0 ? reports.reduce((sum, report) => sum + report.percentage, 0) / reports.length : 0,
+      total_present: reports.reduce((sum, report) => sum + report.present_days, 0),
+      total_absent: reports.reduce((sum, report) => sum + report.absent_days, 0),
+    }),
+    [reports]
+  );
 
   const getPercentageColor = (percentage: number) => {
     if (percentage >= 90) return 'text-green-600';
@@ -101,82 +186,69 @@ export const AttendanceReportsContent: React.FC = () => {
       key: 'student_name',
       header: 'Student Name',
       sortable: true,
-      filterable: true
+      filterable: false,
     },
-    {
-      key: 'admission_no',
-      header: 'Admission No',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'class_name',
-      header: 'Class',
-      sortable: true,
-      filterable: true
-    },
+    { key: 'admission_no', header: 'Admission No', sortable: true, filterable: false },
+    { key: 'class_name', header: 'Class', sortable: true, filterable: false },
+    { key: 'stream_name', header: 'Stream', sortable: true, filterable: false },
     {
       key: 'month',
       header: 'Month',
       sortable: true,
-      render: (value) => {
-        const date = new Date(value + '-01');
-        return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      }
+      filterable: false,
+      render: (value: string) =>
+        new Date(`${value}-01`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     },
-    {
-      key: 'total_days',
-      header: 'Total Days',
-      sortable: true,
-      render: (value) => value
-    },
+    { key: 'total_days', header: 'Total Days', sortable: true, filterable: false },
     {
       key: 'present_days',
       header: 'Present',
       sortable: true,
-      render: (value) => <span className="text-green-600 font-semibold">{value}</span>
+      filterable: false,
+      render: (value: number) => <span className="font-semibold text-green-600">{value}</span>,
     },
     {
       key: 'absent_days',
       header: 'Absent',
       sortable: true,
-      render: (value) => <span className="text-red-600 font-semibold">{value}</span>
+      filterable: false,
+      render: (value: number) => <span className="font-semibold text-red-600">{value}</span>,
     },
     {
       key: 'late_days',
       header: 'Late',
       sortable: true,
-      render: (value) => <span className="text-yellow-600 font-semibold">{value}</span>
+      filterable: false,
+      render: (value: number) => <span className="font-semibold text-yellow-600">{value}</span>,
     },
     {
       key: 'percentage',
       header: 'Attendance %',
       sortable: true,
-      render: (value) => (
-        <span className={`font-semibold ${getPercentageColor(value)}`}>
-          {value.toFixed(1)}%
-        </span>
-      )
-    }
+      filterable: false,
+      render: (value: number) => (
+        <span className={`font-semibold ${getPercentageColor(value)}`}>{value.toFixed(1)}%</span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'View',
+      sortable: false,
+      filterable: false,
+      render: (_value, row) => (
+        <a
+          href={`/administration/students/${row.student_id}`}
+          className="text-sm font-medium text-primary-700 hover:underline"
+        >
+          View student
+        </a>
+      ),
+    },
   ];
 
-  const uniqueClasses = useMemo(() => {
-    const classNames = [...new Set(reports.map(r => r.class_name))];
-    return classNames.filter(name => name !== '-');
-  }, [reports]);
-
-  const totals = useMemo(() => {
-    return {
-      total_students: reports.length,
-      avg_percentage: reports.length > 0 ? reports.reduce((sum, r) => sum + r.percentage, 0) / reports.length : 0,
-      total_present: reports.reduce((sum, r) => sum + r.present_days, 0),
-      total_absent: reports.reduce((sum, r) => sum + r.absent_days, 0)
-    };
-  }, [reports]);
-
-  if (isLoading && attendanceCollection.loading && reports.length === 0) {
+  if ((learnersLoading || loading) && reports.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />
         <span className="ml-2">Loading attendance reports...</span>
       </div>
@@ -188,91 +260,126 @@ export const AttendanceReportsContent: React.FC = () => {
       <Card
         title={
           <div className="flex items-center gap-2">
-            <DocumentTextIcon className="w-6 h-6 text-violet-600" />
+            <DocumentTextIcon className="h-6 w-6 text-violet-600" />
             <span>Attendance Reports</span>
           </div>
         }
-        info="View comprehensive attendance reports including monthly summaries, class-wise attendance, and individual student attendance records with detailed statistics."
+        info="Monthly attendance from the registers, filterable by class and stream. Every learner in the month's marks is listed; open a learner to see their full profile."
+        actions={
+          <Button variant="secondary" onClick={reload} disabled={loading}>
+            Refresh
+          </Button>
+        }
       >
-        {/* Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <UserIcon className="w-5 h-5" />
+              <UserIcon className="h-5 w-5" />
               <span className="text-sm font-medium">Total Students</span>
             </div>
-            <p className="text-2xl font-bold text-surface-foreground mt-2">
-              {totals.total_students}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-surface-foreground">{totals.total_students}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <ChartBarIcon className="w-5 h-5" />
+              <ChartBarIcon className="h-5 w-5" />
               <span className="text-sm font-medium">Avg Attendance</span>
             </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {totals.avg_percentage.toFixed(1)}%
-            </p>
+            <p className="mt-2 text-2xl font-bold text-green-600">{totals.avg_percentage.toFixed(1)}%</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5 text-green-600" />
+              <CalendarIcon className="h-5 w-5 text-green-600" />
               <span className="text-sm font-medium">Total Present</span>
             </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {totals.total_present}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-green-600">{totals.total_present}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5 text-red-600" />
+              <CalendarIcon className="h-5 w-5 text-red-600" />
               <span className="text-sm font-medium">Total Absent</span>
             </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">
-              {totals.total_absent}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{totals.total_absent}</p>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Month</label>
+        {error ? (
+          <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        ) : null}
+
+        <div className="mb-6 flex flex-wrap gap-4">
+          <div className="min-w-[200px] flex-1">
+            <label className="mb-1 block text-sm font-medium text-surface-foreground">Month</label>
             <input
               type="month"
               value={selectedMonth}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedMonth(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSelectedMonth(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             />
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
+          <div className="min-w-[200px] flex-1">
+            <label className="mb-1 block text-sm font-medium text-surface-foreground">Class</label>
             <select
               value={selectedClass}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => {
+                setSelectedClass(event.target.value);
+                setSelectedStream('');
+              }}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             >
               <option value="">All Classes</option>
-              {uniqueClasses.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
+              {classOptions.map((className) => (
+                <option key={className} value={className}>
+                  {className}
+                </option>
               ))}
             </select>
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
+          <div className="min-w-[200px] flex-1">
+            <label className="mb-1 block text-sm font-medium text-surface-foreground">Stream</label>
+            <select
+              value={selectedStream}
+              onChange={(event) => setSelectedStream(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
+            >
+              <option value="">All Streams</option>
+              {streamOptions.map((stream) => (
+                <option key={stream} value={stream}>
+                  {stream}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-[200px] flex-1">
+            <label className="mb-1 block text-sm font-medium text-surface-foreground">Search</label>
             <input
               type="text"
               placeholder="Student, admission..."
               value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             />
           </div>
         </div>
 
+        <p className="mb-2 text-xs text-surface-muted-fg">
+          {sessions.length} register{sessions.length === 1 ? '' : 's'} · {marks.length} mark
+          {marks.length === 1 ? '' : 's'} in {selectedMonth}
+          {classGroupRows.length > 0 ? ` · ${classGroupRows.length} class streams` : ''}
+        </p>
+
         <DataGrid
           data={reports}
           columns={columns}
+          loading={loading}
+          pagination={{ pageSize: 25 }}
+          sortable
+          filterable={false}
+          emptyState={{
+            title: 'No attendance marks for this month',
+            description: 'Take a register first, or change the month and filters.',
+          }}
         />
       </Card>
     </div>
@@ -285,5 +392,4 @@ const AttendanceReportsPage: React.FC = () => (
   </div>
 );
 
-const AttendanceReportsPageWithRepository = withCanonicalRepository(AttendanceReportsPage);
-export default AttendanceReportsPageWithRepository;
+export default AttendanceReportsPage;

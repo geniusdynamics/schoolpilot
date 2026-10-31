@@ -4,7 +4,12 @@
 
 import type { CreateInput, Repository, RepositoryRow, WriteOptions } from '@/data/repository';
 import { asId, type Id } from '@/domain/ids';
-import { nextSequenceNumber, sequenceYear } from '@/domain/sequences';
+import {
+  admissionNumberStartsWith,
+  nextAdmissionNumber as nextFormattedAdmissionNumber,
+  normaliseAdmissionNumberFormat,
+  type AdmissionNumberFormat,
+} from './admissionNumberFormat';
 
 import {
   claimIdentifier,
@@ -30,6 +35,11 @@ export interface AdmissionServiceOptions extends ServiceDependencies {
   readonly repository: Repository;
   /** The prefix of the admission numbers the service assigns; `ADM` when the caller does not say. */
   readonly admissionNumberPrefix?: string;
+  /**
+   * The school's admission-number format. The page resolves the per-section override and hands
+   * the resulting format in; the default is `ADM/{YYYY}/{SEQ:3}`.
+   */
+  readonly admissionNumberFormat?: AdmissionNumberFormat;
 }
 
 /** The medical record of a learner, as the admission form collects it. */
@@ -189,13 +199,16 @@ export class AdmissionService {
   private readonly repository: Repository;
   private readonly enrolments: EnrolmentService;
   private readonly guardians: GuardianService;
-  private readonly prefix: string;
+  private readonly admissionFormat: AdmissionNumberFormat;
   private readonly actor: string | undefined;
 
   constructor(options: AdmissionServiceOptions) {
     this.repository = options.repository;
     this.actor = options.actor;
-    this.prefix = options.admissionNumberPrefix ?? 'ADM';
+    this.admissionFormat = normaliseAdmissionNumberFormat(
+      options.admissionNumberFormat ??
+        (options.admissionNumberPrefix ? { prefix: options.admissionNumberPrefix } : undefined)
+    );
     this.enrolments = new EnrolmentService({
       repository: options.repository,
       ...(options.actor ? { actor: options.actor } : {}),
@@ -632,25 +645,49 @@ export class AdmissionService {
   }
 
   /**
-   * The next admission number of the institution.
+   * Every number this format and year already issued.
    *
-   * The numbers follow the sequence of spec 04 §3 (`<PREFIX>/<YEAR>/<SEQ>`) and are never
-   * reused. The number is derived from the admission numbers the repository holds, archived
-   * rows included: a number that was given to a learner once is never given to another one.
-   * A number that is already taken is refused by the unique constraint of the learner.
+   * The read is narrowed by the fixed head when the format has one, then paged to the end: a
+   * large school may have more learners in one year than a single page holds, and a text sort
+   * cannot be trusted to put the highest sequence first once the width is exceeded.
+   */
+  private async issuedAdmissionNumbers(
+    institutionId: Id<'institution'>,
+    date: string
+  ): Promise<string[]> {
+    const prefix = admissionNumberStartsWith(this.admissionFormat, date);
+    const numbers: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await this.repository.list('learner', {
+        where: { institution_id: institutionId },
+        ...(prefix ? { conditions: { admission_number: { startsWith: prefix } } } : {}),
+        orderBy: [{ field: 'admission_number', direction: 'asc' }],
+        includeDeleted: true,
+        limit: 500,
+        ...(cursor ? { cursor } : {}),
+      });
+      for (const row of page.items) numbers.push(row.admission_number);
+      cursor = page.nextCursor;
+    } while (cursor);
+    return numbers;
+  }
+
+  /**
+   * The next admission number of the institution, in the configured format.
+   *
+   * The number is derived from the admission numbers the repository holds, archived rows
+   * included: a number that was given to a learner once is never given to another one. A
+   * number that is already taken is refused by the unique constraint of the learner.
    */
   private async nextAdmissionNumber(
     institutionId: Id<'institution'>,
     date: string
   ): Promise<string> {
-    const page = await this.repository.list('learner', {
-      where: { institution_id: institutionId },
-      includeDeleted: true,
-      limit: 500,
-    });
-    return nextSequenceNumber(
-      page.items.map((row) => row.admission_number),
-      { prefix: this.prefix, year: sequenceYear(date), width: 3 }
+    return nextFormattedAdmissionNumber(
+      this.admissionFormat,
+      await this.issuedAdmissionNumbers(institutionId, date),
+      date
     );
   }
 

@@ -32,6 +32,19 @@ export const announcementSchema: DatabaseSchema = createDatabaseSchema({
     publishedAt: SchemaHelpers.timestamp({ description: 'Publication timestamp' }),
     expiresAt: SchemaHelpers.timestamp({ description: 'Expiry timestamp' }),
     isPublished: SchemaHelpers.boolean({ description: 'Whether visible to the audience' }),
+    kind: SchemaHelpers.string({
+      description: 'Announcement kind; a newsletter is printable and personalised',
+      enum: ['announcement', 'newsletter'],
+      maxLength: 20,
+    }),
+    eventId: SchemaHelpers.string({
+      description: 'The school event a newsletter belongs to',
+      nullable: true,
+      maxLength: 100,
+    }),
+    alumniRelated: SchemaHelpers.boolean({
+      description: 'Whether the newsletter or event concerns alumni',
+    }),
     createdAt: SchemaHelpers.timestamp({ description: 'Creation timestamp' }),
     updatedAt: SchemaHelpers.timestamp({ description: 'Last update timestamp' }),
     readBy: SchemaHelpers.array(SchemaHelpers.string({ maxLength: 100 }), {

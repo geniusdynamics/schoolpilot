@@ -8,17 +8,36 @@ import { UserGroupIcon, GiftIcon, CalendarDaysIcon } from '@/components/ui/icons
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { PlusIcon } from '@/components/ui/icons';
 import { AlumniDirectoryContent } from './AlumniDirectoryPage';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useToast } from '@/hooks/useToast';
+import { asId } from '@/domain/ids';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 import type { AlumniEngagement, AlumniEvent } from '../data/types';
 
 const AlumniEngagementContent: React.FC = () => {
 
   const engagementsCollection = useDatabaseCollection<AlumniEngagement>('alumni_engagements');
+  const { learners, learnersLookup } = useCanonicalLearners();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('');
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const [savingEngagement, setSavingEngagement] = useState(false);
+  const [engagementDraft, setEngagementDraft] = useState({
+    alumni_id: '',
+    activity_type: 'Donation',
+    activity_date: new Date().toISOString().slice(0, 10),
+    description: '',
+    amount: '',
+  });
 
   const activityTypes = useMemo(() => {
     return Array.from(new Set(engagementsCollection.data.map(e => e.activity_type))).sort();
@@ -68,11 +87,53 @@ const AlumniEngagementContent: React.FC = () => {
     },
   ];
 
+  const saveEngagement = async () => {
+    const learner = learners.find((row) => row.id === engagementDraft.alumni_id);
+    if (!learner || !engagementDraft.activity_type || !engagementDraft.activity_date) {
+      toast.showWarning('Choose an alumnus, an activity type and a date.');
+      return;
+    }
+    setSavingEngagement(true);
+    try {
+      await engagementsCollection.insert({
+        alumni_name: learner.display_name,
+        graduation_year:
+          typeof learner.attributes.alumni === 'object' && learner.attributes.alumni !== null
+            ? String((learner.attributes.alumni as { graduation_year?: string }).graduation_year ?? '')
+            : '',
+        activity_type: engagementDraft.activity_type,
+        activity_date: engagementDraft.activity_date,
+        description: engagementDraft.description,
+        ...(engagementDraft.amount.trim() === ''
+          ? {}
+          : { amount: Number(engagementDraft.amount) }),
+      } as Omit<AlumniEngagement, 'id'>);
+      toast.showSuccess('Engagement recorded.');
+      setEngagementOpen(false);
+      setEngagementDraft({
+        alumni_id: '',
+        activity_type: 'Donation',
+        activity_date: new Date().toISOString().slice(0, 10),
+        description: '',
+        amount: '',
+      });
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : 'Could not record the engagement.');
+    } finally {
+      setSavingEngagement(false);
+    }
+  };
+
   return (
     <div className="p-6">
       <Card
         title="Alumni Engagement"
         info="Track donations, mentorship, volunteering, and event participation activities"
+        actions={
+          <Button onClick={() => setEngagementOpen(true)} leftIcon={<PlusIcon className="h-4 w-4" />}>
+            Add Engagement
+          </Button>
+        }
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
@@ -105,7 +166,7 @@ const AlumniEngagementContent: React.FC = () => {
           <Select
             placeholder="Filter by Activity Type"
             value={activityTypeFilter}
-            onChange={(value) => setActivityTypeFilter(value as string)}
+            onValueChange={(value) => setActivityTypeFilter(String(value))}
             options={[
               { label: 'All Types', value: '' },
               ...activityTypes.map(at => ({ label: at, value: at })),
@@ -126,6 +187,70 @@ const AlumniEngagementContent: React.FC = () => {
           }
         />
       </Card>
+
+      <Modal
+        isOpen={engagementOpen}
+        onClose={() => setEngagementOpen(false)}
+        title="Add Alumni Engagement"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setEngagementOpen(false)} disabled={savingEngagement}>
+              Cancel
+            </Button>
+            <Button onClick={() => void saveEngagement()} loading={savingEngagement}>
+              Save Engagement
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <EntityPicker
+            label="Alumnus"
+            value={engagementDraft.alumni_id ? asId<'learner'>(engagementDraft.alumni_id) : null}
+            onChange={(id) => setEngagementDraft((current) => ({ ...current, alumni_id: id ?? '' }))}
+            lookup={learnersLookup}
+            filter={(row) => row.status === 'graduated'}
+            placeholder="Search an alumnus by name or admission number"
+            allowClear
+          />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              label="Activity Type"
+              placeholder="Donation, mentorship, reunion..."
+              value={engagementDraft.activity_type}
+              onChange={(event) =>
+                setEngagementDraft((current) => ({ ...current, activity_type: event.target.value }))
+              }
+            />
+            <Input
+              label="Date"
+              type="date"
+              value={engagementDraft.activity_date}
+              onChange={(event) =>
+                setEngagementDraft((current) => ({ ...current, activity_date: event.target.value }))
+              }
+            />
+          </div>
+          <Input
+            label="Amount (optional)"
+            type="number"
+            min="0"
+            step="0.01"
+            value={engagementDraft.amount}
+            onChange={(event) =>
+              setEngagementDraft((current) => ({ ...current, amount: event.target.value }))
+            }
+          />
+          <Textarea
+            label="Description"
+            value={engagementDraft.description}
+            onChange={(event) =>
+              setEngagementDraft((current) => ({ ...current, description: event.target.value }))
+            }
+            rows={3}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
@@ -133,9 +258,21 @@ const AlumniEngagementContent: React.FC = () => {
 const AlumniEventsContent: React.FC = () => {
 
   const eventsCollection = useDatabaseCollection<AlumniEvent>('alumni_events');
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [eventOpen, setEventOpen] = useState(false);
+  const [savingEvent, setSavingEvent] = useState(false);
+  const [eventDraft, setEventDraft] = useState({
+    event_name: '',
+    event_date: new Date().toISOString().slice(0, 10),
+    location: '',
+    event_type: 'Reunion',
+    expected_attendees: '0',
+    status: 'Upcoming' as 'Upcoming' | 'Completed' | 'Cancelled',
+    description: '',
+  });
 
   const eventTypes = useMemo(() => {
     return Array.from(new Set(eventsCollection.data.map(e => e.event_type))).sort();
@@ -185,11 +322,50 @@ const AlumniEventsContent: React.FC = () => {
     },
   ];
 
+  const saveEvent = async () => {
+    if (!eventDraft.event_name.trim() || !eventDraft.event_date) {
+      toast.showWarning('An event name and date are required.');
+      return;
+    }
+    setSavingEvent(true);
+    try {
+      await eventsCollection.insert({
+        event_name: eventDraft.event_name.trim(),
+        event_date: eventDraft.event_date,
+        location: eventDraft.location.trim(),
+        event_type: eventDraft.event_type,
+        expected_attendees: Number(eventDraft.expected_attendees) || 0,
+        status: eventDraft.status,
+        description: eventDraft.description.trim(),
+      } as Omit<AlumniEvent, 'id'>);
+      toast.showSuccess('Alumni event created.');
+      setEventOpen(false);
+      setEventDraft({
+        event_name: '',
+        event_date: new Date().toISOString().slice(0, 10),
+        location: '',
+        event_type: 'Reunion',
+        expected_attendees: '0',
+        status: 'Upcoming',
+        description: '',
+      });
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : 'Could not create the event.');
+    } finally {
+      setSavingEvent(false);
+    }
+  };
+
   return (
     <div className="p-6">
       <Card
         title="Alumni Events"
         info="Plan and manage reunions, fundraisers, networking events, and workshops"
+        actions={
+          <Button onClick={() => setEventOpen(true)} leftIcon={<PlusIcon className="h-4 w-4" />}>
+            Add Event
+          </Button>
+        }
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
@@ -220,7 +396,7 @@ const AlumniEventsContent: React.FC = () => {
           <Select
             placeholder="Filter by Status"
             value={statusFilter}
-            onChange={(value) => setStatusFilter(value as string)}
+            onValueChange={(value) => setStatusFilter(String(value))}
             options={[
               { label: 'All Statuses', value: '' },
               { label: 'Upcoming', value: 'Upcoming' },
@@ -231,7 +407,7 @@ const AlumniEventsContent: React.FC = () => {
           <Select
             placeholder="Filter by Type"
             value={typeFilter}
-            onChange={(value) => setTypeFilter(value as string)}
+            onValueChange={(value) => setTypeFilter(String(value))}
             options={[
               { label: 'All Types', value: '' },
               ...eventTypes.map(et => ({ label: et, value: et })),
@@ -252,6 +428,91 @@ const AlumniEventsContent: React.FC = () => {
           }
         />
       </Card>
+
+      <Modal
+        isOpen={eventOpen}
+        onClose={() => setEventOpen(false)}
+        title="Add Alumni Event"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setEventOpen(false)} disabled={savingEvent}>
+              Cancel
+            </Button>
+            <Button onClick={() => void saveEvent()} loading={savingEvent}>
+              Save Event
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Input
+            label="Event Name"
+            value={eventDraft.event_name}
+            onChange={(event) =>
+              setEventDraft((current) => ({ ...current, event_name: event.target.value }))
+            }
+          />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              label="Date"
+              type="date"
+              value={eventDraft.event_date}
+              onChange={(event) =>
+                setEventDraft((current) => ({ ...current, event_date: event.target.value }))
+              }
+            />
+            <Input
+              label="Location"
+              value={eventDraft.location}
+              onChange={(event) =>
+                setEventDraft((current) => ({ ...current, location: event.target.value }))
+              }
+            />
+            <Input
+              label="Type"
+              value={eventDraft.event_type}
+              onChange={(event) =>
+                setEventDraft((current) => ({ ...current, event_type: event.target.value }))
+              }
+            />
+            <Input
+              label="Expected Attendees"
+              type="number"
+              min="0"
+              value={eventDraft.expected_attendees}
+              onChange={(event) =>
+                setEventDraft((current) => ({
+                  ...current,
+                  expected_attendees: event.target.value,
+                }))
+              }
+            />
+            <Select
+              label="Status"
+              value={eventDraft.status}
+              onValueChange={(value) =>
+                setEventDraft((current) => ({
+                  ...current,
+                  status: value as 'Upcoming' | 'Completed' | 'Cancelled',
+                }))
+              }
+              options={[
+                { label: 'Upcoming', value: 'Upcoming' },
+                { label: 'Completed', value: 'Completed' },
+                { label: 'Cancelled', value: 'Cancelled' },
+              ]}
+            />
+          </div>
+          <Textarea
+            label="Description"
+            value={eventDraft.description}
+            onChange={(event) =>
+              setEventDraft((current) => ({ ...current, description: event.target.value }))
+            }
+            rows={3}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
