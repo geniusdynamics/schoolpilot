@@ -3,19 +3,23 @@
 
 import React, { useMemo, useState } from 'react';
 
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import { EntityPicker } from '@/components/ui/EntityPicker';
 import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { ArrowPathIcon } from '@/components/ui/icons';
-
-import { formatMoneyMinor, useCanonicalFinance } from '../data/canonicalFinance';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
+import { FINANCE_CURRENCY, formatMoneyMinor, money, useCanonicalFinance, useFinanceRepository } from '../data/canonicalFinance';
+import { createChargeInvoice } from '../services/canonicalFinanceService';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import type { Id } from '@/domain/ids';
 import { asId } from '@/domain/ids';
 
 interface PreviousRow {
   readonly id: string;
+  readonly learnerId: string;
   readonly learnerName: string;
   readonly admissionNumber: string;
   readonly invoiceNumber: string;
@@ -64,6 +68,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
           const year = invoice.periodId ? periodYear.get(invoice.periodId) ?? '' : '';
           return {
             id: invoice.id,
+            learnerId: invoice.learnerId ?? '',
             learnerName: invoice.learnerName,
             admissionNumber: invoice.learnerId ? admissionByLearner.get(invoice.learnerId) ?? '' : '',
             invoiceNumber: invoice.number,
@@ -89,6 +94,52 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
         row.invoiceNumber.toLowerCase().includes(term)
     );
   }, [rows, search]);
+
+  const repository = useFinanceRepository();
+  const confirm = useConfirm();
+  const toast = useToast();
+  const [selected, setSelected] = useState<readonly PreviousRow[]>([]);
+  const [carrying, setCarrying] = useState(false);
+
+  const carryForward = async () => {
+    const candidates = selected.filter((row) => row.balanceMinor > 0 && row.learnerId);
+    if (candidates.length === 0) {
+      toast.showWarning('Select at least one invoice with an outstanding balance.');
+      return;
+    }
+    const total = candidates.reduce((sum, row) => sum + row.balanceMinor, 0);
+    const ok = await confirm({
+      title: 'Carry forward balances',
+      message: `Post opening balances for ${candidates.length} invoice(s), totalling ${formatMoneyMinor(total)}? The old invoices stay untouched.`,
+      confirmLabel: 'Post opening balances',
+      variant: 'warning',
+    });
+    if (!ok) return;
+    setCarrying(true);
+    let posted = 0;
+    const failures: string[] = [];
+    for (const row of candidates) {
+      try {
+        await createChargeInvoice(repository, {
+          learnerId: row.learnerId,
+          description: `Carried forward from ${row.invoiceNumber} (${row.periodName}, ${row.yearName})`,
+          amount: money(row.balanceMinor, FINANCE_CURRENCY),
+          kind: 'opening_balance',
+          issueDate: new Date().toISOString().slice(0, 10),
+        });
+        posted += 1;
+      } catch (error) {
+        failures.push(`${row.invoiceNumber}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    setCarrying(false);
+    if (failures.length > 0) {
+      toast.showError(`${posted} posted, ${failures.length} failed. ${failures[0]}`);
+    } else {
+      toast.showSuccess(`${posted} opening balance${posted === 1 ? '' : 's'} posted.`);
+      setSelected([]);
+    }
+  };
 
   const columns: DataGridColumn<PreviousRow>[] = [
     { key: 'learnerName', header: 'Learner', sortable: true, filterable: true },
@@ -139,6 +190,15 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
         </span>
       }
       info="Invoices from earlier academic years and what is still outstanding on them. A carry-over is written as an opening balance in the new session, not by editing the old invoice."
+      actions={
+        <Button
+          onClick={() => void carryForward()}
+          disabled={selected.length === 0}
+          loading={carrying}
+        >
+          Carry forward selected ({selected.length})
+        </Button>
+      }
     >
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
@@ -168,6 +228,8 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
         data={[...filtered]}
         sortable
         filterable
+        selectable
+        onSelectionChange={(rows) => setSelected(rows as PreviousRow[])}
         emptyState={{
           icon: <ArrowPathIcon className="w-12 h-12 text-surface-muted-fg" />,
           title: 'No previous session fees',

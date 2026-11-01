@@ -1,301 +1,183 @@
-import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+// ABOUTME: Student bio-data directory over the canonical learner record, with class/stream filters and profile links.
+// ABOUTME: The old app-data screen and its fake medical/document tabs are replaced by the one canonical learner source.
+
+import React, { useMemo, useState } from 'react';
+
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { StudentBioData } from '../data/types';
-import { DocumentTextIcon, HeartIcon, PhoneIcon, PlusIcon, UserIcon } from '@/components/ui/icons';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 
-const StudentBioDataPage: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { studentBioData, loading } = useAppData();
+import { useCanonicalLearners, type CanonicalLearner } from '../data/useCanonicalLearners';
 
-  const [selectedStudent, setSelectedStudent] = useState<StudentBioData | null>(null);
+interface BioRow {
+  readonly id: string;
+  readonly admission_no: string;
+  readonly name: string;
+  readonly class_name: string;
+  readonly stream_name: string;
+  readonly gender: string;
+  readonly date_of_birth: string;
+  readonly guardian: string;
+  readonly guardian_phone: string;
+  readonly phone: string;
+  readonly email: string;
+  readonly religion: string;
+  readonly county: string;
+}
+
+export const StudentBioDataContent: React.FC = () => {
+  const { learners, isLoading } = useCanonicalLearners();
   const [selectedClass, setSelectedClass] = useState('');
+  const [selectedStream, setSelectedStream] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'medical' | 'emergency' | 'documents' | 'basic'>('basic');
 
-  const mockStudentBioData: StudentBioData[] = useMemo(() => {
-    let filtered = studentBioData || [];
+  const rows = useMemo<BioRow[]>(
+    () =>
+      learners.map((learner: CanonicalLearner) => ({
+        id: learner.id,
+        admission_no: learner.admission_no,
+        name: learner.display_name || learner.name,
+        class_name: learner.current_class_name,
+        stream_name: learner.current_class_stream_name,
+        gender: learner.gender,
+        date_of_birth: learner.date_of_birth,
+        guardian: learner.primary_guardian,
+        guardian_phone: learner.primary_guardian_phone,
+        phone: learner.phone,
+        email: learner.email,
+        religion: learner.religion,
+        county: learner.county,
+      })),
+    [learners]
+  );
 
-    if (selectedClass) {
-      filtered = filtered.filter(s => s.class_name === selectedClass);
-    }
+  const classOptions = useMemo(
+    () => [...new Set(rows.map((row) => row.class_name).filter(Boolean))].sort(),
+    [rows]
+  );
+  const streamOptions = useMemo(() => {
+    const scoped = selectedClass ? rows.filter((row) => row.class_name === selectedClass) : rows;
+    return [...new Set(scoped.map((row) => row.stream_name).filter(Boolean))].sort();
+  }, [rows, selectedClass]);
 
-    if (searchTerm) {
-      filtered = filtered.filter(s =>
-        (s.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (s.student_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
-    }
+  const visible = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return rows.filter(
+      (row) =>
+        (!selectedClass || row.class_name === selectedClass) &&
+        (!selectedStream || row.stream_name === selectedStream) &&
+        (!term ||
+          row.name.toLowerCase().includes(term) ||
+          row.admission_no.toLowerCase().includes(term) ||
+          row.guardian.toLowerCase().includes(term))
+    );
+  }, [rows, selectedClass, selectedStream, searchTerm]);
 
-    return filtered;
-  }, [selectedClass, searchTerm, studentBioData]);
+  const columns: DataGridColumn<BioRow>[] = [
+    { key: 'admission_no', header: 'Adm No', sortable: true, filterable: false },
+    { key: 'name', header: 'Student', sortable: true, filterable: false },
+    { key: 'class_name', header: 'Class', sortable: true, filterable: false },
+    { key: 'stream_name', header: 'Stream', sortable: true, filterable: false },
+    { key: 'gender', header: 'Gender', sortable: true, filterable: false },
+    {
+      key: 'date_of_birth',
+      header: 'Date of Birth',
+      sortable: true,
+      filterable: false,
+      render: (value: string) => (value ? new Date(value).toLocaleDateString() : '—'),
+    },
+    { key: 'guardian', header: 'Guardian', sortable: true, filterable: false },
+    { key: 'guardian_phone', header: 'Guardian Phone', sortable: true, filterable: false },
+    { key: 'phone', header: 'Student Phone', sortable: true, filterable: false },
+    { key: 'email', header: 'Email', sortable: true, filterable: false },
+    { key: 'religion', header: 'Religion', sortable: true, filterable: false },
+    { key: 'county', header: 'County', sortable: true, filterable: false },
+    {
+      key: 'actions',
+      header: 'Profile',
+      sortable: false,
+      filterable: false,
+      render: (_value, row) => (
+        <a
+          href={`/administration/students/${row.id}`}
+          className="text-sm font-medium text-primary-700 hover:underline"
+        >
+          View
+        </a>
+      ),
+    },
+  ];
 
-  const classes = ['Grade 10', 'Grade 9', 'Grade 8', 'Grade 7'];
-
-  if (loading?.all && mockStudentBioData.length === 0 && !studentBioData) {
+  if (isLoading && rows.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />
-        <span className="ml-2">{t('studentBioData.loading', 'Loading student bio data...')}</span>
+        <span className="ml-2">Loading student bio data...</span>
       </div>
     );
   }
 
   return (
     <div className="p-6">
-      {!selectedStudent ? (
-        <Card
-          title={t('studentBioData.title', 'Student Bio Data Management')}
-          info={t('studentBioData.description', 'View and manage complete student bio data including emergency contacts, medical history, allergies, and documents.')}
-        >
+      <Card
+        title="Student Bio Data"
+        info="The canonical learner record with placement and primary guardian. Medical and document detail is held on the learner profile rather than duplicated here."
+      >
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <label className="text-sm">
+            <span className="mb-1 block font-medium text-surface-foreground">Class</span>
+            <select
+              value={selectedClass}
+              onChange={(event) => {
+                setSelectedClass(event.target.value);
+                setSelectedStream('');
+              }}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
+            >
+              <option value="">All classes</option>
+              {classOptions.map((className) => (
+                <option key={className} value={className}>{className}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block font-medium text-surface-foreground">Stream</span>
+            <select
+              value={selectedStream}
+              onChange={(event) => setSelectedStream(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
+            >
+              <option value="">All streams</option>
+              {streamOptions.map((stream) => (
+                <option key={stream} value={stream}>{stream}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block font-medium text-surface-foreground">Search</span>
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Name, admission or guardian"
+              className="w-full rounded-md border border-surface-border px-3 py-2"
+            />
+          </label>
+        </div>
 
-          {/* Filters */}
-          <div className="mb-6 flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
-              <select
-                value={selectedClass}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
-                className="w-full border border-surface-border rounded-md px-3 py-2"
-              >
-                <option value="">All Classes</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
-              <input
-                type="text"
-                placeholder="Student name, ID..."
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                className="w-full border border-surface-border rounded-md px-3 py-2"
-              />
-            </div>
-          </div>
-
-          {/* Student List */}
-          <div className="space-y-3">
-            {mockStudentBioData.map(student => (
-              <div
-                key={student.id}
-                className="p-4 border border-surface-border rounded-lg hover:bg-surface-muted cursor-pointer"
-                onClick={() => setSelectedStudent(student)}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-semibold text-surface-foreground">{student.name}</h4>
-                    <p className="text-sm text-surface-muted-fg">{student.student_id} | {student.class_name} - {student.section}</p>
-                  </div>
-                  <Button size="sm" variant="secondary">
-                    View Details
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      ) : (
-        <Card>
-          <div className="flex justify-between items-center mb-4">
-            <Button onClick={() => setSelectedStudent(null)} variant="secondary">
-              ← {t('studentBioData.backToStudents', 'Back to Students')}
-            </Button>
-            <h2 className="text-xl font-bold text-surface-foreground">{selectedStudent.name}</h2>
-          </div>
-
-          {/* Tabs */}
-          <div className="mb-6 border-b border-surface-border">
-            <div className="flex gap-4">
-              <button
-                onClick={() => setActiveTab('basic')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'basic' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
-              >
-                <UserIcon className="w-4 h-4 inline mr-1" />
-                {t('studentBioData.basicInfo', 'Basic Info')}
-              </button>
-              <button
-                onClick={() => setActiveTab('medical')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'medical' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
-              >
-                <HeartIcon className="w-4 h-4 inline mr-1" />
-                {t('studentBioData.medical', 'Medical')}
-              </button>
-              <button
-                onClick={() => setActiveTab('emergency')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'emergency' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
-              >
-                <PhoneIcon className="w-4 h-4 inline mr-1" />
-                {t('studentBioData.emergencyContacts', 'Emergency')}
-              </button>
-              <button
-                onClick={() => setActiveTab('documents')}
-                className={`pb-2 px-4 font-medium ${activeTab === 'documents' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-surface-muted-fg'}`}
-              >
-                <DocumentTextIcon className="w-4 h-4 inline mr-1" />
-                Documents
-              </button>
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === 'basic' && (
-            <div>
-              <div className="mb-6 p-4 bg-surface-muted border border-surface-border rounded-lg">
-                <h3 className="font-semibold text-surface-foreground mb-4">Personal Information</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                  <div><span className="font-medium">Student ID:</span> {selectedStudent.student_id}</div>
-                  <div><span className="font-medium">Class/Section:</span> {selectedStudent.class_name} - {selectedStudent.section}</div>
-                  <div><span className="font-medium">Roll Number:</span> {selectedStudent.roll_number}</div>
-                  <div><span className="font-medium">Date of Birth:</span> {new Date(selectedStudent.date_of_birth).toLocaleDateString()}</div>
-                  <div><span className="font-medium">Gender:</span> {selectedStudent.gender}</div>
-                  <div><span className="font-medium">Blood Group:</span> {selectedStudent.blood_group}</div>
-                  <div><span className="font-medium">Nationality:</span> {selectedStudent.nationality}</div>
-                  <div><span className="font-medium">Religion:</span> {selectedStudent.religion}</div>
-                  <div><span className="font-medium">Mother Tongue:</span> {selectedStudent.mother_tongue}</div>
-                  <div><span className="font-medium">Phone:</span> {selectedStudent.phone}</div>
-                  <div><span className="font-medium">Email:</span> {selectedStudent.email}</div>
-                  <div className="col-span-2 md:col-span-3"><span className="font-medium">Address:</span> {selectedStudent.address}, {selectedStudent.city}, {selectedStudent.state} - {selectedStudent.postal_code}</div>
-                </div>
-              </div>
-
-              <div className="mb-6 p-4 bg-surface-muted border border-surface-border rounded-lg">
-                <h3 className="font-semibold text-surface-foreground mb-4">Parent/Guardian Information</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                  <div><span className="font-medium">Father:</span> {selectedStudent.father_name}</div>
-                  <div><span className="font-medium">Father Phone:</span> {selectedStudent.father_phone}</div>
-                  <div><span className="font-medium">Father Occupation:</span> {selectedStudent.father_occupation}</div>
-                  <div><span className="font-medium">Mother:</span> {selectedStudent.mother_name}</div>
-                  <div><span className="font-medium">Mother Phone:</span> {selectedStudent.mother_phone}</div>
-                  <div><span className="font-medium">Mother Occupation:</span> {selectedStudent.mother_occupation}</div>
-                  {selectedStudent.guardian_name && (
-                    <>
-                      <div><span className="font-medium">Guardian:</span> {selectedStudent.guardian_name}</div>
-                      <div><span className="font-medium">Guardian Phone:</span> {selectedStudent.guardian_phone}</div>
-                      <div><span className="font-medium">Relationship:</span> {selectedStudent.guardian_relationship}</div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'medical' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-surface-foreground">Medical Conditions</h3>
-                <Button size="sm" variant="secondary">
-                  <PlusIcon className="w-4 h-4 mr-1" />
-                  Add Condition
-                </Button>
-              </div>
-              <div className="space-y-3 mb-6">
-                {(selectedStudent.medical_conditions?.length ?? 0) > 0 ? (
-                  selectedStudent.medical_conditions.map(condition => (
-                    <div key={condition.id} className="p-4 border border-surface-border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold text-surface-foreground">{condition.condition}</h4>
-                          <p className="text-sm text-surface-muted-fg">Diagnosed: {new Date(condition.diagnosis_date).toLocaleDateString()}</p>
-                          <p className="text-sm text-surface-muted-fg">Severity: {condition.severity}</p>
-                          <p className="text-sm text-surface-muted-fg">Treatment: {condition.treatment}</p>
-                          {condition.notes && <p className="text-sm text-surface-muted-fg mt-1">Notes: {condition.notes}</p>}
-                        </div>
-                        <Button size="sm" variant="secondary">Edit</Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-surface-muted-fg text-center py-4">No medical conditions recorded</p>
-                )}
-              </div>
-
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h3 className="font-semibold text-red-800 mb-2">Allergies</h3>
-                {(selectedStudent.allergies?.length ?? 0) > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedStudent.allergies.map((allergy, index) => (
-                      <span key={index} className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
-                        {allergy}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-red-600">No allergies recorded</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'emergency' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-surface-foreground">Emergency Contacts</h3>
-                <Button size="sm" variant="secondary">
-                  <PlusIcon className="w-4 h-4 mr-1" />
-                  Add Contact
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {(selectedStudent.emergency_contacts || []).map(contact => (
-                  <div key={contact.id} className={`p-4 border rounded-lg ${contact.is_primary ? 'border-primary-300 bg-primary-50' : 'border-surface-border'}`}>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-surface-foreground">{contact.name}</h4>
-                          {contact.is_primary && <span className="px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-xs">Primary</span>}
-                        </div>
-                        <p className="text-sm text-surface-muted-fg">Relationship: {contact.relationship}</p>
-                        <p className="text-sm text-surface-muted-fg">Phone: {contact.phone}</p>
-                        <p className="text-sm text-surface-muted-fg">Address: {contact.address}</p>
-                      </div>
-                      <Button size="sm" variant="secondary">Edit</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'documents' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-surface-foreground">Documents</h3>
-                <Button size="sm" variant="secondary">
-                  <PlusIcon className="w-4 h-4 mr-1" />
-                  Add Document
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {(selectedStudent.documents || []).map(doc => (
-                  <div key={doc.id} className="p-4 border border-surface-border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold text-surface-foreground">{doc.document_type}</h4>
-                        <p className="text-sm text-surface-muted-fg">Number: {doc.document_number}</p>
-                        <p className="text-sm text-surface-muted-fg">Issued: {new Date(doc.issue_date).toLocaleDateString()}</p>
-                        {doc.expiry_date && <p className="text-sm text-surface-muted-fg">Expires: {new Date(doc.expiry_date).toLocaleDateString()}</p>}
-                        <p className="text-sm text-surface-muted-fg">Authority: {doc.issuing_authority}</p>
-                      </div>
-                      <Button size="sm" variant="secondary">Edit</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
+        <DataGrid
+          data={visible}
+          columns={columns}
+          pagination={{ pageSize: 25 }}
+          sortable
+          filterable={false}
+          emptyState={{
+            title: 'No learners match the filters',
+            description: 'Change the class, stream or search, or add learners to the directory.',
+          }}
+        />
+      </Card>
     </div>
   );
 };
 
-export default StudentBioDataPage;
-
-export const StudentBioDataContent = StudentBioDataPage;
+export default StudentBioDataContent;

@@ -3,6 +3,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
+import { useCanonicalLearners } from '../data/useCanonicalLearners';
 
 interface Student {
   id: string;
@@ -25,69 +26,33 @@ export const BirthCertificateContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
-    const mockStudents: Student[] = useMemo(() => {
-    const students: Student[] = [
-      {
-        id: 'stu-1',
-        student_id: 'STU-001',
-        name: 'John Doe',
-        class_name: 'Grade 10',
-        section: 'A',
-        roll_number: '001',
-        date_of_birth: '2008-05-20',
-        gender: 'Male',
-        father_name: 'Robert Doe',
-        mother_name: 'Mary Doe',
-        birth_place: 'City Hospital, City',
-        address: '123 Education Lane, City'
-      },
-      {
-        id: 'stu-2',
-        student_id: 'STU-002',
-        name: 'Jane Smith',
-        class_name: 'Grade 10',
-        section: 'B',
-        roll_number: '002',
-        date_of_birth: '2008-08-15',
-        gender: 'Female',
-        father_name: 'William Smith',
-        mother_name: 'Elizabeth Smith',
-        birth_place: 'City General Hospital, City',
-        address: '456 Academic Road, City'
-      },
-      {
-        id: 'stu-3',
-        student_id: 'STU-003',
-        name: 'Michael Johnson',
-        class_name: 'Grade 9',
-        section: 'A',
-        roll_number: '001',
-        date_of_birth: '2009-03-10',
-        gender: 'Male',
-        father_name: 'David Johnson',
-        mother_name: 'Sarah Johnson',
-        birth_place: 'Community Health Center, City',
-        address: '789 School Street, City'
-      }
-    ];
+  const { learners, isLoading } = useCanonicalLearners();
+  const certificateStudents: Student[] = useMemo(
+    () =>
+      learners.map((learner) => {
+        const relationship = (learner.primary_guardian_relationship ?? '').toLowerCase();
+        return {
+          id: learner.id,
+          student_id: learner.admission_no,
+          name: learner.display_name || learner.name || `${learner.first_name} ${learner.last_name}`.trim(),
+          class_name: learner.current_class_name,
+          section: learner.current_class_stream_name,
+          roll_number: '',
+          father_name: relationship === 'father' ? learner.primary_guardian : '',
+          mother_name: relationship === 'mother' ? learner.primary_guardian : '',
+          date_of_birth: learner.date_of_birth,
+          gender: learner.gender,
+          birth_place: learner.county,
+          address: learner.county,
+        };
+      }),
+    [learners]
+  );
 
-    let filtered = students;
-
-    if (selectedClass) {
-      filtered = filtered.filter(s => s.class_name === selectedClass);
-    }
-
-    if (searchTerm) {
-      filtered = filtered.filter(s => 
-        (s.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (s.student_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return filtered;
-  }, [selectedClass, searchTerm]);
-
-  const classes = ['Grade 10', 'Grade 9', 'Grade 8', 'Grade 7'];
+  const classes = useMemo(
+    () => [...new Set(certificateStudents.map((student) => student.class_name).filter(Boolean))].sort(),
+    [certificateStudents]
+  );
 
   const generateCertificate = (student: Student) => {
     setSelectedStudent(student);
@@ -97,7 +62,7 @@ export const BirthCertificateContent: React.FC = () => {
     window.print();
   };
 
-  if (mockStudents.length === 0) {
+  if (isLoading && certificateStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -143,7 +108,7 @@ export const BirthCertificateContent: React.FC = () => {
 
           {/* Student List */}
           <div className="space-y-3">
-            {mockStudents.map(student => (
+            {certificateStudents.map(student => (
               <div
                 key={student.id}
                 className="p-4 border border-surface-border rounded-lg hover:bg-surface-muted cursor-pointer"

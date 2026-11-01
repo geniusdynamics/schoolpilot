@@ -1,148 +1,166 @@
-import React, { useState, useMemo } from 'react';
-import { withCanonicalRepository } from '../data/withCanonicalRepository';
-import { useAppData } from '@/hooks/useAppData';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+// ABOUTME: Daily staff attendance register over the canonical staff directory, persisted in staff_attendance_records.
+// ABOUTME: The register defaults to the selected date, filters by department and writes one row per staff member.
+
+import React, { useEffect, useMemo, useState } from 'react';
+
 import Button from '@/components/ui/Button';
-import { CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@/components/ui/icons';
+import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
-import { StaffAttendanceRecord, StaffAttendanceStatus } from '../data/types';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { useToast } from '@/hooks/useToast';
+import { CheckCircleIcon, ClockIcon, UserIcon, XCircleIcon } from '@/components/ui/icons';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 
-import { logger } from '@/utils/logging';
+import { useCanonicalStaff } from '../data/useCanonicalStaff';
+import type { StaffAttendanceRecord, StaffAttendanceStatus } from '../data/types';
 
-const StaffAttendancePage: React.FC = () => {
-  // GAP(P1-E01): staff attendance has no canonical entity, so the register keeps its own
-  // collection. The staff directory page reads the canonical staff rows.
-  const { staffAttendanceRecords } = useAppData();
+const STATUS_OPTIONS: readonly StaffAttendanceStatus[] = ['Present', 'Absent', 'Late', 'On Leave'];
+
+interface AttendanceRow {
+  readonly id: string;
+  readonly staff_id: string;
+  readonly staff_name: string;
+  readonly employee_id: string;
+  readonly department: string;
+  readonly designation: string;
+}
+
+export const StaffAttendanceContent: React.FC = () => {
+  const { staff, isLoading } = useCanonicalStaff();
+  const records = useDatabaseCollection<StaffAttendanceRecord>('staff_attendance_records');
+  const toast = useToast();
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [attendanceData, setAttendanceData] = useState<Record<string, StaffAttendanceStatus>>({});
+  const [saving, setSaving] = useState(false);
 
-  const mockAttendance: StaffAttendanceRecord[] = useMemo(() => {
-    let filtered = (staffAttendanceRecords || []).map((r: StaffAttendanceRecord) => ({ ...r, date: selectedDate }));
+  const rows = useMemo<AttendanceRow[]>(
+    () =>
+      staff.map((member) => ({
+        id: member.id,
+        staff_id: member.id,
+        staff_name: member.display_name || member.name,
+        employee_id: member.employee_number || member.staff_no,
+        department: member.department || member.department_name || '',
+        designation: member.designation_title || member.job_title || '',
+      })),
+    [staff]
+  );
 
-    if (selectedDepartment) {
-      filtered = filtered.filter(r => r.department === selectedDepartment);
+  const existing = useMemo(
+    () => records.data.filter((record) => record.date === selectedDate),
+    [records.data, selectedDate]
+  );
+
+  useEffect(() => {
+    const next: Record<string, StaffAttendanceStatus> = {};
+    for (const record of existing) next[record.staff_id] = record.status;
+    setAttendanceData(next);
+  }, [existing]);
+
+  const departments = useMemo(
+    () => [...new Set(rows.map((row) => row.department).filter(Boolean))].sort(),
+    [rows]
+  );
+
+  const visible = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return rows.filter(
+      (row) =>
+        (!selectedDepartment || row.department === selectedDepartment) &&
+        (!term ||
+          row.staff_name.toLowerCase().includes(term) ||
+          row.employee_id.toLowerCase().includes(term))
+    );
+  }, [rows, selectedDepartment, searchTerm]);
+
+  const counts = useMemo(() => {
+    const values = Object.values(attendanceData);
+    return {
+      present: values.filter((status) => status === 'Present').length,
+      absent: values.filter((status) => status === 'Absent').length,
+      late: values.filter((status) => status === 'Late').length,
+      leave: values.filter((status) => status === 'On Leave').length,
+    };
+  }, [attendanceData]);
+
+  const save = async () => {
+    const marked = Object.entries(attendanceData).filter(([, status]) => Boolean(status));
+    if (marked.length === 0) {
+      toast.showWarning('Mark at least one staff member before saving.');
+      return;
     }
-
-    if (searchTerm) {
-      filtered = filtered.filter(r =>
-        (r.staff_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (r.employee_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
+    setSaving(true);
+    try {
+      for (const [staffId, status] of marked) {
+        const row = rows.find((candidate) => candidate.staff_id === staffId);
+        if (!row) continue;
+        const record = existing.find((candidate) => candidate.staff_id === staffId);
+        const payload = {
+          staff_id: staffId,
+          staff_name: row.staff_name,
+          employee_id: row.employee_id,
+          department: row.department,
+          designation: row.designation,
+          date: selectedDate,
+          status,
+          updated_at: new Date().toISOString(),
+        };
+        if (record) {
+          await records.update(record.id, payload);
+        } else {
+          await records.insert({ ...payload, created_at: new Date().toISOString() } as Omit<
+            StaffAttendanceRecord,
+            'id'
+          >);
+        }
+      }
+      toast.showSuccess(`Staff attendance saved for ${selectedDate}.`);
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : 'Could not save staff attendance.');
+    } finally {
+      setSaving(false);
     }
-
-    return filtered;
-  }, [staffAttendanceRecords, selectedDate, selectedDepartment, searchTerm]);
-
-  const handleStatusChange = (staffId: string, status: StaffAttendanceStatus) => {
-    setAttendanceData(prev => ({ ...prev, [staffId]: status }));
   };
 
-  const handleSaveAttendance = () => {
-    logger.info('Saving staff attendance:', attendanceData);
-  };
-
-  const columns: DataGridColumn<StaffAttendanceRecord>[] = [
+  const columns: DataGridColumn<AttendanceRow>[] = [
+    { key: 'staff_name', header: 'Staff Name', sortable: true, filterable: false },
+    { key: 'employee_id', header: 'Employee No', sortable: true, filterable: false },
+    { key: 'department', header: 'Department', sortable: true, filterable: false },
+    { key: 'designation', header: 'Designation', sortable: true, filterable: false },
     {
-      key: 'staff_name',
-      header: 'Staff Name',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'employee_id',
-      header: 'Employee ID',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'department',
-      header: 'Department',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'designation',
-      header: 'Designation',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'check_in_time',
-      header: 'Check In',
-      sortable: true,
-      render: (value) => value || '-'
-    },
-    {
-      key: 'check_out_time',
-      header: 'Check Out',
-      sortable: true,
-      render: (value) => value || '-'
-    },
-    {
-      key: 'status',
+      key: 'staff_id',
       header: 'Status',
-      sortable: true,
-      render: (value, record) => (
-        <div className="flex gap-1 flex-wrap">
-          <button
-            onClick={() => handleStatusChange(record.staff_id, 'Present')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Present' || (attendanceData[record.staff_id] === undefined && value === 'Present') ? 'bg-green-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Present
-          </button>
-          <button
-            onClick={() => handleStatusChange(record.staff_id, 'Absent')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Absent' ? 'bg-red-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Absent
-          </button>
-          <button
-            onClick={() => handleStatusChange(record.staff_id, 'Late')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'Late' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Late
-          </button>
-          <button
-            onClick={() => handleStatusChange(record.staff_id, 'On Leave')}
-            className={`px-2 py-1 rounded text-xs font-medium ${attendanceData[record.staff_id] === 'On Leave' ? 'bg-primary-500 text-white' : 'bg-gray-200 text-surface-foreground'}`}
-          >
-            Leave
-          </button>
-        </div>
-      )
-    },
-    {
-      key: 'notes',
-      header: 'Notes',
       sortable: false,
-      render: (value) => value || '-'
-    }
+      filterable: false,
+      render: (_value, row) => (
+        <select
+          aria-label={`Attendance for ${row.staff_name}`}
+          value={attendanceData[row.staff_id] ?? ''}
+          onChange={(event) =>
+            setAttendanceData((current) => ({
+              ...current,
+              [row.staff_id]: event.target.value as StaffAttendanceStatus,
+            }))
+          }
+          className="rounded-md border border-surface-border bg-surface px-2 py-1.5 text-sm"
+        >
+          <option value="">Not marked</option>
+          {STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
+      ),
+    },
   ];
 
-  const uniqueDepartments = useMemo(() => {
-    const depts = [...new Set(mockAttendance.map(r => r.department))];
-    return depts;
-  }, [mockAttendance]);
-
-  const totals = useMemo(() => {
-    return {
-      total: mockAttendance.length,
-      present: mockAttendance.filter(r => attendanceData[r.staff_id] === 'Present' || (attendanceData[r.staff_id] === undefined && r.status === 'Present')).length,
-      absent: mockAttendance.filter(r => attendanceData[r.staff_id] === 'Absent').length,
-      late: mockAttendance.filter(r => attendanceData[r.staff_id] === 'Late').length,
-      onLeave: mockAttendance.filter(r => attendanceData[r.staff_id] === 'On Leave' || (attendanceData[r.staff_id] === undefined && r.status === 'On Leave')).length
-    };
-  }, [mockAttendance, attendanceData]);
-
-  if (mockAttendance.length === 0 && (staffAttendanceRecords ?? []).length === 0) {
+  if (isLoading && rows.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />
-        <span className="ml-2">Loading staff attendance data...</span>
+        <span className="ml-2">Loading staff attendance...</span>
       </div>
     );
   }
@@ -151,110 +169,101 @@ const StaffAttendancePage: React.FC = () => {
     <div className="p-6">
       <Card
         title="Staff Attendance"
-        info="Record daily staff attendance with check-in/check-out times. Mark staff as Present, Absent, Late, or On Leave with optional notes."
+        info="One register per day. Statuses write to staff_attendance_records and overwrite the same staff/date row instead of duplicating it."
         actions={
-          <Button onClick={handleSaveAttendance} variant="primary">
-            Save Attendance
+          <Button onClick={() => void save()} loading={saving} disabled={visible.length === 0}>
+            Save Register
           </Button>
         }
       >
-
-        {/* Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <UserIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Total Staff</span>
+              <UserIcon className="h-5 w-5" />
+              <span className="text-sm font-medium">Marked</span>
             </div>
-            <p className="text-2xl font-bold text-surface-foreground mt-2">
-              {totals.total}
+            <p className="mt-2 text-2xl font-bold text-surface-foreground">
+              {Object.keys(attendanceData).length}
             </p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+              <CheckCircleIcon className="h-5 w-5 text-green-600" />
               <span className="text-sm font-medium">Present</span>
             </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {totals.present}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-green-600">{counts.present}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <XCircleIcon className="w-5 h-5 text-red-600" />
+              <XCircleIcon className="h-5 w-5 text-red-600" />
               <span className="text-sm font-medium">Absent</span>
             </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">
-              {totals.absent}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{counts.absent}</p>
           </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
+          <div className="rounded-lg border border-surface-border bg-surface-card p-4">
             <div className="flex items-center gap-2 text-surface-muted-fg">
-              <ClockIcon className="w-5 h-5 text-yellow-600" />
-              <span className="text-sm font-medium">Late</span>
+              <ClockIcon className="h-5 w-5 text-yellow-600" />
+              <span className="text-sm font-medium">Late / Leave</span>
             </div>
-            <p className="text-2xl font-bold text-yellow-600 mt-2">
-              {totals.late}
-            </p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5 text-primary-600" />
-              <span className="text-sm font-medium">On Leave</span>
-            </div>
-            <p className="text-2xl font-bold text-primary-600 mt-2">
-              {totals.onLeave}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-yellow-600">{counts.late + counts.leave}</p>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Date</label>
+        <div className="mb-6 flex flex-wrap gap-4">
+          <label className="min-w-[180px] flex-1 text-sm">
+            <span className="mb-1 block font-medium text-surface-foreground">Date</span>
             <input
               type="date"
               value={selectedDate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedDate(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Department</label>
+          </label>
+          <label className="min-w-[180px] flex-1 text-sm">
+            <span className="mb-1 block font-medium text-surface-foreground">Department</span>
             <select
               value={selectedDepartment}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedDepartment(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSelectedDepartment(event.target.value)}
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             >
-              <option value="">All Departments</option>
-              {uniqueDepartments.map(dept => (
-                <option key={dept} value={dept}>{dept}</option>
+              <option value="">All departments</option>
+              {departments.map((department) => (
+                <option key={department} value={department}>{department}</option>
               ))}
             </select>
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
+          </label>
+          <label className="min-w-[180px] flex-1 text-sm">
+            <span className="mb-1 block font-medium text-surface-foreground">Search</span>
             <input
-              type="text"
-              placeholder="Staff, employee ID..."
               value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Name or employee number"
+              className="w-full rounded-md border border-surface-border px-3 py-2"
             />
+          </label>
+          <div className="flex items-end gap-2">
+            <Button variant="secondary" onClick={() => setAttendanceData({})} disabled={saving}>
+              Clear
+            </Button>
           </div>
         </div>
 
         <DataGrid
-          data={mockAttendance}
+          data={visible}
           columns={columns}
+          pagination={{ pageSize: 25 }}
+          sortable
+          filterable={false}
+          emptyState={{
+            title: 'No staff match the filters',
+            description: 'Change the department or search, or add staff to the directory.',
+          }}
         />
       </Card>
     </div>
   );
 };
 
-const StaffAttendancePageWithRepository = withCanonicalRepository(StaffAttendancePage);
-export default StaffAttendancePageWithRepository;
+const StaffAttendancePage: React.FC = () => <StaffAttendanceContent />;
 
-export const StaffAttendanceContent = StaffAttendancePage;
-
+export default StaffAttendancePage;

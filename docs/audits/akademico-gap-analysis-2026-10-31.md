@@ -145,7 +145,21 @@ Priority is impact on a real school day, not file count.
 5. **Global student finder**: a header search that opens the canonical profile, with admission number, name and class filters.
 6. **Mock sweep**: replace certificate/biographical/ledger/exam mocks; badge demo modules.
 
-## 6. What was implemented in this pass
+## 6. What was implemented in this pass (and the follow-up pass)
+
+Follow-up pass additionally completed:
+
+- Global learner finder in the header (Ctrl/Cmd-K, admission/name search, profile link).
+- Student bio-data over the canonical directory with class/stream filters.
+- Persistent staff attendance register (`staff_attendance_records`).
+- Scholarship learner search and canonical class options.
+- Birth, character and transfer certificates driven by canonical learners.
+- Selectable previous-session fees with an explicit **Carry forward selected** action that posts opening balances and leaves the old invoices frozen.
+
+Still not automatic: the old termly/yearly priority/weighted prepayment distribution on fee-structure effect. The explicit carry-forward action is implemented; policy-driven automatic distribution remains a finance decision.
+
+Remaining from the tables above: report-builder staff/guardian/subject types, ledger report rebuilds, exam gazette/distribution/verification screens, bulk-update manual/no-op paths, inventory/nutrition/todos screens, and a demo-data badge policy.
+
 
 - One promotion implementation from both entry points.
 - Canonical attendance report with working class/stream filters, every page of registers/marks, and learner profile links.
