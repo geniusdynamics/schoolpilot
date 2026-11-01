@@ -6,6 +6,12 @@ import PrimarySidebar from '../PrimarySidebar';
 import SecondarySidebar from '../SecondarySidebar';
 import { FullWidthProvider } from '../../contexts/FullWidthContext';
 
+// The signed-in login the sidebar reads. The demo logins carry `moduleAccess`; a login without it
+// (older rows) keeps the whole rail.
+const auth = vi.hoisted(() => ({
+  user: { id: 'u1' } as { id: string; role?: string; moduleAccess?: string[] }
+}));
+
 // SecondarySidebar calls useFullWidth(); this file imports RTL's render
 // directly (bypassing the global provider wrapper), so wrap renders here.
 const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
@@ -39,7 +45,7 @@ vi.mock('../../hooks/useRBAC', () => ({
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
-    user: { id: 'u1' }
+    user: auth.user
   })
 }));
 
@@ -71,6 +77,31 @@ vi.mock('react-i18next', () => ({
 describe('Primary and Secondary navigation integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    auth.user = { id: 'u1' };
+  });
+
+  it('offers only the modules the login may open', () => {
+    auth.user = { id: 'u1', role: 'teacher', moduleAccess: ['dashboard'] };
+
+    render(
+      <MemoryRouter>
+        <PrimarySidebar selectedModuleKey="" onModuleSelect={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByRole('button', { name: 'settings.title' })).not.toBeInTheDocument();
+  });
+
+  it('keeps a module the login may open', () => {
+    auth.user = { id: 'u1', role: 'teacher', moduleAccess: ['settings'] };
+
+    render(
+      <MemoryRouter>
+        <PrimarySidebar selectedModuleKey="" onModuleSelect={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: 'settings.title' })).toBeInTheDocument();
   });
 
   it('emits canonical module id from primary module click', () => {
