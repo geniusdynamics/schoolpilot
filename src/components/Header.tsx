@@ -11,6 +11,7 @@ import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import { TemporaryDataBadge } from './StorageUnavailableScreen';
 import { useSchoolProfile } from '../hooks/useSchoolProfile';
 import GlobalStudentSearch from './GlobalStudentSearch';
+import { SetupNag } from './setup/SetupNag';
 
 const PRODUCT_NAME = 'schoolpilot';
 const notifications = 3; // Example notification count
@@ -93,6 +94,8 @@ const Header: React.FC<HeaderProps> = ({ onSettings, onHome }) => {
         
         {/* Trailing: Actions - Responsive layout */}
         <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
+          {/* Setup nag: only while the school still lacks its profile, system, year, classes or subjects */}
+          <SetupNag />
           {/* Mobile Search Button - Only on mobile */}
           <button
             className="md:hidden p-2 rounded-xl bg-white/70 dark:bg-slate-900/70 hover:bg-white/90 dark:hover:bg-slate-900/90 shadow text-slate-600"

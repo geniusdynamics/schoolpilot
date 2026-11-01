@@ -27,6 +27,16 @@ const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
   </div>
 );
 
+/**
+ * The setup wizard, loaded on demand.
+ *
+ * It is not a module page (no module owns it), so it has no entry in the page loader; keeping it out
+ * of the app's first chunk means every route does not pay for the wizard's writers and pack list.
+ */
+const SetupPage = React.lazy(() =>
+  import('../components/setup/SetupPage').then((module) => ({ default: module.SetupPage }))
+);
+
 /** Generates deprecated route redirects for all deprecated nav items across enabled modules */
 const generateDeprecatedRouteRedirects = (): React.ReactElement[] => {
   const deprecatedRoutes: React.ReactElement[] = [];
@@ -121,6 +131,18 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
           <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
             <Suspense fallback={<PageSpinner label="Loading dashboard..." />}>
               <DashboardPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Setup wizard, reachable after onboarding from the header nag */}
+      <Route
+        path="/setup"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<PageSpinner label="Loading setup..." />}>
+              <SetupPage />
             </Suspense>
           </ProtectedRoute>
         }
