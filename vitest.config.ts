@@ -17,10 +17,11 @@ export default defineConfig({
     setupFiles: ['./src/tests/setup.ts'],
     // Sub-agent worktrees live under .claude/worktrees; never collect their copies of the suite.
     exclude: [...configDefaults.exclude, '.claude/**', 'tests/e2e/**', 'docs/**'],
-    // Generous per-test budget: the suite runs in a single fork and
-    // 5s defaults cause spurious timeouts under accumulated load.
-    testTimeout: 20000,
-    hookTimeout: 20000,
+    // Generous per-test budget: a related-files run can put a hundred files in the fork pool at
+    // once, and tests that wait on a debounce (the live-refresh context takes ~8s alone) then
+    // exceed a 20s budget on a loaded machine. A genuine hang still fails, only later.
+    testTimeout: 60000,
+    hookTimeout: 60000,
     // React 19 compatibility settings
     pool: 'forks',
     poolOptions: {
