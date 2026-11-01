@@ -195,8 +195,11 @@ export function useTabs(): UseTabsReturn {
       return;
     }
 
-    // When location changes (browser nav), update tab state
-    const newState = engine.parseURL(location.pathname + location.search);
+    // When the route changes, re-read the tab list from the address bar. The tab list lives in the
+    // outer search; the router's own `search` belongs to the hash route, where a hub keeps its tab
+    // strip (`?tab=class-grid`). Reading that as workspace state turned "student-grid" into a tab
+    // named after itself and dropped the real list.
+    const newState = engine.parseURL();
     setState(newState);
   }, [location.pathname, location.search]);
 
@@ -252,6 +255,20 @@ export function useTabs(): UseTabsReturn {
       // Activate existing tab
       activateTab(existingTab.id);
       return existingTab.id;
+    }
+
+    // A page's own tab strip is a view, not another page: switching Marks Entry from the class grid
+    // to the student grid moves the tab it already has instead of opening a second "Marks Entry".
+    const sameView = state.tabs.find((tab) => deriver.isSameView(tab.url, url));
+    if (sameView) {
+      const updated = deriver.updateTabUrl(sameView, target);
+      const nextState = {
+        tabs: state.tabs.map((tab) => (tab.id === sameView.id ? updated : tab)),
+        activeTabId: sameView.id,
+      };
+      engine.updateURL(nextState);
+      navigate(target);
+      return sameView.id;
     }
 
     // Check tab limit

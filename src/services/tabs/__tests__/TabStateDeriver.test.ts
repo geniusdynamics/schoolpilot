@@ -118,8 +118,7 @@ describe('TabStateDeriver', () => {
     });
 
     // A reload rebuilds the tab list from the address alone, with no translations to look names up in.
-    describe('with no translation to look its name up in', () => {
-      const untranslated = new TabStateDeriver((key) => key);
+    describe('with no translation to look its name up in', () => {      const untranslated = new TabStateDeriver((key) => key);
 
       it.each([
         ['/settings/school', 'School & People'],
@@ -132,6 +131,41 @@ describe('TabStateDeriver', () => {
       it('still names a page of another module for its address', () => {
         expect(untranslated.deriveTab('/administration/school').title).toBe('School');
       });
+    });
+  });
+
+  describe('a page with its own tab strip', () => {
+    it('is the same view whichever tab strip entry is open', () => {
+      expect(deriver.isSameView('/academics/marks-entry', '/academics/marks-entry?tab=class-grid')).toBe(true);
+      expect(
+        deriver.isSameView(
+          '/academics/marks-entry?tab=class-grid',
+          '/academics/marks-entry?tab=student-grid'
+        )
+      ).toBe(true);
+    });
+
+    it('keeps a query that is more than the tab strip a different view', () => {
+      expect(deriver.isSameView('/students?page=1', '/students?page=2')).toBe(false);
+      expect(deriver.isSameView('/students?tab=enrolled&page=1', '/students?page=2')).toBe(false);
+    });
+
+    it('keeps two records apart', () => {
+      expect(deriver.isSameView('/administration/students/a', '/administration/students/b')).toBe(false);
+    });
+
+    it('gives a query other than the tab strip its own id, so two tabs never share a React key', () => {
+      const first = deriver.deriveTab('/students?page=1');
+      const second = deriver.deriveTab('/students?page=2');
+
+      expect(first.id).not.toBe(second.id);
+      expect(deriver.deriveTab('/students?page=1').id).toBe(first.id);
+    });
+
+    it('keeps one id for every entry of the tab strip', () => {
+      expect(deriver.deriveTab('/students?tab=enrolled').id).toBe(
+        deriver.deriveTab('/students?tab=left').id
+      );
     });
   });
 });

@@ -113,13 +113,15 @@ describe('the demo school seed', () => {
     // A membership puts the learner into a group that names their class. A group named after the
     // level and area is shared by the level's streams, so every stream has to appear in its
     // `class_group_ids` or the class marks grid reads that stream as "not registered".
-    const enrolmentClass = new Map(enrolments.items.map((row) => [row.id, row.class_group_id]));
+    const enrolmentClass = new Map(
+      enrolments.items.map((row) => [String(row.id), String(row.class_group_id)] as const)
+    );
     const groupClasses = new Map(
-      teachingGroups.items.map((row) => [row.id, row.class_group_ids] as const)
+      teachingGroups.items.map((row) => [String(row.id), row.class_group_ids.map(String)] as const)
     );
     for (const member of members.items) {
-      expect(groupClasses.get(member.teaching_group_id)).toContain(
-        enrolmentClass.get(member.enrolment_id)
+      expect(groupClasses.get(String(member.teaching_group_id))).toContain(
+        enrolmentClass.get(String(member.enrolment_id))
       );
     }
 

@@ -106,7 +106,7 @@ const TransferredStudentsPage: React.FC = () => {
     { key: 'transfer_certificate_issued', header: 'Certificate', width: 100, sortable: true, render: (value, item) => (
       <Badge variant={item.transfer_certificate_issued ? 'success' : 'warning'}>{item.transfer_certificate_issued ? 'Issued' : 'Pending'}</Badge>
     )},
-    { key: 'id', header: 'Actions', width: 100, sortable: false, render: (value, item) => (
+    { key: 'actions', header: 'Actions', width: 100, sortable: false, render: (value, item) => (
       <div className="flex gap-1">
         <Button size="sm" variant="ghost" onClick={() => setSelectedStudent(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>View</Button>
         <Button size="sm" variant="ghost" leftIcon={<DocumentArrowDownIcon className="w-4 h-4" />}>Cert</Button>

@@ -16,7 +16,10 @@ export function ModuleRouteLoader({
   children, 
   autoEnable = true 
 }: ModuleRouteLoaderProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  // A route whose module is not loaded yet is loading it, not failing: start in the loading state so
+  // the first paint is the spinner. Seeding this from `isLoaded` alone showed "Module Not Available"
+  // for as long as the module's import took, which reads as an error the school has to fix.
+  const [isLoading, setIsLoading] = useState(() => !moduleLoader.isLoaded(moduleId));
   const [isLoaded, setIsLoaded] = useState(() => moduleLoader.isLoaded(moduleId));
   const [error, setError] = useState<Error | null>(null);
 

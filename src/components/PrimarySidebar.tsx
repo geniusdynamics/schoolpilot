@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { i18nReady } from '../i18n/i18n';
 import { logger } from '@/utils/logging';
+import { normalizeModuleId } from '@/utils/moduleStyles';
 
 // Error boundary for PrimarySidebar
 class PrimarySidebarErrorBoundary extends React.Component<
@@ -160,7 +161,7 @@ const PrimarySidebarContent: React.FC<{
   // 1. Custom hooks (always called first)
   const { navigationItems = [], isLoading = true } = useDynamicNavigation(true) || {};
   useRBAC();
-  useAuth();
+  const { user } = useAuth();
   const { t } = useTranslation('navigation', { useSuspense: false });
   
   // 2. State hooks (always called in same order)
@@ -175,13 +176,23 @@ const PrimarySidebarContent: React.FC<{
   }, [navigationItems]);
   
   const mainModules = useMemo(() => {
-    return safeNavigationItems.filter(item => 
-      item && 
-      typeof item === 'object' && 
-      item.isGroup && 
+    const groups = safeNavigationItems.filter(item =>
+      item &&
+      typeof item === 'object' &&
+      item.isGroup &&
       item.name
     );
-  }, [safeNavigationItems]);
+
+    // The sidebar offers the modules this login may open. Without this a teacher saw Finance, HR and
+    // Settings in the rail and met "Access Denied" on every one of them; the route guard already
+    // refuses those pages, so the rail now agrees with it rather than inviting the click.
+    const access = Array.isArray(user?.moduleAccess) ? user.moduleAccess : [];
+    if (user?.role === 'super_admin' || access.length === 0) return groups;
+    const allowed = new Set(access.map((moduleId) => normalizeModuleId(moduleId)));
+    return groups.filter(item =>
+      allowed.has(normalizeModuleId(item.modulePath || item.path || item.name))
+    );
+  }, [safeNavigationItems, user]);
   
   const isTranslationReady = useMemo(() => {
     return Boolean(i18nReady) && typeof t === 'function';

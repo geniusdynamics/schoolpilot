@@ -12,6 +12,22 @@ import { SETTINGS_HUBS } from '@/modules/settings/hubTabs';
 import { canonicalTabUrl } from './moduleDashboardUrl';
 import type { Tab, URLParseResult } from './types';
 
+/**
+ * The query parameter a hub page uses for its own tab strip. It is the page's view, not the
+ * workspace's tab list, and two addresses that differ only in it are the same page.
+ */
+const PAGE_VIEW_PARAM = 'tab';
+
+/** A short, stable digest of a query string (FNV-1a, base36), for tab ids only. */
+function digest(value: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(36);
+}
+
 // Module display names mapping
 const MODULE_NAMES: Record<string, string> = {
   dashboard: 'navigation:dashboard.title',
@@ -73,7 +89,7 @@ export class TabStateDeriver {
     const { module, entity, entityId, view } = parsed;
 
     // Generate deterministic ID based on content
-    const id = this.generateTabId(module, entity, entityId);
+    const id = this.generateTabId(module, entity, entityId, parsed.params);
 
     // Resolve title
     let title = options?.title || this.resolveTitle(module, entity, entityId, view);
@@ -151,15 +167,27 @@ export class TabStateDeriver {
   /**
    * Generate a deterministic tab ID — no Date.now() for list/dashboard so reload
    * restores same ID and dedup via isSameEntity works.
+   *
+   * A query that is more than the page's own view names a different view of the same list
+   * (`?page=2`), which `isSameEntity` treats as a different tab; the id carries a short digest of
+   * that query so two such tabs never render under one React key.
    */
-  generateTabId(module: string, entity?: string, entityId?: string): string {
-    if (entityId) {
-      return `tab-${module}-${entity}-${entityId}`;
-    }
-    if (entity) {
-      return `tab-${module}-${entity}-list`;
-    }
-    return `tab-${module}-dashboard`;
+  generateTabId(
+    module: string,
+    entity?: string,
+    entityId?: string,
+    search?: URLSearchParams
+  ): string {
+    const base = entityId
+      ? `tab-${module}-${entity}-${entityId}`
+      : entity
+        ? `tab-${module}-${entity}-list`
+        : `tab-${module}-dashboard`;
+    const rest = search === undefined ? '' : search.toString();
+    const viewOnly = new URLSearchParams(rest);
+    viewOnly.delete(PAGE_VIEW_PARAM);
+    const key = viewOnly.toString();
+    return key === '' ? base : `${base}-${digest(key)}`;
   }
 
   /**
@@ -213,6 +241,34 @@ export class TabStateDeriver {
       } catch { return true; }
     }
     return true;
+  }
+
+  /**
+   * Check whether two URLs are two views of the same page.
+   *
+   * A hub page keeps its own tab strip in the `tab` query parameter: `/marks-entry?tab=class-grid`
+   * and `/marks-entry?tab=student-grid` are the same page, not two pages. Any other query
+   * difference is a different view of a list (`?page=2`) and stays its own tab.
+   */
+  isSameView(url1: string, url2: string): boolean {
+    const p1 = this.parseURL(url1);
+    const p2 = this.parseURL(url2);
+    if (
+      p1.module !== p2.module ||
+      p1.entity !== p2.entity ||
+      p1.entityId !== p2.entityId
+    ) {
+      return false;
+    }
+    try {
+      const params1 = new URL(url1, window.location.origin).searchParams;
+      const params2 = new URL(url2, window.location.origin).searchParams;
+      params1.delete(PAGE_VIEW_PARAM);
+      params2.delete(PAGE_VIEW_PARAM);
+      return params1.toString() === params2.toString();
+    } catch {
+      return false;
+    }
   }
 
   /**
