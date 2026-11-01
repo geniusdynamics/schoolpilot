@@ -455,6 +455,12 @@ describe('the cheque lifecycle', () => {
     const balance = await h.ledger.trialBalance({ institutionId: h.institutionId, currency: 'KES' });
     const cash = balance.rows.find((row) => row.accountCode === CONTROL_ACCOUNTS.cash.code);
     const bank = balance.rows.find((row) => row.accountCode === CONTROL_ACCOUNTS.bank.code);
+    const receivables = balance.rows.find(
+      (row) => row.accountCode === CONTROL_ACCOUNTS.receivables.code
+    );
+    const revenue = balance.rows.find(
+      (row) => row.accountCode === CONTROL_ACCOUNTS.fee_revenue.code
+    );
     expect(cash?.balance.amount_minor ?? 0).toBe(0);
     expect(bank?.balance.amount_minor ?? 0).toBe(0);
 
@@ -463,6 +469,21 @@ describe('the cheque lifecycle', () => {
     const fee = await h.context.repository.get('invoice', bounced.feeInvoiceId as never);
     expect(fee?.total).toEqual({ amount_minor: 5_000, currency: 'KES' });
     expect(fee?.number).toMatch(/^INV\/2027\/T1\/\d{6}$/);
+
+    // The fee reaches the ledger: the learner owes it and the fine is revenue. Without the posting
+    // the balance explanation and the books disagreed by the fee (the audit's finding 2).
+    const feeEntries = await h.ledger.listEntries({
+      institutionId: h.institutionId,
+      sourceKind: 'invoice',
+      sourceId: bounced.feeInvoiceId as string,
+    });
+    expect(feeEntries).toHaveLength(1);
+    expect(feeEntries[0]?.lines).toEqual([
+      expect.objectContaining({ accountCode: CONTROL_ACCOUNTS.receivables.code }),
+      expect.objectContaining({ accountCode: CONTROL_ACCOUNTS.fee_revenue.code }),
+    ]);
+    expect(receivables?.balance).toEqual({ amount_minor: 5_000, currency: 'KES' });
+    expect(revenue?.balance).toEqual({ amount_minor: -5_000, currency: 'KES' });
   });
 
   it('refuses a bounce without a reason', async () => {
