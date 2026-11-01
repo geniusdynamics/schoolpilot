@@ -31,6 +31,9 @@ export type EnrolmentRow = RepositoryRow<'enrolment'>;
 /** The whole collection: these screens are administrative and read every row. */
 const ALL: { readonly limit: number } = { limit: MAX_LIMIT };
 
+/** The tables that grow with the school: read every page, not the first 500 rows. */
+const EVERY_PAGE = { allPages: true } as const;
+
 /** The name a person row is shown under. */
 export function personName(row: {
   readonly given_name?: string;
@@ -59,18 +62,18 @@ export function useCanonicalAcademics() {
   const classGroups = useEntityQuery(repository, 'class_group', ALL);
   const learningAreas = useEntityQuery(repository, 'learning_area', ALL);
   const components = useEntityQuery(repository, 'component', ALL);
-  const teachingGroups = useEntityQuery(repository, 'teaching_group', ALL);
-  const teachingGroupMembers = useEntityQuery(repository, 'teaching_group_member', ALL);
-  const teachingAssignments = useEntityQuery(repository, 'teaching_assignment', ALL);
-  const assessments = useEntityQuery(repository, 'assessment', ALL);
+  const teachingGroups = useEntityQuery(repository, 'teaching_group', ALL, EVERY_PAGE);
+  const teachingGroupMembers = useEntityQuery(repository, 'teaching_group_member', ALL, EVERY_PAGE);
+  const teachingAssignments = useEntityQuery(repository, 'teaching_assignment', ALL, EVERY_PAGE);
+  const assessments = useEntityQuery(repository, 'assessment', ALL, EVERY_PAGE);
   const gradingScales = useEntityQuery(repository, 'grading_scale', ALL);
-  const marks = useEntityQuery(repository, 'mark', ALL);
+  const marks = useEntityQuery(repository, 'mark', ALL, EVERY_PAGE);
   const academicYears = useEntityQuery(repository, 'academic_year', ALL);
   const academicPeriods = useEntityQuery(repository, 'academic_period', ALL);
   const timetableEntries = useEntityQuery(repository, 'timetable_entry', ALL);
   const staff = useEntityQuery(repository, 'staff', ALL);
-  const learners = useEntityQuery(repository, 'learner', ALL);
-  const enrolments = useEntityQuery(repository, 'enrolment', ALL);
+  const learners = useEntityQuery(repository, 'learner', ALL, EVERY_PAGE);
+  const enrolments = useEntityQuery(repository, 'enrolment', ALL, EVERY_PAGE);
 
   const queries: ReadonlyArray<{ readonly status: string }> = [
     institutions,

@@ -114,7 +114,7 @@ test.describe('the finance golden path', () => {
       await expect(page.getByText('Fee items (vote heads)').first()).toBeVisible({
         timeout: UI_TIMEOUT,
       });
-      for (const code of ['TUITION', 'MEALS', 'TRANSPORT']) {
+      for (const code of ['TUITION', 'LUNCH', 'ACTIVITY']) {
         await expect(gridRow(page, code)).toBeVisible({ timeout: UI_TIMEOUT });
       }
 

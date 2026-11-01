@@ -37,10 +37,11 @@ export function defaultDemoSchool(today: Date = new Date()): DemoSchoolInput {
       terms: termsFor(year),
     },
     classes: [
-      { name: 'Grade 7', streams: ['A', 'B'] },
-      { name: 'Grade 8', streams: ['A', 'B'] },
-      { name: 'Grade 9', streams: ['A', 'B'] },
+      { name: 'Grade 7', streams: ['East', 'West'] },
+      { name: 'Grade 8', streams: ['East', 'West'] },
+      { name: 'Grade 9', streams: ['East', 'West'] },
     ],
     demo: true,
+    today: today.toISOString().slice(0, 10),
   };
 }

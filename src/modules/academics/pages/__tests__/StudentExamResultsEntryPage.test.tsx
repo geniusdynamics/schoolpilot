@@ -158,7 +158,7 @@ function renderPage() {
 }
 
 async function choose(label: string, option: string) {
-  fireEvent.click(screen.getByRole('combobox', { name: new RegExp(label) }));
+  fireEvent.click(await screen.findByRole('combobox', { name: new RegExp(label) }));
   fireEvent.click(await screen.findByRole('option', { name: option }));
 }
 
