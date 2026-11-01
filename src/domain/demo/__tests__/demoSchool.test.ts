@@ -110,6 +110,19 @@ describe('the demo school seed', () => {
     const members = await context.repository.list('teaching_group_member', { limit: 200 });
     expect(members.items.length).toBeGreaterThanOrEqual(learners.items.length);
 
+    // A membership puts the learner into a group that names their class. A group named after the
+    // level and area is shared by the level's streams, so every stream has to appear in its
+    // `class_group_ids` or the class marks grid reads that stream as "not registered".
+    const enrolmentClass = new Map(enrolments.items.map((row) => [row.id, row.class_group_id]));
+    const groupClasses = new Map(
+      teachingGroups.items.map((row) => [row.id, row.class_group_ids] as const)
+    );
+    for (const member of members.items) {
+      expect(groupClasses.get(member.teaching_group_id)).toContain(
+        enrolmentClass.get(member.enrolment_id)
+      );
+    }
+
     const assessments = await context.repository.list('assessment', { limit: 10 });
     expect(assessments.items).toHaveLength(4);
     const marks = await context.repository.list('mark', { limit: 200 });

@@ -783,6 +783,23 @@ async function seedDemoPeople(
         () => input.count('teaching_group')
       );
       const teachingGroupId = asId<'teaching_group'>(teachingGroup.id);
+      // A group is named after its level and learning area, so the second stream of a level finds
+      // the first stream's row. Fold the stream into that row: leaving it out would place the
+      // stream's learners in a group that does not name their class, and every cell of the class
+      // marks grid for that stream would read as "not registered".
+      if (!teachingGroup.class_group_ids.includes(group.id)) {
+        await repository.update(
+          'teaching_group',
+          teachingGroupId,
+          {
+            class_group_ids: [
+              ...teachingGroup.class_group_ids,
+              asId<'class_group'>(group.id),
+            ],
+          },
+          { expectedVersion: teachingGroup.rowVersion, ...options }
+        );
+      }
       teachingGroups.push({
         id: teachingGroupId,
         learningAreaId: asId<'learning_area'>(area.id),
