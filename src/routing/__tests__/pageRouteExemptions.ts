@@ -18,6 +18,7 @@ export const PAGE_ROUTE_EXEMPTIONS: readonly PageRouteExemption[] = [
   { key: 'academics/assignments/AssignmentsListPage', reason: 'tab of the Assignments hub; the hub is the route' },
   { key: 'academics/assignments/AssignmentSubmissionsPage', reason: 'tab of the Assignments hub; the hub is the route' },
   { key: 'academics/BoardExamResultsPage', reason: 'deprecated route: its path redirects to /academics/results-distribution?tab=board-results' },
+  { key: 'academics/BulkSubjectAssignmentsPage', reason: 'tabs of the Curriculum Allocations hub; the hub is the route' },
   { key: 'academics/ClassSubjectAllocationsPage', reason: 'deprecated route: its path redirects to /academics/allocations?tab=class-allocations' },
   { key: 'academics/DistributeResultsPage', reason: 'deprecated route: its path redirects to /academics/results-distribution?tab=distribute' },
   { key: 'academics/EducationSystemConfigPage', reason: 'legacy page with no route entry; not reachable from navigation' },

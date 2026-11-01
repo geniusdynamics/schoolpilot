@@ -10,6 +10,10 @@ import {
 import { ClassSubjectAllocationsContent } from './ClassSubjectAllocationsPage';
 import { TeacherSubjectAssignmentPageContent } from './TeacherSubjectAssignmentPage';
 import { StudentSubjectEnrollmentPageContent } from './StudentSubjectEnrollmentPage';
+import {
+  StudentSubjectMatrixContent,
+  TeacherAssignmentGridContent,
+} from './BulkSubjectAssignmentsPage';
 
 interface HubTab {
   id: string;
@@ -42,6 +46,18 @@ const CurriculumAllocationsPage: React.FC = () => {
       icon: <UserGroupIcon className="w-4 h-4" />,
       component: <StudentSubjectEnrollmentPageContent />,
     },
+    {
+      id: 'teacher-grid',
+      label: t('bulkSubjectAssignments.teacherGrid', 'Teacher grid'),
+      icon: <UsersIcon className="w-4 h-4" />,
+      component: <TeacherAssignmentGridContent />,
+    },
+    {
+      id: 'subject-matrix',
+      label: t('bulkSubjectAssignments.subjectMatrix', 'Subject matrix'),
+      icon: <UserGroupIcon className="w-4 h-4" />,
+      component: <StudentSubjectMatrixContent />,
+    },
   ];
 
   const activeTabFromUrl = searchParams.get('tab') || 'class-allocations';
@@ -67,7 +83,7 @@ const CurriculumAllocationsPage: React.FC = () => {
         title={t('curriculumAllocations.title', 'Curriculum Allocations')}
         info={t(
           'curriculumAllocations.subtitle',
-          'Manage class subject allocations, teacher assignments, and student enrollment'
+          'Manage class subject allocations, teacher grids and the student subject matrix'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
