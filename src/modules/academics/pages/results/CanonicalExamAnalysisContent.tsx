@@ -15,7 +15,7 @@ import type { Id } from '@/domain/ids';
 
 import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
 import { useCanonicalAcademics } from '../../data/useCanonicalAcademics';
-import { defaultAggregation } from './aggregation';
+import { aggregateScaleCode, defaultAggregation } from './aggregation';
 import { buildExamAnalysis, type MeritRow, type SubjectPerformance } from './analysis';
 import { displayNumber } from './format';
 import { useResults } from './useResults';
@@ -31,7 +31,25 @@ const CanonicalExamAnalysisInner: React.FC = () => {
   const [periodId, setPeriodId] = useState<Id<'academic_period'> | null>(null);
   const [classGroupId, setClassGroupId] = useState<Id<'class_group'> | null>(null);
 
-  const aggregation = useMemo(() => defaultAggregation(), []);
+  // The class's assessments name the scale the aggregate is graded on, so the merit list carries a
+  // grade rather than a bare mean. A class the assessments agree on nothing for is left ungraded.
+  const aggregation = useMemo(() => {
+    const classAssessments = canonical.assessments.filter(
+      (assessment) =>
+        (periodId === null || assessment.academic_period_id === periodId) &&
+        (classGroupId === null ||
+          assessment.class_group_ids.length === 0 ||
+          assessment.class_group_ids.includes(classGroupId))
+    );
+    return defaultAggregation(
+      aggregateScaleCode(
+        classAssessments.map((assessment) => ({
+          grading_scale_id: assessment.grading_scale_id ?? undefined,
+        })),
+        canonical.gradingScales.map((scale) => ({ id: scale.id, code: scale.code }))
+      )
+    );
+  }, [canonical.assessments, canonical.gradingScales, periodId, classGroupId]);
   const results = useResults({
     actorId: session.actorId,
     role: session.role,
@@ -90,6 +108,24 @@ const CanonicalExamAnalysisInner: React.FC = () => {
       sortable: true,
       render: (value) => <span className="font-mono">{Number(value).toFixed(1)}%</span>,
     },
+    {
+      key: 'grades',
+      header: 'Grades attained',
+      // The old module's grades-attained report, kept beside the mean so a reader sees the spread
+      // rather than only its average.
+      render: (_value, row) => {
+        const bands = Object.entries(row.grades).sort(([left], [right]) =>
+          left.localeCompare(right)
+        );
+        return bands.length === 0 ? (
+          <span className="text-surface-muted-fg">—</span>
+        ) : (
+          <span className="font-mono text-xs">
+            {bands.map(([code, count]) => `${code} ${count}`).join(' · ')}
+          </span>
+        );
+      },
+    },
   ];
 
   const meritColumns: DataGridColumn<MeritRow>[] = [
@@ -113,7 +149,7 @@ const CanonicalExamAnalysisInner: React.FC = () => {
   ];
 
   const exportCsv = () => {
-    const subjectHeader = ['Subject', 'Sat', 'Mean %', 'Highest', 'Lowest', 'Pass rate'];
+    const subjectHeader = ['Subject', 'Sat', 'Mean %', 'Highest', 'Lowest', 'Pass rate', 'Grades'];
     const subjectRows = analysis.subjects.map((subject) =>
       [
         subject.name,
@@ -122,6 +158,10 @@ const CanonicalExamAnalysisInner: React.FC = () => {
         subject.highest,
         subject.lowest,
         subject.passRate,
+        Object.entries(subject.grades)
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([code, count]) => `${code} ${count}`)
+          .join(' / '),
       ]
         .map(csvCell)
         .join(',')
@@ -147,6 +187,13 @@ const CanonicalExamAnalysisInner: React.FC = () => {
   const reachableClassGroups = canonical.classGroups.filter((row) =>
     results.reachableClassIds.has(row.id)
   );
+  const levelNameOf = new Map(
+    canonical.levels.map((level) => [String(level.id), level.name] as const)
+  );
+  const classGroupLabel = (group: (typeof canonical.classGroups)[number]): string => {
+    const level = levelNameOf.get(group.level_id);
+    return level === undefined ? group.name : `${level} · ${group.name}`;
+  };
 
   return (
     <div className="space-y-4">
@@ -212,7 +259,7 @@ const CanonicalExamAnalysisInner: React.FC = () => {
               <option value="">Select a class</option>
               {reachableClassGroups.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {group.name}
+                  {classGroupLabel(group)}
                 </option>
               ))}
             </select>

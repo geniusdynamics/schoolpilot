@@ -94,7 +94,7 @@ export const ClassMarksEntryPageContent: React.FC<ClassMarksEntryPageContentProp
   );
 
   const rows = useMemo(
-    () => (mode === 'student' && studentId ? entry.grid.rows.filter((row) => row.id === studentId) : entry.grid.rows),
+    () => (mode === 'student' ? entry.grid.rows.filter((row) => row.id === studentId) : entry.grid.rows),
     [mode, studentId, entry.grid.rows]
   );
 
@@ -161,6 +161,24 @@ export const ClassMarksEntryPageContent: React.FC<ClassMarksEntryPageContentProp
     });
     toast.showInfo?.(`${matrix.length} pasted row(s); review and save.`);
   };
+
+  const { cellOf } = entry;
+  const summary = useMemo(() => {
+    let valid = 0;
+    let missing = 0;
+    let invalid = 0;
+    let notMember = 0;
+    for (const row of rows) {
+      for (const column of columns) {
+        const view = cellOf(row.id, column.key);
+        if (view.nonMember) notMember += 1;
+        else if (view.invalid !== null) invalid += 1;
+        else if (view.value.score.trim() === '' && view.value.status === 'present') missing += 1;
+        else valid += 1;
+      }
+    }
+    return { valid, missing, invalid, notMember };
+  }, [rows, columns, cellOf]);
 
   if (entry.isLoading && entry.grid.rows.length === 0) {
     return (
@@ -243,7 +261,7 @@ export const ClassMarksEntryPageContent: React.FC<ClassMarksEntryPageContentProp
               <option value="">All streams in scope</option>
               {classOptions.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {group.name}
+                  {group.label}
                 </option>
               ))}
             </select>
@@ -334,15 +352,19 @@ export const ClassMarksEntryPageContent: React.FC<ClassMarksEntryPageContentProp
                 ? 'No active learner is in the selected class or scope.'
                 : 'No assessment is set up for this exam slot and class. Create the assessments in Exam setup first.'}
           </p>
+        ) : mode === 'student' && rows.length === 0 ? (
+          <p className="py-8 text-center text-surface-muted-fg">
+            Choose a learner above to see every subject of this class in one grid.
+          </p>
         ) : (
           <>
             <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-              <Badge variant="success" size="sm">Valid: {entry.summary.valid}</Badge>
-              <Badge variant="warning" size="sm">Missing: {entry.summary.missing}</Badge>
-              <Badge variant="danger" size="sm">Invalid: {entry.summary.invalid}</Badge>
-              <Badge variant="info" size="sm">Not registered: {entry.summary.notMember}</Badge>
+              <Badge variant="success" size="sm">Valid: {summary.valid}</Badge>
+              <Badge variant="warning" size="sm">Missing: {summary.missing}</Badge>
+              <Badge variant="danger" size="sm">Invalid: {summary.invalid}</Badge>
+              <Badge variant="info" size="sm">Not registered: {summary.notMember}</Badge>
               <span className="text-surface-muted-fg">
-                {entry.grid.rows.length} learner(s) × {entry.grid.columns.length} subject(s)
+                {rows.length} learner(s) × {columns.length} subject(s)
               </span>
             </div>
 

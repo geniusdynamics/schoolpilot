@@ -52,7 +52,13 @@ export interface ClassMarkEntryState {
   readonly periodName: string | null;
   readonly periodOptions: readonly { readonly id: string; readonly name: string; readonly status: string }[];
   readonly levelOptions: readonly { readonly id: string; readonly name: string }[];
-  readonly classGroupOptions: readonly { readonly id: string; readonly name: string; readonly levelId: string }[];
+  readonly classGroupOptions: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly levelId: string;
+    /** `Grade 7 · A`: a stream name alone repeats across levels, so every picker says the level too. */
+    readonly label: string;
+  }[];
   readonly reachableClassGroupIds: ReadonlySet<string>;
   readonly canWrite: boolean;
   readonly cellOf: (rowId: string, columnKey: string) => CellView;
@@ -417,11 +423,15 @@ export function useClassMarkEntry(options: ClassMarkEntryOptions): ClassMarkEntr
       status: row.status,
     })),
     levelOptions: canonical.levels.map((row) => ({ id: row.id, name: row.name })),
-    classGroupOptions: canonical.classGroups.map((row) => ({
-      id: row.id,
-      name: row.name,
-      levelId: row.level_id,
-    })),
+    classGroupOptions: canonical.classGroups.map((row) => {
+      const level = canonical.levels.find((candidate) => candidate.id === row.level_id);
+      return {
+        id: row.id,
+        name: row.name,
+        levelId: row.level_id,
+        label: level === undefined ? row.name : `${level.name} · ${row.name}`,
+      };
+    }),
     reachableClassGroupIds,
     canWrite: scope.canWrite,
     cellOf,

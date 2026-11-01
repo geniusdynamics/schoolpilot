@@ -38,7 +38,7 @@ vi.mock('../useClassMarkEntry', () => ({
     periodName: 'Term 1',
     periodOptions: [{ id: 'p1', name: 'Term 1', status: 'current' }],
     levelOptions: [{ id: 'l1', name: 'Form 1' }],
-    classGroupOptions: [{ id: 'c1', name: 'Form 1 Blue', levelId: 'l1' }],
+    classGroupOptions: [{ id: 'c1', name: 'Form 1 Blue', levelId: 'l1', label: 'Form 1 · Blue' }],
     reachableClassGroupIds: new Set(['c1']),
     canWrite: true,
     cellOf: (rowId: string, columnKey: string) => ({
@@ -83,6 +83,11 @@ describe('class marks entry', () => {
     render(<ClassMarksEntryPageContent initialMode="student" />);
 
     expect(screen.getByText('Student marks grid')).toBeInTheDocument();
+    expect(
+      screen.getByText('Choose a learner above to see every subject of this class in one grid.')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Amina Wanjiku')).not.toBeInTheDocument();
+
     fireEvent.change(screen.getByLabelText('Student'), { target: { value: 'e1' } });
 
     expect(screen.getByText('Amina Wanjiku')).toBeInTheDocument();
