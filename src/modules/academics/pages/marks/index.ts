@@ -4,6 +4,27 @@
 export { MarkEntryV2PageContent } from './MarkEntryV2Page';
 export { default as MarkEntryV2Page } from './MarkEntryV2Page';
 export { MarkEntryGrid } from './MarkEntryGrid';
+export { default as ClassMarksEntryPage, ClassMarksEntryPageContent } from './ClassMarksEntryPage';
+export { useClassMarkEntry } from './useClassMarkEntry';
+export type { ClassMarkEntryOptions, ClassMarkEntryState, CellView } from './useClassMarkEntry';
+export {
+  buildClassGrid,
+  cellKey,
+  examKeyLabel,
+  examKeyOf,
+} from './classGrid';
+export type {
+  ClassGrid,
+  ClassGridInput,
+  GridAssessment,
+  GridClassGroup,
+  GridColumn,
+  GridEnrolment,
+  GridLearner,
+  GridMembership,
+  GridRow as ClassGridRow,
+  GridTeachingGroup,
+} from './classGrid';
 export { MARK_ENTRY_DEBOUNCE_MS, MARK_ENTRY_PAGE_SIZE, useMarkEntry } from './useMarkEntry';
 export type { MarkEntryOptions, MarkEntryState, MarkOverride } from './useMarkEntry';
 export { cellAddress, columnAddress, parsePastedGrid, pasteSummary, planPaste } from './paste';

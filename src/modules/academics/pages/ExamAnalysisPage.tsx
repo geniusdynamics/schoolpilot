@@ -9,7 +9,7 @@ import {
   ChartBarIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import { ExamAnalysisContent } from './ExamAnalysisContent';
+import { CanonicalExamAnalysisContent } from './results/CanonicalExamAnalysisContent';
 import { StudentExamAnalysisPageContent } from './StudentExamAnalysisPage';
 
 interface HubTab {
@@ -29,7 +29,7 @@ const ExamAnalysisPage: React.FC = () => {
       id: 'exam-analysis',
       label: t('examAnalysis.title', 'Exam Analysis'),
       icon: <ChartBarIcon className="w-4 h-4" />,
-      component: <ExamAnalysisContent />,
+      component: <CanonicalExamAnalysisContent />,
     },
     {
       id: 'student-analysis',

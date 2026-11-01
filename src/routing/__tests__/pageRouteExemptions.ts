@@ -32,6 +32,7 @@ export const PAGE_ROUTE_EXEMPTIONS: readonly PageRouteExemption[] = [
   { key: 'academics/lessonplans/PlanDetailPage', reason: 'tab of the Lesson plans hub; the hub is the route' },
   { key: 'academics/lessonplans/SubmissionPage', reason: 'tab of the Lesson plans hub; the hub is the route' },
   { key: 'academics/lessonplans/WeeklyPlansPage', reason: 'tab of the Lesson plans hub; the hub is the route' },
+  { key: 'academics/marks/ClassMarksEntryPage', reason: 'tab of the Marks Entry hub; the hub is the route' },
   { key: 'academics/marks/MarkEntryV2Page', reason: 'tab of the Marks Entry hub; the hub is the route' },
   { key: 'academics/MarksEntryByTokenPage', reason: 'deprecated route: its path redirects to /academics/marks-entry?tab=entry-by-token' },
   { key: 'academics/StudentExamAnalysisPage', reason: 'deprecated route: its path redirects to /academics/exam-analysis?tab=student-analysis' },

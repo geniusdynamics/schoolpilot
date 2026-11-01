@@ -53,6 +53,13 @@ const INSTITUTION_WRITERS: readonly string[] = [
   'head_teacher',
   'headteacher',
   'principal',
+  // The academic master sees every class and subject; the deputy head and director of studies
+  // hold the same academic oversight in the schools the old system served.
+  'academic_master',
+  'academic_master_teacher',
+  'deputy_principal',
+  'director_of_studies',
+  'dos',
 ];
 
 /** Roles that reach every group but may not write a mark. */

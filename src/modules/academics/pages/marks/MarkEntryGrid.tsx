@@ -37,6 +37,8 @@ export interface MarkEntryGridProps {
   readonly editableColumns: ReadonlySet<string>;
   readonly columnStates: Readonly<Record<string, WorkflowState>>;
   readonly canWrite: boolean;
+  /** Per-cell gate, so a learner not registered for a subject is read-only even when the column is not. */
+  readonly canEditCell?: (rowIndex: number, columnIndex: number) => boolean;
   readonly onScore: (rowIndex: number, columnIndex: number, raw: string) => void;
   readonly onStatus: (rowIndex: number, columnIndex: number, status: MarkStatus) => void;
   readonly onPaste: (anchorRow: number, anchorColumn: number, text: string) => void;
@@ -62,6 +64,7 @@ export const MarkEntryGrid: React.FC<MarkEntryGridProps> = ({
   editableColumns,
   columnStates,
   canWrite,
+  canEditCell,
   onScore,
   onStatus,
   onPaste,
@@ -155,7 +158,10 @@ export const MarkEntryGrid: React.FC<MarkEntryGridProps> = ({
                     const entry = entryOf(absoluteRow, columnIndex);
                     const status = statusOf(absoluteRow, columnIndex);
                     const original = originalOf(absoluteRow, columnIndex);
-                    const editable = canWrite && editableColumns.has(column.key);
+                    const editable =
+                      canWrite &&
+                      editableColumns.has(column.key) &&
+                      (canEditCell === undefined || canEditCell(absoluteRow, columnIndex));
                     const showReason =
                       status.code !== 'valid' &&
                       status.code !== 'locked' &&

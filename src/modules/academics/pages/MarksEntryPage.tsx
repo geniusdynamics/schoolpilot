@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/icons';
 import { StudentExamResultsEntryPageContent } from './StudentExamResultsEntryPage';
 import { MarksEntryByTokenPageContent } from './MarksEntryByTokenPage';
-import { MarkEntryV2PageContent } from './marks';
+import { ClassMarksEntryPage, MarkEntryV2PageContent } from './marks';
 
 interface HubTab {
   id: string;
@@ -32,6 +32,18 @@ const MarksEntryPage: React.FC = () => {
       label: t('marksEntry.grid.tab', 'Mark Entry v2'),
       icon: <TableCellsIcon className="w-4 h-4" />,
       component: <MarkEntryV2PageContent />,
+    },
+    {
+      id: 'class-grid',
+      label: t('marksEntry.classGrid.tab', 'Class grid'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <ClassMarksEntryPage initialMode="class" />,
+    },
+    {
+      id: 'student-grid',
+      label: t('marksEntry.studentGrid.tab', 'Student grid'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <ClassMarksEntryPage initialMode="student" />,
     },
     {
       id: 'student-results',
@@ -70,7 +82,7 @@ const MarksEntryPage: React.FC = () => {
         title={t('marksEntry.title', 'Marks Entry')}
         info={t(
           'marksEntry.subtitle',
-          'Enter and manage student exam marks and token-based entries'
+          'Enter marks by teaching group, whole class or one student, and manage token-based entries'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
