@@ -238,6 +238,19 @@ describe('the details of a plugin', () => {
     await waitFor(() => expect(state.setPluginSetting).toHaveBeenCalledWith('fee-calculator', 'useWasm', true));
   });
 
+  it('re-activates an active plugin after a setting changes, so the new value is applied', async () => {
+    renderTab();
+    fireEvent.click(within(rowOf('fee-calculator')).getByRole('button', { name: 'Config' }));
+
+    fireEvent.change(screen.getByLabelText('Payment terms'), { target: { value: 'annual' } });
+
+    await waitFor(() =>
+      expect(state.setPluginSetting).toHaveBeenCalledWith('fee-calculator', 'paymentTerms', 'annual')
+    );
+    await waitFor(() => expect(state.deactivatePlugin).toHaveBeenCalledWith('fee-calculator'));
+    expect(state.activatePlugin).toHaveBeenCalledWith('fee-calculator');
+  });
+
   it('saves a number when the field is left, as a number', async () => {
     renderTab();
     fireEvent.click(within(rowOf('fee-calculator')).getByRole('button', { name: 'Config' }));

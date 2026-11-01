@@ -22,7 +22,7 @@ export interface PluginSettingsFormProps {
 }
 
 export const PluginSettingsForm: React.FC<PluginSettingsFormProps> = ({ plugin, readOnly = false }) => {
-  const { getPluginSettings, setPluginSetting } = usePlugins();
+  const { getPluginSettings, setPluginSetting, deactivatePlugin, activatePlugin } = usePlugins();
   const id = plugin.manifest.id;
   const schema = plugin.manifest.settings ?? [];
 
@@ -36,6 +36,13 @@ export const PluginSettingsForm: React.FC<PluginSettingsFormProps> = ({ plugin, 
     setFailure(null);
     try {
       await setPluginSetting(id, setting.key, value);
+      // A plugin reads its settings in `activate` (an SMS gateway builds its client there, a
+      // whitelabel applies its branding). Saving a field on an active plugin without re-running
+      // that hook leaves the old configuration in force until someone toggles it off and on.
+      if (plugin.status === 'active') {
+        await deactivatePlugin(id);
+        await activatePlugin(id);
+      }
     } catch (error) {
       setFailure(`${setting.label} could not be saved: ${messageOf(error)}`);
     }

@@ -64,6 +64,10 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
           await manager.loadPlugins(manifests);
         }
 
+        // A plugin the school turned on before a reload is turned back on here; registration alone
+        // always starts a builtin inactive.
+        await manager.restoreActivePlugins();
+
         setPlugins(manager.getAllPlugins());
         setIsReady(true);
       } catch (error) {
