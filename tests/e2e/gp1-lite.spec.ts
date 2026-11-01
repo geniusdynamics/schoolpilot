@@ -67,11 +67,31 @@ const STUDENT = {
 const STUDENT_NAME = `${STUDENT.firstName} ${STUDENT.lastName}`;
 const GUARDIAN_NAME = `${STUDENT.guardianGiven} ${STUDENT.guardianFamily}`;
 const SOURCE_STREAM = /Form 1\W+North/;
+/** The term the wizard's fee structure and the billing run price. */
 const TERM_LABEL = 'Term 1';
-const FEE_TOTAL = 'KES 6,500.00';
+/**
+ * The term the sample school is in, named the way it names its terms: the one holding today, else
+ * the last one that ended (the school year runs January to October). Its end-of-term exam is the
+ * one the seed leaves open for entry; every earlier term's is published.
+ */
+function currentTermLabel(): string {
+  const terms = [
+    { label: 'Term 1', start: `${YEAR}-01-06`, end: `${YEAR}-04-04` },
+    { label: 'Term 2', start: `${YEAR}-04-28`, end: `${YEAR}-08-01` },
+    { label: 'Term 3', start: `${YEAR}-08-25`, end: `${YEAR}-10-31` },
+  ];
+  const today = new Date().toISOString().slice(0, 10);
+  const holding = terms.find((term) => term.start <= today && today <= term.end);
+  if (holding) return holding.label;
+  return [...terms].reverse().find((term) => term.end < today)?.label ?? 'Term 1';
+}
+const MARKED_TERM = currentTermLabel();
+// The sample school prices a Form 1 day learner across nine vote heads: tuition, lunch, activity,
+// internal examinations, electricity/water/conservancy, medical, insurance, development and admission.
+const FEE_TOTAL = 'KES 23,850.00';
 const PAYMENT_AMOUNT = '500';
 const PAYMENT_TOTAL = 'KES 500.00';
-const BALANCE_AFTER_PAYMENT = 'KES 6,000.00';
+const BALANCE_AFTER_PAYMENT = 'KES 23,350.00';
 const MARK = '87';
 
 test.describe('GP-1 golden path', () => {
@@ -279,7 +299,8 @@ test.describe('GP-1 golden path', () => {
 
       await chooseFromPicker(page, page.getByRole('combobox', { name: /^Teaching group/ }), /^Form 1 English\b/);
       await chooseFromPicker(page, page.getByRole('combobox', { name: /^Learner enrolment/ }), new RegExp(STUDENT_NAME));
-      // The demo assessment falls a month into the first term; the membership must cover that date.
+      // The sample school's first-term assessment sits in that term's last week; the membership must
+      // cover it, so it starts with the year.
       await page.getByLabel('From', { exact: true }).fill(YEAR_START);
       await page.getByRole('button', { name: 'Create membership' }).click();
       await expect(page.getByText('Membership added.')).toBeVisible();
@@ -292,12 +313,14 @@ test.describe('GP-1 golden path', () => {
       await expect(page.getByRole('heading', { name: 'Marks Entry' })).toBeVisible();
       // The hub's default tab is the v2 grid: the scheme is derived from the period's
       // assessments, so the assessment is a column rather than a picker, and the grid autosaves.
-      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
+      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), MARKED_TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
-
-      // exact: the status element beside the cell is labelled 'Status for <assessment> for <learner>',
-      // so a substring match resolves to two elements.
-      const score = page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true });
+      // The cell is labelled '<assessment> for <learner>', and the sample school names the assessment
+      // with its period: 'Term 3 End of term English'. A substring match also finds the status element
+      // beside the cell, which carries the same assessment and learner, so the exact label is built.
+      const score = page.getByLabel(
+        new RegExp(`^${MARKED_TERM} End of term English for ${STUDENT_NAME}$`)
+      );
       await expect(score).toBeVisible();
       await score.fill(MARK);
       // The grid autosaves after a debounce; the button is only enabled while an edit is pending.
@@ -311,9 +334,11 @@ test.describe('GP-1 golden path', () => {
     await test.step('reload: the mark and the placement are still stored for the learner', async () => {
       await reloadAndWait(page);
       await go(page, '/academics/marks-entry');
-      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM_LABEL);
+      await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), MARKED_TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), 'Form 1 English');
-      const cell = page.getByLabel(`End of term English for ${STUDENT_NAME}`, { exact: true });
+      const cell = page.getByLabel(
+        new RegExp(`^${MARKED_TERM} End of term English for ${STUDENT_NAME}$`)
+      );
       await expect(cell).toHaveValue(MARK, { timeout: LOAD_TIMEOUT });
       // The v2 grid has no revision column (that was the legacy results page). Its equivalent evidence
       // is the engine's own verdict on the cell: the input is aria-invalid only when the stored mark
