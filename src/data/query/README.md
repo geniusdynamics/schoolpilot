@@ -70,6 +70,23 @@ const rows = data?.items ?? [];
   that already contains the write is never applied on top of the optimistic
   layer.
 
+### Reading a whole table: `allPages`
+
+The repository returns one page of at most 500 rows (50 when the query names no
+`limit`), so a screen that needs a school's whole table of marks, invoice lines or
+payments silently gets only the oldest of them. `useEntityQuery(repo, entity, query,
+{ allPages: true })` follows the cursor to the end (`readEveryPage`) and returns
+one page that holds every row.
+
+- A read of every page is a different read from the first page of the same query,
+  and has its own key.
+- It runs in `invalidate` mode, not `watch`: the watch stream delivers one page, so
+  it cannot keep a longer result live. The read refreshes whenever its entity or one
+  of its `deps` changes on the change bus. The first read is a `list`, so the data
+  arrives one tick after the first render instead of on subscribe.
+- Use it for tables that grow with the school. A picker or a window that wants a
+  bounded page keeps passing the `limit` it wants.
+
 ## Modes and event precedence
 
 | mode | own-entity event | dependency event | unrelated |

@@ -8,6 +8,7 @@ import type { EntityName } from '@/domain/schema';
 
 import { queryCache, type QueryMode, type QueryRepository } from './cache';
 import { queryKey, type Status } from './keys';
+import { readEveryPage } from './readEveryPage';
 import { useQuerySnapshot, useStableKey } from './useQuery';
 
 /** How a `useEntityQuery` entry reacts to the change bus. */
@@ -20,6 +21,14 @@ export interface UseEntityQueryOptions {
   readonly staleTime?: number;
   /** The invalidation mode. Defaults to `watch`. */
   readonly mode?: QueryMode;
+  /**
+   * Reads every page of the query instead of the first.
+   *
+   * The repository caps a page at 500 rows, so a table a school outgrows (marks, invoice lines,
+   * payments) is cut off silently without it. A read of every page is not kept live by the watch
+   * stream, which delivers one page: it refreshes whenever its entity or one of `deps` changes.
+   */
+  readonly allPages?: boolean;
 }
 
 /** What an entity query hands to the view. */
@@ -46,18 +55,19 @@ export function useEntityQuery<E extends EntityName>(
   query: ListQuery = {},
   options: UseEntityQueryOptions = {}
 ): UseEntityQueryResult<E> {
-  const { deps = [], enabled = true, staleTime = 0, mode = 'watch' } = options;
-  const key = queryKey(entity, query);
-  const live = mode === 'watch' && typeof repository.watch === 'function';
+  const { deps = [], enabled = true, staleTime = 0, mode = 'watch', allPages = false } = options;
+  // A read of every page is a different read from the first page of the same query.
+  const key = queryKey(entity, allPages ? { ...query, allPages: true } : query);
+  const live = !allPages && mode === 'watch' && typeof repository.watch === 'function';
 
   queryCache.attachRepository(repository);
   queryCache.define({
     key,
     repository,
-    mode: live ? 'watch' : mode === 'watch' ? 'invalidate' : mode,
-    deps,
+    mode: live ? 'watch' : mode === 'watch' || allPages ? 'invalidate' : mode,
+    deps: allPages ? [entity, ...deps] : deps,
     staleTime,
-    fetcher: () => repository.list(entity, query),
+    fetcher: () => (allPages ? readEveryPage(repository, entity, query) : repository.list(entity, query)),
     watch: live
       ? (_query, listener) =>
           repository.watch(entity, query, (rows, commitSequence, error) => {

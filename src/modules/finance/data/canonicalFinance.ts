@@ -21,6 +21,13 @@ import type { Money } from '@/domain/schema/common';
 
 import { useCanonicalRepository } from './canonicalRepository';
 
+/**
+ * Every finance screen reads whole tables, and a school's invoices, invoice lines and payments are
+ * more than the first page the repository returns (50 rows by default, 500 at most), so each read
+ * follows the pages to the end. Without it the dashboard counts only the oldest few invoices.
+ */
+const EVERY_PAGE = { allPages: true } as const;
+
 /** The currency every finance document is written in until the currency table arrives. */
 export const FINANCE_CURRENCY = 'KES';
 
@@ -332,25 +339,25 @@ function labelOfId<E extends EntityName>(
 export function useCanonicalFinance(): CanonicalFinance {
   const repository = useCanonicalRepository();
 
-  const learnersQuery = useEntityQuery(repository, 'learner');
-  const enrolmentsQuery = useEntityQuery(repository, 'enrolment');
-  const classGroupsQuery = useEntityQuery(repository, 'class_group');
-  const levelsQuery = useEntityQuery(repository, 'level');
-  const periodsQuery = useEntityQuery(repository, 'academic_period');
-  const yearsQuery = useEntityQuery(repository, 'academic_year');
-  const feeItemsQuery = useEntityQuery(repository, 'fee_item');
-  const schedulesQuery = useEntityQuery(repository, 'fee_schedule');
-  const scheduleLinesQuery = useEntityQuery(repository, 'fee_schedule_line');
-  const invoicesQuery = useEntityQuery(repository, 'invoice');
-  const invoiceLinesQuery = useEntityQuery(repository, 'invoice_line');
-  const paymentsQuery = useEntityQuery(repository, 'payment');
-  const allocationsQuery = useEntityQuery(repository, 'payment_allocation');
-  const receiptsQuery = useEntityQuery(repository, 'receipt');
-  const creditNotesQuery = useEntityQuery(repository, 'credit_note');
-  const refundsQuery = useEntityQuery(repository, 'refund');
-  const discountRulesQuery = useEntityQuery(repository, 'discount_rule');
-  const sponsorshipsQuery = useEntityQuery(repository, 'sponsorship');
-  const installmentPlansQuery = useEntityQuery(repository, 'installment_plan');
+  const learnersQuery = useEntityQuery(repository, 'learner', {}, EVERY_PAGE);
+  const enrolmentsQuery = useEntityQuery(repository, 'enrolment', {}, EVERY_PAGE);
+  const classGroupsQuery = useEntityQuery(repository, 'class_group', {}, EVERY_PAGE);
+  const levelsQuery = useEntityQuery(repository, 'level', {}, EVERY_PAGE);
+  const periodsQuery = useEntityQuery(repository, 'academic_period', {}, EVERY_PAGE);
+  const yearsQuery = useEntityQuery(repository, 'academic_year', {}, EVERY_PAGE);
+  const feeItemsQuery = useEntityQuery(repository, 'fee_item', {}, EVERY_PAGE);
+  const schedulesQuery = useEntityQuery(repository, 'fee_schedule', {}, EVERY_PAGE);
+  const scheduleLinesQuery = useEntityQuery(repository, 'fee_schedule_line', {}, EVERY_PAGE);
+  const invoicesQuery = useEntityQuery(repository, 'invoice', {}, EVERY_PAGE);
+  const invoiceLinesQuery = useEntityQuery(repository, 'invoice_line', {}, EVERY_PAGE);
+  const paymentsQuery = useEntityQuery(repository, 'payment', {}, EVERY_PAGE);
+  const allocationsQuery = useEntityQuery(repository, 'payment_allocation', {}, EVERY_PAGE);
+  const receiptsQuery = useEntityQuery(repository, 'receipt', {}, EVERY_PAGE);
+  const creditNotesQuery = useEntityQuery(repository, 'credit_note', {}, EVERY_PAGE);
+  const refundsQuery = useEntityQuery(repository, 'refund', {}, EVERY_PAGE);
+  const discountRulesQuery = useEntityQuery(repository, 'discount_rule', {}, EVERY_PAGE);
+  const sponsorshipsQuery = useEntityQuery(repository, 'sponsorship', {}, EVERY_PAGE);
+  const installmentPlansQuery = useEntityQuery(repository, 'installment_plan', {}, EVERY_PAGE);
 
   const learnerLookup = useLookup(repository, 'learner', {});
   const periodLookup = useLookup(repository, 'academic_period', {});
