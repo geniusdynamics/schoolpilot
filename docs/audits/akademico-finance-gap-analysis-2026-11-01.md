@@ -447,13 +447,19 @@ New state: the SMS plugin interface exists (`SMSPlugin.send/bulkSend/sendTemplat
 - **Distribution strategy at the counter.** `PaymentsService` now accepts a `defaultStrategy` and, when `vote_head_priority` is requested, builds the allocation engine's priority lookup from `fee_item.priority`. The cashier screen has a **Distribution** selector (vote-head priority, oldest invoice first, proportional) and sends the choice with the payment. The receipt already prints the resulting allocation by vote head, so the operator and the parent see where the money went.
 - **Fee status by class and vote head.** A new **Fee Status** tab under Reports → Finance groups posted invoice lines by class and vote head and shows learners, billed, collected, outstanding and collected percentage, with period/class/vote-head filters, an arrears-only switch, CSV export and print. The arithmetic is a pure function (`feeStatus.ts`) with its own test.
 - **Bulk penalties and exemptions.** A new **Bulk apply** tab under Finance → Fee Rules loads a class grid, accepts one common amount or an amount per learner, and posts one canonical `fine` invoice or one posted `credit_note` per learner. Rows with no tick apply the whole visible cohort, matching the old class-grid workflow.
+- **Class payment grid.** A new **Bulk payment** tab under Finance → Payments records one payment per priced learner in a batch, with a shared channel, slip/reference, date and distribution policy. Each learner gets their own canonical payment, allocation and receipt; a refused row keeps its amount and shows the refusal in the grid.
+- **Class vote-head matrix.** A new **Vote-head Matrix** tab under Reports → Finance shows one row per learner with one outstanding balance column per vote head and a total, with period/class filters, CSV and print. It is the modern form of the old `frmStudentVoteheadBalances` grid.
+- **Cash analysis by channel.** A new **Cash Analysis** tab under Reports → Finance lists the payments in a date range with receipt, learner, channel, reference and status, plus a per-channel total. It replaces the old `frmCashAnalysisReport` read of `detailed_transaction`.
 
-Not implemented in this pass: the class bulk payment grid, the balance B/F import grid, the fee-balance SMS screen, the cash-analysis-by-channel report, and the receipt layout editor. They remain the next items in the ranked list.
+Not implemented in this pass: the balance B/F import grid, the fee-balance SMS screen, the automatic prepayment distribution on fee effecting, and the receipt layout editor. They remain the next items in the ranked list.
 
 ## 10. Verification
 
 - `PaymentsService` priority test: a newer tuition invoice (priority 1) is paid before an older lunch invoice (priority 2), proving the strategy overrides invoice date; the written allocation is the same invoice.
 - Cashier test: the chosen distribution travels with the payment.
 - Fee status pure test: grouping, distinct learners, draft exclusion, class/vote-head filter, arrears filter, exact minor-unit totals.
+- Vote-head matrix pure test: one column per vote head, exact per-cell balance, class filter and draft exclusion.
 - Bulk adjustment tests: common-amount fines and exemption credit notes post one document per learner.
+- Bulk payment test: one payment per priced learner, with the batch channel and distribution, and the receipt shown per row.
+- Cash analysis pure test: date/channel filtering, void exclusion, newest-first order and per-channel totals.
 - Typecheck, ESLint on the changed files, and the full PRD gate are run before the PR is opened.

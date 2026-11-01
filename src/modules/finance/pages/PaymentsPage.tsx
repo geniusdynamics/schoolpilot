@@ -11,8 +11,10 @@ import {
   WalletIcon,
   ClipboardDocumentListIcon,
   BanknotesIcon,
+  UsersIcon,
 } from '@/components/ui/icons';
 import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
+import { BulkPaymentsPageContent } from './BulkPaymentsPage';
 import { StudentPaymentsPageContent } from './StudentPaymentsPage';
 import { FeeCollectionSummaryPageContent } from './FeeCollectionSummaryPage';
 import { StudentFinancialSummaryPageContent } from './StudentFinancialSummaryPage';
@@ -69,6 +71,12 @@ const PaymentsPage: React.FC = () => {
       icon: <BanknotesIcon className="w-4 h-4" />,
       component: <CashierPageContent />,
     },
+    {
+      id: 'bulk-payment',
+      label: t('bulkPayments.title', 'Bulk payment'),
+      icon: <UsersIcon className="w-4 h-4" />,
+      component: <BulkPaymentsPageContent />,
+    },
   ];
 
   const activeTabFromUrl = searchParams.get('tab') || 'student-payments';
@@ -95,7 +103,7 @@ const PaymentsPage: React.FC = () => {
           title={t('payments.title', 'Payments')}
           info={t(
             'payments.subtitle',
-            'Manage student payments, balances, collection summaries, and receipts'
+            'Manage student payments, class batches, balances, collection summaries and receipts'
           )}
           tabs={tabs.map((tab) => ({
             id: tab.id,

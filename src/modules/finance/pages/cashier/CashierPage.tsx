@@ -34,17 +34,11 @@ import {
   formatMoney,
   useCanonicalFinance,
 } from '../../data/canonicalFinance';
+import { PAYMENT_STRATEGY_OPTIONS } from '../paymentStrategy';
 import { useCashierRuntimePort, type CashierPaymentsPort } from './runtime';
 
 const errorText = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
-
-/** The distribution policies the counter may choose, in the order the allocation engine names them. */
-const STRATEGY_OPTIONS: readonly { readonly value: AllocationStrategyKind; readonly label: string }[] = [
-  { value: 'vote_head_priority', label: 'Vote-head priority' },
-  { value: 'oldest_first', label: 'Oldest invoice first' },
-  { value: 'proportional', label: 'Proportional (weighted)' },
-];
 
 export interface CashierPageContentProps {
   /** The payments the screen writes through. Defaults to the canonical runtime. */
@@ -487,7 +481,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
               value={strategy}
               onChange={(event) => setStrategy(event.target.value as AllocationStrategyKind)}
             >
-              {STRATEGY_OPTIONS.map((option) => (
+              {PAYMENT_STRATEGY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
