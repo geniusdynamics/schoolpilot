@@ -384,5 +384,14 @@
   "created": "Imeundwa kwa mafanikio",
   "fixErrorsBelow": "Tafadhali rekebisha sehemu zilizoangaziwa kabla ya kuhifadhi.",
   "saveError": "Imeshindwa kuhifadhi. Tafadhali jaribu tena.",
+  "setup": {
+    "subtitle": "Weka wasifu wa shule, mfumo wa elimu, mwaka wa masomo, madarasa na masomo. Kila hatua huhifadhiwa unapoendelea, kwa hivyo ukiacha katikati, ulichoandika kinabaki.",
+    "title": "Sanidi shule"
+  },
+  "setupNag": {
+    "action": "Maliza kusanidi shule",
+    "label": "Maliza usanidi",
+    "missing": "Bado kurekodiwa: {{missing}}"
+  },
   "updated": "Imesasishwa kwa mafanikio"
 }

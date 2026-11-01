@@ -384,5 +384,14 @@
   "created": "Criado com sucesso",
   "fixErrorsBelow": "Corrija os campos destacados antes de guardar.",
   "saveError": "Não foi possível guardar. Tente novamente.",
+  "setup": {
+    "subtitle": "Registe o perfil da escola, o sistema de ensino, o ano letivo, as turmas e as disciplinas. Cada passo é guardado à medida que avança, por isso, se parar a meio, o que introduziu fica guardado.",
+    "title": "Configurar a escola"
+  },
+  "setupNag": {
+    "action": "Concluir a configuração da escola",
+    "label": "Concluir a configuração",
+    "missing": "Falta registar: {{missing}}"
+  },
   "updated": "Atualizado com sucesso"
 }

@@ -384,5 +384,14 @@
   "created": "Created successfully",
   "fixErrorsBelow": "Please fix the highlighted fields before saving.",
   "saveError": "Failed to save. Please try again.",
+  "setup": {
+    "subtitle": "Record the school profile, the education system, the academic year, the classes and the subjects. Every step saves as you go, so stopping halfway keeps what you entered.",
+    "title": "Set up the school"
+  },
+  "setupNag": {
+    "action": "Finish setting up the school",
+    "label": "Finish setup",
+    "missing": "Still to record: {{missing}}"
+  },
   "updated": "Updated successfully"
 }

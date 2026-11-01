@@ -384,5 +384,14 @@
   "created": "Créé avec succès",
   "fixErrorsBelow": "Veuillez corriger les champs signalés avant d'enregistrer.",
   "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
+  "setup": {
+    "subtitle": "Renseignez le profil de l'école, le système éducatif, l'année scolaire, les classes et les matières. Chaque étape est enregistrée au fur et à mesure : si vous vous arrêtez en cours de route, ce que vous avez saisi est conservé.",
+    "title": "Configurer l'école"
+  },
+  "setupNag": {
+    "action": "Terminer la configuration de l'école",
+    "label": "Terminer la configuration",
+    "missing": "Reste à renseigner : {{missing}}"
+  },
   "updated": "Mis à jour avec succès"
 }
