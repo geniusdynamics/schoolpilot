@@ -30,11 +30,11 @@ export const BirthCertificateContent: React.FC = () => {
   const certificateStudents: Student[] = useMemo(
     () =>
       learners.map((learner) => {
-        const relationship = learner.primary_guardian_relationship.toLowerCase();
+        const relationship = (learner.primary_guardian_relationship ?? '').toLowerCase();
         return {
           id: learner.id,
           student_id: learner.admission_no,
-          name: learner.display_name || learner.name,
+          name: learner.display_name || learner.name || `${learner.first_name} ${learner.last_name}`.trim(),
           class_name: learner.current_class_name,
           section: learner.current_class_stream_name,
           roll_number: '',

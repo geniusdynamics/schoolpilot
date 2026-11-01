@@ -9,11 +9,11 @@ import type { CanonicalLearner } from '../data/useCanonicalLearners';
 import { TransferCertificateStudent } from '../data/types';
 
 const toCertificateStudent = (student: CanonicalLearner): TransferCertificateStudent => {
-  const relationship = student.primary_guardian_relationship.toLowerCase();
+  const relationship = (student.primary_guardian_relationship ?? '').toLowerCase();
   return {
     id: student.id,
     student_id: student.admission_no,
-    name: student.display_name || student.name,
+    name: student.display_name || student.name || `${student.first_name} ${student.last_name}`.trim(),
     class_name: student.current_class_name,
     section: student.current_class_stream_name,
     roll_number: '',
