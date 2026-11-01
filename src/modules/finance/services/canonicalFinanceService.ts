@@ -9,6 +9,7 @@ import type {
   UpdateInput,
 } from '@/data/repository';
 import type { EntityName } from '@/domain/schema';
+import type { AllocationStrategyKind } from '@/domain/finance/allocation';
 
 import {
   FINANCE_CURRENCY,
@@ -16,6 +17,11 @@ import {
   sumMoney,
   type FinanceRepository,
 } from '../data/canonicalFinance';
+import {
+  planCreditApplication,
+  type CreditInvoice,
+  type CreditPayment,
+} from './creditApplication';
 
 /** A row of the invoice-generation preview: one learner and the invoice the run gives them. */
 export interface BillingRunLine {
@@ -374,6 +380,108 @@ export async function allocatePayment(
   };
 
   return repository.transaction ? repository.transaction(write) : write();
+}
+
+export interface ApplyLearnerCreditInput {
+  readonly learnerId: string;
+  /** Default `vote_head_priority`, the policy the counter offers. */
+  readonly strategy?: AllocationStrategyKind;
+}
+
+export interface AppliedLearnerCredit {
+  readonly appliedMinor: number;
+  readonly unappliedMinor: number;
+  readonly allocations: number;
+}
+
+/**
+ * Applies a learner's unallocated payments to their outstanding invoices.
+ *
+ * This is the explicit form of the old prepayment distribution: a payment that arrived before the
+ * term was billed sits in the learner's credit, and after the billing run this settles the invoices
+ * under the same priority policy the counter uses. It never allocates more than a payment has left
+ * or an invoice still owes, and it writes through `allocatePayment`, so the invoice status and the
+ * allocation row move together.
+ */
+export async function applyLearnerCredit(
+  repository: FinanceRepository,
+  input: ApplyLearnerCreditInput
+): Promise<AppliedLearnerCredit> {
+  const invoices = (
+    await repository.list('invoice', {
+      where: { learner_id: input.learnerId },
+      limit: 500,
+    })
+  ).items;
+  const feeItems = (await repository.list('fee_item', { limit: 500 })).items;
+  const priority = new Map(feeItems.map((item) => [String(item.id), item.priority]));
+
+  const creditInvoices: CreditInvoice[] = [];
+  for (const invoice of invoices) {
+    if (invoice.status === 'draft' || invoice.status === 'void' || invoice.status === 'paid') continue;
+    const lines = (
+      await repository.list('invoice_line', { where: { invoice_id: invoice.id }, limit: 500 })
+    ).items;
+    const priorities = lines
+      .map((line) => (line.fee_item_id ? priority.get(String(line.fee_item_id)) : undefined))
+      .filter((value): value is number => typeof value === 'number');
+    const allocations = (
+      await repository.list('payment_allocation', {
+        where: { invoice_id: invoice.id },
+        limit: 500,
+      })
+    ).items;
+    const credits = (
+      await repository.list('credit_note', { where: { invoice_id: invoice.id }, limit: 500 })
+    ).items.filter((note) => note.status === 'posted');
+    creditInvoices.push({
+      id: String(invoice.id),
+      issueDate: invoice.issue_date,
+      totalMinor: invoice.total.amount_minor,
+      paidMinor:
+        allocations.reduce((sum, allocation) => sum + allocation.amount.amount_minor, 0) +
+        credits.reduce((sum, note) => sum + note.amount.amount_minor, 0),
+      priority: priorities.length > 0 ? Math.min(...priorities) : null,
+    });
+  }
+
+  const payments = (
+    await repository.list('payment', { where: { learner_id: input.learnerId }, limit: 500 })
+  ).items.filter((payment) => payment.status === 'posted' || payment.status === 'cleared');
+  const creditPayments: CreditPayment[] = [];
+  for (const payment of payments) {
+    const allocations = (
+      await repository.list('payment_allocation', {
+        where: { payment_id: payment.id },
+        limit: 500,
+      })
+    ).items;
+    creditPayments.push({
+      id: String(payment.id),
+      receivedAt: payment.received_at,
+      amountMinor: payment.amount.amount_minor,
+      allocatedMinor: allocations.reduce(
+        (sum, allocation) => sum + allocation.amount.amount_minor,
+        0
+      ),
+    });
+  }
+
+  const plan = planCreditApplication({
+    invoices: creditInvoices,
+    payments: creditPayments,
+    ...(input.strategy ? { strategy: input.strategy } : {}),
+  });
+  let written = 0;
+  for (const allocation of plan.allocations) {
+    await allocatePayment(repository, {
+      paymentId: allocation.paymentId,
+      invoiceId: allocation.invoiceId,
+      amount: money(allocation.amountMinor, FINANCE_CURRENCY),
+    });
+    written += 1;
+  }
+  return { appliedMinor: plan.appliedMinor, unappliedMinor: plan.unappliedMinor, allocations: written };
 }
 
 export interface ChargeInvoiceInput {

@@ -6,7 +6,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { ReceiptDocument, buildReceiptDocument } from '@/components/finance/receipts';
+import { printReport } from '@/components/reports';
 import { parseMoneyInput } from '@/components/ui/forms/MoneyField';
+import { useSchoolProfile, formatSchoolAddress, formatSchoolContact } from '@/hooks/useSchoolProfile';
 import { asId } from '@/domain/ids';
 import type { AllocationStrategyKind } from '@/domain/finance/allocation';
 import {
@@ -34,6 +37,7 @@ import {
   formatMoney,
   useCanonicalFinance,
 } from '../../data/canonicalFinance';
+import { readReceiptLayout } from '../../data/receiptLayout';
 import { PAYMENT_STRATEGY_OPTIONS } from '../paymentStrategy';
 import { useCashierRuntimePort, type CashierPaymentsPort } from './runtime';
 
@@ -72,6 +76,8 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
   const finance = useCanonicalFinance();
   const runtimePort = useCashierRuntimePort();
   const port = injected ?? runtimePort;
+  const { profile: schoolProfile } = useSchoolProfile();
+  const layout = readReceiptLayout();
 
   const [flow, setFlow] = useState<CashierFlowState>(() => initialCashierFlow());
   const [session, setSession] = useState<CashierSessionState>(null);
@@ -178,6 +184,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
   }, [port, cashierName, session, dispatch, recordElapsed, strategy]);
 
   const completePrint = useCallback(() => {
+    void printReport();
     dispatch({ type: 'print' });
     setFlow(initialCashierFlow(flowRef.current.channel));
   }, [dispatch]);
@@ -266,6 +273,23 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
       setBusy(false);
     }
   };
+
+  const receiptDocument = receipt
+    ? buildReceiptDocument({
+        view: receipt,
+        template: layout.template,
+        school: {
+          name: schoolProfile?.name ?? '',
+          ...(layout.showLogo && schoolProfile?.logo_path
+            ? { logo: schoolProfile.logo_path }
+            : {}),
+          ...(layout.showAddress ? { address: formatSchoolAddress(schoolProfile) } : {}),
+          ...(layout.showContact ? { contact: formatSchoolContact(schoolProfile) } : {}),
+        },
+        title: layout.title,
+        footer: layout.footer.trim() === '' ? null : layout.footer,
+      })
+    : null;
 
   const selectedLearner = matches.find((match) => match.id === flow.learnerId) ?? null;
   const withinBudget = elapsed !== null && elapsed <= CASHIER_FLOW_BUDGET_MS;
@@ -534,32 +558,14 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
             </Button>
           }
         >
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm" data-testid="cashier-receipt">
-            <dt className="text-surface-muted-fg">Payer</dt>
-            <dd>{receipt.payer || '—'}</dd>
-            <dt className="text-surface-muted-fg">Learner</dt>
-            <dd>{receipt.learners.join(', ') || '—'}</dd>
-            <dt className="text-surface-muted-fg">Amount</dt>
-            <dd className="font-mono">{formatMoney(receipt.amount)}</dd>
-            <dt className="text-surface-muted-fg">In words</dt>
-            <dd>{receipt.amountInWords}</dd>
-            <dt className="text-surface-muted-fg">Channel</dt>
-            <dd>{receipt.channelLabel}</dd>
-            <dt className="text-surface-muted-fg">Reference</dt>
-            <dd>{receipt.reference ?? '—'}</dd>
-            <dt className="text-surface-muted-fg">Allocated</dt>
-            <dd>
-              {receipt.allocationByVoteHead.length === 0
-                ? 'Unallocated (learner credit)'
-                : receipt.allocationByVoteHead
-                    .map((line) => `${line.label} ${formatMoney(line.amount)}`)
-                    .join(', ')}
-            </dd>
-            <dt className="text-surface-muted-fg">Balance after</dt>
-            <dd className="font-mono">{formatMoney(receipt.balanceAfter)}</dd>
-            <dt className="text-surface-muted-fg">Cashier</dt>
-            <dd>{receipt.cashier || '—'}</dd>
-          </dl>
+          <div
+            className="max-h-[36rem] overflow-auto rounded-lg border border-surface-border bg-surface-muted p-4"
+            data-testid="cashier-receipt"
+          >
+            {receiptDocument ? (
+              <ReceiptDocument model={receiptDocument} toolbar={false} showVerification={false} />
+            ) : null}
+          </div>
         </Card>
       ) : null}
 

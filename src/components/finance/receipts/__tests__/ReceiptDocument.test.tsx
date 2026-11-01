@@ -104,6 +104,20 @@ describe('ReceiptDocument', () => {
     expect(container.querySelector('[data-receipt-block="verification"]')?.getAttribute('data-preview')).toBe('true');
   });
 
+  it('can hide the verification block and the preview banner for a counter receipt', () => {
+    const model = buildReceiptDocument({
+      view: STANDARD_RECEIPT,
+      template: 'thermal',
+      school: SCHOOL,
+      verification: PREVIEW_VERIFICATION,
+    });
+    const { container } = render(
+      <ReceiptDocument model={model} toolbar={false} showVerification={false} />
+    );
+    expect(container.querySelector('.receipt-preview-banner')).toBeNull();
+    expect(container.querySelector('[data-receipt-block="verification"]')).toBeNull();
+  });
+
   it('marks a voided receipt', () => {
     const { container } = renderTemplate('a4', { view: VOID_RECEIPT });
     expect(container.querySelector('.receipt-void')?.textContent).toContain('VOID');

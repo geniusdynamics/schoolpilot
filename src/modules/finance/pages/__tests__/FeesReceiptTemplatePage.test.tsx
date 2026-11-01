@@ -1,9 +1,8 @@
-// ABOUTME: Tests that fee receipts carry the school name and contacts saved in school_details.
-// ABOUTME: Covers the receipt preview for a template without its own school name and the new-template prefill.
+// ABOUTME: Tests the receipt layout editor: the preview reads the saved school profile and the layout
+// ABOUTME: saves the paper profile and header the cashier's receipt uses.
 
-import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 const fake = await vi.hoisted(async () => {
   const { createFakeDatabaseService } = await import('@/tests/utils/schoolDetailsDb');
@@ -11,47 +10,52 @@ const fake = await vi.hoisted(async () => {
 });
 vi.mock('@/services/database/databaseService', () => ({ databaseService: fake.current.databaseService }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, fallback?: string) => (typeof fallback === 'string' ? fallback : key) }),
-}));
-vi.mock('@/hooks/useToast', () => ({
-  useToast: () => ({ showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn() }),
-}));
+const toast = vi.hoisted(() => ({ showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn() }));
+vi.mock('@/hooks/useToast', () => ({ useToast: () => toast }));
 
-const templates = vi.hoisted(() => [{
-  id: 't1', name: 'Standard', school_name: '', school_address: '', school_phone: '', school_email: '',
-  header_text: 'OFFICIAL RECEIPT', footer_text: 'Thanks', logo_url: '', is_default: true,
-}]);
-vi.mock('@/hooks/useAppData', () => ({
-  useAppData: () => ({ receiptTemplates: templates, loading: { all: false } }),
-}));
+import { FeesReceiptTemplatePageContent } from '../FeesReceiptTemplatePage';
+import { RECEIPT_LAYOUT_STORAGE_KEY } from '../../data/receiptLayout';
 
-import FeesReceiptTemplatePage from '../FeesReceiptTemplatePage';
+const seedProfile = () =>
+  fake.current.collections.school_details.seed([
+    {
+      id: 's1',
+      name: 'Probe Academy',
+      postal_address: 'P.O. Box 1',
+      town: 'Nairobi',
+      telephone: '0700',
+      email: 'info@probe.ke',
+    },
+  ]);
 
-const seedProfile = () => fake.current.collections.school_details.seed([{
-  id: 's1', name: 'Probe Academy', postal_address: 'P.O. Box 1', town: 'Nairobi', telephone: '0700', email: 'info@probe.ke',
-}]);
-
-describe('FeesReceiptTemplatePage receipts', () => {
-  it('prints the saved school name and contacts on the receipt', async () => {
-    seedProfile();
-    render(<FeesReceiptTemplatePage />);
-    await screen.findByText('Standard');
-    fireEvent.click(screen.getByTitle('Preview'));
-    const dialog = await screen.findByRole('dialog');
-    expect(await within(dialog).findByText('Probe Academy')).toBeTruthy();
-    expect(within(dialog).getByText('P.O. Box 1, Nairobi')).toBeTruthy();
-    expect(within(dialog).getByText('0700 | info@probe.ke')).toBeTruthy();
+describe('FeesReceiptTemplatePage layout', () => {
+  beforeEach(() => {
+    localStorage.removeItem(RECEIPT_LAYOUT_STORAGE_KEY);
+    vi.clearAllMocks();
   });
 
-  it('prefills a new template with the saved school profile', async () => {
+  it('shows the saved school identity in the real receipt preview', async () => {
     seedProfile();
-    render(<FeesReceiptTemplatePage />);
-    await screen.findByText('Standard');
-    // the profile has loaded once the grid shows the school name for the blank template
-    await screen.findByText('Probe Academy');
-    fireEvent.click(screen.getByRole('button', { name: /New Template/ }));
-    const input = await screen.findByPlaceholderText('Your school name') as HTMLInputElement;
-    expect(input.value).toBe('Probe Academy');
+    render(<FeesReceiptTemplatePageContent />);
+
+    expect(await screen.findByText('Probe Academy')).toBeInTheDocument();
+    expect(screen.getByText('P.O. Box 1, Nairobi')).toBeInTheDocument();
+    expect(screen.getByText('0700 | info@probe.ke')).toBeInTheDocument();
+    expect(screen.getByText('OFFICIAL RECEIPT')).toBeInTheDocument();
+  });
+
+  it('saves the paper profile and header title', async () => {
+    seedProfile();
+    render(<FeesReceiptTemplatePageContent />);
+
+    fireEvent.change(screen.getByLabelText('Header title'), {
+      target: { value: 'FEE RECEIPT' },
+    });
+    fireEvent.change(screen.getByLabelText('Paper'), { target: { value: 'a4' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save layout' }));
+
+    const stored = JSON.parse(localStorage.getItem(RECEIPT_LAYOUT_STORAGE_KEY) ?? '{}');
+    expect(stored).toMatchObject({ template: 'a4', title: 'FEE RECEIPT' });
+    expect(toast.showSuccess).toHaveBeenCalled();
   });
 });

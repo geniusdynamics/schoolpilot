@@ -451,8 +451,11 @@ New state: the SMS plugin interface exists (`SMSPlugin.send/bulkSend/sendTemplat
 - **Class vote-head matrix.** A new **Vote-head Matrix** tab under Reports → Finance shows one row per learner with one outstanding balance column per vote head and a total, with period/class filters, CSV and print. It is the modern form of the old `frmStudentVoteheadBalances` grid.
 - **Cash analysis by channel.** A new **Cash Analysis** tab under Reports → Finance lists the payments in a date range with receipt, learner, channel, reference and status, plus a per-channel total. It replaces the old `frmCashAnalysisReport` read of `detailed_transaction`.
 - **Bulk opening balances.** A new **Bulk Opening Balances** tab under Student Fee History takes a class grid of signed amounts: a positive amount posts an `opening_balance` invoice, a negative amount posts a posted credit note as a prepayment. It is the old `frmBalanceBF` grid without the raw arrears/penalty rows.
+- **Fee reminders.** A new **Fee reminders** tab under Payments lists the enrolled learners with a balance, chooses the guardian who receives SMS and is marked as a fee payer (or the primary guardian), previews a template with `{{learner}}`, `{{admission}}`, `{{balance}}`, `{{guardian}}` and `{{school}}`, and sends through the school's active SMS gateway. The gateway plugin now loads visible in Settings → Plugins with its send API exposed, and its settings carry the provider, base URL, key, sender and retry/timeout values.
+- **Prepayment distribution after billing.** The billing run has **Apply available learner credit after posting**. It reads each learner's unallocated payments, plans their application by vote-head priority (or oldest/proportional through the pure planner), and writes canonical `payment_allocation` rows, moving the invoice status as it goes. This is the old prepayment/arrears distribution without the raw `excess_votehead_amount` table.
+- **Receipt layout editor.** The stub `FeesReceiptTemplatePage` is now a real layout editor: paper profile (thermal/A5/A4), header title, footer, logo/address/contact switches, a live preview using the real `ReceiptDocument`, and print. The cashier now renders that document and actually prints it; a counter receipt hides the verification preview banner unless a verification host is configured.
 
-Not implemented in this pass: the fee-balance SMS screen, the automatic prepayment distribution on fee effecting, and the receipt layout editor. They remain the next items in the ranked list.
+Remaining from the ranked list: the true vote-head ledger account view (the invoice-line statement stands in), and the usual human reviews (pack, translation, payroll).
 
 ## 10. Verification
 
@@ -464,4 +467,8 @@ Not implemented in this pass: the fee-balance SMS screen, the automatic prepayme
 - Bulk payment test: one payment per priced learner, with the batch channel and distribution, and the receipt shown per row.
 - Cash analysis pure test: date/channel filtering, void exclusion, newest-first order and per-channel totals.
 - Bulk opening-balance test: a positive amount posts an opening-balance invoice and a negative one a prepayment credit note.
+- Fee-reminder tests: balance arithmetic, guardian selection, opted-out SMS, exact placeholder rendering, and a send through the active gateway API.
+- Builtin loader test: the SMS gateway loads with its `send` and `bulkSend` API.
+- Prepayment tests: pure priority/oldest/proportional plans and the service writing an allocation that moves the invoice to `partially_paid`.
+- Receipt tests: layout read/write/fallback, school identity in the live preview, hidden verification for a counter receipt, and the cashier printing the real document.
 - Typecheck, ESLint on the changed files, and the full PRD gate are run before the PR is opened.
