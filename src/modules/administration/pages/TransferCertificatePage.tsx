@@ -5,38 +5,23 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { StudentStatus } from '@/core/types';
-import type { Student } from '@/core/types';
+import type { CanonicalLearner } from '../data/useCanonicalLearners';
 import { TransferCertificateStudent } from '../data/types';
 
-/** Learner documents may carry legacy denormalised names; read them when present. */
-interface StudentWithLegacyNames extends Student {
-  student_id?: string | null;
-  class_name?: string | null;
-  section?: string | null;
-  roll_number?: string | null;
-  father_name?: string | null;
-  mother_name?: string | null;
-}
-
-const toCertificateStudent = (student: Student): TransferCertificateStudent => {
-  const legacy = student as StudentWithLegacyNames;
-  const guardian = student.primary_guardian;
-  const relationship = guardian?.relationship_type?.toLowerCase();
-  const name = student.display_name || [student.first_name, student.middle_name, student.last_name].filter(Boolean).join(' ');
-
+const toCertificateStudent = (student: CanonicalLearner): TransferCertificateStudent => {
+  const relationship = student.primary_guardian_relationship.toLowerCase();
   return {
-    id: String(student.id),
-    student_id: legacy.student_id || student.admission_no || String(student.id),
-    name,
-    class_name: student.current_class_name || legacy.class_name || '',
-    section: student.current_class_stream_name || legacy.section || '',
-    roll_number: legacy.roll_number || '',
-    admission_date: student.admission_date || '',
-    father_name: legacy.father_name || (relationship === 'father' ? guardian?.name ?? '' : ''),
-    mother_name: legacy.mother_name || (relationship === 'mother' ? guardian?.name ?? '' : ''),
-    date_of_birth: student.date_of_birth || '',
-    address: student.address || guardian?.address || '',
+    id: student.id,
+    student_id: student.admission_no,
+    name: student.display_name || student.name,
+    class_name: student.current_class_name,
+    section: student.current_class_stream_name,
+    roll_number: '',
+    admission_date: student.admission_date,
+    father_name: relationship === 'father' ? student.primary_guardian : '',
+    mother_name: relationship === 'mother' ? student.primary_guardian : '',
+    date_of_birth: student.date_of_birth,
+    address: student.county,
   };
 };
 
@@ -50,7 +35,7 @@ export const TransferCertificateContent: React.FC = () => {
 
   const certificateStudents = useMemo<TransferCertificateStudent[]>(
     () => (students || [])
-      .filter(student => student.status === StudentStatus.TRANSFERRED)
+      .filter((student) => student.status === 'Transferred')
       .map(toCertificateStudent),
     [students]
   );
