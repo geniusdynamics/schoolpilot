@@ -22,6 +22,9 @@ vi.mock('../../hooks/useUnifiedConfig', () => ({
 }));
 vi.mock('../ui/LanguageSwitcher', () => ({ default: () => null }));
 vi.mock('../UserMenu', () => ({ default: () => null }));
+// The header's setup nag reads the signed-in login; this suite is about the school name, so the
+// auth chain is not imported at all.
+vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: null }) }));
 vi.mock('../OfflineCapability', () => ({ NetworkStatusIndicator: () => null }));
 vi.mock('../ModuleHealthIndicator', () => ({ default: () => null }));
 vi.mock('../StorageUnavailableScreen', () => ({ TemporaryDataBadge: () => null }));

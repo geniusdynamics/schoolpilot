@@ -31,7 +31,9 @@ vi.mock('@/hooks/useRBAC', () => ({
 vi.mock('@/utils/logging', () => ({
   logger: {
     debug: vi.fn(),
+    info: vi.fn(),
     warn: vi.fn(),
+    error: vi.fn(),
   },
 }));
 

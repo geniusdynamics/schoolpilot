@@ -844,6 +844,61 @@ async function seedDemoPeople(
     }
   }
 
+  // The demo logins are canonical users here.
+  //
+  // A page resolves the signed-in login to its canonical `user` row by username. Without those rows
+  // the demo teacher has no staff record to act as (every marks page says "no staff record is
+  // linked to this login") and the student portal has no learner to show. The teacher's user row is
+  // referenced by the staff record, and the student's by `person_ref`, so both scopes resolve.
+  input.at('logins');
+  const teachingTeacher = staff[1];
+  if (teachingTeacher) {
+    const teacherLogin = await findOrCreate<'user'>(
+      repository,
+      'user',
+      { where: { institution_id: institutionId, username: 'teacher' } },
+      () => ({
+        institution_id: institutionId,
+        username: 'teacher',
+        // Demo sign-in accepts its own password; this row exists to carry the person reference and
+        // the id a staff record can point at.
+        password_hash: 'demo-account-no-password',
+        status: 'active',
+        person_ref: { type: 'staff', id: asId<'staff'>(teachingTeacher.id) },
+        mfa: false,
+      }),
+      options,
+      () => input.count('user')
+    );
+    if (teachingTeacher.user_id !== teacherLogin.id) {
+      await repository.update(
+        'staff',
+        teachingTeacher.id,
+        { user_id: asId<'user'>(teacherLogin.id) },
+        { expectedVersion: teachingTeacher.rowVersion, ...options }
+      );
+    }
+  }
+
+  const demoStudent = admitted[0];
+  if (demoStudent) {
+    await findOrCreate<'user'>(
+      repository,
+      'user',
+      { where: { institution_id: institutionId, username: 'student' } },
+      () => ({
+        institution_id: institutionId,
+        username: 'student',
+        password_hash: 'demo-account-no-password',
+        status: 'active',
+        person_ref: { type: 'learner', id: demoStudent.learnerId },
+        mfa: false,
+      }),
+      options,
+      () => input.count('user')
+    );
+  }
+
   // One end-of-term assessment per learning area, with a mark for every learner of it.
   input.at('assessment');
   const random = createRandom(20261020);

@@ -384,5 +384,14 @@
   "created": "Created successfully",
   "fixErrorsBelow": "Please fix the highlighted fields before saving.",
   "saveError": "Failed to save. Please try again.",
+  "setup": {
+    "subtitle": "Andika amakuru y'ishuri, uburyo bw'uburezi, umwaka w'amashuri, amashuri n'amasomo. Buri ntambwe irabikwa uko ugenda, bityo nubihagarika hagati, ibyo wanditse bizaguma aho biri.",
+    "title": "Tegura ishuri"
+  },
+  "setupNag": {
+    "action": "Rangiza gutegura ishuri",
+    "label": "Rangiza gutegura",
+    "missing": "Hasigaye kwandikwa: {{missing}}"
+  },
   "updated": "Updated successfully"
 }

@@ -76,28 +76,30 @@ Settings → School & People → Users & Roles and edit users. The demo roles no
 role does: the teacher gets academics, the finance officer gets finance, the student gets academics
 and the portal. `src/services/auth/authService.ts`.
 
-### 7. The demo teacher has no staff record, so teacher scoping cannot be demonstrated (open)
+### 7. The demo teacher has no staff record, so teacher scoping cannot be demonstrated (fixed)
 
-Signing in as `teacher` and opening Marks Entry says "No staff record is linked to this login, so no
-teaching group is reachable". The scope is correct; the demo data has nothing to link. A link needs
-`staff.user_id = <canonical user id>`, the repository owns canonical ids (a create carrying an id is
-refused), and the demo login ids are fixed strings. Closing it needs a demo identity mapping or
-seeding the login through Settings → Users; it is not a page-level fix.
+Signing in as `teacher` and opening Marks Entry said "No staff record is linked to this login, so no
+teaching group is reachable".
 
-Impact: a teacher sees the grids, the scope explanation and read-only cells, but no writable marks.
-The subject-teacher scope is covered by `teachingScope.test.ts`; the demo cannot show it.
+Fix, in the demo seeder: the demo logins are canonical `user` rows. The seeder writes
+`username: 'teacher'` with a `person_ref` to a staff record and points that staff record's `user_id`
+at the row; `useCanonicalSessionActor` resolves a login to the canonical user by username, so the
+scope finds the staff record. The same seed writes `username: 'student'` with a `person_ref` to the
+first learner. Verified in the browser on a fresh demo: the teacher's grid says "You see the
+teaching groups you are assigned to" and lists their subjects; the student portal greets the learner
+by name and shows their balance.
 
 ### 8. The student lands on the staff dashboard (open)
 
 `/dashboard` is the same page for every role. A student sees "Add Student", school-wide enrolment
-figures and the finance summary under "Current Role View: Student". No role-specific dashboard is
-wired for the demo student; the portal is the intended surface.
+figures and the finance summary under "Current Role View: Student". The portal is the intended
+student surface; a role-aware dashboard is a product decision rather than a bug fix.
 
-### 9. The demo student's portal is empty (open)
+### 9. The demo student's portal is empty (fixed)
 
-The portal resolves the signed-in login to a canonical `user` row and from there to a guardian or
-learner. The demo seeds neither for the demo student, so `/portal` renders without a learner. Needs
-canonical user/person_ref rows for the demo accounts (blocked by the same id ownership as issue 7).
+The portal resolves the signed-in login to a canonical `user` row and from there to a learner. The
+demo now seeds that row with a `person_ref` to a learner, so `/portal` shows the learner's
+attendance and balance instead of an empty page.
 
 ### 10. Startup noise that is not an error (open, low)
 
