@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
+  ChartBarIcon,
   DocumentReportIcon,
   UsersIcon,
   TableCellsIcon,
@@ -13,6 +14,7 @@ import {
 // Cross-module imports: these source pages live in finance per the spec's
 // hub-and-spoke model. The hub page is in reports; the source pages stay in
 // finance to keep their data collection context intact.
+import { FeeStatusReportPageContent } from '../../finance/pages/FeeStatusReportPage';
 import { FeesDueReportPageContent } from '../../finance/pages/FeesDueReportPage';
 import { StudentsPaidBookPageContent } from '../../finance/pages/StudentsPaidBookPage';
 import { VoteheadStatementPageContent } from '../../finance/pages/VoteheadStatementPage';
@@ -35,6 +37,12 @@ const FinancialReportsHubPage: React.FC = () => {
       label: t('feesDueReport.title', 'Fees Due'),
       icon: <DocumentReportIcon className="w-4 h-4" />,
       component: <FeesDueReportPageContent />,
+    },
+    {
+      id: 'fee-status',
+      label: t('feeStatus.title', 'Fee Status'),
+      icon: <ChartBarIcon className="w-4 h-4" />,
+      component: <FeeStatusReportPageContent />,
     },
     {
       id: 'students-paid',
@@ -73,7 +81,7 @@ const FinancialReportsHubPage: React.FC = () => {
         title={t('financeReports.title', 'Finance Reports')}
         info={t(
           'financeReports.subtitle',
-          'View fees due reports, previous session fees, paid students, and votehead statements'
+          'View fee status, fees due, paid students and vote-head statements'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,

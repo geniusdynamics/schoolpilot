@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { parseMoneyInput } from '@/components/ui/forms/MoneyField';
 import { asId } from '@/domain/ids';
+import type { AllocationStrategyKind } from '@/domain/finance/allocation';
 import {
   CASHIER_FLOW_BUDGET_MS,
   CHANNEL_LABELS,
@@ -37,6 +38,13 @@ import { useCashierRuntimePort, type CashierPaymentsPort } from './runtime';
 
 const errorText = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
+
+/** The distribution policies the counter may choose, in the order the allocation engine names them. */
+const STRATEGY_OPTIONS: readonly { readonly value: AllocationStrategyKind; readonly label: string }[] = [
+  { value: 'vote_head_priority', label: 'Vote-head priority' },
+  { value: 'oldest_first', label: 'Oldest invoice first' },
+  { value: 'proportional', label: 'Proportional (weighted)' },
+];
 
 export interface CashierPageContentProps {
   /** The payments the screen writes through. Defaults to the canonical runtime. */
@@ -80,6 +88,9 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [elapsed, setElapsed] = useState<number | null>(null);
+  // The old bursar chose priority or weighted; the counter keeps that choice visible per payment
+  // and hands it to the allocation engine rather than silently applying one policy.
+  const [strategy, setStrategy] = useState<AllocationStrategyKind>('vote_head_priority');
 
   const flowRef = useRef(flow);
   flowRef.current = flow;
@@ -157,6 +168,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
         learnerId: asId<'learner'>(state.learnerId),
         amount: { amount_minor: parsed.amountMinor, currency: FINANCE_CURRENCY },
         channel: state.channel,
+        strategy,
         ...(state.reference.trim() ? { reference: state.reference.trim() } : {}),
         ...(cashierName ? { cashierName } : {}),
         ...(session ? { sessionId: session.id } : {}),
@@ -169,7 +181,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
     } finally {
       setBusy(false);
     }
-  }, [port, cashierName, session, dispatch, recordElapsed]);
+  }, [port, cashierName, session, dispatch, recordElapsed, strategy]);
 
   const completePrint = useCallback(() => {
     dispatch({ type: 'print' });
@@ -462,6 +474,29 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
                 placeholder={isCashChannel(flow.channel) ? 'optional' : 'required'}
               />
             </div>
+          </div>
+
+          <div className="max-w-md">
+            <label className="mb-1.5 block text-sm font-medium" htmlFor="cashier-strategy">
+              Distribution
+            </label>
+            <select
+              id="cashier-strategy"
+              data-testid="cashier-strategy"
+              className="h-10 w-full rounded-lg border border-surface-input bg-surface-card px-3 text-sm"
+              value={strategy}
+              onChange={(event) => setStrategy(event.target.value as AllocationStrategyKind)}
+            >
+              {STRATEGY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-surface-muted-fg">
+              Vote-head priority follows each fee item&apos;s declared priority; the receipt shows
+              the resulting split.
+            </p>
           </div>
 
           <div className="flex items-center gap-3">

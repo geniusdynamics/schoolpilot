@@ -133,6 +133,53 @@ describe('recording a payment', () => {
     expect(invoice?.status).toBe('paid');
   });
 
+  it('pays the declared vote-head priority before an older invoice when asked', async () => {
+    const h = await harness();
+    const lunch = await h.context.repository.create(
+      'fee_item',
+      h.context.seed.inputFor('fee_item', {
+        code: 'LUNCH',
+        name: 'Lunch',
+        priority: 2,
+      })
+    );
+    const older = await h.context.repository.create(
+      'invoice',
+      h.context.seed.inputFor('invoice', {
+        number: 'INV/2026/OLD/000001',
+        issue_date: '2026-12-01',
+        due_date: '2027-01-01',
+        total: KES(100_000),
+      })
+    );
+    await h.context.repository.create(
+      'invoice_line',
+      h.context.seed.inputFor('invoice_line', {
+        invoice_id: older.id,
+        fee_item_id: lunch.id,
+        description: 'Lunch Term 1',
+        amount: KES(100_000),
+      })
+    );
+
+    const recorded = await h.payments.recordPayment({
+      ...cashPayment(h, 100_000),
+      strategy: 'vote_head_priority',
+    });
+
+    // The older invoice is lunch (priority 2); the newer one is tuition (priority 1). Priority
+    // pays tuition first, so the strategy is doing the ordering rather than the invoice date.
+    expect(recorded.plan.strategy).toBe('vote_head_priority');
+    expect(recorded.plan.allocations).toHaveLength(1);
+    expect(recorded.plan.allocations[0]?.invoiceId).toBe(h.invoiceId);
+
+    const allocations = await h.context.repository.list('payment_allocation', {
+      where: { payment_id: recorded.payment.id },
+    });
+    expect(allocations.items).toHaveLength(1);
+    expect(allocations.items[0]?.invoice_id).toBe(h.invoiceId);
+  });
+
   it('takes its receipt number from the sequences module, and never reuses one', async () => {
     const h = await harness();
     const first = await h.payments.recordPayment(cashPayment(h, 100_000));

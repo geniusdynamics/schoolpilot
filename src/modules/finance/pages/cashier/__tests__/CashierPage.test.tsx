@@ -209,6 +209,28 @@ describe('the cashier screen', () => {
     expect(screen.getByTestId('cashier-flow-step')).toHaveAttribute('data-step', 'learner');
   });
 
+  it('sends the distribution the counter chose with the payment', async () => {
+    const payments = port();
+    renderPage(payments);
+
+    const search = await screen.findByTestId('cashier-learner-search');
+    fireEvent.change(search, { target: { value: 'ADM' } });
+    fireEvent.keyDown(search, { key: 'Enter' });
+    fireEvent.change(screen.getByTestId('cashier-amount'), { target: { value: '1500' } });
+    fireEvent.keyDown(screen.getByTestId('cashier-amount'), { key: 'Enter' });
+    fireEvent.keyDown(screen.getByTestId('cashier-channel-cash'), { key: '1' });
+
+    fireEvent.change(screen.getByTestId('cashier-strategy'), {
+      target: { value: 'oldest_first' },
+    });
+    fireEvent.keyDown(screen.getByTestId('cashier-reference'), { key: 'Enter' });
+
+    await waitFor(() => expect(payments.recordPayment).toHaveBeenCalledTimes(1));
+    expect(payments.recordPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ strategy: 'oldest_first' })
+    );
+  });
+
   it('carries a reference for a channel that needs one', async () => {
     const payments = port();
     renderPage(payments);
