@@ -111,6 +111,7 @@ export const PAGE_ROUTE_EXEMPTIONS: readonly PageRouteExemption[] = [
   { key: 'finance/BulkOpeningBalancesPage', reason: 'tab of the Student Fee History hub; the hub is the route' },
   { key: 'finance/BulkPaymentsPage', reason: 'tab of the Payments hub; the hub is the route' },
   { key: 'finance/CashAnalysisPage', reason: 'tab of the Finance reports hub; the hub is the route' },
+  { key: 'finance/FeeRemindersPage', reason: 'tab of the Payments hub; the hub is the route' },
   { key: 'finance/EffectFeeStructuresPage', reason: 'deprecated route: its path redirects to /finance/fee-configuration?tab=structures' },
   { key: 'finance/FeeStatusReportPage', reason: 'tab of the Finance reports hub; the hub is the route' },
   { key: 'finance/VoteheadMatrixPage', reason: 'tab of the Finance reports hub; the hub is the route' },

@@ -7,7 +7,7 @@ import { logger } from '@/utils/logging';
  * Uses plugin.json manifests for metadata and dynamically imports plugin modules.
  */
 
-import type { LoadedPlugin, PluginManifest, PluginModule } from '../types';
+import type { LoadedPlugin, PluginManifest, PluginModule } from './types';
 
 interface PluginDirectory {
   name: string;
@@ -22,6 +22,9 @@ const BUILTIN_PLUGINS: PluginDirectory[] = [
   { name: 'whitelabel', path: './whitelabel' },
   { name: 'grading-engine', path: './grading-engine' },
   { name: 'fee-calculator', path: './fee-calculator' },
+  // The SMS gateway ships visible and inactive so a school can configure it in Settings -> Plugins;
+  // nothing is sent until it is activated with credentials.
+  { name: 'sms-gateway', path: './sms-gateway' },
 ];
 
 /**
@@ -38,7 +41,6 @@ const DORMANT_PLUGINS: PluginDirectory[] = [
   { name: 'generic-rest', path: './generic-rest' },
   { name: 'payment-mock', path: './payment-mock' },
   { name: 'saas-backend', path: './saas-backend' },
-  { name: 'sms-gateway', path: './sms-gateway' },
   { name: 'sms-mock', path: './sms-mock' },
 ];
 
@@ -66,14 +68,16 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
       return null;
     }
 
-    const { manifest, module } = pluginModule.default as {
+    const { manifest, module, plugin } = pluginModule.default as {
       manifest: PluginManifest;
       module: PluginModule;
+      plugin?: Record<string, any>;
     };
 
     return {
       manifest,
       module,
+      ...(plugin ? { api: plugin } : {}),
       status: 'inactive' as const,
       loadedAt: new Date(),
       source: 'builtin' as const,

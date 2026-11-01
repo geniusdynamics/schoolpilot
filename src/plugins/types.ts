@@ -212,6 +212,13 @@ export interface PluginSetting {
 export interface LoadedPlugin {
   manifest: PluginManifest;
   module: PluginModule;
+  /**
+   * The API the plugin's default export exposes beside its lifecycle module, when it has one.
+   *
+   * The SMS gateway exports its `SMSPlugin` there, so a host page can send through the same
+   * configured client the plugin activated rather than re-implementing the provider.
+   */
+  api?: Record<string, any>;
   status: PluginStatus;
   error?: string;
   loadedAt: Date;

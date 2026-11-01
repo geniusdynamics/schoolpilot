@@ -24,6 +24,7 @@ import {
 } from '@/domain/finance/billing';
 
 import { FINANCE_CURRENCY, formatMoney, useCanonicalFinance, useFinanceRepository } from '../data/canonicalFinance';
+import { applyLearnerCredit } from '../services/canonicalFinanceService';
 
 const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -85,6 +86,9 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
   const [outcome, setOutcome] = useState<BillingRunOutcome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  const [applyCredit, setApplyCredit] = useState(false);
+  const [creditAppliedMinor, setCreditAppliedMinor] = useState(0);
+  const [creditError, setCreditError] = useState<string | null>(null);
 
   const periodSchedules = useMemo(
     () =>
@@ -98,6 +102,8 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
   const clearResult = () => {
     setPreview(null);
     setOutcome(null);
+    setCreditAppliedMinor(0);
+    setCreditError(null);
   };
 
   const addCharge = () => {
@@ -135,6 +141,8 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
     setError(null);
     setPreview(null);
     setOutcome(null);
+    setCreditAppliedMinor(0);
+    setCreditError(null);
     try {
       const service = new BillingRunService({ store: repository });
       const request = {
@@ -146,8 +154,29 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
         ...(charges.length > 0 ? { adhocCharges: charges } : {}),
         ...(openings.length > 0 ? { openingBalances: openings } : {}),
       };
-      if (mode === 'preview') setPreview(await service.preview(request));
-      else setOutcome(await service.post(request));
+      if (mode === 'preview') {
+        setPreview(await service.preview(request));
+        return;
+      }
+      const posted = await service.post(request);
+      setOutcome(posted);
+      if (posted.posted && applyCredit && posted.invoices.length > 0) {
+        let applied = 0;
+        const failures: string[] = [];
+        for (const invoice of posted.invoices) {
+          try {
+            const result = await applyLearnerCredit(repository, {
+              learnerId: invoice.learnerId,
+              strategy: 'vote_head_priority',
+            });
+            applied += result.appliedMinor;
+          } catch (failure) {
+            failures.push(`${invoice.number}: ${errorMessage(failure)}`);
+          }
+        }
+        setCreditAppliedMinor(applied);
+        if (failures.length > 0) setCreditError(failures[0] ?? null);
+      }
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
@@ -343,6 +372,17 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
         </div>
       </details>
 
+      <label className="flex items-center gap-2 text-sm text-surface-foreground">
+        <input
+          type="checkbox"
+          checked={applyCredit}
+          onChange={(event) => setApplyCredit(event.target.checked)}
+          disabled={running}
+          className="h-4 w-4 rounded border-surface-border"
+        />
+        Apply available learner credit after posting
+      </label>
+
       <div className="flex gap-2">
         <Button variant="secondary" onClick={() => void run('preview')} disabled={running || !periodId}>
           Preview
@@ -494,6 +534,18 @@ export const BillingRunPanel: React.FC<BillingRunPanelProps> = ({ compact = fals
           {outcome.ledgerEntries} journal entr{outcome.ledgerEntries === 1 ? 'y' : 'ies'} posted,{' '}
           {formatMoney(outcome.amount)} added to the learners&rsquo; balances
           {outcome.original ? ` (run ${outcome.original.runId})` : ''}.
+        </p>
+      ) : null}
+
+      {creditAppliedMinor > 0 ? (
+        <p className="text-xs text-green-700 dark:text-green-400" data-testid="billing-credit-applied">
+          {formatMoney({ amount_minor: creditAppliedMinor, currency: shown?.currency ?? FINANCE_CURRENCY })}{' '}
+          of existing learner credit was applied to the outstanding invoices.
+        </p>
+      ) : null}
+      {creditError ? (
+        <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+          Some credit could not be applied: {creditError}
         </p>
       ) : null}
     </div>

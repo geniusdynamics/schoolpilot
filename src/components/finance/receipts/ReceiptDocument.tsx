@@ -25,6 +25,11 @@ export interface ReceiptDocumentProps {
   readonly model: ReceiptDocumentModel;
   /** The on-screen print toolbar. Hidden in print, and absent from a snapshot that should not carry it. */
   readonly toolbar?: boolean;
+  /**
+   * Show the verification block and the preview banner. A counter receipt that has no verification
+   * host configured hides both; the default keeps the full document for a preview or a test.
+   */
+  readonly showVerification?: boolean;
 }
 
 /** The print hint each profile shows. A roll's scale is its width, not a page. */
@@ -40,7 +45,11 @@ function printHint(model: ReceiptDocumentModel): string {
  * global rule can win; thermal emits none, because a roll is not a sheet and the printer's driver
  * owns the roll's length.
  */
-export function ReceiptDocument({ model, toolbar = true }: ReceiptDocumentProps): ReactNode {
+export function ReceiptDocument({
+  model,
+  toolbar = true,
+  showVerification = true,
+}: ReceiptDocumentProps): ReactNode {
   const style = {
     '--receipt-sheet-width': `${model.contentWidthMm}mm`,
     '--receipt-base': model.page ? `${model.page.baseFontPt}pt` : '8pt',
@@ -70,14 +79,16 @@ export function ReceiptDocument({ model, toolbar = true }: ReceiptDocumentProps)
         </div>
       ) : null}
       <div className="receipt-sheet" data-receipt-sheet="true">
-        {model.preview ? <div className="receipt-preview-banner">{model.labels.previewBanner}</div> : null}
+        {showVerification && model.preview ? (
+          <div className="receipt-preview-banner">{model.labels.previewBanner}</div>
+        ) : null}
         <ReceiptHeader model={model} />
         <ReceiptIdentity model={model} />
         <ReceiptAmount model={model} />
         <ReceiptChannel model={model} />
         <ReceiptAllocation model={model} />
         <ReceiptBalance model={model} />
-        <ReceiptVerification model={model} />
+        {showVerification ? <ReceiptVerification model={model} /> : null}
         <ReceiptFooter model={model} />
       </div>
     </div>
