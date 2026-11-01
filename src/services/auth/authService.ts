@@ -359,12 +359,14 @@ class AuthService {
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        // A teacher teaches: academic entry only, and no Settings - the Users tab there manages
+        // logins, which a teacher has no business editing.
         permissions: [
           'dashboard.view',
           'academics.view', 'academics.read', 'academics.update',
-          'settings.view', 'settings.workflows.view'
+          'assessment.read', 'assessment.write', 'mark.read', 'mark.write', 'result.read',
         ],
-        moduleAccess: ['dashboard', 'academics', 'settings']
+        moduleAccess: ['dashboard', 'academics']
       },
       'finance': {
         id: 'USR_DEMO_FINANCE',
@@ -379,9 +381,8 @@ class AuthService {
         permissions: [
           'dashboard.view',
           'finance.view', 'finance.read', 'finance.update',
-          'settings.view', 'settings.workflows.view'
         ],
-        moduleAccess: ['dashboard', 'finance', 'settings']
+        moduleAccess: ['dashboard', 'finance']
       },
       'student': {
         id: 'USR_DEMO_STUDENT',
@@ -395,9 +396,10 @@ class AuthService {
         updatedAt: new Date(),
         permissions: [
           'dashboard.view',
-          'academics.view', 'academics.read'
+          'academics.view', 'academics.read',
+          'portal.view',
         ],
-        moduleAccess: ['dashboard', 'academics']
+        moduleAccess: ['dashboard', 'academics', 'portal']
       }
     };
 
