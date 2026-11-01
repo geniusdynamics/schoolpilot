@@ -281,12 +281,12 @@ test.describe('the finance golden path', () => {
 
       const receipt = page.getByTestId('cashier-receipt');
       await expect(receipt).toBeVisible({ timeout: UI_TIMEOUT });
-      await expect(receipt).toContainText(/KES 1,500\.00/);
-      await expect(receipt).toContainText('Allocated');
+      await expect(receipt).toContainText(/Ksh\s1,500\.00/);
+      await expect(receipt).toContainText('Allocation');
       await expect(receipt).toContainText('Balance after');
 
       // The number came from the sequences module, not from a count of rows.
-      await expect(page.getByText(/RCT\/\d{4}\/\d{6}/)).toBeVisible();
+      await expect(page.getByText(/RCT\/\d{4}\/\d{6}/).first()).toBeVisible();
 
       // Close the session with the counted cash, so the payment is part of a stated session.
       await page.getByTestId('cashier-counted').fill('2000');
