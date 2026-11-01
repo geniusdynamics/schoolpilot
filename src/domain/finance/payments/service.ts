@@ -6,7 +6,14 @@
 import type { RepositoryRow } from '@/data/repository';
 import { asId, type Id } from '@/domain/ids';
 import { allocate, add, compare, fromMinor, isCurrencyCode, isZero, subtract, zero, type Money } from '@/domain/money';
-import { planAllocation, type AllocationPlan, type OutstandingItem } from '@/domain/finance/allocation';
+import {
+  planAllocation,
+  type AllocationOptions,
+  type AllocationPlan,
+  type AllocationStrategyKind,
+  type OutstandingItem,
+  type VoteHeadPriorityLookup,
+} from '@/domain/finance/allocation';
 import type { JournalEntry, PaymentPostingInput } from '@/domain/finance/ledger';
 import { CATALOG, type SequenceCatalog, type SequenceDefinition, type ScopeValues } from '@/domain/sequences';
 
@@ -84,6 +91,12 @@ export interface PaymentsServiceOptions {
   readonly sessions?: CashierSessionService;
   /** The actor recorded on writes; the cashier when a call names one. */
   readonly actor?: string;
+  /**
+   * The school's distribution policy when a caller names none. The old Akademico configuration
+   * chose between priority and weighted; the canonical equivalent is the allocation engine's
+   * strategy. Absent, the engine's own default (`oldest_first`) applies.
+   */
+  readonly defaultStrategy?: AllocationStrategyKind;
   readonly now?: () => Date;
 }
 
@@ -103,6 +116,7 @@ export class PaymentsService {
   private readonly ledger: PaymentLedgerPort | undefined;
   private readonly sessions: CashierSessionService | undefined;
   private readonly actor: string | undefined;
+  private readonly defaultStrategy: AllocationStrategyKind | undefined;
   private readonly clock: () => Date;
 
   constructor(options: PaymentsServiceOptions) {
@@ -111,6 +125,7 @@ export class PaymentsService {
     this.ledger = options.ledger;
     this.sessions = options.sessions;
     this.actor = options.actor;
+    this.defaultStrategy = options.defaultStrategy;
     this.clock = options.now ?? (() => new Date());
   }
 
@@ -183,6 +198,8 @@ export class PaymentsService {
       });
 
       const items = await this.outstandingItems(learner.id, currency, input.invoiceIds);
+      const strategy = input.strategy ?? this.defaultStrategy;
+      const options = await this.allocationOptions(strategy, institutionId);
       const plan = planAllocation({
         source: {
           id: payment.id,
@@ -192,7 +209,7 @@ export class PaymentsService {
           receivedOn: receivedAt,
         },
         items,
-        ...(input.strategy ? { options: { strategy: input.strategy } } : {}),
+        ...(options ? { options } : {}),
       });
 
       const allocations = aggregateByInvoice(plan);
@@ -461,6 +478,40 @@ export class PaymentsService {
    * it; the shares are split through the money module's allocator, so they sum to what was paid
    * exactly and no line drifts by a minor unit.
    */
+  /**
+   * The allocation options a strategy needs.
+   *
+   * `vote_head_priority` is the only strategy that needs a lookup, and the lookup is the fee items'
+   * declared priority: the old Akademico "priority" mode paid the earliest vote head in the fee
+   * structure first, and `fee_item.priority` is the canonical place that order now lives. Without
+   * a lookup the allocation engine refuses the strategy, so it is built here rather than leaving a
+   * caller to guess why a priority payment failed.
+   */
+  private async allocationOptions(
+    strategy: AllocationStrategyKind | undefined,
+    institutionId: string
+  ): Promise<AllocationOptions | null> {
+    if (!strategy) return null;
+    if (strategy !== 'vote_head_priority') return { strategy };
+    return { strategy, voteHeadPriority: await this.voteHeadPriorityLookup(institutionId) };
+  }
+
+  /** The fee items' priorities, as the allocation engine's lookup. */
+  private async voteHeadPriorityLookup(
+    institutionId: string
+  ): Promise<VoteHeadPriorityLookup> {
+    const page = await this.store.list('fee_item', {
+      where: { institution_id: institutionId },
+      limit: PAGE_LIMIT,
+    });
+    const priorities = new Map<string, number>(
+      page.items.map((item) => [String(item.id), item.priority])
+    );
+    return {
+      priorityOf: (feeItemId) => (feeItemId ? (priorities.get(feeItemId) ?? null) : null),
+    };
+  }
+
   async outstandingItems(
     learnerId: string,
     currency: Money['currency'],

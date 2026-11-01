@@ -11,7 +11,9 @@ import {
   ExclamationTriangleIcon,
   CalendarIcon,
   PencilSquareIcon,
+  UsersIcon,
 } from '@/components/ui/icons';
+import { BulkFeeAdjustmentsPageContent } from './BulkFeeAdjustmentsPage';
 import { FeesFinesPageContent } from './FeesFinesPage';
 import { FeesInstallmentsPageContent } from './FeesInstallmentsPage';
 import { FeeAdjustmentsPageContent } from './FeeAdjustmentsPage';
@@ -47,6 +49,12 @@ const FeeRulesPage: React.FC = () => {
       icon: <PencilSquareIcon className="w-4 h-4" />,
       component: <FeeAdjustmentsPageContent />,
     },
+    {
+      id: 'bulk',
+      label: t('bulkFeeAdjustments.title', 'Bulk apply'),
+      icon: <UsersIcon className="w-4 h-4" />,
+      component: <BulkFeeAdjustmentsPageContent />,
+    },
   ];
 
   const activeTabFromUrl = searchParams.get('tab') || 'fines';
@@ -73,7 +81,7 @@ const FeeRulesPage: React.FC = () => {
         title={t('feeRules.title', 'Fee Rules')}
         info={t(
           'feeRules.subtitle',
-          'Manage fines, installments, and fee adjustments'
+          'Manage fines, installments, fee adjustments and class-wide applications'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,

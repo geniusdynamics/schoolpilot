@@ -6,6 +6,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
+  BanknotesIcon,
+  ChartBarIcon,
   DocumentReportIcon,
   UsersIcon,
   TableCellsIcon,
@@ -13,8 +15,11 @@ import {
 // Cross-module imports: these source pages live in finance per the spec's
 // hub-and-spoke model. The hub page is in reports; the source pages stay in
 // finance to keep their data collection context intact.
+import { CashAnalysisPageContent } from '../../finance/pages/CashAnalysisPage';
+import { FeeStatusReportPageContent } from '../../finance/pages/FeeStatusReportPage';
 import { FeesDueReportPageContent } from '../../finance/pages/FeesDueReportPage';
 import { StudentsPaidBookPageContent } from '../../finance/pages/StudentsPaidBookPage';
+import { VoteheadMatrixPageContent } from '../../finance/pages/VoteheadMatrixPage';
 import { VoteheadStatementPageContent } from '../../finance/pages/VoteheadStatementPage';
 
 interface HubTab {
@@ -35,6 +40,24 @@ const FinancialReportsHubPage: React.FC = () => {
       label: t('feesDueReport.title', 'Fees Due'),
       icon: <DocumentReportIcon className="w-4 h-4" />,
       component: <FeesDueReportPageContent />,
+    },
+    {
+      id: 'fee-status',
+      label: t('feeStatus.title', 'Fee Status'),
+      icon: <ChartBarIcon className="w-4 h-4" />,
+      component: <FeeStatusReportPageContent />,
+    },
+    {
+      id: 'votehead-matrix',
+      label: t('voteheadMatrix.title', 'Vote-head Matrix'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <VoteheadMatrixPageContent />,
+    },
+    {
+      id: 'cash-analysis',
+      label: t('cashAnalysis.title', 'Cash Analysis'),
+      icon: <BanknotesIcon className="w-4 h-4" />,
+      component: <CashAnalysisPageContent />,
     },
     {
       id: 'students-paid',
@@ -73,7 +96,7 @@ const FinancialReportsHubPage: React.FC = () => {
         title={t('financeReports.title', 'Finance Reports')}
         info={t(
           'financeReports.subtitle',
-          'View fees due reports, previous session fees, paid students, and votehead statements'
+          'View fee status, fees due, paid students and vote-head statements'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
