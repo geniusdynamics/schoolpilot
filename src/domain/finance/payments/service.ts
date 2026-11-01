@@ -43,21 +43,17 @@ const PAGE_LIMIT = 500;
 /**
  * The receipt sequence of spec 05 §5.2.
  *
- * The built-in catalog's `receipt` is partitioned by institution and year. The spec asks for a
- * number "per year/campus/cashier", and the sequences module allows a scope segment that is not
- * printed, so this definition widens the partition to the cashier while the number itself still
- * reads `RCT/2027/000123`. Supplying it is the caller's choice: a catalog is a parameter of
- * `SequenceService`, so nothing in the frozen sequences module changes.
- *
- * The **campus** half of the spec's partition is not reachable from a payment: the canonical
- * `payment` carries no campus, and a declared scope segment is one `resolveScope` requires, so a
- * campus in the scope would make every counter payment fail without one. A school that needs
- * per-campus runs widens this definition with the campus its cashier screen holds.
+ * The number reads `RCT/2027/000123`, so its partition is what the number and the table agree on:
+ * institution and year. The spec's "per year/campus/cashier" names who may issue a receipt, not a
+ * hidden segment in the number. A counter per cashier would hand two cashiers the same printed
+ * number, and `receipt` is unique on institution and number: a second cashier's first receipt then
+ * fails the constraint. A school that prints the cashier in the number widens this definition and
+ * its pattern together, and states the campus its cashier screen holds.
  */
 export const RECEIPT_SEQUENCE: SequenceDefinition = {
   name: 'receipt',
   pattern: 'RCT/{YYYY}/{SEQ:6}',
-  scope: ['institution', 'year', 'cashier'],
+  scope: ['institution', 'year'],
   reset: 'yearly',
 };
 
@@ -182,7 +178,7 @@ export class PaymentsService {
     }
 
     const receivedAt = input.receivedAt ?? this.clock().toISOString();
-    const issued = await this.issueReceiptNumber(institutionId, input.cashierUserId, receivedAt);
+    const issued = await this.issueReceiptNumber(institutionId, receivedAt);
     const status = input.channel === 'cheque' ? statusOfChequeState('received') : 'posted';
 
     const write = async () => {
@@ -789,21 +785,13 @@ export class PaymentsService {
     );
   }
 
-  private async issueReceiptNumber(
-    institutionId: string,
-    cashierUserId: string | undefined,
-    receivedAt: string
-  ) {
+  private async issueReceiptNumber(institutionId: string, receivedAt: string) {
     const year = /^\d{4}/.test(receivedAt)
       ? Number(receivedAt.slice(0, 4))
       : this.clock().getFullYear();
-    const scope: ScopeValues = {
-      institution: institutionId,
-      year,
-      // The catalog decides whether the cashier is a counter of its own; a payment taken without a
-      // signed-in cashier is numbered under the placeholder rather than failing.
-      cashier: cashierUserId ?? 'unassigned',
-    };
+    // The receipt number is the school's, not the cashier's: the printed number has no cashier
+    // segment and the table keeps it unique across the institution.
+    const scope: ScopeValues = { institution: institutionId, year };
     try {
       return await this.numbers.issue('receipt', scope);
     } catch (error) {

@@ -575,7 +575,8 @@ export const receiptEntity = defineEntity({
     table: 'receipt',
     primaryKey: 'id',
     indexes: ['institution_id', 'payment_id', 'issued_at', 'status'],
-    // The sequence-formatted number embeds year/campus/cashier scope, so institution-wide uniqueness holds.
+    // The number embeds the year and the sequence is scoped to the institution, so it is unique
+    // across the school: two cashiers cannot print the same receipt number.
     unique: [['institution_id', 'number']],
     refs: {
       institution_id: 'institution',

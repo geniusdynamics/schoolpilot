@@ -194,6 +194,19 @@ describe('recording a payment', () => {
     expect(h.sequences.parse('receipt', second.receipt.number)?.seq).toBe(2);
   });
 
+  it('numbers a school\'s receipts consecutively across cashiers', async () => {
+    const h = await harness();
+    const byCashier = await h.payments.recordPayment({
+      ...cashPayment(h, 100_000),
+      cashierUserId: h.cashierId,
+    });
+    // A payment taken at a second counter, or before anyone signs in, shares the school's counter.
+    const unassigned = await h.payments.recordPayment(cashPayment(h, 100_000));
+
+    expect(byCashier.receipt.number).toBe('RCT/2027/000001');
+    expect(unassigned.receipt.number).toBe('RCT/2027/000002');
+  });
+
   it('refuses a zero or negative amount, and an amount in another currency', async () => {
     const h = await harness();
     expect(
