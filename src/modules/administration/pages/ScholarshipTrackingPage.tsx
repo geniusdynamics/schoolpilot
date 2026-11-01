@@ -9,16 +9,18 @@ import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import { UserIcon, CurrencyDollarIcon, PlusIcon, CheckIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { asId } from '@/domain/ids';
 import type { ScholarshipRecord } from '../data/types';
 
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
 
 const ScholarshipTrackingPage: React.FC = () => {
-  const { learners: students } = useCanonicalLearners();
+  const { learners: students, learnersLookup } = useCanonicalLearners();
   const scholarshipCollection = useDatabaseCollection<ScholarshipRecord>('scholarships');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -212,10 +214,10 @@ const ScholarshipTrackingPage: React.FC = () => {
     }
   ];
 
-  const uniqueClasses = useMemo(() => {
-    const classNames = [...new Set(scholarships.map(s => s.class_name).filter((name): name is string => Boolean(name)))];
-    return classNames;
-  }, [scholarships]);
+  const uniqueClasses = useMemo(
+    () => [...new Set(students.map((student) => student.current_class_name).filter(Boolean))].sort(),
+    [students]
+  );
 
   const scholarshipTypes = ['Merit Scholarship', 'Need-Based Scholarship', 'Sports Scholarship', 'Arts Scholarship', 'Other'];
   const statuses = ['Active', 'Inactive', 'Pending'];
@@ -288,27 +290,25 @@ const ScholarshipTrackingPage: React.FC = () => {
             <label className="block text-sm font-medium text-surface-foreground mb-1">Class</label>
             <Select
               value={selectedClass}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClass(e.target.value)}
+              onValueChange={(value) => setSelectedClass(String(value))}
               className="w-full"
-            >
-              <option value="">All Classes</option>
-              {uniqueClasses.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
-            </Select>
+              options={[
+                { label: 'All Classes', value: '' },
+                ...uniqueClasses.map((cls) => ({ label: cls, value: cls })),
+              ]}
+            />
           </div>
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
             <Select
               value={statusFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+              onValueChange={(value) => setStatusFilter(String(value))}
               className="w-full"
-            >
-              <option value="">All Statuses</option>
-              {statuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </Select>
+              options={[
+                { label: 'All Statuses', value: '' },
+                ...statuses.map((status) => ({ label: status, value: status })),
+              ]}
+            />
           </div>
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
@@ -336,17 +336,23 @@ const ScholarshipTrackingPage: React.FC = () => {
       >
         <FormSection>
           <FormField label="Student" required>
-            <Select
-              name="student_id"
-              value={formData.student_id}
-              onChange={handleInputChange}
-              className="w-full"
-            >
-              <option value="">Select student</option>
-              {students?.map(student => (
-                <option key={student.id} value={student.id}>{student.first_name} {student.last_name}</option>
-              ))}
-            </Select>
+            <EntityPicker
+              value={formData.student_id ? asId<'learner'>(formData.student_id) : null}
+              onChange={(id) => setFormData((current) => ({ ...current, student_id: id ?? '' }))}
+              lookup={learnersLookup}
+              placeholder="Search by name or admission number"
+              allowClear
+              helperText={
+                formData.student_id
+                  ? (() => {
+                      const learner = students.find((student) => student.id === formData.student_id);
+                      return learner
+                        ? `${learner.admission_no} · ${learner.current_class_name} ${learner.current_class_stream_name}`
+                        : '';
+                    })()
+                  : 'The scholarship is attached to a canonical learner.'
+              }
+            />
           </FormField>
 
           <FormField label="Scholarship Type" required>
