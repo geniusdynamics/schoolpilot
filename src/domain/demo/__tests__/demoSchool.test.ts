@@ -107,6 +107,16 @@ describe('the demo school seed', () => {
 
     const teachingGroups = await context.repository.list('teaching_group', { limit: 50 });
     expect(teachingGroups.items.length).toBeGreaterThan(0);
+
+    // The demo logins are canonical users, and the rows they are linked to resolve both scopes: the
+    // teacher's staff record and the student's learner.
+    const logins = await context.repository.list('user', { limit: 10 });
+    const teacherLogin = logins.items.find((row) => row.username === 'teacher');
+    const studentLogin = logins.items.find((row) => row.username === 'student');
+    expect(teacherLogin?.person_ref?.type).toBe('staff');
+    expect(studentLogin?.person_ref?.type).toBe('learner');
+    const staffRows = await context.repository.list('staff', { limit: 20 });
+    expect(staffRows.items.some((row) => row.user_id === teacherLogin?.id)).toBe(true);
     const members = await context.repository.list('teaching_group_member', { limit: 200 });
     expect(members.items.length).toBeGreaterThanOrEqual(learners.items.length);
 

@@ -11,6 +11,30 @@ import {
   type DemoSchoolInput,
   type DemoSchoolResult,
 } from '@/domain/demo';
+import { databaseService } from '@/services/database/databaseService';
+
+/**
+ * Records the school profile the header, receipts and reports read.
+ *
+ * The canonical seed writes the institution; `school_details` is the single legacy row those
+ * surfaces read, and nothing else creates it for a demo database. Without it the header shows the
+ * product name and the setup nag counts the profile as missing on an otherwise complete school.
+ */
+async function writeSchoolDetails(input: DemoSchoolInput): Promise<void> {
+  const collection = databaseService.getCollection('school_details');
+  if (!collection) return;
+  const profile = input.school;
+  const fields: Record<string, string> = { name: profile.name };
+  if (profile.motto?.trim()) fields.motto = profile.motto.trim();
+  if (profile.address?.trim()) fields.postal_address = profile.address.trim();
+  if (profile.phone?.trim()) fields.telephone = profile.phone.trim();
+  const existing = ((await collection.find({})) as Array<{ id?: string }>)[0];
+  if (existing?.id) {
+    await collection.update(existing.id, fields);
+    return;
+  }
+  await collection.insert({ ...fields, updated_at: new Date().toISOString() });
+}
 
 /**
  * Seeds a school over the canonical database the pages read.
@@ -27,7 +51,9 @@ export async function seedCanonicalDemoSchool(
     if (!(repository instanceof Repository)) {
       throw new Error('the canonical provider handed a read-only repository, so the demo cannot be written');
     }
-    return await seedDemoSchool(repository, input);
+    const result = await seedDemoSchool(repository, input);
+    await writeSchoolDetails(input);
+    return result;
   } catch (error) {
     logger.error('[demo] the canonical demo school could not be seeded:', error);
     throw error;
