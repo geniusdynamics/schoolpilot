@@ -450,8 +450,9 @@ New state: the SMS plugin interface exists (`SMSPlugin.send/bulkSend/sendTemplat
 - **Class payment grid.** A new **Bulk payment** tab under Finance → Payments records one payment per priced learner in a batch, with a shared channel, slip/reference, date and distribution policy. Each learner gets their own canonical payment, allocation and receipt; a refused row keeps its amount and shows the refusal in the grid.
 - **Class vote-head matrix.** A new **Vote-head Matrix** tab under Reports → Finance shows one row per learner with one outstanding balance column per vote head and a total, with period/class filters, CSV and print. It is the modern form of the old `frmStudentVoteheadBalances` grid.
 - **Cash analysis by channel.** A new **Cash Analysis** tab under Reports → Finance lists the payments in a date range with receipt, learner, channel, reference and status, plus a per-channel total. It replaces the old `frmCashAnalysisReport` read of `detailed_transaction`.
+- **Bulk opening balances.** A new **Bulk Opening Balances** tab under Student Fee History takes a class grid of signed amounts: a positive amount posts an `opening_balance` invoice, a negative amount posts a posted credit note as a prepayment. It is the old `frmBalanceBF` grid without the raw arrears/penalty rows.
 
-Not implemented in this pass: the balance B/F import grid, the fee-balance SMS screen, the automatic prepayment distribution on fee effecting, and the receipt layout editor. They remain the next items in the ranked list.
+Not implemented in this pass: the fee-balance SMS screen, the automatic prepayment distribution on fee effecting, and the receipt layout editor. They remain the next items in the ranked list.
 
 ## 10. Verification
 
@@ -462,4 +463,5 @@ Not implemented in this pass: the balance B/F import grid, the fee-balance SMS s
 - Bulk adjustment tests: common-amount fines and exemption credit notes post one document per learner.
 - Bulk payment test: one payment per priced learner, with the batch channel and distribution, and the receipt shown per row.
 - Cash analysis pure test: date/channel filtering, void exclusion, newest-first order and per-channel totals.
+- Bulk opening-balance test: a positive amount posts an opening-balance invoice and a negative one a prepayment credit note.
 - Typecheck, ESLint on the changed files, and the full PRD gate are run before the PR is opened.

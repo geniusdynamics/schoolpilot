@@ -108,6 +108,7 @@ export const PAGE_ROUTE_EXEMPTIONS: readonly PageRouteExemption[] = [
   { key: 'finance/CustomerInvoicesPage', reason: 'deprecated route: its path redirects to /finance/invoicing?tab=customer-invoices' },
   { key: 'finance/DayBookPage', reason: 'deprecated route: its path redirects to /finance/accounting-ops?tab=day-book' },
   { key: 'finance/BulkFeeAdjustmentsPage', reason: 'tab of the Fee Rules hub; the hub is the route' },
+  { key: 'finance/BulkOpeningBalancesPage', reason: 'tab of the Student Fee History hub; the hub is the route' },
   { key: 'finance/BulkPaymentsPage', reason: 'tab of the Payments hub; the hub is the route' },
   { key: 'finance/CashAnalysisPage', reason: 'tab of the Finance reports hub; the hub is the route' },
   { key: 'finance/EffectFeeStructuresPage', reason: 'deprecated route: its path redirects to /finance/fee-configuration?tab=structures' },

@@ -6,7 +6,9 @@ import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import {
   BanknotesIcon,
   ArrowPathIcon,
+  TableCellsIcon,
 } from '@/components/ui/icons';
+import { BulkOpeningBalancesPageContent } from './BulkOpeningBalancesPage';
 import { StudentOpeningBalancesPageContent } from './StudentOpeningBalancesPage';
 import { PreviousSessionFeesPageContent } from './PreviousSessionFeesPage';
 
@@ -28,6 +30,12 @@ const StudentFeeHistoryPage: React.FC = () => {
       label: t('studentOpeningBalances.title', 'Opening Balances'),
       icon: <BanknotesIcon className="w-4 h-4" />,
       component: <StudentOpeningBalancesPageContent />,
+    },
+    {
+      id: 'bulk-opening-balances',
+      label: t('bulkOpeningBalances.title', 'Bulk Opening Balances'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <BulkOpeningBalancesPageContent />,
     },
     {
       id: 'previous-session',
@@ -61,7 +69,7 @@ const StudentFeeHistoryPage: React.FC = () => {
         title={t('studentFeeHistory.title', 'Student Fee History')}
         info={t(
           'studentFeeHistory.subtitle',
-          'Manage opening balances and previous session fees'
+          'Manage opening balances, class-wide brought-forward balances and previous session fees'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
