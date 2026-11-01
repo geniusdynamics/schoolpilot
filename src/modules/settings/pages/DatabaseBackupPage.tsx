@@ -146,7 +146,7 @@ const DatabaseBackupPage: React.FC = () => {
       <Badge variant={item.status === 'Completed' ? 'success' : item.status === 'Failed' ? 'danger' : 'info'}>{item.status}</Badge>
     )},
     { key: 'description', header: 'Description', width: 250, sortable: false },
-    { key: 'id', header: 'Actions', width: 160, sortable: false, render: (_value, item) => (
+    { key: 'actions', header: 'Actions', width: 160, sortable: false, render: (_value, item) => (
       <div className="flex gap-1">
         <Button size="sm" variant="ghost" leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />} onClick={() => handleDownloadBackup(item)}>Download</Button>
         <Button size="sm" variant="ghost" leftIcon={<TrashIcon className="w-4 h-4" />} onClick={() => void handleDeleteBackup(item)}>Delete</Button>

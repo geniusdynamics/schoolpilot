@@ -205,7 +205,7 @@ export const SettingsUsersContent: React.FC = () => {
     },
     {
       header: 'Actions',
-      key: 'id' as keyof User,
+      key: 'actions',
       render: (_value: any, item: User) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openUserModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>

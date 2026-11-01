@@ -184,7 +184,7 @@ export const PayslipsPageContent: React.FC = () => {
     { header: t('tableHeaders.status'), key: 'status' as keyof Payslip },
     {
       header: t('tableHeaders.actions'),
-      key: 'id' as keyof Payslip,
+      key: 'actions',
       render: (_: any, item: Payslip) => (
         <Button size="sm" variant="ghost" onClick={() => openViewModal(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>
           {t('common:view')}

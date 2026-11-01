@@ -202,7 +202,7 @@ export const PayrollPeriodsPageContent: React.FC = () => {
     { header: t('tableHeaders.status'), key: 'status' as keyof PayrollPeriod, render: (value: string) => getStatusBadge(value) },
     {
       header: t('tableHeaders.actions'),
-      key: 'id' as keyof PayrollPeriod,
+      key: 'actions',
       render: (_: any, item: PayrollPeriod) => (
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>

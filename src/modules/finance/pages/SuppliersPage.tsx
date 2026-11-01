@@ -137,7 +137,7 @@ export const SuppliersPageContent: React.FC = () => {
       render: (_value, row) => <span className="text-orange-600">{row.contract_expiry_date ? formatDate(row.contract_expiry_date) : '-'}</span>
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,

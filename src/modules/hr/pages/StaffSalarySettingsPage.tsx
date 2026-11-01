@@ -230,7 +230,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
     )},
     {
       header: t('tableHeaders.actions'),
-      key: 'id' as keyof StaffSalaryComponent,
+      key: 'actions',
       render: (_: unknown, item: StaffSalaryComponent) => (
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
