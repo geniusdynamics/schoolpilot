@@ -116,8 +116,9 @@ final. A non-cheque payment is refused on the lifecycle with `not_a_cheque`.
 2. sets the payment's status to `bounced` - a status the canonical freeze permits;
 3. reverses the journal entry through the ledger's own `reverse`, dated on the bounce day, with the
    reason on the reversal;
-4. optionally raises the fee §5.1 allows, a posted one-line `fine` invoice numbered from the
-   `invoice` sequence.
+4. optionally raises the fee §5.1 allows, a one-line `fine` invoice numbered from the `invoice`
+   sequence, posted through the ledger's invoice derivation so the fee the learner owes and the
+   fine revenue are in the books.
 
 ## Cashier sessions and the Z-report
 

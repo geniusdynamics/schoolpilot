@@ -407,7 +407,9 @@ export class PaymentsService {
       }
     }
 
-    const feeInvoiceId = input.fee ? await this.addBounceFee(payment, input.fee, on) : null;
+    const feeInvoiceId = input.fee
+      ? await this.addBounceFee(payment, input.fee, on, input.actor ?? this.actor)
+      : null;
 
     return { payment: updated, transition, entry, reversedAllocations, feeInvoiceId };
   }
@@ -616,7 +618,8 @@ export class PaymentsService {
   private async addBounceFee(
     payment: RepositoryRow<'payment'>,
     fee: BounceFeeInput,
-    issueDate: string
+    issueDate: string,
+    actor: string | undefined
   ): Promise<string> {
     const amount = assertPositiveMoney(fee.amount);
     if (!payment.learner_id) {
@@ -646,6 +649,25 @@ export class PaymentsService {
       amount: { amount_minor: amount.amount_minor, currency: amount.currency },
       kind: 'fine',
       ...(fee.feeItemId ? { fee_item_id: fee.feeItemId } : {}),
+    });
+    // The invoice is a document the learner owes: without its posting the balance explanation
+    // and the ledger disagree by the fee.
+    await this.ledger?.postInvoice({
+      invoice: {
+        id: invoice.id,
+        number: invoice.number ?? undefined,
+        institutionId: invoice.institution_id,
+        issueDate: invoice.issue_date,
+        total: amount,
+        lines: [
+          {
+            amount,
+            description: fee.description,
+            ...(fee.feeItemId ? { feeItemId: fee.feeItemId } : {}),
+          },
+        ],
+      },
+      ...(actor ? { postedBy: actor } : {}),
     });
     return invoice.id;
   }

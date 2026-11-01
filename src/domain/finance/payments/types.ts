@@ -15,6 +15,7 @@ import type { SqliteTransaction } from '@/data/adapters/sqlite';
 import type { AllocationPlan, AllocationStrategyKind } from '@/domain/finance/allocation';
 import type {
   EntryQuery,
+  InvoicePostingInput,
   JournalEntry,
   PaymentChannel,
   PaymentPostingInput,
@@ -256,11 +257,13 @@ export interface DocumentNumberSource {
  * The posting engine (P3-A02), narrowed to what the payments core calls.
  *
  * `LedgerService` satisfies it structurally. The payments core never derives a journal entry
- * itself: it hands the payment and its allocations to `postPayment`, and it reverses a posted
- * entry through `reverse`, never by editing it.
+ * itself: it hands the payment and its allocations to `postPayment`, a bounce fee to
+ * `postInvoice`, and it reverses a posted entry through `reverse`, never by editing it.
  */
 export interface PaymentLedgerPort {
   postPayment(input: PaymentPostingInput): Promise<JournalEntry>;
+  /** Posts an invoice the payment core itself writes, such as a cheque-bounce fee. */
+  postInvoice(input: InvoicePostingInput): Promise<JournalEntry>;
   reverse(
     entryId: string,
     options: { readonly reason: string; readonly entryDate?: string; readonly actor?: string }
