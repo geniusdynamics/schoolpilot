@@ -32,6 +32,9 @@ export class PluginManager {
   private config: PluginConfig;
   private adminConfig: AdminPluginConfig | null = null;
   private marketplaceKey: MarketplaceKeyConfig | null = null;
+  /** Plugins that were active when the app last closed, restored after the builtins register. */
+  private persistedActivePluginIds: Set<string> = new Set();
+  private restoringActivePlugins = false;
   private eventListeners: Map<string, Set<EventCallback>> = new Map();
   private instanceId: string;
 
@@ -39,7 +42,6 @@ export class PluginManager {
   private readonly HOOK_TIMEOUT_MS = 200;
   private readonly MAX_HOOK_FAILURES = 3;
   private readonly HOOK_BAN_DURATION_MS = 60000; // 1 minute
-  private readonly SANDBOX_ENABLED = true;
 
   constructor(config: PluginConfig = {}) {
     this.config = {
@@ -72,6 +74,11 @@ export class PluginManager {
         if (state.marketplaceKey) {
           this.marketplaceKey = state.marketplaceKey;
         }
+        if (Array.isArray(state.activePluginIds)) {
+          this.persistedActivePluginIds = new Set(
+            state.activePluginIds.filter((id: unknown): id is string => typeof id === 'string')
+          );
+        }
       }
     } catch (error) {
       logger.warn('[PluginManager] Failed to load persisted state:', error);
@@ -86,6 +93,9 @@ export class PluginManager {
       const state = {
         adminConfig: this.adminConfig,
         marketplaceKey: this.marketplaceKey,
+        activePluginIds: [...this.plugins.values()]
+          .filter((plugin) => plugin.status === 'active')
+          .map((plugin) => plugin.manifest.id),
       };
       localStorage.setItem('plugin_manager_state', JSON.stringify(state));
     } catch (error) {
@@ -336,7 +346,7 @@ export class PluginManager {
     // Call activate hook
     if (plugin.module.activate) {
       try {
-        await plugin.module.activate.call(context);
+        await plugin.module.activate(context);
       } catch (error) {
         plugin.status = 'error';
         plugin.error = error instanceof Error ? error.message : String(error);
@@ -352,6 +362,34 @@ export class PluginManager {
     }
 
     plugin.status = 'active';
+    if (!this.restoringActivePlugins) this.persistState();
+  }
+
+  /**
+   * Restore the plugins that were active when the app last closed.
+   *
+   * Registration always starts a builtin inactive, so without this a reload silently disables every
+   * plugin the school turned on. A plugin that fails to activate is logged and left inactive; it
+   * does not stop the rest from being restored.
+   */
+  async restoreActivePlugins(): Promise<void> {
+    if (this.persistedActivePluginIds.size === 0) return;
+    this.restoringActivePlugins = true;
+    try {
+      for (const pluginId of this.persistedActivePluginIds) {
+        if (!this.plugins.has(pluginId)) continue;
+        try {
+          await this.activatePlugin(pluginId);
+        } catch (error) {
+          logger.warn(`[PluginManager] Could not restore active plugin ${pluginId}:`, error);
+        }
+      }
+    } finally {
+      this.restoringActivePlugins = false;
+      // One write after the whole restore, so activating the first plugin cannot drop the others
+      // from the persisted list before they have had their turn.
+      this.persistState();
+    }
   }
 
   /**
@@ -367,7 +405,7 @@ export class PluginManager {
     if (plugin.module.deactivate) {
       try {
         const context = this.createPluginContext(plugin.manifest);
-        await plugin.module.deactivate.call(context);
+        await plugin.module.deactivate(context);
       } catch (error) {
         logger.error(`Error deactivating plugin ${pluginId}:`, error);
       }
@@ -377,6 +415,7 @@ export class PluginManager {
     this.removePluginHooks(pluginId);
 
     plugin.status = 'inactive';
+    if (!this.restoringActivePlugins) this.persistState();
   }
 
   /**
@@ -579,9 +618,31 @@ export class PluginManager {
 
   /**
    * Get plugin settings
+   *
+   * The map is a cache over `plugin_settings_<id>` in local storage: a setting saved in an earlier
+   * session is read back the first time this manager asks for it, so a reload does not silently
+   * strip an activated plugin's configuration.
    */
   getPluginSettings(pluginId: string): Record<string, any> {
-    return this.settings.get(pluginId) || {};
+    const cached = this.settings.get(pluginId);
+    if (cached) return cached;
+    const stored = this.readPersistedSettings(pluginId);
+    this.settings.set(pluginId, stored);
+    return stored;
+  }
+
+  /** Read one plugin's saved settings, treating a corrupt value as no settings. */
+  private readPersistedSettings(pluginId: string): Record<string, any> {
+    try {
+      const raw = localStorage.getItem(`plugin_settings_${pluginId}`);
+      if (!raw) return {};
+      const parsed: unknown = JSON.parse(raw);
+      return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? (parsed as Record<string, any>)
+        : {};
+    } catch {
+      return {};
+    }
   }
 
   /**
@@ -726,10 +787,18 @@ export class PluginManager {
       },
     };
 
+    const defaults = Object.fromEntries(
+      (manifest.settings ?? [])
+        .filter((setting) => setting.defaultValue !== undefined)
+        .map((setting) => [setting.key, setting.defaultValue])
+    );
+
     return {
       pluginId: manifest.id,
       manifest,
-      settings: this.getPluginSettings(manifest.id),
+      // The settings form shows the manifest defaults before anything is saved; activation must see
+      // the same values, or a plugin whose activation reads a default behaves differently there.
+      settings: { ...defaults, ...this.getPluginSettings(manifest.id) },
       api,
     };
   }
