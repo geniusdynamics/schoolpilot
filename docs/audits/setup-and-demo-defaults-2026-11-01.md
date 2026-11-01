@@ -134,6 +134,7 @@ these. Each is recorded with what was done.
 | 5 | **The billing run bills only learners whose status is `enrolled`.** A suspended learner is skipped by the next run. | `facts.ts` reads `learner` where `status = 'enrolled'`. | **Not fixed**; observed, may be intended. |
 | 6 | **The legacy demo seed fails on a fresh install.** The demo pathway calls `seedDatabase` before the provider is initialized ("Database provider is not initialized", caught and ignored), so the legacy modules (library, inventory, nutrition, payroll) fill from their own mocks, and the library is empty. | Console on every fresh demo; `/library/books` shows no rows. | **Not fixed**: a separate cleanup of the legacy path. |
 | 7 | **Invoice numbers printed the term as 0** (`INV/2026/0/000001`): the seed numbered terms from 0 and the number prints the raw sequence. | Billing writer: `term: facts.period.sequence`. | **Fixed** in the seed (terms from 1). |
+| 8 | **Two cashiers both print `RCT/{year}/000001`.** The receipt number has no cashier segment but the sequence was scoped by cashier, and `receipt` is unique on institution and number, so a second cashier's first receipt fails the constraint. A demo that seeds receipted payments makes it immediate. | Taking a payment as another cashier after the seed: `receipt breaks the unique constraint on institution_id, number`. | **Fixed**: the sequence is scoped to institution and year; a regression test numbers two cashiers' receipts consecutively. |
 
 ## Not covered, and what would add it
 
@@ -158,6 +159,11 @@ these. Each is recorded with what was done.
   incidents; and that the ledger balances and every learner's documents equal it.
 - `readEveryPage.test.tsx`: the cursor is followed to the end; the hook returns rows beyond the first
   page and refreshes when the table changes.
+- `payments.test.ts`: two cashiers' receipts are numbered consecutively rather than both at 1.
+- Both golden paths (`gp1-lite`, `finance-billing-golden-path`) against a fresh install: setup, admission,
+  billing, payment, attendance, teaching membership and mark entry, and the finance path's schedule,
+  charge, run, receipts and trial balance - with the sample school's nine vote heads and KES 23,850
+  first-term price.
 - Browser, fresh install through the onboarding: header shows the school name and no nag; students 33;
   finance dashboard 44 overdue / KES 2,763,445.00 collected / 86% collection rate; trial balance
   balanced at KES 6,167,670.00 across 20 accounts; Term 2 results for Grade 8 East (6 of 8 complete, mean
