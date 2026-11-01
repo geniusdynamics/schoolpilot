@@ -69,6 +69,26 @@ describe('the admission service', () => {
     expect(second.learner.admission_number).not.toBe(first.learner.admission_number);
   });
 
+  it('uses the school format, including a section prefix and suffix', async () => {
+    const section = new AdmissionService({
+      repository: fixture.repository,
+      admissionNumberFormat: {
+        prefix: 'JSS',
+        suffix: 'P',
+        separator: '-',
+        includeYear: true,
+        width: 2,
+      },
+    });
+    const result = await section.admit({
+      learner: learnerInput(),
+      guardians: [guardianInput()],
+      enrolment: { classGroupId: fixture.classGroupId, startDate: '2027-01-05' },
+    });
+
+    expect(result.learner.admission_number).toMatch(/^JSS-2027-\d{2}-P$/);
+  });
+
   it('leaves nothing behind when a step fails inside the transaction', async () => {
     const before = await liveCounts();
     const archivedBefore = await archivedCounts();

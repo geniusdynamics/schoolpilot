@@ -84,6 +84,37 @@ describe('SettingsSchoolProfilePage', () => {
     expect(store.rows.get('school-1')).toMatchObject({ name: 'New Name', school_code: 'S001' });
   });
 
+  it('saves the admission-number format and its section overrides', async () => {
+    render(<SettingsSchoolProfilePage />);
+    fireEvent.change(await nameInput(), { target: { name: 'name', value: 'Probe Academy' } });
+
+    fireEvent.change(document.querySelector('input[name="admission_number_prefix"]')!, {
+      target: { name: 'admission_number_prefix', value: 'PRI' },
+    });
+    fireEvent.change(document.querySelector('input[name="admission_number_width"]')!, {
+      target: { name: 'admission_number_width', value: '2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add section' }));
+    fireEvent.change(screen.getByPlaceholderText('e.g. Junior Secondary'), {
+      target: { value: 'Junior Secondary' },
+    });
+    const [sectionPrefix, sectionSuffix] = screen.getAllByPlaceholderText('Inherit');
+    fireEvent.change(sectionPrefix, { target: { value: 'JSS' } });
+    fireEvent.change(sectionSuffix, { target: { value: 'P' } });
+
+    fireEvent.click(screen.getByText('schoolProfile.saveButton'));
+
+    await waitFor(() => expect(toast.showSuccess).toHaveBeenCalled());
+    const saved = Array.from(store.rows.values())[0];
+    expect(saved).toMatchObject({
+      admission_number_prefix: 'PRI',
+      admission_number_width: '2',
+    });
+    expect(JSON.parse(saved.admission_number_sections)).toEqual([
+      { name: 'Junior Secondary', prefix: 'JSS', suffix: 'P' },
+    ]);
+  });
+
   it('keeps the section explanation on the card heading instead of a description row', async () => {
     render(<SettingsSchoolProfilePage />);
     await screen.findByText('schoolProfile.saveButton');

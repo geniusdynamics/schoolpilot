@@ -202,8 +202,8 @@ describe('TimetableEntriesPage (P0-F04)', () => {
     fireEvent.click(addButtons[0]);
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT } });
-    await waitFor(() => expect(optionLabels(selectByName('teacher_id'))).toEqual(['Jane Wanjiru']));
-    fireEvent.change(selectByName('teacher_id'), { target: { value: TEACHER } });
+    fireEvent.click(await screen.findByRole('combobox', { name: 'Teacher' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Jane Wanjiru' }));
     fireEvent.click(within(dialog).getByRole('button', { name: /add slot/i }));
 
     await waitFor(() => expect(collections.timetable_entries.rows()).toHaveLength(1));
@@ -221,7 +221,8 @@ describe('TimetableEntriesPage (P0-F04)', () => {
     fireEvent.click(screen.getAllByRole('button', { name: '' })[0]);
     const editDialog = await screen.findByRole('dialog');
     fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT_2 } });
-    fireEvent.change(selectByName('teacher_id'), { target: { value: TEACHER } });
+    fireEvent.click(await screen.findByRole('combobox', { name: 'Teacher' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Jane Wanjiru' }));
     fireEvent.click(within(editDialog).getByRole('button', { name: /save changes/i }));
 
     await waitFor(() => expect(collections.timetable_entries.update).toHaveBeenCalledWith('uuid-1', expect.objectContaining({

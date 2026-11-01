@@ -144,6 +144,56 @@ describe('useLookup', () => {
     ]);
   });
 
+  it('searches a learner by admission number and by name without a custom field list', async () => {
+    repository.seed('learner', [
+      {
+        id: '0192f4a1-1c2d-7b3e-9f40-0a1b2c3d4e70',
+        name: 'Amina Wanjiku',
+        admission_number: 'ADM/2026/012',
+        given_name: 'Amina',
+        family_name: 'Wanjiku',
+      },
+      {
+        id: '0192f4a1-1c2d-7b3e-9f40-0a1b2c3d4e71',
+        name: 'Baraka Otieno',
+        admission_number: 'ADM/2026/120',
+        given_name: 'Baraka',
+        family_name: 'Otieno',
+      },
+    ]);
+    const { result } = renderHook(() => useLookup('learner', { repository }));
+    await waitFor(() => expect(result.current.status).toBe('success'));
+
+    const byAdmission = await result.current.search?.('12');
+    expect(byAdmission?.map((row) => row.admission_number)).toEqual([
+      'ADM/2026/012',
+      'ADM/2026/120',
+    ]);
+
+    const byName = await result.current.search?.('amina');
+    expect(byName?.map((row) => row.family_name)).toEqual(['Wanjiku']);
+  });
+
+  it('searches the repository beyond the loaded page, and fetches one row by id', async () => {
+    const { result } = renderHook(() =>
+      useLookup('class_group', {
+        repository,
+        label: (row) => row.name,
+        searchFields: ['name'],
+      })
+    );
+    await waitFor(() => expect(result.current.status).toBe('success'));
+
+    const matches = await result.current.search?.('blue');
+    expect(matches?.map((row) => row.name)).toEqual(['Grade 7 Blue']);
+    expect(result.current.searchText(result.current.resolve(ACTIVE as Id<'class_group'>)!)).toContain(
+      'grade 7 blue'
+    );
+
+    const fetched = await result.current.fetch(ACTIVE as Id<'class_group'>);
+    expect(fetched?.name).toBe('Grade 7 Blue');
+  });
+
   it('serves the entity picker', async () => {
     const { result } = renderHook(() =>
       useLookup('class_group', { repository, label: (row) => row.name })

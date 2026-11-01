@@ -45,7 +45,6 @@ const CANONICAL_LEGACY_COLLECTIONS = [
  */
 const PENDING_CANONICAL_MIGRATION: Record<string, string> = {
   'pages/StudentPromotionPage.tsx': 'learner, class_group, academic_year',
-  'pages/AttendanceReportsPage.tsx': 'attendance_mark, attendance_session, learner',
   'data/useAcademicYearData.ts': 'academic_year',
   'data/useAdministrationData.ts':
     'learner, staff, class_group, department, job_title, guardian, learner_guardian, attendance_mark',

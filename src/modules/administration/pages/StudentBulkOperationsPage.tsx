@@ -15,7 +15,7 @@ import {
 import { BulkStudentUpdateContent } from './BulkStudentUpdatePage';
 import { StudentDataImportContent } from './StudentDataImportPage';
 import { BulkAssignRollNumbersContent } from './BulkAssignRollNumbersPage';
-import { StudentPromotionContent } from './StudentPromotionPage';
+import PromotionRunPage from './promotion/PromotionRunPage';
 
 interface HubTab {
   id: string;
@@ -52,7 +52,8 @@ const StudentBulkOperationsPage: React.FC = () => {
       id: 'promotion',
       label: t('bulkOperations.promotion', 'Promotion'),
       icon: <AcademicCapIcon className="w-4 h-4" />,
-      component: <StudentPromotionContent />,
+      // One promotion implementation: the canonical pack-driven run, not the legacy class-stream mover.
+      component: <PromotionRunPage />,
     },
   ];
 

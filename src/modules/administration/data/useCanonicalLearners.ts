@@ -99,6 +99,7 @@ export interface CanonicalLearner {
   readonly county: string;
   readonly religion: string;
   readonly remarks: string;
+  readonly attributes: Readonly<Record<string, unknown>>;
   readonly is_active: boolean;
   readonly deleted_at: string | null;
   readonly rowVersion: number;
@@ -193,6 +194,7 @@ export function toCanonicalLearner(
     county: row.address?.region ?? '',
     religion: attributeOf(row, 'religion'),
     remarks: attributeOf(row, 'remarks'),
+    attributes: row.attributes ?? {},
     is_active: row.status === 'enrolled',
     deleted_at: row.deleted_at ?? null,
     rowVersion: row.rowVersion,
@@ -381,15 +383,16 @@ export async function savePrimaryGuardian(
 /** The canonical learners of the institution, with their class placement and primary contact. */
 export function useCanonicalLearners() {
   const repository = useCanonicalRepository();
-  const learnersQuery = useEntityQuery(repository, 'learner');
+  const learnersQuery = useEntityQuery(repository, 'learner', { limit: 500 });
   const learnersLookup = useLookup(repository, 'learner', {});
-  const enrolmentsQuery = useEntityQuery(repository, 'enrolment');
-  const classGroupsQuery = useEntityQuery(repository, 'class_group');
+  const enrolmentsQuery = useEntityQuery(repository, 'enrolment', { limit: 500 });
+  const classGroupsQuery = useEntityQuery(repository, 'class_group', { limit: 500 });
   const levels = useLookup(repository, 'level', {});
-  const guardiansQuery = useEntityQuery(repository, 'guardian');
-  const linksQuery = useEntityQuery(repository, 'learner_guardian');
+  const guardiansQuery = useEntityQuery(repository, 'guardian', { limit: 500 });
+  const linksQuery = useEntityQuery(repository, 'learner_guardian', { limit: 500 });
   const identifiersQuery = useEntityQuery(repository, 'identifier', {
     where: { owner_type: 'learner' },
+    limit: 500,
   });
 
   const classGroupById = useMemo(() => {

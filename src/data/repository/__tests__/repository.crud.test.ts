@@ -225,6 +225,33 @@ describe('repository CRUD', () => {
     expect(nulled.end_date).toBeNull();
   });
 
+  it('finds a learner by name or admission number through the free-text search', async () => {
+    const learner = await context.repository.create(
+      'learner',
+      fixtureInput(context, 'learner', {
+        admission_number: 'ADM/2027/012',
+        given_name: 'Zawadi',
+        family_name: 'Njeri',
+      })
+    );
+
+    const byNumber = await context.repository.list('learner', {
+      search: { term: '012', fields: ['admission_number', 'given_name', 'family_name'] },
+    });
+    expect(byNumber.items.map((row) => row.id)).toContain(learner.id);
+
+    const byName = await context.repository.list('learner', {
+      search: { term: 'zawadi', fields: ['admission_number', 'given_name', 'family_name'] },
+    });
+    expect(byName.items.map((row) => row.id)).toContain(learner.id);
+
+    const scopedAway = await context.repository.list('learner', {
+      where: { given_name: 'Nobody' },
+      search: { term: 'zawadi', fields: ['given_name'] },
+    });
+    expect(scopedAway.items).toHaveLength(0);
+  });
+
   it('treats an archived row as gone for a write', async () => {
     const created = await context.repository.create(
       'comment_bank_entry',

@@ -23,6 +23,8 @@ import {
   RESIDENCE_STATUSES,
 } from '@/domain/schema';
 import { AdmissionService, type AdmissionResult } from '@/domain/services';
+import { normaliseAdmissionNumberFormat } from '@/domain/services/admissionNumberFormat';
+import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 import {
   GUARDIAN_IDENTIFIER_SCHEMES,
   LEARNER_IDENTIFIER_SCHEMES,
@@ -68,9 +70,31 @@ const FailureAlert: React.FC<{ readonly failure: AdmissionFormIssue }> = ({ fail
   </div>
 );
 
+interface AdmissionNumberSettings {
+  readonly admission_number_prefix?: string | null;
+  readonly admission_number_suffix?: string | null;
+  readonly admission_number_separator?: string | null;
+  readonly admission_number_width?: string | null;
+  readonly admission_number_include_year?: string | null;
+  readonly admission_number_sections?: string | null;
+}
+
+/** Reads the section overrides from the JSON string the school profile stores. */
+function admissionSectionsOf(
+  value: string | null | undefined
+): Array<{ name: string; prefix?: string | null; suffix?: string | null }> {
+  try {
+    const parsed = JSON.parse(value ?? '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export const AdmitLearnerPageContent: React.FC = () => {
   const repository = useCanonicalRepository();
   const lookups = useAdmissionLookups();
+  const { data: admissionSettings } = useDatabaseDocument<AdmissionNumberSettings>('school_details');
   const [values, setValues] = useState<AdmissionFormValues>(() => emptyAdmissionForm());
   const [errors, setErrors] = useState<Readonly<Record<string, string>>>({});
   const [failure, setFailure] = useState<AdmissionFormIssue | null>(null);
@@ -136,6 +160,36 @@ export const AdmitLearnerPageContent: React.FC = () => {
   };
 
   /** The class groups the chosen programme and level allow. */
+  /** The school format, with the level or programme override that matches this admission. */
+  const admissionNumberFormat = useMemo(() => {
+    const schoolFormat = normaliseAdmissionNumberFormat({
+      prefix: admissionSettings?.admission_number_prefix ?? 'ADM',
+      suffix: admissionSettings?.admission_number_suffix ?? '',
+      separator: admissionSettings?.admission_number_separator ?? '/',
+      includeYear: admissionSettings?.admission_number_include_year !== 'false',
+      width: Number(admissionSettings?.admission_number_width ?? 3),
+    });
+    const levelName = values.level_id
+      ? lookups.levels.label(asId<'level'>(values.level_id), '')
+      : '';
+    const programmeName = values.programme_id
+      ? lookups.programmes.label(asId<'programme'>(values.programme_id), '')
+      : '';
+    const section = admissionSectionsOf(admissionSettings?.admission_number_sections).find((entry) => {
+      const name = entry.name.trim().toLowerCase();
+      return (
+        name.length > 0 &&
+        (name === levelName.trim().toLowerCase() || name === programmeName.trim().toLowerCase())
+      );
+    });
+    if (!section) return schoolFormat;
+    return normaliseAdmissionNumberFormat({
+      ...schoolFormat,
+      ...(section.prefix ? { prefix: section.prefix } : {}),
+      ...(section.suffix ? { suffix: section.suffix } : {}),
+    });
+  }, [admissionSettings, lookups, values.level_id, values.programme_id]);
+
   const classGroupFilter = useMemo(() => {
     const programmeId = values.programme_id;
     const levelId = values.level_id;
@@ -224,7 +278,10 @@ export const AdmitLearnerPageContent: React.FC = () => {
     setErrors({});
     setFailure(null);
     try {
-      const admissions = new AdmissionService({ repository: writableRepository(repository) });
+      const admissions = new AdmissionService({
+        repository: writableRepository(repository),
+        admissionNumberFormat,
+      });
       setResult(await admissions.admit(input));
     } catch (error) {
       const refusal = describeAdmissionFailure(error, values);

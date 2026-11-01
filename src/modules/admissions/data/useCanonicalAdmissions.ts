@@ -71,9 +71,9 @@ function currentEnrolment(
  */
 export function useCanonicalAdmissions() {
   const repository = useCanonicalRepository();
-  const learnerQuery = useEntityQuery(repository, 'learner');
-  const enrolmentQuery = useEntityQuery(repository, 'enrolment');
-  const linkQuery = useEntityQuery(repository, 'learner_guardian');
+  const learnerQuery = useEntityQuery(repository, 'learner', { limit: 500 });
+  const enrolmentQuery = useEntityQuery(repository, 'enrolment', { limit: 500 });
+  const linkQuery = useEntityQuery(repository, 'learner_guardian', { limit: 500 });
   const guardians = useLookup(repository, 'guardian', {});
   const classGroups = useLookup(repository, 'class_group', {});
   const levels = useLookup(repository, 'level', {});

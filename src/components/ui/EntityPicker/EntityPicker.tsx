@@ -23,6 +23,14 @@ export interface EntityPickerLookup<Row, Id extends string = string> {
   getId?: (row: Row) => Id;
   /** Optional archived predicate; by default a row absent from `options` is treated as archived. */
   isArchived?: (row: Row) => boolean;
+  /** The label of a row that may not be in `options` (a remote search result). */
+  describe?: (row: Row) => string;
+  /** The text a local filter searches; defaults to `describe`. */
+  searchText?: (row: Row) => string;
+  /** Reads one row by id, so a selected value outside `options` still shows its label. */
+  fetch?: (id: Id) => Promise<Row | null>;
+  /** Searches the repository; when present, the search box queries instead of filtering locally. */
+  search?: (term: string) => Promise<readonly Row[]>;
 }
 
 export interface EntityPickerProps<Row, Id extends string = string> {
@@ -107,15 +115,36 @@ export function EntityPicker<Row, Id extends string = string>({
 
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef(lookup.search);
+  searchRef.current = lookup.search;
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [remoteRows, setRemoteRows] = useState<readonly Row[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [fetchedRow, setFetchedRow] = useState<Row | null>(null);
+  const [fetchDone, setFetchDone] = useState(false);
 
   const resolveId: (row: Row) => Id = lookup.getId ?? readRowId;
 
-  const visibleOptions = useMemo(
-    () => (filter ? lookup.options.filter(filter) : [...lookup.options]),
-    [filter, lookup.options]
+  const describeRow = useCallback(
+    (row: Row): string => lookup.describe?.(row) ?? lookup.label(resolveId(row), ''),
+    [lookup, resolveId]
   );
+
+  const searchTextOf = useCallback(
+    (row: Row): string => (lookup.searchText?.(row) ?? describeRow(row)).toLowerCase(),
+    [lookup, describeRow]
+  );
+
+  const visibleOptions = useMemo(() => {
+    const base = remoteRows ?? lookup.options;
+    const scoped = filter ? base.filter(filter) : [...base];
+    const term = searchTerm.trim().toLowerCase();
+    if (!term || remoteRows !== null) return scoped;
+    return scoped.filter((row) => searchTextOf(row).includes(term));
+  }, [filter, lookup.options, remoteRows, searchTerm, searchTextOf]);
 
   const hasOptions = visibleOptions.length > 0;
   const isLoading = lookup.status === 'loading';
@@ -123,22 +152,41 @@ export function EntityPicker<Row, Id extends string = string>({
   const isFetching =
     lookup.isFetching ?? (lookup.status === 'loading' || lookup.status === 'refreshing');
   const lookupSettled = lookup.status === 'success' || lookup.status === 'refreshing';
-  const showEmptyState = lookup.status === 'success' && !hasOptions && !hasLoadError;
+  const showEmptyState =
+    lookup.status === 'success' &&
+    !hasOptions &&
+    !hasLoadError &&
+    !searching &&
+    searchTerm.trim().length === 0;
   // An empty lookup keeps its CTA reachable by Tab; the root blur handler closes
   // the popup once focus leaves. A populated list still closes on Tab as before.
   const tabEntersEmptyState = showEmptyState && Boolean(emptyState);
 
-  const selectedRow =
+  const resolvedSelected =
     value !== null ? lookup.resolve(value) ?? lookup.byId.get(value) : undefined;
+  const selectedRow =
+    resolvedSelected ??
+    (fetchedRow !== null && value !== null && resolveId(fetchedRow) === value
+      ? fetchedRow
+      : undefined);
   const selectedInOptions =
     value !== null && lookup.options.some((option) => resolveId(option) === value);
   const selectedIsArchived =
-    selectedRow !== undefined && lookup.isArchived?.(selectedRow) === true;
+    selectedRow !== undefined &&
+    (lookup.isArchived?.(selectedRow) === true ||
+      (lookup.isArchived === undefined &&
+        selectedRow === resolvedSelected &&
+        !selectedInOptions));
   const selectedIsUnavailable =
     value !== null &&
     lookupSettled &&
-    (selectedRow === undefined || selectedIsArchived || !selectedInOptions);
-  const resolvedLabel = value !== null ? lookup.label(value, '') : '';
+    (selectedIsArchived || (selectedRow === undefined && fetchDone));
+  const resolvedLabel =
+    value !== null
+      ? selectedRow
+        ? describeRow(selectedRow)
+        : lookup.label(value, '')
+      : '';
   const selectedLabel = value !== null ? resolvedLabel || value : '';
   const selectedText = selectedIsUnavailable ? archivedLabel(selectedLabel) : selectedLabel;
   const canClear =
@@ -146,6 +194,94 @@ export function EntityPicker<Row, Id extends string = string>({
 
   const activeOption =
     activeIndex >= 0 && activeIndex < visibleOptions.length ? visibleOptions[activeIndex] : undefined;
+
+  // A value outside the loaded page (a remote search result, or an edited record) still needs a
+  // label. Resolve it once by id; until then the trigger shows the id rather than calling it archived.
+  useEffect(() => {
+    if (value === null) {
+      setFetchedRow(null);
+      setFetchDone(false);
+      return;
+    }
+    if (resolvedSelected) {
+      setFetchedRow(null);
+      setFetchDone(true);
+      return;
+    }
+    const fetchRow = lookup.fetch;
+    if (!fetchRow) {
+      // Keep the row the user just selected; without a fetch it is the only label we have.
+      setFetchedRow((current) =>
+        current !== null && resolveId(current) === value ? current : null
+      );
+      setFetchDone(true);
+      return;
+    }
+    let cancelled = false;
+    setFetchDone(false);
+    void fetchRow(value)
+      .then((row) => {
+        if (!cancelled) {
+          setFetchedRow(row);
+          setFetchDone(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFetchedRow(null);
+          setFetchDone(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [value, resolvedSelected, lookup.fetch, resolveId]);
+
+  // The search box queries the repository when the lookup offers a search. A person lookup
+  // returns the whole school, so filtering only the first page would still miss a learner.
+  useEffect(() => {
+    if (!open) return;
+    const term = searchTerm.trim();
+    if (!term || !searchRef.current) {
+      setRemoteRows(null);
+      setSearching(false);
+      return;
+    }
+    let cancelled = false;
+    setSearching(true);
+    const timer = setTimeout(() => {
+      const run = searchRef.current;
+      if (!run) return;
+      void run(term)
+        .then((rows) => {
+          if (!cancelled) {
+            setRemoteRows(rows);
+            setActiveIndex(rows.length > 0 ? 0 : -1);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setRemoteRows([]);
+            setActiveIndex(-1);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setSearching(false);
+        });
+    }, 180);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [open, searchTerm]);
+
+  useEffect(() => {
+    if (!open) return;
+    setActiveIndex((current) => {
+      if (visibleOptions.length === 0) return -1;
+      return current >= 0 && current < visibleOptions.length ? current : 0;
+    });
+  }, [open, visibleOptions.length]);
 
   const describedBy =
     [ariaDescribedBy, helperText && !error ? helperId : undefined, error ? fieldErrorId : undefined]
@@ -155,6 +291,9 @@ export function EntityPicker<Row, Id extends string = string>({
   const openPicker = useCallback(
     (direction: 1 | -1 = 1) => {
       if (disabled) return;
+      setSearchTerm('');
+      setRemoteRows(null);
+      setSearching(false);
       setOpen(true);
       setActiveIndex(
         visibleOptions.length === 0 ? -1 : direction === 1 ? 0 : visibleOptions.length - 1
@@ -166,11 +305,16 @@ export function EntityPicker<Row, Id extends string = string>({
   const closePicker = useCallback((restoreFocus = false) => {
     setOpen(false);
     setActiveIndex(-1);
+    setSearchTerm('');
+    setRemoteRows(null);
+    setSearching(false);
     if (restoreFocus) triggerRef.current?.focus();
   }, []);
 
   const selectOption = useCallback(
     (option: Row) => {
+      setFetchedRow(option);
+      setFetchDone(true);
       onChange(resolveId(option));
       closePicker(true);
     },
@@ -178,6 +322,8 @@ export function EntityPicker<Row, Id extends string = string>({
   );
 
   const clearSelection = useCallback(() => {
+    setFetchedRow(null);
+    setFetchDone(true);
     onChange(null);
     closePicker(true);
   }, [closePicker, onChange]);
@@ -208,7 +354,7 @@ export function EntityPicker<Row, Id extends string = string>({
   }, [closePicker, disabled, open, openPicker]);
 
   const handleTriggerKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    (event: React.KeyboardEvent<HTMLElement>) => {
       if (disabled) return;
 
       switch (event.key) {
@@ -229,17 +375,18 @@ export function EntityPicker<Row, Id extends string = string>({
           return;
         }
         case 'Home':
-          if (!open) return;
+          if (!open || event.currentTarget === searchInputRef.current) return;
           event.preventDefault();
           setActiveIndex(0);
           return;
         case 'End':
-          if (!open) return;
+          if (!open || event.currentTarget === searchInputRef.current) return;
           event.preventDefault();
           setActiveIndex(visibleOptions.length - 1);
           return;
         case 'Enter':
         case ' ':
+          if (event.key === ' ' && event.currentTarget === searchInputRef.current) return;
           event.preventDefault();
           if (!open) {
             openPicker(1);
@@ -251,6 +398,18 @@ export function EntityPicker<Row, Id extends string = string>({
           if (open && !tabEntersEmptyState) closePicker();
           return;
         default:
+          if (
+            open &&
+            event.currentTarget === triggerRef.current &&
+            event.key.length === 1 &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.altKey
+          ) {
+            event.preventDefault();
+            setSearchTerm(event.key);
+            searchInputRef.current?.focus();
+          }
           return;
       }
     },
@@ -309,7 +468,7 @@ export function EntityPicker<Row, Id extends string = string>({
     .join(' ');
 
   const optionLabel = (option: Row, optionId: Id): string => {
-    const text = lookup.label(optionId, optionId);
+    const text = lookup.describe?.(option) ?? lookup.label(optionId, optionId);
     return lookup.isArchived?.(option) ? archivedLabel(text) : text;
   };
 
@@ -394,6 +553,34 @@ export function EntityPicker<Row, Id extends string = string>({
             id={popupId}
             className="absolute z-50 mt-1.5 w-full animate-slide-down rounded-xl border border-surface-border bg-surface-popover shadow-lg"
           >
+            <div className="border-b border-surface-border p-2">
+              <input
+                ref={searchInputRef}
+                type="search"
+                tabIndex={-1}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                onKeyDown={handleTriggerKeyDown}
+                placeholder="Search by name or number"
+                aria-label="Search options"
+                aria-controls={listboxId}
+                aria-activedescendant={
+                  open && activeOption ? `${listboxId}-option-${activeIndex}` : undefined
+                }
+                className="w-full rounded-md border border-surface-border px-3 py-2 text-sm"
+              />
+            </div>
+
+            {searching ? (
+              <div
+                role="status"
+                className="flex items-center gap-2 border-b border-surface-border px-3 py-2 text-sm text-surface-muted-fg"
+              >
+                <Spinner size="sm" color="text-primary-600" />
+                <span>Searching...</span>
+              </div>
+            ) : null}
+
             {hasLoadError ? (
               <div
                 role="alert"

@@ -19,6 +19,7 @@ import { TeacherAssignmentsPageContent } from './TeacherAssignmentsPage';
 import { StudentFinancialSummaryPageContent } from './StudentFinancialSummaryPage';
 import { StudentVoteheadStatementPageContent } from './StudentVoteheadStatementPage';
 import { ExamResultsHorizontalPageContent } from './ExamResultsHorizontalPage';
+import DynamicReportBuilder from '../components/DynamicReportBuilder';
 
 interface HubTab {
   id: string;
@@ -38,6 +39,12 @@ const StudentReportsHubPage: React.FC = () => {
       label: t('studentMasterlist.title', 'Masterlist'),
       icon: <UsersIcon className="w-4 h-4" />,
       component: <StudentMasterlistPageContent />,
+    },
+    {
+      id: 'builder',
+      label: t('dynamicReport.title', 'Report Builder'),
+      icon: <DocumentTextIcon className="w-4 h-4" />,
+      component: <DynamicReportBuilder />,
     },
     {
       id: 'class-lists',

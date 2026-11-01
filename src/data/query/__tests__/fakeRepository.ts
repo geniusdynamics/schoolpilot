@@ -165,9 +165,15 @@ export class FakeRepository implements QueryRepository {
 
   private filter(entity: EntityName, query?: ListQuery): readonly FakeRow[] {
     const where = query?.where ?? {};
+    const searchTerm = query?.search?.term.trim().toLowerCase() ?? '';
+    const searchFields = query?.search?.fields ?? [];
     return this.rowsOf(entity).filter((row) => {
       if (query?.includeDeleted !== true && row.deleted_at != null) return false;
-      return Object.entries(where).every(([field, value]) => row[field] === value);
+      if (!Object.entries(where).every(([field, value]) => row[field] === value)) return false;
+      if (!searchTerm) return true;
+      return searchFields.some((field) =>
+        String(row[field] ?? '').toLowerCase().includes(searchTerm)
+      );
     });
   }
 

@@ -32,6 +32,11 @@ export function requireColumn(entity: EntityName, name: string): ColumnMeta {
   return meta;
 }
 
+/** Escapes the LIKE wildcards so a search term is matched literally. */
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (character) => `\\${character}`);
+}
+
 /** Builds the where clause of a list query. */
 export function buildWhere(entity: EntityName, query: ListQuery): WhereClause {
   const columns = columnsFor(entity);
@@ -57,6 +62,18 @@ export function buildWhere(entity: EntityName, query: ListQuery): WhereClause {
     const operators = buildCondition(entity, name, condition, meta);
     clauses.push(operators.clause);
     params.push(...operators.params);
+  }
+
+  const searchTerm = query.search?.term.trim().toLowerCase() ?? '';
+  if (searchTerm && query.search && query.search.fields.length > 0) {
+    const pattern = `%${escapeLike(searchTerm)}%`;
+    const searchClauses: string[] = [];
+    for (const name of query.search.fields) {
+      requireColumn(entity, name);
+      searchClauses.push(`LOWER(CAST("${name}" AS TEXT)) LIKE ? ESCAPE '\\'`);
+      params.push(pattern);
+    }
+    clauses.push(`(${searchClauses.join(' OR ')})`);
   }
 
   return {

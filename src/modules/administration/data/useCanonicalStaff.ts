@@ -220,7 +220,7 @@ export function staffUpdateInput(values: StaffFormValues): UpdateInput<'staff'> 
 /** The canonical staff of the institution, with the job title and department of each. */
 export function useCanonicalStaff() {
   const repository = useCanonicalRepository();
-  const staffQuery = useEntityQuery(repository, 'staff');
+  const staffQuery = useEntityQuery(repository, 'staff', { limit: 500 });
   const staffLookup = useLookup(repository, 'staff', {});
   const jobTitles = useLookup(repository, 'job_title', {});
   const departments = useLookup(repository, 'department', {});

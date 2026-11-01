@@ -2,7 +2,7 @@
 // ABOUTME: Covers UUID round trip, live create/relabel, scoped filter, keyboard CTA, archived values and load states.
 
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import EntityPicker, { type EntityPickerLookup } from '../EntityPicker';
@@ -170,6 +170,24 @@ describe('EntityPicker conformance', () => {
     expect(screen.queryByRole('button', { name: 'Create class group' })).not.toBeInTheDocument();
   });
 
+  it('does not offer the empty-state CTA when a search has no matches', async () => {
+    const search = vi.fn(async () => []);
+    render(
+      <Harness
+        lookup={makeLookup([BLUE], { search, describe: (row) => row.name })}
+        emptyState={<button type="button">Create class group</button>}
+      />
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'Class group' }));
+    await user.type(screen.getByLabelText('Search options'), 'zzz');
+
+    await waitFor(() => expect(search).toHaveBeenCalledWith('zzz'));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Create class group' })).not.toBeInTheDocument()
+    );
+  });
+
   it('reaches the empty-state CTA with Tab and activates it with Enter', async () => {
     const onCreate = vi.fn();
     render(
@@ -288,6 +306,38 @@ describe('EntityPicker conformance', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Could not load options.');
     expect(screen.queryByRole('button', { name: 'Create class group' })).not.toBeInTheDocument();
+  });
+
+  it('filters the options by the search text', async () => {
+    render(<Harness lookup={makeLookup([BLUE, GOLD])} />);
+
+    await user.click(screen.getByRole('combobox', { name: 'Class group' }));
+    await user.type(screen.getByLabelText('Search options'), 'Gold');
+
+    expect(screen.getByRole('option', { name: 'Grade 7 Gold' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Grade 7 Blue' })).not.toBeInTheDocument();
+  });
+
+  it('queries a remote lookup and selects a result outside the loaded options', async () => {
+    const search = vi.fn(async (term: string) => (term === 'gold' ? [GOLD] : []));
+    render(
+      <Harness
+        lookup={makeLookup([], {
+          search,
+          describe: (row) => row.name,
+        })}
+      />
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'Class group' }));
+    await user.type(screen.getByLabelText('Search options'), 'gold');
+
+    await waitFor(() => expect(search).toHaveBeenCalledWith('gold'));
+    await user.click(await screen.findByRole('option', { name: 'Grade 7 Gold' }));
+
+    expect(screen.getByRole('combobox', { name: 'Class group' })).toHaveTextContent(
+      'Grade 7 Gold'
+    );
   });
 
   it('marks an archived stored value and makes it clearable without opting in', async () => {

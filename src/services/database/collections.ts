@@ -49,6 +49,13 @@ const schoolDetailsSchema: DatabaseSchema = createDatabaseSchema({
     school_type: { type: 'string', enum: ['Public', 'Private', 'International'] },
     head_teacher_name: { type: 'string', maxLength: 200 },
     school_code: { type: 'string', maxLength: 50 },
+    admission_number_prefix: { type: 'string', maxLength: 50 },
+    admission_number_suffix: { type: 'string', maxLength: 50 },
+    admission_number_separator: { type: 'string', maxLength: 10 },
+    admission_number_width: { type: 'string', maxLength: 2 },
+    admission_number_include_year: { type: 'string', maxLength: 5 },
+    /** A JSON array of { name, prefix, suffix }; a string because the school profile is flat. */
+    admission_number_sections: { type: 'string', maxLength: 20000 },
     /** Set when the setup wizard is finished (ISO date-time); empty until then. */
     setup_completed_at: { type: 'string', format: 'date-time' },
     created_at: { type: 'string', format: 'date-time' },

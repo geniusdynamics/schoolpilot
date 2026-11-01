@@ -268,8 +268,11 @@ const SchedulingCalendar: React.FC = () => {
                 onValueChange={(value) => setSelectedInvigilator(typeof value === 'string' ? value : '')}
                 options={staff.map(member => ({
                   value: [member.first_name, member.last_name].filter(Boolean).join(' ') || member.staff_no || '',
-                  label: [member.first_name, member.last_name].filter(Boolean).join(' ') || member.staff_no || '—',
+                  label: `${[member.first_name, member.last_name].filter(Boolean).join(' ') || '—'}${
+                    member.staff_no ? ` (${member.staff_no})` : ''
+                  }`,
                 }))}
+                searchable
               />
 
               <div className="flex justify-end space-x-2">

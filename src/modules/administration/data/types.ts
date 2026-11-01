@@ -956,6 +956,7 @@ export interface AttendanceReport {
   admission_no: string;
   class_id: string;
   class_name: string;
+  stream_name: string;
   month: string;
   year: number;
   total_days: number;
