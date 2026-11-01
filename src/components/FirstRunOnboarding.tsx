@@ -28,6 +28,7 @@ import {
 import Button from '@/components/ui/Button';
 import { SetupWizard } from '@/components/setup/SetupWizard';
 import { seedCanonicalDemoSchool } from '@/data/demo/seedCanonicalDemo';
+import { defaultDemoSchool } from '@/domain/demo';
 import { StorageUnavailableScreen } from '@/components/StorageUnavailableScreen';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
@@ -101,12 +102,33 @@ function defaultsFromReport(report: CapabilityReport): EnvironmentDefaults {
 /**
  * FirstRunOnboarding component
  */
+/** What each step of the demo install is doing, in the words a person waiting for it would use. */
+const DEMO_STEP_LABELS: Readonly<Record<string, string>> = {
+  institution: 'creating the school',
+  structure: 'building the calendar and the classes',
+  history: 'recording last year',
+  staff: 'hiring the staff',
+  learners: 'admitting the learners and their families',
+  curriculum: 'setting the curriculum',
+  teaching: 'assigning the teachers',
+  assessment: 'entering exam marks',
+  fees: 'billing the terms',
+  payments: 'taking payments',
+  settlements: 'settling the accounts of those who left',
+  register: 'taking the registers',
+  pastoral: 'writing the clinic book',
+  departures: 'closing the leavers',
+  logins: 'creating the logins',
+};
+
 export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, onSkip }) => {
   const { t } = useTranslation('common');
   const { config, updateConfig } = useUnifiedConfig();
   const [step, setStep] = useState<'welcome' | 'choose' | 'confirm'>('welcome');
   const [selectedPath, setSelectedPath] = useState<'demo' | 'production' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  // The step of the demo install that is running, so the wait reads as progress and not as a hang.
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showTechnical, setShowTechnical] = useState(false);
   const [envDefaults, setEnvDefaults] = useState<EnvironmentDefaults | null>(null);
@@ -208,7 +230,10 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
         // through the repository as well. A refusal is shown and the user can retry, because an
         // onboarding that finishes without it leaves every canonical page empty.
         try {
-          await seedCanonicalDemoSchool();
+          await seedCanonicalDemoSchool({
+            ...defaultDemoSchool(),
+            onProgress: (step) => setProgress(step),
+          });
         } catch (canonicalError) {
           logger.error('[FirstRunOnboarding] The canonical demo school was not installed:', canonicalError);
           setError(canonicalError instanceof Error ? canonicalError.message : 'The sample school could not be created.');
@@ -516,7 +541,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
               {isProcessing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Setting up...
+                  {progress ? `Setting up: ${DEMO_STEP_LABELS[progress] ?? progress}...` : 'Setting up...'}
                 </>
               ) : (
                 <>
