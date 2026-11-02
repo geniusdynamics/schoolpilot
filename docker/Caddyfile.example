@@ -1,0 +1,14 @@
+# ABOUTME: TLS-terminating proxy in front of the web image. Replace the address with the school's name.
+#
+# Caddy obtains a certificate automatically when the address is a real domain that reaches this server
+# on port 80/443. For a LAN-only install `tls internal` issues a certificate from Caddy's own CA, which
+# every device must trust once (see the deployment guide).
+
+school.example.org {
+	encode gzip zstd
+
+	# The app sends its own security headers; the proxy adds HSTS because only it knows the scheme.
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	reverse_proxy web:8080
+}

@@ -1,15 +1,8 @@
-# Keep the index normalised so a Windows checkout does not churn snapshots and diffs.
-* text=auto
+# ABOUTME: Line endings the container needs: a shell script or Dockerfile stored with CRLF fails on
+# ABOUTME: Linux (a shebang ending in \r is a bad interpreter). Only the files that must be LF are pinned.
 
-# Binary assets: never diff, merge or convert line endings.
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.ico binary
-*.webp binary
-*.woff binary
-*.woff2 binary
-*.ttf binary
-*.zip binary
-*.pdf binary
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf
+docker-compose*.yml text eol=lf
+.github/workflows/*.yml text eol=lf

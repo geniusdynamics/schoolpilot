@@ -1,0 +1,180 @@
+﻿# ABOUTME: Builds the container images on every pull request and publishes them to GHCR on consolidation,
+# ABOUTME: main and tags. The web image is smoke-tested by running it and reading its headers and health.
+name: Container images
+
+on:
+  pull_request:
+    branches: [consolidation, main]
+  push:
+    branches: [consolidation, main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: '1'
+  IMAGE: ghcr.io/geniusdynamics/schoolpilot
+
+jobs:
+  build:
+    name: Build the images (amd64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Both targets on every PR: a broken Dockerfile must fail before it reaches a tag. The images are
+      # loaded locally for the smoke tests rather than pushed.
+      - name: Build the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: web
+          load: true
+          tags: schoolpilot:web
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+      - name: Build the hub image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: hub
+          load: true
+          tags: schoolpilot:hub
+          cache-from: type=gha,scope=hub
+          cache-to: type=gha,scope=hub,mode=max
+
+      - name: Smoke-test the web image
+        run: |
+          docker run -d --name web -p 8080:8080 \
+            -e SCHOOLPILOT_DEPLOYMENT_MODE=production \
+            -e SCHOOLPILOT_APP_VERSION="$(git rev-parse --short HEAD)" \
+            schoolpilot:web
+          ready=0
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null 2>&1; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then docker logs web; exit 1; fi
+
+          echo "--- the shell and the runtime config"
+          curl -fsS http://127.0.0.1:8080/ | grep -q 'id="root"'
+          curl -fsS http://127.0.0.1:8080/config.js | tee /tmp/config.js
+          grep -q '"production"\|production' /tmp/config.js
+          curl -fsS http://127.0.0.1:8080/config.js | grep -q "$(git rev-parse --short HEAD)"
+
+          echo "--- the headers the app expects"
+          headers=$(curl -fsSI http://127.0.0.1:8080/)
+          echo "$headers"
+          echo "$headers" | grep -qi '^x-frame-options: DENY'
+          echo "$headers" | grep -qi '^referrer-policy: no-referrer'
+          echo "$headers" | grep -qi '^x-content-type-options: nosniff'
+
+          echo "--- the wasm is served with its type"
+          wasm=$(docker exec web sh -c 'ls /usr/share/nginx/html/assets/*.wasm | head -1 | xargs basename')
+          curl -fsSI "http://127.0.0.1:8080/assets/$wasm" | grep -qi 'content-type: application/wasm'
+
+          echo "--- the shell is not cached, the bundles are"
+          curl -fsSI http://127.0.0.1:8080/index.html | grep -qi 'cache-control: no-cache'
+          curl -fsSI "http://127.0.0.1:8080/assets/$wasm" | grep -qi 'immutable'
+          docker rm -f web
+
+      - name: Smoke-test the hub image
+        run: |
+          docker run -d --name hub -p 8443:8443 \
+            -e SCHOOLPILOT_TLS=off \
+            -e SCHOOLPILOT_BACKUPS=off \
+            schoolpilot:hub
+          ready=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8443/health >/dev/null 2>&1; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then docker logs hub; exit 1; fi
+          curl -fsS http://127.0.0.1:8443/health | tee /tmp/health.json
+          curl -fsS http://127.0.0.1:8443/.well-known/schoolpilot-hub
+          # The process runs as the unprivileged node user, and its data directory is a volume.
+          docker exec hub sh -c 'id -u | grep -qv "^0$"'
+          docker rm -f hub
+
+  publish:
+    name: Publish to GHCR
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (arm64 for a Raspberry Pi hub)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tags and labels (web)
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Publish the web image (amd64 + arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: web
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+      - name: Tags and labels (hub)
+        id: meta-hub
+        uses: docker/metadata-action@v5
+        with:
+          # A distinct image name: the two must never share a tag, or the hub would overwrite the app.
+          images: ${{ env.IMAGE }}-hub
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Publish the hub image (amd64 + arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: hub
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-hub.outputs.tags }}
+          labels: ${{ steps.meta-hub.outputs.labels }}
+          cache-from: type=gha,scope=hub
+          cache-to: type=gha,scope=hub,mode=max

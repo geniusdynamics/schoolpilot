@@ -1,0 +1,50 @@
+# ABOUTME: An example deployment of the web image: the school's data lives in each browser, the image
+# ABOUTME: serves files, and TLS is what makes the browser's storage work. Not a production secret file.
+
+services:
+  web:
+    image: ghcr.io/geniusdynamics/schoolpilot:latest
+    # Build locally instead: comment `image` above and uncomment the next line.
+    # build: { context: ., target: web }
+    restart: unless-stopped
+    ports:
+      # Behind the proxy below the app is only reachable on the loopback interface.
+      - "127.0.0.1:8080:8080"
+    environment:
+      # both = offer demo and production at first run; demo = kiosk; production = a school's install.
+      SCHOOLPILOT_DEPLOYMENT_MODE: both
+      # Only for a public demo: a temporary database is erased when the tab is closed.
+      SCHOOLPILOT_ALLOW_TEMPORARY_DB: "false"
+      # Optional: error reporting. Leave empty to disable.
+      SCHOOLPILOT_BUGSINK_DSN: ""
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # TLS is not optional in practice: the browser's OPFS storage and the service worker only work in a
+  # secure context. A school that opens http://<lan-ip>:8080 gets an app that cannot store anything.
+  # Caddy with its internal CA works on a LAN, but every device must trust that CA; a real domain with
+  # DNS-01 is simpler for staff. Replace the address below with the school's hostname.
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Copy docker/Caddyfile.example to ./Caddyfile and put the school's address in it.
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:
+
+# The school's data is in the browsers, not here. Back it up from Settings -> System -> Backup on each
+# device, and keep the archive somewhere other than that device. The hub image (experimental) is not
+# part of this deployment: the browser app does not sync with it yet.
