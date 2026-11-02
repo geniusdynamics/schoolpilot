@@ -26,7 +26,7 @@ export interface PositionAllocation {
 
 /** The minimum of a credit note the position needs. */
 export interface PositionCreditNote {
-  readonly learner_id: string | null;
+  readonly learner_id?: string | null;
   readonly status: string;
   readonly amount: Money;
 }
