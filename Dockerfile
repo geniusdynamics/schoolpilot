@@ -34,8 +34,10 @@ RUN pnpm -s build
 
 # ---------------------------------------------------------------------------- web
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS web
-# The headers, the wasm MIME type and the cache rules the built app needs live in this file.
+# The headers, the wasm MIME type and the cache rules the built app needs live in this file; the
+# headers are also a snippet, because a location with its own add_header does not inherit them.
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/security-headers.conf /etc/nginx/security-headers.conf
 # Runs before nginx starts (the image's entrypoint executes /docker-entrypoint.d/*.sh) and writes the
 # deployment's runtime settings to a path nginx serves as /config.js.
 COPY --chmod=755 docker/web-entrypoint.sh /docker-entrypoint.d/40-runtime-config.sh
