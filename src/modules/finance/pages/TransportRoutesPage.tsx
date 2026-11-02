@@ -16,6 +16,7 @@ import { useFinance } from '@/modules/finance/hooks/useFinance';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 /** A route as shown in the grid; ids are strings and the account name is resolved at read time. */
 interface RouteRow {
@@ -178,6 +179,7 @@ export const TransportRoutesPageContent: React.FC = () => {
 
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>Transport charges set here are not billed to any learner.</LegacyDataNotice>
       <Card title="Transport Routes & Fees" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Transport Route

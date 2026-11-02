@@ -14,6 +14,7 @@ import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/i
 import { useFinance } from '@/modules/finance/hooks/useFinance';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 // Record ids are strings (UUIDs) at runtime, so the form keeps the GL account id as the option value.
 interface BankFormData {
@@ -165,6 +166,7 @@ export const BanksPageContent: React.FC = () => {
 
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>These bank accounts are not the ledger’s cash and bank accounts.</LegacyDataNotice>
       <Card title="Bank Accounts Management" info="Manage the school's bank accounts. Each bank account must be linked to an Asset account in the Chart of Accounts." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Bank Account

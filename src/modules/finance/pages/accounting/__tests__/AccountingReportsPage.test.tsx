@@ -124,6 +124,29 @@ describe('the accounting reports hub', () => {
     expect(screen.getByText('The ledger is not connected')).toBeInTheDocument();
   });
 
+  it('opens on the report the address names, so an old link to a cash book lands on the cash book', async () => {
+    // The retired Accounting Ops and Financial Statements addresses redirect here with ?tab=, and a
+    // redirect that always showed the trial balance would send a bursar to the wrong report.
+    window.location.hash = '#/finance/accounting-reports?tab=cash-book';
+    try {
+      renderPage();
+      expect(await screen.findByTestId('tie-book')).toBeInTheDocument();
+      expect(screen.queryByTestId('tie-trial-balance')).toBeNull();
+    } finally {
+      window.location.hash = '';
+    }
+  });
+
+  it('opens on the trial balance when the address names no report it has', async () => {
+    window.location.hash = '#/finance/accounting-reports?tab=day-book';
+    try {
+      renderPage();
+      expect(await screen.findByTestId('tie-trial-balance')).toBeInTheDocument();
+    } finally {
+      window.location.hash = '';
+    }
+  });
+
   it('opens the canonical repository itself, so a direct load of the route has a ledger', async () => {
     // Nothing has opened the canonical database in this file, and neither a ledger nor an adapter is
     // handed in. A bookmark or a reload of /finance/accounting-reports lands exactly here: if the page

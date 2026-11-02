@@ -13,6 +13,7 @@ import { ArrowPathIcon, EditIcon, LockClosedIcon, PlusIcon } from '@/components/
 import { useToast } from '@/hooks/useToast';
 import { FinancialYearStatus } from '@/core/types';
 import { formatDate } from '@/utils/format';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 import {
   suggestNextFinancialYear,
   useFinancialYearData,
@@ -185,6 +186,9 @@ const FinancialYearsPage: React.FC = () => {
 
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>
+        The school&rsquo;s financial years and their close are in Accounting Reports &gt; Period Close.
+      </LegacyDataNotice>
       <Card
         title={t('finance:financialYears.title', 'Financial Years')}
         info={t(

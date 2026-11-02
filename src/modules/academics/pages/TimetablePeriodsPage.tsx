@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
@@ -116,6 +117,7 @@ export const TimetablePeriodsContent: React.FC = () => {
 
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>The periods defined here are not used by the rest of the school.</LegacyDataNotice>
       <Card title="Timetable Periods Definition" info="Define standard lesson periods for the school day (e.g., Lesson 1, Break) along with their start and end times." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Period

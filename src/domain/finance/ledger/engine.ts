@@ -1,6 +1,7 @@
 // ABOUTME: The posting engine: it posts a derived entry, reverses and corrects a posted one,
 // ABOUTME: derives the trial balance, and opens and closes the periods an entry may land in.
 
+import { assertCan } from '@/data/auth/sessionAuthority';
 import { generateUuidv7 } from '@/domain/ids';
 import { zero, type CurrencyCode, type Money } from '@/domain/money';
 
@@ -216,26 +217,31 @@ export class LedgerService {
 
   /** Posts the entry of a posted invoice. */
   async postInvoice(input: InvoicePostingInput): Promise<JournalEntry> {
+    assertCan('invoice', 'post', 'invoice.post');
     return this.post(invoiceEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
   /** Posts the entry of a received payment and its allocations. */
   async postPayment(input: PaymentPostingInput): Promise<JournalEntry> {
+    assertCan('payment', 'post', 'payment.receipt');
     return this.post(paymentEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
   /** Posts the entry of a paid refund. */
   async postRefund(input: RefundPostingInput): Promise<JournalEntry> {
+    assertCan('refund', 'post', 'refund.approve');
     return this.post(refundEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
   /** Posts the entry of a posted credit note. */
   async postCreditNote(input: CreditNotePostingInput): Promise<JournalEntry> {
+    assertCan('credit_note', 'post', 'invoice.post');
     return this.post(creditNoteEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
   /** Posts the entry of an opening balance. */
   async postOpeningBalance(input: OpeningBalancePostingInput): Promise<JournalEntry> {
+    assertCan('payment', 'post', 'payment.receipt');
     return this.post(openingBalanceEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
@@ -288,6 +294,7 @@ export class LedgerService {
    * day closed" ambiguous. A closed period is opened again with {@link reopenPeriod}.
    */
   async closePeriod(input: ClosePeriodInput): Promise<LedgerPeriod> {
+    assertCan('financial_year', 'update', 'period.close.prepare');
     if (!isIsoDay(input.startDate) || !isIsoDay(input.endDate) || input.endDate < input.startDate) {
       throw new LedgerError(
         'invalid_entry',
@@ -345,6 +352,7 @@ export class LedgerService {
    * after the reopen is not marked in any way - the trail is where the history lives.
    */
   async reopenPeriod(input: ReopenPeriodInput): Promise<LedgerPeriod> {
+    assertCan('financial_year', 'update', 'period.close.approve');
     const reason = input.reason.trim();
     if (reason === '') {
       throw new LedgerError(

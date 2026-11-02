@@ -53,6 +53,35 @@ const NOT_CONNECTED_REASON =
   'and a caller outside that path hands this page the ledger (or the SQLite adapter it is built ' +
   'over) as a prop.';
 
+/** The reports this hub offers, in menu order; the first is what it opens on by default. */
+const REPORT_TABS = [
+  'trial-balance',
+  'income-expenditure',
+  'balance-sheet',
+  'cash-book',
+  'bank-book',
+  'budget-vs-actual',
+  'period-close',
+] as const;
+
+/**
+ * The report the address asks for, or the first report when it names none of this hub's.
+ *
+ * The retired Accounting Ops and Financial Statements addresses redirect here with `?tab=`, so an
+ * old link to the cash book has to land on the cash book. The tab is read from the hash directly
+ * because the router's own query parsing is not available to a page rendered on its own (as its
+ * tests do), and the app routes on the hash.
+ */
+export function reportTabFromAddress(hash?: string): string {
+  const address = hash ?? (typeof window === 'undefined' ? '' : window.location.hash);
+  const queryAt = address.indexOf('?');
+  if (queryAt === -1) return REPORT_TABS[0];
+  const requested = new URLSearchParams(address.slice(queryAt + 1)).get('tab');
+  return requested !== null && (REPORT_TABS as readonly string[]).includes(requested)
+    ? requested
+    : REPORT_TABS[0];
+}
+
 /**
  * The accounting reports hub.
  *
@@ -66,7 +95,7 @@ export const AccountingReportsPageContent: React.FC<AccountingReportsPageProps> 
   const [from, setFrom] = useState<string>('');
   const [to, setTo] = useState<string>('');
   const [periodId, setPeriodId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<string>('trial-balance');
+  const [activeTab, setActiveTab] = useState<string>(() => reportTabFromAddress());
 
   const reports = useAccountingReports({
     ...(props.ledger !== undefined ? { ledger: props.ledger } : {}),

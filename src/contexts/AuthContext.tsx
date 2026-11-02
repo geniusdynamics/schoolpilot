@@ -5,6 +5,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { authService, AuthUser, LoginCredentials, AuthResult } from '../services/auth/authService';
+import { bindAuthorityForSession } from '@/data/auth/bindSession';
+import { clearSessionAuthority } from '@/data/auth/sessionAuthority';
 
 interface AuthContextType {
   // User state
@@ -58,6 +60,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (isUserAuth) {
           const currentUser = await authService.getCurrentUser();
           setUser(currentUser);
+          // The permission authority is bound to the restored login, so a reload keeps the same
+          // rules instead of falling back to the unchecked state the app starts in.
+          await bindAuthorityForSession(
+            currentUser
+              ? {
+                  actorId: currentUser.id,
+                  username: currentUser.username ?? null,
+                  role: currentUser.role ?? null,
+                  moduleAccess: currentUser.moduleAccess ?? null,
+                }
+              : null
+          );
         }
         
         // Demo mode is decided by authService from the persisted data mode only
@@ -72,6 +86,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initializeAuth();
   }, []);
 
+  // A sign-out in another tab ends this tab's authority too: the other tabs of the same browser
+  // share the database, so leaving one of them acting for the person who has just left would let a
+  // page go on writing as them.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key && event.key.includes('schoolpilot') && event.newValue === null) {
+        clearSessionAuthority();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   // Login method
   // Login does not touch isLoading: that flag is the start-up state, and AppContent replaces the
   // login page with a spinner while it is true, which would discard the page's error message.
@@ -83,6 +110,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (result.success && result.user) {
         setUser(result.user);
         setIsDemoMode(result.session?.isDemo || false);
+        await bindAuthorityForSession({
+          actorId: result.user.id,
+          username: result.user.username ?? null,
+          role: result.user.role ?? null,
+          moduleAccess: result.user.moduleAccess ?? null,
+        });
       }
       
       return result;
@@ -102,6 +135,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       await authService.logout();
       setUser(null);
+      clearSessionAuthority();
       setIsDemoMode(authService.isDemoDatabase());
       
       // Clear any stored route information on logout
