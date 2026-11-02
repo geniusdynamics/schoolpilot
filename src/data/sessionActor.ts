@@ -53,3 +53,74 @@ export function resolveNamedCanonicalActor(
   if (!username) return null;
   return users.find((row) => row.username.trim().toLowerCase() === username) ?? null;
 }
+
+/** The person fields a canonical user resolves its display name from. */
+export interface PersonNameSource {
+  readonly given_name?: string;
+  readonly preferred_name?: string | null;
+  readonly family_name?: string;
+}
+
+/** A job title as the header reads it: the canonical role in the school. */
+export interface JobTitleSource {
+  readonly name?: string;
+}
+
+/** The canonical user fields the header reads. */
+export interface CanonicalPersonSource {
+  readonly username: string;
+  readonly person_ref?: {
+    readonly type: string;
+    readonly id: string;
+  };
+}
+
+/** What the header shows for the signed-in person. */
+export interface CanonicalPersonLabel {
+  readonly displayName: string;
+  /** The school's job title when the person has one, otherwise the login's role. */
+  readonly roleLabel: string | null;
+}
+
+function personNameOf(person: PersonNameSource): string {
+  return [person.preferred_name ?? person.given_name, person.family_name]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+}
+
+function humanizeRole(role: string | null | undefined): string | null {
+  const trimmed = role?.trim();
+  return trimmed ? trimmed.replace(/_/g, ' ') : null;
+}
+
+/**
+ * The name and role the header shows for a canonical user.
+ *
+ * The canonical `user` row carries no name, so the person behind its `person_ref` is used; a user
+ * with no person record falls back to the username. The role is the school's job title when the
+ * person is staff, and the login's own role only when the school has no title on file. This is a
+ * label, never an authorization decision.
+ */
+export function resolveCanonicalPerson(
+  user: CanonicalPersonSource,
+  people: {
+    readonly staff?: PersonNameSource | null;
+    readonly learner?: PersonNameSource | null;
+    readonly jobTitle?: JobTitleSource | null;
+  },
+  fallbackRole?: string | null
+): CanonicalPersonLabel {
+  const reference = user.person_ref;
+  const person =
+    reference?.type === 'staff'
+      ? people.staff
+      : reference?.type === 'learner'
+        ? people.learner
+        : null;
+  const name = person ? personNameOf(person) : '';
+  return {
+    displayName: name === '' ? user.username : name,
+    roleLabel: people.jobTitle?.name?.trim() || humanizeRole(fallbackRole),
+  };
+}

@@ -302,7 +302,7 @@ export function checkScore(raw: string, max: number | null): ScoreCheck {
     return {
       ok: false,
       code: 'out_of_range',
-      message: `A score cannot be above the maximum of ${max}.`,
+      message: `A score of ${score} is outside the allowed range 0–${max}.`,
     };
   }
   return { ok: true, score };

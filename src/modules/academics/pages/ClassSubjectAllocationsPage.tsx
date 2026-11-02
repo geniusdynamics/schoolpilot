@@ -20,6 +20,7 @@ import { type CreateInput, type UpdateInput } from '@/data/repository';
 import { asId, type Id } from '@/domain/ids';
 import { TEACHING_GROUP_KINDS } from '@/domain/schema';
 import { useToast } from '@/hooks/useToast';
+import { classGroupLabel } from '@/utils/academicLabels';
 
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import { messageOf } from '../data/errors';
@@ -63,7 +64,11 @@ const TeachingGroupsContent: React.FC = () => {
   } = useCanonicalAcademics();
 
   const classGroupLookup = useLookup(repository, 'class_group', {
-    label: (row) => `${levels.find((level) => level.id === row.level_id)?.name ?? ''} ${row.name}`.trim(),
+    label: (row) =>
+      classGroupLabel({
+        gradeLevel: levels.find((level) => level.id === row.level_id)?.name,
+        name: row.name,
+      }),
   });
   const learningAreaLookup = useLookup(repository, 'learning_area', { label: (row) => row.name });
   const academicYearLookup = useLookup(repository, 'academic_year', { label: (row) => row.name });

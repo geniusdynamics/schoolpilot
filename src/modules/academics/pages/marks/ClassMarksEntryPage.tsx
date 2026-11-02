@@ -10,6 +10,7 @@ import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import { useToast } from '@/hooks/useToast';
 import { printReport } from '@/components/reports';
+import { currentPeriodOf, periodLabel } from '@/utils/academicLabels';
 import type { MarkStatus } from '@/domain/assessment/engine';
 import type { Id } from '@/domain/ids';
 
@@ -77,8 +78,7 @@ export const ClassMarksEntryPageContent: React.FC<ClassMarksEntryPageContentProp
 
   useEffect(() => {
     if (periodId !== null) return;
-    const current =
-      entry.periodOptions.find((period) => period.status === 'current') ?? entry.periodOptions[0];
+    const current = currentPeriodOf(entry.periodOptions);
     if (current) setPeriodId(current.id as Id<'academic_period'>);
   }, [periodId, entry.periodOptions]);
 
@@ -221,7 +221,7 @@ export const ClassMarksEntryPageContent: React.FC<ClassMarksEntryPageContentProp
               <option value="">Select a period</option>
               {entry.periodOptions.map((period) => (
                 <option key={period.id} value={period.id}>
-                  {period.name}
+                  {periodLabel({ name: period.name, academicYear: period.academicYear })}
                 </option>
               ))}
             </select>

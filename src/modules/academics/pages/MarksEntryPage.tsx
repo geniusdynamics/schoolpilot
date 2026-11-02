@@ -27,7 +27,7 @@ const MarksEntryPage: React.FC = () => {
   const tabs: HubTab[] = [
     {
       id: 'grid',
-      label: t('marksEntry.grid.tab', 'Mark Entry v2'),
+      label: t('marksEntry.grid.tab', 'Marks entry'),
       icon: <TableCellsIcon className="w-4 h-4" />,
       component: <MarkEntryV2PageContent />,
     },

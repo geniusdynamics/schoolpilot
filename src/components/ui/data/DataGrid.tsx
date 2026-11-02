@@ -97,6 +97,20 @@ function warnOnce(warnedRef: { current: boolean }, message: string) {
   logger.warn(`[DataGrid] ${message}`);
 }
 
+/**
+ * True for the column that holds a row's action buttons.
+ *
+ * The actions cell is the one that grows without bound: every page adds another button, and a
+ * `nowrap` cell pushes the last one past the edge of a 1440px screen. Its content is allowed to
+ * wrap, so six actions stack inside the column instead of widening the table.
+ */
+function isActionColumn<T>(column: DataGridColumn<T>): boolean {
+  return (
+    String(column.key).trim().toLowerCase() === 'actions' ||
+    column.header.trim().toLowerCase() === 'actions'
+  );
+}
+
 function compareValues(a: unknown, b: unknown): number {
   if (a === b) return 0;
   if (typeof a === 'number' && typeof b === 'number') return a - b;
@@ -124,8 +138,13 @@ const DataGrid = <T extends Record<string, any>>({
   loadingState,
   className = ''
 }: DataGridProps<T>): React.ReactElement => {
-  // Pagination config is normalized once, before any state that depends on it
-  const paginationConfig: PaginationConfig | undefined = pagination === true ? {} : (pagination || undefined);
+  // Pagination config is normalized once, before any state that depends on it. It is memoized
+  // because a `pagination` object literal passed inline would otherwise be a new value on every
+  // render, which the callbacks below depend on.
+  const paginationConfig: PaginationConfig | undefined = useMemo(
+    () => (pagination === true ? {} : (pagination || undefined)),
+    [pagination]
+  );
 
   const [sortState, setSortState] = useState<SortState | null>(null);
   const [filterState, setFilterState] = useState<FilterState>({});
@@ -268,7 +287,7 @@ const DataGrid = <T extends Record<string, any>>({
     if (!pagination || isControlledPagination) return processedData;
     const startIndex = (currentPage - 1) * pageSize;
     return processedData.slice(startIndex, startIndex + pageSize);
-  }, [paginationConfig, isControlledPagination, processedData, currentPage, pageSize]);
+  }, [pagination, isControlledPagination, processedData, currentPage, pageSize]);
 
   // Refs so selection handlers always see current values without stale closures
   const processedDataRef = useRef(processedData);
@@ -544,7 +563,11 @@ return (
                     {validatedColumns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className={`px-6 py-4 whitespace-nowrap text-sm text-surface-foreground ${
+                        className={`px-6 py-4 text-sm text-surface-foreground ${
+                          isActionColumn(column)
+                            ? 'whitespace-normal [&>*]:flex-wrap [&>*]:justify-end'
+                            : 'whitespace-nowrap'
+                        } ${
                           column.align === 'center' ? 'text-center' :
                           column.align === 'right' ? 'text-right' : 'text-left'
                         } ${

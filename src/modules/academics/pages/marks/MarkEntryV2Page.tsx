@@ -2,7 +2,7 @@
 // ABOUTME: across the scheme's assessment slots. Keyboard, paste, per-cell status, autosave that
 // ABOUTME: survives being offline, and a submit/moderate/lock workflow that demands a reason.
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Badge from '@/components/ui/Badge';
@@ -15,6 +15,7 @@ import Textarea from '@/components/ui/Textarea';
 import { useLookup } from '@/data/query';
 import { useCanonicalSessionActor } from '@/data/useCanonicalSessionActor';
 import type { Id } from '@/domain/ids';
+import { currentPeriodOf, periodLabel } from '@/utils/academicLabels';
 
 import { CanonicalRepositoryProvider, useWritableRepository } from '../../data/canonicalRepository';
 import { MarkEntryGrid } from './MarkEntryGrid';
@@ -42,7 +43,6 @@ const ACTION_LABEL: Readonly<Record<WorkflowState, string>> = {
 const SUMMARY_CODES: readonly { readonly code: CellStatusCode; readonly label: string }[] = [
   { code: 'valid', label: 'Valid' },
   { code: 'missing', label: 'Missing' },
-  { code: 'out_of_range', label: 'Out of range' },
   { code: 'invalid', label: 'Not a number' },
   { code: 'incomplete_scheme', label: 'Scheme incomplete' },
   { code: 'locked', label: 'Locked' },
@@ -72,7 +72,18 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
   const role = givenRole === undefined ? session.role : givenRole;
 
   const repository = useWritableRepository();
-  const periodLookup = useLookup(repository, 'academic_period', { label: (row) => row.name });
+  const yearLookup = useLookup(repository, 'academic_year', { label: (row) => row.name });
+  const yearNameOf = useMemo(
+    () => new Map(yearLookup.options.map((row) => [String(row.id), row.name] as const)),
+    [yearLookup.options]
+  );
+  const periodLookup = useLookup(repository, 'academic_period', {
+    label: (row) =>
+      periodLabel({
+        name: row.name,
+        academicYear: yearNameOf.get(String(row.academic_year_id)),
+      }),
+  });
   const groupLookup = useLookup(repository, 'teaching_group', { label: (row) => row.name });
 
   const [periodId, setPeriodId] = useState<Id<'academic_period'> | null>(null);
@@ -82,11 +93,11 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
 
   const entry = useMarkEntry({ groupId, periodId, actorId, role, debounceMs, ...(isOnline === undefined ? {} : { isOnline }) });
 
-  // The period the calendar marks current is the one a teacher almost always wants.
+  // The period whose dates cover today is the one a teacher almost always wants; a stored
+  // `current` status can lag behind the calendar.
   useEffect(() => {
     if (periodId !== null) return;
-    const current =
-      periodLookup.options.find((row) => row.status === 'current') ?? periodLookup.options[0];
+    const current = currentPeriodOf(periodLookup.options);
     if (current) setPeriodId(current.id);
   }, [periodId, periodLookup.options]);
 
@@ -108,6 +119,18 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
   }, [reasonDialog, reasonText, entry]);
 
   const nextState = entry.workflowState ? FORWARD[entry.workflowState] : null;
+
+  // "Out of range: 2" says neither which range nor what to type; the sentence below does.
+  const outOfRangeNote = (() => {
+    const count = entry.summary.out_of_range;
+    if (count === 0) return null;
+    const noun = count === 1 ? 'mark needs' : 'marks need';
+    const maxima = entry.outOfRangeMaxima;
+    if (maxima.length === 1) {
+      return `${count} ${noun} a value between 0 and ${maxima[0]}.`;
+    }
+    return `${count} ${noun} a value inside the allowed range for their assessment.`;
+  })();
 
   return (
     <div className="space-y-3">
@@ -252,6 +275,11 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
                   </Badge>
                 ) : null
               )}
+              {outOfRangeNote === null ? null : (
+                <span className="text-sm font-medium text-red-700 dark:text-red-400">
+                  {outOfRangeNote}
+                </span>
+              )}
               {entry.offline ? (
                 <Badge variant="info" size="sm">
                   Offline: edits are kept and sent when the connection returns.
@@ -280,6 +308,15 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
                 className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800"
               >
                 {entry.refusal}
+              </p>
+            ) : null}
+            {entry.saveNotice !== null ? (
+              <p
+                role="status"
+                data-testid="mark-save-notice"
+                className="rounded-md border border-green-300 bg-green-50 p-3 text-sm text-green-900"
+              >
+                {entry.saveNotice}
               </p>
             ) : null}
             {entry.pasteMessage !== null ? (

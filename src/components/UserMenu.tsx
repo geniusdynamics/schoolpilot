@@ -5,12 +5,12 @@ import { logger } from '@/utils/logging';
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTabNavigation } from '@/hooks/useTabNavigation';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
+import { useCanonicalPerson } from '@/data/useCanonicalSessionActor';
 import HookErrorBoundary from './HookErrorBoundary';
 // Removed: import { safeDeps, HookErrorHandler } from '@/utils/hookUtils';
 
@@ -19,8 +19,11 @@ interface UserMenuProps {
 }
 
 const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
-  const { t } = useTranslation('common');
-  const { user, logout, isDemoMode } = useAuth();
+  const { user, logout } = useAuth();
+  // The legacy login list names a demo person who may not be the school's; the canonical user does.
+  const canonicalPerson = useCanonicalPerson();
+  const displayName = canonicalPerson?.displayName ?? user?.fullName ?? '';
+  const roleLabel = canonicalPerson?.roleLabel ?? user?.role.replace('_', ' ') ?? '';
   const navigate = useNavigate();
   const { navigateToTab } = useTabNavigation();
   const [isOpen, setIsOpen] = useState(false);
@@ -114,8 +117,8 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
           <UserCircleIcon className="w-5 h-5 text-white" />
         </div>
         <div className="text-left">
-          <div className="font-medium text-surface-foreground">{user.fullName}</div>
-          <div className="text-xs text-surface-muted-fg capitalize">{user.role.replace('_', ' ')}</div>
+          <div className="font-medium text-surface-foreground">{displayName}</div>
+          <div className="text-xs text-surface-muted-fg capitalize">{roleLabel}</div>
         </div>
         <ChevronDownIcon className="w-4 h-4 text-surface-muted-fg" />
       </button>
@@ -129,9 +132,9 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
                 <UserCircleIcon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="font-medium text-surface-foreground">{user.fullName}</div>
+                <div className="font-medium text-surface-foreground">{displayName}</div>
                 <div className="text-sm text-surface-muted-fg">{user.email}</div>
-                <div className="text-xs text-surface-muted-fg capitalize">{user.role.replace('_', ' ')}</div>
+                <div className="text-xs text-surface-muted-fg capitalize">{roleLabel}</div>
               </div>
             </div>
             

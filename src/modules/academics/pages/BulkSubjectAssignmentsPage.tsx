@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { useToast } from '@/hooks/useToast';
 import { asId } from '@/domain/ids';
+import { classGroupLabel } from '@/utils/academicLabels';
 
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 import {
@@ -24,20 +25,6 @@ const today = (): string => new Date().toISOString().slice(0, 10);
 
 const effective = (row: { valid_from: string; valid_to: string | null }, at: string): boolean =>
   row.valid_from <= at && (row.valid_to === null || row.valid_to >= at);
-
-/**
- * A class group's label for a picker.
- *
- * A stream is named `A` or `B`; the same name repeats in every level, so a picker that shows only
- * the stream cannot say which class it is choosing.
- */
-const classGroupLabel = (
-  group: { readonly name: string; readonly level_id?: string },
-  levelNameOf: ReadonlyMap<string, string>
-): string => {
-  const level = group.level_id === undefined ? undefined : levelNameOf.get(group.level_id);
-  return level === undefined ? group.name : `${level} · ${group.name}`;
-};
 
 /* -------------------------------------------------------------------------- */
 /* Teacher grid                                                               */
@@ -227,7 +214,7 @@ export const TeacherGridInner: React.FC = () => {
             className="w-full rounded-md border border-surface-border px-3 py-2"
           >
             {classGroups.map((group) => (
-              <option key={group.id} value={group.id}>{classGroupLabel(group, levelNameOf)}</option>
+              <option key={group.id} value={group.id}>{classGroupLabel({ gradeLevel: levelNameOf.get(group.level_id), name: group.name })}</option>
             ))}
           </select>
         </label>
@@ -472,7 +459,7 @@ export const StudentMatrixInner: React.FC = () => {
             className="w-full rounded-md border border-surface-border px-3 py-2"
           >
             {classGroups.map((group) => (
-              <option key={group.id} value={group.id}>{classGroupLabel(group, levelNameOf)}</option>
+              <option key={group.id} value={group.id}>{classGroupLabel({ gradeLevel: levelNameOf.get(group.level_id), name: group.name })}</option>
             ))}
           </select>
         </label>

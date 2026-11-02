@@ -1,13 +1,18 @@
 // ABOUTME: The signed-in login resolved to the canonical `user` its canonical writes and its teaching
 // ABOUTME: scope act as. A page resolves scope and actor through this, never through the login's own id.
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useCanonicalRepository } from '@/data/canonicalRepository';
+import { openCanonicalRepository, useCanonicalRepository } from '@/data/canonicalRepository';
 import { useEntityQuery } from '@/data/query';
 import { MAX_LIMIT } from '@/data/repository';
-import { resolveNamedCanonicalActor, type SessionIdentity } from '@/data/sessionActor';
+import {
+  resolveCanonicalPerson,
+  resolveNamedCanonicalActor,
+  type CanonicalPersonLabel,
+  type SessionIdentity,
+} from '@/data/sessionActor';
 
 /** The session a page reads when it is rendered inside the app shell, or an empty one outside it. */
 function useLoginSession(): SessionIdentity {
@@ -60,4 +65,82 @@ export function useCanonicalSessionActor(): CanonicalSessionActor {
       role: session.role,
     };
   }, [users.data, session]);
+}
+
+/**
+ * The signed-in person as the app shell shows them.
+ *
+ * The header sits outside every page's canonical provider, so this opens the shared canonical
+ * repository itself. It resolves the login to its canonical `user` by username and reads the staff
+ * or learner row behind it; no canonical user leaves the header with the login's own legacy text.
+ */
+export function useCanonicalPerson(): CanonicalPersonLabel | null {
+  const session = useLoginSession();
+  const username = session.username;
+  const role = session.role;
+  const [person, setPerson] = useState<CanonicalPersonLabel | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!username) {
+      setPerson(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+    void (async () => {
+      try {
+        const repository = await openCanonicalRepository();
+        const users = await repository.list('user', { limit: MAX_LIMIT });
+        const user = resolveNamedCanonicalActor(users.items, {
+          actorId: '',
+          username,
+          role,
+        });
+        if (user === null) {
+          if (!cancelled) setPerson(null);
+          return;
+        }
+        const reference = user.person_ref;
+        const staff =
+          reference?.type === 'staff'
+            ? (
+                await repository.list('staff', {
+                  where: { id: reference.id },
+                  limit: 1,
+                })
+              ).items[0] ?? null
+            : null;
+        const learner =
+          reference?.type === 'learner'
+            ? (
+                await repository.list('learner', {
+                  where: { id: reference.id },
+                  limit: 1,
+                })
+              ).items[0] ?? null
+            : null;
+        const jobTitle =
+          staff?.job_title_id === undefined
+            ? null
+            : (
+                await repository.list('job_title', {
+                  where: { id: staff.job_title_id },
+                  limit: 1,
+                })
+              ).items[0] ?? null;
+        if (!cancelled) {
+          setPerson(resolveCanonicalPerson(user, { staff, learner, jobTitle }, role));
+        }
+      } catch {
+        // The header must still render when the canonical layer is unavailable.
+        if (!cancelled) setPerson(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [username, role]);
+
+  return person;
 }

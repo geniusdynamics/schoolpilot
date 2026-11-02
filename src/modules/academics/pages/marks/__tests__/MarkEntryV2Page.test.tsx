@@ -358,6 +358,8 @@ describe('mark entry v2 grid', () => {
   it('draws a column per assessment and a row per learner of the group', async () => {
     await openGrid();
 
+    // Two years' terms share the name "Term 1"; the picker says the year as well.
+    expect(screen.getByRole('combobox', { name: /Period/ }).textContent).toContain('Term 1 · 2026');
     expect(screen.getByRole('columnheader', { name: /CAT 1/ })).toBeTruthy();
     expect(screen.getByRole('columnheader', { name: /End of Term/ })).toBeTruthy();
     expect(screen.getByText('Bello Mwangi')).toBeTruthy();
@@ -415,7 +417,10 @@ describe('mark entry v2 grid', () => {
 
     fireEvent.change(score('CAT 1 for Amani Otieno'), { target: { value: '25' } });
     expect(await screen.findByText('Out of range')).toBeTruthy();
-    expect(screen.getByText('A score cannot be above the maximum of 20.')).toBeTruthy();
+    expect(
+      screen.getByText('English · CAT 1: A score of 25 is outside the allowed range 0–20.')
+    ).toBeTruthy();
+    expect(screen.getByText('1 mark needs a value between 0 and 20.')).toBeTruthy();
     expect(writes).toHaveLength(0);
 
     fireEvent.change(score('CAT 1 for Amani Otieno'), { target: { value: 'ten' } });
@@ -568,6 +573,7 @@ describe('mark entry autosave', () => {
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].payload.score).toBe('9');
+    expect(await screen.findByText('1 mark saved.')).toBeTruthy();
   });
 });
 

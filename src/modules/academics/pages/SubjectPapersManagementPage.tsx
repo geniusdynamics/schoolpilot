@@ -113,7 +113,7 @@ const ComponentsContent: React.FC = () => {
     { key: 'name', header: t('subjectPapers.paperName', 'Name'), sortable: true, filterable: true },
     {
       key: 'learning_area_id',
-      header: t('subjects.title', 'Learning area'),
+      header: t('subjectPapers.subject', 'Subject'),
       render: (_value: unknown, row: ComponentRow) =>
         learningAreaById.get(row.learning_area_id)?.name ?? row.learning_area_id,
     },
