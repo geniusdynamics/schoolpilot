@@ -9,6 +9,8 @@ export type SqliteWorkerRequest =
   | { id: number; type: 'all'; sql: string; params: SqliteValue[] }
   | { id: number; type: 'get'; sql: string; params: SqliteValue[] }
   | { id: number; type: 'run'; sql: string; params: SqliteValue[] }
+  | { id: number; type: 'export' }
+  | { id: number; type: 'import'; bytes: Uint8Array }
   | { id: number; type: 'close' };
 
 export type SqliteWorkerRequestInput =
@@ -17,8 +19,18 @@ export type SqliteWorkerRequestInput =
   | { type: 'all'; sql: string; params: SqliteValue[] }
   | { type: 'get'; sql: string; params: SqliteValue[] }
   | { type: 'run'; sql: string; params: SqliteValue[] }
+  | { type: 'export' }
+  | { type: 'import'; bytes: Uint8Array }
   | { type: 'close' };
 
 export type SqliteWorkerResponse =
-  | { id: number; ok: true; rows?: SqliteRow[]; row?: SqliteRow | null; result?: SqliteRunResult }
+  | {
+      id: number;
+      ok: true;
+      rows?: SqliteRow[];
+      row?: SqliteRow | null;
+      result?: SqliteRunResult;
+      /** The database file image an `export` request asked for. */
+      bytes?: Uint8Array;
+    }
   | { id: number; ok: false; error: string };

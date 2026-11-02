@@ -10,6 +10,7 @@ import {
   type SqliteAdapterErrorCode,
 } from './errors';
 import {
+  isSqliteImage,
   isSqliteValue,
   type SqliteAdapter,
   type SqliteBindValue,
@@ -114,11 +115,7 @@ class CoreSqliteAdapter implements SqliteAdapter {
       if (this.state === 'open') return;
       try {
         await this.driver.open();
-        await this.driver.exec('PRAGMA busy_timeout = 5000');
-        // better-sqlite3 enables enforcement by default while sqlite-wasm does not; set it
-        // explicitly on both so the adapter behaves identically. Callers opt in when their
-        // import order guarantees parent rows exist.
-        await this.driver.exec(`PRAGMA foreign_keys = ${this.options.foreignKeys ? 'ON' : 'OFF'}`);
+        await this.configureConnection();
         this.state = 'open';
       } catch (error) {
         await this.driver.close().catch(() => undefined);
@@ -217,6 +214,45 @@ class CoreSqliteAdapter implements SqliteAdapter {
     });
   }
 
+  exportDatabase(): Promise<Uint8Array> {
+    const misuse = this.transactionMisuse('exportDatabase');
+    if (misuse) return Promise.reject(misuse);
+    return this.enqueue(async () => {
+      this.assertOpen();
+      try {
+        return await this.driver.exportDatabase();
+      } catch (error) {
+        throw adapterError(error);
+      }
+    });
+  }
+
+  importDatabase(bytes: Uint8Array): Promise<void> {
+    const misuse = this.transactionMisuse('importDatabase');
+    if (misuse) return Promise.reject(misuse);
+    if (!isSqliteImage(bytes)) {
+      return Promise.reject(
+        new SqliteAdapterError('The bytes to import are not a SQLite database file', { code: 'driver' })
+      );
+    }
+    return this.enqueue(async () => {
+      this.assertOpen();
+      try {
+        await this.driver.importDatabase(bytes);
+      } catch (error) {
+        // A failed import may still have reopened the connection; it keeps its settings.
+        await this.configureConnection().catch(() => undefined);
+        throw adapterError(error);
+      }
+      try {
+        // A driver may reopen its connection to replace the file; the pragmas are per connection.
+        await this.configureConnection();
+      } catch (error) {
+        throw adapterError(error);
+      }
+    });
+  }
+
   applySchema(schemas: readonly DatabaseSchema[]): Promise<void> {
     const statements = statementsForSchemas(schemas);
     return this.transaction(async (tx) => {
@@ -235,6 +271,15 @@ class CoreSqliteAdapter implements SqliteAdapter {
         this.getDirect<T>(sql, params),
       run: (sql, params) => this.runDirect(sql, params),
     };
+  }
+
+  /** The per-connection settings, applied on open and again after a whole-database import. */
+  private async configureConnection(): Promise<void> {
+    await this.driver.exec('PRAGMA busy_timeout = 5000');
+    // better-sqlite3 enables enforcement by default while sqlite-wasm does not; set it
+    // explicitly on both so the adapter behaves identically. Callers opt in when their
+    // import order guarantees parent rows exist.
+    await this.driver.exec(`PRAGMA foreign_keys = ${this.options.foreignKeys ? 'ON' : 'OFF'}`);
   }
 
   private assertOpen(): void {

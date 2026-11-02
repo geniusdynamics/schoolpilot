@@ -16,7 +16,9 @@ export {
 } from './browser';
 export {
   createWasmDatabaseDriver,
+  inMemoryWasmImage,
   type WasmDatabase,
+  type WasmDatabaseImage,
 } from './wasmDatabase';
 export { statementsForSchema, statementsForSchemas, columnsForSchema } from './ddl';
 export { applyCanonicalSchema, canonicalDatabaseSchema } from './canonical';
@@ -28,6 +30,7 @@ export {
   type SqliteConstraintKind,
 } from './errors';
 export {
+  isSqliteImage,
   isSqliteValue,
   type SqliteAdapter,
   type SqliteBindValue,

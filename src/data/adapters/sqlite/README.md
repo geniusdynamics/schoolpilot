@@ -23,6 +23,8 @@ await adapter.close();
 | `run(sql, params?)` | Returns `{ changes, lastInsertRowid }`. |
 | `transaction(work)` | `BEGIN IMMEDIATE` … `COMMIT`; rolls back when `work` throws. The callback receives a `SqliteTransaction` with the same four statement methods and must be used instead of the outer adapter, because the callback holds the statement queue. Nested transactions, and `open`/`close`/outer statement calls made inside the callback, reject with `nested_transaction` rather than deadlocking. |
 | `applySchema(schemas)` | Applies generated `CREATE TABLE` / `CREATE INDEX` / `CREATE UNIQUE INDEX` statements in one transaction. Idempotent (`IF NOT EXISTS`). |
+| `exportDatabase()` | The whole database as one SQLite file image (`Uint8Array`). Queued like a statement, so it holds every write issued before it and none after. Used by the browser backup (`src/data/backup`). |
+| `importDatabase(bytes)` | Replaces the whole database with a file image and re-applies the connection pragmas. Bytes without the SQLite header are refused before anything is touched. Node: an in-memory database is swapped, a file is written beside the original and renamed over it. Browser worker: the connection is closed, the file is replaced through the SAH pool's `importDb`, and the file is reopened whatever happens; a write that fails part-way loses the old file inside the pool, which is why the backup restore holds its own snapshot. |
 
 For repositories and migrations, use `canonicalDatabaseSchema(entity)` or
 `applyCanonicalSchema(adapter)` for DDL. The domain registry's `databaseSchemaFor(entity)`
@@ -49,8 +51,10 @@ and `sql` carries the failing statement where one exists.
   `src/services/database/sqliteWorker.ts` because that worker's protocol is write-through
   only and deliberately returns no rows; both use the same `opfs-sahpool` VFS.
 
-`createWasmDatabaseDriver(db)` wraps an already-open sqlite-wasm database (used by the
-headless contract suite). The worker and OPFS lifecycle remains browser-only.
+`createWasmDatabaseDriver(db, image?)` wraps an already-open sqlite-wasm database (used by the
+headless contract suite and by the backup's in-memory validation). `image` supplies its export
+and import - `inMemoryWasmImage(sqlite3, db)` for an in-memory database; without it both
+reject. The worker and OPFS lifecycle remains browser-only.
 
 ## DDL
 

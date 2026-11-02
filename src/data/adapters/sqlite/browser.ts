@@ -108,6 +108,20 @@ class WasmWorkerDriver implements SqliteDriver {
     return response.result ?? { changes: 0, lastInsertRowid: 0 };
   }
 
+  async exportDatabase(): Promise<Uint8Array> {
+    const response = await this.request({ type: 'export' });
+    if (!response.bytes) {
+      throw new SqliteAdapterError('SQLite worker answered an export without the database image', {
+        code: 'driver',
+      });
+    }
+    return response.bytes;
+  }
+
+  async importDatabase(bytes: Uint8Array): Promise<void> {
+    await this.request({ type: 'import', bytes });
+  }
+
   private async request(message: SqliteWorkerRequestInput): Promise<SqliteWorkerSuccess> {
     const worker = this.worker;
     if (!worker) {
