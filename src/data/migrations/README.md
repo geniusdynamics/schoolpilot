@@ -210,10 +210,24 @@ would miss.
 | 101 | ledger | `journal_entry`, `journal_line`, `ledger_period`, their eight indexes (three of them partial and unique), and the four triggers that make a posted entry and its lines immutable. |
 | 102 | reconciliation | `reconciliation_statement`, `reconciliation_line`, `reconciliation_match`, their nine indexes (three unique, two of those partial) and the two triggers that make a match record history. |
 | 103 | subscriptions | `subscription`, and the three indexes the billing run reads: by learner, by fee item and by schedule. |
+| 104 | cashier | `cashier_session` and `cashier_session_payment`, with the cashier, opened-at and payment indexes. |
+| 105 | payment providers | `provider_payment_event`, unique by idempotency key and by receipt, indexed by transaction and institution. |
+| 106 | payment providers | `provider_suspense`, unique by transaction, with the open-items index. |
+| 107 | collections | the reminder schedule, opt-outs, promises to pay, pay links and attempts, with their indexes. |
 
 Adding a module is adding its migration to `SCHEMA_MIGRATIONS`: the startup path, the rollback and
-the version surface all read that list. Every statement the three modules declare is a
-`CREATE TABLE`, `CREATE INDEX`, `CREATE UNIQUE INDEX` or `CREATE TRIGGER` with an
+the version surface all read that list. **The suite holds that rule:** it finds every exported
+`*_DDL` constant in `src/` and fails when one is not a registered migration's statements, so a
+module table can no longer be created only by its own `ensure...Schema` and miss the ledger.
+`AUDIT_DDL` is the one exception: `Repository.setup()` owns it beside the canonical tables. The
+modules' `ensure...Schema` functions stay - the module tests and the node tools use them - and on
+an app database they find the tables the migration already made.
+
+The sync metadata (`src/data/sync/store.ts`) is not in this list on purpose: its tables depend on
+the replica's role (a device keeps an outbox, the server a change log) and on the dialect (SQLite
+or Postgres), so one fixed DDL cannot describe them. It is created by `SyncStore.setup()`.
+
+Every statement the registered modules declare is a `CREATE TABLE`, `CREATE INDEX`, `CREATE UNIQUE INDEX` or `CREATE TRIGGER` with an
 `IF NOT EXISTS` head, quoted or unquoted, which is what the reader covers.
 
 ### Startup
