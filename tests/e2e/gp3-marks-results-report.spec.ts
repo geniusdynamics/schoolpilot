@@ -17,12 +17,18 @@
 // ABOUTME: mark and template change — is proven by tests/e2e/reports-publish.spec.ts, which drives the
 // ABOUTME: same publish store directly. This suite proves the journey a user takes.
 // ABOUTME:
+// ABOUTME: DATE-ROBUST. The sample data is seeded against the real clock: the term the suite marks is
+// ABOUTME: the one the school is in, and English there has a closed mid-term beside the open end-of-term
+// ABOUTME: exam. The result is the mean of the two, so the suite reads the seeded mid-term mark from the
+// ABOUTME: grid and asserts the percentage and band the scheme must compute from both.
+// ABOUTME:
 // ABOUTME: SCOPED OUT: the report's aggregate grade. The results page falls back to the mean of the
 // ABOUTME: learning-area percentages, and that fallback declares no result scale, so the aggregate
 // ABOUTME: prints a number and no grade code. Only the per-area grades are banded here. (Wiring the
 // ABOUTME: installed programme's aggregation into the page is not this task's.)
 
 import playwright from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import {
   COLD_LOAD_TIMEOUT,
@@ -30,6 +36,7 @@ import {
   UI_TIMEOUT,
   chooseFromPicker,
   completeSetup,
+  currentTermLabel,
   go,
   reloadAndWait,
   signIn,
@@ -54,20 +61,58 @@ const SCHOOL = {
   email: `office-${RUN}@riverside.test`,
 };
 
-const TERM = 'Term 1';
+/** The term the sample school is in: its end-of-term exam is open for entry, its mid-term closed. */
+const TERM = currentTermLabel();
 const CLASS_GROUP = 'North';
 const TEACHING_GROUP = 'Form 1 English';
-/** The two demo learners the Form 1 North teaching group holds, in the seed's order. */
+/** Two sample-school learners of Form 1, first and second by name, so the first report is the marked one. */
 const LEARNER = 'Amani Wekesa';
 const OTHER_LEARNER = 'Chloe Mwangi';
-/** The published assessment the seed writes for every learning area. */
-const ASSESSMENT = 'End of term English';
+/** The open assessment the seed writes for English this term, and the closed one beside it. */
+const ASSESSMENT = `${TERM} End of term English`;
+const MID_TERM = `${TERM} Mid-term English`;
 const CELL_LABEL = `${ASSESSMENT} for ${LEARNER}`;
-/** 87/100 is "Exceeding expectations" on the demo scale; 20/100 is "Below expectations". */
-const HIGH_MARK = '87';
-const LOW_MARK = '20';
-const HIGH_GRADE = 'EE';
-const LOW_GRADE = 'BE';
+const MID_TERM_LABEL = `${MID_TERM} for ${LEARNER}`;
+const HIGH_MARK = 87;
+const LOW_MARK = 20;
+
+/** The sample school's competency scale, read half-open (min inclusive), as the seed declares it. */
+const BANDS = [
+  { code: 'EE', label: 'Exceeding expectations', min: 80 },
+  { code: 'ME', label: 'Meeting expectations', min: 60 },
+  { code: 'AEP', label: 'Approaching expectations', min: 40 },
+  { code: 'BE', label: 'Below expectations', min: 0 },
+] as const;
+
+/** What the results screen should print for English once the end-of-term mark is `endOfTerm`. */
+interface ExpectedResult {
+  /** The percentage as the page prints it: exact, so a half shows as ".5". */
+  readonly percent: string;
+  readonly code: string;
+  readonly label: string;
+}
+
+/**
+ * The English result the derived scheme computes: each assessment of the term is a slot, the slots
+ * are summed, and both are out of 100, so the percentage is the mean of the two marks. The mid-term
+ * mark is the seed's, and the seed draws it against the real clock, so it is read from the grid.
+ */
+function expectedResult(midTerm: number, endOfTerm: number): ExpectedResult {
+  const percent = (midTerm + endOfTerm) / 2;
+  const band = BANDS.find((entry) => percent >= entry.min) ?? BANDS[BANDS.length - 1];
+  return { percent: String(percent), code: band.code, label: band.label };
+}
+
+/** A learner's cell for one learning area in the results table, found by the column's header. */
+async function resultCell(page: Page, learner: string, area: string): Promise<Locator> {
+  const table = page.getByTestId('results-table');
+  const row = table.getByRole('row', { name: new RegExp(learner) });
+  await expect(row).toBeVisible({ timeout: UI_TIMEOUT });
+  const headers = await table.locator('thead th').allInnerTexts();
+  const column = headers.findIndex((header) => header.trim().startsWith(area));
+  expect(column, `the results table has no ${area} column:\n${headers.join(' | ')}`).toBeGreaterThan(0);
+  return row.locator('td, th').nth(column);
+}
 
 test.describe('GP-3 marks, results and the published report', () => {
   test('a mark flows to the results, the drill-down explains it, and the published snapshot is immutable', async ({
@@ -88,6 +133,9 @@ test.describe('GP-3 marks, results and the published report', () => {
       await expect(page.locator('header')).toContainText(SCHOOL.name);
     });
 
+    let high: ExpectedResult = expectedResult(0, HIGH_MARK);
+    let low: ExpectedResult = expectedResult(0, LOW_MARK);
+
     await test.step('enter the mark in the v2 grid and save it', async () => {
       await go(page, '/academics/marks-entry');
       // The page heading, not a text match: the module sub-navigation item carries the same words,
@@ -96,9 +144,19 @@ test.describe('GP-3 marks, results and the published report', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), TEACHING_GROUP);
 
+      // The mid-term mark the seed entered is the other half of the English result.
+      const midTerm = page.getByLabel(MID_TERM_LABEL, { exact: true });
+      await expect(midTerm).not.toHaveValue('', { timeout: UI_TIMEOUT });
+      const midTermMark = Number(await midTerm.inputValue());
+      expect(Number.isFinite(midTermMark), `the seeded mid-term mark is not a number`).toBe(true);
+      high = expectedResult(midTermMark, HIGH_MARK);
+      low = expectedResult(midTermMark, LOW_MARK);
+      // The two marks are 67 apart, so their results are 33.5 points apart and never share a band.
+      expect(high.code).not.toBe(low.code);
+
       const score = page.getByLabel(CELL_LABEL, { exact: true });
       await expect(score).toBeVisible({ timeout: UI_TIMEOUT });
-      await score.fill(HIGH_MARK);
+      await score.fill(String(HIGH_MARK));
       const saveNow = page.getByRole('button', { name: 'Save now' });
       if (await saveNow.isEnabled()) await saveNow.click();
       await expect(page.getByText(/unsaved edits?/)).toHaveCount(0);
@@ -110,11 +168,10 @@ test.describe('GP-3 marks, results and the published report', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Class group' }), CLASS_GROUP);
 
-      const row = page.getByTestId('results-table').getByRole('row', { name: new RegExp(LEARNER) });
-      await expect(row).toBeVisible({ timeout: UI_TIMEOUT });
-      // The English cell carries the engine's band for 87/100 and the percentage it came from.
-      await expect(row).toContainText(HIGH_GRADE);
-      await expect(row).toContainText(`${HIGH_MARK}%`);
+      // The English cell carries the engine's band for the two marks and the percentage it came from.
+      const cell = await resultCell(page, LEARNER, 'English');
+      await expect(cell).toContainText(high.code);
+      await expect(cell).toContainText(`${high.percent}% · ${high.label}`);
     });
 
     await test.step('the "Why this grade" drill-down shows the engine’s own trace', async () => {
@@ -123,8 +180,8 @@ test.describe('GP-3 marks, results and the published report', () => {
       await expect(dialog).toBeVisible({ timeout: UI_TIMEOUT });
       await expect(dialog.getByTestId('why-headline')).toBeVisible();
       await expect(dialog.getByTestId('why-step-0')).toBeVisible();
-      // The trace carries the mark the engine read, not a summary of it.
-      await expect(dialog).toContainText(HIGH_MARK);
+      // The trace carries the value the engine counted for English, not a summary of it.
+      await expect(dialog.getByRole('row', { name: /^English\b/ })).toContainText(high.percent);
     });
 
     let documentId = '';
@@ -136,19 +193,26 @@ test.describe('GP-3 marks, results and the published report', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Class group' }), CLASS_GROUP);
 
       await page.getByTestId('generate-batch').click();
-      await expect(page.getByTestId('batch-progress')).toContainText('prepared', { timeout: UI_TIMEOUT });
+      const progress = page.getByTestId('batch-progress');
+      await expect(progress).toContainText(/(\d+) of \1 prepared/, { timeout: UI_TIMEOUT });
+      const prepared = Number(/(\d+) of \d+ prepared/.exec(await progress.innerText())?.[1]);
+
+      // The review checks every report against the actor's reach. The sample school's teaching
+      // groups span both streams and the exams officer reaches every group, so no learner is out of
+      // scope and every prepared report is put forward for publishing.
+      const review = page.getByTestId('review-panel');
+      await expect(review).toContainText('0 outside scope');
+      await expect(page.getByTestId('review-included')).toContainText(`${prepared} will be published`);
 
       // The first report of the batch is the first learner by name, so the preview is the marked
-      // learner's card: it prints the band the engine awarded for the mark, and the review flags the
-      // learners the actor's teaching groups do not reach (the other stream's learners are members of
-      // a group declared for the first stream, and a report for them may not be issued from here).
+      // learner's card: its English line prints the band and the total the engine computed.
       await page.getByTestId('toggle-preview').click();
       const sheet = page.locator('.report-sheet').first();
       await expect(sheet).toBeVisible({ timeout: UI_TIMEOUT });
       await expect(sheet).toContainText(LEARNER);
-      await expect(sheet).toContainText(HIGH_GRADE);
-      await expect(sheet).toContainText(HIGH_MARK);
-      await expect(page.getByTestId('review-panel')).toContainText('Outside scope');
+      const english = sheet.locator('tr').filter({ hasText: /^\s*English/ });
+      await expect(english).toContainText(high.code);
+      await expect(english).toContainText(high.percent);
     });
 
     await test.step('publish the class’s report snapshot', async () => {
@@ -181,7 +245,7 @@ test.describe('GP-3 marks, results and the published report', () => {
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Teaching group' }), TEACHING_GROUP);
       const score = page.getByLabel(CELL_LABEL, { exact: true });
-      await score.fill(LOW_MARK);
+      await score.fill(String(LOW_MARK));
       const saveNow = page.getByRole('button', { name: 'Save now' });
       if (await saveNow.isEnabled()) await saveNow.click();
       await expect(page.getByText(/unsaved edits?/)).toHaveCount(0);
@@ -190,10 +254,9 @@ test.describe('GP-3 marks, results and the published report', () => {
       await go(page, '/academics/results');
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Period' }), TERM);
       await chooseFromPicker(page, page.getByRole('combobox', { name: 'Class group' }), CLASS_GROUP);
-      const row = page.getByTestId('results-table').getByRole('row', { name: new RegExp(LEARNER) });
-      await expect(row).toBeVisible({ timeout: UI_TIMEOUT });
-      await expect(row).toContainText(LOW_GRADE);
-      await expect(row).toContainText(`${LOW_MARK}%`);
+      const cell = await resultCell(page, LEARNER, 'English');
+      await expect(cell).toContainText(low.code);
+      await expect(cell).toContainText(`${low.percent}% · ${low.label}`);
     });
 
     await test.step('a fresh document load still holds the snapshot, and re-publishing it is refused', async () => {
