@@ -409,5 +409,72 @@
     "noConflicts": "No Conflicts",
     "allClear": "All Clear!",
     "noConflictsMessage": "There are no sync conflicts that need resolution."
+  },
+  "browserBackup": {
+    "intro": {
+      "title": "Bika kopi y'amakuru y'ishuri hanze ya mushakisha iyi",
+      "body": "SchoolPilot ibika amakuru yose y'ishuri mu bubiko bwa mushakisha iyi. Iyo ububiko busibwe - mushakisha isubijwe uko yari iri, mudasobwa nshya, \"gusiba amakuru y'urubuga\" - dosiye y'ububiko bw'inyongera ukuramo hano ni yo kopi yonyine y'amakuru y'ishuri. Jya uyikuramo kenshi kandi uyibike ahandi, nko kuri USB cyangwa indi mudasobwa."
+    },
+    "lastDownload": {
+      "label": "Ububiko bw'inyongera buheruka",
+      "value": "{{fileName}}, yakuwemo {{date}} ({{size}})",
+      "never": "Nta bubiko bw'inyongera bwakuwe muri mushakisha iyi"
+    },
+    "download": {
+      "title": "Kuramo ububiko bw'inyongera",
+      "subtitle": "Dosiye imwe irimo amakuru yose y'ishuri, ushobora gusubiza muri indi mushakisha cyangwa ikindi gikoresho.",
+      "encrypt": "Shyira ijambobanga ku bubiko bw'inyongera",
+      "passphraseWarningTitle": "Ijambobanga ryibagiranye ntirishobora kugarurwa",
+      "passphraseWarning": "Nta jambobanga, nta muntu ushobora gufungura ububiko bw'inyongera - yaba wowe, yaba ubufasha bwa SchoolPilot. Ryandike kandi uribike ukwaryo, kure ya dosiye.",
+      "unencryptedWarning": "Ububiko bw'inyongera ntibuzaba bufite ijambobanga: uwo ari we wese ubonye dosiye ashobora gusoma amakuru y'ishuri, harimo amakuru bwite y'abanyeshuri.",
+      "passphrase": "Ijambobanga",
+      "passphraseConfirm": "Subiramo ijambobanga",
+      "passphraseTooShort": "Ijambobanga rikeneye nibura inyuguti {{count}}.",
+      "passphraseMismatch": "Amajambobanga yombi ntahuye.",
+      "action": "Kuramo ububiko bw'inyongera",
+      "progressTitle": "Ububiko bw'inyongera burimo gukorwa",
+      "progress": "Kopi y'ububikoshingiro bwombi irimo kubikwa. Siga iyi tab ifunguye; ikurwamo izatangira niyuzura.",
+      "done": "Ububiko bw'inyongera bwakuwemo: {{fileName}}",
+      "failed": "Ububiko bw'inyongera ntibwashoboye gukorwa"
+    },
+    "restore": {
+      "title": "Garura uhereye kuri dosiye",
+      "subtitle": "Simbuza amakuru yose ari muri mushakisha iyi dosiye y'ububiko bw'inyongera.",
+      "file": "Dosiye y'ububiko bw'inyongera",
+      "passphrase": "Ijambobanga ry'ububiko bw'inyongera",
+      "check": "Genzura ububiko bw'inyongera",
+      "checking": "Biragenzurwa...",
+      "passphraseRequired": "Ubu bubiko bw'inyongera bufite ijambobanga. Andika ijambobanga ryabwo kugira ngo bufunguke.",
+      "failed": "Ubu bubiko bw'inyongera ntibushobora kugarurwa",
+      "valid": "Ububiko bw'inyongera buruzuye kandi burasomeka",
+      "action": "Garura ubu bubiko bw'inyongera",
+      "restoring": "Biragarurwa...",
+      "confirmTitle": "Gusimbuza amakuru yose ari muri mushakisha iyi?",
+      "confirmBody": "Buri nyandiko iri muri mushakisha iyi izasimbuzwa ububiko bw'inyongera bwa {{school}}. Ibyinjijwe byose nyuma y'uko ubwo bubiko bukorwa bizatakara.",
+      "confirmSafety": "Mbere y'uko hagira igisimbuzwa, amakuru ariho abikwa nka kopi y'umutekano muri mushakisha iyi (iri ku rutonde hepfo), kugira ngo ashobore gukurwamo.",
+      "confirmCheckbox": "Ndumva ko amakuru ariho muri mushakisha iyi azasimbuzwa",
+      "confirmAction": "Simbuza amakuru kandi ugarure",
+      "cancel": "Hagarika",
+      "doneTitle": "Ububiko bw'inyongera bwagaruwe",
+      "done": "SchoolPilot irongera gufunguka ubu. Injira ukoresheje konti y'ishuri ryagaruwe."
+    },
+    "summary": {
+      "school": "Ishuri",
+      "created": "Byakozwe",
+      "appVersion": "Verisiyo ya SchoolPilot",
+      "dataMode": "Uburyo bw'amakuru",
+      "encryption": "Ijambobanga",
+      "notEncrypted": "Nta jambobanga",
+      "learners": "Abanyeshuri",
+      "users": "Konti z'abakoresha",
+      "unnamed": "ishuri ritagira izina"
+    },
+    "safety": {
+      "title": "Kopi z'umutekano",
+      "subtitle": "Amakuru buri kugarura kwasimbuje, abitswe muri mushakisha iyi.",
+      "empty": "Nta kugarura kwakozwe muri mushakisha iyi.",
+      "download": "Kuramo",
+      "delete": "Siba"
+    }
   }
 }

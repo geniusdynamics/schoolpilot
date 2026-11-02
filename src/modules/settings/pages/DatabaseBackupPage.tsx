@@ -1,35 +1,47 @@
-import React, { useState, useMemo } from 'react';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+// ABOUTME: Settings › System › Backup: downloads the school's two SQLite databases as one archive
+// ABOUTME: (encrypted by default in production) and restores one from a file into this browser.
+
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { Alert } from '@/components/ui/Alert';
 import Badge from '@/components/ui/Badge';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Checkbox from '@/components/ui/Checkbox';
+import Input from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
+import { ArrowDownTrayIcon, ArrowPathIcon, TrashIcon } from '@/components/ui/icons';
+import {
+  applyRestore,
+  BackupArchiveError,
+  createBackup,
+  isEncryptedBackup,
+  MIN_PASSPHRASE_LENGTH,
+  prepareRestore,
+  runAsOnlyTab,
+  type BackupManifest,
+  type PreparedRestore,
+} from '@/data/backup';
+import {
+  browserBackupEnvironment,
+  currentDataMode,
+  downloadBytes,
+  opfsSafetyCopies,
+  reloadAfterRestore,
+  type SafetyCopy,
+} from '@/data/backup/browserEnvironment';
 import { useToast } from '@/hooks/useToast';
-import { useAppData } from '@/hooks/useAppData';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { authService } from '@/services/auth/authService';
 import { logger } from '@/utils/logging';
-import { ArrowDownTrayIcon, ArrowPathIcon, ClockIcon, TrashIcon } from '@/components/ui/icons';
 
-interface BackupRecord {
-  id: string;
-  filename: string;
-  size: string;
-  created_at: string;
-  record_count?: number;
-  type: 'Automatic' | 'Manual' | 'Scheduled';
-  status: 'Completed' | 'Failed' | 'In Progress';
-  description: string;
-  payload_json?: string | null;
-}
+/** Where the page remembers the last download, so it can say how old the newest backup is. */
+const LAST_DOWNLOAD_KEY = 'schoolpilot.backup.lastDownload';
 
-interface BackupPayload {
-  metadata?: {
-    totalRecords?: number;
-    collectionsCount?: number;
-    timestamp?: string;
-    version?: string;
-  };
-  collections?: Record<string, unknown[]>;
+interface LastDownload {
+  readonly fileName: string;
+  readonly at: string;
+  readonly bytes: number;
 }
 
 const formatSize = (bytes: number): string => {
@@ -38,234 +50,411 @@ const formatSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const DatabaseBackupPage: React.FC = () => {
+const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-  const toast = useToast();
-  const { backupData, restoreData, refreshData } = useAppData();
-  const backupsCollection = useDatabaseCollection<BackupRecord>('backup_records');
+function readLastDownload(): LastDownload | null {
+  try {
+    const stored = localStorage.getItem(LAST_DOWNLOAD_KEY);
+    return stored ? (JSON.parse(stored) as LastDownload) : null;
+  } catch {
+    return null;
+  }
+}
 
-  const [isBackingUp, setIsBackingUp] = useState(false);
-  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
-  const [isRestoring, setIsRestoring] = useState(false);
-  const [selectedBackupId, setSelectedBackupId] = useState('');
-
-  // Live backup records (newest first)
-  const backups: BackupRecord[] = useMemo(() => {
-    return [...backupsCollection.data].sort((a, b) =>
-      (b.created_at ?? '').localeCompare(a.created_at ?? '')
-    );
-  }, [backupsCollection.data]);
-
-  const handleCreateBackup = async () => {
-    setIsBackingUp(true);
-    try {
-      // Snapshot every collection via the app-level backup pipeline
-      const snapshot = await backupData();
-      const payloadJson = JSON.stringify(snapshot ?? {});
-      const meta = ((snapshot as BackupPayload | null)?.metadata) || {};
-      await backupsCollection.insert({
-        filename: `schoolpilot_manual_${new Date().toISOString().slice(0, 19).replace(/[:T-]/g, '')}.json`,
-        size: formatSize(payloadJson.length),
-        record_count: Number(meta.totalRecords ?? 0),
-        type: 'Manual',
-        status: 'Completed',
-        description: 'Manual backup initiated by user',
-        payload_json: payloadJson,
-        created_at: new Date().toISOString()
-      });
-      toast.showSuccess('Backup created and stored successfully.');
-    } catch (err) {
-      logger.error('Failed to create backup:', err);
-      toast.showError('Failed to create backup.');
-    } finally {
-      setIsBackingUp(false);
-    }
-  };
-
-  const handleDeleteBackup = async (record: BackupRecord) => {
-    try {
-      await backupsCollection.remove(record.id);
-      toast.showInfo(`Deleted backup: ${record.filename}`);
-    } catch (err) {
-      logger.error('Failed to delete backup:', err);
-      toast.showError('Failed to delete backup.');
-    }
-  };
-
-  const handleDownloadBackup = (record: BackupRecord) => {
-    if (!record.payload_json) {
-      toast.showWarning(`Backup ${record.filename} has no stored data to download.`);
-      return;
-    }
-    const blob = new Blob([record.payload_json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = record.filename || `schoolpilot-backup-${record.id}.json`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
-    toast.showSuccess(`Downloaded ${record.filename}.`);
-  };
-
-  const handleRestoreBackup = async () => {
-    const record = backups.find(b => b.id === selectedBackupId);
-    if (!record?.payload_json) {
-      toast.showWarning('Select a backup with stored data to restore.');
-      return;
-    }
-    setIsRestoring(true);
-    try {
-      toast.showWarning('Restore initiated. This will replace current data.');
-      const snapshot = JSON.parse(record.payload_json) as BackupPayload;
-      await restoreData(snapshot);
-      await refreshData();
-      toast.showSuccess(`Restored from ${record.filename}.`);
-      setIsRestoreModalOpen(false);
-      setSelectedBackupId('');
-    } catch (err) {
-      logger.error('Failed to restore backup:', err);
-      toast.showError('Failed to restore backup.');
-    } finally {
-      setIsRestoring(false);
-    }
-  };
-
-  const completedCount = backups.filter(b => b.status === 'Completed').length;
-  const failedCount = backups.filter(b => b.status === 'Failed').length;
-
-  const columns: DataGridColumn<BackupRecord>[] = [
-    { key: 'filename', header: 'Filename', width: 300, sortable: true, filterable: true },
-    { key: 'size', header: 'Size', width: 100, sortable: true },
-    { key: 'created_at', header: 'Created', width: 180, sortable: true, render: (value) => value ? new Date(value).toLocaleString() : '-' },
-    { key: 'type', header: 'Type', width: 110, sortable: true, filterable: true, render: (_value, item) => (
-      <Badge variant={item.type === 'Scheduled' ? 'info' : item.type === 'Manual' ? 'success' : 'warning'}>{item.type}</Badge>
-    )},
-    { key: 'status', header: 'Status', width: 110, sortable: true, filterable: true, render: (_value, item) => (
-      <Badge variant={item.status === 'Completed' ? 'success' : item.status === 'Failed' ? 'danger' : 'info'}>{item.status}</Badge>
-    )},
-    { key: 'description', header: 'Description', width: 250, sortable: false },
-    { key: 'actions', header: 'Actions', width: 160, sortable: false, render: (_value, item) => (
-      <div className="flex gap-1">
-        <Button size="sm" variant="ghost" leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />} onClick={() => handleDownloadBackup(item)}>Download</Button>
-        <Button size="sm" variant="ghost" leftIcon={<TrashIcon className="w-4 h-4" />} onClick={() => void handleDeleteBackup(item)}>Delete</Button>
-      </div>
-    )},
+/** The summary of an archive a person checks before replacing anything with it. */
+const ManifestSummary: React.FC<{ manifest: BackupManifest }> = ({ manifest }) => {
+  const { t } = useTranslation('settings');
+  const canonical = manifest.files.find((file) => file.role === 'canonical');
+  const legacy = manifest.files.find((file) => file.role === 'legacy');
+  const rows: [string, React.ReactNode][] = [
+    [t('browserBackup.summary.school'), manifest.institutionName ?? t('browserBackup.summary.unnamed')],
+    [t('browserBackup.summary.created'), new Date(manifest.createdAt).toLocaleString()],
+    [t('browserBackup.summary.appVersion'), manifest.appVersion],
+    [t('browserBackup.summary.dataMode'), manifest.dataMode],
+    [
+      t('browserBackup.summary.encryption'),
+      manifest.encryption === 'none' ? t('browserBackup.summary.notEncrypted') : manifest.encryption,
+    ],
+    [t('browserBackup.summary.learners'), String(canonical?.rowCounts.learner ?? 0)],
+    [t('browserBackup.summary.users'), String(legacy?.rowCounts.users ?? 0)],
   ];
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm" data-testid="backup-summary">
+      {rows.map(([label, value]) => (
+        <React.Fragment key={label}>
+          <dt className="text-surface-muted-fg">{label}</dt>
+          <dd className="text-surface-foreground">{value}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
+  );
+};
+
+const DownloadSection: React.FC<{ onDownloaded: (download: LastDownload) => void }> = ({ onDownloaded }) => {
+  const { t } = useTranslation('settings');
+  const toast = useToast();
+  const [encrypt, setEncrypt] = useState(() => currentDataMode() === 'production');
+  const [passphrase, setPassphrase] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  const passphraseProblem = !encrypt
+    ? null
+    : passphrase.length < MIN_PASSPHRASE_LENGTH
+      ? t('browserBackup.download.passphraseTooShort', { count: MIN_PASSPHRASE_LENGTH })
+      : passphrase !== confirmation
+        ? t('browserBackup.download.passphraseMismatch')
+        : null;
+
+  const handleDownload = async () => {
+    setBusy(true);
+    setFailure(null);
+    try {
+      const environment = await browserBackupEnvironment();
+      const backup = await createBackup(environment, encrypt ? { passphrase } : {});
+      downloadBytes(backup.fileName, backup.bytes, encrypt ? 'application/octet-stream' : 'application/zip');
+      const download = { fileName: backup.fileName, at: backup.manifest.createdAt, bytes: backup.bytes.byteLength };
+      localStorage.setItem(LAST_DOWNLOAD_KEY, JSON.stringify(download));
+      onDownloaded(download);
+      setPassphrase('');
+      setConfirmation('');
+      toast.showSuccess(t('browserBackup.download.done', { fileName: backup.fileName }));
+    } catch (error) {
+      logger.error('Backup failed:', error);
+      setFailure(errorText(error));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <div className="space-y-3 p-6">
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary-100 rounded-lg">
-              <ArrowDownTrayIcon className="w-6 h-6 text-primary-600" />
+    <Card title={t('browserBackup.download.title')} subtitle={t('browserBackup.download.subtitle')}>
+      <div className="space-y-4">
+        <Checkbox checked={encrypt} onChange={setEncrypt} data-testid="backup-encrypt">
+          {t('browserBackup.download.encrypt')}
+        </Checkbox>
+        {encrypt ? (
+          <>
+            <Alert variant="warning" title={t('browserBackup.download.passphraseWarningTitle')}>
+              {t('browserBackup.download.passphraseWarning')}
+            </Alert>
+            <div className="grid gap-3 md:grid-cols-2">
+              <Input
+                type="password"
+                autoComplete="new-password"
+                label={t('browserBackup.download.passphrase')}
+                value={passphrase}
+                onChange={(event) => setPassphrase(event.target.value)}
+                data-testid="backup-passphrase"
+              />
+              <Input
+                type="password"
+                autoComplete="new-password"
+                label={t('browserBackup.download.passphraseConfirm')}
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                data-testid="backup-passphrase-confirm"
+              />
             </div>
-            <div>
-              <h3 className="font-semibold text-surface-foreground">Create Backup</h3>
-              <p className="text-sm text-surface-muted-fg">Manual full database backup</p>
-              <Button
-                size="sm"
-                className="mt-2"
-                onClick={() => void handleCreateBackup()}
-                disabled={isBackingUp}
-                leftIcon={isBackingUp ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <ArrowDownTrayIcon className="w-4 h-4" />}
-              >
-                {isBackingUp ? 'Backing Up...' : 'Backup Now'}
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <ArrowPathIcon className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-surface-foreground">Restore Backup</h3>
-              <p className="text-sm text-surface-muted-fg">Restore from a previous backup</p>
-              <Button size="sm" className="mt-2" variant="secondary" onClick={() => setIsRestoreModalOpen(true)} leftIcon={<ArrowPathIcon className="w-4 h-4" />}>
-                Restore
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <ClockIcon className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-surface-foreground">Schedule</h3>
-              <p className="text-sm text-surface-muted-fg">Configure auto-backup schedule</p>
-              <div className="mt-2 text-xs text-surface-muted-fg">Daily at 02:00 AM</div>
-            </div>
-          </div>
-        </Card>
+            {passphrase.length > 0 && passphraseProblem ? (
+              <p className="text-sm text-red-600 dark:text-red-400">{passphraseProblem}</p>
+            ) : null}
+          </>
+        ) : (
+          <Alert variant="warning">{t('browserBackup.download.unencryptedWarning')}</Alert>
+        )}
+        {failure ? (
+          <Alert variant="destructive" title={t('browserBackup.download.failed')}>
+            {failure}
+          </Alert>
+        ) : null}
+        <Button
+          onClick={() => void handleDownload()}
+          disabled={busy || passphraseProblem !== null}
+          leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />}
+        >
+          {t('browserBackup.download.action')}
+        </Button>
       </div>
 
-      {/* Backup History */}
-      <Card
-        title="Backup History"
-        info="View and manage database backups"
-        actions={
-          <div className="flex gap-2">
-            <Badge variant="success">{completedCount} Successful</Badge>
-            <Badge variant="danger">{failedCount} Failed</Badge>
-          </div>
-        }
-      >
-        <DataGrid
-          data={backups}
-          columns={columns}
-          sortable={true}
-          filterable={true}
-          loading={backupsCollection.loading}
-          emptyState={<div className="text-center py-8"><p className="text-surface-muted-fg">No backups found.</p></div>}
-        />
-      </Card>
-
-      {/* Restore Modal */}
+      {/* Blocks the page while both databases are exported, so no write lands between the two. */}
       <Modal
-        isOpen={isRestoreModalOpen}
-        onClose={() => setIsRestoreModalOpen(false)}
-        title="Restore Database Backup"
+        isOpen={busy}
+        onClose={() => undefined}
+        title={t('browserBackup.download.progressTitle')}
+        size="sm"
+        preventClose
+        showCloseButton={false}
+        closeOnBackdrop={false}
+        closeOnEscape={false}
+      >
+        <p className="text-sm text-surface-muted-fg" role="status">
+          {t('browserBackup.download.progress')}
+        </p>
+      </Modal>
+    </Card>
+  );
+};
+
+type RestoreStage = 'idle' | 'checking' | 'ready' | 'restoring' | 'restored';
+
+const RestoreSection: React.FC<{ onSafetyCopySaved: () => void }> = ({ onSafetyCopySaved }) => {
+  const { t } = useTranslation('settings');
+  const [file, setFile] = useState<{ name: string; bytes: Uint8Array } | null>(null);
+  const [passphrase, setPassphrase] = useState('');
+  const [stage, setStage] = useState<RestoreStage>('idle');
+  const [prepared, setPrepared] = useState<PreparedRestore | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [understood, setUnderstood] = useState(false);
+
+  const encrypted = file !== null && isEncryptedBackup(file.bytes);
+
+  const handleFile = async (chosen: File | undefined) => {
+    setPrepared(null);
+    setFailure(null);
+    setStage('idle');
+    setPassphrase('');
+    setFile(chosen ? { name: chosen.name, bytes: new Uint8Array(await chosen.arrayBuffer()) } : null);
+  };
+
+  const handleCheck = async () => {
+    if (!file) return;
+    setStage('checking');
+    setFailure(null);
+    try {
+      const environment = await browserBackupEnvironment();
+      setPrepared(await prepareRestore(environment, file.bytes, encrypted ? passphrase : undefined));
+      setStage('ready');
+    } catch (error) {
+      logger.error('Backup check failed:', error);
+      setFailure(
+        error instanceof BackupArchiveError && error.code === 'passphrase_required'
+          ? t('browserBackup.restore.passphraseRequired')
+          : errorText(error)
+      );
+      setStage('idle');
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!prepared) return;
+    setConfirmOpen(false);
+    setStage('restoring');
+    setFailure(null);
+    try {
+      const environment = await browserBackupEnvironment();
+      await runAsOnlyTab(() => applyRestore(environment, prepared));
+      onSafetyCopySaved();
+      // The signed-in account belongs to the data that was just replaced.
+      await authService.logout();
+      setStage('restored');
+      reloadAfterRestore();
+    } catch (error) {
+      logger.error('Restore failed:', error);
+      onSafetyCopySaved();
+      setFailure(errorText(error));
+      setStage('ready');
+    }
+  };
+
+  return (
+    <Card title={t('browserBackup.restore.title')} subtitle={t('browserBackup.restore.subtitle')}>
+      <div className="space-y-4">
+        <label className="block text-sm font-medium text-surface-foreground">
+          {t('browserBackup.restore.file')}
+          <input
+            type="file"
+            accept=".zip,.spbackup"
+            className="mt-1 block w-full text-sm"
+            data-testid="restore-file"
+            disabled={stage === 'checking' || stage === 'restoring' || stage === 'restored'}
+            onChange={(event) => void handleFile(event.target.files?.[0])}
+          />
+        </label>
+        {encrypted ? (
+          <Input
+            type="password"
+            autoComplete="off"
+            label={t('browserBackup.restore.passphrase')}
+            value={passphrase}
+            onChange={(event) => setPassphrase(event.target.value)}
+            data-testid="restore-passphrase"
+          />
+        ) : null}
+        {file && stage !== 'ready' && stage !== 'restored' ? (
+          <Button
+            variant="secondary"
+            onClick={() => void handleCheck()}
+            disabled={stage === 'checking' || (encrypted && passphrase.length === 0)}
+            leftIcon={<ArrowPathIcon className={`w-4 h-4 ${stage === 'checking' ? 'animate-spin' : ''}`} />}
+          >
+            {stage === 'checking' ? t('browserBackup.restore.checking') : t('browserBackup.restore.check')}
+          </Button>
+        ) : null}
+        {failure ? (
+          <Alert variant="destructive" title={t('browserBackup.restore.failed')}>
+            <span data-testid="restore-error">{failure}</span>
+          </Alert>
+        ) : null}
+        {prepared && stage !== 'restored' ? (
+          <div className="space-y-3">
+            <Alert variant="success" title={t('browserBackup.restore.valid')}>
+              <ManifestSummary manifest={prepared.manifest} />
+            </Alert>
+            <Button
+              variant="danger"
+              onClick={() => {
+                setUnderstood(false);
+                setConfirmOpen(true);
+              }}
+              disabled={stage === 'restoring'}
+            >
+              {stage === 'restoring' ? t('browserBackup.restore.restoring') : t('browserBackup.restore.action')}
+            </Button>
+          </div>
+        ) : null}
+        {stage === 'restored' ? (
+          <Alert variant="success" title={t('browserBackup.restore.doneTitle')}>
+            <span role="status">{t('browserBackup.restore.done')}</span>
+          </Alert>
+        ) : null}
+      </div>
+
+      <Modal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title={t('browserBackup.restore.confirmTitle')}
         size="md"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setIsRestoreModalOpen(false)}>Cancel</Button>
-            <Button variant="danger" onClick={() => void handleRestoreBackup()} disabled={isRestoring}>
-              {isRestoring ? 'Restoring...' : 'Restore Selected Backup'}
+            <Button variant="secondary" onClick={() => setConfirmOpen(false)}>
+              {t('browserBackup.restore.cancel')}
+            </Button>
+            <Button variant="danger" disabled={!understood} onClick={() => void handleRestore()}>
+              {t('browserBackup.restore.confirmAction')}
             </Button>
           </>
         }
       >
-        <div className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700">
-            <strong>Warning:</strong> Restoring a backup will replace ALL current data with the backup contents.
-            This action cannot be undone. We recommend creating a fresh backup before restoring.
-          </div>
-          <div className="text-sm text-surface-muted-fg">
-            Select a backup to restore:
-          </div>
-          <select
-            value={selectedBackupId}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedBackupId(e.target.value)}
-            className="w-full border border-surface-border rounded-md px-3 py-2 text-sm"
-          >
-            <option value="">Select a backup...</option>
-            {backups.filter(b => b.payload_json).map(backup => (
-              <option key={backup.id} value={backup.id}>
-                {backup.filename} ({backup.size}, {new Date(backup.created_at).toLocaleString()})
-              </option>
-            ))}
-          </select>
+        <div className="space-y-3 text-sm">
+          <p>
+            {t('browserBackup.restore.confirmBody', {
+              school: prepared?.manifest.institutionName ?? t('browserBackup.summary.unnamed'),
+            })}
+          </p>
+          <p className="text-surface-muted-fg">{t('browserBackup.restore.confirmSafety')}</p>
+          <Checkbox checked={understood} onChange={setUnderstood} data-testid="restore-understood">
+            {t('browserBackup.restore.confirmCheckbox')}
+          </Checkbox>
         </div>
       </Modal>
+    </Card>
+  );
+};
+
+const SafetyCopiesSection: React.FC<{ copies: SafetyCopy[]; onChanged: () => void }> = ({ copies, onChanged }) => {
+  const { t } = useTranslation('settings');
+  const toast = useToast();
+
+  const handleDownload = async (copy: SafetyCopy) => {
+    try {
+      downloadBytes(copy.name, await opfsSafetyCopies.read(copy.name), 'application/zip');
+    } catch (error) {
+      toast.showError(errorText(error));
+    }
+  };
+
+  const handleDelete = async (copy: SafetyCopy) => {
+    try {
+      await opfsSafetyCopies.remove(copy.name);
+      onChanged();
+    } catch (error) {
+      toast.showError(errorText(error));
+    }
+  };
+
+  return (
+    <Card title={t('browserBackup.safety.title')} subtitle={t('browserBackup.safety.subtitle')}>
+      {copies.length === 0 ? (
+        <p className="text-sm text-surface-muted-fg">{t('browserBackup.safety.empty')}</p>
+      ) : (
+        <ul className="divide-y divide-surface-border">
+          {copies.map((copy) => (
+            <li key={copy.name} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+              <span>
+                {copy.name}
+                <span className="ml-2 text-surface-muted-fg">
+                  {formatSize(copy.bytes)} · {new Date(copy.modified).toLocaleString()}
+                </span>
+              </span>
+              <span className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leftIcon={<ArrowDownTrayIcon className="w-4 h-4" />}
+                  onClick={() => void handleDownload(copy)}
+                >
+                  {t('browserBackup.safety.download')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leftIcon={<TrashIcon className="w-4 h-4" />}
+                  onClick={() => void handleDelete(copy)}
+                >
+                  {t('browserBackup.safety.delete')}
+                </Button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+};
+
+const DatabaseBackupPage: React.FC = () => {
+  const { t } = useTranslation('settings');
+  const [lastDownload, setLastDownload] = useState<LastDownload | null>(readLastDownload);
+  const [copies, setCopies] = useState<SafetyCopy[]>([]);
+
+  const refreshCopies = useCallback(() => {
+    opfsSafetyCopies
+      .list()
+      .then(setCopies)
+      .catch((error: unknown) => logger.warn('Safety copies could not be listed:', error));
+  }, []);
+
+  useEffect(() => {
+    refreshCopies();
+  }, [refreshCopies]);
+
+  return (
+    <div className="space-y-3 p-6">
+      <Alert variant="warning" title={t('browserBackup.intro.title')}>
+        {t('browserBackup.intro.body')}
+      </Alert>
+      <div className="flex flex-wrap items-center gap-2 text-sm text-surface-muted-fg">
+        {lastDownload ? (
+          <>
+            <Badge variant="success">{t('browserBackup.lastDownload.label')}</Badge>
+            <span>
+              {t('browserBackup.lastDownload.value', {
+                fileName: lastDownload.fileName,
+                date: new Date(lastDownload.at).toLocaleString(),
+                size: formatSize(lastDownload.bytes),
+              })}
+            </span>
+          </>
+        ) : (
+          <Badge variant="warning">{t('browserBackup.lastDownload.never')}</Badge>
+        )}
+      </div>
+      <DownloadSection onDownloaded={setLastDownload} />
+      <RestoreSection onSafetyCopySaved={refreshCopies} />
+      <SafetyCopiesSection copies={copies} onChanged={refreshCopies} />
     </div>
   );
 };

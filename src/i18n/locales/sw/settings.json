@@ -409,5 +409,72 @@
     "noConflicts": "No Conflicts",
     "allClear": "All Clear!",
     "noConflictsMessage": "There are no sync conflicts that need resolution."
+  },
+  "browserBackup": {
+    "intro": {
+      "title": "Hifadhi nakala ya data ya shule nje ya kivinjari hiki",
+      "body": "SchoolPilot huhifadhi data yote ya shule katika hifadhi ya kivinjari hiki. Hifadhi hiyo ikifutwa - kivinjari kikiwekwa upya, kompyuta mpya, \"futa data ya tovuti\" - faili ya hifadhi rudufu unayopakua hapa ndiyo nakala pekee ya data ya shule. Pakua moja mara kwa mara na uiweke mahali pengine, kama kwenye diski ya USB au kompyuta nyingine."
+    },
+    "lastDownload": {
+      "label": "Hifadhi rudufu ya mwisho",
+      "value": "{{fileName}}, ilipakuliwa {{date}} ({{size}})",
+      "never": "Hakuna hifadhi rudufu iliyopakuliwa kutoka kivinjari hiki"
+    },
+    "download": {
+      "title": "Pakua hifadhi rudufu",
+      "subtitle": "Faili moja yenye data yote ya shule, unayoweza kurejesha katika kivinjari au kifaa kingine.",
+      "encrypt": "Simba hifadhi rudufu kwa kaulisiri",
+      "passphraseWarningTitle": "Kaulisiri iliyosahaulika haiwezi kurejeshwa",
+      "passphraseWarning": "Bila kaulisiri hakuna anayeweza kufungua hifadhi rudufu hii - si wewe, wala msaada wa SchoolPilot. Iandike na uihifadhi mbali na faili.",
+      "unencryptedWarning": "Hifadhi rudufu hii haitasimbwa: yeyote atakayepata faili anaweza kusoma data ya shule, ikiwemo taarifa binafsi za wanafunzi.",
+      "passphrase": "Kaulisiri",
+      "passphraseConfirm": "Rudia kaulisiri",
+      "passphraseTooShort": "Kaulisiri inahitaji angalau herufi {{count}}.",
+      "passphraseMismatch": "Kaulisiri hizo mbili hazilingani.",
+      "action": "Pakua hifadhi rudufu",
+      "progressTitle": "Inaunda hifadhi rudufu",
+      "progress": "Inahifadhi nakala ya hifadhidata zote mbili. Acha kichupo hiki wazi; upakuaji utaanza ikiwa tayari.",
+      "done": "Hifadhi rudufu imepakuliwa: {{fileName}}",
+      "failed": "Hifadhi rudufu haikuweza kuundwa"
+    },
+    "restore": {
+      "title": "Rejesha kutoka kwa faili",
+      "subtitle": "Badilisha data yote katika kivinjari hiki kwa faili ya hifadhi rudufu.",
+      "file": "Faili ya hifadhi rudufu",
+      "passphrase": "Kaulisiri ya hifadhi rudufu",
+      "check": "Kagua hifadhi rudufu",
+      "checking": "Inakagua...",
+      "passphraseRequired": "Hifadhi rudufu hii imesimbwa. Weka kaulisiri yake ili kuifungua.",
+      "failed": "Hifadhi rudufu hii haiwezi kurejeshwa",
+      "valid": "Hifadhi rudufu imekamilika na inasomeka",
+      "action": "Rejesha hifadhi rudufu hii",
+      "restoring": "Inarejesha...",
+      "confirmTitle": "Badilisha data yote katika kivinjari hiki?",
+      "confirmBody": "Kila rekodi katika kivinjari hiki itabadilishwa na hifadhi rudufu ya {{school}}. Chochote kilichoingizwa tangu hifadhi rudufu hiyo ilipofanywa kitapotea.",
+      "confirmSafety": "Kabla ya kubadilisha chochote, data ya sasa huhifadhiwa kama nakala ya usalama katika kivinjari hiki (imeorodheshwa hapa chini), ili bado iweze kupakuliwa.",
+      "confirmCheckbox": "Ninaelewa kwamba data ya sasa katika kivinjari hiki itabadilishwa",
+      "confirmAction": "Badilisha data na urejeshe",
+      "cancel": "Ghairi",
+      "doneTitle": "Hifadhi rudufu imerejeshwa",
+      "done": "SchoolPilot inapakia upya sasa. Ingia kwa akaunti ya shule iliyorejeshwa."
+    },
+    "summary": {
+      "school": "Shule",
+      "created": "Iliundwa",
+      "appVersion": "Toleo la SchoolPilot",
+      "dataMode": "Hali ya data",
+      "encryption": "Usimbaji",
+      "notEncrypted": "Haijasimbwa",
+      "learners": "Wanafunzi",
+      "users": "Akaunti za watumiaji",
+      "unnamed": "shule isiyo na jina"
+    },
+    "safety": {
+      "title": "Nakala za usalama",
+      "subtitle": "Data ambayo kila urejeshaji ulibadilisha, imehifadhiwa katika kivinjari hiki.",
+      "empty": "Hakuna urejeshaji uliofanywa katika kivinjari hiki.",
+      "download": "Pakua",
+      "delete": "Futa"
+    }
   }
 }
