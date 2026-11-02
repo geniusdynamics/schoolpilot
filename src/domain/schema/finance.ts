@@ -7,6 +7,7 @@ import {
   auditShape,
   entityIdShape,
   isoDate,
+  isoDateTime,
   jsonObjectSchema,
   moneySchema,
   shortText,
@@ -102,6 +103,13 @@ export const PAYMENT_STATUSES = [
 ] as const;
 export const RECEIPT_STATUSES = ['issued', 'void'] as const;
 export const REFUND_STATUSES = ['requested', 'approved', 'paid', 'rejected'] as const;
+/** The channels an expense is paid out through. */
+export const EXPENSE_CHANNELS = ['cash', 'bank_deposit', 'mobile_money', 'cheque'] as const;
+/**
+ * The states of an expense. `draft` exists only inside the recording transaction: the row is
+ * written, its entry is posted against the row's own id, and the same transaction posts it.
+ */
+export const EXPENSE_STATUSES = ['draft', 'posted', 'reversed'] as const;
 
 export const feeCategorySchema = z.strictObject({
   ...entityIdShape,
@@ -627,4 +635,78 @@ export const refundEntity = defineEntity({
     encrypted: [],
   },
   label: (row) => row.number,
+});
+
+/**
+ * A recorded expense (spec 05 §8: the expenditure side of the books).
+ *
+ * The row is the document; the money moves in the ledger through `journal_entry_id`. The expense
+ * account it debits and the cash or bank account it credits are both codes of the ledger's chart
+ * of accounts, not of the legacy accounting-configuration chart. `reference` is the receipt or
+ * voucher number the payee's document carries; `idempotency_key` makes a double submit post once.
+ */
+export const expenseSchema = z
+  .strictObject({
+    ...entityIdShape,
+    ...tenancyShape,
+    reference: shortText(64),
+    expense_date: isoDate(),
+    payee: shortText(200),
+    category: shortText(100).optional(),
+    description: shortText(500).optional(),
+    amount: moneySchema,
+    channel: z.enum(EXPENSE_CHANNELS),
+    expense_account_code: shortText(50),
+    payment_account_code: shortText(50),
+    idempotency_key: shortText(128).optional(),
+    journal_entry_id: shortText(64).optional(),
+    reversal_entry_id: shortText(64).optional(),
+    reversal_reason: shortText(500).optional(),
+    reversed_at: isoDateTime().optional(),
+    reversed_by: uuid().optional(),
+    status: z.enum(EXPENSE_STATUSES),
+    ...auditShape,
+  })
+  .refine((row) => row.amount.amount_minor > 0, {
+    path: ['amount', 'amount_minor'],
+    message: 'an expense is a positive amount',
+  })
+  .refine((row) => row.status === 'draft' || row.journal_entry_id !== undefined, {
+    path: ['journal_entry_id'],
+    message: 'a posted expense names the entry that posted it',
+  })
+  .refine((row) => row.status !== 'reversed' || row.reversal_entry_id !== undefined, {
+    path: ['reversal_entry_id'],
+    message: 'a reversed expense names the entry that reversed it',
+  });
+
+export type Expense = z.infer<typeof expenseSchema>;
+
+export const expenseEntity = defineEntity({
+  name: 'expense',
+  schema: expenseSchema,
+  storage: {
+    table: 'expense',
+    primaryKey: 'id',
+    indexes: [
+      'institution_id',
+      'expense_date',
+      'expense_account_code',
+      'payment_account_code',
+      'payee',
+      'status',
+      'journal_entry_id',
+    ],
+    unique: [
+      ['institution_id', 'reference'],
+      // A double submit with the same key finds the row it already wrote instead of posting again.
+      {
+        columns: ['institution_id', 'idempotency_key'],
+        where: 'idempotency_key IS NOT NULL',
+      },
+    ],
+    refs: { institution_id: 'institution' },
+    encrypted: [],
+  },
+  label: (row) => `${row.reference} · ${row.payee}`,
 });

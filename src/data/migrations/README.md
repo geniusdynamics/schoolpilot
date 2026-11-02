@@ -214,6 +214,7 @@ would miss.
 | 105 | payment providers | `provider_payment_event`, unique by idempotency key and by receipt, indexed by transaction and institution. |
 | 106 | payment providers | `provider_suspense`, unique by transaction, with the open-items index. |
 | 107 | collections | the reminder schedule, opt-outs, promises to pay, pay links and attempts, with their indexes. |
+| 108 | expenses | the recorded expense, its voucher, its posting and its reversal, with the indexes the list and the filters read. |
 
 Adding a module is adding its migration to `SCHEMA_MIGRATIONS`: the startup path, the rollback and
 the version surface all read that list. **The suite holds that rule:** it finds every exported

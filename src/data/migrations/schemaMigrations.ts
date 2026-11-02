@@ -10,6 +10,8 @@ import { RECONCILIATION_DDL } from '@/domain/finance/reconciliation/store';
 import { SUBSCRIPTION_DDL } from '@/domain/finance/subscriptions/store';
 import { SEQUENCE_DDL } from '@/domain/sequences/store';
 
+import { canonicalDatabaseSchema } from '../adapters/sqlite/canonical';
+import { statementsForSchema } from '../adapters/sqlite/ddl';
 import { dropStatementsFor, schemaObjectsOf, type SchemaObject } from './schemaDdl';
 import type { Migration } from './types';
 
@@ -141,6 +143,20 @@ export const collectionsSchemaMigration: ModuleSchemaMigration = moduleSchemaMig
 });
 
 /**
+ * Expenses: the recorded expense and the indexes the list, the account filter and idempotency read.
+ *
+ * The statements are derived from the canonical entity declaration itself, so the migration and
+ * the registry cannot describe two different tables. The canonical setup creates the table too;
+ * the migration gives the upgrade a ledger row and a rollback.
+ */
+export const expenseSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 108,
+  module: 'expenses',
+  name: 'expenses: the recorded expense, its voucher, its posting and its reversal',
+  ddl: statementsForSchema(canonicalDatabaseSchema('expense')),
+});
+
+/**
  * The module schema migrations this build applies at startup, in version order.
  *
  * Adding a module table is adding its DDL to this list - not a change to the runner, the
@@ -155,6 +171,7 @@ export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   providerEventsSchemaMigration,
   providerSuspenseSchemaMigration,
   collectionsSchemaMigration,
+  expenseSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */
