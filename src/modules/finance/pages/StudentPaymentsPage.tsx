@@ -228,14 +228,16 @@ export const StudentPaymentsPageContent: React.FC<StudentPaymentsPageContentProp
       header: 'Actions',
       render: (_value, row) => (
         <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => openEdit(row.row)}
-            leftIcon={<EditIcon className="w-4 h-4" />}
-          >
-            Edit
-          </Button>
+          {row.status === 'pending' ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => openEdit(row.row)}
+              leftIcon={<EditIcon className="w-4 h-4" />}
+            >
+              Edit
+            </Button>
+          ) : null}
           <Button
             size="sm"
             variant="secondary"
@@ -261,7 +263,7 @@ export const StudentPaymentsPageContent: React.FC<StudentPaymentsPageContentProp
     <div className="space-y-4">
       <Card
         title="Student payments"
-        info="A payment is posted when it is recorded, so it can be reversed but never edited or deleted. The receipt number is issued with the payment."
+        info="A payment is posted when it is recorded, so it can be reversed but never edited or deleted. The receipt number is issued with the payment. For a counter payment and its printed receipt in one keyboard flow, use the Cashier tab."
         actions={
           <Button onClick={openNew} leftIcon={<PlusIcon className="w-5 h-5" />}>
             Record payment
@@ -273,6 +275,7 @@ export const StudentPaymentsPageContent: React.FC<StudentPaymentsPageContentProp
           data={[...finance.paymentRows]}
           sortable
           filterable
+          pagination={{ pageSize: 25 }}
           emptyState={{
             icon: <CreditCardIcon className="w-12 h-12 text-surface-muted-fg" />,
             title: 'No payments recorded',

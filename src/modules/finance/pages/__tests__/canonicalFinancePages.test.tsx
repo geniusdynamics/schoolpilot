@@ -426,7 +426,14 @@ describe('every migrated finance page renders from the repository', () => {
 
   it.each(cases)('renders %s', async (_name, element, expected) => {
     renderPage(element);
-    expect(await screen.findByText(expected)).toBeInTheDocument();
+    // The dashboard first paints its loading state and then its shell, so the matched element may
+    // be replaced between finding it and asserting it; retry the whole check.
+    await waitFor(
+      () => {
+        expect(screen.getByText(expected)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
   });
 });
 
@@ -517,14 +524,30 @@ describe('writes reach the repository', () => {
 });
 
 describe('the posting freeze is the repository’s rule', () => {
-  it('surfaces the refusal when a posted payment is edited', async () => {
+  it('does not offer Edit on a posted payment; reversing is the correction path', async () => {
     renderPaymentsPage();
-    await screen.findByText('RCT/2027/000001');
-    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
-    const modal = await dialog();
-    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '2000.00' } });
-    fireEvent.submit(modal.querySelector('form') as HTMLFormElement);
-    expect(await within(modal).findByText(/posted_immutable/)).toBeInTheDocument();
+    const row = await gridRow('RCT/2027/000001');
+    expect(within(row).queryByRole('button', { name: /^Edit$/i })).not.toBeInTheDocument();
+    expect(within(row).getByRole('button', { name: /^Reverse$/i })).toBeInTheDocument();
+  });
+
+  it('keeps Edit for a payment that has not been posted yet', async () => {
+    repository.publish('payment', [
+      ...(repository.rows.payment ?? []),
+      {
+        id: 'cccccccc-cccc-7ccc-8ccc-dddddddddddd',
+        institution_id: INSTITUTION,
+        learner_id: LEARNER,
+        amount: money(5_000),
+        channel: 'cheque',
+        received_at: PAID_AT,
+        reference: 'PENDING-CHEQUE',
+        status: 'pending',
+      },
+    ]);
+    renderPaymentsPage();
+    const row = await gridRow('PENDING-CHEQUE');
+    expect(within(row).getByRole('button', { name: /^Edit$/i })).toBeInTheDocument();
   });
 
   it('surfaces the refusal when a posted fine is edited', async () => {
@@ -827,5 +850,43 @@ describe('a form refuses what it cannot save', () => {
 
     expect(await within(modal).findByText(/greater than zero/)).toBeInTheDocument();
     expect(repository.writes.some((write) => write.entity === 'payment')).toBe(false);
+  });
+});
+
+describe('a long payment list is paginated', () => {
+  it('shows 25 rows of the total and pages through the rest', async () => {
+    repository.publish(
+      'payment',
+      Array.from({ length: 30 }, (_, index) => ({
+        id: `cccccccc-cccc-7ccc-8ccc-${String(index).padStart(12, '0')}`,
+        institution_id: INSTITUTION,
+        learner_id: LEARNER,
+        amount: money(1_000 + index),
+        channel: 'cash',
+        received_at: PAID_AT,
+        reference: `PAY-${index}`,
+        status: 'posted',
+      }))
+    );
+    renderPaymentsPage();
+
+    expect(await screen.findByText(/Showing/)).toHaveTextContent('of 30 results');
+    expect(screen.getAllByRole('row')).toHaveLength(26);
+  });
+});
+
+describe('the collection summary', () => {
+  it('has unique column keys, so the grid does not warn about duplicate React keys', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      renderPage(<FeeCollectionSummaryPageContent />);
+      await screen.findByText('Tuition');
+      const duplicate = warn.mock.calls
+        .flat()
+        .some((message) => String(message).includes('Duplicate column keys'));
+      expect(duplicate).toBe(false);
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
