@@ -138,8 +138,13 @@ const DataGrid = <T extends Record<string, any>>({
   loadingState,
   className = ''
 }: DataGridProps<T>): React.ReactElement => {
-  // Pagination config is normalized once, before any state that depends on it
-  const paginationConfig: PaginationConfig | undefined = pagination === true ? {} : (pagination || undefined);
+  // Pagination config is normalized once, before any state that depends on it. It is memoized
+  // because a `pagination` object literal passed inline would otherwise be a new value on every
+  // render, which the callbacks below depend on.
+  const paginationConfig: PaginationConfig | undefined = useMemo(
+    () => (pagination === true ? {} : (pagination || undefined)),
+    [pagination]
+  );
 
   const [sortState, setSortState] = useState<SortState | null>(null);
   const [filterState, setFilterState] = useState<FilterState>({});
@@ -282,7 +287,7 @@ const DataGrid = <T extends Record<string, any>>({
     if (!pagination || isControlledPagination) return processedData;
     const startIndex = (currentPage - 1) * pageSize;
     return processedData.slice(startIndex, startIndex + pageSize);
-  }, [paginationConfig, isControlledPagination, processedData, currentPage, pageSize]);
+  }, [pagination, isControlledPagination, processedData, currentPage, pageSize]);
 
   // Refs so selection handlers always see current values without stale closures
   const processedDataRef = useRef(processedData);
