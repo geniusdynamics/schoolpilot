@@ -5,12 +5,14 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import {
   BanknotesIcon,
   BuildingOffice2Icon,
   UserGroupIcon,
 } from '@/components/ui/icons';
 import { BanksPageContent } from './BanksPage';
+import { ExpensesContent } from './expenses/ExpensesContent';
 import { SuppliersPageContent } from './SuppliersPage';
 
 interface HubTab {
@@ -30,7 +32,7 @@ const ExpensesPage: React.FC = () => {
       id: 'expenses',
       label: t('expenses.title', 'Expenses'),
       icon: <BanknotesIcon className="w-4 h-4" />,
-      component: <div className="p-4"><BanknotesIcon className="w-6 h-6 text-surface-muted-fg" /> <span className="text-surface-muted-fg ml-2">Expense records will appear here</span></div>,
+      component: <ExpensesContent />,
     },
     {
       id: 'banks',
@@ -64,6 +66,7 @@ const ExpensesPage: React.FC = () => {
   const activeTabData = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
+    <CanonicalRepositoryProvider>
     <div className="space-y-4">
       <PageHeaderWithTabs
         title={t('expensesHub.title', 'Expenses & Banking')}
@@ -84,6 +87,7 @@ const ExpensesPage: React.FC = () => {
         {activeTabData.component}
       </PageHeaderWithTabs>
     </div>
+    </CanonicalRepositoryProvider>
   );
 };
 
