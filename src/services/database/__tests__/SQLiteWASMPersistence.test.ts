@@ -406,6 +406,72 @@ describe('SQLiteWASMProvider whole-file backup', () => {
     expect(worker.sent.at(-1)).toMatchObject({ type: 'export' });
   });
 
+  const studentsSchema = {
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: { id: { type: 'string', maxLength: 100 } },
+    required: ['id'],
+  } as any;
+
+  /** A worker that holds back the acknowledgement of every INSERT until the test releases it. */
+  const holdingWorker = () => {
+    const held: any[] = [];
+    const worker = new FakeStorageWorker((msg) => {
+      if (msg.type === 'open') return { ok: true, bytes: new Uint8Array() };
+      if (msg.type === 'export') return { ok: true, bytes: image };
+      if (msg.type === 'exec' && /^\s*INSERT/i.test(msg.sql)) {
+        held.push(msg);
+        return undefined;
+      }
+      return { ok: true };
+    });
+    const answer = (response: object) => worker.onmessage?.({ data: { id: held.shift().id, ...response } });
+    return { worker, held, answer };
+  };
+
+  it('posts the export at once, behind the writes already sent, without waiting for them', async () => {
+    const { worker, held, answer } = holdingWorker();
+    const provider = makeProvider(worker);
+    await provider.initialize();
+    const collection = await provider.createCollection('students', studentsSchema);
+
+    const inserting = collection.insert({ id: 'S1' } as any);
+    expect(held).toHaveLength(1);
+    let exported = false;
+    const exporting = provider.exportDatabase().then((bytes) => {
+      exported = true;
+      return bytes;
+    });
+
+    // Posted in the same turn as the call: the worker answers it in arrival order, after the
+    // INSERT that was sent first, so the image holds that write.
+    const types = worker.sent.map((msg) => msg.type);
+    expect(types.at(-1)).toBe('export');
+    expect(types.lastIndexOf('export')).toBeGreaterThan(worker.sent.indexOf(held[0]));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(exported).toBe(false);
+
+    answer({ ok: true });
+    await expect(exporting).resolves.toBe(image);
+    await inserting;
+  });
+
+  it('fails the export when a write sent before it fails', async () => {
+    const { worker, answer } = holdingWorker();
+    const provider = makeProvider(worker);
+    await provider.initialize();
+    const collection = await provider.createCollection('students', studentsSchema);
+
+    const inserting = collection.insert({ id: 'S1' } as any).catch((error: unknown) => error);
+    const exporting = provider.exportDatabase();
+    answer({ ok: false, error: 'disk I/O error' });
+
+    await expect(exporting).rejects.toBeInstanceOf(StorageUnavailableError);
+    expect(await inserting).toBeInstanceOf(Error);
+  });
+
   it('refuses writes after an import, yet accepts the import that puts the old file back', async () => {
     let imports = 0;
     const worker = new FakeStorageWorker((msg) => {

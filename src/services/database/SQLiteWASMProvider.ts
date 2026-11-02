@@ -1180,10 +1180,17 @@ class StorageWorkerClient {
     if (this.failure) throw this.failure;
   }
 
-  /** The persisted database file, after every write forwarded before the call. */
+  /**
+   * The persisted database file, holding every write forwarded before the call and none after.
+   *
+   * The export is posted in the same turn as the call, before the acknowledgements of the
+   * writes already sent arrive: the worker applies requests in arrival order, so it answers
+   * the export after those writes. The acknowledgements are awaited alongside, and a write
+   * that failed fails the export - its image would not match what the app believes it holds.
+   */
   async exportFile(): Promise<Uint8Array> {
-    await this.flush();
-    const bytes = await this.request({ type: 'export' }, STORAGE_WRITE_TIMEOUT_MS);
+    const exporting = this.request({ type: 'export' }, STORAGE_WRITE_TIMEOUT_MS);
+    const [bytes] = await Promise.all([exporting, this.flush()]);
     if (!bytes) throw new StorageUnavailableError('The storage worker answered an export without the database');
     return bytes;
   }

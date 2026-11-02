@@ -83,11 +83,15 @@ function databaseOf(env: BackupEnvironment, role: BackupDatabaseRole): BackupDat
 }
 
 /**
- * Export both databases at one point in time.
+ * Export both databases at one cut in the app's order of writes.
  *
- * Each database answers through its own ordered queue, so an export sees every write issued
- * before it and none after. The two exports are issued together, in the same tick, so no write
- * the caller starts afterwards can land between them; the page blocks input while this runs.
+ * Both exports are requested in the same synchronous turn, so no app code runs between the two
+ * requests. Each request takes its place in its own database's ordered queue at that moment:
+ * the legacy export is posted to its worker at once, behind the writes already forwarded; the
+ * canonical export is queued on the adapter behind the statements already issued and reaches
+ * its worker when they have run. Each image therefore holds every write issued before the
+ * call and none issued after it - the same cut for both - although the two exports finish at
+ * different times. The page blocks input while this runs.
  */
 async function snapshot(env: BackupEnvironment): Promise<Record<BackupDatabaseRole, Uint8Array>> {
   const [canonical, legacy] = await Promise.all([
