@@ -89,6 +89,9 @@ const FINE_INVOICE = 'bbbbbbbb-bbbb-7bbb-8bbb-cccccccccccc';
 const OPENING_INVOICE = 'bbbbbbbb-bbbb-7bbb-8bbb-dddddddddddd';
 const LAST_INVOICE = 'bbbbbbbb-bbbb-7bbb-8bbb-eeeeeeeeeeee';
 const PAYMENT = 'cccccccc-cccc-7ccc-8ccc-cccccccccccc';
+// Yesterday, so the paid book's default range (the last month) always holds it: a fixed date fell
+// out of that range when the calendar reached 2026-11-02 and the page rendered nothing.
+const PAID_AT = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 const CREDIT_NOTE = 'dddddddd-dddd-7ddd-8ddd-dddddddddddd';
 const PLAN = 'eeeeeeee-eeee-7eee-8eee-eeeeeeeeeeee';
 
@@ -332,7 +335,7 @@ function seed(): FinanceRepositoryDouble {
         learner_id: LEARNER,
         amount: money(100_000),
         channel: 'cash',
-        received_at: '2026-10-01T09:00:00.000Z',
+        received_at: PAID_AT,
         reference: 'RCPT-1',
         status: 'posted',
       },
@@ -343,7 +346,7 @@ function seed(): FinanceRepositoryDouble {
         institution_id: INSTITUTION,
         number: 'RCT/2027/000001',
         payment_id: PAYMENT,
-        issued_at: '2026-10-01T09:00:00.000Z',
+        issued_at: PAID_AT,
         status: 'issued',
       },
     ],
