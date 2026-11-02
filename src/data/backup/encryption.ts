@@ -5,6 +5,11 @@
 export const ENCRYPTED_MAGIC = 'SPWBENC1';
 /** OWASP's 2023 floor for PBKDF2-HMAC-SHA256; the header records the count actually used. */
 export const PBKDF2_ITERATIONS = 600_000;
+/**
+ * The largest iteration count a file may ask for. The count is read before the file can be
+ * authenticated, so a crafted header could otherwise hang the tab in the key derivation.
+ */
+export const MAX_PBKDF2_ITERATIONS = 10_000_000;
 /** A passphrase shorter than this is refused before anything is derived from it. */
 export const MIN_PASSPHRASE_LENGTH = 8;
 
@@ -63,10 +68,19 @@ function fromBase64(value: string): Uint8Array {
   return bytes;
 }
 
+/**
+ * The passphrase as the key derivation sees it. Keyboards and operating systems type an accented
+ * letter either as one code point or as a letter plus a combining accent; NFC makes both the same
+ * bytes, so a file written on one machine opens on another. Part of format version 1.
+ */
+function normalisePassphrase(passphrase: string): string {
+  return passphrase.normalize('NFC');
+}
+
 async function deriveKey(passphrase: string, salt: Uint8Array, iterations: number): Promise<CryptoKey> {
   const material = await subtle().importKey(
     'raw',
-    new TextEncoder().encode(passphrase),
+    new TextEncoder().encode(normalisePassphrase(passphrase)),
     'PBKDF2',
     false,
     ['deriveKey']
@@ -123,6 +137,11 @@ export function readEncryptedHeader(bytes: Uint8Array): {
       'The encrypted backup uses parameters this build does not know; it may come from a newer version'
     );
   }
+  if (parsed.iterations > MAX_PBKDF2_ITERATIONS) {
+    throw new EncryptedBackupFormatError(
+      `The encrypted backup asks for ${parsed.iterations.toLocaleString('en-US')} key-derivation rounds; SchoolPilot opens at most ${MAX_PBKDF2_ITERATIONS.toLocaleString('en-US')}, so this file was not written by SchoolPilot or was altered`
+    );
+  }
   return { header: parsed as EncryptedBackupHeader, headerEnd };
 }
 
@@ -138,8 +157,12 @@ export async function encryptBackup(
   passphrase: string,
   options: { readonly iterations?: number } = {}
 ): Promise<Uint8Array> {
-  if (passphrase.length < MIN_PASSPHRASE_LENGTH) {
+  if (normalisePassphrase(passphrase).length < MIN_PASSPHRASE_LENGTH) {
     throw new BackupPassphraseError(`A backup passphrase needs at least ${MIN_PASSPHRASE_LENGTH} characters`);
+  }
+  const iterations = options.iterations ?? PBKDF2_ITERATIONS;
+  if (iterations < 1 || iterations > MAX_PBKDF2_ITERATIONS) {
+    throw new BackupPassphraseError(`The iteration count must be between 1 and ${MAX_PBKDF2_ITERATIONS}`);
   }
   const salt = globalThis.crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const iv = globalThis.crypto.getRandomValues(new Uint8Array(IV_BYTES));
@@ -147,7 +170,7 @@ export async function encryptBackup(
     format: 'schoolpilot-browser-backup',
     encryption: 'AES-256-GCM',
     kdf: 'PBKDF2-SHA256',
-    iterations: options.iterations ?? PBKDF2_ITERATIONS,
+    iterations,
     salt: toBase64(salt),
     iv: toBase64(iv),
   };

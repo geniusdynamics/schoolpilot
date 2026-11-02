@@ -8,8 +8,11 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import {
   BackupPassphraseError,
   decryptBackup,
+  ENCRYPTED_MAGIC,
+  EncryptedBackupFormatError,
   encryptBackup,
   isEncryptedBackup,
+  MAX_PBKDF2_ITERATIONS,
   PBKDF2_ITERATIONS,
   readEncryptedHeader,
 } from '../encryption';
@@ -68,5 +71,53 @@ describe('backup encryption', () => {
 
   it('refuses a passphrase too short to protect anything', async () => {
     await expect(encryptBackup(plaintext, 'short')).rejects.toBeInstanceOf(BackupPassphraseError);
+  });
+
+  it('opens with the same passphrase typed on a keyboard that composes accents differently', async () => {
+    const composed = 'café au lait 2026';
+    const decomposed = 'café au lait 2026';
+    expect(composed).not.toBe(decomposed);
+
+    const encrypted = await encryptBackup(plaintext, decomposed);
+    expect(new TextDecoder().decode(await decryptBackup(encrypted, composed))).toBe(
+      new TextDecoder().decode(plaintext)
+    );
+    const fromComposed = await encryptBackup(plaintext, composed);
+    await expect(decryptBackup(fromComposed, decomposed)).resolves.toBeInstanceOf(Uint8Array);
+  });
+});
+
+/** An encrypted-backup prefix whose header records `iterations`, followed by junk ciphertext. */
+function withIterations(iterations: number): Uint8Array {
+  const header = new TextEncoder().encode(
+    JSON.stringify({
+      format: 'schoolpilot-browser-backup',
+      encryption: 'AES-256-GCM',
+      kdf: 'PBKDF2-SHA256',
+      iterations,
+      salt: Buffer.alloc(16, 1).toString('base64'),
+      iv: Buffer.alloc(12, 2).toString('base64'),
+    })
+  );
+  const bytes = new Uint8Array(ENCRYPTED_MAGIC.length + 4 + header.length + 32);
+  bytes.set(new TextEncoder().encode(ENCRYPTED_MAGIC), 0);
+  new DataView(bytes.buffer).setUint32(ENCRYPTED_MAGIC.length, header.length, true);
+  bytes.set(header, ENCRYPTED_MAGIC.length + 4);
+  return bytes;
+}
+
+describe('iteration count read from a file', () => {
+  it('accepts the cap and refuses one more, before deriving anything', async () => {
+    expect(MAX_PBKDF2_ITERATIONS).toBe(10_000_000);
+    expect(readEncryptedHeader(withIterations(MAX_PBKDF2_ITERATIONS)).header.iterations).toBe(10_000_000);
+
+    expect(() => readEncryptedHeader(withIterations(MAX_PBKDF2_ITERATIONS + 1))).toThrow(EncryptedBackupFormatError);
+    expect(() => readEncryptedHeader(withIterations(MAX_PBKDF2_ITERATIONS + 1))).toThrow(/10,000,000/);
+    // A crafted header is refused at once: decryption never starts a 2-billion-round derivation.
+    const started = Date.now();
+    await expect(decryptBackup(withIterations(2_000_000_000), PASSPHRASE)).rejects.toBeInstanceOf(
+      EncryptedBackupFormatError
+    );
+    expect(Date.now() - started).toBeLessThan(1000);
   });
 });
