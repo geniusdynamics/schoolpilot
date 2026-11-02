@@ -55,7 +55,7 @@ describe('paste planning', () => {
       expect.objectContaining({
         address: 'B2',
         value: '200',
-        reason: 'A score cannot be above the maximum of 100.',
+        reason: 'A score of 200 is outside the allowed range 0–100.',
       }),
     ]);
     expect(pasteSummary(plan)).toContain('B2');
