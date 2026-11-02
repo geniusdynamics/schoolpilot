@@ -1,4 +1,4 @@
-// ABOUTME: Main entry point of the React application.
+﻿// ABOUTME: Main entry point of the React application.
 // ABOUTME: Initializes React DOM and renders the root App component with providers.
 
 // Initialize error tracking first, before any other imports
@@ -18,7 +18,7 @@ import { initializeDevTools } from './utils/devTools';
 import { holdAppTabLock } from './data/backup/tabLock';
 import { recoverOnStartup } from './data/backup/startupRecovery';
 import { setAppRoot } from './utils/appRoot';
-import { showRestoreRecoveryScreen } from './modules/settings/components/RestoreRecoveryScreen';
+import { showRestoreRecoveryScreen } from './components/RestoreRecoveryScreen';
 
 // Every open tab registers itself, so a backup restore can tell whether it is the only one.
 holdAppTabLock();
@@ -39,19 +39,19 @@ export const initializeApp = async () => {
   try {
     await initUnifiedConfig();
   } catch (error) {
-    logger.warn('⚠️ Unified configuration initialization failed, continuing with defaults:', error);
+    logger.warn('âš ï¸ Unified configuration initialization failed, continuing with defaults:', error);
   }
   initializeUnifiedConfig();
 
   try {
     // Wait for i18n to be ready
     await initializeI18n();
-    logger.info('✅ i18n initialized successfully');
+    logger.info('âœ… i18n initialized successfully');
   } catch (error) {
     performanceEventManager.markDiagnostic('app_initialize_i18n_failed', {
       error: error instanceof Error ? error.message : String(error)
     });
-    logger.warn('⚠️ i18n initialization failed, continuing with fallback:', error);
+    logger.warn('âš ï¸ i18n initialization failed, continuing with fallback:', error);
   }
   
   // Render the app after i18n is ready, unless a restore was interrupted: that is decided before

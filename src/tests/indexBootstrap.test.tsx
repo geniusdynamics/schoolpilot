@@ -16,6 +16,15 @@ vi.mock('react-dom/client', () => ({
 }));
 
 vi.mock('../App', () => ({ default: () => null }));
+// The interrupted-restore check and the screen it can show are their own suites; here the boot order
+// is what is under test, so both answer without pulling the storage layer into this test.
+vi.mock('../data/backup/startupRecovery', () => ({
+  recoverOnStartup: async () => ({ status: 'none' }),
+}));
+vi.mock('../components/RestoreRecoveryScreen', () => ({
+  showRestoreRecoveryScreen: () => undefined,
+  RestoreRecoveryScreen: () => null,
+}));
 vi.mock('../config/errorTracking', () => ({ initializeErrorTracking: () => undefined }));
 vi.mock('../hooks/useTheme', () => ({ initializeTheme: () => undefined }));
 vi.mock('../utils/devTools', () => ({ initializeDevTools: () => undefined }));
@@ -26,6 +35,9 @@ vi.mock('../i18n/i18n', () => ({
 }));
 
 vi.mock('../config/unifiedConfig', () => ({
+  // Modules the boot graph reaches for a storage name; the value only has to be a string here.
+  RXDB_SETTINGS_COLLECTION_NAME: 'app_settings',
+  SETTINGS_COLLECTION_NAME: 'app_settings',
   initUnifiedConfig: () => {
     calls.push('initUnifiedConfig:start');
     return new Promise<void>((resolve) => {

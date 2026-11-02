@@ -1,4 +1,4 @@
-// ABOUTME: Tests the backup page over two real in-memory databases: Download writes an archive of both,
+﻿// ABOUTME: Tests the backup page over two real in-memory databases: Download writes an archive of both,
 // ABOUTME: encrypted by default in production; Restore refuses a foreign file and replaces data on confirm.
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { webcrypto } from 'node:crypto';
@@ -66,7 +66,7 @@ vi.mock('@/data/backup/safetyStore', () => ({
 }));
 
 // Replacing the app's root is the screen's own business; here it is asserted as requested.
-vi.mock('@/modules/settings/components/RestoreRecoveryScreen', () => ({
+vi.mock('@/components/RestoreRecoveryScreen', () => ({
   showRestoreRecoveryScreen: mocks.showRestoreRecoveryScreen,
 }));
 

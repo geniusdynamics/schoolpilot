@@ -1,4 +1,4 @@
-// ABOUTME: Settings › System › Backup: downloads the school's two SQLite databases as one archive
+﻿// ABOUTME: Settings â€º System â€º Backup: downloads the school's two SQLite databases as one archive
 // ABOUTME: (encrypted by default in production) and restores one from a file into this browser.
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -32,7 +32,7 @@ import {
 } from '@/data/backup/browserEnvironment';
 import { opfsSafetyCopies, type SafetyCopy } from '@/data/backup/safetyStore';
 import { rememberRestoreNotice } from '@/data/backup/restoreNotice';
-import { showRestoreRecoveryScreen } from '@/modules/settings/components/RestoreRecoveryScreen';
+import { showRestoreRecoveryScreen } from '@/components/RestoreRecoveryScreen';
 import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/auth/authService';
 import { logger } from '@/utils/logging';
@@ -409,7 +409,7 @@ const SafetyCopiesSection: React.FC<{ copies: SafetyCopy[]; onChanged: () => voi
               <span>
                 {copy.name}
                 <span className="ml-2 text-surface-muted-fg">
-                  {formatSize(copy.bytes)} · {new Date(copy.modified).toLocaleString()}
+                  {formatSize(copy.bytes)} Â· {new Date(copy.modified).toLocaleString()}
                 </span>
               </span>
               <span className="flex gap-1">
