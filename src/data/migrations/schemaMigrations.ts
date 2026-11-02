@@ -1,7 +1,11 @@
-// ABOUTME: The registry of module schema migrations: the three module schemas turned into numbered
+// ABOUTME: The registry of module schema migrations: every module's own tables turned into numbered
 // ABOUTME: migrations that declare the module's own DDL, so the tables have one source of truth.
 
+import { COLLECTIONS_DDL } from '@/domain/finance/collections/store';
 import { LEDGER_DDL } from '@/domain/finance/ledger/store';
+import { PROVIDER_EVENT_DDL } from '@/domain/finance/payments/providers/store';
+import { PROVIDER_SUSPENSE_DDL } from '@/domain/finance/payments/providers/suspense';
+import { CASHIER_DDL } from '@/domain/finance/payments/session';
 import { RECONCILIATION_DDL } from '@/domain/finance/reconciliation/store';
 import { SUBSCRIPTION_DDL } from '@/domain/finance/subscriptions/store';
 import { SEQUENCE_DDL } from '@/domain/sequences/store';
@@ -104,6 +108,38 @@ export const subscriptionsSchemaMigration: ModuleSchemaMigration = moduleSchemaM
   ddl: SUBSCRIPTION_DDL,
 });
 
+/** The cashier: the sessions a cashier opens and closes, and the payments taken in each. */
+export const cashierSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 104,
+  module: 'cashier',
+  name: 'cashier sessions and the payments attached to each',
+  ddl: CASHIER_DDL,
+});
+
+/** The payment providers: every provider notification received, kept once by its key. */
+export const providerEventsSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 105,
+  module: 'payment providers',
+  name: 'payment provider events, unique by key and by receipt',
+  ddl: PROVIDER_EVENT_DDL,
+});
+
+/** The payment providers: the money that arrived without a learner to match it to. */
+export const providerSuspenseSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 106,
+  module: 'payment providers',
+  name: 'payment provider suspense: unmatched money, unique by transaction',
+  ddl: PROVIDER_SUSPENSE_DDL,
+});
+
+/** Collections: reminder schedules, opt-outs, promises to pay, pay links and the attempts made. */
+export const collectionsSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 107,
+  module: 'collections',
+  name: 'collections: reminder schedules, opt-outs, promises, pay links and attempts',
+  ddl: COLLECTIONS_DDL,
+});
+
 /**
  * The module schema migrations this build applies at startup, in version order.
  *
@@ -115,6 +151,10 @@ export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   ledgerSchemaMigration,
   reconciliationSchemaMigration,
   subscriptionsSchemaMigration,
+  cashierSchemaMigration,
+  providerEventsSchemaMigration,
+  providerSuspenseSchemaMigration,
+  collectionsSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */

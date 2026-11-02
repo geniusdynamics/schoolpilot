@@ -1,6 +1,10 @@
 // ABOUTME: The schema migration suite: the module schemas applied to a real SQLite database from
 // ABOUTME: a fresh one, over an existing one, rolled back, failed part-way and composed with the data ledger.
 
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
 import { createNodeSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
 import { ensureLedgerSchema } from '@/domain/finance/ledger/store';
 import { ensureSequenceSchema } from '@/domain/sequences/store';
@@ -40,6 +44,23 @@ interface CounterRow {
 interface SchoolRow {
   readonly id: string;
   readonly name: string;
+}
+
+const SOURCE_ROOT = resolve(__dirname, '../../..');
+
+/** Every `export const NAME_DDL` in the source tree outside the tests, with the file it is in. */
+function declaredDdlConstants(): Array<{ readonly file: string; readonly name: string }> {
+  const found: Array<{ file: string; name: string }> = [];
+  const files = readdirSync(SOURCE_ROOT, { recursive: true, encoding: 'utf8' }).filter(
+    (path) => /\.tsx?$/.test(path) && !/__tests__|\.test\./.test(path)
+  );
+  for (const path of files) {
+    const file = join(SOURCE_ROOT, path);
+    for (const match of readFileSync(file, 'utf8').matchAll(/export const (\w+_DDL)\b/g)) {
+      found.push({ file, name: match[1] });
+    }
+  }
+  return found;
 }
 
 async function openAdapter(): Promise<SqliteAdapter> {
@@ -113,9 +134,9 @@ describe('the module schema migrations', () => {
     const result = await applySchemaMigrations(adapter);
 
     expect(result.status).toBe('completed');
-    expect(result.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
+    expect(result.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107]);
     expect(result.skipped).toEqual([]);
-    expect(result.version).toBe(103);
+    expect(result.version).toBe(107);
 
     const objects = await objectKeys(adapter);
     for (const key of moduleObjectKeys()) {
@@ -142,12 +163,16 @@ describe('the module schema migrations', () => {
     ).rejects.toThrow(/immutable/);
 
     const version = await readSchemaVersion(adapter);
-    expect(version).toMatchObject({ current: 103, latest: 103, complete: true });
+    expect(version).toMatchObject({ current: 107, latest: 107, complete: true });
     expect(version.applied.map((entry) => [entry.version, entry.module])).toEqual([
       [100, 'sequences'],
       [101, 'ledger'],
       [102, 'reconciliation'],
       [103, 'subscriptions'],
+      [104, 'cashier'],
+      [105, 'payment providers'],
+      [106, 'payment providers'],
+      [107, 'collections'],
     ]);
     expect(version.pending).toEqual([]);
   });
@@ -161,8 +186,8 @@ describe('the module schema migrations', () => {
 
     expect(second.status).toBe('noop');
     expect(second.applied).toEqual([]);
-    expect(second.skipped.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
-    expect(second.version).toBe(103);
+    expect(second.skipped.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107]);
+    expect(second.version).toBe(107);
     // Same rows, same timestamps: the ledger is the record of a single application.
     expect(await readApplied(adapter)).toEqual(recorded);
   });
@@ -197,7 +222,7 @@ describe('the module schema migrations', () => {
     const rolled = await rollbackSchemaMigrations(adapter);
 
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([107, 106, 105, 104, 103, 102, 101, 100]);
 
     const objects = await objectKeys(adapter);
     for (const key of moduleObjectKeys()) {
@@ -210,7 +235,7 @@ describe('the module schema migrations', () => {
     const version = await readSchemaVersion(adapter);
     expect(version).toMatchObject({ current: 0, complete: false });
     expect(version.applied).toEqual([]);
-    expect(version.pending.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
+    expect(version.pending.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107]);
     expect(await readApplied(adapter)).toEqual([]);
   });
 
@@ -228,11 +253,11 @@ describe('the module schema migrations', () => {
     // database written by a newer build.
     const applied = await applySchemaMigrations(adapter);
     expect(applied.status).toBe('completed');
-    expect(applied.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
+    expect(applied.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107]);
 
     const rolled = await rollbackSchemaMigrations(adapter);
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([107, 106, 105, 104, 103, 102, 101, 100]);
 
     // The data migration keeps its ledger row and its table: the two bands compose.
     expect((await readApplied(adapter)).map((entry) => entry.version)).toEqual([2]);
@@ -282,7 +307,7 @@ describe('the module schema migrations', () => {
 
     const rolled = await rollbackSchemaMigrations(adapter);
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([107, 106, 105, 104, 103, 102, 101, 100]);
     const after = await objectKeys(adapter);
     for (const object of reconciliation?.objects ?? []) {
       expect(after.has(`${object.kind}:${object.name}`), `${object.name} should be gone`).toBe(false);
@@ -305,7 +330,7 @@ describe('the module schema migrations', () => {
     const enforcedRolled = await rollbackSchemaMigrations(enforced);
 
     expect(enforcedRolled.status).toBe('completed');
-    expect(enforcedRolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
+    expect(enforcedRolled.undone.map((entry) => entry.version)).toEqual([107, 106, 105, 104, 103, 102, 101, 100]);
     expect((await objectKeys(enforced)).has('table:reconciliation_statement')).toBe(false);
     await enforced.close();
   });
@@ -345,7 +370,7 @@ describe('the module schema migrations', () => {
 
     const rolled = await rollbackSchemaMigrations(adapter);
     expect(rolled.status).toBe('completed');
-    expect(rolled.undone.map((entry) => entry.version)).toEqual([103, 102, 101, 100]);
+    expect(rolled.undone.map((entry) => entry.version)).toEqual([107, 106, 105, 104, 103, 102, 101, 100]);
     const after = await objectKeys(adapter);
     for (const object of subscriptions?.objects ?? []) {
       expect(after.has(`${object.kind}:${object.name}`), `${object.name} should be gone`).toBe(false);
@@ -365,7 +390,7 @@ describe('the module schema migrations', () => {
   it('leaves no table behind when a migration fails part-way', async () => {
     const adapter = await openAdapter();
     const failing: Migration = {
-      version: 104,
+      version: 199,
       name: 'a migration that creates a table and then fails',
       // The second statement fails on a table the first one created: the failure happens inside
       // the migration's transaction, after real DDL has run.
@@ -388,15 +413,15 @@ describe('the module schema migrations', () => {
     }
 
     expect(failure).toBeInstanceOf(MigrationError);
-    expect((failure as MigrationError).message).toMatch(/104/);
+    expect((failure as MigrationError).message).toMatch(/199/);
     expect((failure as MigrationError).code).toBe('migration_failed');
 
     // SQLite's DDL is transactional: the table the first statement created is gone.
     expect((await objectKeys(adapter)).has('table:half_applied')).toBe(false);
     // The ledger keeps the position it reached: the successful migrations stay, the failed one
     // is not recorded, and the start-up path retries it next time.
-    expect((await readApplied(adapter)).map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
-    expect((await readSchemaVersion(adapter)).current).toBe(103);
+    expect((await readApplied(adapter)).map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107]);
+    expect((await readSchemaVersion(adapter)).current).toBe(107);
   });
 });
 
@@ -459,17 +484,37 @@ describe('the schema registry', () => {
     expect(versions).toEqual([...LEGACY_DATA_MIGRATION_VERSIONS]);
   });
 
+  it('registers every module DDL the code declares, so no table is created outside the ledger', async () => {
+    // A module table applied only by its own `ensure...Schema` gets no ledger row, no checksum and
+    // no down: a later change to its DDL would be skipped by IF NOT EXISTS without a word. Every
+    // exported `*_DDL` constant must therefore be a registered migration's statements.
+    // AUDIT_DDL is the repository's own: `Repository.setup()` applies it beside the canonical tables.
+    const ownedByRepository = new Set(['AUDIT_DDL']);
+    const registered = new Set(SCHEMA_MIGRATIONS.flatMap((migration) => migration.statements ?? []));
+
+    const unregistered: string[] = [];
+    for (const { file, name } of declaredDdlConstants()) {
+      if (ownedByRepository.has(name)) continue;
+      const module = (await import(/* @vite-ignore */ pathToFileURL(file).href)) as Record<string, unknown>;
+      const ddl = module[name] as readonly string[];
+      if (!ddl.every((statement) => registered.has(statement))) {
+        unregistered.push(`${name} (${relative(SOURCE_ROOT, file)})`);
+      }
+    }
+    expect(unregistered).toEqual([]);
+  });
+
   it('starts with every module schema pending', async () => {
     const adapter = await openAdapter();
     const runner = createSchemaMigrationRunner(adapter);
     const status = await runner.status();
     expect(status.total).toBe(SCHEMA_MIGRATIONS.length);
-    expect(status.remaining.map((entry) => entry.version)).toEqual([100, 101, 102, 103]);
+    expect(status.remaining.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107]);
   });
 
   it('knows every version this build ships, in either band', () => {
-    // 103 must be known for the same reason 100-102 must: the startup runner refuses a ledger
-    // row it has never heard of as a database written by a newer build.
-    expect(KNOWN_MIGRATION_VERSIONS).toEqual([1, 2, 3, 4, 5, 100, 101, 102, 103]);
+    // Every schema version must be known: the startup runner refuses a ledger row it has never
+    // heard of as a database written by a newer build.
+    expect(KNOWN_MIGRATION_VERSIONS).toEqual([1, 2, 3, 4, 5, 100, 101, 102, 103, 104, 105, 106, 107]);
   });
 });
