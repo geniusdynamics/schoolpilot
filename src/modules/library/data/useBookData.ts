@@ -25,7 +25,8 @@ export const useBookData = () => {
         setIsLoading(true);
         setError(null);
         const db = await getDatabase();
-        subscription = db.collections.books.find().$.subscribe(books => {
+        // The provider's collections expose a live `subscribe()` observable, not RxDB's `find().$`.
+        subscription = db.collections.books.subscribe().subscribe(books => {
           if (books) {
             setData(books.map(normalizeBook));
           }

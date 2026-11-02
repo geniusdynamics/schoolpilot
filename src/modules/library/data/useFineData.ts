@@ -18,7 +18,8 @@ const useFineData = () => {
         setIsLoading(true);
         setError(null);
         const db = await getDatabase();
-        subscription = db.collections.fines.find().$.subscribe(fines => {
+        // The provider's collections expose a live `subscribe()` observable, not RxDB's `find().$`.
+        subscription = db.collections.fines.subscribe().subscribe(fines => {
           if (fines) {
             setData(fines);
           }

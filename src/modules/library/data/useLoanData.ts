@@ -1,7 +1,7 @@
 // ABOUTME: Self-contained hook for loan data management
 // ABOUTME: Provides CRUD operations for loan without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { getDatabase } from '@/services/database/databaseService';
 import { LibLoanType } from './types';
 import { useToast } from '@/hooks/useToast';
@@ -12,7 +12,7 @@ const useLoanData = () => {
   const [error, setError] = useState<Error | null>(null);
   const { showToast } = useToast();
 
-  const notifyOverdueLoans = (loans: LibLoanType[]) => {
+  const notifyOverdueLoans = useCallback((loans: LibLoanType[]) => {
     const today = new Date().toISOString().split('T')[0];
     loans.forEach(loan => {
       if (!loan.return_date && loan.due_date < today) {
@@ -23,30 +23,31 @@ const useLoanData = () => {
         });
       }
     });
-  };
+  }, [showToast]);
 
   useEffect(() => {
     let subscription: any = null;
-    
+
     const initializeData = async () => {
       try {
         setIsLoading(true);
         setError(null);
         const db = await getDatabase();
-        subscription = db.collections.loans.find().$.subscribe(loans => {
+        // The provider's collections expose a live `subscribe()` observable, not RxDB's `find().$`.
+        subscription = db.collections.loans.subscribe().subscribe(loans => {
           if (loans) {
             setData(loans);
             notifyOverdueLoans(loans);
           }
           setIsLoading(false);
         });
- 
+
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to initialize database'));
         setIsLoading(false);
       }
     };
-    
+
     initializeData();
 
     return () => {
@@ -54,7 +55,7 @@ const useLoanData = () => {
         subscription.unsubscribe();
       }
     };
-  }, [showToast]);
+  }, [notifyOverdueLoans]);
 
   const create = async (newItem: Partial<LibLoanType>) => {
     try {
