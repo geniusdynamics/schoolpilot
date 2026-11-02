@@ -60,7 +60,8 @@ describe('writeZip / readZip', () => {
     } finally {
       fs.rmSync(directory, { recursive: true, force: true });
     }
-  });
+    // A cold PowerShell takes ~15 s on its own and far longer beside a full suite.
+  }, 180_000);
 
   it('refuses an entry whose bytes no longer match its checksum', () => {
     const archive = writeZip(entries, modified);
