@@ -6,7 +6,9 @@ export type SqliteAdapterErrorCode =
   | 'driver'
   | 'constraint'
   | 'nested_transaction'
-  | 'transaction';
+  | 'transaction'
+  /** The database was replaced by an import; writes wait for the app to reload. */
+  | 'replaced';
 
 export type SqliteConstraintKind =
   | 'unique'

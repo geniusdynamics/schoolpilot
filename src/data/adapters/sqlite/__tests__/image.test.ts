@@ -54,6 +54,36 @@ describe.each(driverCases)('whole-database image ($name)', ({ create }) => {
     }
   });
 
+  it('refuses every write after an import, while reads and a further import still work', async () => {
+    const source = await create();
+    const target = await create();
+    try {
+      await seed(source);
+      const image = await source.exportDatabase();
+      await target.importDatabase(image);
+
+      const refusals = [
+        target.run('INSERT INTO note (id, body) VALUES (?, ?)', [testId(3), 'from the old page state']),
+        target.exec("UPDATE note SET body = 'stale'"),
+        target.transaction(async (tx) => {
+          await tx.run('DELETE FROM note');
+        }),
+        target.applySchema([]),
+      ];
+      for (const refused of refusals) {
+        await expect(refused).rejects.toMatchObject({ code: 'replaced' });
+      }
+      expect(await target.all('SELECT id FROM note ORDER BY id')).toHaveLength(2);
+
+      // A failed restore imports the old database back through the same call.
+      await target.importDatabase(image);
+      expect(await target.get<{ total: number }>('SELECT count(*) AS total FROM note')).toEqual({ total: 2 });
+    } finally {
+      await source.close();
+      await target.close();
+    }
+  });
+
   it('refuses bytes that are not a database and keeps the current one', async () => {
     const adapter = await create();
     try {
@@ -83,11 +113,15 @@ describe('node driver on a database file', () => {
       await target.importDatabase(await source.exportDatabase());
       expect(await target.all('SELECT id FROM note')).toHaveLength(2);
       await target.close();
+      // Opening again is a fresh start on the imported file: writes are accepted.
+      await target.open();
+      await target.run('INSERT INTO note (id, body) VALUES (?, ?)', [testId(9), 'after a reload']);
+      await target.close();
 
       // The file on disk is the imported database, not just the open connection.
       const reopened = createNodeSqliteAdapter({ filename });
       await reopened.open();
-      expect(await reopened.all('SELECT id FROM note')).toHaveLength(2);
+      expect(await reopened.all('SELECT id FROM note')).toHaveLength(3);
       expect(await ledger(reopened)).toEqual(await ledger(source));
       await reopened.close();
       expect(fs.existsSync(`${filename}.import`)).toBe(false);

@@ -81,6 +81,12 @@ function normalizeRow(row: unknown): SqliteRow {
 class CoreSqliteAdapter implements SqliteAdapter {
   readonly driverName: SqliteDriver['name'];
   private state: 'closed' | 'open' = 'closed';
+  /**
+   * Set once an import has replaced (or may have replaced) the database. Everything the app
+   * read before belongs to the old data, so writes are refused until the adapter is opened
+   * again - in the app, by the reload that follows a restore.
+   */
+  private replaced = false;
   private inTransaction = false;
   private tail: Promise<void> = Promise.resolve();
 
@@ -117,6 +123,7 @@ class CoreSqliteAdapter implements SqliteAdapter {
         await this.driver.open();
         await this.configureConnection();
         this.state = 'open';
+        this.replaced = false;
       } catch (error) {
         await this.driver.close().catch(() => undefined);
         throw adapterError(error);
@@ -237,6 +244,8 @@ class CoreSqliteAdapter implements SqliteAdapter {
     }
     return this.enqueue(async () => {
       this.assertOpen();
+      // Set before the driver runs: a failed import may still have replaced the file.
+      this.replaced = true;
       try {
         await this.driver.importDatabase(bytes);
       } catch (error) {
@@ -297,8 +306,18 @@ class CoreSqliteAdapter implements SqliteAdapter {
     );
   }
 
+  private assertWritable(): void {
+    if (this.replaced) {
+      throw new SqliteAdapterError(
+        'The database was replaced by a restore; reload SchoolPilot before changing anything',
+        { code: 'replaced' }
+      );
+    }
+  }
+
   private async execDirect(sql: string): Promise<void> {
     this.assertOpen();
+    this.assertWritable();
     try {
       await this.driver.exec(sql);
     } catch (error) {
@@ -337,6 +356,7 @@ class CoreSqliteAdapter implements SqliteAdapter {
     params?: readonly SqliteBindValue[]
   ): Promise<SqliteRunResult> {
     this.assertOpen();
+    this.assertWritable();
     try {
       return await this.driver.run(sql, normalizeParams(params));
     } catch (error) {
