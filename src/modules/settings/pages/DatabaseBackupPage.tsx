@@ -1,4 +1,4 @@
-﻿// ABOUTME: Settings â€º System â€º Backup: downloads the school's two SQLite databases as one archive
+﻿// ABOUTME: Settings → System → Backup: downloads the school's two SQLite databases as one archive
 // ABOUTME: (encrypted by default in production) and restores one from a file into this browser.
 
 import React, { useCallback, useEffect, useState } from 'react';
