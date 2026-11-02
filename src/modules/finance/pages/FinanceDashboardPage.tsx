@@ -263,7 +263,17 @@ export const FinanceDashboardPageContent: React.FC = () => {
 
   // The derived rows sum invoices and allocations; until every read has produced its first data,
   // every invoice would look unpaid and the collection rate would read 0%. Show the wait, not a
-  // wrong total.
+  // wrong total. A first read that failed says so instead of spinning forever.
+  if (!finance.ready && finance.status === 'error') {
+    return (
+      <Card title="Finance dashboard">
+        <p role="alert" className="text-sm font-medium text-red-600" data-testid="finance-dashboard-error">
+          The finance documents could not be read. Refresh to try again.
+        </p>
+      </Card>
+    );
+  }
+
   if (!finance.ready) {
     return (
       <Card title="Finance dashboard">

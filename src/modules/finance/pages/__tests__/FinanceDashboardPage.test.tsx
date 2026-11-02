@@ -81,8 +81,15 @@ describe('the finance dashboard', () => {
     expect(screen.queryByText('0%')).not.toBeInTheDocument();
   });
 
-  it('shows the real rate once every read has produced its data', () => {
-    state.finance = finance({
+  it('states a failed first read instead of spinning forever', () => {
+    state.finance = finance({ status: 'error', ready: false });
+    renderPage();
+
+    expect(screen.getByTestId('finance-dashboard-error')).toHaveTextContent(/could not be read/);
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+  });
+
+  it('shows the real rate once every read has produced its data', () => {    state.finance = finance({
       invoiceRows: [
         {
           id: 'invoice-1',
