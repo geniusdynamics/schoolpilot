@@ -20,7 +20,7 @@ ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     PUPPETEER_SKIP_DOWNLOAD=1 \
     CI=1
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.12.4 --activate
 WORKDIR /app
 
 # The manifest and lockfile first, so a source-only change reuses the dependency layer.

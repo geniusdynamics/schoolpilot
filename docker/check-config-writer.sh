@@ -6,9 +6,10 @@ cd "$(dirname "$0")/.."
 OUT=docker/.config-check.js
 trap 'rm -f "$OUT"' EXIT
 
+# The app version carries a quote and a backslash: the same escaping path the DSN takes, without a
+# credential-shaped value in the repository for the secret scan to refuse.
 SCHOOLPILOT_DEPLOYMENT_MODE=demo \
 SCHOOLPILOT_ALLOW_TEMPORARY_DB=true \
-SCHOOLPILOT_BUGSINK_DSN='https://key@example.test/1' \
 SCHOOLPILOT_APP_VERSION='2.0.0 "quoted" \back' \
   sh docker/web-entrypoint.sh
 cp /tmp/schoolpilot/config.js "$OUT"
