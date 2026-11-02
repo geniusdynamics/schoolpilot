@@ -639,4 +639,51 @@ describe('DataGrid', () => {
       expect(screen.getByRole('table')).toHaveStyle({ 'table-layout': 'fixed' });
     });
   });
+
+  describe('action column', () => {
+    interface ActionRow {
+      id: number;
+      name: string;
+    }
+
+    const actionColumns: DataGridColumn<ActionRow>[] = [
+      { key: 'name', header: 'Name' },
+      {
+        key: 'actions',
+        header: 'Actions',
+        sortable: false,
+        filterable: false,
+        render: () => (
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 6 }, (_, index) => (
+              <button key={index} type="button">
+                Action {index + 1}
+              </button>
+            ))}
+          </div>
+        )
+      }
+    ];
+
+    // jsdom has no layout, so the guarantee is structural: the actions cell is allowed to wrap
+    // and its content is a wrapping flex row, which is what stops six buttons widening the table.
+    it('lets a row of six actions wrap inside its cell instead of widening the table', () => {
+      render(<DataGrid columns={actionColumns} data={[{ id: 1, name: 'Row' }]} />);
+
+      const cell = screen.getByText('Action 1').closest('td');
+      expect(cell).not.toBeNull();
+      expect(cell!.className).toContain('whitespace-normal');
+      expect(cell!.className).toContain('[&>*]:flex-wrap');
+      expect(cell!.className).not.toContain('whitespace-nowrap');
+      expect(screen.getByText('Action 6').closest('td')).toBe(cell);
+    });
+
+    it('keeps an ordinary cell on one line', () => {
+      render(<DataGrid columns={actionColumns} data={[{ id: 1, name: 'Row' }]} />);
+
+      const cell = screen.getByText('Row').closest('td');
+      expect(cell!.className).toContain('whitespace-nowrap');
+      expect(cell!.className).not.toContain('[&>*]:flex-wrap');
+    });
+  });
 });
