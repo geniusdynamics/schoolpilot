@@ -26,6 +26,10 @@
     "compulsoryLabel": "Ni Somo la Lazima",
     "deleteConfirm": "Una uhakika unataka kufuta somo hili?"
   },
+  "subjectPapers": {
+    "subject": "Somo",
+    "paperName": "Jina"
+  },
   "curriculum": "Curriculum",
   "grades": "Grades",
   "attendance": "Attendance",

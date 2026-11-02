@@ -26,6 +26,10 @@
     "compulsoryLabel": "Matière Obligatoire",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette matière ?"
   },
+  "subjectPapers": {
+    "subject": "Matière",
+    "paperName": "Nom"
+  },
   "curriculum": "Programme d'études",
   "grades": "Notes",
   "attendance": "Présence",

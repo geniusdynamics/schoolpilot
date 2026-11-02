@@ -26,6 +26,10 @@
     "compulsoryLabel": "Is Compulsory Subject",
     "deleteConfirm": "Are you sure you want to delete this subject?"
   },
+  "subjectPapers": {
+    "subject": "Subject",
+    "paperName": "Name"
+  },
   "curriculum": "Curriculum",
   "grades": "Grades",
   "attendance": "Attendance",

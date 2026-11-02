@@ -26,6 +26,10 @@
     "compulsoryLabel": "Ni Isomo Ritegetswe",
     "deleteConfirm": "Uzi neza ko ushaka gusiba iri somo?"
   },
+  "subjectPapers": {
+    "subject": "Isomo",
+    "paperName": "Izina"
+  },
   "curriculum": "Curriculum",
   "grades": "Grades",
   "attendance": "Attendance",
