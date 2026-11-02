@@ -331,7 +331,12 @@ export async function chooseFromPicker(
   // option that far down is flaky. The combobox owns the active option, so drive it from the
   // keyboard — the same path a keyboard user takes — and let the trigger select it.
   await expect(listbox.getByRole('option').first()).toBeVisible({ timeout: UI_TIMEOUT });
-  const choice = listbox.getByRole('option', { name: optionPattern(option) });
+  // An option that reads exactly as the journey names it wins, so a school with several "North"
+  // classes is never handed the wrong one; only when no bare name is offered does the qualified
+  // label answer for it.
+  const exact = listbox.getByRole('option', { name: option, exact: true });
+  const qualified = listbox.getByRole('option', { name: optionPattern(option) });
+  const choice = (await exact.count()) > 0 ? exact : qualified;
   // Let the lookup settle: an opened picker can show stale options while its query refreshes.
   await expect(choice.first()).toBeVisible({ timeout: UI_TIMEOUT });
   // The option can be scrolled out of the popover or mid-animation, and the lookup can refresh
