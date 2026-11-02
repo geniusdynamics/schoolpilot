@@ -10,6 +10,9 @@ import type { QueryRepository } from '@/data/query';
 
 import Spinner from '@/components/ui/Spinner';
 
+/** The canonical database's file name (without `.sqlite3`) in the browser's OPFS pool. */
+export const CANONICAL_DB_NAME = 'schoolpilot-canonical';
+
 /** The name of the global slot every module shares the one canonical repository under. */
 const REPOSITORY_SLOT = '__schoolpilotCanonicalRepository';
 
@@ -61,7 +64,7 @@ export async function openCanonicalRepository(): Promise<QueryRepository> {
   if (shared.repository) return shared.repository;
   shared.opening ??= (async () => {
     const adapter = supportsOpfs()
-      ? createWasmSqliteAdapter({ dbName: 'schoolpilot-canonical', foreignKeys: true })
+      ? createWasmSqliteAdapter({ dbName: CANONICAL_DB_NAME, foreignKeys: true })
       : createNodeSqliteAdapter({ filename: ':memory:', foreignKeys: true });
     await adapter.open();
     try {

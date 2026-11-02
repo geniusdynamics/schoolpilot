@@ -15,6 +15,10 @@ import { initializeTheme } from './hooks/useTheme';
 import { performanceEventManager } from './services/performance/performanceEventManager';
 import { logger } from './utils/logging';
 import { initializeDevTools } from './utils/devTools';
+import { holdAppTabLock } from './data/backup/tabLock';
+
+// Every open tab registers itself, so a backup restore can tell whether it is the only one.
+holdAppTabLock();
 
 // Apply the theme before first paint. While dark mode is disabled
 // (DARK_MODE_ENABLED=false in hooks/useTheme) this forces light mode, drops any
