@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { CollectionSchema, ICollection, IDatabaseProvider } from '../interfaces';
+import type { ICollection, IDatabaseProvider } from '../interfaces';
 import { hasRequiredSchoolData, seedProviderWithDemoData } from '../demoDataSeed';
 
 class MemoryCollection<T extends { id?: string }> implements ICollection<T> {
@@ -64,7 +64,7 @@ class MemoryProvider implements IDatabaseProvider {
   getNetworkConfiguration() { return {} as any; }
   async syncToRemote() {}
   async syncFromRemote() {}
-  async createCollection(name: string, _schema: CollectionSchema) {
+  async createCollection(name: string) {
     const collection = new MemoryCollection(name);
     this.collections.set(name, collection);
     return collection;
@@ -110,6 +110,32 @@ describe('demoDataSeed', () => {
     expect(stats.tablesGenerated).toContain('classes');
     expect(stats.tablesGenerated).toContain('class_streams');
     expect(await hasRequiredSchoolData(provider)).toBe(true);
+  });
+
+  it('seeds the system workflows a fresh school would otherwise not see', async () => {
+    // The memory double predates the interface's stricter signatures; the seed only reads it.
+    const asProvider = provider as unknown as Parameters<typeof seedProviderWithDemoData>[0];
+    await seedProviderWithDemoData(asProvider, {
+      modules: ['administration', 'academics'],
+      volume: 'small',
+      clearExisting: true
+    });
+
+    const workflows = await provider.getCollection('workflows')!.find();
+    // The code catalogue's system workflows, one row each, with their states inline: what
+    // Settings -> Workflows lists. A fresh school used to hold none and read as workflowless.
+    expect(workflows.length).toBeGreaterThanOrEqual(7);
+    const marks = workflows.find((workflow: any) => workflow.id === 'academics.marks_lifecycle');
+    expect(marks?.name).toBe('Marks lifecycle');
+    expect(marks?.states.map((state: any) => state.name)).toEqual([
+      'Open', 'Submitted', 'Moderated', 'Locked', 'Published',
+    ]);
+    expect(marks?.states[2]).toMatchObject({ sequence_order: 2, workflow_id: 'academics.marks_lifecycle' });
+
+    // A second run reuses what it finds: the catalogue rows are not duplicated.
+    await seedProviderWithDemoData(provider, { modules: ['administration'], volume: 'small' });
+    const after = await provider.getCollection('workflows')!.find();
+    expect(after.length).toBe(workflows.length);
   });
 
   it('falls back to per-record deletion when removeMany partially clears and then reports missing docs', async () => {
