@@ -17,6 +17,15 @@ const MARK_STATUS_OPTIONS: readonly MarkStatus[] = [
   'malpractice',
 ];
 
+/** The stored enum is lower case; a teacher reads a label. */
+const MARK_STATUS_LABELS: Readonly<Record<MarkStatus, string>> = {
+  present: 'Present',
+  absent: 'Absent',
+  exempt: 'Exempt',
+  incomplete: 'Incomplete',
+  malpractice: 'Malpractice',
+};
+
 const BADGE_VARIANT: Readonly<Record<CellStatus['tone'], 'secondary' | 'success' | 'warning' | 'danger' | 'info'>> = {
   neutral: 'secondary',
   success: 'success',
@@ -207,7 +216,7 @@ export const MarkEntryGrid: React.FC<MarkEntryGridProps> = ({
                           >
                             {MARK_STATUS_OPTIONS.map((option) => (
                               <option key={option} value={option}>
-                                {option}
+                                {MARK_STATUS_LABELS[option]}
                               </option>
                             ))}
                           </select>
