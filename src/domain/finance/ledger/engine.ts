@@ -13,11 +13,13 @@ import { createJournalEntry, isIsoDay, reverseJournalEntry } from './entry';
 import { LedgerError } from './errors';
 import {
   creditNoteEntry,
+  expenseEntry,
   invoiceEntry,
   openingBalanceEntry,
   paymentEntry,
   refundEntry,
   type CreditNotePostingInput,
+  type ExpensePostingInput,
   type InvoicePostingInput,
   type OpeningBalancePostingInput,
   type PaymentPostingInput,
@@ -243,6 +245,12 @@ export class LedgerService {
   async postOpeningBalance(input: OpeningBalancePostingInput): Promise<JournalEntry> {
     assertCan('payment', 'post', 'payment.receipt');
     return this.post(openingBalanceEntry(input, this.chart, this.postingOptions(input.postedBy)));
+  }
+
+  /** Posts the entry of a recorded expense: the expense account against the account it was paid from. */
+  async postExpense(input: ExpensePostingInput): Promise<JournalEntry> {
+    assertCan('expense', 'post', 'finance.write');
+    return this.post(expenseEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
   /** One entry, or null. */

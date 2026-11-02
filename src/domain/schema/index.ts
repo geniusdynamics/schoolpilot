@@ -54,6 +54,7 @@ import {
 import {
   creditNoteEntity,
   discountRuleEntity,
+  expenseEntity,
   feeCategoryEntity,
   feeItemEntity,
   feeScheduleEntity,
@@ -201,6 +202,7 @@ export const entityDefinitions = {
   payment_allocation: paymentAllocationEntity,
   receipt: receiptEntity,
   refund: refundEntity,
+  expense: expenseEntity,
 } as const satisfies Record<string, EntityDefinition>;
 
 export type EntityName = keyof typeof entityDefinitions;

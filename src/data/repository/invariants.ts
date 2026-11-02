@@ -433,6 +433,25 @@ const FROZEN_AFTER_POSTING: Partial<
     statuses: ['approved', 'paid', 'rejected'],
     fields: ['number', 'amount', 'requested_at', 'payment_id', 'learner_id', 'reason'],
   },
+  expense: {
+    // A recorded expense is corrected by a reversal: its material fields never change, and
+    // only the reversal's own columns (entry, reason, date, actor) may be written after it.
+    // A draft exists only inside the recording transaction, before the posting writes it.
+    statuses: ['posted', 'reversed'],
+    fields: [
+      'reference',
+      'expense_date',
+      'payee',
+      'category',
+      'description',
+      'amount',
+      'channel',
+      'expense_account_code',
+      'payment_account_code',
+      'idempotency_key',
+      'journal_entry_id',
+    ],
+  },
 };
 
 /**

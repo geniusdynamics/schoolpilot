@@ -45,6 +45,7 @@ const SOURCE_KINDS: readonly SourceDocumentKind[] = [
   'refund',
   'credit_note',
   'opening_balance',
+  'expense',
 ];
 
 /**
@@ -333,6 +334,17 @@ export async function ensureLedgerSchema(adapter: SqliteAdapter): Promise<void> 
 /** Builds the SQLite store over an open adapter. */
 export function createSqliteLedgerStore(adapter: SqliteAdapter): LedgerStore {
   return new SqliteLedgerStore(adapter, adapter);
+}
+
+/**
+ * Builds a store over a transaction another service already opened.
+ *
+ * The store cannot open a second transaction of its own: a caller that joins the transaction
+ * builds its `LedgerService` with `bound: true`, so every statement runs inside the transaction
+ * the caller commits or rolls back.
+ */
+export function createTransactionLedgerStore(tx: SqliteTransaction): LedgerStore {
+  return new SqliteLedgerStore(tx, null);
 }
 
 /**
