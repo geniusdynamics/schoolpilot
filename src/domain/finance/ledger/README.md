@@ -204,7 +204,10 @@ The three partial unique indexes are the invariants in the database:
 - **The refund debit account is a policy, not a fact.** A refund debits refunds payable (2100) and
   credits the payout channel. A deposit refund that should instead release a deposit liability, or
   one that releases learner credit, needs a policy the spec does not state; the account is
-  configurable through the chart when that lands.
+  configurable through the chart when that lands. The known gap - a paid refund leaves the learner's
+  credit on the statement - and the planned shape (a caller-stated release account, chosen per learner
+  from where the credit sits) are recorded in `docs/audits/setup-and-demo-defaults-2026-11-01.md`,
+  finding 3.
 - **The commit sequence of an audit row is `MAX(commit_sequence) + 1`** over `audit_event`, taken
   inside the posting's transaction. The repository allocates its own sequence from the same table's
   maximum, so the two writers agree on the next number as long as they do not write concurrently;
