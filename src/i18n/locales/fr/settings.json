@@ -468,5 +468,72 @@
     "noConflicts": "No Conflicts",
     "allClear": "All Clear!",
     "noConflictsMessage": "There are no sync conflicts that need resolution."
+  },
+  "browserBackup": {
+    "intro": {
+      "title": "Gardez une copie des données de l'école hors de ce navigateur",
+      "body": "SchoolPilot conserve toutes les données de l'école dans le stockage de ce navigateur. Si ce stockage est effacé - réinitialisation du navigateur, nouvel ordinateur, « effacer les données du site » - le fichier de sauvegarde téléchargé ici est la seule copie des données de l'école. Téléchargez-en un régulièrement et conservez-le ailleurs, par exemple sur une clé USB ou un autre ordinateur."
+    },
+    "lastDownload": {
+      "label": "Dernière sauvegarde",
+      "value": "{{fileName}}, téléchargée le {{date}} ({{size}})",
+      "never": "Aucune sauvegarde n'a été téléchargée depuis ce navigateur"
+    },
+    "download": {
+      "title": "Télécharger une sauvegarde",
+      "subtitle": "Un seul fichier avec toutes les données de l'école, à restaurer dans un autre navigateur ou appareil.",
+      "encrypt": "Chiffrer la sauvegarde avec une phrase secrète",
+      "passphraseWarningTitle": "Une phrase secrète oubliée ne peut pas être récupérée",
+      "passphraseWarning": "Sans la phrase secrète, personne ne peut ouvrir cette sauvegarde - ni vous, ni l'assistance SchoolPilot. Notez-la et conservez-la à part du fichier.",
+      "unencryptedWarning": "Cette sauvegarde ne sera pas chiffrée : toute personne qui obtient le fichier peut lire les données de l'école, y compris les informations personnelles des élèves.",
+      "passphrase": "Phrase secrète",
+      "passphraseConfirm": "Répétez la phrase secrète",
+      "passphraseTooShort": "La phrase secrète doit comporter au moins {{count}} caractères.",
+      "passphraseMismatch": "Les deux phrases secrètes ne correspondent pas.",
+      "action": "Télécharger la sauvegarde",
+      "progressTitle": "Création de la sauvegarde",
+      "progress": "Copie des deux bases de données en cours. Gardez cet onglet ouvert ; le téléchargement commence lorsqu'elle est prête.",
+      "done": "Sauvegarde téléchargée : {{fileName}}",
+      "failed": "La sauvegarde n'a pas pu être créée"
+    },
+    "restore": {
+      "title": "Restaurer à partir d’un fichier",
+      "subtitle": "Remplacer toutes les données de ce navigateur par un fichier de sauvegarde.",
+      "file": "Fichier de sauvegarde",
+      "passphrase": "Phrase secrète de la sauvegarde",
+      "check": "Vérifier la sauvegarde",
+      "checking": "Vérification...",
+      "passphraseRequired": "Cette sauvegarde est chiffrée. Saisissez sa phrase secrète pour l’ouvrir.",
+      "failed": "Cette sauvegarde ne peut pas être restaurée",
+      "valid": "La sauvegarde est complète et lisible",
+      "action": "Restaurer cette sauvegarde",
+      "restoring": "Restauration...",
+      "confirmTitle": "Remplacer toutes les données de ce navigateur ?",
+      "confirmBody": "Chaque enregistrement de ce navigateur sera remplacé par la sauvegarde de {{school}}. Tout ce qui a été saisi depuis cette sauvegarde sera perdu.",
+      "confirmSafety": "Avant tout remplacement, les données actuelles sont enregistrées comme copie de sécurité dans ce navigateur (liste ci-dessous) et peuvent encore être téléchargées.",
+      "confirmCheckbox": "Je comprends que les données actuelles de ce navigateur seront remplacées",
+      "confirmAction": "Remplacer les données et restaurer",
+      "cancel": "Annuler",
+      "doneTitle": "Sauvegarde restaurée",
+      "done": "SchoolPilot se recharge. Connectez-vous avec un compte de l'école restaurée."
+    },
+    "summary": {
+      "school": "École",
+      "created": "Créée le",
+      "appVersion": "Version de SchoolPilot",
+      "dataMode": "Mode de données",
+      "encryption": "Chiffrement",
+      "notEncrypted": "Non chiffrée",
+      "learners": "Élèves",
+      "users": "Comptes utilisateurs",
+      "unnamed": "une école sans nom"
+    },
+    "safety": {
+      "title": "Copies de sécurité",
+      "subtitle": "Les données remplacées par chaque restauration, conservées dans ce navigateur.",
+      "empty": "Aucune restauration n’a été effectuée dans ce navigateur.",
+      "download": "Télécharger",
+      "delete": "Supprimer"
+    }
   }
 }

@@ -10,6 +10,7 @@ import {
   createNodeSqliteAdapter,
   createSqliteAdapter,
   createWasmDatabaseDriver,
+  inMemoryWasmImage,
   type SqliteAdapter,
   type SqliteBindValue,
   type WasmDatabase,
@@ -40,7 +41,11 @@ export const driverCases: DriverCase[] = [
     create: async () => {
       const sqlite3 = await wasmModule.default();
       const database = new sqlite3.oo1.DB(':memory:', 'c');
-      return opened(createSqliteAdapter(createWasmDatabaseDriver(database as unknown as WasmDatabase)));
+      return opened(
+        createSqliteAdapter(
+          createWasmDatabaseDriver(database as unknown as WasmDatabase, inMemoryWasmImage(sqlite3, database))
+        )
+      );
     },
   },
 ];

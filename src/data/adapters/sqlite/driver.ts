@@ -30,6 +30,13 @@ export interface SqliteDriver {
   all(sql: string, params: readonly SqliteValue[]): Promise<unknown[]>;
   get(sql: string, params: readonly SqliteValue[]): Promise<unknown>;
   run(sql: string, params: readonly SqliteValue[]): Promise<SqliteRunResult>;
+  /** The whole database as one SQLite file image, as SQLite would write it to disk. */
+  exportDatabase(): Promise<Uint8Array>;
+  /**
+   * Replace the whole database with a file image from `exportDatabase`. The driver is open on
+   * the new contents afterwards; when the replacement fails it is open on the old ones.
+   */
+  importDatabase(bytes: Uint8Array): Promise<void>;
 }
 
 /** Statement methods available inside a transaction callback. */
@@ -52,6 +59,25 @@ export interface SqliteAdapter extends SqliteTransaction {
   /** Apply generated DDL in one transaction; safe to call repeatedly. */
   applySchema(schemas: readonly DatabaseSchema[]): Promise<void>;
   transaction<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T>;
+  /**
+   * Snapshot the whole database as a SQLite file image. Queued like a statement, so it sees
+   * every write issued before it and none issued after.
+   */
+  exportDatabase(): Promise<Uint8Array>;
+  /** Replace the whole database with a SQLite file image; queued like a statement. */
+  importDatabase(bytes: Uint8Array): Promise<void>;
+}
+
+/** Every SQLite database file starts with these 16 bytes. */
+const SQLITE_HEADER = 'SQLite format 3\u0000';
+
+/** True when the bytes start with the SQLite file header (a full 100-byte header is required). */
+export function isSqliteImage(bytes: Uint8Array): boolean {
+  if (bytes.byteLength < 100) return false;
+  for (let index = 0; index < SQLITE_HEADER.length; index += 1) {
+    if (bytes[index] !== SQLITE_HEADER.charCodeAt(index)) return false;
+  }
+  return true;
 }
 
 /** True when a driver value is one of the column types SQLite can bind and return. */

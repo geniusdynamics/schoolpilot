@@ -1181,6 +1181,40 @@ class StorageWorkerClient {
     if (this.failure) throw this.failure;
   }
 
+  /**
+   * The persisted database file, holding every write forwarded before the call and none after.
+   *
+   * The export is posted in the same turn as the call, before the acknowledgements of the
+   * writes already sent arrive: the worker applies requests in arrival order, so it answers
+   * the export after those writes. The acknowledgements are awaited alongside, and a write
+   * that failed fails the export - its image would not match what the app believes it holds.
+   */
+  async exportFile(): Promise<Uint8Array> {
+    const exporting = this.request({ type: 'export' }, STORAGE_WRITE_TIMEOUT_MS);
+    const [bytes] = await Promise.all([exporting, this.flush()]);
+    if (!bytes) throw new StorageUnavailableError('The storage worker answered an export without the database');
+    return bytes;
+  }
+
+  /**
+   * Replace the persisted database file. The main-thread working copy no longer matches it, so
+   * every later write is refused until the app reloads and loads the new file.
+   */
+  async importFile(bytes: Uint8Array): Promise<void> {
+    // Writes already sent go first. A failed one does not stop the import - the file is being
+    // replaced - and neither does an earlier import's seal: a failed restore imports the old
+    // file back through here.
+    while (this.inFlight.size > 0) {
+      await Promise.all(Array.from(this.inFlight));
+    }
+    try {
+      await this.request({ type: 'import', bytes }, STORAGE_OPEN_TIMEOUT_MS);
+    } finally {
+      // Even a failed import may have replaced the file; the working copy cannot be trusted.
+      this.failure ??= new StorageUnavailableError('The database was replaced by a restore; reload SchoolPilot to continue');
+    }
+  }
+
   async close(): Promise<void> {
     try {
       await this.flush();
@@ -1190,8 +1224,35 @@ class StorageWorkerClient {
     }
   }
 
+  /** Overwrite a database file this worker has not opened (start-up recovery). */
+  async replaceFile(dbName: string, bytes: Uint8Array): Promise<void> {
+    await this.request({ type: 'replaceFile', dbName, bytes }, STORAGE_OPEN_TIMEOUT_MS);
+  }
+
   terminate(): void {
     this.worker.terminate();
+  }
+}
+
+/** The Web Worker that owns the OPFS database file (see sqliteWorker.ts). */
+function createLegacyStorageWorker(): Worker {
+  if (typeof Worker === 'undefined') {
+    throw new Error('Web Workers are not supported in this environment');
+  }
+  return new Worker(new URL('./sqliteWorker.ts', import.meta.url), { type: 'module', name: 'schoolpilot-sqlite' });
+}
+
+/**
+ * Overwrite the legacy database file before the app opens it: the recovery of an interrupted
+ * restore. A worker of its own does the write and releases the pool before answering, so the
+ * provider's worker installs it afterwards as on any start.
+ */
+export async function replaceLegacyDatabaseFile(dbName: string, bytes: Uint8Array): Promise<void> {
+  const client = new StorageWorkerClient(createLegacyStorageWorker());
+  try {
+    await client.replaceFile(dbName, bytes);
+  } finally {
+    client.terminate();
   }
 }
 
@@ -1404,10 +1465,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
   /** Spawn the Web Worker that owns the OPFS database (overridden in tests). */
   protected createStorageWorker(): Worker {
-    if (typeof Worker === 'undefined') {
-      throw new Error('Web Workers are not supported in this environment');
-    }
-    return new Worker(new URL('./sqliteWorker.ts', import.meta.url), { type: 'module', name: 'schoolpilot-sqlite' });
+    return createLegacyStorageWorker();
   }
 
   /**
@@ -1465,6 +1523,36 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       db.checkRc(rc);
     }
     return db;
+  }
+
+  /** The database file's name in the browser's storage. */
+  databaseFileName(): string {
+    return `${this.config.name}.sqlite3`;
+  }
+
+  /**
+   * The persisted database file as one image, for a backup. Every write issued before the call
+   * is in it: the forwarded writes are flushed and the export queues behind them in the worker.
+   */
+  async exportDatabase(): Promise<Uint8Array> {
+    if (!this.isInitialized || !this.db) throw new Error('SQLiteWASMProvider not initialized');
+    if (!this.storageClient) {
+      // A temporary database (VITE_DB_ALLOW_MEMORY) has no file; its working copy is all there is.
+      return this.sqlite3.capi.sqlite3_js_db_export(this.db);
+    }
+    return this.storageClient.exportFile();
+  }
+
+  /**
+   * Replace the persisted database file with an image, for a restore. The provider refuses every
+   * write afterwards: the app must reload to read the restored file.
+   */
+  async importDatabase(bytes: Uint8Array): Promise<void> {
+    if (!this.isInitialized || !this.db) throw new Error('SQLiteWASMProvider not initialized');
+    if (!this.storageClient) {
+      throw new StorageUnavailableError('A temporary in-memory database cannot be restored into; it is erased on reload');
+    }
+    await this.storageClient.importFile(bytes);
   }
 
   /** Where this provider's data lives and whether the browser granted durable storage. */

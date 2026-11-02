@@ -4,11 +4,18 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createSqliteWorkerHandler } from '../sqliteWorker';
 
-const makeSqlite3 = (overrides: { install?: () => Promise<unknown> } = {}) => {
+const makeSqlite3 = (overrides: { install?: () => Promise<unknown>; importDb?: () => Promise<number> } = {}) => {
   const db = { exec: vi.fn(), close: vi.fn() };
   const DB = vi.fn(() => db);
+  const pool = {
+    importDb: vi.fn<(name: string, data: unknown) => Promise<number>>(() =>
+      overrides.importDb ? overrides.importDb() : Promise.resolve(512)
+    ),
+    pauseVfs: vi.fn(),
+  };
   const sqlite3 = {
-    installOpfsSAHPoolVfs: vi.fn(overrides.install ?? (() => Promise.resolve({}))),
+    pool,
+    installOpfsSAHPoolVfs: vi.fn(overrides.install ?? (() => Promise.resolve(pool))),
     oo1: { DB },
     capi: { sqlite3_js_db_export: vi.fn(() => new Uint8Array([1, 2, 3])) },
   };
@@ -81,5 +88,109 @@ describe('sqliteWorker handler', () => {
 
     expect(db.close).toHaveBeenCalled();
     expect(post).toHaveBeenLastCalledWith({ id: 2, ok: true });
+  });
+
+  /** A byte image with the SQLite header, the shape the pool's import accepts. */
+  const sqliteImage = () => {
+    const bytes = new Uint8Array(1024);
+    bytes.set(new TextEncoder().encode('SQLite format 3\u0000'));
+    return bytes;
+  };
+
+  it('exports the open database file through its queue', async () => {
+    const { sqlite3 } = makeSqlite3();
+    const post = vi.fn();
+    const handle = createSqliteWorkerHandler(async () => sqlite3, post);
+
+    await handle({ id: 1, type: 'open', dbName: 'x' });
+    sqlite3.capi.sqlite3_js_db_export.mockReturnValueOnce(new Uint8Array([9, 9]));
+    await handle({ id: 2, type: 'export' });
+
+    expect(post).toHaveBeenLastCalledWith({ id: 2, ok: true, bytes: new Uint8Array([9, 9]) }, expect.any(Array));
+  });
+
+  it('replaces the file through the pool and reopens it', async () => {
+    const { sqlite3, db, DB } = makeSqlite3();
+    const post = vi.fn();
+    const handle = createSqliteWorkerHandler(async () => sqlite3, post);
+    const image = sqliteImage();
+
+    await handle({ id: 1, type: 'open', dbName: 'schoolpilot_production' });
+    await handle({ id: 2, type: 'import', bytes: image });
+
+    expect(db.close).toHaveBeenCalledTimes(1);
+    expect(sqlite3.pool.importDb).toHaveBeenCalledWith('/schoolpilot_production.sqlite3', expect.any(Function));
+    // The chunked import is fed the whole image once, then told it is done.
+    const feed = sqlite3.pool.importDb.mock.calls[0]?.[1] as () => Uint8Array | undefined;
+    expect(feed()).toBe(image);
+    expect(feed()).toBeUndefined();
+    expect(DB).toHaveBeenCalledTimes(2);
+    expect(DB).toHaveBeenLastCalledWith('file:/schoolpilot_production.sqlite3?vfs=opfs-sahpool', 'c');
+    expect(post).toHaveBeenLastCalledWith({ id: 2, ok: true });
+  });
+
+  it('refuses bytes that are not a database without closing the open one', async () => {
+    const { sqlite3, db } = makeSqlite3();
+    const post = vi.fn();
+    const handle = createSqliteWorkerHandler(async () => sqlite3, post);
+
+    await handle({ id: 1, type: 'open', dbName: 'x' });
+    await handle({ id: 2, type: 'import', bytes: new TextEncoder().encode('{"collections":{}}') });
+
+    expect(db.close).not.toHaveBeenCalled();
+    expect(sqlite3.pool.importDb).not.toHaveBeenCalled();
+    expect(post).toHaveBeenLastCalledWith({ id: 2, ok: false, error: expect.stringMatching(/not a SQLite database/) });
+  });
+
+  it('replaces a file it never opens, then releases the pool for the app worker', async () => {
+    const { sqlite3, DB } = makeSqlite3();
+    const post = vi.fn();
+    const handle = createSqliteWorkerHandler(async () => sqlite3, post);
+    const image = sqliteImage();
+
+    await handle({ id: 1, type: 'replaceFile', dbName: 'schoolpilot_production', bytes: image });
+
+    // The old file may be half-written: it is never opened, only overwritten.
+    expect(DB).not.toHaveBeenCalled();
+    expect(sqlite3.pool.importDb).toHaveBeenCalledWith('/schoolpilot_production.sqlite3', expect.any(Function));
+    expect(sqlite3.pool.pauseVfs).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith({ id: 1, ok: true });
+  });
+
+  it('releases the pool and reports the error when a replacement fails, and refuses bytes that are not a database', async () => {
+    const failing = makeSqlite3({ importDb: () => Promise.reject(new Error('disk full')) });
+    const post = vi.fn();
+    await createSqliteWorkerHandler(async () => failing.sqlite3, post)({
+      id: 1,
+      type: 'replaceFile',
+      dbName: 'x',
+      bytes: sqliteImage(),
+    });
+    expect(failing.sqlite3.pool.pauseVfs).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith({ id: 1, ok: false, error: 'disk full' });
+
+    const { sqlite3 } = makeSqlite3();
+    await createSqliteWorkerHandler(async () => sqlite3, post)({
+      id: 2,
+      type: 'replaceFile',
+      dbName: 'x',
+      bytes: new TextEncoder().encode('{}'),
+    });
+    expect(sqlite3.pool.importDb).not.toHaveBeenCalled();
+    expect(post).toHaveBeenLastCalledWith({ id: 2, ok: false, error: expect.stringMatching(/not a SQLite database/) });
+  });
+
+  it('reopens the database when the pool import fails', async () => {
+    const { sqlite3, DB } = makeSqlite3({ importDb: () => Promise.reject(new Error('No available handles to import to.')) });
+    const post = vi.fn();
+    const handle = createSqliteWorkerHandler(async () => sqlite3, post);
+
+    await handle({ id: 1, type: 'open', dbName: 'x' });
+    await handle({ id: 2, type: 'import', bytes: sqliteImage() });
+    await handle({ id: 3, type: 'exec', sql: 'SELECT 1' });
+
+    expect(DB).toHaveBeenCalledTimes(2);
+    expect(post).toHaveBeenCalledWith({ id: 2, ok: false, error: 'No available handles to import to.' });
+    expect(post).toHaveBeenLastCalledWith({ id: 3, ok: true });
   });
 });

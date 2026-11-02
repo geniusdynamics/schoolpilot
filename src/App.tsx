@@ -6,6 +6,7 @@ import { UnifiedConfigProvider } from './contexts/UnifiedConfigContext';
 import { ToastProvider } from './hooks/useToast';
 import { ConfirmProvider } from './components/ui/ConfirmDialog';
 import { OnboardingGate } from './components/OnboardingGate';
+import { RestoreNoticeToast } from './components/RestoreNoticeToast';
 import Spinner from './components/ui/Spinner';
 import { AppInner } from './routing';
 
@@ -28,6 +29,7 @@ const App: React.FC = () => {
   return (
     <UnifiedConfigProvider>
       <ToastProvider>
+        <RestoreNoticeToast />
         <ConfirmProvider>
           <Suspense
             fallback={

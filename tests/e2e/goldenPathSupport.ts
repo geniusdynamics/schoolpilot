@@ -2,7 +2,7 @@
 // ABOUTME: Budgets are sized for a cold Vite dev server (the first document load compiles the app and opens SQLite-WASM).
 
 import playwright from '@playwright/test';
-import type { Locator, Page } from '@playwright/test';
+import type { Browser, BrowserContext, Locator, Page, TestInfo } from '@playwright/test';
 
 const { expect } = playwright;
 
@@ -75,6 +75,30 @@ export function currentTermLabel(today: Date = new Date()): string {
   const holding = terms.find((term) => term.start <= day && day <= term.end);
   if (holding) return holding.label;
   return [...terms].reverse().find((term) => term.end < day)?.label ?? 'Term 1';
+}
+
+/**
+ * A second browser profile: a new context with the project's own settings (base URL, viewport,
+ * device), and therefore its own OPFS, localStorage and Web Locks - the same as another computer
+ * as far as the app can tell. The suite's `page` fixture lives in the first context; a journey
+ * that moves data between devices opens the second one here and closes it when it is done.
+ */
+export async function openSecondDevice(
+  browser: Browser,
+  testInfo: TestInfo
+): Promise<{ context: BrowserContext; page: Page }> {
+  const { baseURL, viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, locale } = testInfo.project.use;
+  const context = await browser.newContext({
+    baseURL,
+    viewport,
+    userAgent,
+    deviceScaleFactor,
+    isMobile,
+    hasTouch,
+    locale,
+    acceptDownloads: true,
+  });
+  return { context, page: await context.newPage() };
 }
 
 /** Wait for the authenticated shell after a document load. */

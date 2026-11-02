@@ -10,6 +10,7 @@ import {
   type SqliteAdapterErrorCode,
 } from './errors';
 import {
+  isSqliteImage,
   isSqliteValue,
   type SqliteAdapter,
   type SqliteBindValue,
@@ -80,6 +81,12 @@ function normalizeRow(row: unknown): SqliteRow {
 class CoreSqliteAdapter implements SqliteAdapter {
   readonly driverName: SqliteDriver['name'];
   private state: 'closed' | 'open' = 'closed';
+  /**
+   * Set once an import has replaced (or may have replaced) the database. Everything the app
+   * read before belongs to the old data, so writes are refused until the adapter is opened
+   * again - in the app, by the reload that follows a restore.
+   */
+  private replaced = false;
   private inTransaction = false;
   private tail: Promise<void> = Promise.resolve();
 
@@ -114,12 +121,9 @@ class CoreSqliteAdapter implements SqliteAdapter {
       if (this.state === 'open') return;
       try {
         await this.driver.open();
-        await this.driver.exec('PRAGMA busy_timeout = 5000');
-        // better-sqlite3 enables enforcement by default while sqlite-wasm does not; set it
-        // explicitly on both so the adapter behaves identically. Callers opt in when their
-        // import order guarantees parent rows exist.
-        await this.driver.exec(`PRAGMA foreign_keys = ${this.options.foreignKeys ? 'ON' : 'OFF'}`);
+        await this.configureConnection();
         this.state = 'open';
+        this.replaced = false;
       } catch (error) {
         await this.driver.close().catch(() => undefined);
         throw adapterError(error);
@@ -217,6 +221,47 @@ class CoreSqliteAdapter implements SqliteAdapter {
     });
   }
 
+  exportDatabase(): Promise<Uint8Array> {
+    const misuse = this.transactionMisuse('exportDatabase');
+    if (misuse) return Promise.reject(misuse);
+    return this.enqueue(async () => {
+      this.assertOpen();
+      try {
+        return await this.driver.exportDatabase();
+      } catch (error) {
+        throw adapterError(error);
+      }
+    });
+  }
+
+  importDatabase(bytes: Uint8Array): Promise<void> {
+    const misuse = this.transactionMisuse('importDatabase');
+    if (misuse) return Promise.reject(misuse);
+    if (!isSqliteImage(bytes)) {
+      return Promise.reject(
+        new SqliteAdapterError('The bytes to import are not a SQLite database file', { code: 'driver' })
+      );
+    }
+    return this.enqueue(async () => {
+      this.assertOpen();
+      // Set before the driver runs: a failed import may still have replaced the file.
+      this.replaced = true;
+      try {
+        await this.driver.importDatabase(bytes);
+      } catch (error) {
+        // A failed import may still have reopened the connection; it keeps its settings.
+        await this.configureConnection().catch(() => undefined);
+        throw adapterError(error);
+      }
+      try {
+        // A driver may reopen its connection to replace the file; the pragmas are per connection.
+        await this.configureConnection();
+      } catch (error) {
+        throw adapterError(error);
+      }
+    });
+  }
+
   applySchema(schemas: readonly DatabaseSchema[]): Promise<void> {
     const statements = statementsForSchemas(schemas);
     return this.transaction(async (tx) => {
@@ -237,6 +282,15 @@ class CoreSqliteAdapter implements SqliteAdapter {
     };
   }
 
+  /** The per-connection settings, applied on open and again after a whole-database import. */
+  private async configureConnection(): Promise<void> {
+    await this.driver.exec('PRAGMA busy_timeout = 5000');
+    // better-sqlite3 enables enforcement by default while sqlite-wasm does not; set it
+    // explicitly on both so the adapter behaves identically. Callers opt in when their
+    // import order guarantees parent rows exist.
+    await this.driver.exec(`PRAGMA foreign_keys = ${this.options.foreignKeys ? 'ON' : 'OFF'}`);
+  }
+
   private assertOpen(): void {
     if (this.state !== 'open') {
       throw new SqliteAdapterError('SQLite adapter is not open', { code: 'not_open' });
@@ -252,8 +306,18 @@ class CoreSqliteAdapter implements SqliteAdapter {
     );
   }
 
+  private assertWritable(): void {
+    if (this.replaced) {
+      throw new SqliteAdapterError(
+        'The database was replaced by a restore; reload SchoolPilot before changing anything',
+        { code: 'replaced' }
+      );
+    }
+  }
+
   private async execDirect(sql: string): Promise<void> {
     this.assertOpen();
+    this.assertWritable();
     try {
       await this.driver.exec(sql);
     } catch (error) {
@@ -292,6 +356,7 @@ class CoreSqliteAdapter implements SqliteAdapter {
     params?: readonly SqliteBindValue[]
   ): Promise<SqliteRunResult> {
     this.assertOpen();
+    this.assertWritable();
     try {
       return await this.driver.run(sql, normalizeParams(params));
     } catch (error) {

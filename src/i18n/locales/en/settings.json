@@ -409,5 +409,72 @@
         "unknown": "Unknown"
       }
     }
+  },
+  "browserBackup": {
+    "intro": {
+      "title": "Keep a copy of this school's data outside this browser",
+      "body": "SchoolPilot keeps all of the school's data in this browser's storage. If that storage is cleared - a browser reset, a new computer, \"clear site data\" - the backup file you download here is the only copy of the school's data. Download one regularly and keep it somewhere else, such as a USB drive or another computer."
+    },
+    "lastDownload": {
+      "label": "Last backup",
+      "value": "{{fileName}}, downloaded {{date}} ({{size}})",
+      "never": "No backup has been downloaded from this browser"
+    },
+    "download": {
+      "title": "Download backup",
+      "subtitle": "One file with all of the school's data, which you can restore into another browser or device.",
+      "encrypt": "Encrypt the backup with a passphrase",
+      "passphraseWarningTitle": "A forgotten passphrase cannot be recovered",
+      "passphraseWarning": "Without the passphrase nobody can open this backup - not you, and not SchoolPilot support. Write it down and keep it apart from the file.",
+      "unencryptedWarning": "This backup will not be encrypted: anyone who gets the file can read the school's data, including learners' personal details.",
+      "passphrase": "Passphrase",
+      "passphraseConfirm": "Repeat the passphrase",
+      "passphraseTooShort": "The passphrase needs at least {{count}} characters.",
+      "passphraseMismatch": "The two passphrases do not match.",
+      "action": "Download backup",
+      "progressTitle": "Creating the backup",
+      "progress": "Saving a copy of both databases. Keep this tab open; the download starts when it is ready.",
+      "done": "Backup downloaded: {{fileName}}",
+      "failed": "The backup could not be created"
+    },
+    "restore": {
+      "title": "Restore from file",
+      "subtitle": "Replace all of the data in this browser with a backup file.",
+      "file": "Backup file",
+      "passphrase": "Backup passphrase",
+      "check": "Check backup",
+      "checking": "Checking...",
+      "passphraseRequired": "This backup is encrypted. Enter its passphrase to open it.",
+      "failed": "This backup cannot be restored",
+      "valid": "The backup is complete and readable",
+      "action": "Restore this backup",
+      "restoring": "Restoring...",
+      "confirmTitle": "Replace all data in this browser?",
+      "confirmBody": "Every record in this browser will be replaced by the backup of {{school}}. Anything entered since that backup was made will be lost.",
+      "confirmSafety": "Before anything is replaced, the current data is saved as a safety copy in this browser (listed below), so it can still be downloaded.",
+      "confirmCheckbox": "I understand that the current data in this browser will be replaced",
+      "confirmAction": "Replace data and restore",
+      "cancel": "Cancel",
+      "doneTitle": "Backup restored",
+      "done": "SchoolPilot reloads now. Sign in with an account from the restored school."
+    },
+    "summary": {
+      "school": "School",
+      "created": "Created",
+      "appVersion": "SchoolPilot version",
+      "dataMode": "Data mode",
+      "encryption": "Encryption",
+      "notEncrypted": "Not encrypted",
+      "learners": "Learners",
+      "users": "User accounts",
+      "unnamed": "an unnamed school"
+    },
+    "safety": {
+      "title": "Safety copies",
+      "subtitle": "The data each restore replaced, kept in this browser.",
+      "empty": "No restore has been made in this browser.",
+      "download": "Download",
+      "delete": "Delete"
+    }
   }
 }

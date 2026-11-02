@@ -343,6 +343,15 @@ class PostgresDriver implements SqliteDriver {
     return { changes: result.rowCount ?? 0, lastInsertRowid: 0 };
   }
 
+  /** A Postgres schema has no SQLite file image; the backup suites run on the SQLite drivers. */
+  async exportDatabase(): Promise<Uint8Array> {
+    throw new Error('The Postgres harness cannot export a SQLite file image');
+  }
+
+  async importDatabase(): Promise<void> {
+    throw new Error('The Postgres harness cannot import a SQLite file image');
+  }
+
   private async execute(
     sql: string,
     params: readonly SqliteValue[]
