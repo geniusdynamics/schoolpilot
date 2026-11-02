@@ -4,6 +4,7 @@
 import type { SqliteAdapter } from '@/data/adapters/sqlite';
 
 import { buildBackupArchive, openBackupArchive, type BackupManifest } from './archive';
+import type { RestoreMarker } from './recovery';
 import {
   inspectDatabaseImage,
   type BackupDatabaseRole,
@@ -18,9 +19,16 @@ export interface BackupDatabase {
   importDatabase(bytes: Uint8Array): Promise<void>;
 }
 
-/** Where the copy of the data a restore replaces is kept. Answers where it landed. */
+/**
+ * Where the copy of the data a restore replaces is kept, and the marker that says a restore is
+ * under way. The marker sits beside the safety copy, so the app's next start can undo a restore
+ * that was interrupted (a closed tab, a crash) instead of opening a half-replaced school.
+ */
 export interface SafetyCopyStore {
+  /** Stores the copy and answers where it landed. */
   save(fileName: string, bytes: Uint8Array): Promise<string>;
+  markRestoreInProgress(marker: RestoreMarker): Promise<void>;
+  clearRestoreInProgress(): Promise<void>;
 }
 
 export interface BackupEnvironment {
@@ -42,7 +50,12 @@ export interface PreparedRestore {
   readonly reports: Record<BackupDatabaseRole, DatabaseImageReport>;
 }
 
-/** The restore did not complete; `rolledBack` says whether the previous data is back in place. */
+/**
+ * A restore that started replacing databases did not complete. `rolledBack` says whether the
+ * previous data is back in place (or will be put back when the app next starts); when it is
+ * false, the safety copy (`safetyCopy`, its file name in the store) is the only intact copy.
+ * Errors before the first replacement are thrown as they are: nothing was touched.
+ */
 export class BackupRestoreError extends Error {
   constructor(
     message: string,
@@ -199,8 +212,17 @@ export async function applyRestore(
       rowCounts: described[role].rowCounts,
     })),
   });
-  // Nothing is replaced unless the copy of what would be lost is stored first.
-  const safetyCopy = await env.safetyCopies.save(`backup-before-restore-${stamp(now, true)}.zip`, safety.bytes);
+  // Nothing is replaced unless the copy of what would be lost is stored first, and the marker
+  // that lets the next start put it back if this tab dies part-way.
+  const safetyName = `backup-before-restore-${stamp(now, true)}.zip`;
+  const safetyCopy = await env.safetyCopies.save(safetyName, safety.bytes);
+  await env.safetyCopies.markRestoreInProgress({
+    format: 'schoolpilot-restore-marker',
+    version: 1,
+    startedAt: now.toISOString(),
+    safetyCopy: safetyName,
+    databases: { canonical: env.canonical.fileName, legacy: env.legacy.fileName },
+  });
 
   const touched: BackupDatabaseRole[] = [];
   for (const role of ROLES) {
@@ -217,15 +239,35 @@ export async function applyRestore(
         }
       }
       const rolledBack = rollbackFailures.length === 0;
+      if (rolledBack) {
+        // The old data is back. A marker left behind would only make the next start put the
+        // same data back again, so a failure to clear it changes nothing.
+        await env.safetyCopies.clearRestoreInProgress().catch(() => undefined);
+      }
+      // When the rollback failed the marker stays: the next start retries it from the safety copy.
       throw new BackupRestoreError(
         rolledBack
           ? `The restore failed and the previous data was put back: ${message(error)}`
           : `The restore failed (${message(error)}) and the previous data could not be put back (${rollbackFailures.join('; ')}). A copy of it is saved as ${safetyCopy}.`,
         rolledBack,
-        safetyCopy,
+        safetyName,
         { cause: error }
       );
     }
+  }
+
+  try {
+    await env.safetyCopies.clearRestoreInProgress();
+  } catch (error) {
+    // Both databases hold the backup, but the marker says the restore never finished, and the
+    // next start acts on the marker: it puts the previous data back. Say so rather than claim
+    // a restore that will be undone.
+    throw new BackupRestoreError(
+      `The backup was restored, but SchoolPilot could not record that the restore finished (${message(error)}), so it will put the previous data back when it starts. Restore the backup again after that.`,
+      true,
+      safetyName,
+      { cause: error }
+    );
   }
   return { safetyCopy };
 }

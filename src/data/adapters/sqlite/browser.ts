@@ -47,10 +47,7 @@ class WasmWorkerDriver implements SqliteDriver {
       });
     }
 
-    const worker = new Worker(new URL('./browserWorker.ts', import.meta.url), {
-      type: 'module',
-      name: 'schoolpilot-sqlite-adapter',
-    });
+    const worker = createAdapterWorker();
     worker.onmessage = (event: MessageEvent<SqliteWorkerResponse>) => {
       const response = event.data;
       const pending = this.pending.get(response?.id);
@@ -163,6 +160,49 @@ class WasmWorkerDriver implements SqliteDriver {
       pending.reject(new SqliteAdapterError('SQLite worker was closed', { code: 'not_open' }))
     );
     this.pending.clear();
+  }
+}
+
+/** How long a one-shot file replacement may take: it writes a whole database. */
+const REPLACE_FILE_TIMEOUT_MS = 120000;
+
+function createAdapterWorker(): Worker {
+  return new Worker(new URL('./browserWorker.ts', import.meta.url), {
+    type: 'module',
+    name: 'schoolpilot-sqlite-adapter',
+  });
+}
+
+/**
+ * Overwrite a database file in the adapter's OPFS pool before any adapter has opened it: the
+ * recovery of an interrupted restore. A worker of its own writes the file and releases the
+ * pool before it answers, so the adapter opened afterwards installs the pool as on any start.
+ */
+export async function replaceWasmDatabaseFile(dbName: string, bytes: Uint8Array): Promise<void> {
+  if (typeof Worker === 'undefined') {
+    throw new SqliteAdapterError('Web Workers are not available in this environment', { code: 'driver' });
+  }
+  const worker = createAdapterWorker();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new SqliteAdapterError('SQLite worker did not replace the file in time', { code: 'driver' })),
+        REPLACE_FILE_TIMEOUT_MS
+      );
+      worker.onmessage = (event: MessageEvent<SqliteWorkerResponse>) => {
+        clearTimeout(timer);
+        if (event.data.ok) resolve();
+        else reject(new SqliteAdapterError(event.data.error, { code: 'driver' }));
+      };
+      worker.onerror = (event) => {
+        clearTimeout(timer);
+        reject(new SqliteAdapterError(`SQLite worker failed: ${event.message || 'unknown error'}`, { code: 'driver' }));
+      };
+      const request: SqliteWorkerRequest = { id: 1, type: 'replaceFile', dbName, bytes };
+      worker.postMessage(request);
+    });
+  } finally {
+    worker.terminate();
   }
 }
 

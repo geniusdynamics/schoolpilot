@@ -31,14 +31,18 @@ function lockManager(): LockManager | null {
 export function holdAppTabLock(): void {
   const locks = lockManager();
   if (!locks || held) return;
-  let release: () => void = () => undefined;
-  const released = locks.request(
-    APP_TAB_LOCK,
-    { mode: 'shared' },
-    () =>
-      new Promise<void>((resolve) => {
-        release = resolve;
-      })
+  // A release asked for before the lock is granted (another tab held it exclusively) must let
+  // the lock go the moment it arrives, or the tab would hold it - and wait for it - forever.
+  let releaseRequested = false;
+  let release: () => void = () => {
+    releaseRequested = true;
+  };
+  const released = locks.request(APP_TAB_LOCK, { mode: 'shared' }, () =>
+    releaseRequested
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          release = resolve;
+        })
   );
   held = { release: () => release(), released };
   // A rejected request (the page unloading) must not surface as an unhandled rejection.

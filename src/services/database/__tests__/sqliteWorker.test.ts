@@ -11,6 +11,7 @@ const makeSqlite3 = (overrides: { install?: () => Promise<unknown>; importDb?: (
     importDb: vi.fn<(name: string, data: unknown) => Promise<number>>(() =>
       overrides.importDb ? overrides.importDb() : Promise.resolve(512)
     ),
+    pauseVfs: vi.fn(),
   };
   const sqlite3 = {
     pool,
@@ -137,6 +138,44 @@ describe('sqliteWorker handler', () => {
     await handle({ id: 2, type: 'import', bytes: new TextEncoder().encode('{"collections":{}}') });
 
     expect(db.close).not.toHaveBeenCalled();
+    expect(sqlite3.pool.importDb).not.toHaveBeenCalled();
+    expect(post).toHaveBeenLastCalledWith({ id: 2, ok: false, error: expect.stringMatching(/not a SQLite database/) });
+  });
+
+  it('replaces a file it never opens, then releases the pool for the app worker', async () => {
+    const { sqlite3, DB } = makeSqlite3();
+    const post = vi.fn();
+    const handle = createSqliteWorkerHandler(async () => sqlite3, post);
+    const image = sqliteImage();
+
+    await handle({ id: 1, type: 'replaceFile', dbName: 'schoolpilot_production', bytes: image });
+
+    // The old file may be half-written: it is never opened, only overwritten.
+    expect(DB).not.toHaveBeenCalled();
+    expect(sqlite3.pool.importDb).toHaveBeenCalledWith('/schoolpilot_production.sqlite3', expect.any(Function));
+    expect(sqlite3.pool.pauseVfs).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith({ id: 1, ok: true });
+  });
+
+  it('releases the pool and reports the error when a replacement fails, and refuses bytes that are not a database', async () => {
+    const failing = makeSqlite3({ importDb: () => Promise.reject(new Error('disk full')) });
+    const post = vi.fn();
+    await createSqliteWorkerHandler(async () => failing.sqlite3, post)({
+      id: 1,
+      type: 'replaceFile',
+      dbName: 'x',
+      bytes: sqliteImage(),
+    });
+    expect(failing.sqlite3.pool.pauseVfs).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith({ id: 1, ok: false, error: 'disk full' });
+
+    const { sqlite3 } = makeSqlite3();
+    await createSqliteWorkerHandler(async () => sqlite3, post)({
+      id: 2,
+      type: 'replaceFile',
+      dbName: 'x',
+      bytes: new TextEncoder().encode('{}'),
+    });
     expect(sqlite3.pool.importDb).not.toHaveBeenCalled();
     expect(post).toHaveBeenLastCalledWith({ id: 2, ok: false, error: expect.stringMatching(/not a SQLite database/) });
   });

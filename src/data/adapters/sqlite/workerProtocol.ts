@@ -11,6 +11,8 @@ export type SqliteWorkerRequest =
   | { id: number; type: 'run'; sql: string; params: SqliteValue[] }
   | { id: number; type: 'export' }
   | { id: number; type: 'import'; bytes: Uint8Array }
+  /** Start-up recovery: overwrite a file without opening it, then release the pool. */
+  | { id: number; type: 'replaceFile'; dbName: string; bytes: Uint8Array }
   | { id: number; type: 'close' };
 
 export type SqliteWorkerRequestInput =

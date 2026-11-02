@@ -1223,8 +1223,35 @@ class StorageWorkerClient {
     }
   }
 
+  /** Overwrite a database file this worker has not opened (start-up recovery). */
+  async replaceFile(dbName: string, bytes: Uint8Array): Promise<void> {
+    await this.request({ type: 'replaceFile', dbName, bytes }, STORAGE_OPEN_TIMEOUT_MS);
+  }
+
   terminate(): void {
     this.worker.terminate();
+  }
+}
+
+/** The Web Worker that owns the OPFS database file (see sqliteWorker.ts). */
+function createLegacyStorageWorker(): Worker {
+  if (typeof Worker === 'undefined') {
+    throw new Error('Web Workers are not supported in this environment');
+  }
+  return new Worker(new URL('./sqliteWorker.ts', import.meta.url), { type: 'module', name: 'schoolpilot-sqlite' });
+}
+
+/**
+ * Overwrite the legacy database file before the app opens it: the recovery of an interrupted
+ * restore. A worker of its own does the write and releases the pool before answering, so the
+ * provider's worker installs it afterwards as on any start.
+ */
+export async function replaceLegacyDatabaseFile(dbName: string, bytes: Uint8Array): Promise<void> {
+  const client = new StorageWorkerClient(createLegacyStorageWorker());
+  try {
+    await client.replaceFile(dbName, bytes);
+  } finally {
+    client.terminate();
   }
 }
 
@@ -1432,10 +1459,7 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
   /** Spawn the Web Worker that owns the OPFS database (overridden in tests). */
   protected createStorageWorker(): Worker {
-    if (typeof Worker === 'undefined') {
-      throw new Error('Web Workers are not supported in this environment');
-    }
-    return new Worker(new URL('./sqliteWorker.ts', import.meta.url), { type: 'module', name: 'schoolpilot-sqlite' });
+    return createLegacyStorageWorker();
   }
 
   /**

@@ -15,6 +15,7 @@ import { ArrowDownTrayIcon, ArrowPathIcon, TrashIcon } from '@/components/ui/ico
 import {
   applyRestore,
   BackupArchiveError,
+  BackupRestoreError,
   createBackup,
   isEncryptedBackup,
   MIN_PASSPHRASE_LENGTH,
@@ -27,10 +28,11 @@ import {
   browserBackupEnvironment,
   currentDataMode,
   downloadBytes,
-  opfsSafetyCopies,
-  reloadAfterRestore,
-  type SafetyCopy,
+  reloadApp,
 } from '@/data/backup/browserEnvironment';
+import { opfsSafetyCopies, type SafetyCopy } from '@/data/backup/safetyStore';
+import { rememberRestoreNotice } from '@/data/backup/restoreNotice';
+import { showRestoreRecoveryScreen } from '@/modules/settings/components/RestoreRecoveryScreen';
 import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/auth/authService';
 import { logger } from '@/utils/logging';
@@ -197,7 +199,7 @@ const DownloadSection: React.FC<{ onDownloaded: (download: LastDownload) => void
   );
 };
 
-type RestoreStage = 'idle' | 'checking' | 'ready' | 'restoring' | 'restored';
+type RestoreStage = 'idle' | 'checking' | 'ready' | 'restoring' | 'restored' | 'blocked';
 
 const RestoreSection: React.FC<{ onSafetyCopySaved: () => void }> = ({ onSafetyCopySaved }) => {
   const { t } = useTranslation('settings');
@@ -247,13 +249,34 @@ const RestoreSection: React.FC<{ onSafetyCopySaved: () => void }> = ({ onSafetyC
       const environment = await browserBackupEnvironment();
       await runAsOnlyTab(() => applyRestore(environment, prepared));
       onSafetyCopySaved();
-      // The signed-in account belongs to the data that was just replaced.
+      // The message belongs to the reloaded app: this page's session belongs to the data that was
+      // just replaced, so it signs out and reloads at once rather than letting the old state write.
+      rememberRestoreNotice({
+        kind: 'restored',
+        school: prepared.manifest.institutionName ?? null,
+      });
       await authService.logout();
-      setStage('restored');
-      reloadAfterRestore();
+      reloadApp();
     } catch (error) {
       logger.error('Restore failed:', error);
       onSafetyCopySaved();
+      if (error instanceof BackupRestoreError && !error.rolledBack) {
+        // The previous data could not be put back: stop the app, offering the intact safety copy.
+        setStage('blocked');
+        showRestoreRecoveryScreen({
+          reason: 'rollbackFailed',
+          safetyCopy: error.safetyCopy,
+          error: error.message,
+        });
+        return;
+      }
+      if (error instanceof BackupRestoreError) {
+        // The previous data is back in place, but an import has locked writes in this tab: reload.
+        rememberRestoreNotice({ kind: 'rolledBack', message: error.message });
+        reloadApp();
+        return;
+      }
+      // Nothing was replaced (the file was refused, or the copy could not be saved): stay here.
       setFailure(errorText(error));
       setStage('ready');
     }
@@ -269,7 +292,7 @@ const RestoreSection: React.FC<{ onSafetyCopySaved: () => void }> = ({ onSafetyC
             accept=".zip,.spbackup"
             className="mt-1 block w-full text-sm"
             data-testid="restore-file"
-            disabled={stage === 'checking' || stage === 'restoring' || stage === 'restored'}
+            disabled={stage === 'checking' || stage === 'restoring' || stage === 'restored' || stage === 'blocked'}
             onChange={(event) => void handleFile(event.target.files?.[0])}
           />
         </label>
@@ -298,7 +321,7 @@ const RestoreSection: React.FC<{ onSafetyCopySaved: () => void }> = ({ onSafetyC
             <span data-testid="restore-error">{failure}</span>
           </Alert>
         ) : null}
-        {prepared && stage !== 'restored' ? (
+        {prepared && stage !== 'restored' && stage !== 'blocked' ? (
           <div className="space-y-3">
             <Alert variant="success" title={t('browserBackup.restore.valid')}>
               <ManifestSummary manifest={prepared.manifest} />

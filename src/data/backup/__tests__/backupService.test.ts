@@ -19,6 +19,7 @@ import {
   type BackupDatabase,
   type BackupEnvironment,
 } from '../backupService';
+import type { RestoreMarker } from '../recovery';
 import { BackupValidationError } from '../validate';
 
 beforeAll(() => {
@@ -33,11 +34,14 @@ async function openEmpty(): Promise<SqliteAdapter> {
   return adapter;
 }
 
-function database(adapter: SqliteAdapter, fileName: string): BackupDatabase {
+function database(adapter: SqliteAdapter, fileName: string, events: string[]): BackupDatabase {
   return {
     fileName,
     exportDatabase: () => adapter.exportDatabase(),
-    importDatabase: (bytes) => adapter.importDatabase(bytes),
+    importDatabase: async (bytes) => {
+      events.push(`import ${fileName}`);
+      await adapter.importDatabase(bytes);
+    },
   };
 }
 
@@ -46,6 +50,10 @@ interface School {
   legacy: SqliteAdapter;
   env: BackupEnvironment;
   saved: { name: string; bytes: Uint8Array }[];
+  /** What the restore did, in order: saves, imports and marker writes. */
+  events: string[];
+  /** The restore-in-progress marker as the store holds it now. */
+  marker: () => RestoreMarker | null;
 }
 
 async function school(name: string): Promise<School> {
@@ -59,21 +67,34 @@ async function school(name: string): Promise<School> {
   await legacy.run('INSERT INTO users (id, username) VALUES (?, ?)', ['u1', `${name} admin`]);
 
   const saved: { name: string; bytes: Uint8Array }[] = [];
+  const events: string[] = [];
+  let marker: RestoreMarker | null = null;
   return {
     canonical,
     legacy,
     saved,
+    events,
+    marker: () => marker,
     env: {
-      canonical: database(canonical, 'schoolpilot-canonical.sqlite3'),
-      legacy: database(legacy, 'schoolpilot_production.sqlite3'),
+      canonical: database(canonical, 'schoolpilot-canonical.sqlite3', events),
+      legacy: database(legacy, 'schoolpilot_production.sqlite3', events),
       appVersion: '3.4.0',
       dataMode: 'production',
       openEmpty,
       now: () => new Date('2026-11-02T10:15:00.000Z'),
       safetyCopies: {
         save: async (fileName, bytes) => {
+          events.push(`save ${fileName}`);
           saved.push({ name: fileName, bytes });
           return `opfs:${fileName}`;
+        },
+        markRestoreInProgress: async (written) => {
+          events.push('mark');
+          marker = written;
+        },
+        clearRestoreInProgress: async () => {
+          events.push('clear');
+          marker = null;
         },
       },
     },
@@ -130,6 +151,16 @@ describe('backup and restore', () => {
       expect(await institutionName(target.canonical)).toBe('Mwangaza Academy');
       expect(await usernames(target.legacy)).toEqual(['Mwangaza Academy admin']);
       expect(result.safetyCopy).toBe('opfs:backup-before-restore-20261102-101500.zip');
+      // The marker names the safety copy and both targets, is written before the first
+      // import, and is cleared once both imports have succeeded.
+      expect(target.events).toEqual([
+        'save backup-before-restore-20261102-101500.zip',
+        'mark',
+        'import schoolpilot-canonical.sqlite3',
+        'import schoolpilot_production.sqlite3',
+        'clear',
+      ]);
+      expect(target.marker()).toBeNull();
       // The safety copy is itself a restorable archive of the replaced data.
       expect(readZip(target.saved[0].bytes).map((entry) => entry.name)).toContain('schoolpilot-canonical.sqlite3');
       const undo = await prepareRestore(target.env, target.saved[0].bytes);
@@ -193,6 +224,78 @@ describe('backup and restore', () => {
       expect((error as Error).message).toMatch(/the storage worker stopped/);
       expect(await institutionName(target.canonical)).toBe('Placeholder School');
       expect(await usernames(target.legacy)).toEqual(['Placeholder School admin']);
+      // The old data is back in place, so nothing is left to recover at the next start.
+      expect(target.marker()).toBeNull();
+    } finally {
+      await close(source, target);
+    }
+  });
+
+  it('records what an interrupted restore must put back, and keeps it when the rollback fails', async () => {
+    const source = await school('Mwangaza Academy');
+    const target = await school('Placeholder School');
+    try {
+      const prepared = await prepareRestore(target.env, (await createBackup(source.env)).bytes);
+      const brokenLegacy: BackupDatabase = {
+        ...target.env.legacy,
+        importDatabase: async () => {
+          throw new Error('the storage worker stopped');
+        },
+      };
+      let markerDuringImport: RestoreMarker | null = null;
+      const watchedCanonical: BackupDatabase = {
+        ...target.env.canonical,
+        importDatabase: async (bytes) => {
+          markerDuringImport = target.marker();
+          await target.env.canonical.importDatabase(bytes);
+        },
+      };
+
+      const error = await applyRestore(
+        { ...target.env, canonical: watchedCanonical, legacy: brokenLegacy },
+        prepared
+      ).catch((caught: unknown) => caught);
+
+      expect(markerDuringImport).toEqual({
+        format: 'schoolpilot-restore-marker',
+        version: 1,
+        startedAt: '2026-11-02T10:15:00.000Z',
+        safetyCopy: 'backup-before-restore-20261102-101500.zip',
+        databases: {
+          canonical: 'schoolpilot-canonical.sqlite3',
+          legacy: 'schoolpilot_production.sqlite3',
+        },
+      });
+      expect(error).toBeInstanceOf(BackupRestoreError);
+      expect((error as BackupRestoreError).rolledBack).toBe(false);
+      expect((error as BackupRestoreError).safetyCopy).toBe('backup-before-restore-20261102-101500.zip');
+      // The next start finds the marker and puts the safety copy back.
+      expect(target.marker()).not.toBeNull();
+    } finally {
+      await close(source, target);
+    }
+  });
+
+  it('reports a restore whose marker could not be cleared as one the next start will undo', async () => {
+    const source = await school('Mwangaza Academy');
+    const target = await school('Placeholder School');
+    try {
+      const prepared = await prepareRestore(target.env, (await createBackup(source.env)).bytes);
+      const env: BackupEnvironment = {
+        ...target.env,
+        safetyCopies: {
+          ...target.env.safetyCopies,
+          clearRestoreInProgress: async () => {
+            throw new Error('the storage is full');
+          },
+        },
+      };
+
+      const error = await applyRestore(env, prepared).catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(BackupRestoreError);
+      expect((error as BackupRestoreError).rolledBack).toBe(true);
+      expect((error as Error).message).toMatch(/previous data back when it starts/);
     } finally {
       await close(source, target);
     }

@@ -11,6 +11,7 @@ export {
 } from './node';
 export {
   createWasmSqliteAdapter,
+  replaceWasmDatabaseFile,
   WASM_REQUEST_TIMEOUT_MS,
   type WasmSqliteAdapterOptions,
 } from './browser';

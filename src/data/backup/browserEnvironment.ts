@@ -1,5 +1,5 @@
-// ABOUTME: The browser side of backup and restore: the two live databases, the OPFS store for the
-// ABOUTME: safety copy a restore leaves behind, and an in-memory sqlite-wasm database for validation.
+// ABOUTME: The browser side of backup and restore: the two live databases, the OPFS safety-copy
+// ABOUTME: store, an in-memory sqlite-wasm database for validation, downloads and the reload.
 
 import {
   createSqliteAdapter,
@@ -13,12 +13,10 @@ import { getAppMode } from '@/config/unifiedConfig';
 import { SQLiteWASMProvider } from '@/services/database/SQLiteWASMProvider';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 
-import type { BackupEnvironment, SafetyCopyStore } from './backupService';
+import type { BackupEnvironment } from './backupService';
+import { opfsSafetyCopies } from './safetyStore';
 
 type Sqlite3Module = Awaited<ReturnType<typeof import('@sqlite.org/sqlite-wasm').default>>;
-
-/** The OPFS directory the safety copies live in, beside (never inside) the SQLite pools. */
-export const SAFETY_COPY_DIRECTORY = 'schoolpilot-restore-safety';
 
 let sqlite3: Promise<Sqlite3Module> | null = null;
 
@@ -51,71 +49,13 @@ export function downloadBytes(fileName: string, bytes: Uint8Array, type: string)
   URL.revokeObjectURL(url);
 }
 
-/** A safety copy stored in this browser. */
-export interface SafetyCopy {
-  readonly name: string;
-  readonly bytes: number;
-  readonly modified: number;
-}
-
-async function safetyDirectory(): Promise<FileSystemDirectoryHandle> {
-  const root = await navigator.storage.getDirectory();
-  return root.getDirectoryHandle(SAFETY_COPY_DIRECTORY, { create: true });
-}
-
 /**
- * The safety copies a restore writes before it replaces anything. They stay in this browser's
- * OPFS until somebody deletes them; where OPFS cannot be written from the page, the copy is
- * downloaded instead, so it is never skipped.
+ * Reload the app at once after any restore attempt that reached the databases: every module read
+ * the replaced data, both databases refuse writes until they are opened again, and only a fresh
+ * load reads the files as they now are. What happened is shown by the reloaded app.
  */
-export const opfsSafetyCopies: SafetyCopyStore & {
-  list(): Promise<SafetyCopy[]>;
-  read(name: string): Promise<Uint8Array>;
-  remove(name: string): Promise<void>;
-} = {
-  async save(fileName, bytes) {
-    const directory = await safetyDirectory();
-    const handle = await directory.getFileHandle(fileName, { create: true });
-    if (typeof handle.createWritable !== 'function') {
-      await directory.removeEntry(fileName);
-      downloadBytes(fileName, bytes, 'application/zip');
-      return `${fileName} (downloaded)`;
-    }
-    const writable = await handle.createWritable();
-    await writable.write(bytes);
-    await writable.close();
-    return `${SAFETY_COPY_DIRECTORY}/${fileName}`;
-  },
-
-  async list() {
-    const directory = await safetyDirectory();
-    const copies: SafetyCopy[] = [];
-    for await (const entry of directory.values()) {
-      if (entry.kind !== 'file') continue;
-      const file = await (entry as FileSystemFileHandle).getFile();
-      copies.push({ name: entry.name, bytes: file.size, modified: file.lastModified });
-    }
-    return copies.sort((a, b) => b.modified - a.modified);
-  },
-
-  async read(name) {
-    const directory = await safetyDirectory();
-    const file = await (await directory.getFileHandle(name)).getFile();
-    return new Uint8Array(await file.arrayBuffer());
-  },
-
-  async remove(name) {
-    const directory = await safetyDirectory();
-    await directory.removeEntry(name);
-  },
-};
-
-/**
- * Reload the app after a restore, once the person has had a moment to read that it worked:
- * every module read the replaced data before, and only a fresh load reads the restored files.
- */
-export function reloadAfterRestore(): void {
-  window.setTimeout(() => window.location.reload(), 1500);
+export function reloadApp(): void {
+  window.location.reload();
 }
 
 /** The data mode this install runs in: production, demo or development. */

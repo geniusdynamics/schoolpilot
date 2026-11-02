@@ -68,6 +68,24 @@ describe('runAsOnlyTab', () => {
     expect(locks.holders).toEqual([{ mode: 'shared' }]);
   });
 
+  it('lets its own lock go even when it was not granted yet (another tab held it exclusively)', async () => {
+    const { holdAppTabLock, runAsOnlyTab } = await import('../tabLock');
+    let finishOther: () => void = () => undefined;
+    void locks.request(
+      'schoolpilot-app-tab',
+      { mode: 'exclusive' },
+      () => new Promise<void>((resolve) => (finishOther = resolve))
+    );
+    holdAppTabLock();
+
+    const running = runAsOnlyTab(async () => 'recovered');
+    finishOther();
+
+    await expect(
+      Promise.race([running, new Promise((_, reject) => setTimeout(() => reject(new Error('hung')), 1000))])
+    ).resolves.toBe('recovered');
+  });
+
   it('refuses while another tab holds the shared lock, and keeps this tab registered', async () => {
     const { holdAppTabLock, OtherTabsOpenError, runAsOnlyTab } = await import('../tabLock');
     // The other tab: a shared holder this module does not own.

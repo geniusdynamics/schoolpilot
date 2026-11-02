@@ -16,6 +16,9 @@ import { performanceEventManager } from './services/performance/performanceEvent
 import { logger } from './utils/logging';
 import { initializeDevTools } from './utils/devTools';
 import { holdAppTabLock } from './data/backup/tabLock';
+import { recoverOnStartup } from './data/backup/startupRecovery';
+import { setAppRoot } from './utils/appRoot';
+import { showRestoreRecoveryScreen } from './modules/settings/components/RestoreRecoveryScreen';
 
 // Every open tab registers itself, so a backup restore can tell whether it is the only one.
 holdAppTabLock();
@@ -51,23 +54,53 @@ export const initializeApp = async () => {
     logger.warn('⚠️ i18n initialization failed, continuing with fallback:', error);
   }
   
-  // Render the app after i18n is ready
-  renderApp();
+  // Render the app after i18n is ready, unless a restore was interrupted: that is decided before
+  // anything opens a database, and a failed recovery shows one screen instead of the app.
+  await startAfterRestoreRecovery();
 };
 
-const renderApp = () => {
+/**
+ * Undo an interrupted restore, then render. The check runs before `renderApp`, so no provider has
+ * opened either database and no page has read anything; a failure renders one blocking screen and
+ * stops, because the app would otherwise present half-restored data as the school.
+ */
+const startAfterRestoreRecovery = async () => {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error('Could not find root element to mount to');
+  }
+  const root = ReactDOM.createRoot(rootElement);
+  setAppRoot(root);
+
+  let outcome: Awaited<ReturnType<typeof recoverOnStartup>>;
+  try {
+    outcome = await recoverOnStartup();
+  } catch (error) {
+    logger.error('The interrupted-restore check failed:', error);
+    outcome = {
+      status: 'failed',
+      safetyCopy: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+  if (outcome.status === 'failed') {
+    showRestoreRecoveryScreen({
+      reason: 'interruptedRestore',
+      safetyCopy: outcome.safetyCopy,
+      error: outcome.error,
+    });
+    return;
+  }
+  renderApp(root);
+};
+
+const renderApp = (root: ReactDOM.Root) => {
   performanceEventManager.markDiagnostic('app_render_start', {
     href: window.location.href
   });
   // Add global debug helpers
   initializeDevTools();
 
-  const rootElement = document.getElementById('root');
-  if (!rootElement) {
-    throw new Error("Could not find root element to mount to");
-  }
-
-  const root = ReactDOM.createRoot(rootElement);
   root.render(
     <React.StrictMode>
       <Suspense fallback={
