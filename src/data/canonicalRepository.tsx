@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { createNodeSqliteAdapter, createWasmSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
 import { applySchemaMigrations } from '@/data/migrations';
 import { createRepository } from '@/data/repository';
+import { sessionAuthorizer } from '@/data/auth/sessionAuthority';
 import type { QueryRepository } from '@/data/query';
 
 import Spinner from '@/components/ui/Spinner';
@@ -68,7 +69,7 @@ export async function openCanonicalRepository(): Promise<QueryRepository> {
       : createNodeSqliteAdapter({ filename: ':memory:', foreignKeys: true });
     await adapter.open();
     try {
-      const repository = createRepository({ adapter });
+      const repository = createRepository({ adapter, authorize: sessionAuthorizer });
       await repository.setup();
       // The module-owned tables (sequences, the ledger, reconciliation) are not in the canonical
       // registry: their migrations are applied here, before the repository reaches a page, so a

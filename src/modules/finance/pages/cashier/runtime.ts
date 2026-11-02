@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 
 import { canonicalAdapter } from '@/data/canonicalRepository';
+import { assertCan } from '@/data/auth/sessionAuthority';
 import {
   CashierSessionService,
   PaymentsService,
@@ -110,8 +111,14 @@ export function openCashierRuntime(
         });
         return issued.number;
       },
-      openSession: (input) => sessions.open(input),
-      closeSession: (input) => sessions.close(input),
+      openSession: (input) => {
+        assertCan('payment', 'create', 'payment.receipt');
+        return sessions.open(input);
+      },
+      closeSession: (input) => {
+        assertCan('payment', 'update', 'payment.receipt');
+        return sessions.close(input);
+      },
       session: (id) => sessions.session(id),
       openSessionFor: (institutionId, cashierUserId) =>
         sessions.openSessionFor(institutionId, cashierUserId),
