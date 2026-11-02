@@ -80,7 +80,8 @@ describe('recording an expense', () => {
   it('posts one balanced entry that debits the expense account and credits the bank', async () => {
     const expense = await service.record(recordInput());
 
-    const entry = await ledger.entry(expense.journal_entry_id);
+    expect(expense.journal_entry_id).toBeTruthy();
+    const entry = await ledger.entry(expense.journal_entry_id as string);
     expect(entry).not.toBeNull();
     expect(entry?.source).toMatchObject({ kind: 'expense', id: expense.id, number: expense.reference });
     expect(entry?.totalDebit.amount_minor).toBe(AMOUNT.amount_minor);

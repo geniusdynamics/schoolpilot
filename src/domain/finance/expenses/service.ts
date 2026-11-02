@@ -276,8 +276,17 @@ export class ExpenseService {
         );
       }
 
+      const journalEntryId = expense.journal_entry_id;
+      if (!journalEntryId) {
+        throw new ExpenseError(
+          'not_found',
+          `Expense ${expense.reference} has no posted journal entry to reverse.`,
+          { id: expenseId }
+        );
+      }
+
       const today = this.clock().toISOString().slice(0, 10);
-      const reversal = await ledger.reverse(expense.journal_entry_id, {
+      const reversal = await ledger.reverse(journalEntryId, {
         reason,
         entryDate: options.entryDate ?? today,
         ...(actor === undefined ? {} : { actor }),
