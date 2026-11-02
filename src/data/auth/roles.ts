@@ -26,6 +26,7 @@ export const ROLES = [
   'bursar',
   'nurse',
   'auditor',
+  'parent',
 ] as const;
 
 export type Role = (typeof ROLES)[number];
@@ -361,6 +362,24 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'reference.read',
   ],
   auditor: PERMISSIONS.filter((permission) => permission.endsWith('.read')),
+  // The parent reads the school life of their children and writes nothing: no finance duty, and not
+  // the medical record, which is restricted data (spec 06 §8.1). The portal narrows these reads to
+  // the children the guardian links name (`src/modules/portal/data/portalAccess.ts`); the canonical
+  // scope kinds have no parent kind yet, so `ROLE_SCOPE_KINDS` names none for this role and a
+  // canonical scoped read as a parent reaches nothing until one lands.
+  parent: [
+    'learner.read',
+    'guardian.read',
+    'enrolment.read',
+    'class.read',
+    'attendance.read',
+    'assessment.read',
+    'mark.read',
+    'result.read',
+    'report_card.read',
+    'finance.read',
+    'reference.read',
+  ],
 };
 
 /**
@@ -381,6 +400,9 @@ export const ROLE_SCOPE_KINDS: Record<Role, readonly ScopeKind[]> = {
   accountant: ['finance'],
   accounts_clerk: ['finance'],
   bursar: ['finance'],
+  // No canonical scope kind names "the children of this guardian" yet; the portal resolves that
+  // scope from the guardian links itself, and a canonical scoped read as a parent is refused.
+  parent: [],
 };
 
 /** True when one of the roles holds the permission. */

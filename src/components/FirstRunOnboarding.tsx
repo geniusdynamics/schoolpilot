@@ -217,6 +217,22 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           demo: { ...config.demo, active: true },
         });
 
+        // The remaining modules - library, inventory, procurement, nutrition, payroll, transport,
+        // communications - read the legacy collections through the provider, so the database has to
+        // be open before the seed runs. Seeding against a closed database is what left every one of
+        // those modules empty on a fresh demo while the canonical school installed fine.
+        setIsInitialisingDatabase(true);
+        try {
+          await dbManager.initialize();
+        } catch (initError) {
+          logger.error('[FirstRunOnboarding] Database initialisation failed:', initError);
+          setStorageError(initError ?? new Error('Database initialisation failed'));
+          return;
+        } finally {
+          setIsInitialisingDatabase(false);
+          setIsProcessing(false);
+        }
+
         // Seed demo data – volume 'medium' now yields full 150+ students matching UI copy
         // VOLUME_FACTORS medium=1 (large=1) ensures "150+ sample students" claim is honoured
         try {

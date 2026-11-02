@@ -4,6 +4,7 @@ import { collectionsDefinition } from './collections';
 import { SchemaConverter } from './SchemaConverter';
 import type { CollectionSchema, ICollection, IDatabaseProvider } from './interfaces';
 import { logger } from '@/utils/logging';
+import { SYSTEM_WORKFLOWS } from '@/domain/workflows';
 import { RelationshipManager } from '../dataGeneration/RelationshipManager';
 import { buildKenyanDemoCalendar, repairCommunicationTemplateLinks, repairSeedForeignKeys, repairStudentGuardianLinks, repairSubjectDepartments, stabiliseSeedIds } from '../dataGeneration/generators/demoSeedRepair';
 import type { SeedForeignKeyReference } from '../dataGeneration/generators/demoSeedRepair';
@@ -115,6 +116,9 @@ const MODULE_NAME_ALIASES: Record<string, string> = {
   students: 'administration', // Students are in administration module
   core: 'administration' // Core data is in administration module
 };
+
+/** A fixed timestamp, so two runs of the seed write identical workflow rows. */
+const SEED_TIMESTAMP_DETERMINISTIC = '2023-01-01T00:00:00.000Z';
 
 const COLLECTION_PRIORITY = [
   'roles',
@@ -459,6 +463,35 @@ const applyCommunicationTemplateRepair = (sampleMap: Map<string, any[]>): void =
   );
 };
 
+/**
+ * The platform's system workflows, written into the legacy `workflows` collection.
+ *
+ * The workflow engine runs from the code catalogue (`src/domain/workflows`), so nothing here makes a
+ * workflow *work*; the collection is what Settings -> Workflows lists, and a fresh school held none,
+ * which read as if the school had no workflows at all. The rows carry the catalogue's key as their id
+ * and its states inline, the shape the page reads. They are records of definitions the code owns:
+ * the engine never reads them back.
+ */
+const applySystemWorkflowSeed = (sampleMap: Map<string, any[]>): void => {
+  const existing = sampleMap.get('workflows') ?? [];
+  if (existing.length > 0) return;
+  sampleMap.set(
+    'workflows',
+    SYSTEM_WORKFLOWS.map((workflow) => ({
+      id: workflow.key,
+      name: workflow.name,
+      states: workflow.states.map((state) => ({
+        id: `${workflow.key}:${state.key}`,
+        workflow_id: workflow.key,
+        name: state.name,
+        sequence_order: state.sequence_order,
+      })),
+      created_at: SEED_TIMESTAMP_DETERMINISTIC,
+      updated_at: SEED_TIMESTAMP_DETERMINISTIC,
+    }))
+  );
+};
+
 /** Every foreign key the collection schemas declare, as child.column -> parent. */
 const schemaDeclaredReferences = (): SeedForeignKeyReference[] => {
   const references: SeedForeignKeyReference[] = [];
@@ -642,6 +675,7 @@ export const seedProviderWithDemoData = async (
   applySubjectDepartmentRepair(volumeSampleMap);
   applyGuardianLinkRepair(volumeSampleMap);
   applyCommunicationTemplateRepair(volumeSampleMap);
+  applySystemWorkflowSeed(volumeSampleMap);
   stabiliseSeedIds(volumeSampleMap);
   const foreignKeyRepair = repairSeedForeignKeys(volumeSampleMap, references, completeRecords);
   if (foreignKeyRepair.remapped > 0) {
