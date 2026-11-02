@@ -400,6 +400,26 @@ class AuthService {
           'portal.view',
         ],
         moduleAccess: ['dashboard', 'academics', 'portal']
+      },
+      'parent': {
+        id: 'USR_DEMO_PARENT',
+        username: 'parent',
+        email: 'parent@school.com',
+        fullName: 'Naomi Wekesa (Parent)',
+        role: 'parent',
+        isActive: true,
+        lastLoginAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        // A parent reads their children's school life: the portal resolves that scope from the
+        // guardian links, and the canonical `parent` role holds the matching read permissions.
+        permissions: [
+          'dashboard.view',
+          'academics.view', 'academics.read',
+          'finance.read',
+          'portal.view',
+        ],
+        moduleAccess: ['dashboard', 'portal']
       }
     };
 

@@ -154,7 +154,8 @@ const LoginPage: React.FC = () => {
     { username: 'admin', password: 'admin123', role: 'Super Administrator' },
     { username: 'teacher', password: 'teacher123', role: 'Teacher' },
     { username: 'finance', password: 'finance123', role: 'Finance Officer' },
-    { username: 'student', password: 'student123', role: 'Student' }
+    { username: 'student', password: 'student123', role: 'Student' },
+    { username: 'parent', password: 'parent123', role: 'Parent' }
   ];
 
   const handleLogin = async (e: React.FormEvent) => {
