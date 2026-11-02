@@ -1,0 +1,34 @@
+# ABOUTME: What a Docker build must never see: local secrets, build output and machine-specific state.
+# The build copies the tree; without this, .env (a real DSN locally) and node_modules would enter it.
+
+# Secrets first: a .env in the build context would be baked into the image by loadEnv.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+keys/
+
+# Local build and test output
+node_modules
+dist
+coverage
+test-results
+playwright-report
+.prd-gate
+*.log
+
+# Agent and editor state
+.claude
+.opencode
+.trae
+.cursor
+.vscode
+.git
+.github
+.idea
+
+# Nested installs and worktrees
+**/node_modules
+.claude/worktrees
+schoolpilot3-*
