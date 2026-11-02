@@ -3,6 +3,7 @@
 
 import type { SqliteTransaction } from '@/data/adapters/sqlite';
 import type { Repository, RepositoryRow, WriteOptions } from '@/data/repository';
+import { createPackRegistry, loadPack, type LoadedPack } from '@/domain/curriculum/registry';
 import { asId, type Id } from '@/domain/ids';
 import type { CurrencyCode } from '@/domain/money';
 
@@ -53,6 +54,11 @@ export interface DemoSchoolYear {
 export interface DemoSchoolClass {
   readonly name: string;
   readonly streams: readonly string[];
+  /**
+   * The code of the class's level. The curriculum pack's own level code when the school runs one,
+   * so the pack's rules name it; derived from the name when the caller does not say.
+   */
+  readonly code?: string;
 }
 
 /** What the demo seed is asked for. */
@@ -77,6 +83,19 @@ export interface DemoSchoolInput {
    * so a caller can show what a long install is doing. The same names a failure reports.
    */
   readonly onProgress?: (step: string) => void;
+  /**
+   * The code of the curriculum pack the school runs (`ke-cbe`). The programme is pinned to the pack,
+   * and the sample school's head teacher installs it through the pack registry, so the pages that
+   * read a programme's installed pack - the promotion run first - find one. The document comes from
+   * the seed options' `packDocument`; a pack it cannot produce fails the seed.
+   */
+  readonly curriculumPack?: string;
+}
+
+/** What the seed reads from outside the domain. */
+export interface DemoSeedOptions {
+  /** The document of the shipped pack a code names, or undefined when the installation ships none. */
+  readonly packDocument?: (code: string) => unknown;
 }
 
 /** The rows the seed created, per entity. Reused rows are not counted. */
@@ -106,6 +125,47 @@ export class DemoSchoolSeedError extends Error {
     this.name = 'DemoSchoolSeedError';
     this.cause = cause;
   }
+}
+
+/** The curriculum pack the school runs: the shipped document and what the loader made of it. */
+interface DemoCurriculum {
+  readonly document: unknown;
+  readonly pack: LoadedPack;
+}
+
+/** The pack a code names, loaded; a pack the installation cannot produce or load fails the seed. */
+function curriculumOf(code: string, seedOptions: DemoSeedOptions): DemoCurriculum {
+  const document = seedOptions.packDocument?.(code);
+  if (document === undefined || document === null) {
+    throw new Error(`the demo school runs the ${code} curriculum pack, but the installation ships no such pack`);
+  }
+  const loaded = loadPack(document);
+  if (!loaded.ok) {
+    throw new Error(
+      `the ${code} curriculum pack does not load: ${loaded.issues
+        .map((issue) => `${issue.path} ${issue.check}`)
+        .join(', ')}`
+    );
+  }
+  return { document, pack: loaded.pack };
+}
+
+/**
+ * Records the school's curriculum pack as installed, through the pack registry the setup wizard
+ * uses. The head teacher installs it: the registry names a real user on every write it makes.
+ */
+async function installCurriculum(ctx: DemoContext, curriculum: DemoCurriculum): Promise<void> {
+  const head = await findOne(ctx.repository, 'user', {
+    where: { institution_id: ctx.institutionId, username: 'headteacher' },
+  });
+  if (!head) throw new Error('the sample school has no head teacher login to install its curriculum');
+  const registry = createPackRegistry({
+    repository: ctx.repository,
+    actor: head.id,
+    source: () => curriculum.document,
+  });
+  await registry.install(ctx.programmeId, curriculum.document, { reason: ctx.options.reason });
+  ctx.count('curriculum_pack');
 }
 
 const CAMPUS_NAME = 'Main Campus';
@@ -144,8 +204,12 @@ function todayOf(input: DemoSchoolInput): string {
  */
 export async function seedDemoSchool(
   repository: Repository,
-  input: DemoSchoolInput
+  input: DemoSchoolInput,
+  seedOptions: DemoSeedOptions = {}
 ): Promise<DemoSchoolResult> {
+  const curriculum = input.curriculumPack
+    ? curriculumOf(input.curriculumPack, seedOptions)
+    : null;
   const counts: Record<string, number> = {};
   const count = (entity: string): void => {
     counts[entity] = (counts[entity] ?? 0) + 1;
@@ -286,8 +350,8 @@ export async function seedDemoSchool(
       { where: { institution_id: institutionId, name: PROGRAMME_NAME } },
       () => ({
         institution_id: institutionId,
-        curriculum_pack_code: codeOf(locale.split('-')[1] ?? 'CBE', 'CBE'),
-        pack_version: '1.0.0',
+        curriculum_pack_code: curriculum?.pack.code ?? codeOf(locale.split('-')[1] ?? 'CBE', 'CBE'),
+        pack_version: curriculum?.pack.version ?? '1.0.0',
         name: PROGRAMME_NAME,
         calendar_id: asId<'calendar'>(calendar.id),
         status: 'active',
@@ -352,7 +416,7 @@ export async function seedDemoSchool(
     for (const [index, klass] of classes.entries()) {
       const name = klass.name.trim();
       if (!name) continue;
-      const code = codeOf(name, `LEVEL${index + 1}`).slice(0, 50);
+      const code = (klass.code?.trim() || codeOf(name, `LEVEL${index + 1}`)).slice(0, 50);
       const level = await findOrCreate<'level'>(
         repository,
         'level',
@@ -436,12 +500,15 @@ export async function seedDemoSchool(
         };
         at('history');
         const previous = await seedPreviousYear({ ...base, current });
-        await seedSampleSchool({
-          ...base,
-          current,
-          previous,
-          currentTermIndex: termIndexOn(terms, today),
-        });
+        await seedSampleSchool(
+          {
+            ...base,
+            current,
+            previous,
+            currentTermIndex: termIndexOn(terms, today),
+          },
+          curriculum
+        );
         demoSeeded = true;
       }
     }
@@ -461,12 +528,14 @@ export async function seedDemoSchool(
  * book and every term's invoices, what the families paid and what became of the alumni's accounts,
  * and the registers of the last days.
  */
-async function seedSampleSchool(ctx: DemoContext): Promise<void> {
+async function seedSampleSchool(ctx: DemoContext, curriculum: DemoCurriculum | null): Promise<void> {
   ctx.at('staff');
   const staff = await seedStaff(ctx);
 
   ctx.at('learners');
   const roster = await seedPeople(ctx, staff);
+  // The people's logins exist now, so the head teacher can install the curriculum.
+  if (curriculum) await installCurriculum(ctx, curriculum);
 
   const teaching = await seedTeaching(ctx, staff, roster);
   await seedAssessment(ctx, roster, teaching);

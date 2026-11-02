@@ -205,6 +205,11 @@ export function listAvailablePacks(): readonly AvailablePack[] {
   return packs;
 }
 
+/** The document of the shipped pack a code names, or undefined when the library ships none. */
+export function shippedPackDocument(code: string): unknown {
+  return listAvailablePacks().find((pack) => pack.code === code)?.document;
+}
+
 /** The packs a `code@version` source resolves from a library. */
 export function packSourceFor(packs: readonly AvailablePack[] = listAvailablePacks()): PackSource {
   const documents = new Map(packs.map((pack) => [pack.ref, pack.document]));

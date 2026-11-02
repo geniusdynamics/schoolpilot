@@ -110,9 +110,9 @@ function declaresNoPromotionRules(document: unknown): boolean {
 /**
  * Resolves the rules from the pack installed for one of the school's programmes.
  *
- * A programme counts as installed when a `curriculum_pack` source row records its pin; the demo
- * school's programme has a code but no source row, so it is skipped rather than resolved against a
- * bundled pack that shares the code. The first installed programme whose pack declares promotion
+ * A programme counts as installed when a `curriculum_pack` source row records its pin; a programme
+ * that names a code but has no source row (a pin the wizard set before its install) is skipped
+ * rather than resolved against a bundled pack that shares the code. The first installed programme whose pack declares promotion
  * rules wins. When no pack yields rules, the reason is reported exactly: a pack that declares none
  * is not the same as a pack the library cannot read, and neither is the same as no pack installed.
  */

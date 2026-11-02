@@ -36,11 +36,13 @@ export function defaultDemoSchool(today: Date = new Date()): DemoSchoolInput {
       endDate: `${year}-11-30`,
       terms: termsFor(year),
     },
+    // Junior School of the Kenyan CBE pack, under the pack's own level codes, so its rules apply.
     classes: [
-      { name: 'Grade 7', streams: ['East', 'West'] },
-      { name: 'Grade 8', streams: ['East', 'West'] },
-      { name: 'Grade 9', streams: ['East', 'West'] },
+      { name: 'Grade 7', code: 'G7', streams: ['East', 'West'] },
+      { name: 'Grade 8', code: 'G8', streams: ['East', 'West'] },
+      { name: 'Grade 9', code: 'G9', streams: ['East', 'West'] },
     ],
+    curriculumPack: 'ke-cbe',
     demo: true,
     today: today.toISOString().slice(0, 10),
   };

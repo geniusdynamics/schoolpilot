@@ -11,5 +11,6 @@ export {
   type DemoSchoolResult,
   type DemoSchoolTerm,
   type DemoSchoolYear,
+  type DemoSeedOptions,
 } from './demoSchool';
 export { DEFAULT_DEMO_SCHOOL_NAME, defaultDemoSchool } from './defaultDemoSchool';

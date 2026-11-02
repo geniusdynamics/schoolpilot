@@ -3,6 +3,7 @@
 
 import { logger } from '@/utils/logging';
 
+import { shippedPackDocument } from '@/components/setup/packs/packLibrary';
 import { openCanonicalRepository } from '@/data/canonicalRepository';
 import { Repository } from '@/data/repository';
 import {
@@ -51,7 +52,7 @@ export async function seedCanonicalDemoSchool(
     if (!(repository instanceof Repository)) {
       throw new Error('the canonical provider handed a read-only repository, so the demo cannot be written');
     }
-    const result = await seedDemoSchool(repository, input);
+    const result = await seedDemoSchool(repository, input, { packDocument: shippedPackDocument });
     await writeSchoolDetails(input);
     return result;
   } catch (error) {
