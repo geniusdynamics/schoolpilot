@@ -58,6 +58,25 @@ export interface SetupOptions {
   readonly year?: SetupYear;
 }
 
+/**
+ * The term the sample school is in, named the way it names its terms: the one holding today, else
+ * the last one that ended (the wizard's default year runs January to October). The sample data seeds
+ * against the real clock, so this is the term whose end-of-term exam it leaves open for entry and
+ * whose mid-term exam it closes; every earlier term's end-of-term exam is published.
+ */
+export function currentTermLabel(today: Date = new Date()): string {
+  const year = today.getFullYear();
+  const terms = [
+    { label: 'Term 1', start: `${year}-01-06`, end: `${year}-04-04` },
+    { label: 'Term 2', start: `${year}-04-28`, end: `${year}-08-01` },
+    { label: 'Term 3', start: `${year}-08-25`, end: `${year}-10-31` },
+  ];
+  const day = today.toISOString().slice(0, 10);
+  const holding = terms.find((term) => term.start <= day && day <= term.end);
+  if (holding) return holding.label;
+  return [...terms].reverse().find((term) => term.end < day)?.label ?? 'Term 1';
+}
+
 /** Wait for the authenticated shell after a document load. */
 export async function waitForShell(page: Page, timeout = COLD_LOAD_TIMEOUT): Promise<void> {
   await page.locator('header').first().waitFor({ state: 'visible', timeout });

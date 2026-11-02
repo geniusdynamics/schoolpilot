@@ -192,6 +192,51 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  e2e-golden-paths-2:
+    name: Golden paths 2-5 (persistent SQLite)
+    # Pinned for the same reason as the e2e job: Playwright 1.55 has no Chromium build for 26.04.
+    runs-on: ubuntu-24.04
+    # GP-2 to GP-5 are four more long journeys (about four minutes each locally, more on a cold dev
+    # server, plus a retry on failure); a job of their own keeps the first one inside its budget.
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run GP-2 to GP-5 on a real SQLite-WASM database
+        run: >-
+          pnpm exec playwright test
+          tests/e2e/gp2-setup.spec.ts
+          tests/e2e/gp3-marks-results-report.spec.ts
+          tests/e2e/gp4-term-cycle.spec.ts
+          tests/e2e/gp5-promotion.spec.ts
+
+      - name: Upload Playwright traces and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-paths-2-5-playwright
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
   harness:
     name: Repository integration harness (SQLite, optional Postgres)
     runs-on: ubuntu-latest

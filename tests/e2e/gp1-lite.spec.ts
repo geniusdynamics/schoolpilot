@@ -29,6 +29,7 @@ import {
   UI_TIMEOUT,
   chooseFromPicker,
   completeSetup,
+  currentTermLabel,
   go,
   gridRow,
   reloadAndWait,
@@ -69,22 +70,7 @@ const GUARDIAN_NAME = `${STUDENT.guardianGiven} ${STUDENT.guardianFamily}`;
 const SOURCE_STREAM = /Form 1\W+North/;
 /** The term the wizard's fee structure and the billing run price. */
 const TERM_LABEL = 'Term 1';
-/**
- * The term the sample school is in, named the way it names its terms: the one holding today, else
- * the last one that ended (the school year runs January to October). Its end-of-term exam is the
- * one the seed leaves open for entry; every earlier term's is published.
- */
-function currentTermLabel(): string {
-  const terms = [
-    { label: 'Term 1', start: `${YEAR}-01-06`, end: `${YEAR}-04-04` },
-    { label: 'Term 2', start: `${YEAR}-04-28`, end: `${YEAR}-08-01` },
-    { label: 'Term 3', start: `${YEAR}-08-25`, end: `${YEAR}-10-31` },
-  ];
-  const today = new Date().toISOString().slice(0, 10);
-  const holding = terms.find((term) => term.start <= today && today <= term.end);
-  if (holding) return holding.label;
-  return [...terms].reverse().find((term) => term.end < today)?.label ?? 'Term 1';
-}
+/** The term the sample school is in; its end-of-term exam is the one the seed leaves open for entry. */
 const MARKED_TERM = currentTermLabel();
 // The sample school prices a Form 1 day learner across nine vote heads: tuition, lunch, activity,
 // internal examinations, electricity/water/conservancy, medical, insurance, development and admission.
