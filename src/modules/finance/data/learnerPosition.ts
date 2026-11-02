@@ -42,9 +42,11 @@ export interface LearnerPositionInput {
  * One learner's position, in exact minor units.
  *
  * `collected` is every posted payment the learner made, allocated or not: an overpayment is money
- * the school holds, so it counts as collected. `credit` is the unallocated learner credit plus the
- * part of the allocations that exceeds the bill, which is the credit a statement shows. `balance`
- * is `billed - collected - creditNotes`, the same figure the statement's closing balance is.
+ * the school holds, so it counts as collected. `credit` is the money held for the learner - the
+ * unallocated part of their payments, or what they paid above what was billed and credited,
+ * whichever is larger; the two differ when a payment was allocated to an invoice that was later
+ * voided, so `credit` can exceed `-balance`. `balance` is `billed - collected - creditNotes`, the
+ * statement's closing figure, and it is negative for a learner in credit.
  */
 export interface LearnerPosition {
   readonly billed: number;
