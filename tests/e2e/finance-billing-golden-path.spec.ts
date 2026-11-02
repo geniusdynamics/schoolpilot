@@ -281,7 +281,7 @@ test.describe('the finance golden path', () => {
 
       const receipt = page.getByTestId('cashier-receipt');
       await expect(receipt).toBeVisible({ timeout: UI_TIMEOUT });
-      await expect(receipt).toContainText(/Ksh\s1,500\.00/);
+      await expect(receipt).toContainText(/KES\s1,500\.00/);
       await expect(receipt).toContainText('Allocation');
       await expect(receipt).toContainText('Balance after');
 

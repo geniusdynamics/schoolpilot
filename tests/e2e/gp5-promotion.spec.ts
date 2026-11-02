@@ -98,11 +98,14 @@ function toMinor(text: string): number {
   return negative ? -minor : minor;
 }
 
-/** The amounts of a financial summary row's text: billed, collected, credit notes and balance, in that order. */
+/**
+ * The amounts of a financial summary row's text: billed, collected, credit notes, credit and
+ * balance, in that order. The credit column was added with the walkthrough fix, so a row prints five.
+ */
 function amountsOf(text: string): SummaryAmounts {
   const amounts = text.match(/-?KES\s*-?[\d,]+\.\d{2}/g) ?? [];
-  expect(amounts, `the summary row does not print four amounts:\n${text}`).toHaveLength(4);
-  return { billed: toMinor(amounts[0]!), balance: toMinor(amounts[3]!) };
+  expect(amounts, `the summary row does not print five amounts:\n${text}`).toHaveLength(5);
+  return { billed: toMinor(amounts[0]!), balance: toMinor(amounts[4]!) };
 }
 
 /**
