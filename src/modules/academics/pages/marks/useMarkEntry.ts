@@ -107,11 +107,15 @@ export interface MarkEntryState {
   readonly saving: boolean;
   readonly refusal: string | null;
   readonly pasteMessage: string | null;
+  /** The confirmation of the last successful write, cleared when a new edit is made. */
+  readonly saveNotice: string | null;
   /** Cells another writer changed after the teacher loaded them; the teacher's value won. */
   readonly conflicts: readonly string[];
   readonly summary: Readonly<
     Record<'valid' | 'missing' | 'invalid' | 'out_of_range' | 'incomplete_scheme' | 'locked' | 'moderated', number>
   >;
+  /** The maximum of every column that holds an out-of-range mark, for a message that names the range. */
+  readonly outOfRangeMaxima: readonly number[];
   readonly workflowAudit: readonly WorkflowAuditEntry[];
 }
 
@@ -185,6 +189,7 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
     marks,
     academicPeriods,
     classGroups,
+    learningAreas,
     staff,
     learnerById,
     enrolmentById,
@@ -317,6 +322,15 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
 
   const learningAreaId = group?.learning_area_id ?? null;
 
+  /** The subject a cell belongs to, so an out-of-range mark can say which one it is. */
+  const learningAreaName = useMemo(
+    () =>
+      learningAreaId === null
+        ? null
+        : (learningAreas.find((row) => row.id === learningAreaId)?.name ?? null),
+    [learningAreas, learningAreaId]
+  );
+
   /** The stored mark each cell resolves to. */
   const storedByCell = useMemo(() => {
     const map = new Map<string, StoredMark>();
@@ -420,6 +434,7 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
   });
   const [refusal, setRefusal] = useState<string | null>(null);
   const [pasteMessage, setPasteMessage] = useState<string | null>(null);
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [conflicts, setConflicts] = useState<readonly string[]>([]);
   const [pendingCount, setPendingCount] = useState(() => queue.size());
   const [saving, setSaving] = useState(false);
@@ -506,7 +521,13 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
       if (entry.score.trim() !== '') {
         const check = checkScore(entry.score, column.max);
         if (!check.ok) {
-          return cellStatus(check.code === 'out_of_range' ? 'out_of_range' : 'invalid', check.message);
+          if (check.code === 'out_of_range') {
+            // Name the subject and the assessment, not just the maximum: a teacher with several
+            // columns open cannot tell which mark the message is about otherwise.
+            const subject = learningAreaName ?? 'This subject';
+            return cellStatus('out_of_range', `${subject} · ${column.label}: ${check.message}`);
+          }
+          return cellStatus('invalid', check.message);
         }
       }
 
@@ -544,7 +565,7 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
       }
       return cellStatus('valid', null);
     },
-    [rows, columns, entryOf, verdicts, columnStates]
+    [rows, columns, entryOf, verdicts, columnStates, learningAreaName]
   );
 
   const summary = useMemo(() => {
@@ -563,6 +584,19 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
       }
     }
     return counts;
+  }, [rows, columns, statusOf]);
+
+  /** The maxima the out-of-range cells were checked against, so the page can name the range. */
+  const outOfRangeMaxima = useMemo(() => {
+    const maxima = new Set<number>();
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+      for (let columnIndex = 0; columnIndex < columns.length; columnIndex += 1) {
+        if (statusOf(rowIndex, columnIndex).code !== 'out_of_range') continue;
+        const max = columns[columnIndex].max;
+        if (max !== null) maxima.add(max);
+      }
+    }
+    return [...maxima].sort((left, right) => left - right);
   }, [rows, columns, statusOf]);
 
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
@@ -747,6 +781,10 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
     try {
       const report = await flushPendingEdits(contextRef.current.queue, writeEdit);
       setPendingCount(contextRef.current.queue.size());
+      // An autosave that succeeds silently looks like a loss: the grid says what reached the school.
+      if (report.applied > 0) {
+        setSaveNotice(`${report.applied} mark${report.applied === 1 ? '' : 's'} saved.`);
+      }
       return report;
     } finally {
       setSaving(false);
@@ -865,6 +903,7 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
         reason: granted ? override.reason : null,
       });
       setPendingCount(queue.size());
+      setSaveNotice(null);
       scheduleFlush();
     },
     [group, learningAreaId, override, queue, storedByCell, storedScoreOf, scheduleFlush]
@@ -1068,8 +1107,10 @@ export function useMarkEntry(options: MarkEntryOptions): MarkEntryState {
     saving,
     refusal,
     pasteMessage,
+    saveNotice,
     conflicts,
     summary,
+    outOfRangeMaxima,
     workflowAudit,
   };
 }

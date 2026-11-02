@@ -40,7 +40,7 @@ describe('score validation', () => {
     expect(checkScore('20.5', 20)).toEqual({
       ok: false,
       code: 'out_of_range',
-      message: 'A score cannot be above the maximum of 20.',
+      message: 'A score of 20.5 is outside the allowed range 0–20.',
     });
   });
 
