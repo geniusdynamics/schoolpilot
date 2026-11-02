@@ -1,4 +1,5 @@
 import { logger } from '@/utils/logging';
+import { runtimeAllowsTemporaryDatabase } from '@/config/runtimeConfig';
 
 // ABOUTME: SQLite WASM + OPFS Provider for production mode with high performance and persistence
 // ABOUTME: Implements IDatabaseProvider interface with SQLite WASM and Origin Private File System storage
@@ -1238,8 +1239,13 @@ async function requestPersistentStorage(): Promise<boolean | null> {
   }
 }
 
-/** True only when VITE_DB_ALLOW_MEMORY=true opts in to a temporary database that is erased on reload. */
-export const memoryDatabaseAllowed = (): boolean => import.meta.env.VITE_DB_ALLOW_MEMORY === 'true';
+/** True when VITE_DB_ALLOW_MEMORY=true opts in to a temporary database that is erased on reload. */
+export const memoryDatabaseAllowed = (): boolean => {
+  // A deployment's runtime setting decides when it sets one; the build-time flag is the fallback.
+  const runtime = runtimeAllowsTemporaryDatabase();
+  if (runtime !== undefined) return runtime;
+  return import.meta.env.VITE_DB_ALLOW_MEMORY === 'true';
+};
 
 // SQLite WASM Provider Implementation
 export class SQLiteWASMProvider implements IDatabaseProvider {

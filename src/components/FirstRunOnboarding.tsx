@@ -14,7 +14,7 @@ import { logger } from '@/utils/logging';
  * to maintain data integrity.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowRightIcon,
@@ -28,6 +28,7 @@ import {
 import Button from '@/components/ui/Button';
 import { SetupWizard } from '@/components/setup/SetupWizard';
 import { seedCanonicalDemoSchool } from '@/data/demo/seedCanonicalDemo';
+import { runtimeDeploymentMode } from '@/config/runtimeConfig';
 import { defaultDemoSchool } from '@/domain/demo';
 import { StorageUnavailableScreen } from '@/components/StorageUnavailableScreen';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
@@ -151,12 +152,20 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
     });
   }, []);
 
+  // A deployment may offer only one first-run path: a public demo kiosk must not offer a production
+  // install, and a school's server must not offer demo data. `both` is the default.
+  const deploymentMode = useMemo(() => runtimeDeploymentMode(), []);
+  const offersDemo = deploymentMode !== 'production';
+  const offersProduction = deploymentMode !== 'demo';
+
   // Auto-select recommended path
   useEffect(() => {
     if (step === 'choose' && !selectedPath && envDefaults) {
-      setSelectedPath(envDefaults.recommendedPath);
+      if (!offersProduction) setSelectedPath('demo');
+      else if (!offersDemo) setSelectedPath('production');
+      else setSelectedPath(envDefaults.recommendedPath);
     }
-  }, [step, envDefaults, selectedPath]);
+  }, [step, envDefaults, selectedPath, offersDemo, offersProduction]);
 
   const handleSelectPath = useCallback((path: 'demo' | 'production') => {
     setSelectedPath(path);
@@ -406,8 +415,9 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           </div>
 
           {/* Pathway cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={`grid grid-cols-1 gap-6 ${offersDemo && offersProduction ? 'md:grid-cols-2' : ''}`}>
             {/* Demo pathway */}
+            {offersDemo && (
             <button
               onClick={() => handleSelectPath('demo')}
               className={`p-6 rounded-xl border-2 text-left transition-all ${
@@ -427,14 +437,16 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
                 Load realistic school data across all modules. Perfect for evaluating features and understanding workflows.
               </p>
               <ul className="space-y-1 text-sm text-surface-muted-fg">
-                <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />150+ sample students</li>
+                <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />33 sample learners with a year of history</li>
                 <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Complete academic & finance data</li>
                 <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Library, HR, inventory modules</li>
                 <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Clear anytime to go production</li>
               </ul>
             </button>
+            )}
 
             {/* Production pathway */}
+            {offersProduction && (
             <button
               onClick={() => handleSelectPath('production')}
               className={`p-6 rounded-xl border-2 text-left transition-all ${
@@ -460,6 +472,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
                 <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-primary-500" />Ready for real data entry</li>
               </ul>
             </button>
+            )}
           </div>
 
           {/* Error display */}

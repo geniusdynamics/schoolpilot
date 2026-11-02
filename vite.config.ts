@@ -14,9 +14,23 @@ export default defineConfig(({ mode }) => {
       workbox: {
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 8 MiB
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // The runtime settings are generated per deployment at container start; precaching the copy
+        // the image was built with would freeze one customer's settings into every install. It is
+        // fetched NetworkFirst below instead, so an offline start keeps the last settings it saw.
+        globIgnores: ['**/config.js'],
         // NOTE: registerType 'prompt' requires the new worker to WAIT until the
         // user accepts the update prompt — skipWaiting/clientsClaim would bypass it.
         runtimeCaching: [
+          {
+            urlPattern: /\/config\.js$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'runtime-config',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 1 },
+              cacheableResponse: { statuses: [200] }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',

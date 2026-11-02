@@ -5,16 +5,18 @@ import { logger } from '@/utils/logging';
 
 import * as Sentry from '@sentry/react';
 
+import { runtimeBugsinkDsn, runtimeAppVersion } from './runtimeConfig';
+
 // Bugsink DSN - compatible with Sentry SDK
-// Reads exclusively from VITE_BUGSINK_DSN environment variable. No hardcoded fallback.
-const BUGSINK_DSN: string | undefined = import.meta.env.VITE_BUGSINK_DSN;
+// A deployment sets it at run time (the container writes /config.js); the build-time variable is the
+// fallback. No hardcoded value.
+const BUGSINK_DSN: string | undefined = runtimeBugsinkDsn(import.meta.env.VITE_BUGSINK_DSN);
 
 // Warn at module load time if the DSN environment variable is not set
 if (!BUGSINK_DSN) {
   logger.warn(
-    '[Bugsink] VITE_BUGSINK_DSN environment variable is not set. ' +
-    'Error tracking will be disabled. ' +
-    'Set VITE_BUGSINK_DSN in your .env file to enable.'
+    '[Bugsink] No DSN is configured (set /config.js or VITE_BUGSINK_DSN). ' +
+    'Error tracking will be disabled.'
   );
 }
 
@@ -42,7 +44,7 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
   debug: false,
 
   // Release information
-  release: import.meta.env.VITE_APP_VERSION || '1.0.0',
+  release: runtimeAppVersion(import.meta.env.VITE_APP_VERSION),
 
   // Integration configuration
   integrations: [
@@ -89,7 +91,7 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
     contexts: {
       app: {
         name: 'SchoolPilot',
-        version: import.meta.env.VITE_APP_VERSION || '1.0.0',
+        version: runtimeAppVersion(import.meta.env.VITE_APP_VERSION),
       },
     },
   },
@@ -152,7 +154,7 @@ export const initializeErrorTracking = (): void => {
           email: user.email,
           username: user.username,
         });
-      } catch (e) {
+      } catch {
         // Ignore JSON parse errors
       }
     }
@@ -177,9 +179,10 @@ export const reportMessage = (message: string, level: Sentry.SeverityLevel = 'in
   Sentry.captureMessage(message, level);
 };
 
-// Performance monitoring (disabled for Bugsink)
+// Performance monitoring (disabled for Bugsink). The name is accepted so call sites keep one shape
+// whichever tracker is configured; Bugsink has no transaction to carry it, so it is ignored here.
 export const startTransaction = (name: string): null => {
-  // Bugsink doesn't support transactions, return null
+  void name;
   return null;
 };
 
