@@ -24,16 +24,17 @@ flows end to end.
 Academics is **two systems in one menu**. About half the pages work on the school that was actually
 installed: subjects (learning areas), allocations, marks entry, results, exam analysis, report
 publishing, programmes, observations. Marks entered there save, survive a reload and flow into results and
-reports. The other half show **a different, invented school** - "Form 1 A", "Grade 10A",
-"End of Term 3 Exams 2024", IGCSE and SAT results - either from hard-coded arrays inside the page or
-from the legacy demo collections. Nothing set up on those pages reaches marks entry or results.
+reports. The other half read the legacy collections, which the old demo seed fills with **a different,
+invented school** - "Form 1 A", "Grade 10A", "End of Term 3 Exams 2024", IGCSE and SAT results. On a
+production install those pages would be empty instead. Either way, nothing set up on them reaches marks
+entry or results.
 
 The most serious finding is that **the browser enforces no write permissions**: signed in as the
 demo teacher, I deleted a learning area.
 
 | Severity | Count |
 |---|---|
-| Blocker | 3 |
+| Blocker | 2 |
 | High | 7 |
 | Medium | 10 |
 | Low | 6 |
@@ -50,22 +51,7 @@ page writes as anyone. The teacher's marks-entry list *is* scoped (7 groups: Pre
 and Agriculture for Grade 7-9, Football) - that is a filter on what is shown, not a refusal of what is
 written.
 
-**B2. Seven pages show hard-coded fake data.** The arrays live in the page files:
-
-| Page / tab | Array | What a user sees |
-|---|---|---|
-| Marks Entry > Entry by Token | `mockSessions` (MarksEntryByTokenPage) | token `TKN-2024-ABCD1234`, "End of Term 3 Exams 2024" |
-| Marks Verification > Cross Check | `mockRecords` | 4 records, 2 verified, 1 discrepancy |
-| Marks Verification > By Structure | `mockValidationItems` | 6 components, 1 invalid, sessions from 2024/2025 |
-| Results Distribution > Exam Gazette | `mockGazettes` | classes "Grade 10 - A", "Grade 10 - B" |
-| Results Distribution > Distribute Results | `mockDistributions` | "4 distributions, 3 distributed, 0 failed" |
-| Results Distribution > Board Results | `mockBoardResults` | IGCSE, A-Level, IB, SAT results for a CBE school |
-| Events Manager | `mockEvents` | 5 upcoming events |
-
-A school reading "3 distributed" believes results reached parents. The project rule is that product
-code ships no mocks.
-
-**B3. The Academics dashboard reports another school and invents activity.** It reads only the legacy
+**B2. The Academics dashboard reports another school and invents activity.** It reads only the legacy
 collections (`AcademicsDashboardPage.tsx:21,47`): 18 subjects and 40 papers including Biology,
 Chemistry and Physics, 4 classes, "Exam Results Recorded 0" and "Active Exams 0" - while the installed
 school has Term 3's end-of-term exam open with hundreds of marks. The "+3" trend (line 100) and the
@@ -82,6 +68,23 @@ plans, exam session "End of Term 3 Exams 2024 / Term 3 - 2023 / Marks Entry Open
 and Report publishing read the canonical assessments. So "set up an exam, then enter its marks" does not
 work as a user expects: a session created in Exam Setup is not an assessment Marks Entry can open (by the
 data model; I did not create one and look for it).
+
+Seven of these pages are the most misleading, because their figures look like a school's real
+activity. Each filters a legacy collection into a local variable named `mock...` - the name is not the
+data, the data is the legacy seed's:
+
+| Page / tab | Variable (legacy collection) | What a demo user sees |
+|---|---|---|
+| Marks Entry > Entry by Token | `mockSessions` (`sessionsCollection`) | token `TKN-2024-ABCD1234`, "End of Term 3 Exams 2024" |
+| Marks Verification > Cross Check | `mockRecords` (`crossCheckCollection`) | 4 records, 2 verified, 1 discrepancy |
+| Marks Verification > By Structure | `mockValidationItems` (`validationCollection`) | 6 components, 1 invalid, sessions from 2024/2025 |
+| Results Distribution > Exam Gazette | `mockGazettes` (`gazettesCollection`) | classes "Grade 10 - A", "Grade 10 - B" |
+| Results Distribution > Distribute Results | `mockDistributions` (`distributionsCollection`) | "4 distributions, 3 distributed, 0 failed" |
+| Results Distribution > Board Results | `mockBoardResults` (`resultsCollection`) | IGCSE, A-Level, IB, SAT results for a CBE school |
+| Events Manager | `mockEvents` (`eventsCollection`) | 5 upcoming events |
+
+A demo visitor reading "3 distributed" believes results reached parents. On a production install the
+same pages would be empty - and still unable to verify, distribute or publish the school's real results.
 
 **H2. Two report systems.** Report Cards (legacy: exam "End of Term 3 Exams 2024", classes "Form 1 A") and
 Report publishing (canonical: generated "9 of 9 prepared" for the real school) sit side by side with no
@@ -132,7 +135,7 @@ is missing from `src/i18n/locales/en/navigation.json` (used at `moduleDefinition
 missing Academics navigation key.
 
 **M5. Five ways to enter marks.** Marks Entry has "Mark Entry v2" (an internal version name), "Class grid",
-"Student grid", "Student Exam Results Entry" and "Entry by Token" (fake, B2). "Class grid" and "Student
+"Student grid", "Student Exam Results Entry" and "Entry by Token" (legacy, H1). "Class grid" and "Student
 grid" render the same "Class marks grid". Nothing says which to use.
 
 **M6. Mark entry gives little feedback.** Typing 72 and Tab saved the mark (it survived a full reload) but
@@ -187,9 +190,9 @@ results recorded yet". Not an Academics page, but it is where a user forms their
 ## Suggested order of work
 
 1. B1: wire the authorizer into the browser's canonical repository and hide what a role cannot do.
-2. B2, B3: remove the fake data; a page with no real source shows an honest empty state or is hidden from
-   the menu until it has one.
+2. B2: the dashboard reads the canonical school and shows no invented trend or activity.
 3. H1-H3: decide, per legacy page, whether it moves onto the canonical model (exam setup, report cards,
-   grading, timetable) or leaves the menu. Report Cards and Report publishing need to become one.
+   grading, timetable) or leaves the menu until it has a real source. Report Cards and Report publishing
+   need to become one.
 4. H4-H6: name terms with their year and class groups with their grade, and open on the current term.
 5. The Medium and Low items, most of which are small.
