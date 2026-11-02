@@ -199,3 +199,11 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+/**
+ * The signed-in user when there is an AuthProvider, null when a screen is mounted on its own.
+ *
+ * A presentational screen rendered in a test or an embedded host has no provider; it still needs
+ * to render, and the caller that wants the user's name supplies one explicitly instead.
+ */
+export const useOptionalAuth = (): AuthContextType | null => useContext(AuthContext) ?? null;

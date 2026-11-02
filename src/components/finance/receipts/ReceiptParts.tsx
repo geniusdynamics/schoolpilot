@@ -3,7 +3,6 @@
 // ABOUTME: Each part is presentational and reads only the resolved receipt model.
 
 import type { ReactNode } from 'react';
-import { formatMoney } from '@/domain/money';
 import { isLtrRun, isolateRuns } from '@/domain/reports/bidi';
 import { qrSvgPath } from '@/domain/reports/qr';
 
@@ -83,13 +82,13 @@ export function ReceiptIdentity({ model }: { model: ReceiptDocumentModel }): Rea
 
 /** The amount in figures and in words: the two must agree, so they sit together. */
 export function ReceiptAmount({ model }: { model: ReceiptDocumentModel }): ReactNode {
-  const { labels, view } = model;
+  const { labels, view, formatAmount } = model;
   return (
     <section className="receipt-block receipt-amount" data-receipt-block="amount">
       <div className="receipt-amount__figure">
         <span className="receipt-line__key">{labels.amount}</span>
         <span className="receipt-figure receipt-amount__value">
-          <Ltr>{formatMoney(view.amount)}</Ltr>
+          <Ltr>{formatAmount(view.amount)}</Ltr>
         </span>
       </div>
       <p className="receipt-amount__words">
@@ -118,7 +117,7 @@ export function ReceiptChannel({ model }: { model: ReceiptDocumentModel }): Reac
  * hold an unbounded list — so the surrounding block is the one that is allowed to flow.
  */
 export function ReceiptAllocation({ model }: { model: ReceiptDocumentModel }): ReactNode {
-  const { labels, view } = model;
+  const { labels, view, formatAmount } = model;
   const lines = view.allocationByVoteHead;
   if (lines.length === 0) {
     return (
@@ -147,14 +146,14 @@ export function ReceiptAllocation({ model }: { model: ReceiptDocumentModel }): R
             <tr key={line.label}>
               <td>{line.label}</td>
               <td className="receipt-cell--end receipt-figure">
-                <Ltr>{formatMoney(line.amount)}</Ltr>
+                <Ltr>{formatAmount(line.amount)}</Ltr>
               </td>
             </tr>
           ))}
           <tr className="receipt-table__total">
             <td>{labels.total}</td>
             <td className="receipt-cell--end receipt-figure">
-              <Ltr>{formatMoney({ amount_minor: total, currency })}</Ltr>
+              <Ltr>{formatAmount({ amount_minor: total, currency })}</Ltr>
             </td>
           </tr>
         </tbody>
@@ -165,11 +164,11 @@ export function ReceiptAllocation({ model }: { model: ReceiptDocumentModel }): R
 
 /** The balance after this payment, kept with the total it follows. */
 export function ReceiptBalance({ model }: { model: ReceiptDocumentModel }): ReactNode {
-  const { labels, view } = model;
+  const { labels, view, formatAmount } = model;
   return (
     <section className="receipt-block receipt-keep" data-receipt-block="balance">
       <dl className="receipt-lines">
-        <Line label={labels.balanceAfter} value={formatMoney(view.balanceAfter)} figure />
+        <Line label={labels.balanceAfter} value={formatAmount(view.balanceAfter)} figure />
       </dl>
     </section>
   );

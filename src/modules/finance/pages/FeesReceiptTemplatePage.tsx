@@ -18,6 +18,7 @@ import type { ReceiptView } from '@/domain/finance/payments';
 import { fromMinor } from '@/domain/money';
 import { useToast } from '@/hooks/useToast';
 import { useSchoolProfile, formatSchoolAddress, formatSchoolContact } from '@/hooks/useSchoolProfile';
+import { formatDateTime } from '@/utils/format';
 
 import {
   DEFAULT_RECEIPT_LAYOUT,
@@ -25,6 +26,7 @@ import {
   writeReceiptLayout,
   type ReceiptLayout,
 } from '../data/receiptLayout';
+import { formatMoneyMinor } from '../data/canonicalFinance';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
 
 const SAMPLE_VIEW: ReceiptView = {
@@ -75,6 +77,8 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
         school,
         title: layout.title,
         footer: layout.footer.trim() === '' ? null : layout.footer,
+        issuedAtLabel: formatDateTime(SAMPLE_VIEW.issuedAt),
+        formatAmount: (value) => formatMoneyMinor(value.amount_minor, value.currency),
       }),
     [layout, school]
   );

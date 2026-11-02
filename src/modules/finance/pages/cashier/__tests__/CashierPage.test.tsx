@@ -20,6 +20,13 @@ import type {
 import { CashierPageContent } from '../CashierPage';
 import type { CashierPaymentsPort } from '../runtime';
 
+const authName = vi.hoisted(() => ({ value: '' }));
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useOptionalAuth: () =>
+    authName.value ? { user: { fullName: authName.value, username: 'cashier' } } : null,
+}));
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => (typeof fallback === 'string' ? fallback : key),
@@ -28,6 +35,9 @@ vi.mock('react-i18next', () => ({
 
 const INSTITUTION = '00000000-0000-7000-8000-000000000001';
 const LEARNER = '00000000-0000-7000-8000-00000000001b';
+const INVOICE = '00000000-0000-7000-8000-0000000000c1';
+const BILLED_PAYMENT = '00000000-0000-7000-8000-0000000000c2';
+const BILLED_ALLOCATION = '00000000-0000-7000-8000-0000000000c3';
 
 const RECEIPT_VIEW: ReceiptView = {
   number: 'RCT/2027/000001',
@@ -134,6 +144,38 @@ const repository = () =>
         residence_status: 'day',
       },
     ],
+    invoice: [
+      {
+        id: INVOICE,
+        institution_id: INSTITUTION,
+        number: 'INV/2027/000001',
+        learner_id: LEARNER,
+        issue_date: '2027-02-01',
+        total: { amount_minor: 200_000, currency: 'KES' },
+        status: 'posted',
+      },
+    ],
+    payment: [
+      {
+        id: BILLED_PAYMENT,
+        institution_id: INSTITUTION,
+        learner_id: LEARNER,
+        amount: { amount_minor: 50_000, currency: 'KES' },
+        channel: 'cash',
+        received_at: '2027-02-02T09:00:00.000Z',
+        status: 'posted',
+      },
+    ],
+    payment_allocation: [
+      {
+        id: BILLED_ALLOCATION,
+        institution_id: INSTITUTION,
+        payment_id: BILLED_PAYMENT,
+        invoice_id: INVOICE,
+        amount: { amount_minor: 50_000, currency: 'KES' },
+        allocated_at: '2027-02-02T09:00:00.000Z',
+      },
+    ],
   });
 
 const renderPage = (payments: CashierPaymentsPort) =>
@@ -148,6 +190,7 @@ const renderPage = (payments: CashierPaymentsPort) =>
 let now = 0;
 beforeEach(() => {
   now = 0;
+  authName.value = '';
   vi.spyOn(performance, 'now').mockImplementation(() => now);
 });
 
@@ -202,6 +245,9 @@ describe('the cashier screen', () => {
     expect(screen.getAllByText(/RCT\/2027\/000001/).length).toBeGreaterThan(0);
     expect(receipt).toHaveTextContent('one thousand five hundred shillings');
     expect(receipt).toHaveTextContent('1,500.00');
+    // The printed date is a readable date and time, not the stored ISO instant.
+    expect(receipt.textContent).not.toContain('2027-02-10T09:00:00.000Z');
+    expect(receipt.textContent).toMatch(/\d{1,2} Feb 2027, \d{2}:\d{2}/);
     expect(screen.getByTestId('cashier-flow-step')).toHaveAttribute('data-step', 'print');
 
     // Enter on the print step finishes the flow and returns to the learner search.
@@ -313,5 +359,46 @@ describe('the cashier screen', () => {
     expect(report).toHaveTextContent('Cash');
     expect(report).toHaveTextContent('KES 2,000.00');
     expect(screen.getByTestId('cashier-zreport-variance')).toHaveTextContent('KES -5.00');
+  });
+
+  it('states what the learner owes before an amount is entered, and warns when it would overpay', async () => {
+    const payments = port();
+    renderPage(payments);
+
+    const search = await screen.findByTestId('cashier-learner-search');
+    fireEvent.change(search, { target: { value: 'ADM' } });
+    fireEvent.keyDown(search, { key: 'Enter' });
+
+    const position = await screen.findByTestId('cashier-position');
+    expect(position).toHaveTextContent('Billed');
+    expect(position).toHaveTextContent('KES 2,000.00');
+    expect(position).toHaveTextContent('Paid');
+    expect(position).toHaveTextContent('KES 500.00');
+    expect(position).toHaveTextContent('Outstanding');
+    expect(position).toHaveTextContent('KES 1,500.00');
+
+    fireEvent.change(screen.getByTestId('cashier-amount'), { target: { value: '2000' } });
+    const warning = await screen.findByTestId('cashier-overpayment-warning');
+    expect(warning).toHaveTextContent('KES 2,000.00');
+    expect(warning).toHaveTextContent('KES 1,500.00');
+  });
+
+  it('signs the receipt with the signed-in person, not a blank cashier line', async () => {
+    authName.value = 'Grace the cashier';
+    const payments = port();
+    renderPage(payments);
+
+    const search = await screen.findByTestId('cashier-learner-search');
+    fireEvent.change(search, { target: { value: 'ADM' } });
+    fireEvent.keyDown(search, { key: 'Enter' });
+    fireEvent.change(screen.getByTestId('cashier-amount'), { target: { value: '1500' } });
+    fireEvent.keyDown(screen.getByTestId('cashier-amount'), { key: 'Enter' });
+    fireEvent.keyDown(screen.getByTestId('cashier-channel-cash'), { key: '1' });
+    fireEvent.keyDown(screen.getByTestId('cashier-reference'), { key: 'Enter' });
+
+    await waitFor(() => expect(payments.recordPayment).toHaveBeenCalledTimes(1));
+    expect(payments.recordPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ cashierName: 'Grace the cashier' })
+    );
   });
 });
