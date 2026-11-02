@@ -298,6 +298,25 @@ export async function signIn(page: Page, admin: AdminAccount): Promise<void> {
   await waitForShell(page);
 }
 
+/** Escape an option name so a literal is matched, whatever punctuation it carries. */
+function literalOption(name: string): string {
+  return name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * The option pattern for a semantic name.
+ *
+ * A picker labels a period with its academic year ("Term 1 · 2026") and a class group with its
+ * grade ("Form 1 · North"), while a test names the thing it means: "Term 1", "North". The pattern
+ * matches the bare name and the qualified label either way round, so the assertion stays about the
+ * term or the class rather than about how the picker decorates it.
+ */
+export function optionPattern(name: string | RegExp): string | RegExp {
+  if (name instanceof RegExp) return name;
+  const literal = literalOption(name);
+  return new RegExp(`^(?:.* · )?${literal}(?: · .*)?$`);
+}
+
 /** Open an EntityPicker trigger and choose the one option whose accessible name matches. */
 export async function chooseFromPicker(
   page: Page,
@@ -312,10 +331,7 @@ export async function chooseFromPicker(
   // option that far down is flaky. The combobox owns the active option, so drive it from the
   // keyboard — the same path a keyboard user takes — and let the trigger select it.
   await expect(listbox.getByRole('option').first()).toBeVisible({ timeout: UI_TIMEOUT });
-  const choice =
-    typeof option === 'string'
-      ? listbox.getByRole('option', { name: option, exact: true })
-      : listbox.getByRole('option', { name: option });
+  const choice = listbox.getByRole('option', { name: optionPattern(option) });
   // Let the lookup settle: an opened picker can show stale options while its query refreshes.
   await expect(choice.first()).toBeVisible({ timeout: UI_TIMEOUT });
   // The option can be scrolled out of the popover or mid-animation, and the lookup can refresh
