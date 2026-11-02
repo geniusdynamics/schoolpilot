@@ -8,9 +8,17 @@ page.
 ```ts
 import { seedDemoSchool, defaultDemoSchool } from '@/domain/demo';
 
-const result = await seedDemoSchool(repository, defaultDemoSchool());
+const result = await seedDemoSchool(repository, defaultDemoSchool(), {
+  packDocument: shippedPackDocument, // from '@/components/setup/packs/packLibrary'
+});
 // { institutionId, created, demoSeeded, counts: { learner: 33, invoice: ..., payment: ... } }
 ```
+
+The default demo runs the Kenyan CBE pack (`curriculumPack: 'ke-cbe'`): its classes are Grade 7 to 9
+under the pack's level codes (`G7`, `G8`, `G9`), the programme is pinned to the shipped version, and the
+head teacher installs the pack through the pack registry once the logins exist. The promotion run reads
+its rules from that install. The pack document comes from `packDocument`, so the domain never reaches
+into the pack library itself; a pack the installation cannot produce fails the seed.
 
 `src/data/demo/seedCanonicalDemo.ts` is the application entry point: it opens the canonical database
 the pages share, seeds the school over it and writes the `school_details` profile the header and the
@@ -32,7 +40,7 @@ order its life happened:
 | `learners` | 33 learners in 35 guardians, admitted in the year they joined, promoted into this year, graduated, transferred, expelled or suspended (see the cast) |
 | `curriculum`, `teaching` | nine core learning areas, three electives, seven sports and clubs; English and Science split into papers; two grading scales; a teaching group for every area at every level, the electives and the clubs with the learners who chose them |
 | `assessment` | one exam per core area per term: past terms published with every mark in, this term's end-of-term exam open and part entered (some areas in full, one for the first stream only, some not at all) |
-| `fees` | twelve fee items each with a GL revenue account and a place in the payment order; published schedules for last year and this; next year's at draft, submitted and approved; discount rules and sponsorships; a billing run for every term so far, with a bus fare, uniform, library fines and an opening balance on the invoices that carry them |
+| `fees` | twelve fee items each with a GL revenue account and a place in the payment order; published schedules for last year and this; next year, with a class group for every class of this one so a promotion run has somewhere to place each learner, and its schedules at draft, submitted and approved; discount rules and sponsorships; a billing run for every term so far, with a bus fare, uniform, library fines and an opening balance on the invoices that carry them |
 | `payments` | what each family did about each term (below), through the payments and adjustments services |
 | `register` | ten school days of registers for every class, with lateness, absence, clinic days and a suspension |
 | `pastoral` | conduct incidents, a suspension with its disciplinary leave, clinic visits, a medical leave |
