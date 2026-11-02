@@ -45,8 +45,21 @@ const DEV_HOSTS: ReportHosts = {
   short: 'https://sp.app',
 };
 
-function envText(name: string): string | null {
-  const value = import.meta.env[name] as string | undefined;
+/**
+ * The report settings a deployment sets, each read by name. A static read is the only kind Vite
+ * inlines alone; reading the whole env object by a computed name would put every build-time
+ * variable into this chunk.
+ */
+const REPORT_ENV = {
+  VITE_REPORT_PDF_ENDPOINT: import.meta.env.VITE_REPORT_PDF_ENDPOINT,
+  VITE_REPORT_VERIFY_HOST: import.meta.env.VITE_REPORT_VERIFY_HOST,
+  VITE_REPORT_PORTAL_HOST: import.meta.env.VITE_REPORT_PORTAL_HOST,
+  VITE_REPORT_SHORT_HOST: import.meta.env.VITE_REPORT_SHORT_HOST,
+  VITE_REPORT_SIGNING_SECRET: import.meta.env.VITE_REPORT_SIGNING_SECRET,
+} as const;
+
+function envText(name: keyof typeof REPORT_ENV): string | null {
+  const value: unknown = REPORT_ENV[name];
   return typeof value === 'string' && value.trim() !== '' ? value : null;
 }
 
