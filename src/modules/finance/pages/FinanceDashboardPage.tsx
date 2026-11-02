@@ -6,6 +6,7 @@ import React, { useMemo } from 'react';
 import BarChart from '@/components/ui/BarChart';
 import Card from '@/components/ui/Card';
 import DonutChart from '@/components/ui/DonutChart';
+import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, {
   type DashboardAlertBanner,
   type DashboardMetric,
@@ -259,6 +260,20 @@ export const FinanceDashboardPageContent: React.FC = () => {
   ];
 
   const recent = finance.paymentRows.slice(0, 5);
+
+  // The derived rows sum invoices and allocations; until every read has produced its first data,
+  // every invoice would look unpaid and the collection rate would read 0%. Show the wait, not a
+  // wrong total.
+  if (!finance.ready) {
+    return (
+      <Card title="Finance dashboard">
+        <div className="flex items-center justify-center py-16" role="status" data-testid="finance-dashboard-loading">
+          <Spinner />
+          <span className="ml-2 text-sm text-surface-muted-fg">Reading the finance documents…</span>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <ModuleDashboardShell
