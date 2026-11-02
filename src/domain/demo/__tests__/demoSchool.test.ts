@@ -8,6 +8,7 @@ import {
   createTestContext,
   type TestContext,
 } from '@/data/__tests__/harness';
+import { shippedPackDocument } from '@/components/setup/packs/packLibrary';
 import { DemoSchoolSeedError, defaultDemoSchool, seedDemoSchool, type DemoSchoolInput } from '@/domain/demo';
 import { BillingRunService } from '@/domain/finance/billing';
 import { asId } from '@/domain/ids';
@@ -94,9 +95,10 @@ describe('the demo school seed', () => {
     expect(periods.items.filter((row) => row.status === 'current')).toHaveLength(1);
     expect(periods.items.map((row) => row.sequence).sort()).toEqual([1, 1, 2, 2, 3, 3]);
 
-    // Every class group of the year has a class teacher; last year's are kept for the people who were in them.
+    // Every class group of the year has a class teacher; last year's are kept for the people who were in
+    // them, and next year's are set up for the promotion run to place learners in.
     const classGroups = await context.repository.list('class_group', { limit: 20 });
-    expect(classGroups.items).toHaveLength(6);
+    expect(classGroups.items).toHaveLength(9);
     const current = years.items.find((row) => row.name === '2027');
     const ofThisYear = classGroups.items.filter((row) => row.academic_year_id === current?.id);
     expect(ofThisYear).toHaveLength(3);
@@ -293,16 +295,27 @@ describe('the demo school seed', () => {
     expect(entries?.n ?? 0).toBe(0);
   });
 
+  it('refuses a curriculum pack the installation does not ship, writing nothing', async () => {
+    const context = await freshContext();
+    await expect(
+      seedDemoSchool(context.repository, demoInput({ curriculumPack: 'xx-none' }), {
+        packDocument: shippedPackDocument,
+      })
+    ).rejects.toThrow(/xx-none curriculum pack/);
+    expect(await count(context, 'institution')).toBe(0);
+  });
+
   it('seeds the demo school the onboarding installs, on the day it is run', async () => {
     const context = await freshContext();
     const result = await seedDemoSchool(
       context.repository,
-      defaultDemoSchool(new Date('2026-10-20T12:00:00Z'))
+      defaultDemoSchool(new Date('2026-10-20T12:00:00Z')),
+      { packDocument: shippedPackDocument }
     );
 
     expect(result.demoSeeded).toBe(true);
-    // Three levels of two streams, this year and last.
-    expect(await count(context, 'class_group')).toBe(12);
+    // Three levels of two streams: last year, this year and next.
+    expect(await count(context, 'class_group')).toBe(18);
     expect(await count(context, 'learner')).toBe(33);
 
     // Every class group of this year holds a learner and has had its register taken.

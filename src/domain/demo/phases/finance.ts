@@ -1,6 +1,6 @@
 // ABOUTME: The fee book of the demo school and the terms it has billed: fee items with their GL accounts,
-// ABOUTME: published schedules for this year and last, next year's in each approval state, and a billing
-// ABOUTME: run per term through the billing service so every invoice is numbered and posted to the ledger.
+// ABOUTME: published schedules for this year and last, next year's (with its classes) in each approval state,
+// ABOUTME: and a billing run per term through the billing service so every invoice is numbered and posted.
 
 import type { RepositoryRow } from '@/data/repository';
 import { asId, type Id } from '@/domain/ids';
@@ -213,6 +213,35 @@ export async function seedFinance(
     options,
     () => ctx.count('academic_year')
   );
+  // Next year's classes are set up too, one for every class of this year, so the promotion run has
+  // a class of the same level and stream to place each promoted learner in.
+  for (const group of ctx.current.classGroups) {
+    await findOrCreate<'class_group'>(
+      repository,
+      'class_group',
+      {
+        where: {
+          campus_id: group.campus_id,
+          academic_year_id: nextYear.id,
+          programme_id: group.programme_id,
+          level_id: group.level_id,
+          name: group.name,
+        },
+      },
+      () => ({
+        institution_id: institutionId,
+        campus_id: group.campus_id,
+        academic_year_id: asId<'academic_year'>(nextYear.id),
+        programme_id: group.programme_id,
+        level_id: group.level_id,
+        name: group.name,
+        capacity: group.capacity,
+        homeroom_teacher_ids: [],
+      }),
+      options,
+      () => ctx.count('class_group')
+    );
+  }
   const steps = ['draft', 'submitted', 'approved'] as const;
   for (const [position, level] of ctx.levels.entries()) {
     await writeSchedule({

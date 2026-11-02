@@ -3,6 +3,7 @@
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { listAvailablePacks, shippedPackDocument } from '@/components/setup/packs/packLibrary';
 import { closeTestContext, createTestContext, type TestContext } from '@/data/__tests__/harness';
 import type { RepositoryRow } from '@/data/repository';
 import { defaultDemoSchool, seedDemoSchool } from '@/domain/demo';
@@ -13,6 +14,8 @@ import {
   createSqliteLedgerStore,
 } from '@/domain/finance/ledger';
 import type { EntityName } from '@/domain/schema';
+import { PromotionService } from '@/domain/services/PromotionService';
+import { resolvePromotionRules } from '@/modules/administration/pages/promotion/packPromotionRules';
 
 /** The day the school is set on: Term 3 of 2026 has just ended, so the year's history is all there. */
 const TODAY = '2026-11-01';
@@ -24,7 +27,9 @@ let context: TestContext;
 
 beforeAll(async () => {
   context = await createTestContext({ seed: false });
-  await seedDemoSchool(context.repository, defaultDemoSchool(new Date(`${TODAY}T09:00:00Z`)));
+  await seedDemoSchool(context.repository, defaultDemoSchool(new Date(`${TODAY}T09:00:00Z`)), {
+    packDocument: shippedPackDocument,
+  });
 }, 240_000);
 
 afterAll(async () => {
@@ -57,6 +62,58 @@ const countBy = (values: readonly string[]): Record<string, number> => {
   for (const value of values) counts[value] = (counts[value] ?? 0) + 1;
   return counts;
 };
+
+describe('the curriculum', () => {
+  it('runs the installed Kenyan CBE pack, so the promotion run has rules to compute with', async () => {
+    const shipped = listAvailablePacks().find((pack) => pack.code === 'ke-cbe');
+    if (!shipped) throw new Error('the library ships no ke-cbe pack');
+
+    const [programme] = await rows('programme');
+    expect(programme).toMatchObject({ curriculum_pack_code: 'ke-cbe', pack_version: shipped.version });
+    expect(await rows('curriculum_pack')).toEqual([
+      expect.objectContaining({ code: 'ke-cbe', version: shipped.version }),
+    ]);
+
+    // The classes carry the pack's level codes, so the pack's progression rules name them.
+    const levels = (await rows('level')).sort((left, right) => left.ordinal - right.ordinal);
+    expect(levels.map((level) => [level.code, level.name])).toEqual([
+      ['G7', 'Grade 7'],
+      ['G8', 'Grade 8'],
+      ['G9', 'Grade 9'],
+    ]);
+
+    const resolution = resolvePromotionRules(await rows('programme'), await rows('curriculum_pack'));
+    expect(resolution.kind).toBe('rules');
+  });
+
+  it("promotes Grades 7 and 8 into next year's classes, and holds Grade 9 at the senior-school gate", async () => {
+    const resolution = resolvePromotionRules(await rows('programme'), await rows('curriculum_pack'));
+    if (resolution.kind !== 'rules') throw new Error(`the demo has no promotion rules: ${resolution.kind}`);
+    const years = await rows('academic_year');
+    const closing = years.find((year) => year.name === '2026');
+    const opening = years.find((year) => year.name === '2027');
+    if (!closing || !opening) throw new Error('the demo has no 2026 or no 2027');
+
+    const service = new PromotionService({ repository: context.repository });
+    const run = await service.compute({
+      academicYearId: closing.id,
+      nextAcademicYearId: opening.id,
+      rules: resolution.rules,
+    });
+    const plan = await service.plan(run);
+
+    // Every promoted learner has a class of next year to enter; only the Grade 9s wait, because the
+    // pack's move to senior school needs the KJSEA result and a pathway placement first.
+    expect(plan.conflicts.filter((conflict) => conflict.code !== 'undecided')).toEqual([]);
+    const waiting = new Set(plan.conflicts.map((conflict) => conflict.learnerId));
+    const levelOf = new Map(run.rows.map((row) => [row.learnerId, row.levelCode] as const));
+    expect(new Set([...waiting].map((id) => levelOf.get(id)))).toEqual(new Set(['G9']));
+    expect(plan.placements.length).toBeGreaterThan(0);
+    expect(new Set(plan.placements.map((placement) => placement.targetClassGroup.academic_year_id))).toEqual(
+      new Set([opening.id])
+    );
+  });
+});
 
 describe('the families', () => {
   it('links siblings to the same parents instead of copying them, and puts them in one household', async () => {
