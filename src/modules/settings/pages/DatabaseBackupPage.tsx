@@ -409,7 +409,7 @@ const SafetyCopiesSection: React.FC<{ copies: SafetyCopy[]; onChanged: () => voi
               <span>
                 {copy.name}
                 <span className="ml-2 text-surface-muted-fg">
-                  {formatSize(copy.bytes)} Â· {new Date(copy.modified).toLocaleString()}
+                  {formatSize(copy.bytes)} · {new Date(copy.modified).toLocaleString()}
                 </span>
               </span>
               <span className="flex gap-1">

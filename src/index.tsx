@@ -39,19 +39,19 @@ export const initializeApp = async () => {
   try {
     await initUnifiedConfig();
   } catch (error) {
-    logger.warn('âš ï¸ Unified configuration initialization failed, continuing with defaults:', error);
+    logger.warn('⚠️ Unified configuration initialization failed, continuing with defaults:', error);
   }
   initializeUnifiedConfig();
 
   try {
     // Wait for i18n to be ready
     await initializeI18n();
-    logger.info('âœ… i18n initialized successfully');
+    logger.info('✅ i18n initialized successfully');
   } catch (error) {
     performanceEventManager.markDiagnostic('app_initialize_i18n_failed', {
       error: error instanceof Error ? error.message : String(error)
     });
-    logger.warn('âš ï¸ i18n initialization failed, continuing with fallback:', error);
+    logger.warn('⚠️ i18n initialization failed, continuing with fallback:', error);
   }
   
   // Render the app after i18n is ready, unless a restore was interrupted: that is decided before
