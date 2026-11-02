@@ -249,6 +249,7 @@ export class LedgerService {
 
   /** Posts the entry of a recorded expense: the expense account against the account it was paid from. */
   async postExpense(input: ExpensePostingInput): Promise<JournalEntry> {
+    assertCan('expense', 'post', 'finance.write');
     return this.post(expenseEntry(input, this.chart, this.postingOptions(input.postedBy)));
   }
 
