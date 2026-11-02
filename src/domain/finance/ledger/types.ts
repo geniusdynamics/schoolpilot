@@ -32,7 +32,8 @@ export type SourceDocumentKind =
   | 'payment'
   | 'refund'
   | 'credit_note'
-  | 'opening_balance';
+  | 'opening_balance'
+  | 'expense';
 
 /** The document an entry posts: what it is, which row, and the number it carries. */
 export interface SourceDocument {

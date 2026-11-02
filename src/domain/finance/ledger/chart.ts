@@ -33,6 +33,24 @@ export const CONTROL_ACCOUNTS = {
 /** The name of a control account. */
 export type ControlAccountName = keyof typeof CONTROL_ACCOUNTS;
 
+/**
+ * The expense accounts a school starts from (spec 05 §8: expenditure).
+ *
+ * They are ordinary expense-class accounts of the ledger's chart, not entries of the legacy
+ * accounting-configuration chart. A chart can replace or extend them; the default chart holds
+ * them so an expense can be recorded before a school configures its own cost headings.
+ */
+export const STANDARD_EXPENSE_ACCOUNTS = [
+  { code: '5000', name: 'Salaries and wages', kind: 'expense' },
+  { code: '5100', name: 'Utilities', kind: 'expense' },
+  { code: '5200', name: 'Teaching and learning materials', kind: 'expense' },
+  { code: '5300', name: 'Repairs and maintenance', kind: 'expense' },
+  { code: '5400', name: 'Transport and fuel', kind: 'expense' },
+  { code: '5500', name: 'Food and catering', kind: 'expense' },
+  { code: '5600', name: 'Administrative expenses', kind: 'expense' },
+  { code: '5900', name: 'Other expenses', kind: 'expense' },
+] as const satisfies readonly LedgerAccount[];
+
 /** The account a payment channel's money lands in (spec 05 section 8: cash, bank, mobile money). */
 export const CHANNEL_ACCOUNTS: Readonly<Record<PaymentChannel, ControlAccountName>> = {
   cash: 'cash',
@@ -57,6 +75,8 @@ export interface LedgerAccountMapping {
   revenueAccountForFeeItem(feeItemId: string): LedgerAccount | null;
   /** An account of the chart by code, or null when the chart does not hold it. */
   account(code: string): LedgerAccount | null;
+  /** Every account of the chart, for a picker or an expense-account list. */
+  accounts(): readonly LedgerAccount[];
 }
 
 /** What a chart is built from. */
@@ -78,8 +98,10 @@ export interface ChartOfAccountsInput {
   readonly requireFeeItemMapping?: boolean;
 }
 
-/** The chart the engine starts from: the control accounts, with no fee item mapped. */
-export const DEFAULT_LEDGER_ACCOUNT_MAPPING: LedgerAccountMapping = createLedgerAccountMapping();
+/** The chart the engine starts from: the control accounts and the standard expense accounts. */
+export const DEFAULT_LEDGER_ACCOUNT_MAPPING: LedgerAccountMapping = createLedgerAccountMapping({
+  accounts: STANDARD_EXPENSE_ACCOUNTS,
+});
 
 /** Builds a chart of accounts from the control accounts and whatever the caller adds. */
 export function createLedgerAccountMapping(
@@ -104,6 +126,9 @@ export function createLedgerAccountMapping(
   return {
     account(code) {
       return accounts.get(code) ?? null;
+    },
+    accounts() {
+      return [...accounts.values()];
     },
     revenueAccountForFeeItem(feeItemId) {
       if (input.revenueAccountForFeeItem) {
@@ -150,6 +175,14 @@ export function resolveChannelAccount(
   channel: PaymentChannel
 ): LedgerAccount {
   return resolveControlAccount(mapping, CHANNEL_ACCOUNTS[channel]);
+}
+
+/** The expense accounts of a chart, in code order: what an expense may debit. */
+export function expenseAccounts(mapping: LedgerAccountMapping): readonly LedgerAccount[] {
+  return mapping
+    .accounts()
+    .filter((account) => account.kind === 'expense')
+    .sort((left, right) => left.code.localeCompare(right.code));
 }
 
 /**

@@ -475,6 +475,123 @@ export function openingBalanceEntry(
   );
 }
 
+export interface ExpensePostingInput {
+  readonly expense: {
+    readonly id: string;
+    readonly number?: string;
+    readonly institutionId: string;
+    /** The day the expense takes effect, an ISO day. */
+    readonly expenseDate: string;
+    readonly payee: string;
+    readonly amount: Money;
+    /** The ledger account the expense debits. It must be an expense-class account. */
+    readonly expenseAccountCode: string;
+    /** The cash, bank or mobile-money account the expense credits. */
+    readonly paymentAccountCode: string;
+    readonly description?: string;
+  };
+  readonly periodId?: string;
+  readonly postedBy?: string;
+}
+
+/**
+ * The entry of a recorded expense: the expense account against the account the money left.
+ *
+ * Both accounts come from the ledger's chart, and their classes are checked rather than trusted:
+ * an expense debits an expense-class account and credits an asset, so a caller cannot post a
+ * payable as a payment or an expense as an asset. The engine refuses an entry dated in a closed
+ * period before it is stored.
+ */
+export function expenseEntry(
+  input: ExpensePostingInput,
+  mapping: LedgerAccountMapping,
+  options: PostingOptions = {}
+): JournalEntry {
+  const { expense } = input;
+  if (isZero(expense.amount) || expense.amount.amount_minor < 0) {
+    throw new LedgerError(
+      'invalid_entry',
+      `expense ${labelOf(expense)} holds a non-positive amount; there is nothing to post`,
+      { detail: { expenseId: expense.id } }
+    );
+  }
+  if (!isIsoDay(expense.expenseDate)) {
+    throw new LedgerError(
+      'invalid_entry',
+      `expense ${labelOf(expense)} needs an ISO day as its date, not "${expense.expenseDate}"`,
+      { detail: { expenseId: expense.id } }
+    );
+  }
+
+  const subject = `expense ${labelOf(expense)}`;
+  const expenseAccount = accountOfKindOrRefuse(
+    mapping,
+    expense.expenseAccountCode,
+    'expense',
+    subject
+  );
+  const paymentAccount = accountOfKindOrRefuse(
+    mapping,
+    expense.paymentAccountCode,
+    'asset',
+    subject
+  );
+
+  return createJournalEntry(
+    {
+      institutionId: expense.institutionId,
+      entryDate: expense.expenseDate,
+      source: {
+        kind: 'expense',
+        id: expense.id,
+        ...(expense.number ? { number: expense.number } : {}),
+      },
+      narration: `Expense ${labelOf(expense)} paid to ${expense.payee}`,
+      lines: [
+        {
+          accountCode: expenseAccount.code,
+          accountName: expenseAccount.name,
+          debit: expense.amount,
+          memo: expense.description ?? expense.payee,
+        },
+        {
+          accountCode: paymentAccount.code,
+          accountName: paymentAccount.name,
+          credit: expense.amount,
+          memo: expense.payee,
+        },
+      ],
+      ...optional(input),
+    },
+    options
+  );
+}
+
+/** Resolves an account by code and refuses one of a different class than the side needs. */
+function accountOfKindOrRefuse(
+  mapping: LedgerAccountMapping,
+  code: string,
+  kind: LedgerAccount['kind'],
+  subject: string
+): LedgerAccount {
+  const account = mapping.account(code);
+  if (!account) {
+    throw new LedgerError(
+      'no_mapping',
+      `${subject} names account "${code}", which the chart of accounts does not hold`,
+      { detail: { accountCode: code, subject } }
+    );
+  }
+  if (account.kind !== kind) {
+    throw new LedgerError(
+      'no_mapping',
+      `${subject} names account "${code}" (${account.kind}); it needs ${kind === 'asset' ? 'an asset' : `an ${kind}`} account`,
+      { detail: { accountCode: code, subject, expectedKind: kind, actualKind: account.kind } }
+    );
+  }
+  return account;
+}
+
 function accountOrRefuse(
   mapping: LedgerAccountMapping,
   code: string,
