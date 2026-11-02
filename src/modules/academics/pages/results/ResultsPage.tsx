@@ -15,6 +15,7 @@ import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
 import { useLookup } from '@/data/query';
 import { useCanonicalSessionActor } from '@/data/useCanonicalSessionActor';
+import { classGroupLabel, currentPeriodOf, periodLabel } from '@/utils/academicLabels';
 import type { AggregationDefinition } from '@/domain/assessment/aggregation';
 import type { GradingScaleDefinition } from '@/domain/assessment/scales';
 import type { Id } from '@/domain/ids';
@@ -149,9 +150,26 @@ const ResultsInner: React.FC<ResultsPageContentProps> = ({
   const role = givenRole === undefined ? session.role : givenRole;
 
   const repository = useWritableRepository();
-  const periodLookup = useLookup(repository, 'academic_period', { label: (row) => row.name });
+  const yearLookup = useLookup(repository, 'academic_year', { label: (row) => row.name });
+  const yearNameOf = useMemo(
+    () => new Map(yearLookup.options.map((row) => [String(row.id), row.name] as const)),
+    [yearLookup.options]
+  );
+  const periodLookup = useLookup(repository, 'academic_period', {
+    label: (row) =>
+      periodLabel({
+        name: row.name,
+        academicYear: yearNameOf.get(String(row.academic_year_id)),
+      }),
+  });
+  const levelLookup = useLookup(repository, 'level', { label: (row) => row.name });
+  const levelNameOf = useMemo(
+    () => new Map(levelLookup.options.map((row) => [String(row.id), row.name] as const)),
+    [levelLookup.options]
+  );
   const classLookup = useLookup(repository, 'class_group', {
-    label: (row) => row.name,
+    label: (row) =>
+      classGroupLabel({ gradeLevel: levelNameOf.get(String(row.level_id)), name: row.name }),
   });
 
   const [periodId, setPeriodId] = useState<Id<'academic_period'> | null>(null);
@@ -175,10 +193,10 @@ const ResultsInner: React.FC<ResultsPageContentProps> = ({
   const [moderationReason, setModerationReason] = useState('');
   const [moderationError, setModerationError] = useState<string | null>(null);
 
-  // The period the calendar marks current is the one a teacher almost always wants.
+  // The period whose dates cover today is the one a teacher almost always wants.
   useEffect(() => {
     if (periodId !== null) return;
-    const current = periodLookup.options.find((row) => row.status === 'current') ?? periodLookup.options[0];
+    const current = currentPeriodOf(periodLookup.options);
     if (current) setPeriodId(current.id);
   }, [periodId, periodLookup.options]);
 

@@ -18,6 +18,7 @@ import type { AggregationDefinition } from '@/domain/assessment/aggregation';
 import type { GradingScaleDefinition } from '@/domain/assessment/scales';
 import type { ReportSchool } from '@/domain/reports/types';
 import type { Id } from '@/domain/ids';
+import { classGroupLabel, currentPeriodOf, periodLabel } from '@/utils/academicLabels';
 
 import { CanonicalRepositoryProvider, useWritableRepository } from '../../data/canonicalRepository';
 import { useCanonicalAcademics } from '../../data/useCanonicalAcademics';
@@ -121,18 +122,37 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
   const role = givenRole === undefined ? session.role : givenRole;
 
   const canonical = useCanonicalAcademics();
-  const periodLookup = useLookup(repository, 'academic_period', { label: (row) => row.name });
-  const classLookup = useLookup(repository, 'class_group', { label: (row) => row.name });
+  const yearLookup = useLookup(repository, 'academic_year', { label: (row) => row.name });
+  const yearNameOf = useMemo(
+    () => new Map(yearLookup.options.map((row) => [String(row.id), row.name] as const)),
+    [yearLookup.options]
+  );
+  const periodLookup = useLookup(repository, 'academic_period', {
+    label: (row) =>
+      periodLabel({
+        name: row.name,
+        academicYear: yearNameOf.get(String(row.academic_year_id)),
+      }),
+  });
+  const levelLookup = useLookup(repository, 'level', { label: (row) => row.name });
+  const levelNameOf = useMemo(
+    () => new Map(levelLookup.options.map((row) => [String(row.id), row.name] as const)),
+    [levelLookup.options]
+  );
+  const classLookup = useLookup(repository, 'class_group', {
+    label: (row) =>
+      classGroupLabel({ gradeLevel: levelNameOf.get(String(row.level_id)), name: row.name }),
+  });
 
   const [periodId, setPeriodId] = useState<Id<'academic_period'> | null>(null);
   const [classGroupId, setClassGroupId] = useState<Id<'class_group'> | null>(null);
   const [templateCode, setTemplateCode] = useState<string>(PACK_REPORT_TEMPLATES[0]?.code ?? '');
   const [showPreview, setShowPreview] = useState(false);
 
-  // The period the calendar marks current is the one a school almost always wants.
+  // The period whose dates cover today is the one a school almost always wants.
   useEffect(() => {
     if (periodId !== null) return;
-    const current = periodLookup.options.find((row) => row.status === 'current') ?? periodLookup.options[0];
+    const current = currentPeriodOf(periodLookup.options);
     if (current) setPeriodId(current.id);
   }, [periodId, periodLookup.options]);
 

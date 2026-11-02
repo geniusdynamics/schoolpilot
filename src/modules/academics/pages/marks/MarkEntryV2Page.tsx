@@ -74,12 +74,15 @@ const MarkEntryV2Inner: React.FC<MarkEntryV2PageContentProps> = ({
   const repository = useWritableRepository();
   const yearLookup = useLookup(repository, 'academic_year', { label: (row) => row.name });
   const yearNameOf = useMemo(
-    () => new Map(yearLookup.options.map((row) => [row.id, row.name] as const)),
+    () => new Map(yearLookup.options.map((row) => [String(row.id), row.name] as const)),
     [yearLookup.options]
   );
   const periodLookup = useLookup(repository, 'academic_period', {
     label: (row) =>
-      periodLabel({ name: row.name, academicYear: yearNameOf.get(row.academic_year_id) }),
+      periodLabel({
+        name: row.name,
+        academicYear: yearNameOf.get(String(row.academic_year_id)),
+      }),
   });
   const groupLookup = useLookup(repository, 'teaching_group', { label: (row) => row.name });
 

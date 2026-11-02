@@ -50,7 +50,15 @@ export interface ClassMarkEntryState {
   readonly grid: ClassGrid;
   readonly scope: TeachingScope;
   readonly periodName: string | null;
-  readonly periodOptions: readonly { readonly id: string; readonly name: string; readonly status: string }[];
+  readonly periodOptions: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly status: string;
+    /** The academic year's name, so two years' "Term 1" are told apart. */
+    readonly academicYear: string | null;
+    readonly start_date: string;
+    readonly end_date: string;
+  }[];
   readonly levelOptions: readonly { readonly id: string; readonly name: string }[];
   readonly classGroupOptions: readonly {
     readonly id: string;
@@ -421,6 +429,9 @@ export function useClassMarkEntry(options: ClassMarkEntryOptions): ClassMarkEntr
       id: row.id,
       name: row.name,
       status: row.status,
+      academicYear: canonical.academicYearById.get(row.academic_year_id)?.name ?? null,
+      start_date: row.start_date,
+      end_date: row.end_date,
     })),
     levelOptions: canonical.levels.map((row) => ({ id: row.id, name: row.name })),
     classGroupOptions: canonical.classGroups.map((row) => {

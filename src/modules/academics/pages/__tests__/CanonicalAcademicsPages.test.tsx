@@ -248,7 +248,7 @@ describe('teaching groups page', () => {
     fireEvent.change(screen.getByLabelText(/^Name/), {
       target: { value: 'Grade 7 East English' },
     });
-    await choose('Class group', 'Grade 7 East');
+    await choose('Class group', 'Grade 7 · East');
     await choose('Learning area', 'English');
     fireEvent.click(screen.getByRole('button', { name: 'Create teaching group' }));
 
@@ -277,7 +277,7 @@ describe('teaching groups page', () => {
     fireEvent.change(screen.getByLabelText(/^Name/), {
       target: { value: 'Grade 7 East Mathematics' },
     });
-    await choose('Class group', 'Grade 7 East');
+    await choose('Class group', 'Grade 7 · East');
     await choose('Learning area', 'Mathematics');
     fireEvent.click(screen.getByRole('button', { name: 'Create teaching group' }));
 

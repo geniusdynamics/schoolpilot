@@ -11,6 +11,7 @@ import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 import { printReport } from '@/components/reports';
 import { useCanonicalSessionActor } from '@/data/useCanonicalSessionActor';
+import { classGroupLabel, currentPeriodOf, periodLabel } from '@/utils/academicLabels';
 import type { Id } from '@/domain/ids';
 
 import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
@@ -60,9 +61,7 @@ const CanonicalExamAnalysisInner: React.FC = () => {
 
   useEffect(() => {
     if (periodId !== null) return;
-    const current =
-      canonical.academicPeriods.find((row) => row.status === 'current') ??
-      canonical.academicPeriods[0];
+    const current = currentPeriodOf(canonical.academicPeriods);
     if (current) setPeriodId(current.id as Id<'academic_period'>);
   }, [periodId, canonical.academicPeriods]);
 
@@ -190,10 +189,8 @@ const CanonicalExamAnalysisInner: React.FC = () => {
   const levelNameOf = new Map(
     canonical.levels.map((level) => [String(level.id), level.name] as const)
   );
-  const classGroupLabel = (group: (typeof canonical.classGroups)[number]): string => {
-    const level = levelNameOf.get(group.level_id);
-    return level === undefined ? group.name : `${level} · ${group.name}`;
-  };
+  const groupLabel = (group: (typeof canonical.classGroups)[number]): string =>
+    classGroupLabel({ gradeLevel: levelNameOf.get(group.level_id), name: group.name });
 
   return (
     <div className="space-y-4">
@@ -242,7 +239,10 @@ const CanonicalExamAnalysisInner: React.FC = () => {
               <option value="">Select a period</option>
               {canonical.academicPeriods.map((period) => (
                 <option key={period.id} value={period.id}>
-                  {period.name}
+                  {periodLabel({
+                    name: period.name,
+                    academicYear: canonical.academicYearById.get(period.academic_year_id)?.name,
+                  })}
                 </option>
               ))}
             </select>
@@ -259,7 +259,7 @@ const CanonicalExamAnalysisInner: React.FC = () => {
               <option value="">Select a class</option>
               {reachableClassGroups.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {classGroupLabel(group)}
+                  {groupLabel(group)}
                 </option>
               ))}
             </select>
