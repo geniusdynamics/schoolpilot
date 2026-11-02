@@ -54,7 +54,7 @@ export const AcademicsDashboardPageContent: React.FC = () => {
         enteredAt: mark.entered_at ?? null,
         learnerName: learner
           ? [learner.given_name, learner.family_name].filter(Boolean).join(' ')
-          : (enrolment?.learner_id ?? 'Unknown learner'),
+          : 'Unknown learner',
         learningAreaName:
           canonical.learningAreaById.get(mark.learning_area_id)?.name ?? 'Unknown learning area',
         assessmentName:
