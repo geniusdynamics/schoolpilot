@@ -378,6 +378,63 @@ describe('SQLiteWASMProvider persistent storage', () => {
   });
 });
 
+describe('SQLiteWASMProvider whole-file backup', () => {
+  const originalStorage = (navigator as any).storage;
+  const image = new Uint8Array([83, 81, 76]);
+
+  beforeEach(() => {
+    mockDbInstances.length = 0;
+    Object.defineProperty(navigator, 'storage', {
+      configurable: true,
+      value: { getDirectory: vi.fn(), persist: vi.fn().mockResolvedValue(true) },
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, 'storage', { configurable: true, value: originalStorage });
+  });
+
+  it('exports the persisted file through the worker and names it', async () => {
+    const worker = new FakeStorageWorker((msg) =>
+      msg.type === 'open' ? { ok: true, bytes: new Uint8Array() } : msg.type === 'export' ? { ok: true, bytes: image } : { ok: true }
+    );
+    const provider = makeProvider(worker);
+    await provider.initialize();
+
+    expect(provider.databaseFileName()).toBe('persist_test.sqlite3');
+    expect(await provider.exportDatabase()).toBe(image);
+    expect(worker.sent.at(-1)).toMatchObject({ type: 'export' });
+  });
+
+  it('refuses writes after an import, yet accepts the import that puts the old file back', async () => {
+    let imports = 0;
+    const worker = new FakeStorageWorker((msg) => {
+      if (msg.type === 'open') return { ok: true, bytes: new Uint8Array() };
+      if (msg.type === 'import') {
+        imports += 1;
+        // The restore's import fails; the rollback's import of the snapshot succeeds.
+        return imports === 1 ? { ok: false, error: 'No available handles to import to.' } : { ok: true };
+      }
+      return { ok: true };
+    });
+    const provider = makeProvider(worker);
+    await provider.initialize();
+    const collection = await provider.createCollection('students', {
+      version: 0,
+      primaryKey: 'id',
+      type: 'object',
+      properties: { id: { type: 'string', maxLength: 100 } },
+      required: ['id'],
+    } as any);
+
+    await expect(provider.importDatabase(image)).rejects.toThrow('No available handles to import to.');
+    await expect(provider.importDatabase(image)).resolves.toBeUndefined();
+    expect(worker.sent.filter((msg) => msg.type === 'import')).toHaveLength(2);
+    // The working copy no longer matches the file: nothing is written until the app reloads.
+    await expect(collection.insert({ id: 'S1' } as any)).rejects.toThrow(/replaced by a restore/);
+  });
+});
+
 describe('isPersistentStatement', () => {
   it.each([
     ['INSERT INTO students (id) VALUES (?)', true],
