@@ -14,9 +14,10 @@ import {
   type JournalEntry,
 } from '@/domain/finance/ledger';
 import type { LedgerReader } from '@/domain/finance/statements';
-import { formatMoney, fromMinor } from '@/domain/money';
+import { fromMinor } from '@/domain/money';
 
 import { createFinanceRepositoryDouble } from '@/modules/finance/data/__tests__/canonicalRepositoryDouble';
+import { formatMoneyMinor } from '@/modules/finance/data/canonicalFinance';
 import { StatementsPageContent } from '../StatementsPage';
 
 const INSTITUTION = '00000000-0000-7000-8000-000000000001';
@@ -24,6 +25,7 @@ const LEARNER = '77777777-7777-7777-8777-777777777777';
 const INVOICE = '13131313-1313-7131-8131-131313131313';
 const PAYMENT = '14141414-1414-7141-8141-141414141414';
 const ALLOCATION = '15151515-1515-7151-8151-151515151515';
+const RECEIPT = '16161616-1616-7161-8161-161616161616';
 
 const kes = (minor: number) => fromMinor(minor, 'KES');
 
@@ -56,7 +58,7 @@ const ENTRIES: readonly JournalEntry[] = [
         channel: 'cash',
         receivedAt: '2027-02-05T09:00:00.000Z',
       },
-      allocations: [{ invoiceId: INVOICE, invoiceNumber: 'INV/2027/1/000001', amount: kes(300_000) }],
+      allocations: [{ invoiceId: INVOICE, amount: kes(300_000) }],
     },
     CHART,
     { id: 'entry-payment' }
@@ -125,6 +127,16 @@ function seed() {
         allocated_at: '2027-02-05T09:00:00.000Z',
       },
     ],
+    receipt: [
+      {
+        id: RECEIPT,
+        institution_id: INSTITUTION,
+        number: 'RCT/2027/000001',
+        payment_id: PAYMENT,
+        issued_at: '2027-02-05T09:00:00.000Z',
+        status: 'issued',
+      },
+    ],
   });
 }
 
@@ -153,7 +165,7 @@ describe('the statements page', () => {
 
     await waitFor(() => expect(screen.getByTestId('statement-closing')).toBeInTheDocument());
     // The closing balance is the ledger's: 600,000 invoiced less 300,000 allocated less 100,000 credit.
-    expect(screen.getByTestId('statement-closing').textContent).toContain(formatMoney(kes(200_000)));
+    expect(screen.getByTestId('statement-closing').textContent).toContain(formatMoneyMinor(200_000));
     expect(screen.getByTestId('statement-tie').textContent).toContain('Agrees with the ledger');
     expect(screen.getByTestId('statement-opening')).toBeInTheDocument();
     // A learner's statement carries their clearance.
@@ -173,6 +185,12 @@ describe('the statements page', () => {
     expect(movements.textContent).toContain('invoice');
     expect(movements.textContent).toContain('allocation');
     expect(movements.textContent).toContain('credit');
+    // The payment prints its receipt and channel, and no movement prints an internal id.
+    expect(movements.textContent).toContain('RCT/2027/000001');
+    expect(movements.textContent).toContain('Cash');
+    expect(movements.textContent).not.toContain(PAYMENT);
+    expect(movements.textContent).not.toContain(INVOICE);
+    expect(movements.textContent).not.toContain(ALLOCATION);
   });
 
   it('says so when the ledger is not connected', () => {
