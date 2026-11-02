@@ -1,5 +1,5 @@
 // ABOUTME: Hub page for exam analysis
-// ABOUTME: Consolidates exam analysis and student exam analysis into tabbed interface
+// ABOUTME: Holds the canonical exam analysis; the legacy student analysis left the menu with the old collections
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,10 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   ChartBarIcon,
-  UsersIcon,
 } from '@/components/ui/icons';
 import { CanonicalExamAnalysisContent } from './results/CanonicalExamAnalysisContent';
-import { StudentExamAnalysisPageContent } from './StudentExamAnalysisPage';
 
 interface HubTab {
   id: string;
@@ -30,12 +28,6 @@ const ExamAnalysisPage: React.FC = () => {
       label: t('examAnalysis.title', 'Exam Analysis'),
       icon: <ChartBarIcon className="w-4 h-4" />,
       component: <CanonicalExamAnalysisContent />,
-    },
-    {
-      id: 'student-analysis',
-      label: t('studentExamAnalysis.title', 'Student Analysis'),
-      icon: <UsersIcon className="w-4 h-4" />,
-      component: <StudentExamAnalysisPageContent />,
     },
   ];
 

@@ -16,6 +16,7 @@ import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { SchoolEvent, EventType, EventStatus } from '../data/types';
 import { logger } from '@/utils/logging';
 import { useToast } from '@/hooks/useToast';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 export const EventsManagerPageContent: React.FC = () => {
   const { loading } = useAppData();
@@ -201,6 +202,7 @@ export const EventsManagerPageContent: React.FC = () => {
 
   return (
     <div className="p-6">
+      <LegacyDataNotice>An event here does not appear in the school calendar.</LegacyDataNotice>
       <PageHeaderWithTabs
         title="Events Manager"
         info="Manage school events including exams, holidays, functions, meetings, and sports activities. Track event schedules, locations, and participants."

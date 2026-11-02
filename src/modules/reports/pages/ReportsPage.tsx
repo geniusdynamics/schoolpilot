@@ -65,7 +65,7 @@ const FINANCE_REPORTS: readonly ReportLink[] = [
   {
     title: 'Account Ledger',
     description: 'The posted ledger entries for an account, with a date range.',
-    to: '/finance/accounting-ops?tab=ledger',
+    to: '/finance/accounting-reports?tab=trial-balance',
     icon: <DocumentReportIcon className="h-5 w-5" />,
   },
   {

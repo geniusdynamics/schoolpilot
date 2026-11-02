@@ -15,6 +15,7 @@ import { useFinance } from '@/modules/finance/hooks/useFinance';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { formatDate } from '@/utils/format';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 // Record ids are strings (UUIDs) at runtime, so the form keeps the supplier id as the option value.
 type SupplierInvoiceFormData = Omit<Partial<SupplierInvoice>, 'id' | 'created_at' | 'updated_at' | 'supplier_name' | 'status' | 'supplier_id'> & {
@@ -192,6 +193,7 @@ export const SupplierInvoicesPageContent: React.FC = () => {
   
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>A supplier invoice recorded here posts nothing to the ledger.</LegacyDataNotice>
       <Card title="Supplier Invoices Management" info="Record and manage invoices received from suppliers." actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Supplier Invoice

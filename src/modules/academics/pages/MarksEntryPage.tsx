@@ -1,5 +1,5 @@
 // ABOUTME: Hub page for marks entry
-// ABOUTME: Consolidates student exam results entry and marks entry by token into tabbed interface
+// ABOUTME: Holds the marks-entry screens in tabs; entry by token retired with the old collections
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,11 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   ClipboardDocumentListIcon,
-  DocumentDuplicateIcon,
   TableCellsIcon,
 } from '@/components/ui/icons';
 import { StudentExamResultsEntryPageContent } from './StudentExamResultsEntryPage';
-import { MarksEntryByTokenPageContent } from './MarksEntryByTokenPage';
 import { ClassMarksEntryPage, MarkEntryV2PageContent } from './marks';
 
 interface HubTab {
@@ -50,12 +48,6 @@ const MarksEntryPage: React.FC = () => {
       label: t('studentExamResultsEntry.title', 'Student Results'),
       icon: <ClipboardDocumentListIcon className="w-4 h-4" />,
       component: <StudentExamResultsEntryPageContent />,
-    },
-    {
-      id: 'entry-by-token',
-      label: t('marksEntryByToken.title', 'Entry by Token'),
-      icon: <DocumentDuplicateIcon className="w-4 h-4" />,
-      component: <MarksEntryByTokenPageContent />,
     },
   ];
 

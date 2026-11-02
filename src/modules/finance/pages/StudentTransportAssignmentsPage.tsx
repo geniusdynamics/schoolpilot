@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { asId } from '@/domain/ids';
 import { useCanonicalFinance } from '../data/canonicalFinance';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 /** An assignment as shown in the grid; ids are strings and names are resolved at read time. */
 interface AssignmentRow {
@@ -207,6 +208,7 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
 
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>An assignment made here is not billed to any learner.</LegacyDataNotice>
       <Card title="Student Transport Assignments" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Assign Student to Route

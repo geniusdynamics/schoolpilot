@@ -18,6 +18,7 @@ import type { CustomerInvoice, CustomerInvoiceItem, Customer } from '@/modules/f
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { formatDate } from '@/utils/format';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 // Record ids are strings (UUIDs) at runtime, so the forms keep customer and revenue account ids as option values.
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status' | 'customer_id'> & {
@@ -378,6 +379,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
   
   return (
     <div className="space-y-3">
+      <LegacyDataNotice>An invoice raised here is not billed to a learner and posts nothing to the ledger.</LegacyDataNotice>
       <Card title="Customer Invoices Management" info="Manage invoices for services provided to external customers." actions={
         <Button onClick={() => openInvoiceModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           New Customer Invoice

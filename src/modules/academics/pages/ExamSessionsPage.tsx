@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useAcademicDataContext } from '../data/AcademicDataContext';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 type Id = string | number;
 
@@ -337,6 +338,7 @@ export const ExamSessionsPageContent: React.FC = () => {
 
 return (
     <div className="space-y-3">
+      <LegacyDataNotice>A session created here is not an assessment marks can be entered against.</LegacyDataNotice>
       <Card title="Exam Sessions Management" actions={
         <Button onClick={() => openSessionModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Exam Session

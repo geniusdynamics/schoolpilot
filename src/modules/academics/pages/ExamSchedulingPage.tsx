@@ -12,6 +12,7 @@ import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Button from '@/components/ui/Button';
 import { useAppData } from '@/hooks/useAppData';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
 interface ExamSchedulingPageProps {
   examSessionId?: string;
@@ -194,6 +195,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
 
   return (
     <div className="exam-scheduling-page">
+      <LegacyDataNotice>A paper scheduled here is not the assessment marks are entered against.</LegacyDataNotice>
       <PageHeaderWithTabs
         title="Exam Scheduling Management"
         action={
