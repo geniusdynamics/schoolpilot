@@ -15,6 +15,9 @@ import {
   type Publication,
 } from '..';
 
+// Page tests supply their canonical actor and repository; do not boot a browser login/database.
+vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: null }) }));
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
@@ -240,6 +243,28 @@ async function generate() {
 }
 
 describe('the review step on the page', () => {
+  it('keeps the preview inside its card and removes both copies when hidden', async () => {
+    const view = await openReady();
+    await generate();
+    const toggle = screen.getByTestId('toggle-preview');
+    fireEvent.click(toggle);
+
+    expect(view.container.querySelector('.report-document')).not.toBeNull();
+    const preview = screen.getByRole('region', { name: 'Report preview' });
+    expect(preview.querySelector('.report-document')).not.toBeNull();
+    expect(preview.querySelector('.report-preview-banner')).toHaveTextContent(/preview/i);
+    expect(toggle).toHaveAttribute('aria-controls', preview.id);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    const printSurface = document.body.querySelector('.report-print-surface--offscreen');
+    expect(printSurface?.parentElement).toBe(document.body);
+    expect(printSurface).toHaveAttribute('aria-hidden', 'true');
+    expect(printSurface?.querySelector('.report-document')).not.toBeNull();
+
+    fireEvent.click(toggle);
+    expect(screen.queryByRole('region', { name: 'Report preview' })).toBeNull();
+    expect(document.body.querySelector('.report-print-surface')).toBeNull();
+  });
+
   it('refuses to publish before anything has been reviewed', async () => {
     await openReady();
     expect(screen.getByTestId('publish-batch')).toBeDisabled();

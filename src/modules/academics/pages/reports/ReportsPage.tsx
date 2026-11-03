@@ -2,7 +2,7 @@
 // ABOUTME: pack's template, review them, publish an immutable snapshot, and distribute it through the
 // ABOUTME: print queue, stored PDFs, the guardian portal link and the SMS link.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Badge from '@/components/ui/Badge';
@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { EntityPicker } from '@/components/ui/EntityPicker';
 import Spinner from '@/components/ui/Spinner';
-import { ReportDocument, ReportPrintSurface, printReport } from '@/components/reports';
+import { ReportPreview, printReport } from '@/components/reports';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEntityQuery, useLookup } from '@/data/query';
 import { resolveCanonicalActor } from '@/data/sessionActor';
@@ -148,6 +148,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
   const [classGroupId, setClassGroupId] = useState<Id<'class_group'> | null>(null);
   const [templateCode, setTemplateCode] = useState<string>(PACK_REPORT_TEMPLATES[0]?.code ?? '');
   const [showPreview, setShowPreview] = useState(false);
+  const previewId = useId();
 
   // The period whose dates cover today is the one a school almost always wants.
   useEffect(() => {
@@ -429,7 +430,13 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
           )}
         >
           <div className="mb-3 flex flex-wrap items-center gap-3">
-            <Button variant="outline" onClick={() => setShowPreview((current) => !current)} data-testid="toggle-preview">
+            <Button
+              variant="outline"
+              onClick={() => setShowPreview((current) => !current)}
+              data-testid="toggle-preview"
+              aria-expanded={showPreview}
+              aria-controls={showPreview ? previewId : undefined}
+            >
               {showPreview ? 'Hide preview' : 'Show preview'}
             </Button>
             <span className="text-sm text-surface-muted-fg">
@@ -439,9 +446,11 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
             </span>
           </div>
           {showPreview ? (
-            <ReportPrintSurface>
-              <ReportDocument model={documentModel(previewDocument)} toolbar={false} />
-            </ReportPrintSurface>
+            <ReportPreview
+              id={previewId}
+              label={t('reports.previewRegion', 'Report preview')}
+              model={documentModel(previewDocument)}
+            />
           ) : null}
         </Card>
       )}

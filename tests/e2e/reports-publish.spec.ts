@@ -26,8 +26,12 @@ declare global {
 
 const HARNESS = '/tests/e2e/reports/report-publish-harness.html';
 
-async function openHarness(page: Page, variant: 'published' | 'preview'): Promise<void> {
-  await page.setViewportSize({ width: 1100, height: 1400 });
+async function openHarness(
+  page: Page,
+  variant: 'published' | 'preview' | 'inline-preview',
+  viewport = { width: 1100, height: 1400 }
+): Promise<void> {
+  await page.setViewportSize(viewport);
   await page.goto(`${HARNESS}?doc=${variant}`, { timeout: 120_000 });
   await page.waitForFunction(() => window.__publish?.ready === true, undefined, { timeout: 60_000 });
   await page.evaluate(() => document.fonts.ready.then(() => true));
@@ -61,6 +65,51 @@ async function printPdf(page: Page): Promise<Buffer> {
 }
 
 test.describe('report publishing', () => {
+  for (const width of [360, 768, 1440]) {
+    test(`the inline preview contains its scrolling and prints only one copy at ${width}px`, async ({ page }, testInfo) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('requestfailed', (request) => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
+      await openHarness(page, 'inline-preview', { width, height: 900 });
+      const preview = page.getByRole('region', { name: 'Report preview' });
+      await expect(preview).toBeVisible();
+      await expect(preview.locator('.report-preview-banner')).toContainText(/preview/i);
+      await expect(preview.locator('.report-sheet')).toBeVisible();
+
+      const bounds = await preview.evaluate((element) => {
+        const sheet = element.querySelector('.report-sheet')!;
+        return {
+          inApp: element.closest('#root') !== null,
+          pageWidth: document.documentElement.scrollWidth,
+          viewportWidth: window.innerWidth,
+          sheetWidth: sheet.getBoundingClientRect().width,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+          scrollHeight: element.scrollHeight,
+          clientHeight: element.clientHeight,
+        };
+      });
+      expect(bounds.inApp).toBe(true);
+      expect(bounds.pageWidth).toBeLessThanOrEqual(bounds.viewportWidth);
+      expect(bounds.sheetWidth).toBeCloseTo((186 * 96) / 25.4, 0);
+      expect(bounds.scrollHeight).toBeGreaterThan(bounds.clientHeight);
+      if (width === 360) expect(bounds.scrollWidth).toBeGreaterThan(bounds.clientWidth);
+      await preview.focus();
+      await expect(preview).toBeFocused();
+      await preview.screenshot({ path: testInfo.outputPath(`preview-${width}.png`) });
+
+      // The off-screen copy stays laid out so its fit check runs before printing.
+      const printDocument = page.locator('.report-print-surface--offscreen .report-document');
+      expect(Number(await printDocument.getAttribute('data-height-mm'))).toBeGreaterThan(0);
+      await expect(printDocument).toHaveAttribute('data-overflow', 'false');
+      const pdf = await printPdf(page);
+      expect(pageCount(pdf)).toBe(1);
+      expect(pageBox(pdf).widthMm).toBeCloseTo(209.9, 0);
+      await expect(preview).toBeVisible();
+      expect(errors).toEqual([]);
+    });
+  }
+
   test('the frozen snapshot never changes, and a re-issue is a new version', async ({ page }) => {
     await openHarness(page, 'published');
     const state = await page.evaluate(() => ({

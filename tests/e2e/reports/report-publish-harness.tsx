@@ -7,6 +7,7 @@ import { createRoot } from 'react-dom/client';
 
 import { ReportDocument } from '@/components/reports/ReportDocument';
 import { ReportPrintSurface } from '@/components/reports/ReportPrintSurface';
+import { ReportPreview } from '@/components/reports/ReportPreview';
 import { beginPrint, endPrint, isPrinting } from '@/components/reports/print';
 import { canonicalJson } from '@/domain/curriculum/registry/json';
 import type { ReportDocumentModel } from '@/domain/reports/types';
@@ -131,7 +132,11 @@ function Harness(): ReactElement {
 
   if (harness === null) return <div>preparing</div>;
   const model =
-    variant === 'preview' ? harness.preview : documentModel(harness.published.document);
+    variant === 'preview' || variant === 'inline-preview' ? harness.preview : documentModel(harness.published.document);
+
+  if (variant === 'inline-preview') {
+    return <ReportPreview id="report-preview" label="Report preview" model={model} />;
+  }
 
   return (
     <ReportPrintSurface>
@@ -145,4 +150,5 @@ function hasQr(model: ReportDocumentModel): boolean {
   return block?.kind === 'verification' ? block.payload.qr !== null : false;
 }
 
-createRoot(document.getElementById('harness-root') as HTMLElement).render(<Harness />);
+const mount = variant === 'inline-preview' ? document.getElementById('root') : document.getElementById('harness-root');
+createRoot(mount as HTMLElement).render(<Harness />);

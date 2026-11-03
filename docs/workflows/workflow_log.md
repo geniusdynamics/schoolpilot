@@ -4,6 +4,20 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 
 ---
 
+## Log Entry: 2026-11-03 — Report publishing preview
+**Issue:** Show preview mounted the report through a body-level print portal, outside the preview card and app shell.
+**Changes verified on disk:**
+- Added `src/components/reports/ReportPreview.tsx`: inline, keyboard-scrollable viewport with a separate measured print copy.
+- Modified `src/components/reports/ReportPrintSurface.tsx`, `src/components/reports/report.css`, and `src/components/reports/index.ts`: optional offscreen screen presentation; existing portal behavior unchanged by default.
+- Modified `src/modules/academics/pages/reports/ReportsPage.tsx`: preview component and expanded/control accessibility state.
+- Modified `src/modules/academics/pages/reports/__tests__/ReportsPage.test.tsx`: regression for in-page placement, print isolation and Hide preview cleanup; isolate the injected test actor from browser auth initialization.
+- Modified `tests/e2e/reports-publish.spec.ts`, `tests/e2e/reports/report-publish-harness.tsx`, and `tests/e2e/gp3-marks-results-report.spec.ts`: containment, 360/768/1440px layout, keyboard focus, one-copy A4 output and real-app preview placement.
+**Evidence:** Placement regression failed before the fix (`expected null not to be null`); 78 report unit/integration tests and 7 publishing browser tests pass afterward. Browser panel captures show narrow/desktop fixture rendering. Changed-file ESLint has no errors and the harness's existing no-export Fast Refresh warning.
+**Limitations:** Untouched report service tests still log the baseline legacy SQLite bootstrap error through their barrel imports. No report signing or publication semantics were changed.
+**Next:** Finish the production build and GP3 school journey; review, submit through a PR to consolidation, then verify local/remote synchronization. Older branch-audit files/worktrees remain untouched.
+
+---
+
 ## Log Entry: 2025-06-28 17:00:00
 **Phase:** Initial Setup
 **What was wrong:** Previous attempts to build the project failed due to various dependency resolution issues, incorrect import paths, and syntax errors.

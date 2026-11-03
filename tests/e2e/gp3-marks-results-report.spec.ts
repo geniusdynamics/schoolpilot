@@ -207,7 +207,10 @@ test.describe('GP-3 marks, results and the published report', () => {
       // The first report of the batch is the first learner by name, so the preview is the marked
       // learner's card: its English line prints the band and the total the engine computed.
       await page.getByTestId('toggle-preview').click();
-      const sheet = page.locator('.report-sheet').first();
+      const preview = page.getByRole('region', { name: 'Report preview' });
+      await expect(preview).toBeVisible();
+      const sheet = preview.locator('.report-sheet');
+      expect(await preview.evaluate((element) => element.closest('#root') !== null)).toBe(true);
       await expect(sheet).toBeVisible({ timeout: UI_TIMEOUT });
       await expect(sheet).toContainText(LEARNER);
       const english = sheet.locator('tr').filter({ hasText: /^\s*English/ });
