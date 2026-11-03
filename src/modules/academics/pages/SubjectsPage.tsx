@@ -16,6 +16,7 @@ import { useLookup } from '@/data/query';
 import { toWritableValues, type CreateInput, type UpdateInput } from '@/data/repository';
 import { asId } from '@/domain/ids';
 import { useToast } from '@/hooks/useToast';
+import { useCan } from '@/data/auth/useCan';
 
 import { CanonicalRepositoryProvider, createFormSchema, updateFormSchema } from '../data/canonicalRepository';
 import { messageOf } from '../data/errors';
@@ -62,6 +63,10 @@ const LearningAreasContent: React.FC = () => {
     levels,
   } = useCanonicalAcademics();
   const programmes = useLookup(repository, 'programme', { label: (row) => row.name });
+
+  // The curriculum is the school's configuration, not a teacher's: a role that cannot write it does
+  // not see the controls that would be refused. The repository still judges the write.
+  const canEdit = useCan('reference.write');
 
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<LearningAreaRow | null>(null);
@@ -118,7 +123,7 @@ const LearningAreasContent: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ].filter((column) => canEdit || column.key !== 'actions') as DataGridColumn<LearningAreaRow>[];
 
   const closeForm = () => {
     setCreating(false);
@@ -191,15 +196,17 @@ const LearningAreasContent: React.FC = () => {
         title={t('subjects.management', 'Learning areas')}
         bodyClassName="p-0"
         actions={
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setCreating(true);
-            }}
-            leftIcon={<PlusIcon className="w-5 h-5" />}
-          >
-            Add learning area
-          </Button>
+          canEdit ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setCreating(true);
+              }}
+              leftIcon={<PlusIcon className="w-5 h-5" />}
+            >
+              Add learning area
+            </Button>
+          ) : undefined
         }
       >
         <div className="border-t border-surface-border">

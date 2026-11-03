@@ -8,6 +8,7 @@ import {
   RepositoryReferenceError,
   RepositoryValidationError,
 } from '@/data/repository';
+import { permissionMessageFor } from '@/data/auth/permissionMessages';
 
 const CONFLICT_UNIQUE = 'A record with the same key already exists.';
 const CONFLICT_STALE = 'This record changed after you opened it. Reload the page and try again.';
@@ -31,7 +32,8 @@ export function messageOf(error: unknown): string {
     return `A referenced record no longer exists (${error.column}).`;
   }
   if (error instanceof RepositoryPermissionError) {
-    return 'You are not allowed to make this change.';
+    // The shared sentence names what was attempted and who to ask; a refusal is never a dead end.
+    return permissionMessageFor(error) ?? 'You are not allowed to make this change.';
   }
   return error instanceof Error && error.message.trim() !== ''
     ? error.message
