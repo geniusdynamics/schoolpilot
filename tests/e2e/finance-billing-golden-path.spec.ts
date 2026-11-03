@@ -18,9 +18,8 @@
 // ABOUTME: production mode no finance write control renders even for a signed-in super admin. With no way
 // ABOUTME: to create a vote head, an empty school has nothing to bill. The suite therefore runs on the
 // ABOUTME: wizard's own sample school, which seeds vote heads, learners and their enrolments; every write
-// ABOUTME: it then makes is through an ungated canonical path. The read-only vote-head assertion below is
-// ABOUTME: a live detector for that gap: when session-aware RBAC lands, it fails and this suite is
-// ABOUTME: extended to create its own vote head on an empty database.
+// ABOUTME: it then makes is through an ungated canonical path. Session-aware RBAC now offers the write
+// ABOUTME: control, so the journey creates its own vote head and reads it back after a reload.
 // ABOUTME:
 // ABOUTME: GAP P3-Q01-a, half closed: a schedule prices a cell of level x residence x fee category, and
 // ABOUTME: the Templates form writes neither a residence nor a fee category, so a schedule a user creates
@@ -69,6 +68,8 @@ const STREAM = 'North';
 /** A learner the wizard's sample school admits, and the vote head its sample schedule prices. */
 const DEMO_LEARNER = 'Amani Wekesa';
 const VOTE_HEAD = 'TUITION';
+/** A vote head the journey creates itself, now that the write control is offered to a writer. */
+const ADDED_VOTE_HEAD = { code: 'EXAM', name: 'Mock examination fee' };
 
 /** The schedule this suite writes, and the one-off charge the run bills against it. */
 const SCHEDULE_NAME = `Golden path fees ${RUN}`;
@@ -109,7 +110,7 @@ test.describe('the finance golden path', () => {
       await expect(row).toContainText('Admitted');
     });
 
-    await test.step('the vote heads are read from storage, and the page states its write lock', async () => {
+    await test.step('the vote heads are read from storage, and a new one can be added', async () => {
       await go(page, '/finance/fee-configuration?tab=fee-items');
       await expect(page.getByText('Fee items (vote heads)').first()).toBeVisible({
         timeout: UI_TIMEOUT,
@@ -118,11 +119,30 @@ test.describe('the finance golden path', () => {
         await expect(gridRow(page, code)).toBeVisible({ timeout: UI_TIMEOUT });
       }
 
-      // GAP P3-Q01-b (see the header): the write control is gated on a permission this session
-      // cannot hold, so it does not render. Asserted, not merely commented, so the gap is a live
-      // detector: when session-aware RBAC lands this fails and the suite is extended to create its
-      // own vote head on an empty database.
-      await expect(page.getByRole('button', { name: 'Add fee item' })).toHaveCount(0);
+      // Session-aware RBAC landed: the write control is offered to a role that may write, so the
+      // suite creates its own vote head instead of asserting the control's absence. The GL account
+      // is chosen when the chart offers one; a school whose chart has no revenue account yet still
+      // creates the item, and the posting falls back to the default revenue account.
+      await page.getByRole('button', { name: 'Add fee item' }).click();
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible({ timeout: UI_TIMEOUT });
+      await dialog.getByLabel('Code').fill(ADDED_VOTE_HEAD.code);
+      await dialog.getByLabel('Name').fill(ADDED_VOTE_HEAD.name);
+      const glAccount = dialog.getByLabel('GL account');
+      const offered = await glAccount.locator('option').evaluateAll((options) =>
+        options
+          .map((option) => ({ value: (option as HTMLOptionElement).value, label: option.textContent ?? '' }))
+          .filter((option) => option.value !== '' && /^\d{4}/.test(option.value))
+      );
+      const revenue = offered.find((option) => option.value.startsWith('4'));
+      if (revenue) await glAccount.selectOption(revenue.value);
+      await dialog.getByRole('button', { name: 'Add fee item' }).click();
+      await expect(gridRow(page, ADDED_VOTE_HEAD.code)).toBeVisible({ timeout: UI_TIMEOUT });
+
+      // It is the school's record, not a page's memory.
+      await reloadAndWait(page);
+      await go(page, '/finance/fee-configuration?tab=fee-items');
+      await expect(gridRow(page, ADDED_VOTE_HEAD.code)).toBeVisible({ timeout: UI_TIMEOUT });
     });
 
     await test.step('write a fee schedule with a priced line and read it back after a reload', async () => {

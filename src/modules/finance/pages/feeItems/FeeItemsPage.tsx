@@ -13,7 +13,7 @@ import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import { BanknotesIcon, DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
-import { useRBAC } from '@/hooks/useRBAC';
+import { useCan } from '@/data/auth/useCan';
 import { useToast } from '@/hooks/useToast';
 import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import { useEntityQuery } from '@/data/query';
@@ -32,9 +32,9 @@ import {
 } from '@/domain/finance/feeItems';
 
 import { useFinanceRepository } from '../../data/canonicalFinance';
+import { useCanonicalLedgerAccounts } from '../../data/useCanonicalLedgerAccounts';
 
 /** The permission the finance module needs to change configuration. */
-const WRITE_PERMISSION = 'finance.write';
 
 /** One fee item as the grid renders it. */
 interface FeeItemRow {
@@ -100,8 +100,21 @@ export const FeeItemsPageContent: React.FC = () => {
   const repository = useFinanceRepository();
   const toast = useToast();
   const confirm = useConfirm();
-  const { hasPermission } = useRBAC();
-  const canEdit = hasPermission(WRITE_PERMISSION);
+  // The write gate is the canonical authority, the same one the repository judges by. It used to
+  // ask the legacy RBAC, which returned false for sessions that should have been able to write and
+  // hid the control with no explanation (the golden path records that as gap P3-Q01-b).
+  const canEdit = useCan('finance.write');
+
+  // The accounts a fee item can bill against: the school's own revenue accounts from the ledger's
+  // chart. Without them the field cannot offer a real choice, so the form says where they come from.
+  const chart = useCanonicalLedgerAccounts();
+  const revenueAccounts = useMemo(
+    () =>
+      chart.rows
+        .filter((account) => account.kind === 'revenue' && account.is_active)
+        .sort((left, right) => left.code.localeCompare(right.code)),
+    [chart.rows]
+  );
 
   const [showDeactivated, setShowDeactivated] = useState(false);
   const [editing, setEditing] = useState<RepositoryRow<'fee_item'> | null>(null);
@@ -475,17 +488,45 @@ export const FeeItemsPageContent: React.FC = () => {
               </option>
             ))}
           </Select>
-          <Input
+          <Select
             name="revenueAccountCode"
             label={t('feeItems.glAccount', 'GL account')}
             value={form.revenueAccountCode}
             onChange={(event) => setField('revenueAccountCode', event.target.value)}
             error={fieldErrors.revenueAccountCode}
-            helperText={t(
-              'feeItems.glAccountHint',
-              'The revenue account a posting for this item credits. It cannot be cleared once set.'
-            )}
-          />
+            disabled={editing !== null && (editing.revenue_account_code ?? '') !== ''}
+            helperText={
+              revenueAccounts.length === 0
+                ? t(
+                    'feeItems.glAccountNoChart',
+                    'The ledger chart has no revenue account yet. Load the default chart on Accounting Configuration > Chart of Accounts, then choose the account this item credits.'
+                  )
+                : t(
+                    'feeItems.glAccountHint',
+                    'The revenue account a posting for this item credits. It cannot be cleared once set.'
+                  )
+            }
+          >
+            <option value="">
+              {revenueAccounts.length === 0
+                ? t('feeItems.glAccountNone', 'No revenue account in the chart')
+                : t('feeItems.glAccountChoose', 'Choose the account this item credits')}
+            </option>
+            {/* An item created before the chart existed can still carry a code the chart does not
+                hold; showing it keeps a legacy value visible instead of silently dropping it. */}
+            {form.revenueAccountCode !== '' &&
+            !revenueAccounts.some((account) => account.code === form.revenueAccountCode) ? (
+              <option value={form.revenueAccountCode}>
+                {form.revenueAccountCode} ·{' '}
+                {t('feeItems.glAccountNotInChart', 'not in the ledger chart')}
+              </option>
+            ) : null}
+            {revenueAccounts.map((account) => (
+              <option key={account.code} value={account.code}>
+                {account.code} · {account.name}
+              </option>
+            ))}
+          </Select>
           <Input
             name="priority"
             label={t('feeItems.priority', 'Priority')}
