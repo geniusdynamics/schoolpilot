@@ -140,8 +140,7 @@ test.describe('the finance golden path', () => {
       await expect(gridRow(page, ADDED_VOTE_HEAD.code)).toBeVisible({ timeout: UI_TIMEOUT });
 
       // It is the school's record, not a page's memory.
-      await page.reload();
-      await waitForShell(page);
+      await reloadAndWait(page);
       await go(page, '/finance/fee-configuration?tab=fee-items');
       await expect(gridRow(page, ADDED_VOTE_HEAD.code)).toBeVisible({ timeout: UI_TIMEOUT });
     });
