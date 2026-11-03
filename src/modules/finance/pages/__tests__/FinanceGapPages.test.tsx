@@ -1,6 +1,6 @@
-// ABOUTME: CRUD tests for the finance pages whose entity the registry does not model: the legacy rows
-// ABOUTME: still render and still write through useFinance(), while the learner and period they
-// ABOUTME: reference are chosen through EntityPicker.
+// ABOUTME: CRUD tests for the finance pages whose entity the registry does not model: the legacy
+// ABOUTME: receipt rows still render and still write through useFinance(), while the learner they
+// ABOUTME: reference is chosen through EntityPicker.
 
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -13,8 +13,6 @@ import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
 import { createFinanceRepositoryDouble } from '../../data/__tests__/canonicalRepositoryDouble';
 
 import { GeneralReceiptsPageContent } from '../GeneralReceiptsPage';
-import { StudentTransportAssignmentsPageContent } from '../StudentTransportAssignmentsPage';
-import { TransportRoutesPageContent } from '../TransportRoutesPage';
 
 const toast = vi.hoisted(() => ({
   showToast: vi.fn(),
@@ -54,35 +52,13 @@ const RECEIPTS = [
   },
 ];
 
-const ROUTES = [
-  { id: 'route-1', name: 'Westlands', cost_per_period: 1500, gl_revenue_account_id: null },
-];
-
-const ASSIGNMENTS = [
-  {
-    id: 'assign-1',
-    student_id: '77777777-7777-7777-8777-777777777777',
-    route_id: 'route-1',
-    school_period_id: '22222222-2222-7222-8222-222222222222',
-    status: 'Active',
-  },
-];
-
 const finance = vi.hoisted(() => ({
   generalPayments: [] as Record<string, unknown>[],
   customers: [] as unknown[],
   chartOfAccounts: [] as unknown[],
-  transportRoutes: [] as Record<string, unknown>[],
-  studentTransportAssignments: [] as Record<string, unknown>[],
   addGeneralPayment: vi.fn(),
   updateGeneralPayment: vi.fn(),
   deleteGeneralPayment: vi.fn(),
-  addTransportRoute: vi.fn(),
-  updateTransportRoute: vi.fn(),
-  deleteTransportRoute: vi.fn(),
-  addStudentTransportAssignment: vi.fn(),
-  updateStudentTransportAssignment: vi.fn(),
-  deleteStudentTransportAssignment: vi.fn(),
 }));
 
 vi.mock('@/modules/finance/hooks/useFinance', () => ({
@@ -155,18 +131,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   finance.chartOfAccounts = [REVENUE_ACCOUNT];
   finance.generalPayments = RECEIPTS.map((row) => ({ ...row }));
-  finance.transportRoutes = ROUTES.map((row) => ({ ...row }));
-  finance.studentTransportAssignments = ASSIGNMENTS.map((row) => ({ ...row }));
   for (const mock of [
     finance.addGeneralPayment,
     finance.updateGeneralPayment,
     finance.deleteGeneralPayment,
-    finance.addTransportRoute,
-    finance.updateTransportRoute,
-    finance.deleteTransportRoute,
-    finance.addStudentTransportAssignment,
-    finance.updateStudentTransportAssignment,
-    finance.deleteStudentTransportAssignment,
   ]) {
     mock.mockResolvedValue(undefined);
   }
@@ -183,26 +151,6 @@ describe('gap pages keep their legacy rows and pick canonical references', () =>
     expect(await screen.findByTestId('general-receipt-learner-picker')).toBeInTheDocument();
   });
 
-  it('renders a transport assignment with the learner and period resolved', async () => {
-    renderPage(<StudentTransportAssignmentsPageContent />);
-    expect(await screen.findByText('Westlands')).toBeInTheDocument();
-    expect(await screen.findByText(/Jane Wanjiru/)).toBeInTheDocument();
-    expect(await screen.findByText('Term 1 2027')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Assign Student to Route/i }));
-    await screen.findByRole('dialog');
-    expect(await screen.findByTestId('transport-student-picker')).toBeInTheDocument();
-    expect(await screen.findByTestId('transport-period-picker')).toBeInTheDocument();
-  });
-
-  it('renders a stored route that has no cost recorded', async () => {
-    finance.transportRoutes = [
-      { id: 'route-1', name: 'Westlands', cost_per_period: 1500, gl_revenue_account_id: null },
-      { id: 'route-2', name: 'Route B - Karen', gl_revenue_account_id: null },
-    ];
-    renderPage(<TransportRoutesPageContent />);
-    expect(await screen.findByText('Route B - Karen')).toBeInTheDocument();
-    expect(screen.getByText('0.00')).toBeInTheDocument();
-  });
 });
 
 describe('general receipts still write through the legacy layer', () => {
@@ -290,90 +238,3 @@ describe('general receipts still write through the legacy layer', () => {
   });
 });
 
-describe('transport routes still write through the legacy layer', () => {
-  it('adds a route against a revenue account and edits it', async () => {
-    renderPage(<TransportRoutesPageContent />);
-    await screen.findByText('Westlands');
-    fireEvent.click(screen.getByRole('button', { name: /Add Transport Route/i }));
-    const dialog = await screen.findByRole('dialog');
-
-    change(dialog, 'name', 'Thika Road');
-    change(dialog, 'cost_per_period', '4500');
-    change(dialog, 'gl_revenue_account_id', REVENUE_ACCOUNT.id);
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Add Route' }));
-
-    await waitFor(() => expect(finance.addTransportRoute).toHaveBeenCalledTimes(1));
-    expect(finance.addTransportRoute).toHaveBeenCalledWith({
-      name: 'Thika Road',
-      cost_per_period: 4500,
-      gl_revenue_account_id: REVENUE_ACCOUNT.id,
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
-    const edit = await screen.findByRole('dialog');
-    change(edit, 'name', 'Thika Superhighway');
-    change(edit, 'gl_revenue_account_id', REVENUE_ACCOUNT.id);
-    fireEvent.click(within(edit).getByRole('button', { name: 'Save Changes' }));
-    await waitFor(() =>
-      expect(finance.updateTransportRoute).toHaveBeenCalledWith(
-        'route-1',
-        expect.objectContaining({ name: 'Thika Superhighway' })
-      )
-    );
-  });
-
-  it('deletes a route', async () => {
-    renderPage(<TransportRoutesPageContent />);
-    await screen.findByText('Westlands');
-    fireEvent.click(screen.getByRole('button', { name: /^Delete$/i }));
-    await confirmDelete();
-    await waitFor(() => expect(finance.deleteTransportRoute).toHaveBeenCalledWith('route-1'));
-  });
-});
-
-describe('transport assignments still write through the legacy layer', () => {
-  it('assigns a learner to a route and period, then edits the status', async () => {
-    renderPage(<StudentTransportAssignmentsPageContent />);
-    await screen.findByText('Westlands');
-    fireEvent.click(screen.getByRole('button', { name: /Assign Student to Route/i }));
-    const dialog = await screen.findByRole('dialog');
-
-    fireEvent.click(within(dialog).getByTestId('transport-student-picker'));
-    fireEvent.click(await screen.findByRole('option', { name: /Jane Wanjiru/ }));
-    change(dialog, 'route_id', 'route-1');
-    fireEvent.click(within(dialog).getByTestId('transport-period-picker'));
-    fireEvent.click(await screen.findByRole('option', { name: 'Term 1 2027' }));
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Assign' }));
-
-    await waitFor(() => expect(finance.addStudentTransportAssignment).toHaveBeenCalledTimes(1));
-    expect(finance.addStudentTransportAssignment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        student_id: LEARNER,
-        route_id: 'route-1',
-        school_period_id: PERIOD,
-        status: 'Active',
-      })
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
-    const edit = await screen.findByRole('dialog');
-    change(edit, 'status', 'Inactive');
-    fireEvent.click(within(edit).getByRole('button', { name: 'Save Changes' }));
-    await waitFor(() =>
-      expect(finance.updateStudentTransportAssignment).toHaveBeenCalledWith(
-        'assign-1',
-        expect.objectContaining({ status: 'Inactive' })
-      )
-    );
-  });
-
-  it('deletes an assignment', async () => {
-    renderPage(<StudentTransportAssignmentsPageContent />);
-    await screen.findByText('Westlands');
-    fireEvent.click(screen.getByRole('button', { name: /^Delete$/i }));
-    await confirmDelete();
-    await waitFor(() =>
-      expect(finance.deleteStudentTransportAssignment).toHaveBeenCalledWith('assign-1')
-    );
-  });
-});

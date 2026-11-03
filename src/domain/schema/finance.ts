@@ -83,6 +83,7 @@ export const INVOICE_LINE_KINDS = [
   'discount',
   'adjustment',
   'fine',
+  'transport',
   'opening_balance',
   'other',
 ] as const;
@@ -110,6 +111,13 @@ export const EXPENSE_CHANNELS = ['cash', 'bank_deposit', 'mobile_money', 'cheque
  * written, its entry is posted against the row's own id, and the same transaction posts it.
  */
 export const EXPENSE_STATUSES = ['draft', 'posted', 'reversed'] as const;
+/** Whether an assignment is current for its period. A removed assignment is soft-deleted. */
+export const TRANSPORT_ASSIGNMENT_STATUSES = ['active', 'inactive'] as const;
+/**
+ * The shape of a GL revenue account code, matching `fee_item.revenue_account_code` and the
+ * ledger's chart: upper case letters, digits and `.`, `_` or `-` separators.
+ */
+const REVENUE_ACCOUNT_CODE = /^[A-Z0-9][A-Z0-9._-]{0,49}$/;
 
 export const feeCategorySchema = z.strictObject({
   ...entityIdShape,
@@ -769,4 +777,92 @@ export const expenseEntity = defineEntity({
     encrypted: [],
   },
   label: (row) => `${row.reference} · ${row.payee}`,
+});
+
+/**
+ * A transport route a learner is assigned to for a term.
+ *
+ * `cost` is the amount one learner is charged for the period and `revenue_account_code` is the
+ * ledger account that charge credits, named the way a fee item names its revenue account. The
+ * route does not choose a fee item: a transport charge is raised as an invoice line of its own
+ * kind, so the ledger keeps the route's income separate from the fee schedule's.
+ */
+export const transportRouteSchema = z
+  .strictObject({
+    ...entityIdShape,
+    ...tenancyShape,
+    name: shortText(200),
+    cost: moneySchema,
+    revenue_account_code: z
+      .string()
+      .regex(
+        REVENUE_ACCOUNT_CODE,
+        'revenue_account_code must be an upper case GL account code such as 4100'
+      ),
+    active: z.boolean(),
+    ...auditShape,
+  })
+  .refine((row) => row.cost.amount_minor > 0, {
+    path: ['cost', 'amount_minor'],
+    message: 'a transport route costs a positive amount',
+  });
+
+export type TransportRoute = z.infer<typeof transportRouteSchema>;
+
+export const transportRouteEntity = defineEntity({
+  name: 'transport_route',
+  schema: transportRouteSchema,
+  storage: {
+    table: 'transport_route',
+    primaryKey: 'id',
+    indexes: ['institution_id', 'active'],
+    unique: [['institution_id', 'name']],
+    refs: { institution_id: 'institution' },
+    encrypted: [],
+  },
+  label: (row) => row.name,
+});
+
+/**
+ * One learner's transport route for one academic period.
+ *
+ * The assignment is the per-period record of who rides which route: `status` says whether it is
+ * current, and the unique key stops a learner being assigned to two routes in the same period.
+ * A removed assignment is soft-deleted, so the key only covers the live row and the learner can
+ * be assigned again later without the history blocking it.
+ */
+export const transportAssignmentSchema = z.strictObject({
+  ...entityIdShape,
+  ...tenancyShape,
+  learner_id: uuid(),
+  route_id: uuid(),
+  academic_period_id: uuid(),
+  status: z.enum(TRANSPORT_ASSIGNMENT_STATUSES),
+  ...auditShape,
+});
+
+export type TransportAssignment = z.infer<typeof transportAssignmentSchema>;
+
+export const transportAssignmentEntity = defineEntity({
+  name: 'transport_assignment',
+  schema: transportAssignmentSchema,
+  storage: {
+    table: 'transport_assignment',
+    primaryKey: 'id',
+    indexes: ['institution_id', 'learner_id', 'route_id', 'academic_period_id', 'status'],
+    unique: [
+      {
+        columns: ['institution_id', 'learner_id', 'academic_period_id'],
+        where: 'deleted_at IS NULL',
+      },
+    ],
+    refs: {
+      institution_id: 'institution',
+      learner_id: 'learner',
+      route_id: 'transport_route',
+      academic_period_id: 'academic_period',
+    },
+    encrypted: [],
+  },
+  label: (row) => `${row.learner_id} · ${row.route_id} · ${row.status}`,
 });

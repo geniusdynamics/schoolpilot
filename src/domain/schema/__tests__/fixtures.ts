@@ -915,4 +915,22 @@ export const validFixtures: { [K in EntityName]: EntityRow<K> } = {
     is_active: true,
     ...audit,
   },
+  transport_route: {
+    id: '00000000-0000-7000-8000-000000000046',
+    institution_id: IDS.institution,
+    name: 'Westlands',
+    cost: { amount_minor: 150000, currency: 'KES' },
+    revenue_account_code: '4100',
+    active: true,
+    ...audit,
+  },
+  transport_assignment: {
+    id: '00000000-0000-7000-8000-000000000047',
+    institution_id: IDS.institution,
+    learner_id: IDS.learner,
+    route_id: '00000000-0000-7000-8000-000000000046',
+    academic_period_id: IDS.academicPeriod,
+    status: 'active',
+    ...audit,
+  },
 };
