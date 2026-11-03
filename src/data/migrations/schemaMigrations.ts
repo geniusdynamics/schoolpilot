@@ -168,6 +168,20 @@ export const ledgerAccountSchemaMigration: ModuleSchemaMigration = moduleSchemaM
   module: 'ledger',
   name: 'ledger accounts: the chart of accounts the postings resolve against',
   ddl: statementsForSchema(canonicalDatabaseSchema('ledger_account')),
+ * Transport: the routes a school runs and the learner assignments billed each term.
+ *
+ * Version 109 belongs to another branch in flight, so this one takes 110. The statements are
+ * derived from both canonical entity declarations, exactly as the expense migration is derived
+ * from its entity.
+ */
+export const transportSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 110,
+  module: 'transport',
+  name: 'transport: routes, their revenue account and the learner assignments billed each term',
+  ddl: [
+    ...statementsForSchema(canonicalDatabaseSchema('transport_route')),
+    ...statementsForSchema(canonicalDatabaseSchema('transport_assignment')),
+  ],
 });
 
 /**
@@ -187,6 +201,7 @@ export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   collectionsSchemaMigration,
   expenseSchemaMigration,
   ledgerAccountSchemaMigration,
+  transportSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */

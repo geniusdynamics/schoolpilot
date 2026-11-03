@@ -16,7 +16,7 @@ import {
 } from '../index';
 import { validFixtures } from './fixtures';
 
-const EXPECTED_ENTITY_COUNT = 70;
+const EXPECTED_ENTITY_COUNT = 72;
 
 const EXPECTED_ENTITIES = [
   'academic_period',
@@ -88,6 +88,8 @@ const EXPECTED_ENTITIES = [
   'teaching_group_member',
   'timetable_entry',
   'timetable_slot',
+  'transport_assignment',
+  'transport_route',
   'user',
 ] as const;
 

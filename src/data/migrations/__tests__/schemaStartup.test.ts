@@ -58,6 +58,6 @@ describe('the canonical start-up path', () => {
 
     const version = await readSchemaVersion(adapter);
     expect(version.complete).toBe(true);
-    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107, 108, 109]);
+    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]);
   });
 });

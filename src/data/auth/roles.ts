@@ -201,6 +201,8 @@ export const ENTITY_PERMISSIONS: Record<EntityName, PermissionPair> = {
   refund: pair('finance.read', 'finance.write'),
   expense: pair('finance.read', 'finance.write'),
   ledger_account: pair('finance.read', 'finance.write'),
+  transport_route: pair('finance.read', 'finance.write'),
+  transport_assignment: pair('finance.read', 'finance.write'),
 };
 
 /**

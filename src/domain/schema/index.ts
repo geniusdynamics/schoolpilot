@@ -68,6 +68,8 @@ import {
   receiptEntity,
   refundEntity,
   sponsorshipEntity,
+  transportAssignmentEntity,
+  transportRouteEntity,
 } from './finance';
 import {
   campusEntity,
@@ -205,6 +207,8 @@ export const entityDefinitions = {
   refund: refundEntity,
   expense: expenseEntity,
   ledger_account: ledgerAccountEntity,
+  transport_route: transportRouteEntity,
+  transport_assignment: transportAssignmentEntity,
 } as const satisfies Record<string, EntityDefinition>;
 
 export type EntityName = keyof typeof entityDefinitions;
