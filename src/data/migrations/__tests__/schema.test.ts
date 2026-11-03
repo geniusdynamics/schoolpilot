@@ -474,6 +474,19 @@ describe('the schema registry', () => {
     ).toThrow(/only understands CREATE TABLE/);
   });
 
+  it('orders the transport migration after the ledger chart, and never reuses a version', () => {
+    // A version is an identity in the shared ledger, never a count. Two migrations sharing one
+    // would make the startup runner skip the second, and transport's 110 must follow the chart's
+    // 109 rather than any branch that happened to be in flight when it was written.
+    const versions = SCHEMA_MIGRATIONS.map((migration) => migration.version);
+    expect(new Set(versions).size).toBe(versions.length);
+    const chart = SCHEMA_MIGRATIONS.find((migration) => migration.version === 109);
+    const transport = SCHEMA_MIGRATIONS.find((migration) => migration.module === 'transport');
+    expect(chart?.module).toBe('ledger');
+    expect(transport?.version).toBe(110);
+    expect(transport!.version).toBeGreaterThan(chart!.version);
+  });
+
   it('knows the versions the legacy data migrations use', () => {
     // The constant the startup runner is given must not drift from the migrations it stands for:
     // the ledger is shared, and a renumbered data migration would make the startup runner read
