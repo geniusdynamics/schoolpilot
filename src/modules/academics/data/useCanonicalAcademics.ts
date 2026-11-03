@@ -20,7 +20,9 @@ export type TeachingGroupRow = RepositoryRow<'teaching_group'>;
 export type TeachingGroupMemberRow = RepositoryRow<'teaching_group_member'>;
 export type TeachingAssignmentRow = RepositoryRow<'teaching_assignment'>;
 export type AssessmentRow = RepositoryRow<'assessment'>;
+export type AssessmentSchemeRow = RepositoryRow<'assessment_scheme'>;
 export type GradingScaleRow = RepositoryRow<'grading_scale'>;
+export type CurriculumPackRow = RepositoryRow<'curriculum_pack'>;
 export type MarkRow = RepositoryRow<'mark'>;
 export type AcademicYearRow = RepositoryRow<'academic_year'>;
 export type AcademicPeriodRow = RepositoryRow<'academic_period'>;
@@ -68,7 +70,9 @@ export function useCanonicalAcademics() {
   const teachingGroupMembers = useEntityQuery(repository, 'teaching_group_member', ALL, EVERY_PAGE);
   const teachingAssignments = useEntityQuery(repository, 'teaching_assignment', ALL, EVERY_PAGE);
   const assessments = useEntityQuery(repository, 'assessment', ALL, EVERY_PAGE);
+  const assessmentSchemes = useEntityQuery(repository, 'assessment_scheme', ALL);
   const gradingScales = useEntityQuery(repository, 'grading_scale', ALL);
+  const curriculumPacks = useEntityQuery(repository, 'curriculum_pack', ALL);
   const marks = useEntityQuery(repository, 'mark', ALL, EVERY_PAGE);
   const academicYears = useEntityQuery(repository, 'academic_year', ALL);
   const academicPeriods = useEntityQuery(repository, 'academic_period', ALL);
@@ -90,7 +94,9 @@ export function useCanonicalAcademics() {
     teachingGroupMembers,
     teachingAssignments,
     assessments,
+    assessmentSchemes,
     gradingScales,
+    curriculumPacks,
     marks,
     academicYears,
     academicPeriods,
@@ -116,7 +122,9 @@ export function useCanonicalAcademics() {
       teachingGroupMembers: teachingGroupMembers.data?.items ?? [],
       teachingAssignments: teachingAssignments.data?.items ?? [],
       assessments: assessments.data?.items ?? [],
+      assessmentSchemes: assessmentSchemes.data?.items ?? [],
       gradingScales: gradingScales.data?.items ?? [],
+      curriculumPacks: curriculumPacks.data?.items ?? [],
       marks: marks.data?.items ?? [],
       academicYears: academicYears.data?.items ?? [],
       academicPeriods: academicPeriods.data?.items ?? [],
@@ -138,7 +146,9 @@ export function useCanonicalAcademics() {
       teachingGroupMembers.data,
       teachingAssignments.data,
       assessments.data,
+      assessmentSchemes.data,
       gradingScales.data,
+      curriculumPacks.data,
       marks.data,
       academicYears.data,
       academicPeriods.data,
