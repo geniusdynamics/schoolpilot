@@ -23,12 +23,13 @@ export interface CanonicalExpenses {
   readonly refresh: () => void;
 }
 
-/** Reads the institution, its chart of accounts and every expense recorded against it. */
+/** Reads the institution, its chart of accounts, its channel nominations and every expense recorded against it. */
 export function useCanonicalExpenses(): CanonicalExpenses {
   const repository = useFinanceRepository();
   const institutions = useEntityQuery(repository, 'institution');
   const expenses = useEntityQuery(repository, 'expense', {}, EVERY_PAGE);
   const accounts = useEntityQuery(repository, 'ledger_account', {}, EVERY_PAGE);
+  const channels = useEntityQuery(repository, 'channel_account', {}, EVERY_PAGE);
 
   const institution = institutions.data?.items[0] ?? null;
   const institutionId = institution?.id ?? null;
@@ -49,21 +50,36 @@ export function useCanonicalExpenses(): CanonicalExpenses {
     [accounts.data, institutionId]
   );
 
-  const mapping = useMemo(() => ledgerChartFromRows(chart), [chart]);
+  const channelRows = useMemo(
+    () =>
+      institutionId === null
+        ? []
+        : (channels.data?.items ?? []).filter((row) => row.institution_id === institutionId),
+    [channels.data, institutionId]
+  );
+
+  const mapping = useMemo(
+    () => ledgerChartFromRows(chart, { channelRows }),
+    [chart, channelRows]
+  );
 
   const status: CanonicalExpenses['status'] =
-    institutions.status === 'error' || expenses.status === 'error' || accounts.status === 'error'
+    institutions.status === 'error' ||
+    expenses.status === 'error' ||
+    accounts.status === 'error' ||
+    channels.status === 'error'
       ? 'error'
       : institutions.status === 'loading' ||
           expenses.status === 'loading' ||
-          accounts.status === 'loading'
+          accounts.status === 'loading' ||
+          channels.status === 'loading'
         ? 'loading'
         : 'success';
 
   return {
     repository,
     status,
-    error: institutions.error ?? expenses.error ?? accounts.error ?? null,
+    error: institutions.error ?? expenses.error ?? accounts.error ?? channels.error ?? null,
     institution,
     institutionId,
     expenses: own,
@@ -72,6 +88,7 @@ export function useCanonicalExpenses(): CanonicalExpenses {
       void institutions.refetch();
       void expenses.refetch();
       void accounts.refetch();
+      void channels.refetch();
     },
   };
 }

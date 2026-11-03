@@ -168,6 +168,12 @@ export async function seedMoney(
       limit: 500,
     })
   ).items;
+  const channelAccounts = (
+    await repository.list('channel_account', {
+      where: { institution_id: ctx.institutionId },
+      limit: 500,
+    })
+  ).items;
   const payments = new PaymentsService({
     store: repository,
     numbers: new SequenceService({
@@ -176,7 +182,7 @@ export async function seedMoney(
     }),
     ledger: new LedgerService({
       store: createSqliteLedgerStore(adapter),
-      mapping: ledgerChartFromRows(ledgerAccounts),
+      mapping: ledgerChartFromRows(ledgerAccounts, { channelRows: channelAccounts }),
       ...(actors.bursarId ? { actor: actors.bursarId } : {}),
     }),
     ...(actors.bursarId ? { actor: actors.bursarId } : {}),

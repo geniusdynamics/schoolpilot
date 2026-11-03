@@ -53,11 +53,13 @@ describe('the canonical start-up path', () => {
         'reconciliation_line',
         'reconciliation_match',
         'subscription',
+        'bank_account',
+        'channel_account',
       ])
     );
 
     const version = await readSchemaVersion(adapter);
     expect(version.complete).toBe(true);
-    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]);
+    expect(version.applied.map((entry) => entry.version)).toEqual([100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112]);
   });
 });

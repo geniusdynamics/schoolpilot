@@ -6,7 +6,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { createNodeSqliteAdapter, createWasmSqliteAdapter, type SqliteAdapter } from '@/data/adapters/sqlite';
 import { applySchemaMigrations } from '@/data/migrations';
 import { createRepository } from '@/data/repository';
-import { sessionAuthorizer } from '@/data/auth/sessionAuthority';
+import { runAsSystem, sessionAuthorizer } from '@/data/auth/sessionAuthority';
+import { ensureDefaultLedgerCharts } from '@/domain/finance/ledger/accounts';
 import type { QueryRepository } from '@/data/query';
 
 import Spinner from '@/components/ui/Spinner';
@@ -76,6 +77,12 @@ export async function openCanonicalRepository(): Promise<QueryRepository> {
       // page can never write a table this database does not have. A failure fails the open: the
       // caller shows it and the app does not run against a database it could not prepare.
       await applySchemaMigrations(adapter);
+      // A school whose database predates the chart has no ledger_account rows, and the finance
+      // screens would open on an empty chart with a button to load one. Seed it here, as the
+      // system, before the repository reaches a page: the run is idempotent per institution and
+      // never touches a chart a school already configured. A failure fails the open, so the app
+      // shows why it could not prepare this database rather than an empty chart.
+      await runAsSystem(() => ensureDefaultLedgerCharts(repository));
       shared.adapter = adapter;
       shared.repository = repository;
       return repository;

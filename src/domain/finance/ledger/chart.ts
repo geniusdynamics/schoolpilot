@@ -77,12 +77,26 @@ export interface LedgerAccountMapping {
   account(code: string): LedgerAccount | null;
   /** Every account of the chart, for a picker or an expense-account list. */
   accounts(): readonly LedgerAccount[];
+  /**
+   * The account the school nominated for a payment channel, or null when it nominated none.
+   *
+   * Optional so a mapping built by hand - a test, a caller with a fixed chart - keeps its shape:
+   * a mapping without it resolves every channel through the default control accounts.
+   */
+  channelAccount?(channel: PaymentChannel): LedgerAccount | null;
 }
 
 /** What a chart is built from. */
 export interface ChartOfAccountsInput {
   /** Extra accounts beyond the control accounts. */
   readonly accounts?: readonly LedgerAccount[];
+  /**
+   * The account a payment channel posts to, by channel.
+   *
+   * A channel this does not name falls back to the control account of the channel. The rows are
+   * the school's `channel_account` nominations, resolved by `ledgerChartFromRows`.
+   */
+  readonly channelAccounts?: Readonly<Partial<Record<PaymentChannel, LedgerAccount>>>;
   /** The revenue account code of a fee item, by fee item id. */
   readonly feeItemRevenueAccounts?: Readonly<Record<string, string>>;
   /** A resolver, when the mapping is not a plain record (the seam P3-B01 fills). */
@@ -122,6 +136,9 @@ export function createLedgerAccountMapping(
 
   const fallbackCode = input.fallbackRevenueAccountCode ?? CONTROL_ACCOUNTS.fee_revenue.code;
   const requireMapping = input.requireFeeItemMapping ?? false;
+  const channelNominations = new Map<PaymentChannel, LedgerAccount>(
+    Object.entries(input.channelAccounts ?? {}) as [PaymentChannel, LedgerAccount][]
+  );
 
   return {
     account(code) {
@@ -129,6 +146,9 @@ export function createLedgerAccountMapping(
     },
     accounts() {
       return [...accounts.values()];
+    },
+    channelAccount(channel) {
+      return channelNominations.get(channel) ?? null;
     },
     revenueAccountForFeeItem(feeItemId) {
       if (input.revenueAccountForFeeItem) {
@@ -169,11 +189,41 @@ export function resolveControlAccount(
   return account;
 }
 
-/** The account a payment channel lands in, refusing when the chart does not hold it. */
+/** The account a payment channel posts to when the school nominated one, or null. */
+export function nominatedChannelAccount(
+  mapping: LedgerAccountMapping,
+  channel: PaymentChannel
+): LedgerAccount | null {
+  return mapping.channelAccount?.(channel) ?? null;
+}
+
+/**
+ * The account a payment channel currently posts to: the school's nomination, else the chart's
+ * own control account for the channel. Null when neither exists, for a screen that shows the gap
+ * rather than refusing to render.
+ */
+export function effectiveChannelAccount(
+  mapping: LedgerAccountMapping,
+  channel: PaymentChannel
+): LedgerAccount | null {
+  const nominated = nominatedChannelAccount(mapping, channel);
+  if (nominated) return nominated;
+  return mapping.account(CONTROL_ACCOUNTS[CHANNEL_ACCOUNTS[channel]].code);
+}
+
+/**
+ * The account a payment channel lands in, refusing when neither the nomination nor the fallback
+ * is on the chart.
+ *
+ * The school's nomination wins; a channel it has not nominated posts to the control account the
+ * engine has always posted to, so behaviour is unchanged for a school that never configures it.
+ */
 export function resolveChannelAccount(
   mapping: LedgerAccountMapping,
   channel: PaymentChannel
 ): LedgerAccount {
+  const nominated = nominatedChannelAccount(mapping, channel);
+  if (nominated) return nominated;
   return resolveControlAccount(mapping, CHANNEL_ACCOUNTS[channel]);
 }
 

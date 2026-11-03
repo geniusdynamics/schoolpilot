@@ -933,4 +933,23 @@ export const validFixtures: { [K in EntityName]: EntityRow<K> } = {
     status: 'active',
     ...audit,
   },
+  bank_account: {
+    id: '00000000-0000-7000-8000-000000000048',
+    institution_id: IDS.institution,
+    name: 'Main account',
+    bank_name: 'Equity Bank',
+    account_number: '0170123456789',
+    branch: 'Nairobi',
+    ledger_account_id: '00000000-0000-7000-8000-000000000045',
+    is_default: false,
+    is_active: true,
+    ...audit,
+  },
+  channel_account: {
+    id: '00000000-0000-7000-8000-000000000049',
+    institution_id: IDS.institution,
+    channel: 'cash',
+    ledger_account_id: '00000000-0000-7000-8000-000000000045',
+    ...audit,
+  },
 };

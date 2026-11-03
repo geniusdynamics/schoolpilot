@@ -52,6 +52,8 @@ import {
   promotionDecisionEntity,
 } from './enrolment';
 import {
+  bankAccountEntity,
+  channelAccountEntity,
   creditNoteEntity,
   discountRuleEntity,
   expenseEntity,
@@ -209,6 +211,8 @@ export const entityDefinitions = {
   ledger_account: ledgerAccountEntity,
   transport_route: transportRouteEntity,
   transport_assignment: transportAssignmentEntity,
+  bank_account: bankAccountEntity,
+  channel_account: channelAccountEntity,
 } as const satisfies Record<string, EntityDefinition>;
 
 export type EntityName = keyof typeof entityDefinitions;

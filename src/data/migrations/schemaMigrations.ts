@@ -188,6 +188,27 @@ export const transportSchemaMigration: ModuleSchemaMigration = moduleSchemaMigra
 });
 
 /**
+ * Bank accounts: the school's own bank details around an account of the chart.
+ *
+ * Version 110 belongs to another change in flight, so this one skips to 111; a version is an
+ * identity in the shared ledger, never a count.
+ */
+export const bankAccountSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 111,
+  module: 'ledger',
+  name: 'bank accounts: the bank a school holds, linked to its cash or bank ledger account',
+  ddl: statementsForSchema(canonicalDatabaseSchema('bank_account')),
+});
+
+/** Payment channels: the account each channel's money lands in. */
+export const channelAccountSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 112,
+  module: 'ledger',
+  name: 'channel accounts: the account each payment channel posts to',
+  ddl: statementsForSchema(canonicalDatabaseSchema('channel_account')),
+});
+
+/**
  * The module schema migrations this build applies at startup, in version order.
  *
  * Adding a module table is adding its DDL to this list - not a change to the runner, the
@@ -205,6 +226,8 @@ export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   expenseSchemaMigration,
   ledgerAccountSchemaMigration,
   transportSchemaMigration,
+  bankAccountSchemaMigration,
+  channelAccountSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */

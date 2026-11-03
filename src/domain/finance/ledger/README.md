@@ -35,19 +35,24 @@ balance.balanced;   // always true
 ## The chart of accounts
 
 The chart is the institution's `ledger_account` rows, not a list of literals. A new school is
-seeded with the default chart when it is created (`seedDefaultLedgerAccounts`, called by the setup
-and demo seed); `ledgerChartFromRows` turns what the school has into the mapping the engine reads.
-A school with no rows falls back to the default chart, so a database that predates the rows still
-posts.
+seeded with the default chart when it is created (`seedDefaultLedgerChart`, called by the setup
+and demo seed, and by the canonical start-up path for a school that predates the rows);
+`ledgerChartFromRows` turns what the school has into the mapping the engine reads. A school with no
+rows falls back to the default chart, so a database that predates the rows still posts.
 
-The control accounts the postings name by code (`1010`, `1020`, `1100`, `4000` and the rest) are
-`is_system`. Their code, class, role and active state cannot change and they cannot be deleted:
-a row that a posting depends on is never repurposed under it. A school may still add expense
-accounts, rename any account, and deactivate an ordinary account to keep it out of the pickers.
+The control accounts the postings name by code (`1010`, `1020`, `1100`, `4000` and the rest) and
+the standard expense accounts an expense may debit (`5000`-`5900`) are `is_system`. Their code,
+class, role and active state cannot change and they cannot be deleted: a row that a posting depends
+on is never repurposed under it. Their name stays editable. A school may still add accounts,
+rename any account, and deactivate an ordinary account to keep it out of the pickers.
+
+A payment channel posts to the account the school nominated for it (`channel_account`, as ERPNext's
+payment mode names its bank account). A channel with no nomination falls back to the control
+account the engine has always used, so behaviour is unchanged for a school that never configures it.
 
 ```ts
-const rows = await seedDefaultLedgerAccounts(repository, institutionId);
-const chart = ledgerChartFromRows(rows.rows);
+const seed = await seedDefaultLedgerChart(repository, institutionId);
+const chart = ledgerChartFromRows(seed.rows, { channelRows: seed.channels.rows });
 new LedgerService({ store, mapping: chart });
 ```
 
