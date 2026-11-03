@@ -1,277 +1,416 @@
-// ABOUTME: Student Transport Assignments page - assigns learners to transport routes for a school period.
-// ABOUTME: The learner and period are canonical and picked through EntityPicker; the assignment itself
-// ABOUTME: stays on its legacy collection because the registry models no transport route
-// ABOUTME: (GAP(P1-E03): transport_route and student_transport_assignment are not canonical entities).
+// ABOUTME: Student transport assignments: learners are assigned to a canonical route for an
+// ABOUTME: academic period, and the route's charge is the one the Routes tab bills for the term.
 
-import React, { useState, useMemo } from 'react';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import { EntityPicker } from '@/components/ui/EntityPicker';
-import DialogForm from "@/components/ui/forms/DialogForm";
-import Select from '@/components/ui/Select';
-import { Alert } from '@/components/ui/Alert';
-import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons';
-import { useFinance } from '@/modules/finance/hooks/useFinance';
-import { TransportAssignmentStatus } from '@/core/types';
-import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { useToast } from '@/hooks/useToast';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { Alert } from '@/components/ui/Alert';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import Modal from '@/components/ui/Modal';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { SchemaEntityForm } from '@/components/ui/forms';
+import { DeleteIcon, PlusIcon, TruckIcon } from '@/components/ui/icons';
+import { useCan } from '@/data/auth/useCan';
+import { useEntityQuery, useLookup } from '@/data/query';
+import { createSchemaFor, type RepositoryRow } from '@/data/repository';
+import type { SqliteAdapter } from '@/data/adapters/sqlite';
 import { asId } from '@/domain/ids';
-import { useCanonicalFinance } from '../data/canonicalFinance';
+import { useToast } from '@/hooks/useToast';
+
+import { toFormLookup, useFinanceRepository } from '../data/canonicalFinance';
 import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
-import { LegacyDataNotice } from '@/components/LegacyDataNotice';
+import { messageOf } from '../data/errors';
 
-/** An assignment as shown in the grid; ids are strings and names are resolved at read time. */
+const WRITE_PERMISSION = 'finance.write';
+
+export interface StudentTransportAssignmentsPageContentProps {
+  /** Reserved for a host that opens its own database; the page itself only reads the repository. */
+  readonly adapter?: SqliteAdapter | null;
+}
+
 interface AssignmentRow {
-  id: string;
-  student_id: string;
-  route_id: string;
-  school_period_id: string;
-  status: TransportAssignmentStatus;
-  student_name: string | null;
-  route_name: string | null;
-  school_period_name: string | null;
+  readonly id: string;
+  readonly learnerName: string;
+  readonly routeName: string;
+  readonly periodName: string;
+  readonly status: string;
+  readonly row: RepositoryRow<'transport_assignment'>;
 }
 
-interface AssignmentFormData {
-  student_id: string;
-  route_id: string;
-  school_period_id: string;
-  status: TransportAssignmentStatus;
-}
-
-const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-const idOf = (value: unknown): string => (value == null ? '' : String(value));
-
-export const StudentTransportAssignmentsPageContent: React.FC = () => {
+export const StudentTransportAssignmentsPageContent: React.FC<
+  StudentTransportAssignmentsPageContentProps
+> = () => {
   const { t } = useTranslation('finance');
-  const {
-    studentTransportAssignments,
-    transportRoutes,
-    addStudentTransportAssignment,
-    updateStudentTransportAssignment,
-    deleteStudentTransportAssignment,
-  } = useFinance();
-  const finance = useCanonicalFinance();
-  const { showSuccess, showError } = useToast();
+  const repository = useFinanceRepository();
+  const toast = useToast();
+  const confirm = useConfirm();
+  const canWrite = useCan(WRITE_PERMISSION);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAssignment, setEditingAssignment] = useState<AssignmentRow | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const institutions = useEntityQuery(repository, 'institution');
+  const routes = useEntityQuery(repository, 'transport_route', {}, {
+    allPages: true,
+    deps: ['transport_route'],
+  });
+  const periods = useEntityQuery(repository, 'academic_period', {}, {
+    allPages: true,
+    deps: ['academic_period'],
+  });
+  const assignments = useEntityQuery(repository, 'transport_assignment', {}, {
+    allPages: true,
+    deps: ['transport_assignment'],
+  });
+  const learnerLookup = useLookup(repository, 'learner', {});
+  const periodLookup = useLookup(repository, 'academic_period', {});
+
+  const institution = institutions.data?.items[0];
+  const routeRows = useMemo(
+    () =>
+      [...(routes.data?.items ?? [])].sort((left, right) => left.name.localeCompare(right.name)),
+    [routes.data]
+  );
+  const periodRows = useMemo(
+    () =>
+      [...(periods.data?.items ?? [])].sort((left, right) =>
+        left.start_date.localeCompare(right.start_date)
+      ),
+    [periods.data]
+  );
+  const activeRoutes = useMemo(
+    () => routeRows.filter((route) => route.active),
+    [routeRows]
+  );
+  const openPeriods = useMemo(
+    () => periodRows.filter((period) => period.status !== 'closed'),
+    [periodRows]
+  );
+  const routeById = useMemo(() => {
+    const map = new Map<string, RepositoryRow<'transport_route'>>();
+    for (const route of routeRows) map.set(route.id, route);
+    return map;
+  }, [routeRows]);
+
+  const rows = useMemo<readonly AssignmentRow[]>(
+    () =>
+      [...(assignments.data?.items ?? [])]
+        .map((assignment) => ({
+          id: assignment.id,
+          learnerName: learnerLookup.label(
+            asId<'learner'>(assignment.learner_id),
+            assignment.learner_id
+          ),
+          routeName: routeById.get(assignment.route_id)?.name ?? assignment.route_id,
+          periodName: periodLookup.label(
+            asId<'academic_period'>(assignment.academic_period_id),
+            assignment.academic_period_id
+          ),
+          status: assignment.status,
+          row: assignment,
+        }))
+        .sort((left, right) =>
+          `${left.periodName}:${left.routeName}:${left.learnerName}`.localeCompare(
+            `${right.periodName}:${right.routeName}:${right.learnerName}`
+          )
+        ),
+    [assignments.data, learnerLookup, periodLookup, routeById]
+  );
+
+  const [isOpen, setIsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const initialFormData: AssignmentFormData = {
-    student_id: '',
-    route_id: '',
-    school_period_id: '',
-    status: TransportAssignmentStatus.ACTIVE,
-  };
-  const [formData, setFormData] = useState<AssignmentFormData>(initialFormData);
+  const defaultPeriod =
+    openPeriods.find((period) => period.status === 'current') ?? openPeriods[0] ?? null;
 
-  const rows = useMemo<AssignmentRow[]>(() => studentTransportAssignments.map(assignment => {
-    const route = transportRoutes.find(r => idOf(r.id) === idOf(assignment.route_id));
-    return {
-      id: idOf(assignment.id),
-      student_id: idOf(assignment.student_id),
-      route_id: idOf(assignment.route_id),
-      school_period_id: idOf(assignment.school_period_id),
-      status: assignment.status || TransportAssignmentStatus.ACTIVE,
-      student_name:
-        finance.lookups.learner.label(asId<'learner'>(idOf(assignment.student_id)), '') ||
-        assignment.student_name ||
-        null,
-      route_name: route?.name ?? assignment.route_name ?? null,
-      school_period_name:
-        finance.lookups.period.label(asId<'academic_period'>(idOf(assignment.school_period_id)), '') ||
-        assignment.school_period_name ||
-        null,
-    };
-  }), [studentTransportAssignments, transportRoutes, finance.lookups.learner, finance.lookups.period]);
-
-  const openModal = (assignment?: AssignmentRow) => {
-    setEditingAssignment(assignment || null);
-    setFormError(null);
-    setFormData(assignment ?
-      {
-        student_id: assignment.student_id,
-        route_id: assignment.route_id,
-        school_period_id: assignment.school_period_id,
-        status: assignment.status,
-      } :
-      initialFormData
-    );
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingAssignment(null);
-    setFormError(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormError(null);
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async () => {
-    if (saving) return;
-    if (!formData.student_id || !formData.route_id || !formData.school_period_id) {
-      setFormError(t('transportAssignments.validation', 'Student, Route, and School Period are required.'));
+  const openAssign = useCallback(() => {
+    if (!institution) {
+      toast.showError(
+        t(
+          'transportAssignments.noInstitution',
+          'The school has no institution record to assign a learner in.'
+        )
+      );
       return;
     }
-    const payload = { ...formData };
+    setIsOpen(true);
+  }, [institution, t, toast]);
 
-    setSaving(true);
-    try {
-      // The finance record types still declare numeric foreign keys (SO-22); stored ids are strings.
-      if (editingAssignment) {
-        await updateStudentTransportAssignment(editingAssignment.id, payload as unknown as Parameters<typeof updateStudentTransportAssignment>[1]);
-      } else {
-        await addStudentTransportAssignment(payload as unknown as Parameters<typeof addStudentTransportAssignment>[0]);
+  const save = useCallback(
+    async (values: Record<string, unknown>) => {
+      if (!institution) throw new Error('The school has no institution record.');
+      const learnerId = String(values.learner_id ?? '');
+      const routeId = String(values.route_id ?? '');
+      const academicPeriodId = String(values.academic_period_id ?? '');
+      if (!learnerId || !routeId || !academicPeriodId) {
+        throw new Error(
+          t(
+            'transportAssignments.validation',
+            'Choose the learner, the route and the term for the assignment.'
+          )
+        );
       }
-      showSuccess(t('transportAssignments.saved', 'Transport assignment saved.'));
-      closeModal();
-    } catch (error) {
-      setFormError(`${t('transportAssignments.saveFailed', 'Failed to save transport assignment:')} ${errorMessage(error)}`);
-    } finally {
-      setSaving(false);
-    }
-  };
+      setSaving(true);
+      try {
+        await repository.create('transport_assignment', {
+          institution_id: institution.id,
+          learner_id: learnerId,
+          route_id: routeId,
+          academic_period_id: academicPeriodId,
+          status: 'active',
+        });
+        toast.showSuccess(t('transportAssignments.saved', 'The learner was assigned to the route.'));
+        setIsOpen(false);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [institution, repository, t, toast]
+  );
 
-  const confirm = useConfirm();
-  const handleDelete = async (id: string) => {
-    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this transport assignment?' }))) return;
-    try {
-      await deleteStudentTransportAssignment(id);
-      showSuccess(t('transportAssignments.deleted', 'Transport assignment deleted.'));
-    } catch (error) {
-      showError(`${t('transportAssignments.deleteFailed', 'Failed to delete transport assignment:')} ${errorMessage(error)}`);
-    }
-  };
+  const remove = useCallback(
+    async (row: AssignmentRow) => {
+      const agreed = await confirm({
+        variant: 'danger',
+        title: t('transportAssignments.removeTitle', 'Remove transport assignment'),
+        message: t(
+          'transportAssignments.removeMessage',
+          'Remove {{learner}} from {{route}} for {{period}}? The charge the school already raised for that term is not changed.',
+          {
+            learner: row.learnerName,
+            route: row.routeName,
+            period: row.periodName,
+          }
+        ),
+        confirmLabel: t('transportAssignments.remove', 'Remove'),
+      });
+      if (!agreed) return;
+      try {
+        await repository.remove('transport_assignment', asId<'transport_assignment'>(row.id), {
+          reason: 'removed on the transport assignments screen',
+        });
+        toast.showSuccess(
+          t('transportAssignments.removed', 'The learner was removed from the route.')
+        );
+      } catch (error) {
+        toast.showError(messageOf(error));
+      }
+    },
+    [confirm, repository, t, toast]
+  );
 
   const columns: DataGridColumn<AssignmentRow>[] = [
     {
-      key: 'student_name',
-      header: 'Student Name',
+      key: 'learnerName',
+      header: t('transportAssignments.learner', 'Learner'),
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value) => <span className="font-medium">{value}</span>
+      width: 220,
+      render: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
-      key: 'route_name',
-      header: 'Route',
+      key: 'routeName',
+      header: t('transportAssignments.route', 'Route'),
       sortable: true,
       filterable: true,
-      width: 180,
-      render: (value) => <span className="text-primary-600">{value}</span>
+      render: (value) => <span className="text-primary-600">{String(value)}</span>,
     },
     {
-      key: 'school_period_name',
-      header: 'School Period',
+      key: 'periodName',
+      header: t('transportAssignments.period', 'Term'),
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value) => <span className="text-purple-600">{value}</span>
+      render: (value) => <span className="text-purple-600">{String(value)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('transportAssignments.status', 'Status'),
       sortable: true,
-      filterable: true,
-      width: 120,
-      render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        row.status === TransportAssignmentStatus.ACTIVE ? 'bg-green-100 text-green-800' :
-        row.status === TransportAssignmentStatus.INACTIVE ? 'bg-surface-accent text-surface-foreground' :
-        'bg-red-100 text-red-800'
-      }`}>{value}</span>
-    },
-    {
-      key: 'id',
-      header: 'Actions',
-      sortable: false,
-      filterable: false,
-      width: 150,
-      sticky: 'right',
-      render: (_value, row) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
+      render: (value) => (
+        <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium capitalize text-green-800">
+          {String(value)}
+        </span>
       ),
     },
+    ...(canWrite
+      ? [
+          {
+            key: 'actions',
+            header: t('transportAssignments.actions', 'Actions'),
+            width: 140,
+            render: (_value: unknown, row: AssignmentRow) => (
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => void remove(row)}
+                leftIcon={<DeleteIcon className="h-4 w-4" />}
+              >
+                {t('transportAssignments.remove', 'Remove')}
+              </Button>
+            ),
+          } satisfies DataGridColumn<AssignmentRow>,
+        ]
+      : []),
   ];
+
+  const noRoutes = routeRows.length === 0;
+  const noPeriods = openPeriods.length === 0;
+  const noLearners = learnerLookup.options.length === 0;
+  const assignmentEmptyState = noRoutes
+    ? {
+        icon: <TruckIcon className="h-12 w-12 text-surface-muted-fg" />,
+        title: t('transportAssignments.noRoutesTitle', 'No transport routes yet'),
+        description: t(
+          'transportAssignments.noRoutesDescription',
+          'Add a route on the Routes tab before assigning a learner to it.'
+        ),
+      }
+    : noPeriods
+      ? {
+          icon: <TruckIcon className="h-12 w-12 text-surface-muted-fg" />,
+          title: t('transportAssignments.noPeriodsTitle', 'No term to assign'),
+          description: t(
+            'transportAssignments.noPeriodsDescription',
+            'The calendar has no open academic period, so there is no term an assignment can belong to.'
+          ),
+        }
+      : noLearners
+        ? {
+            icon: <TruckIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: t('transportAssignments.noLearnersTitle', 'No learners yet'),
+            description: t(
+              'transportAssignments.noLearnersDescription',
+              'Admit a learner before assigning them to a transport route.'
+            ),
+          }
+        : {
+            icon: <TruckIcon className="h-12 w-12 text-surface-muted-fg" />,
+            title: t('transportAssignments.emptyTitle', 'No learners assigned'),
+            description: t(
+              'transportAssignments.emptyDescription',
+              'Assign a learner to a route and the Routes tab can bill that route for the term.'
+            ),
+            ...(canWrite && institution
+              ? {
+                  action: (
+                    <Button onClick={openAssign} leftIcon={<PlusIcon className="h-5 w-5" />}>
+                      {t('transportAssignments.assign', 'Assign learner')}
+                    </Button>
+                  ),
+                }
+              : {}),
+          };
+
+  const loading =
+    routes.status === 'loading' ||
+    periods.status === 'loading' ||
+    assignments.status === 'loading' ||
+    learnerLookup.status === 'loading';
+
+  const formValues = {
+    institution_id: institution?.id ?? '',
+    learner_id: '',
+    route_id: activeRoutes[0]?.id ?? '',
+    academic_period_id: defaultPeriod?.id ?? '',
+    status: 'active',
+  };
+
+  const periodFormLookup = {
+    ...toFormLookup(periodLookup),
+    options: openPeriods,
+  };
 
   return (
     <div className="space-y-3">
-      <LegacyDataNotice>An assignment made here is not billed to any learner.</LegacyDataNotice>
-      <Card title="Student Transport Assignments" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Assign Student to Route
-        </Button>
-      }>
+      {institutions.status === 'error' || assignments.status === 'error' ? (
+        <Alert variant="destructive">
+          {messageOf(institutions.error ?? assignments.error)}
+        </Alert>
+      ) : null}
+
+      <Card
+        title={t('transportAssignments.title', 'Student transport assignments')}
+        info={t(
+          'transportAssignments.subtitle',
+          'Who rides which route this term. The Routes tab bills a route for every learner assigned to it.'
+        )}
+        actions={
+          canWrite ? (
+            <Button
+              onClick={openAssign}
+              leftIcon={<PlusIcon className="h-5 w-5" />}
+              disabled={noRoutes || noPeriods || noLearners}
+            >
+              {t('transportAssignments.assign', 'Assign learner')}
+            </Button>
+          ) : null
+        }
+      >
         <DataGrid
           columns={columns}
-          data={rows}
+          data={[...rows]}
           sortable
           filterable
-          emptyState={{
-            icon: <TruckIcon className="w-12 h-12 text-surface-muted-fg" />,
-            title: "No Transport Assignments",
-            description: "No students have been assigned to transport routes yet. Start by assigning students to available routes.",
-          }}
+          loading={loading}
+          emptyState={assignmentEmptyState}
         />
       </Card>
 
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Transport Assignment' : 'Assign Student to Transport Route'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={saving}>
-              {editingAssignment ? 'Save Changes' : 'Assign'}
-            </Button>
-          </>
-        }
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={t('transportAssignments.assignTitle', 'Assign a learner to a route')}
+        size="lg"
       >
-        {formError && <Alert variant="destructive" className="mb-4">{formError}</Alert>}
-        <EntityPicker
-            value={formData.student_id ? asId<'learner'>(formData.student_id) : null}
-            onChange={(id) => {
-              setFormError(null);
-              setFormData(prev => ({ ...prev, student_id: id ?? '' }));
+        {isOpen ? (
+          <SchemaEntityForm
+            schema={createSchemaFor('transport_assignment')}
+            recordKey="new"
+            initialValues={formValues}
+            fields={[
+              {
+                path: 'learner_id',
+                label: t('transportAssignments.learner', 'Learner'),
+                order: 1,
+                widget: 'entity',
+                lookupKey: 'learner',
+                required: true,
+              },
+              {
+                path: 'route_id',
+                label: t('transportAssignments.route', 'Route'),
+                order: 2,
+                widget: 'select',
+                required: true,
+                options: activeRoutes.map((route) => ({
+                  value: route.id,
+                  label: `${route.name} — ${route.revenue_account_code}`,
+                })),
+              },
+              {
+                path: 'academic_period_id',
+                label: t('transportAssignments.period', 'Term'),
+                order: 3,
+                widget: 'entity',
+                lookupKey: 'academic_period',
+                required: true,
+              },
+            ]}
+            lookups={{
+              learner: toFormLookup(learnerLookup),
+              academic_period: periodFormLookup,
             }}
-            lookup={finance.lookups.learner}
-            label="Student"
-            placeholder="Select Student"
-            disabled={!!editingAssignment}
-            data-testid="transport-student-picker"
-        />
-        <Select name="route_id" label="Transport Route" value={formData.route_id} onChange={handleInputChange} required>
-            <option value="">Select Route</option>
-            {transportRoutes.map(route => (<option key={route.id} value={idOf(route.id)}>{route.name}</option>))}
-        </Select>
-        <EntityPicker
-            value={formData.school_period_id ? asId<'academic_period'>(formData.school_period_id) : null}
-            onChange={(id) => {
-              setFormError(null);
-              setFormData(prev => ({ ...prev, school_period_id: id ?? '' }));
-            }}
-            lookup={finance.lookups.period}
-            label="School Period"
-            placeholder="Select School Period"
-            data-testid="transport-period-picker"
-        />
-        <Select name="status" label="Status" value={formData.status} onChange={handleInputChange} required>
-            {Object.values(TransportAssignmentStatus).map(status => (<option key={status} value={status}>{status}</option>))}
-        </Select>
-      </DialogForm>
+            submitting={saving}
+            submitLabel={t('transportAssignments.assign', 'Assign learner')}
+            cancelLabel={t('common.cancel', 'Cancel')}
+            onCancel={() => setIsOpen(false)}
+            onSubmit={(values) => save(values as Record<string, unknown>)}
+          />
+        ) : null}
+      </Modal>
     </div>
   );
 };
+
 const StudentTransportAssignmentsPage: React.FC = () => (
   <CanonicalRepositoryProvider>
     <div className="space-y-3">
