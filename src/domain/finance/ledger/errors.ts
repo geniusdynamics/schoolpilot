@@ -29,6 +29,8 @@ export type LedgerErrorCode =
   | 'immutable'
   /** A control account a posting depends on cannot be deleted or repurposed. */
   | 'account_protected'
+  /** A bank or channel account names a ledger account it may not post through. */
+  | 'invalid_account'
   /** The entry, the period or the source document does not exist. */
   | 'not_found'
   /** The source document already has a journal entry. */

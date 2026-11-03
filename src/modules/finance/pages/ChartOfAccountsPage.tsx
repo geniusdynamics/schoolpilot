@@ -1,5 +1,5 @@
 // ABOUTME: Chart of accounts tab: lists, creates and edits the ledger_account rows the posting
-// ABOUTME: engine actually reads, and refuses to delete or repurpose a control account.
+// ABOUTME: engine actually reads, and refuses to delete or repurpose a system account.
 
 import React, { useMemo, useState } from 'react';
 
@@ -16,7 +16,7 @@ import {
   ACCOUNT_KINDS,
   assertLedgerAccountDeleteAllowed,
   assertLedgerAccountUpdateAllowed,
-  seedDefaultLedgerAccounts,
+  seedDefaultLedgerChart,
   type AccountKind,
   type LedgerAccountRole,
 } from '@/domain/finance/ledger';
@@ -160,7 +160,7 @@ export const ChartOfAccountsContent: React.FC = () => {
     if (institutionId === null) return;
     setSaving(true);
     try {
-      await seedDefaultLedgerAccounts(repository, institutionId);
+      await seedDefaultLedgerChart(repository, institutionId);
       refresh();
       toast.showSuccess('The default chart of accounts was added.');
     } catch (error) {
@@ -262,7 +262,7 @@ export const ChartOfAccountsContent: React.FC = () => {
             variant="danger"
             onClick={() => void handleDelete(row)}
             disabled={row.is_system}
-            title={row.is_system ? 'A control account the ledger posts against cannot be deleted.' : undefined}
+            title={row.is_system ? 'A system account the ledger posts against cannot be deleted.' : undefined}
             leftIcon={<DeleteIcon className="w-4 h-4" />}
           >
             Delete
@@ -276,7 +276,7 @@ export const ChartOfAccountsContent: React.FC = () => {
     <div className="space-y-3">
       <Card
         title="Chart of Accounts"
-        info="The accounts the ledger posts against. Control accounts are marked System and cannot be deleted or repurposed."
+        info="The accounts the ledger posts against. Accounts marked System are the ledger's own: their code, class and role are fixed and they cannot be deleted, though their name can be changed."
         actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
             Add Account
@@ -392,7 +392,7 @@ export const ChartOfAccountsContent: React.FC = () => {
           </div>
           {protectedEditing ? (
             <p className="md:col-span-2 text-sm text-surface-muted-fg">
-              This is a control account the ledger posts against. Its code, class, role and active
+              This is a system account the ledger posts against. Its code, class, role and active
               state are fixed; its name may be changed.
             </p>
           ) : null}

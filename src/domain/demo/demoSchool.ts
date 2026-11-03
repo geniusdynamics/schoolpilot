@@ -4,7 +4,7 @@
 import type { SqliteTransaction } from '@/data/adapters/sqlite';
 import type { Repository, RepositoryRow, WriteOptions } from '@/data/repository';
 import { createPackRegistry, loadPack, type LoadedPack } from '@/domain/curriculum/registry';
-import { seedDefaultLedgerAccounts } from '@/domain/finance/ledger';
+import { seedDefaultLedgerChart } from '@/domain/finance/ledger';
 import { asId, type Id } from '@/domain/ids';
 import type { CurrencyCode } from '@/domain/money';
 
@@ -276,11 +276,13 @@ export async function seedDemoSchool(
     }
     const institutionId = asId<'institution'>(institution.id);
 
-    // The chart belongs to the school, not to the code: write the default accounts here, where
-    // the school is being created, so the ledger and the accounting screens read the same rows.
+    // The chart belongs to the school, not to the code: write the default accounts and the
+    // channel nominations here, where the school is being created, so the ledger and the
+    // accounting screens read the same rows.
     at('ledger accounts');
-    const chart = await seedDefaultLedgerAccounts(repository, institutionId, options);
-    for (let index = 0; index < chart.created; index += 1) count('ledger_account');
+    const chart = await seedDefaultLedgerChart(repository, institutionId, options);
+    for (let index = 0; index < chart.accounts.created; index += 1) count('ledger_account');
+    for (let index = 0; index < chart.channels.created; index += 1) count('channel_account');
 
     at('structure');
 

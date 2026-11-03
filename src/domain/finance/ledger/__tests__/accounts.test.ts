@@ -17,6 +17,7 @@ import {
   expenseAccounts,
   ledgerChartFromRows,
   seedDefaultLedgerAccounts,
+  seedDefaultLedgerChart,
 } from '..';
 
 const kes = (minor: number) => fromMinor(minor, 'KES');
@@ -56,16 +57,22 @@ function ledgerFor(rows: readonly Awaited<ReturnType<typeof chart>>[number][]) {
 }
 
 describe('seeding the default chart', () => {
-  it('writes the control accounts as system accounts and the standard expense accounts beside them', async () => {
+  it('writes the control and standard expense accounts as system accounts', async () => {
     const first = await seedDefaultLedgerAccounts(context.repository, institutionId);
 
     expect(first.created).toBeGreaterThan(0);
     const cash = first.rows.find((row) => row.code === '1010');
     const bank = first.rows.find((row) => row.code === '1020');
+    const salaries = first.rows.find((row) => row.code === '5000');
     const utilities = first.rows.find((row) => row.code === '5100');
     expect(cash).toMatchObject({ name: 'Cash', kind: 'asset', role: 'cash', is_system: true });
     expect(bank).toMatchObject({ name: 'Bank', kind: 'asset', role: 'bank', is_system: true });
-    expect(utilities).toMatchObject({ name: 'Utilities', kind: 'expense', is_system: false });
+    expect(salaries).toMatchObject({
+      name: 'Salaries and wages',
+      kind: 'expense',
+      is_system: true,
+    });
+    expect(utilities).toMatchObject({ name: 'Utilities', kind: 'expense', is_system: true });
 
     const second = await seedDefaultLedgerAccounts(context.repository, institutionId);
     expect(second.created).toBe(0);
@@ -76,6 +83,27 @@ describe('seeding the default chart', () => {
       '1010',
       '1020',
     ]);
+  });
+
+  it('nominates the default account of every channel, once', async () => {
+    const first = await seedDefaultLedgerChart(context.repository, institutionId);
+
+    const byChannel = new Map(
+      first.channels.rows.map((row) => [
+        row.channel,
+        first.rows.find((account) => account.id === row.ledger_account_id)?.code,
+      ])
+    );
+    expect(byChannel.get('cash')).toBe('1010');
+    expect(byChannel.get('bank_deposit')).toBe('1020');
+    expect(byChannel.get('cheque')).toBe('1020');
+    expect(byChannel.get('mobile_money')).toBe('1030');
+
+    const second = await seedDefaultLedgerChart(context.repository, institutionId);
+    expect(second.channels.created).toBe(0);
+    expect(second.channels.rows.map((row) => row.channel).sort()).toEqual(
+      first.channels.rows.map((row) => row.channel).sort()
+    );
   });
 
   it('falls back to the default chart when a school has no rows', () => {
@@ -139,7 +167,7 @@ describe('posting through the school chart', () => {
   });
 });
 
-describe('protecting a control account', () => {
+describe('protecting a system account', () => {
   it('refuses deleting it', async () => {
     const rows = await chart();
     const cash = rows.find((row) => row.code === '1010');
@@ -153,18 +181,61 @@ describe('protecting a control account', () => {
     }
   });
 
+  it('refuses deleting a seeded expense account', async () => {
+    const rows = await chart();
+    const salaries = rows.find((row) => row.code === '5000');
+    expect(salaries).toBeDefined();
+
+    expect(() => assertLedgerAccountDeleteAllowed(salaries!)).toThrow(/system account/);
+    try {
+      assertLedgerAccountDeleteAllowed(salaries!);
+    } catch (error) {
+      expect((error as LedgerError).code).toBe('account_protected');
+    }
+  });
+
   it('refuses renaming its code or changing the class, role or active state, but allows its name', async () => {
     const rows = await chart();
     const cash = rows.find((row) => row.code === '1010')!;
 
-    expect(() => assertLedgerAccountUpdateAllowed(cash, { code: '1099' })).toThrow(/control account/);
+    expect(() => assertLedgerAccountUpdateAllowed(cash, { code: '1099' })).toThrow(/system account/);
     expect(() => assertLedgerAccountUpdateAllowed(cash, { kind: 'expense' })).toThrow(
-      /control account/
+      /system account/
     );
-    expect(() => assertLedgerAccountUpdateAllowed(cash, { role: 'bank' })).toThrow(/control account/);
+    expect(() => assertLedgerAccountUpdateAllowed(cash, { role: 'bank' })).toThrow(/system account/);
     expect(() => assertLedgerAccountUpdateAllowed(cash, { is_active: false })).toThrow(
-      /control account/
+      /system account/
     );
     expect(() => assertLedgerAccountUpdateAllowed(cash, { name: 'Cash at hand' })).not.toThrow();
+  });
+
+  it('lets a seeded expense account be renamed but not repurposed', async () => {
+    const rows = await chart();
+    const utilities = rows.find((row) => row.code === '5100')!;
+
+    expect(() => assertLedgerAccountUpdateAllowed(utilities, { name: 'Power and water' })).not.toThrow();
+    expect(() => assertLedgerAccountUpdateAllowed(utilities, { code: '5110' })).toThrow(
+      /system account/
+    );
+    expect(() => assertLedgerAccountUpdateAllowed(utilities, { kind: 'revenue' })).toThrow(
+      /system account/
+    );
+  });
+
+  it('leaves an account the school created fully editable', async () => {
+    const rows = await chart();
+    const created = await context.repository.create('ledger_account', {
+      institution_id: institutionId,
+      code: '5801',
+      name: 'Library books',
+      kind: 'expense',
+      is_system: false,
+      is_active: true,
+    });
+
+    expect(() => assertLedgerAccountUpdateAllowed(created, { code: '5810' })).not.toThrow();
+    expect(() => assertLedgerAccountUpdateAllowed(created, { kind: 'asset' })).not.toThrow();
+    expect(() => assertLedgerAccountDeleteAllowed(created)).not.toThrow();
+    expect(rows.some((row) => row.code === '5801')).toBe(false);
   });
 });
