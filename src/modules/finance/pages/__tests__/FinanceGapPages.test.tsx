@@ -120,6 +120,13 @@ const field = (dialog: HTMLElement, name: string) => {
 const change = (dialog: HTMLElement, name: string, value: string) =>
   fireEvent.change(field(dialog, name), { target: { name, value } });
 
+/** Confirms the dialog the page's `confirm()` opened. */
+const confirmDelete = async () => {
+  const dialog = await screen.findByRole('dialog');
+  const buttons = within(dialog).getAllByRole('button');
+  fireEvent.click(buttons[buttons.length - 1] as HTMLElement);
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   finance.chartOfAccounts = [REVENUE_ACCOUNT];
