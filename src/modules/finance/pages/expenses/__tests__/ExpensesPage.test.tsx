@@ -127,4 +127,45 @@ describe('the expenses page', () => {
 
     expect(await ledger.listEntries({ sourceKind: 'expense' })).toHaveLength(1);
   });
+
+  it('offers an expense account the school added in Accounting Configuration and posts to it', async () => {
+    const institution = (await repository.list('institution', {})).items[0];
+    await repository.create('ledger_account', {
+      institution_id: institution.id,
+      code: '5801',
+      name: 'Library books',
+      kind: 'expense',
+      is_system: false,
+      is_active: true,
+    });
+
+    renderPage();
+    await screen.findByText('No expenses recorded yet');
+
+    const [recordButton] = await screen.findAllByRole('button', { name: /Record expense/i });
+    fireEvent.click(recordButton);
+    const modal = await screen.findByRole('dialog');
+
+    fireEvent.change(within(modal).getByLabelText('Payee'), {
+      target: { value: 'Text Book Centre' },
+    });
+    fireEvent.change(within(modal).getByLabelText(/Amount/), { target: { value: '480.00' } });
+
+    const accountSelect = within(modal).getByRole('combobox', { name: /Expense account/ });
+    fireEvent.change(accountSelect, { target: { value: '5801' } });
+
+    fireEvent.click(within(modal).getByRole('button', { name: /Record expense/i }));
+
+    await waitFor(async () => {
+      const rows = await repository.list('expense', {});
+      expect(rows.items).toHaveLength(1);
+    });
+
+    const stored = (await repository.list('expense', {})).items[0];
+    expect(stored.expense_account_code).toBe('5801');
+    expect(stored.status).toBe('posted');
+
+    const [entry] = await ledger.listEntries({ sourceKind: 'expense' });
+    expect(entry?.lines.map((line) => line.accountCode)).toEqual(['5801', '1010']);
+  });
 });

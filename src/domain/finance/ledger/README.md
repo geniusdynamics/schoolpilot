@@ -32,6 +32,25 @@ const balance = await ledger.trialBalance({ institutionId, currency: 'KES' });
 balance.balanced;   // always true
 ```
 
+## The chart of accounts
+
+The chart is the institution's `ledger_account` rows, not a list of literals. A new school is
+seeded with the default chart when it is created (`seedDefaultLedgerAccounts`, called by the setup
+and demo seed); `ledgerChartFromRows` turns what the school has into the mapping the engine reads.
+A school with no rows falls back to the default chart, so a database that predates the rows still
+posts.
+
+The control accounts the postings name by code (`1010`, `1020`, `1100`, `4000` and the rest) are
+`is_system`. Their code, class, role and active state cannot change and they cannot be deleted:
+a row that a posting depends on is never repurposed under it. A school may still add expense
+accounts, rename any account, and deactivate an ordinary account to keep it out of the pickers.
+
+```ts
+const rows = await seedDefaultLedgerAccounts(repository, institutionId);
+const chart = ledgerChartFromRows(rows.rows);
+new LedgerService({ store, mapping: chart });
+```
+
 ## The entry
 
 A `JournalEntry` is a date, a reference to its source document, a narration, and two or more

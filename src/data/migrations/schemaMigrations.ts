@@ -157,6 +157,20 @@ export const expenseSchemaMigration: ModuleSchemaMigration = moduleSchemaMigrati
 });
 
 /**
+ * Ledger accounts: the canonical chart of accounts the posting engine reads.
+ *
+ * As with expenses, the statements come from the entity declaration itself, so the migration and
+ * the registry describe one table. The canonical setup creates it too; the migration gives the
+ * upgrade a ledger row and a rollback.
+ */
+export const ledgerAccountSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
+  version: 109,
+  module: 'ledger',
+  name: 'ledger accounts: the chart of accounts the postings resolve against',
+  ddl: statementsForSchema(canonicalDatabaseSchema('ledger_account')),
+});
+
+/**
  * The module schema migrations this build applies at startup, in version order.
  *
  * Adding a module table is adding its DDL to this list - not a change to the runner, the
@@ -172,6 +186,7 @@ export const SCHEMA_MIGRATIONS: readonly ModuleSchemaMigration[] = [
   providerSuspenseSchemaMigration,
   collectionsSchemaMigration,
   expenseSchemaMigration,
+  ledgerAccountSchemaMigration,
 ];
 
 /** The versions of the schema migrations, in order. */

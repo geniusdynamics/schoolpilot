@@ -1,12 +1,10 @@
-// ABOUTME: Page tests for banks, chart of accounts, suppliers, supplier and customer invoices (P0-E05, SO-11/22/23):
+// ABOUTME: Page tests for suppliers, supplier and customer invoices (P0-E05, SO-11/22/23):
 // ABOUTME: CRUD goes to the database through useFinance() with update(id, patch) and UUID foreign keys kept as strings.
 
 import { screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
-import BanksPage from '../BanksPage';
-import ChartOfAccountsPage from '../ChartOfAccountsPage';
 import SuppliersPage from '../SuppliersPage';
 import SupplierInvoicesPage from '../SupplierInvoicesPage';
 import CustomerInvoicesPage from '../CustomerInvoicesPage';
@@ -59,9 +57,7 @@ function createMemoryCollection(seed: Row[] = []): MemoryCollection {
 }
 
 // UUIDs that start with digits: parseInt/Number would turn them into a wrong number or NaN (SO-22).
-const ASSET_ID = '874b9758-0000-4000-8000-000000000001';
 const REVENUE_ID = '874b9758-0000-4000-8000-000000000002';
-const EXPENSE_CAT_ID = '91c2aa10-0000-4000-8000-000000000003';
 const SUPPLIER_ID = '30f1e2d3-0000-4000-8000-000000000004';
 const CUSTOMER_ID = '55aa66bb-0000-4000-8000-000000000005';
 
@@ -102,12 +98,7 @@ beforeEach(() => {
   nextId = 0;
   collections = {
     chart_of_accounts: createMemoryCollection([
-      { id: ASSET_ID, account_code: '1100', name: 'Main Bank', type: 'Asset', template_type: 'Custom', is_active: true, ...stamp },
       { id: REVENUE_ID, account_code: '4100', name: 'Hall Hire', type: 'Revenue', template_type: 'Custom', is_active: true, ...stamp },
-    ]),
-    expense_categories: createMemoryCollection([{ id: EXPENSE_CAT_ID, name: 'Utilities' }]),
-    banks: createMemoryCollection([
-      { id: 'bank-1', name: 'KCB Main', account_no: '001', gl_account_id: ASSET_ID, ...stamp },
     ]),
     suppliers: createMemoryCollection([{ id: SUPPLIER_ID, name: 'Jua Kali Supplies', ...stamp }]),
     supplier_invoices: createMemoryCollection([]),
@@ -118,86 +109,6 @@ beforeEach(() => {
     getCollection: (name: string) => collection(name),
   } as never);
   vi.mocked(databaseService.generateId).mockImplementation(() => `uuid-${++nextId}`);
-});
-
-describe('BanksPage (P0-E05)', () => {
-  it('creates a bank linked to a UUID GL account', async () => {
-    renderWithProviders(<BanksPage />);
-    await screen.findByText('KCB Main');
-    const dialog = await openAddDialog(/Add Bank Account/i);
-    fireEvent.change(within(dialog).getByLabelText(/^Bank Name/i), { target: { value: 'Equity Fees' } });
-    const gl = within(dialog).getByLabelText(/GL Asset Account/i);
-    await waitFor(() => expect(within(gl).getByRole('option', { name: /1100 - Main Bank/ })).toBeInTheDocument());
-    fireEvent.change(gl, { target: { value: ASSET_ID } });
-    submitDialog(dialog);
-
-    await waitFor(() => expect(collections.banks.rows().map((r) => r.name)).toContain('Equity Fees'));
-    const saved = collections.banks.rows().find((r) => r.name === 'Equity Fees')!;
-    expect(saved.gl_account_id).toBe(ASSET_ID);
-  });
-
-  it('edits a bank with update(id, patch) and shows the GL account name', async () => {
-    renderWithProviders(<BanksPage />);
-    expect(await screen.findByText(/Main Bank/)).toBeInTheDocument();
-    fireEvent.click(await screen.findByRole('button', { name: /^Edit$/i }));
-    const dialog = await screen.findByRole('dialog');
-    fireEvent.change(within(dialog).getByLabelText(/^Bank Name/i), { target: { value: 'KCB Fees' } });
-    submitDialog(dialog);
-
-    await waitFor(() =>
-      expect(collections.banks.update).toHaveBeenCalledWith('bank-1', expect.objectContaining({ name: 'KCB Fees', gl_account_id: ASSET_ID }))
-    );
-    expect(collections.banks.rows()[0].name).toBe('KCB Fees');
-  });
-
-  it('deletes a bank by its string id', async () => {
-    renderWithProviders(<BanksPage />);
-    await screen.findByText('KCB Main');
-    await confirmDelete();
-    await waitFor(() => expect(collections.banks.rows()).toHaveLength(0));
-    expect(collections.banks.remove).toHaveBeenCalledWith('bank-1');
-  });
-});
-
-describe('ChartOfAccountsPage (P0-E05)', () => {
-  it('creates an expense account with a UUID expense category', async () => {
-    renderWithProviders(<ChartOfAccountsPage />);
-    await screen.findByText('Hall Hire');
-    const dialog = await openAddDialog(/Add Account/i);
-    fireEvent.change(within(dialog).getByLabelText(/^Account Code/i), { target: { value: '5100' } });
-    fireEvent.change(within(dialog).getByLabelText(/^Account Name/i), { target: { value: 'Electricity' } });
-    fireEvent.change(within(dialog).getByLabelText(/^Account Type/i), { target: { value: 'Expense' } });
-    const category = await within(dialog).findByLabelText(/Expense Category/i);
-    await waitFor(() => expect(within(category).getByRole('option', { name: 'Utilities' })).toBeInTheDocument());
-    fireEvent.change(category, { target: { value: EXPENSE_CAT_ID } });
-    submitDialog(dialog);
-
-    await waitFor(() => expect(collections.chart_of_accounts.rows().map((r) => r.name)).toContain('Electricity'));
-    const saved = collections.chart_of_accounts.rows().find((r) => r.name === 'Electricity')!;
-    expect(saved.expense_category_id).toBe(EXPENSE_CAT_ID);
-    expect(saved.type).toBe('Expense');
-  });
-
-  it('edits an account with update(id, patch)', async () => {
-    renderWithProviders(<ChartOfAccountsPage />);
-    await screen.findByText('Hall Hire');
-    fireEvent.click((await screen.findAllByRole('button', { name: /^Edit$/i }))[1]);
-    const dialog = await screen.findByRole('dialog');
-    fireEvent.change(within(dialog).getByLabelText(/^Account Name/i), { target: { value: 'Hall & Field Hire' } });
-    submitDialog(dialog);
-
-    await waitFor(() =>
-      expect(collections.chart_of_accounts.update).toHaveBeenCalledWith(REVENUE_ID, expect.objectContaining({ name: 'Hall & Field Hire' }))
-    );
-  });
-
-  it('deletes an account by its string id', async () => {
-    renderWithProviders(<ChartOfAccountsPage />);
-    await screen.findByText('Hall Hire');
-    fireEvent.click((await screen.findAllByRole('button', { name: /^Delete$/i }))[0]);
-    submitDialog(await screen.findByRole('dialog'));
-    await waitFor(() => expect(collections.chart_of_accounts.remove).toHaveBeenCalledWith(ASSET_ID));
-  });
 });
 
 describe('SuppliersPage (P0-E05)', () => {

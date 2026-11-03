@@ -921,9 +921,10 @@ export class AdjustmentsService {
 
   private async ledgerFor(tx: SqliteTransaction): Promise<LedgerService> {
     const feeItems = (await this.store.list('fee_item', { limit: 500 })).items;
+    const ledgerAccounts = (await this.store.list('ledger_account', { limit: 500 })).items;
     return new LedgerService({
       store: createSqliteLedgerStore(transactionAdapter(tx)),
-      mapping: buildChart(revenueAccountsOf(feeItems)),
+      mapping: buildChart(revenueAccountsOf(feeItems), ledgerAccounts),
       ...(this.actor === undefined ? {} : { actor: this.actor }),
       now: this.clock,
     });

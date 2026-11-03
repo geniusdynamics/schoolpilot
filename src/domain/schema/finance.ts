@@ -637,6 +637,66 @@ export const refundEntity = defineEntity({
   label: (row) => row.number,
 });
 
+/** The five classes of the ledger's chart of accounts (spec 05 §8). */
+export const LEDGER_ACCOUNT_KINDS = [
+  'asset',
+  'liability',
+  'equity',
+  'revenue',
+  'expense',
+] as const;
+
+/**
+ * The cash-book, bank-book or clearing role an account plays.
+ *
+ * The posting engine resolves a payment channel to the account that holds its money, so the role
+ * says which account is the cash book, which is the bank book, and which holds mobile money, card
+ * or in-kind money while it clears. An account with no role is an ordinary chart account.
+ */
+export const LEDGER_ACCOUNT_ROLES = [
+  'cash',
+  'bank',
+  'mobile_money',
+  'card',
+  'in_kind',
+] as const;
+
+/**
+ * One account of the ledger's chart of accounts.
+ *
+ * The rows are the chart the posting engine reads: the control accounts it resolves by code, the
+ * fee-revenue and expense accounts it posts to, and any account a school adds. `is_system` marks
+ * an account a posting depends on, so the chart cannot delete or repurpose it; `is_active` keeps
+ * an account out of the pickers without removing it from the history it already carries.
+ */
+export const ledgerAccountSchema = z.strictObject({
+  ...entityIdShape,
+  ...tenancyShape,
+  code: shortText(50),
+  name: shortText(200),
+  kind: z.enum(LEDGER_ACCOUNT_KINDS),
+  role: z.enum(LEDGER_ACCOUNT_ROLES).nullish(),
+  is_system: z.boolean(),
+  is_active: z.boolean(),
+  ...auditShape,
+});
+
+export type LedgerAccountRecord = z.infer<typeof ledgerAccountSchema>;
+
+export const ledgerAccountEntity = defineEntity({
+  name: 'ledger_account',
+  schema: ledgerAccountSchema,
+  storage: {
+    table: 'ledger_account',
+    primaryKey: 'id',
+    indexes: ['institution_id', 'kind', 'role', 'is_active'],
+    unique: [['institution_id', 'code']],
+    refs: { institution_id: 'institution' },
+    encrypted: [],
+  },
+  label: (row) => `${row.code} ${row.name}`,
+});
+
 /**
  * A recorded expense (spec 05 §8: the expenditure side of the books).
  *

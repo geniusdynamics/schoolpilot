@@ -9,9 +9,10 @@ import { generateUuidv7 } from '@/domain/ids';
 import {
   CONTROL_ACCOUNTS,
   LEDGER_DDL,
-  createLedgerAccountMapping,
+  ledgerChartFromRows,
   type LedgerAccount,
   type LedgerAccountMapping,
+  type LedgerAccountRow,
 } from '@/domain/finance/ledger';
 import { SEQUENCE_DDL } from '@/domain/sequences';
 
@@ -99,9 +100,10 @@ export async function ensureAdjustmentSchema(runner: {
 
 /** The chart of accounts the module posts against: the fee items' own GL mappings plus the two bad-debt accounts. */
 export function buildChart(
-  feeItemRevenueAccounts: Readonly<Record<string, string>>
+  feeItemRevenueAccounts: Readonly<Record<string, string>>,
+  ledgerAccounts: readonly LedgerAccountRow[] = []
 ): LedgerAccountMapping {
-  return createLedgerAccountMapping({
+  return ledgerChartFromRows(ledgerAccounts, {
     accounts: [WRITE_OFF_ACCOUNT, RECOVERY_ACCOUNT],
     // The fee item's own revenue account is a code the chart may not hold as a named account, so it
     // is resolved to the account it names rather than looked up. An item with no mapping posts to

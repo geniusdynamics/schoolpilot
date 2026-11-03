@@ -50,6 +50,8 @@ export interface RunFacts {
   readonly learners: readonly RepositoryRow<'learner'>[];
   readonly enrolmentsByLearner: ReadonlyMap<string, RepositoryRow<'enrolment'>>;
   readonly feeItems: ReadonlyMap<string, RepositoryRow<'fee_item'>>;
+  /** The school's own chart of accounts: the accounts the run's entries post against. */
+  readonly ledgerAccounts: readonly RepositoryRow<'ledger_account'>[];
   readonly existingByLearner: ReadonlyMap<string, ExistingInvoiceFacts>;
   /** The first billing period of the academic year, which is where a `per_year` line is billed. */
   readonly firstBillingPeriodId: string | null;
@@ -221,6 +223,13 @@ export async function loadRunFacts(
   const feeItems = new Map<string, RepositoryRow<'fee_item'>>();
   for (const item of feeItemRows) feeItems.set(item.id, item);
 
+  const ledgerAccounts = await readAll(
+    store,
+    'ledger_account',
+    { where: { institution_id: institutionId } },
+    options.pageSize
+  );
+
   // ------------------------------------------------------- invoices already posted
   const existingInvoices = await readAll(
     store,
@@ -292,6 +301,7 @@ export async function loadRunFacts(
     learners,
     enrolmentsByLearner,
     feeItems,
+    ledgerAccounts,
     existingByLearner,
     firstBillingPeriodId,
     chargesByLearner,

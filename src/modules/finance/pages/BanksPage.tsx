@@ -1,141 +1,210 @@
-// ABOUTME: Bank accounts page: lists, creates, edits and deletes banks through useFinance()
-// ABOUTME: Each bank links to an asset GL account by its string id; the GL name is resolved at read time
-// GAP(P1-E03): the registry models no bank or bank account; both land with the P3 ledger.
+// ABOUTME: Banks tab: lists and edits the ledger accounts that play the cash-book or bank-book
+// ABOUTME: role, through the same ledger_account rows the posting engine reads.
 
 import React, { useMemo, useState } from 'react';
-import { Bank, ChartOfAccount, AccountType } from '@/modules/finance';
+
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from "@/components/ui/forms/DialogForm";
+import DialogForm from '@/components/ui/forms/DialogForm';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/icons';
-import { useFinance } from '@/modules/finance/hooks/useFinance';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
-import { LegacyDataNotice } from '@/components/LegacyDataNotice';
+import {
+  accountsWithRole,
+  assertLedgerAccountDeleteAllowed,
+  assertLedgerAccountUpdateAllowed,
+  type LedgerAccountRole,
+} from '@/domain/finance/ledger';
+import type { RepositoryRow } from '@/data/repository';
 
-// Record ids are strings (UUIDs) at runtime, so the form keeps the GL account id as the option value.
+import { useCanonicalLedgerAccounts } from '../data/useCanonicalLedgerAccounts';
+
+type AccountRow = RepositoryRow<'ledger_account'>;
+type BookRole = Extract<LedgerAccountRole, 'cash' | 'bank'>;
+
+const BOOK_ROLES: readonly BookRole[] = ['cash', 'bank'];
+
+const ROLE_LABELS: Readonly<Record<BookRole, string>> = {
+  cash: 'Cash book',
+  bank: 'Bank book',
+};
+
 interface BankFormData {
+  code: string;
   name: string;
-  account_no: string;
-  gl_account_id: string;
+  role: BookRole;
+  is_active: boolean;
 }
 
-// The finance types still declare numeric ids; the data layer stores whatever string id the option carries.
-type BankInput = Parameters<ReturnType<typeof useFinance>['addBank']>[0];
+const EMPTY_FORM: BankFormData = {
+  code: '',
+  name: '',
+  role: 'bank',
+  is_active: true,
+};
 
 export const BanksPageContent: React.FC = () => {
-  const { 
-    banks, 
-    chartOfAccounts,
-    addBank, 
-    updateBank, 
-    deleteBank 
-  } = useFinance();
-  
+  const { rows, institutionId, repository, status, refresh } = useCanonicalLedgerAccounts();
+  const confirm = useConfirm();
+  const toast = useToast();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBank, setEditingBank] = useState<Bank | null>(null);
-  const initialFormData: BankFormData = { name: '', account_no: '', gl_account_id: '' };
-  const [formData, setFormData] = useState<BankFormData>(initialFormData);
+  const [editing, setEditing] = useState<AccountRow | null>(null);
+  const [form, setForm] = useState<BankFormData>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
 
-  const assetAccounts = (chartOfAccounts || []).filter(coa => coa.type === AccountType.ASSET && coa.is_active);
-  const bankRows = useMemo(() => (banks || []).map(bank => ({
-    ...bank,
-    gl_account_name: (chartOfAccounts || []).find(coa => String(coa.id) === String(bank.gl_account_id))?.name ?? bank.gl_account_name ?? null,
-  })), [banks, chartOfAccounts]);
+  const accounts = useMemo(() => accountsWithRole(rows, BOOK_ROLES), [rows]);
 
-  const openModal = (bank?: Bank) => {
-    setEditingBank(bank || null);
-    setFormData(bank ? 
-      { name: bank.name, account_no: bank.account_no ?? '', gl_account_id: bank.gl_account_id == null ? '' : String(bank.gl_account_id) } :
-      initialFormData
+  const openModal = (account?: AccountRow) => {
+    setEditing(account ?? null);
+    setForm(
+      account
+        ? {
+            code: account.code,
+            name: account.name,
+            role: account.role === 'cash' ? 'cash' : 'bank',
+            is_active: account.is_active,
+          }
+        : EMPTY_FORM
     );
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingBank(null);
-    setFormData(initialFormData);
+    setEditing(null);
+    setForm(EMPTY_FORM);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const setField = <K extends keyof BankFormData>(key: K, value: BankFormData[K]) => {
+    setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const toast = useToast();
   const handleSubmit = async () => {
-    if (!formData.name || !formData.gl_account_id) {
-      toast.showWarning("Bank name and GL Account are required.");
+    if (form.code.trim() === '' || form.name.trim() === '') {
+      toast.showWarning('Account code and name are required.');
       return;
     }
-    const payload = {
-      name: formData.name,
-      account_no: formData.account_no || null,
-      gl_account_id: formData.gl_account_id,
-    } as unknown as BankInput;
+    if (institutionId === null) return;
 
-    if (editingBank) {
-      await updateBank(String(editingBank.id), payload);
-    } else {
-      await addBank(payload);
+    setSaving(true);
+    try {
+      if (editing) {
+        const patch = {
+          code: form.code.trim(),
+          name: form.name.trim(),
+          role: form.role,
+          is_active: form.is_active,
+        };
+        assertLedgerAccountUpdateAllowed(editing, patch);
+        await repository.update('ledger_account', editing.id, patch, {
+          expectedVersion: editing.rowVersion,
+        });
+      } else {
+        await repository.create('ledger_account', {
+          institution_id: institutionId,
+          code: form.code.trim(),
+          name: form.name.trim(),
+          kind: 'asset',
+          role: form.role,
+          is_system: false,
+          is_active: form.is_active,
+        });
+      }
+      refresh();
+      closeModal();
+      toast.showSuccess(editing ? 'Cash/bank account saved.' : 'Cash/bank account added.');
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
     }
-    closeModal();
   };
 
-  const confirm = useConfirm();
-  const handleDelete = async (id: Bank['id']) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this bank account?' }))) {
-      await deleteBank(String(id));
+  const handleDelete = async (account: AccountRow) => {
+    try {
+      assertLedgerAccountDeleteAllowed(account);
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : String(error));
+      return;
+    }
+    const agreed = await confirm({
+      variant: 'danger',
+      message: `Delete account ${account.code} ${account.name}?`,
+    });
+    if (!agreed) return;
+    try {
+      await repository.remove('ledger_account', account.id);
+      refresh();
+      toast.showSuccess('Account deleted.');
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : String(error));
     }
   };
 
-  const columns: DataGridColumn<Bank>[] = [
+  const protectedEditing = editing?.is_system === true;
+
+  const columns: DataGridColumn<AccountRow>[] = [
     {
-      key: 'id',
-      header: 'ID',
+      key: 'code',
+      header: 'Code',
       sortable: true,
-      width: 80,
-      sticky: 'left'
+      filterable: true,
+      width: 120,
+      sticky: 'left',
+      render: (value) => <span className="font-mono font-medium text-surface-foreground">{value}</span>,
     },
     {
       key: 'name',
-      header: 'Bank Name',
+      header: 'Account Name',
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value) => (
-        <span className="font-medium text-surface-foreground">
-          {value}
-        </span>
-      )
+      width: 280,
+      render: (value) => <span className="font-medium text-surface-foreground">{value}</span>,
     },
     {
-      key: 'account_no',
-      header: 'Account No.',
+      key: 'role',
+      header: 'Role',
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value) => (
-        <span className="font-mono text-sm">
-          {value || 'N/A'}
-        </span>
-      )
-    },
-    {
-      key: 'gl_account_name',
-      header: 'GL Account',
-      sortable: true,
-      filterable: true,
-      width: 250,
+      width: 160,
       render: (value) => (
         <span className="text-sm text-surface-muted-fg">
-          {value || 'Not linked'}
+          {value === 'cash' ? 'Cash book' : 'Bank book'}
         </span>
-      )
+      ),
+    },
+    {
+      key: 'is_system',
+      header: 'Control',
+      sortable: true,
+      width: 100,
+      render: (value) =>
+        value ? (
+          <span className="inline-flex rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800">
+            System
+          </span>
+        ) : (
+          <span className="text-sm text-surface-muted-fg">—</span>
+        ),
+    },
+    {
+      key: 'is_active',
+      header: 'Active',
+      sortable: true,
+      width: 80,
+      render: (value) => (
+        <span
+          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+            value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}
+        >
+          {value ? 'Yes' : 'No'}
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -143,96 +212,131 @@ export const BanksPageContent: React.FC = () => {
       width: 180,
       render: (_, row) => (
         <div className="flex space-x-1">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => openModal(row)} 
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openModal(row)}
             leftIcon={<EditIcon className="w-4 h-4" />}
           >
             Edit
           </Button>
-          <Button 
-            size="sm" 
-            variant="danger" 
-            onClick={() => handleDelete(row.id)} 
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void handleDelete(row)}
+            disabled={row.is_system}
+            title={row.is_system ? 'A control account the ledger posts against cannot be deleted.' : undefined}
             leftIcon={<DeleteIcon className="w-4 h-4" />}
           >
             Delete
           </Button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="space-y-3">
-      <LegacyDataNotice>These bank accounts are not the ledger’s cash and bank accounts.</LegacyDataNotice>
-      <Card title="Bank Accounts Management" info="Manage the school's bank accounts. Each bank account must be linked to an Asset account in the Chart of Accounts." actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Bank Account
-        </Button>
-      }>
-        <DataGrid 
-          columns={columns} 
-          data={bankRows}
-          sortable 
-          filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <BanknotesIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />
-              <h3 className="mt-2 text-sm font-medium text-surface-foreground">No bank accounts found</h3>
-              <p className="mt-1 text-sm text-surface-muted-fg">Get started by adding your first bank account.</p>
-              <div className="mt-6">
-                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-                  Add Bank Account
-                </Button>
-              </div>
-            </div>
-          }
+      <Card
+        title="Bank Accounts"
+        info="The cash book, bank book and other cash/bank accounts of the ledger. Control accounts are marked System."
+        actions={
+          <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            Add Bank Account
+          </Button>
+        }
+      >
+        <DataGrid
+          columns={columns}
+          data={[...accounts]}
+          sortable
+          filterable
+          loading={status === 'loading'}
+          emptyState={{
+            icon: <BanknotesIcon className="mx-auto h-12 w-12 text-surface-muted-fg" />,
+            title: 'No cash or bank accounts found',
+            description: 'Load the default chart from the Chart of Accounts tab, or add one here.',
+            action: (
+              <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                Add Bank Account
+              </Button>
+            ),
+          }}
         />
       </Card>
 
-      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingBank ? 'Edit Bank Account' : 'Add New Bank Account'} size="lg"
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editing ? 'Edit Cash/Bank Account' : 'Add New Cash/Bank Account'}
+        size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              {editingBank ? 'Save Changes' : 'Add Bank'}
+            <Button variant="secondary" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button onClick={() => void handleSubmit()} loading={saving}>
+              {editing ? 'Save Changes' : 'Add Account'}
             </Button>
           </>
         }
       >
-        <Input 
-          name="name" 
-          label="Bank Name" 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Input 
-          name="account_no" 
-          label="Account Number" 
-          value={formData.account_no || ''} 
-          onChange={handleInputChange} 
-        />
-        <Select 
-          name="gl_account_id" 
-          label="Link to GL Asset Account" 
-          value={formData.gl_account_id}
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select GL Asset Account</option>
-          {(assetAccounts || []).map((coa: ChartOfAccount) => (
-            <option key={coa.id} value={coa.id}>
-              {coa.account_code} - {coa.name}
-            </option>
-          ))}
-        </Select>
+        <div className="grid grid-cols-1 gap-4">
+          <Input
+            name="code"
+            label="Account Code"
+            value={form.code}
+            onChange={(event) => setField('code', event.target.value)}
+            disabled={protectedEditing}
+            required
+          />
+          <Input
+            name="name"
+            label="Account Name"
+            value={form.name}
+            onChange={(event) => setField('name', event.target.value)}
+            required
+          />
+          <Select
+            name="role"
+            label="Role"
+            value={form.role}
+            onChange={(event) => setField('role', event.target.value as BookRole)}
+            disabled={protectedEditing}
+            required
+          >
+            {BOOK_ROLES.map((role) => (
+              <option key={role} value={role}>
+                {ROLE_LABELS[role]}
+              </option>
+            ))}
+          </Select>
+          <div className="flex items-center mt-2">
+            <input
+              id="bank_is_active"
+              name="is_active"
+              type="checkbox"
+              className="h-4 w-4 text-indigo-600 border-surface-border rounded focus:ring-indigo-500"
+              checked={form.is_active}
+              disabled={protectedEditing}
+              onChange={(event) => setField('is_active', event.target.checked)}
+            />
+            <label htmlFor="bank_is_active" className="ml-2 block text-sm text-surface-foreground">
+              Is Active Account
+            </label>
+          </div>
+          {protectedEditing ? (
+            <p className="text-sm text-surface-muted-fg">
+              This is a control account the ledger posts against. Its code, role and active state
+              are fixed; its name may be changed.
+            </p>
+          ) : null}
+        </div>
       </DialogForm>
     </div>
   );
 };
+
 const BanksPage: React.FC = () => (
   <div className="space-y-3">
     <BanksPageContent />

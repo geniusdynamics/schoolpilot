@@ -5,6 +5,9 @@
 // Main data hook (comprehensive)
 export { useFinanceData } from './useFinanceData';
 
+// The ledger's canonical chart of accounts
+export { useCanonicalLedgerAccounts } from './useCanonicalLedgerAccounts';
+
 // Modular data provider (new architecture)
 export { 
   FinanceDataProvider,

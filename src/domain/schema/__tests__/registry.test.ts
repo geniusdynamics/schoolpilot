@@ -16,7 +16,7 @@ import {
 } from '../index';
 import { validFixtures } from './fixtures';
 
-const EXPECTED_ENTITY_COUNT = 69;
+const EXPECTED_ENTITY_COUNT = 70;
 
 const EXPECTED_ENTITIES = [
   'academic_period',
@@ -64,6 +64,7 @@ const EXPECTED_ENTITIES = [
   'learning_area',
   'learning_area_enrolment',
   'leave_out',
+  'ledger_account',
   'level',
   'mark',
   'outcome',
