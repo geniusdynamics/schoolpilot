@@ -1,7 +1,7 @@
 // ABOUTME: Hub page for grading management
 // ABOUTME: Consolidates grading schemes, education systems, and system configuration into tabbed interface
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -10,9 +10,13 @@ import {
   ChartBarIcon,
   CogIcon,
 } from '@/components/ui/icons';
-import { GradingSchemesContent } from './GradingSchemesPage';
-import { EducationSystemsPageContent } from './EducationSystemsPage';
-import { EducationSystemConfigPageContent } from './EducationSystemConfigPage';
+import { listAvailablePacks } from '@/components/setup/packs/packLibrary';
+
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { GradingScalesTab } from './grading/GradingScalesTab';
+import { AssessmentSchemesTab } from './grading/AssessmentSchemesTab';
+import { SystemConfigTab } from './grading/SystemConfigTab';
+import { packDeclarationsOf } from './grading/provenance';
 
 interface HubTab {
   id: string;
@@ -21,38 +25,38 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const GradingSystemsPage: React.FC = () => {
+const GradingSystemsHub: React.FC = () => {
   const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // The packs the installation ships; a programme's pin resolves to the codes its pack owns.
+  const packs = useMemo(() => packDeclarationsOf(listAvailablePacks()), []);
 
   const tabs: HubTab[] = [
     {
       id: 'grading-schemes',
       label: t('gradingSchemes.title', 'Grading Schemes'),
       icon: <ListBulletIcon className="w-4 h-4" />,
-      component: <GradingSchemesContent />,
+      component: <GradingScalesTab packs={packs} />,
     },
     {
       id: 'education-systems',
       label: t('educationSystems.title', 'Education Systems'),
       icon: <ChartBarIcon className="w-4 h-4" />,
-      component: <EducationSystemsPageContent />,
+      component: <AssessmentSchemesTab packs={packs} />,
     },
     {
       id: 'system-config',
       label: t('educationSystemConfig.title', 'System Config'),
       icon: <CogIcon className="w-4 h-4" />,
-      component: <EducationSystemConfigPageContent />,
+      component: <SystemConfigTab packs={packs} />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'grading-schemes';
-  const [activeTab, setActiveTab] = useState(activeTabFromUrl);
+  const activeTab = searchParams.get('tab') || 'grading-schemes';
 
   const handleTabChange = useCallback(
     (tabId: string) => {
-      setActiveTab(tabId);
       if (tabId === 'grading-schemes') {
         navigate('/academics/grading-systems', { replace: true });
       } else {
@@ -87,5 +91,11 @@ const GradingSystemsPage: React.FC = () => {
     </div>
   );
 };
+
+const GradingSystemsPage: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <GradingSystemsHub />
+  </CanonicalRepositoryProvider>
+);
 
 export default GradingSystemsPage;
