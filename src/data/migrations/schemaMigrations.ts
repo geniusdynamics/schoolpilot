@@ -168,6 +168,9 @@ export const ledgerAccountSchemaMigration: ModuleSchemaMigration = moduleSchemaM
   module: 'ledger',
   name: 'ledger accounts: the chart of accounts the postings resolve against',
   ddl: statementsForSchema(canonicalDatabaseSchema('ledger_account')),
+});
+
+/**
  * Transport: the routes a school runs and the learner assignments billed each term.
  *
  * Version 109 belongs to another branch in flight, so this one takes 110. The statements are
