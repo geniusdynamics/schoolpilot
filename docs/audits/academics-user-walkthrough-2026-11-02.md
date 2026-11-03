@@ -3,6 +3,14 @@
 Date: 2026-11-02
 Build: `consolidation` at `e632f4a` (after PR #76), Vite dev server.
 
+> **Status, 2026-11-03.** The findings below were worked in order. What closed them: #80 (no write
+> permission was enforced in the browser; the legacy pages retired), #83 (the dashboard reads the
+> canonical school; term and class labels; save feedback; the header names the person; table actions
+> fit) and #84 (a teacher no longer sees the curriculum controls they cannot use). What is still
+> open is a decision rather than a defect: the results roster's stream scoping, the duplicate
+> Class grid / Student grid tabs, and observations listing class groups from every year. The
+> running list is `.opencode/todo.md`.
+
 ## How it was tested
 
 - A fresh browser profile, through onboarding, "Explore with Demo Data", the sample school (Greenfields
