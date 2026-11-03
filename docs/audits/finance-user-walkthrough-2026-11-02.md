@@ -4,6 +4,15 @@ Date: 2026-11-02
 Build: `consolidation` at `e632f4a` (after PR #76), Vite dev server.
 Companion to `academics-user-walkthrough-2026-11-02.md`, done the same way.
 
+> **Status, 2026-11-03.** The findings below were worked. What closed them: #80 (the second set of
+> financial statements retired from the menu and every old address redirected to Accounting Reports),
+> #81 (expenses can be recorded and post to the ledger), #82 (learner credit in the summary, document
+> numbers on the statement and receipt, the cashier states what is owed, the dashboard's loading
+> state, posted payments not editable, pagination, one money format) and #84 (the learner balance in
+> Fees Due and the portal no longer double-counts fines or ignores unallocated payments). Still open:
+> two charts of accounts and two lists of financial years, both of which need a canonical
+> `ledger_account` entity before they can be one. The running list is `.opencode/todo.md`.
+
 ## How it was tested
 
 - A fresh browser profile, onboarding, "Explore with Demo Data" (Greenfields Academy, 33 learners, a
