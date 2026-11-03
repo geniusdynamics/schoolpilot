@@ -1,6 +1,7 @@
 // ABOUTME: The two Accounting Configuration tabs on the canonical repository: the chart lists the
-// ABOUTME: ledger_account rows and adds an expense account, and the banks tab lists and adds the
-// ABOUTME: accounts that play the cash or bank role.
+// ABOUTME: ledger_account rows and adds an expense account; the banks tab adds a bank account linked
+// ABOUTME: to a cash or bank ledger account, nominates the account each channel posts to, and lists
+// ABOUTME: the accounts themselves below.
 
 import '@testing-library/jest-dom';
 import type { ReactNode } from 'react';
@@ -13,7 +14,7 @@ import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
 import { queryCache } from '@/data/query';
 import { createRepository, type Repository } from '@/data/repository';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
-import { seedDefaultLedgerAccounts } from '@/domain/finance/ledger';
+import { seedDefaultLedgerChart } from '@/domain/finance/ledger';
 
 import { BanksPageContent } from '../BanksPage';
 import { ChartOfAccountsContent } from '../ChartOfAccountsPage';
@@ -52,7 +53,7 @@ beforeEach(async () => {
     base_currency: 'KES',
   });
   institutionId = institution.id;
-  await seedDefaultLedgerAccounts(repository, institutionId);
+  await seedDefaultLedgerChart(repository, institutionId);
 });
 
 afterEach(async () => {
@@ -110,7 +111,7 @@ describe('the chart of accounts tab', () => {
     expect(await screen.findByText('Library books')).toBeInTheDocument();
   });
 
-  it('locks the code and offers no delete for a control account', async () => {
+  it('locks the code and offers no delete for a system account', async () => {
     renderTab(<ChartOfAccountsContent />);
     const code = await screen.findByText('1010');
     const row = code.closest('tr');
@@ -126,39 +127,104 @@ describe('the chart of accounts tab', () => {
 });
 
 describe('the banks tab', () => {
-  it('lists only the cash and bank accounts, and adds one as a bank-book account', async () => {
+  it('lists the bank accounts with their ledger account and adds one', async () => {
+    const bank = (
+      await repository.list('ledger_account', {
+        where: { institution_id: institutionId, code: '1020' },
+      })
+    ).items[0];
+
     renderTab(<BanksPageContent />);
 
-    expect(await screen.findByText('1010')).toBeInTheDocument();
-    expect(screen.getByText('1020')).toBeInTheDocument();
-    expect(screen.queryByText('1100')).not.toBeInTheDocument();
+    expect(await screen.findByText('Bank Accounts')).toBeInTheDocument();
+    expect(await screen.findByText('No bank accounts yet')).toBeInTheDocument();
+    // The ledger accounts themselves stay visible below the bank accounts.
+    expect((await screen.findAllByText('1010')).length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole('button', { name: /Add Bank Account/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Add Bank Account/i })[0]!);
     const dialog = await screen.findByRole('dialog');
 
-    fireEvent.change(within(dialog).getByLabelText(/Account Code/), {
-      target: { value: '1021' },
+    fireEvent.change(within(dialog).getByLabelText(/Account name/), {
+      target: { value: 'Main account' },
     });
-    fireEvent.change(within(dialog).getByLabelText(/Account Name/), {
-      target: { value: 'Equity Bank current account' },
+    fireEvent.change(within(dialog).getByLabelText(/^Bank/), {
+      target: { value: 'Equity Bank' },
     });
-    fireEvent.click(within(dialog).getByRole('button', { name: /Add Account/i }));
+    fireEvent.change(within(dialog).getByLabelText(/Account number/), {
+      target: { value: '0170123456789' },
+    });
+    fireEvent.change(within(dialog).getByLabelText(/Ledger account/), {
+      target: { value: bank.id },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Add Bank Account/i }));
 
     await waitFor(async () => {
-      const rows = await repository.list('ledger_account', {
-        where: { institution_id: institutionId, code: '1021' },
+      const rows = await repository.list('bank_account', {
+        where: { institution_id: institutionId, name: 'Main account' },
       });
       expect(rows.items).toHaveLength(1);
     });
     const created = (
-      await repository.list('ledger_account', {
-        where: { institution_id: institutionId, code: '1021' },
+      await repository.list('bank_account', {
+        where: { institution_id: institutionId, name: 'Main account' },
       })
     ).items[0];
     expect(created).toMatchObject({
-      role: 'bank',
-      kind: 'asset',
-      is_system: false,
+      bank_name: 'Equity Bank',
+      account_number: '0170123456789',
+      ledger_account_id: bank.id,
+      is_default: false,
+      is_active: true,
     });
+    expect(await screen.findByText('Main account')).toBeInTheDocument();
+  });
+
+  it('shows each channel’s effective account and saves a nomination', async () => {
+    const second = await repository.create('ledger_account', {
+      institution_id: institutionId,
+      code: '1021',
+      name: 'Equity Bank current account',
+      kind: 'asset',
+      role: 'bank',
+      is_system: false,
+      is_active: true,
+    });
+
+    renderTab(<BanksPageContent />);
+
+    expect(await screen.findByText('Payment channels')).toBeInTheDocument();
+    const bankDeposit = (await screen.findByLabelText('Bank deposit account')) as HTMLSelectElement;
+    // The seeded nomination is the bank book; the section prints the account it posts to.
+    expect(bankDeposit.closest('tr')?.textContent).toContain('1020');
+    expect(bankDeposit.closest('tr')?.textContent).toContain('(nominated)');
+
+    fireEvent.change(bankDeposit, { target: { value: second.id } });
+
+    await waitFor(async () => {
+      const rows = await repository.list('channel_account', {
+        where: { institution_id: institutionId, channel: 'bank_deposit' },
+      });
+      expect(rows.items).toHaveLength(1);
+      expect(rows.items[0]?.ledger_account_id).toBe(second.id);
+    });
+    await waitFor(() => {
+      expect(bankDeposit.closest('tr')?.textContent).toContain('1021');
+      expect(bankDeposit.closest('tr')?.textContent).toContain('Equity Bank current account');
+    });
+  });
+
+  it('falls back to the chart’s account when a channel has no nomination', async () => {
+    const cash = (
+      await repository.list('channel_account', {
+        where: { institution_id: institutionId, channel: 'cash' },
+      })
+    ).items[0];
+    await repository.remove('channel_account', cash.id);
+
+    renderTab(<BanksPageContent />);
+
+    const cashSelect = (await screen.findByLabelText('Cash account')) as HTMLSelectElement;
+    expect(cashSelect.closest('tr')?.textContent).toContain('1010');
+    expect(cashSelect.closest('tr')?.textContent).toContain('(default)');
   });
 });
