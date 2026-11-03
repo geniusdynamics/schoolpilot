@@ -32,8 +32,9 @@ const NO_CHARGES = {
 /**
  * The balance of one learner, refused unless the account may read that learner.
  *
- * The amount is the finance service's `balance` (billed + fines - paid - posted credit notes); the
- * portal never adds up invoices of its own, so the figure is the same one the bursar's summary shows.
+ * The amount is the finance service's `balance` (billed less paid less posted credit notes, with the
+ * fines already inside the billed figure); the portal never adds up invoices of its own, so the
+ * figure is the same one the bursar's summary and the learner's statement show.
  */
 export function readLearnerBalance(
   identity: PortalIdentity,
