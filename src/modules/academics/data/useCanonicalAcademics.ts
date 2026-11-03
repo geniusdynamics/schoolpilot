@@ -24,6 +24,8 @@ export type GradingScaleRow = RepositoryRow<'grading_scale'>;
 export type MarkRow = RepositoryRow<'mark'>;
 export type AcademicYearRow = RepositoryRow<'academic_year'>;
 export type AcademicPeriodRow = RepositoryRow<'academic_period'>;
+export type TimetableSlotRow = RepositoryRow<'timetable_slot'>;
+export type TimetableEntryRow = RepositoryRow<'timetable_entry'>;
 export type StaffRow = RepositoryRow<'staff'>;
 export type LearnerRow = RepositoryRow<'learner'>;
 export type EnrolmentRow = RepositoryRow<'enrolment'>;
@@ -70,6 +72,7 @@ export function useCanonicalAcademics() {
   const marks = useEntityQuery(repository, 'mark', ALL, EVERY_PAGE);
   const academicYears = useEntityQuery(repository, 'academic_year', ALL);
   const academicPeriods = useEntityQuery(repository, 'academic_period', ALL);
+  const timetableSlots = useEntityQuery(repository, 'timetable_slot', ALL);
   const timetableEntries = useEntityQuery(repository, 'timetable_entry', ALL);
   const staff = useEntityQuery(repository, 'staff', ALL);
   const learners = useEntityQuery(repository, 'learner', ALL, EVERY_PAGE);
@@ -91,6 +94,7 @@ export function useCanonicalAcademics() {
     marks,
     academicYears,
     academicPeriods,
+    timetableSlots,
     timetableEntries,
     staff,
     learners,
@@ -116,6 +120,7 @@ export function useCanonicalAcademics() {
       marks: marks.data?.items ?? [],
       academicYears: academicYears.data?.items ?? [],
       academicPeriods: academicPeriods.data?.items ?? [],
+      timetableSlots: timetableSlots.data?.items ?? [],
       timetableEntries: timetableEntries.data?.items ?? [],
       staff: staff.data?.items ?? [],
       learners: learners.data?.items ?? [],
@@ -137,6 +142,7 @@ export function useCanonicalAcademics() {
       marks.data,
       academicYears.data,
       academicPeriods.data,
+      timetableSlots.data,
       timetableEntries.data,
       staff.data,
       learners.data,

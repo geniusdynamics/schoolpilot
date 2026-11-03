@@ -1,465 +1,310 @@
-import { logger } from '@/utils/logging';
+// ABOUTME: Exam scheduling page — the date window and the learning areas (papers) an assessment
+// ABOUTME: covers. Both live on the canonical assessment row, so this screen and Exam Sessions read
+// ABOUTME: and write the same record. Per-paper times and rooms are not modelled.
 
-// ABOUTME: This file provides the main Exam Scheduling Page component
-// ABOUTME: with calendar view, schedule listing, and management functionality
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import React, { useCallback, useState, useEffect } from 'react';
-import { ExamSchedule } from '../data/types';
-import { examScheduleManager } from '../services/ExamScheduleManager';
-import ExamSchedulingUI from '../components/ExamSchedulingUI';
-import SchedulingCalendar from '@/components/SchedulingCalendar';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { useAppData } from '@/hooks/useAppData';
-import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { LegacyDataNotice } from '@/components/LegacyDataNotice';
+import Checkbox from '@/components/ui/Checkbox';
+import Input from '@/components/ui/Input';
+import Spinner from '@/components/ui/Spinner';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { EditIcon } from '@/components/ui/icons';
+import { type UpdateInput } from '@/data/repository';
+import { asId } from '@/domain/ids';
+import { useCan } from '@/data/auth/useCan';
+import { useToast } from '@/hooks/useToast';
+import { periodLabel } from '@/utils/academicLabels';
 
-interface ExamSchedulingPageProps {
-  examSessionId?: string;
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
+import {
+  useCanonicalAcademics,
+  type AcademicPeriodRow,
+  type AssessmentRow,
+} from '../data/useCanonicalAcademics';
+
+interface WindowDraft {
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly learningAreaIds: readonly string[];
 }
 
-export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ examSessionId }) => {
-  const { classStreams = [] } = useAppData();
-  const [schedules, setSchedules] = useState<ExamSchedule[]>([]);
-  const [filteredSchedules, setFilteredSchedules] = useState<ExamSchedule[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingSchedule, setEditingSchedule] = useState<ExamSchedule | null>(null);
-  const [filterClassStream, setFilterClassStream] = useState<string>('');
-  const [filterRoom, setFilterRoom] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+/** The model holds one window for the assessment, not a time for each paper. */
+const WINDOW_NOTE =
+  'The model holds one date window for the assessment; per-paper times and rooms are not modelled yet.';
 
-  const scheduleManager = examScheduleManager;
+function toggled(ids: readonly string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((current) => current !== id) : [...ids, id];
+}
 
-  const loadSchedules = useCallback(async () => {
-    try {
-      setLoading(true);
-      let allSchedules;
-      
-      if (examSessionId) {
-        allSchedules = await scheduleManager.getSchedulesByExam(examSessionId);
-      } else {
-        allSchedules = await scheduleManager.getAllExamSchedules();
-      }
-      
-      setSchedules(allSchedules);
-    } catch (error) {
-      logger.error('Error loading schedules:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [examSessionId, scheduleManager]);
+const ExamWindowList: React.FC = () => {
+  const { t } = useTranslation('academics');
+  const toast = useToast();
+  const {
+    repository,
+    institutionId,
+    isLoading,
+    assessments,
+    academicPeriods,
+    academicYearById,
+    learningAreas,
+  } = useCanonicalAcademics();
 
-  const applyFilters = useCallback(() => {
-    let filtered = [...schedules];
+  // Scheduling edits the assessment, so the same assessment.write permission gates it.
+  const canEdit = useCan('assessment.write');
 
-    if (filterClassStream) {
-      filtered = filtered.filter(s => s && 
-        s.class_stream_id?.toString() === filterClassStream
-      );
-    }
+  const [editing, setEditing] = useState<AssessmentRow | null>(null);
+  const [draft, setDraft] = useState<WindowDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-    if (filterRoom) {
-      filtered = filtered.filter(s => s && 
-        s.room_number?.toLowerCase().includes(filterRoom.toLowerCase())
-      );
-    }
+  const academicPeriodById = useMemo<ReadonlyMap<string, AcademicPeriodRow>>(
+    () => new Map(academicPeriods.map((period) => [period.id, period] as const)),
+    [academicPeriods]
+  );
+  const periodName = (id: string) => {
+    const period = academicPeriodById.get(id);
+    return period
+      ? periodLabel({
+          name: period.name,
+          academicYear: academicYearById.get(period.academic_year_id)?.name,
+        })
+      : id;
+  };
+  const learningAreaName = (id: string) => learningAreas.find((area) => area.id === id)?.name ?? id;
 
-    setFilteredSchedules(filtered);
-  }, [schedules, filterClassStream, filterRoom]);
-
-  useEffect(() => {
-    loadSchedules();
-  }, [loadSchedules]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
-
-  const handleCreateSchedule = async (schedule: ExamSchedule) => {
-    try {
-      const newSchedule = await scheduleManager.createExamSchedule({
-        exam_id: schedule.exam_id ?? schedule.exam_session_id ?? '',
-        period_id: schedule.period_id,
-        class_stream_id: schedule.class_stream_id,
-        invigilator_id: schedule.invigilator_id ?? schedule.invigilator ?? '',
-        room_number: schedule.room_number ?? schedule.room ?? '',
-      });
-      if (newSchedule) {
-        setSchedules(prev => [...prev, newSchedule]);
-        setShowCreateModal(false);
-      }
-    } catch (error) {
-      logger.error('Error creating schedule:', error);
-    }
+  const startEdit = (row: AssessmentRow) => {
+    setEditing(row);
+    setFormError(null);
+    setDraft({
+      startDate: row.date_window?.start_date ?? '',
+      endDate: row.date_window?.end_date ?? '',
+      learningAreaIds: row.learning_area_ids,
+    });
   };
 
-  const handleUpdateSchedule = async (schedule: ExamSchedule) => {
-    try {
-      const updated = await scheduleManager.updateExamSchedule(schedule.id, schedule);
-      if (updated) {
-        setSchedules(prev => 
-          prev.map(s => s.id === schedule.id ? updated : s)
-        );
-        setEditingSchedule(null);
-      }
-    } catch (error) {
-      logger.error('Error updating schedule:', error);
-    }
+  const closeForm = () => {
+    setDraft(null);
+    setEditing(null);
+    setFormError(null);
   };
 
-  const confirm = useConfirm();
-  const handleDeleteSchedule = async (scheduleId: string) => {
-    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this schedule?' }))) {
+  const submit = async () => {
+    if (!draft || !editing) return;
+    if (!draft.startDate || !draft.endDate) {
+      setFormError('Set both the first and the last day of the window.');
+      return;
+    }
+    if (draft.endDate < draft.startDate) {
+      setFormError('The window must end on or after the day it starts.');
+      return;
+    }
+    if (draft.learningAreaIds.length === 0) {
+      setFormError('Choose at least one learning area: a window with no paper covers nothing.');
+      return;
+    }
+    if (institutionId === null) {
+      setFormError(
+        'The canonical database holds no institution row, so the window cannot be saved yet.'
+      );
       return;
     }
 
+    setSaving(true);
+    setFormError(null);
     try {
-      const success = await scheduleManager.deleteExamSchedule(scheduleId);
-      if (success) {
-        setSchedules(prev => prev.filter(s => s.id !== scheduleId));
-      }
+      const patch: UpdateInput<'assessment'> = {
+        date_window: { start_date: draft.startDate, end_date: draft.endDate },
+        learning_area_ids: [...draft.learningAreaIds],
+      };
+      await repository.update('assessment', asId<'assessment'>(editing.id), patch, {
+        expectedVersion: editing.rowVersion,
+      });
+      toast.showSuccess('Exam window saved.');
+      closeForm();
     } catch (error) {
-      logger.error('Error deleting schedule:', error);
+      setFormError(messageOf(error));
+    } finally {
+      setSaving(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'SCHEDULED': return '#007bff';
-      case 'IN_PROGRESS': return '#ffc107';
-      case 'COMPLETED': return '#28a745';
-      case 'CANCELLED': return '#dc3545';
-      default: return '#6c757d';
-    }
-  };
+  const columns: DataGridColumn<AssessmentRow>[] = [
+    { key: 'name', header: 'Session', sortable: true, filterable: true },
+    {
+      key: 'academic_period_id',
+      header: 'Period',
+      sortable: true,
+      filterable: true,
+      render: (_value: unknown, row: AssessmentRow) => periodName(row.academic_period_id),
+    },
+    {
+      key: 'date_window',
+      header: 'Window',
+      render: (_value: unknown, row: AssessmentRow) =>
+        row.date_window ? `${row.date_window.start_date} → ${row.date_window.end_date}` : 'Not set',
+    },
+    {
+      key: 'learning_area_ids',
+      header: 'Papers covered',
+      render: (_value: unknown, row: AssessmentRow) =>
+        row.learning_area_ids.length > 0
+          ? row.learning_area_ids.map(learningAreaName).join(', ')
+          : '—',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (_value: unknown, row: AssessmentRow) => (
+        <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-surface-foreground">
+          {row.status.replace(/_/g, ' ')}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (_value: unknown, row: AssessmentRow) => (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => startEdit(row)}
+          leftIcon={<EditIcon className="w-4 h-4" />}
+        >
+          Schedule
+        </Button>
+      ),
+    },
+  ].filter((column) => canEdit || column.key !== 'actions') as DataGridColumn<AssessmentRow>[];
 
-  const renderCalendarView = () => (
-    <div className="calendar-view">
-      <SchedulingCalendar
-        schedules={filteredSchedules.map(s => ({
-          id: s.id,
-          examId: s.exam_id ?? s.exam_session_id ?? '',
-          examName: s.subject_name ?? '',
-          date: s.date ?? '',
-          startTime: s.start_time ?? '',
-          endTime: s.end_time ?? '',
-          roomNumber: s.room_number ?? s.room ?? '',
-          invigilator: s.invigilator_id ?? s.invigilator ?? '',
-          classStream: String(s.class_stream_id ?? ''),
-          status: 'scheduled' as const,
-        }))}
-        onSelectSchedule={(sc) => setEditingSchedule(filteredSchedules.find(f => f.id === sc.id) ?? null)}
-        onAddSchedule={() => setShowCreateModal(true)}
-        onDeleteSchedule={handleDeleteSchedule}
-      />
-    </div>
-  );
-
-  const renderListView = () => (
-    <div className="list-view">
-      <div className="schedules-list">
-        {filteredSchedules.length === 0 ? (
-          <div className="no-schedules">
-            No exam schedules found. Create one to get started!
-          </div>
-        ) : (
-          filteredSchedules.map(schedule => (
-            <div key={schedule.id} className="schedule-item">
-              <div className="schedule-info">
-                <h4>{schedule.subject_name}</h4>
-                <p><strong>Class:</strong> {schedule.class_stream_id}</p>
-                <p><strong>Room:</strong> {schedule.room_number}</p>
-                <p><strong>Time:</strong> {schedule.start_time}</p>
-                <p><strong>Duration:</strong> {schedule.duration_minutes} minutes</p>
-                <p><strong>Max Students:</strong> {schedule.max_students}</p>
-                <p><strong>Status:</strong> 
-                  <span 
-                    className="status-badge" 
-                    style={{ backgroundColor: getStatusColor(schedule.status || '') }}
-                  >
-                    {schedule.status}
-                  </span>
-                </p>
-              </div>
-              <div className="schedule-actions">
-                <button onClick={() => setEditingSchedule(schedule)}>Edit</button>
-                <button onClick={() => handleDeleteSchedule(schedule.id)}>Delete</button>
-              </div>
-            </div>
-          ))
-        )}
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Spinner size="lg" />
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="exam-scheduling-page">
-      <LegacyDataNotice>A paper scheduled here is not the assessment marks are entered against.</LegacyDataNotice>
-      <PageHeaderWithTabs
-        title="Exam Scheduling Management"
-        action={
-          <div className="header-actions">
-            <Button onClick={() => setShowCreateModal(true)} variant="primary">
-              Create New Schedule
-            </Button>
-            <div className="view-toggle">
-              <button 
-                className={viewMode === 'calendar' ? 'active' : ''}
-                onClick={() => setViewMode('calendar')}
+    <div className="space-y-3">
+      {institutionId === null && (
+        <p
+          role="alert"
+          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
+        >
+          The canonical database holds no institution row, so the window cannot be saved yet.
+        </p>
+      )}
+
+      <Card
+        title={t('examScheduling.title', 'Exam Scheduling Management')}
+        info="Set the window an assessment runs in and the learning areas it covers. Marks entry reads the same assessment."
+        bodyClassName="p-0"
+      >
+        <p className="border-t border-surface-border p-4 text-sm text-surface-muted-fg">
+          {WINDOW_NOTE}
+        </p>
+        <DataGrid
+          columns={columns}
+          data={[...assessments]}
+          sortable
+          filterable
+          pagination
+          emptyState="No exam sessions yet. Create one on the Exam Sessions tab first."
+        />
+      </Card>
+
+      {draft && editing && (
+        <Card title={`Schedule ${editing.name}`}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Input
+                label="Window start"
+                name="window_start"
+                type="date"
+                value={draft.startDate}
+                onChange={(event) =>
+                  setDraft((current) =>
+                    current ? { ...current, startDate: event.target.value } : current
+                  )
+                }
+              />
+              <Input
+                label="Window end"
+                name="window_end"
+                type="date"
+                value={draft.endDate}
+                onChange={(event) =>
+                  setDraft((current) =>
+                    current ? { ...current, endDate: event.target.value } : current
+                  )
+                }
+              />
+            </div>
+
+            <fieldset className="rounded-md border border-surface-border p-3">
+              <legend className="px-1 text-sm font-semibold text-surface-foreground">
+                Learning areas covered
+              </legend>
+              {learningAreas.length === 0 ? (
+                <p className="text-sm text-surface-muted-fg">No learning areas exist yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {learningAreas.map((area) => (
+                    <Checkbox
+                      key={area.id}
+                      checked={draft.learningAreaIds.includes(area.id)}
+                      onChange={() =>
+                        setDraft((current) =>
+                          current
+                            ? {
+                                ...current,
+                                learningAreaIds: toggled(current.learningAreaIds, area.id),
+                              }
+                            : current
+                        )
+                      }
+                    >
+                      {area.name}
+                    </Checkbox>
+                  ))}
+                </div>
+              )}
+            </fieldset>
+
+            {formError && (
+              <p
+                role="alert"
+                className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800"
               >
-                Calendar
-              </button>
-              <button 
-                className={viewMode === 'list' ? 'active' : ''}
-                onClick={() => setViewMode('list')}
-              >
-                List
-              </button>
+                {formError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button onClick={() => void submit()} loading={saving}>
+                Save window
+              </Button>
             </div>
           </div>
-        }
-      />
-
-      <div className="filters">
-        <div className="filter-group">
-          <label>Filter by Class Stream:</label>
-          <select 
-            value={filterClassStream} 
-            onChange={(e) => setFilterClassStream(e.target.value)}
-          >
-            <option value="">All Classes</option>
-            {classStreams.map(stream => (
-              <option key={stream?.id ?? ''} value={stream?.id?.toString() ?? ''}>
-                {stream.class_name} {stream.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>Filter by Room:</label>
-          <input 
-            type="text" 
-            placeholder="Room number..."
-            value={filterRoom}
-            onChange={(e) => setFilterRoom(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="loading">Loading schedules...</div>
-      ) : (
-        <>
-          {viewMode === 'calendar' ? renderCalendarView() : renderListView()}
-        </>
+        </Card>
       )}
-
-      {showCreateModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button 
-              className="close-button" 
-              onClick={() => setShowCreateModal(false)}
-            >
-              ×
-            </button>
-            <ExamSchedulingUI
-              onScheduleComplete={handleCreateSchedule}
-              onCancel={() => setShowCreateModal(false)}
-            />
-          </div>
-        </div>
-      )}
-
-      {editingSchedule && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button 
-              className="close-button" 
-              onClick={() => setEditingSchedule(null)}
-            >
-              ×
-            </button>
-            <ExamSchedulingUI
-              examId={editingSchedule.id}
-              onScheduleComplete={handleUpdateSchedule}
-              onCancel={() => setEditingSchedule(null)}
-            />
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        .exam-scheduling-page {
-          padding: 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 15px;
-          align-items: center;
-        }
-
-        .view-toggle {
-          display: flex;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          overflow: hidden;
-        }
-
-        .view-toggle button {
-          padding: 8px 16px;
-          border: none;
-          background: white;
-          cursor: pointer;
-        }
-
-        .view-toggle button.active {
-          background: #007bff;
-          color: white;
-        }
-
-        .filters {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 20px;
-          padding: 15px;
-          background: #f8f9fa;
-          border-radius: 4px;
-        }
-
-        .filter-group {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-        }
-
-        .filter-group label {
-          font-weight: bold;
-          font-size: 14px;
-        }
-
-        .filter-group input,
-        .filter-group select {
-          padding: 8px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-        }
-
-        .loading {
-          text-align: center;
-          padding: 40px;
-          font-size: 18px;
-          color: #666;
-        }
-
-        .schedules-list {
-          display: grid;
-          gap: 15px;
-        }
-
-        .schedule-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          padding: 15px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          background: white;
-        }
-
-        .schedule-info h4 {
-          margin: 0 0 10px 0;
-          color: #333;
-        }
-
-        .schedule-info p {
-          margin: 5px 0;
-          font-size: 14px;
-        }
-
-        .status-badge {
-          padding: 2px 8px;
-          border-radius: 12px;
-          color: white;
-          font-size: 12px;
-          font-weight: bold;
-        }
-
-        .schedule-actions {
-          display: flex;
-          gap: 10px;
-        }
-
-        .schedule-actions button {
-          padding: 5px 10px;
-          border: 1px solid #ddd;
-          background: white;
-          cursor: pointer;
-          border-radius: 4px;
-          font-size: 12px;
-        }
-
-        .schedule-actions button:hover {
-          background: #f8f9fa;
-        }
-
-        .no-schedules {
-          text-align: center;
-          padding: 40px;
-          color: #666;
-          font-style: italic;
-        }
-
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          max-width: 600px;
-          max-height: 90vh;
-          overflow-y: auto;
-          position: relative;
-        }
-
-        .close-button {
-          position: absolute;
-          top: 10px;
-          right: 15px;
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #666;
-        }
-
-        .close-button:hover {
-          color: #000;
-        }
-      `}</style>
     </div>
   );
 };
 
-const ExamSchedulingPage: React.FC = () => (
-  <div className="space-y-3">
-    <ExamSchedulingPageContent />
-  </div>
+export const ExamSchedulingPageContent: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <ExamWindowList />
+  </CanonicalRepositoryProvider>
 );
+
+const ExamSchedulingPage: React.FC = () => <ExamSchedulingPageContent />;
 
 export default ExamSchedulingPage;

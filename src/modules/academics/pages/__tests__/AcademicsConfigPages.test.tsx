@@ -1,6 +1,6 @@
 // ABOUTME: Page tests for the academics configuration pages that still read the legacy module
-// ABOUTME: context (P0-F04, SO-11/22/23): grading schemes, education systems, timetable entries
-// ABOUTME: and exam sessions persist with string (UUID) ids.
+// ABOUTME: context (P0-F04, SO-11/22/23): grading schemes and education systems persist with
+// ABOUTME: string (UUID) ids.
 
 import React from 'react';
 import { screen, fireEvent, waitFor, within } from '@testing-library/react';
@@ -10,8 +10,6 @@ import { AdministrationDataProvider } from '@/modules/administration/data/Admini
 import { AcademicDataProvider } from '@/modules/academics/data/AcademicDataContext';
 import GradingSchemesPage from '../GradingSchemesPage';
 import EducationSystemsPage from '../EducationSystemsPage';
-import TimetableEntriesPage from '../TimetableEntriesPage';
-import ExamSessionsPage from '../ExamSessionsPage';
 
 vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
@@ -82,9 +80,6 @@ const renderPage = (ui: React.ReactElement) =>
     </AdministrationDataProvider>
   );
 
-const selectByName = (name: string) => document.querySelector(`select[name="${name}"]`) as HTMLSelectElement;
-const optionLabels = (select: HTMLSelectElement) => Array.from(select.options).filter((o) => o.value).map((o) => o.textContent?.trim());
-
 // UUID-style ids, as created through the UI (seed data uses "1", "2" which hides coercion bugs).
 const YEAR = '0192a1b2-0000-7000-8000-00000000a001';
 const TERM = '0192a1b2-0000-7000-8000-00000000b001';
@@ -94,8 +89,6 @@ const SUBJECT = '0192a1b2-0000-7000-8000-00000000e001';
 const SUBJECT_2 = '0192a1b2-0000-7000-8000-00000000e002';
 const STUDENT = '0192a1b2-0000-7000-8000-00000000f001';
 const TEACHER = '0192a1b2-0000-7000-8000-000000001001';
-const ALLOCATION = '0192a1b2-0000-7000-8000-000000002001';
-const PERIOD = '0192a1b2-0000-7000-8000-000000003001';
 
 beforeEach(() => {
   nextId = 0;
@@ -177,73 +170,3 @@ describe('EducationSystemsPage (P0-F04)', () => {
   });
 });
 
-describe('TimetableEntriesPage (P0-F04)', () => {
-  beforeEach(() => {
-    collections.timetable_period_definitions = createMemoryCollection([
-      { id: PERIOD, period_name: 'Lesson 1', start_time: '08:00', end_time: '08:40' },
-    ]);
-    collections.class_subject_allocations = createMemoryCollection([
-      { id: ALLOCATION, class_stream_id: STREAM, subject_id: SUBJECT, academic_year_id: YEAR },
-      { id: 'alloc-eng', class_stream_id: STREAM, subject_id: SUBJECT_2, academic_year_id: YEAR },
-    ]);
-    collections.teacher_subject_assignments = createMemoryCollection([
-      { id: 'tsa-1', allocation_id: ALLOCATION, teacher_id: TEACHER },
-      { id: 'tsa-2', allocation_id: 'alloc-eng', teacher_id: TEACHER },
-    ]);
-  });
-
-  it('adds and edits a slot for a UUID stream with string ids', async () => {
-    renderPage(<TimetableEntriesPage />);
-    const streamPicker = await screen.findByLabelText('Select Class Stream');
-    await waitFor(() => expect(optionLabels(streamPicker as HTMLSelectElement)).toEqual(['Grade 7 - East']));
-    fireEvent.change(streamPicker, { target: { value: STREAM } });
-
-    const addButtons = await screen.findAllByRole('button', { name: '' });
-    fireEvent.click(addButtons[0]);
-    const dialog = await screen.findByRole('dialog');
-    fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT } });
-    fireEvent.click(await screen.findByRole('combobox', { name: 'Teacher' }));
-    fireEvent.click(await screen.findByRole('option', { name: 'Jane Wanjiru' }));
-    fireEvent.click(within(dialog).getByRole('button', { name: /add slot/i }));
-
-    await waitFor(() => expect(collections.timetable_entries.rows()).toHaveLength(1));
-    expect(collections.timetable_entries.rows()[0]).toMatchObject({
-      class_stream_id: STREAM,
-      period_id: PERIOD,
-      subject_id: SUBJECT,
-      teacher_id: TEACHER,
-      day_of_week: 'MONDAY',
-    });
-    expect(await screen.findByText('Mathematics')).toBeInTheDocument();
-    expect(screen.getByText('Jane Wanjiru')).toBeInTheDocument();
-
-    // The filled slot's first icon button is Edit.
-    fireEvent.click(screen.getAllByRole('button', { name: '' })[0]);
-    const editDialog = await screen.findByRole('dialog');
-    fireEvent.change(selectByName('subject_id'), { target: { value: SUBJECT_2 } });
-    fireEvent.click(await screen.findByRole('combobox', { name: 'Teacher' }));
-    fireEvent.click(await screen.findByRole('option', { name: 'Jane Wanjiru' }));
-    fireEvent.click(within(editDialog).getByRole('button', { name: /save changes/i }));
-
-    await waitFor(() => expect(collections.timetable_entries.update).toHaveBeenCalledWith('uuid-1', expect.objectContaining({
-      subject_id: SUBJECT_2,
-      teacher_id: TEACHER,
-    })));
-    expect(await screen.findByText('English')).toBeInTheDocument();
-  });
-});
-
-describe('ExamSessionsPage (P0-F04)', () => {
-  it('creates a session for a UUID school period and stores the id unchanged', async () => {
-    renderPage(<ExamSessionsPage />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Add Exam Session' }));
-    await screen.findByRole('dialog');
-    await waitFor(() => expect(optionLabels(selectByName('school_period_id'))).toEqual(['Term 1']));
-    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'End Term' } });
-    fireEvent.change(selectByName('school_period_id'), { target: { value: TERM } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add Session' }));
-
-    await waitFor(() => expect(collections.exam_sessions.rows()).toHaveLength(1));
-    expect(collections.exam_sessions.rows()[0]).toMatchObject({ name: 'End Term', school_period_id: TERM });
-  });
-});

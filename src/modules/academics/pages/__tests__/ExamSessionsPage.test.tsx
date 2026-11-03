@@ -1,167 +1,168 @@
-// ABOUTME: This test file covers ExamSessionsPage session and nested paper-setting CRUD interactions.
-// ABOUTME: It verifies the page uses the academics module context mutations and writes ids as strings (P0-F04).
+// ABOUTME: Page test for the exam sessions screen: a session is a canonical assessment, created,
+// ABOUTME: edited and deleted through the repository, and it is the same row marks are entered against.
 
-import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { vi, describe, it, beforeEach, expect } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { CanonicalRepositoryProvider } from '../../data/canonicalRepository';
 import ExamSessionsPage from '../ExamSessionsPage';
-import { AcademicDataContext } from '@/modules/academics/data/AcademicDataContext';
-import { ToastProvider } from '@/hooks/useToast';
-import { ExamSessionStatus } from '@/modules/academics/data/types';
-
-// This file imports RTL's render directly (bypassing the global provider
-// wrapper in setup.ts); the page calls useToast(), so wrap every render here.
-const render = (ui: React.ReactElement, options?: Parameters<typeof rtlRender>[1]) =>
-  rtlRender(<ToastProvider>{ui}</ToastProvider>, options);
+import { createFakeRepository, type FakeRepository } from './canonicalRepositoryDouble';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key
-  })
+    t: (key: string, fallback?: string | Record<string, unknown>) =>
+      typeof fallback === 'string' ? fallback : key,
+  }),
 }));
 
-const mockAddExamSession = vi.fn();
-const mockUpdateExamSession = vi.fn();
-const mockDeleteExamSession = vi.fn();
-const mockAddExamPaperSetting = vi.fn();
-const mockUpdateExamPaperSetting = vi.fn();
-const mockDeleteExamPaperSetting = vi.fn();
+const INSTITUTION = '0192a1b2-0000-7000-8000-000000000001';
+const PERIOD = '0192a1b2-0000-7000-8000-000000000002';
+const YEAR = '0192a1b2-0000-7000-8000-000000000003';
+const LEVEL = '0192a1b2-0000-7000-8000-000000000004';
+const CLASS_GROUP = '0192a1b2-0000-7000-8000-000000000005';
+const AREA = '0192a1b2-0000-7000-8000-000000000006';
+const AREA_TWO = '0192a1b2-0000-7000-8000-000000000007';
+const ASSESSMENT = '0192a1b2-0000-7000-8000-000000000008';
 
-const baseContextValue = {
-  examSessions: [
+const seed = () => ({
+  institution: [{ id: INSTITUTION, name: 'Greenfields Academy' }],
+  academic_year: [{ id: YEAR, name: '2026', is_current: true }],
+  academic_period: [
     {
-      id: 'session-1',
-      name: 'Mid Term',
-      school_period_id: 1,
-      school_period_name: 'Term 1',
-      status: ExamSessionStatus.PLANNING,
-      created_at: '2026-01-01T00:00:00.000Z',
-      updated_at: '2026-01-01T00:00:00.000Z',
-      paper_settings: [
-        {
-          id: 'setting-1',
-          exam_session_id: 'session-1',
-          subject_paper_id: 1,
-          subject_name: 'Mathematics',
-          subject_paper_name: 'Paper 1',
-          marks_out_of: 100,
-          weight_percentage: 50,
-          created_at: '2026-01-01T00:00:00.000Z',
-          updated_at: '2026-01-01T00:00:00.000Z'
-        }
-      ]
-    }
+      id: PERIOD,
+      name: 'Term 1',
+      academic_year_id: YEAR,
+      start_date: '2026-01-05',
+      end_date: '2026-04-03',
+      status: 'current',
+    },
   ],
-  schoolPeriods: [
-    { id: 1, name: 'Term 1', is_active: true },
-    { id: 2, name: 'Term 2', is_active: false }
+  level: [{ id: LEVEL, name: 'Grade 7', ordinal: 7 }],
+  class_group: [
+    {
+      id: CLASS_GROUP,
+      name: 'East',
+      level_id: LEVEL,
+      academic_year_id: YEAR,
+      institution_id: INSTITUTION,
+      homeroom_teacher_ids: [],
+    },
   ],
-  subjectPapers: [
-    { id: 1, subject_id: 101, subject_name: 'Mathematics', name: 'Paper 1', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
-    { id: 2, subject_id: 102, subject_name: 'English', name: 'Paper 1', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+  learning_area: [
+    { id: AREA, name: 'Mathematics', code: 'MAT', institution_id: INSTITUTION },
+    { id: AREA_TWO, name: 'English', code: 'ENG', institution_id: INSTITUTION },
   ],
-  loading: {
-    examSessions: false,
-    schoolPeriods: false,
-    subjectPapers: false
-  },
-  addExamSession: mockAddExamSession,
-  updateExamSession: mockUpdateExamSession,
-  deleteExamSession: mockDeleteExamSession,
-  addExamPaperSetting: mockAddExamPaperSetting,
-  updateExamPaperSetting: mockUpdateExamPaperSetting,
-  deleteExamPaperSetting: mockDeleteExamPaperSetting
-};
+  assessment: [
+    {
+      id: ASSESSMENT,
+      institution_id: INSTITUTION,
+      academic_period_id: PERIOD,
+      kind: 'mid_term',
+      name: 'Mid term',
+      level_ids: [LEVEL],
+      class_group_ids: [CLASS_GROUP],
+      learning_area_ids: [AREA],
+      component_ids: [],
+      status: 'open',
+    },
+  ],
+});
 
-const renderPage = (contextOverrides: Record<string, unknown> = {}) => render(
-  <AcademicDataContext.Provider value={{ ...baseContextValue, ...contextOverrides } as any}>
-    <ExamSessionsPage />
-  </AcademicDataContext.Provider>
-);
+let repository: FakeRepository;
 
-describe('ExamSessionsPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.spyOn(window, 'alert').mockImplementation(() => undefined);
-  });
+const renderPage = () =>
+  render(
+    <CanonicalRepositoryProvider repository={repository}>
+      <ExamSessionsPage />
+    </CanonicalRepositoryProvider>
+  );
 
-  it('creates a new exam session through the context add handler', async () => {
+async function choose(label: string, option: string) {
+  fireEvent.click(screen.getByRole('combobox', { name: new RegExp(label) }));
+  fireEvent.click(await screen.findByRole('option', { name: option }));
+}
+
+beforeEach(() => {
+  repository = createFakeRepository(seed());
+});
+
+describe('exam sessions page', () => {
+  it('lists the assessments the repository serves and drops the legacy notice', async () => {
     renderPage();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add Exam Session' }));
-    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'End Term' } });
-    fireEvent.change(document.querySelector('select[name="school_period_id"]') as HTMLSelectElement, { target: { value: '2' } });
-    fireEvent.change(document.querySelector('select[name="status"]') as HTMLSelectElement, { target: { value: ExamSessionStatus.MARKS_ENTRY_OPEN } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add Session' }));
-
-    await waitFor(() => {
-      expect(mockAddExamSession).toHaveBeenCalledWith({
-        name: 'End Term',
-        school_period_id: '2',
-        status: ExamSessionStatus.MARKS_ENTRY_OPEN
-      });
-    });
+    expect(await screen.findByText('Mid term')).toBeTruthy();
+    expect(screen.getByText('Term 1 · 2026')).toBeTruthy();
+    expect(screen.queryByTestId('legacy-data-notice')).toBeNull();
+    expect(screen.queryByText(/Not connected to your school/i)).toBeNull();
   });
 
-  it('updates an existing exam session through the context update handler', async () => {
+  it('creates a session as an assessment that marks entry will offer', async () => {
     renderPage();
+    expect(await screen.findByText('Mid term')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: /Add exam session/i }));
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'End term' } });
+    await choose('Academic period', 'Term 1 · 2026');
+    fireEvent.change(screen.getByLabelText('Kind'), { target: { value: 'end_term' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Grade 7' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Grade 7 · East' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'English' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create session' }));
+
+    await waitFor(() =>
+      expect(repository.writes).toEqual([
+        expect.objectContaining({
+          operation: 'create',
+          entity: 'assessment',
+          payload: expect.objectContaining({
+            institution_id: INSTITUTION,
+            academic_period_id: PERIOD,
+            kind: 'end_term',
+            name: 'End term',
+            level_ids: [LEVEL],
+            class_group_ids: [CLASS_GROUP],
+            learning_area_ids: [AREA_TWO],
+            component_ids: [],
+            status: 'open',
+          }),
+        }),
+      ])
+    );
+    expect(await screen.findByText('End term')).toBeTruthy();
+  });
+
+  it('changes the status of an assessment through the repository', async () => {
+    renderPage();
+    expect(await screen.findByText('Mid term')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    fireEvent.change(screen.getByLabelText(/^Exam Session Name/), { target: { value: 'Updated Mid Term' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'closed' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save session' }));
 
-    await waitFor(() => {
-      expect(mockUpdateExamSession).toHaveBeenCalledWith('session-1', {
-        name: 'Updated Mid Term',
-        school_period_id: '1',
-        status: ExamSessionStatus.PLANNING
-      });
-    });
+    await waitFor(() =>
+      expect(repository.writes).toEqual([
+        expect.objectContaining({
+          operation: 'update',
+          entity: 'assessment',
+          id: ASSESSMENT,
+          payload: expect.objectContaining({ status: 'closed' }),
+        }),
+      ])
+    );
   });
 
-  it('creates and updates paper settings through nested context handlers', async () => {
+  it('refuses a session without a learning area, because marks entry never offers it', async () => {
     renderPage();
+    expect(await screen.findByText('Mid term')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Papers' }));
-    fireEvent.change(document.querySelector('select[name="subject_paper_id"]') as HTMLSelectElement, { target: { value: '2' } });
-    fireEvent.change(document.querySelector('input[name="marks_out_of"]') as HTMLInputElement, { target: { value: '80' } });
-    fireEvent.change(document.querySelector('input[name="weight_percentage"]') as HTMLInputElement, { target: { value: '40' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add Paper' }));
+    fireEvent.click(screen.getByRole('button', { name: /Add exam session/i }));
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'End term' } });
+    await choose('Academic period', 'Term 1 · 2026');
+    fireEvent.click(screen.getByRole('button', { name: 'Create session' }));
 
-    await waitFor(() => {
-      expect(mockAddExamPaperSetting).toHaveBeenCalledWith({
-        exam_session_id: 'session-1',
-        subject_paper_id: '2',
-        marks_out_of: 80,
-        weight_percentage: 40
-      });
-    });
-
-    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
-    fireEvent.change(document.querySelector('input[name="marks_out_of"]') as HTMLInputElement, { target: { value: '90' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Update Paper' }));
-
-    await waitFor(() => {
-      expect(mockUpdateExamPaperSetting).toHaveBeenCalledWith('setting-1', {
-        exam_session_id: 'session-1',
-        subject_paper_id: '1',
-        marks_out_of: 90,
-        weight_percentage: 50
-      });
-    });
-  });
-
-  it('deletes exam sessions and paper settings through the context delete handlers', async () => {
-    const { unmount } = renderPage();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
-    await waitFor(() => expect(mockDeleteExamSession).toHaveBeenCalledWith('session-1'));
-
-    unmount();
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Papers' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Del' }));
-    await waitFor(() => expect(mockDeleteExamPaperSetting).toHaveBeenCalledWith('setting-1'));
+    expect(
+      await screen.findByText('Choose at least one learning area: marks entry offers a session per learning area.')
+    ).toBeTruthy();
+    expect(repository.writes).toEqual([]);
   });
 });
