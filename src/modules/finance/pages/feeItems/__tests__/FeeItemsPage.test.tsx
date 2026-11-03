@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { CanonicalRepositoryProvider } from '@/data/canonicalRepository';
+import { bindSessionAuthority, clearSessionAuthority } from '@/data/auth/sessionAuthority';
 
 import { createFinanceRepositoryDouble, type FinanceRepositoryDouble } from '@/modules/finance/data/__tests__/canonicalRepositoryDouble';
 import { FeeItemsPageContent } from '../FeeItemsPage';
@@ -21,10 +22,15 @@ const toast = vi.hoisted(() => ({
 }));
 vi.mock('@/hooks/useToast', () => ({ useToast: () => toast, useToastHelpers: () => toast }));
 
-const rbac = vi.hoisted(() => ({ canEdit: true }));
-vi.mock('@/hooks/useRBAC', () => ({
-  useRBAC: () => ({ hasPermission: () => rbac.canEdit }),
-}));
+const authority = {
+  bind: (roles: PermissionContext['roles']) =>
+    bindSessionAuthority({
+      actorId: 'user-1',
+      roles,
+      scope: { institutionId: INSTITUTION, grants: [] },
+      at: '2026-11-03',
+    }),
+};
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -74,13 +80,22 @@ function seed(): FinanceRepositoryDouble {
         deleted_at: '2027-02-01T00:00:00.000Z',
       },
     ],
+    // The ledger's chart, which the GL account picker reads: two revenue accounts to choose from and
+    // an asset account that must not be offered.
+    ledger_account: [
+      { id: '00000000-0000-7000-8000-000000000101', institution_id: INSTITUTION, code: '4000', name: 'Fee income', kind: 'revenue', role: null, is_system: true, is_active: true },
+      { id: '00000000-0000-7000-8000-000000000102', institution_id: INSTITUTION, code: '4100', name: 'Tuition', kind: 'revenue', role: null, is_system: false, is_active: true },
+      { id: '00000000-0000-7000-8000-000000000103', institution_id: INSTITUTION, code: '1010', name: 'Cash book', kind: 'asset', role: 'cash', is_system: true, is_active: true },
+    ],
   });
 }
 
 let repository: FinanceRepositoryDouble;
 
 beforeEach(() => {
-  rbac.canEdit = true;
+  // Boot phase: nobody signed in, so the write controls are offered; the permission test binds a
+  // role that cannot write and clears the authority afterwards.
+  authority.bind(['administrator']);
   toast.showSuccess.mockClear();
   toast.showError.mockClear();
   repository = seed();
@@ -253,7 +268,7 @@ describe('the fee-items page', () => {
   });
 
   it('offers no way to change configuration without the finance write permission', async () => {
-    rbac.canEdit = false;
+    authority.bind(['teacher']);
     renderPage();
     await screen.findByText('TUITION');
 
@@ -262,5 +277,6 @@ describe('the fee-items page', () => {
     expect(screen.queryByRole('button', { name: 'Deactivate' })).not.toBeInTheDocument();
     // The list is still readable, and so is the deactivated toggle.
     expect(screen.getByLabelText('Show deactivated')).toBeInTheDocument();
+    clearSessionAuthority();
   });
 });
