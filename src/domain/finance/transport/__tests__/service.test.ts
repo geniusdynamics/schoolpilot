@@ -14,7 +14,6 @@ import { isTransportError } from '../errors';
 import { TransportBillingService } from '../service';
 
 const CLOCK = new Date('2027-02-10T09:00:00.000Z');
-const INSTITUTION = '00000000-0000-7000-8000-000000000001';
 const REVENUE_ACCOUNT = '4100';
 
 interface School {

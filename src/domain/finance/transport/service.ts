@@ -40,7 +40,7 @@ export interface TransportRepository extends QueryRepository {
     options?: WriteOptions
   ): Promise<RepositoryRow<E>>;
   list<E extends EntityName>(entity: E, query?: ListQuery): Promise<Page<RepositoryRow<E>>>;
-  transaction<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T>;
+  transaction?<T>(work: (tx: SqliteTransaction) => Promise<T>): Promise<T>;
 }
 
 /**
@@ -355,7 +355,15 @@ export class TransportBillingService {
         ? { reason: `transport charge for ${period.name}` }
         : { actor: uuidOrUndefined(actor), reason: `transport charge for ${period.name}` };
 
-    const charged = await this.repository.transaction(async (tx) => {
+    const transaction = this.repository.transaction?.bind(this.repository);
+    if (!transaction) {
+      throw new TransportError(
+        'transaction_required',
+        'The transport charge must commit with its invoice and ledger entry, but the repository cannot open a transaction.'
+      );
+    }
+
+    const charged = await transaction(async (tx) => {
       const ledger = new LedgerService({
         store: createTransactionLedgerStore(tx),
         mapping,
