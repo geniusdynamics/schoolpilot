@@ -1,488 +1,606 @@
-// GAP(P1-E02): the registry models no school-event entity, so this page stays on the legacy collection.
-import React, { useState, useMemo } from 'react';
-import { useAppData } from '@/hooks/useAppData';
-import Card from '@/components/ui/Card';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+// ABOUTME: The school events page, read from the canonical calendar: a calendar per school, the
+// ABOUTME: academic year it covers, and its calendar events shown by start date with past and
+// ABOUTME: upcoming told apart. Writes go through the canonical repository; the model stores an
+// ABOUTME: event's kind and dates, so the page shows those rather than inventing a title.
+
+import React, { useMemo, useState } from 'react';
 
 import Button from '@/components/ui/Button';
-import Select from '@/components/ui/Select';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import { CalendarIcon, PlusIcon, EditIcon, TrashIcon } from '@/components/ui/icons';
+import Card from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import Spinner from '@/components/ui/Spinner';
-import { DataGrid } from '@/components/ui/data';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
-import type { SchoolEvent, EventType, EventStatus } from '../data/types';
-import { logger } from '@/utils/logging';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { DateField } from '@/components/ui/forms/DateField';
+import { SchemaEntityForm, type EntityFormFieldMeta } from '@/components/ui/forms';
+import { useCan } from '@/data/auth/useCan';
+import { useEntityQuery } from '@/data/query';
+import { MAX_LIMIT, toWritableValues, type CreateInput, type RepositoryRow, type UpdateInput } from '@/data/repository';
+import { asId } from '@/domain/ids';
 import { useToast } from '@/hooks/useToast';
-import { LegacyDataNotice } from '@/components/LegacyDataNotice';
 
-export const EventsManagerPageContent: React.FC = () => {
-  const { loading } = useAppData();
+import {
+  eventKindLabel,
+  eventPhase,
+  formatCalendarDate,
+  todayIso,
+  type EventPhase,
+} from '../data/calendarEvents';
+import {
+  CanonicalRepositoryProvider,
+  createFormSchema,
+  updateFormSchema,
+  useWritableRepository,
+} from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
 
-  const eventsCollection = useDatabaseCollection<SchoolEvent>('school_events');
+type CalendarRow = RepositoryRow<'calendar'>;
+type CalendarEventRow = RepositoryRow<'calendar_event'>;
+type AcademicYearRow = RepositoryRow<'academic_year'>;
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<SchoolEvent | null>(null);
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+/** The whole collection: a school calendar is an administrative list, read in full. */
+const ALL = { limit: MAX_LIMIT } as const;
+/** A school keeps years of events, so the grid must not stop at the first page of 500. */
+const EVERY_PAGE = { allPages: true } as const;
 
-  const initialFormData: Partial<SchoolEvent> = {
-    title: '',
-    description: '',
-    event_type: 'Function',
-    start_date: '',
-    end_date: '',
-    location: '',
-    status: 'Upcoming',
-    organizer: '',
-    participants: ''
-  };
-  const [formData, setFormData] = useState<Partial<SchoolEvent>>(initialFormData);
+const PHASE_LABELS: Readonly<Record<EventPhase, string>> = {
+  upcoming: 'Upcoming',
+  current: 'In progress',
+  past: 'Past',
+};
 
-  // Live collection data from school_events
-  const mockEvents: SchoolEvent[] = useMemo(() => {
-    let filtered = eventsCollection.data;
+const PHASE_STYLES: Readonly<Record<EventPhase, string>> = {
+  upcoming: 'bg-primary-100 text-primary-800',
+  current: 'bg-green-100 text-green-800',
+  past: 'bg-surface-accent text-surface-muted-fg',
+};
 
-    if (selectedType) {
-      filtered = filtered.filter(e => e.event_type === selectedType);
-    }
+const EVENT_FIELDS: readonly EntityFormFieldMeta[] = [
+  {
+    path: 'kind',
+    label: 'Kind',
+    order: 1,
+    widget: 'select',
+    required: true,
+    help: 'The kind names the event; the calendar model stores no free-text title.',
+  },
+  { path: 'start_date', label: 'Start date', order: 2, widget: 'date', required: true },
+  { path: 'end_date', label: 'End date', order: 3, widget: 'date', required: true },
+  {
+    path: 'affects_attendance',
+    label: 'Affects attendance',
+    order: 4,
+    widget: 'checkbox',
+    required: true,
+    help: 'Tick when teaching does not happen on these days, as for a holiday or an exam window.',
+  },
+];
 
-    if (selectedStatus) {
-      filtered = filtered.filter(e => e.status === selectedStatus);
-    }
+interface CalendarDraft {
+  readonly calendarName: string;
+  readonly yearName: string;
+  readonly yearStart: string;
+  readonly yearEnd: string;
+}
 
-    if (searchTerm) {
-      filtered = filtered.filter(e => 
-        (e.title?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (e.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
-        (e.location?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-      );
-    }
+const EMPTY_DRAFT: CalendarDraft = {
+  calendarName: '',
+  yearName: '',
+  yearStart: '',
+  yearEnd: '',
+};
 
-    return filtered;
-  }, [eventsCollection.data, selectedType, selectedStatus, searchTerm]);
-
-  const openModal = (event?: SchoolEvent) => {
-    setEditingEvent(event || null);
-    setFormData(event ? {
-      title: event.title,
-      description: event.description,
-      event_type: event.event_type,
-      start_date: event.start_date,
-      end_date: event.end_date,
-      location: event.location,
-      status: event.status,
-      organizer: event.organizer,
-      participants: event.participants
-    } : initialFormData);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingEvent(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
+const EventsManagerPageContent: React.FC = () => {
+  const repository = useWritableRepository();
+  const canWrite = useCan('reference.write');
   const toast = useToast();
-  const handleSubmit = async () => {
-    if (!formData.title || !formData.start_date) {
-      toast.showWarning('Title and start date are required.');
+  const confirm = useConfirm();
+
+  const institutions = useEntityQuery(repository, 'institution', ALL);
+  const calendars = useEntityQuery(repository, 'calendar', ALL);
+  const academicYears = useEntityQuery(repository, 'academic_year', ALL);
+  const events = useEntityQuery(repository, 'calendar_event', ALL, EVERY_PAGE);
+
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
+  const [calendarDraft, setCalendarDraft] = useState<CalendarDraft | null>(null);
+  const [savingCalendar, setSavingCalendar] = useState(false);
+  const [calendarError, setCalendarError] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [eventForm, setEventForm] = useState<'create' | 'edit' | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEventRow | null>(null);
+
+  const queries = [institutions, calendars, academicYears, events];
+  const isLoading = queries.some((query) => query.status === 'loading');
+  const failed = queries.find((query) => query.status === 'error');
+
+  const institutionId = institutions.data?.items[0]?.id ?? null;
+
+  const calendarRows = useMemo<readonly CalendarRow[]>(
+    () => [...(calendars.data?.items ?? [])].sort((left, right) => left.name.localeCompare(right.name)),
+    [calendars.data]
+  );
+
+  const calendar: CalendarRow | undefined =
+    calendarRows.find((row) => row.id === selectedCalendarId) ?? calendarRows[0];
+
+  const calendarEvents = useMemo<readonly CalendarEventRow[]>(
+    () =>
+      [...(events.data?.items ?? [])]
+        .filter((row) => row.calendar_id === calendar?.id)
+        .sort(
+          (left, right) =>
+            left.start_date.localeCompare(right.start_date) ||
+            left.kind.localeCompare(right.kind)
+        ),
+    [events.data, calendar?.id]
+  );
+
+  const today = todayIso();
+  const years: readonly AcademicYearRow[] = useMemo(
+    () =>
+      [...(academicYears.data?.items ?? [])]
+        .filter((row) => row.calendar_id === calendar?.id)
+        .sort((left, right) => left.start_date.localeCompare(right.start_date)),
+    [academicYears.data, calendar?.id]
+  );
+
+  const counts = useMemo(() => {
+    const result: Record<EventPhase, number> = { upcoming: 0, current: 0, past: 0 };
+    for (const row of calendarEvents) {
+      result[eventPhase(row.start_date, row.end_date, today)] += 1;
+    }
+    return result;
+  }, [calendarEvents, today]);
+
+  const closeEventForm = () => {
+    setEventForm(null);
+    setEditingEvent(null);
+  };
+
+  const startCreate = () => {
+    setEditingEvent(null);
+    setEventForm('create');
+  };
+
+  const startEdit = (row: CalendarEventRow) => {
+    setEditingEvent(row);
+    setEventForm('edit');
+  };
+
+  const initialCreate = useMemo<Partial<CreateInput<'calendar_event'>>>(
+    () => ({
+      institution_id: institutionId ?? undefined,
+      calendar_id: calendar?.id,
+      kind: 'event',
+      start_date: '',
+      end_date: '',
+      affects_attendance: false,
+    }),
+    [institutionId, calendar?.id]
+  );
+
+  const createEvent = async (values: CreateInput<'calendar_event'>) => {
+    try {
+      await repository.create('calendar_event', values);
+      closeEventForm();
+      toast.showSuccess('Event added to the calendar.');
+    } catch (error) {
+      throw new Error(messageOf(error));
+    }
+  };
+
+  const updateEvent = async (values: UpdateInput<'calendar_event'>) => {
+    if (!editingEvent) return;
+    try {
+      await repository.update(
+        'calendar_event',
+        asId<'calendar_event'>(editingEvent.id),
+        {
+          kind: values.kind,
+          start_date: values.start_date,
+          end_date: values.end_date,
+          affects_attendance: values.affects_attendance,
+        },
+        { expectedVersion: editingEvent.rowVersion }
+      );
+      closeEventForm();
+      toast.showSuccess('Event saved.');
+    } catch (error) {
+      throw new Error(messageOf(error));
+    }
+  };
+
+  const removeEvent = async (row: CalendarEventRow) => {
+    const confirmed = await confirm({
+      variant: 'danger',
+      message: `Remove the ${eventKindLabel(row.kind)} from ${formatCalendarDate(row.start_date)}?`,
+    });
+    if (!confirmed) return;
+    try {
+      await repository.remove('calendar_event', asId<'calendar_event'>(row.id), {
+        expectedVersion: row.rowVersion,
+      });
+      toast.showSuccess('Event removed from the calendar.');
+    } catch (error) {
+      toast.showError(messageOf(error));
+    }
+  };
+
+  const startCalendar = () => {
+    setCalendarError(null);
+    setCalendarDraft({ ...EMPTY_DRAFT });
+  };
+
+  const createCalendar = async () => {
+    if (!calendarDraft) return;
+    const calendarName = calendarDraft.calendarName.trim();
+    const yearName = calendarDraft.yearName.trim();
+
+    if (!calendarName || !yearName || !calendarDraft.yearStart || !calendarDraft.yearEnd) {
+      setCalendarError('The calendar name, the academic year name and both dates are required.');
+      return;
+    }
+    if (calendarDraft.yearEnd < calendarDraft.yearStart) {
+      setCalendarError('The academic year must end on or after it starts.');
+      return;
+    }
+    if (institutionId === null) {
+      setCalendarError(
+        'The canonical database holds no institution row, so a school calendar cannot be saved yet.'
+      );
       return;
     }
 
+    setSavingCalendar(true);
+    setCalendarError(null);
     try {
-      if (editingEvent) {
-        await eventsCollection.update(editingEvent.id, {
-          title: formData.title,
-          description: formData.description,
-          event_type: formData.event_type,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          location: formData.location,
-          status: formData.status,
-          organizer: formData.organizer,
-          participants: formData.participants
-        });
-        toast.showSuccess('Event updated.');
-      } else {
-        await eventsCollection.insert({
-          title: formData.title!,
-          description: formData.description ?? '',
-          event_type: formData.event_type ?? 'Other',
-          start_date: formData.start_date!,
-          end_date: formData.end_date ?? formData.start_date!,
-          location: formData.location ?? '',
-          status: formData.status ?? 'Upcoming',
-          organizer: formData.organizer ?? '',
-          participants: formData.participants || undefined,
-          created_at: new Date().toISOString()
-        });
-        toast.showSuccess('Event added.');
-      }
-      logger.info('Saved event:', formData);
-    } catch (err) {
-      logger.error('Failed to save event:', err);
-      toast.showError('Failed to save event.');
-    }
-    closeModal();
-  };
-
-  const deleteEvent = async (event: SchoolEvent) => {
-    if (confirm('Are you sure you want to delete this event?')) {
+      const created = await repository.create('calendar', {
+        institution_id: institutionId,
+        name: calendarName,
+        programme_ids: [],
+      });
+      setSelectedCalendarId(created.id);
       try {
-        await eventsCollection.remove(event.id);
-        toast.showSuccess('Event deleted.');
-        logger.info('Deleted event:', event.id);
-      } catch (err) {
-        logger.error('Failed to delete event:', err);
-        toast.showError('Failed to delete event.');
+        await repository.create('academic_year', {
+          institution_id: institutionId,
+          calendar_id: created.id,
+          name: yearName,
+          start_date: calendarDraft.yearStart,
+          end_date: calendarDraft.yearEnd,
+          status: 'planned',
+        });
+      } catch (error) {
+        // The calendar exists; say so rather than offering to create it a second time.
+        setCalendarDraft(null);
+        setPageError(
+          `The calendar ${calendarName} was created, but its academic year was not saved: ${messageOf(error)}`
+        );
+        return;
       }
+      setCalendarDraft(null);
+      toast.showSuccess('School calendar created.');
+    } catch (error) {
+      setCalendarError(messageOf(error));
+    } finally {
+      setSavingCalendar(false);
     }
   };
 
-  const getTypeBadge = (type: EventType) => {
-    const styles = {
-      'Exam': 'bg-purple-100 text-purple-800',
-      'Holiday': 'bg-green-100 text-green-800',
-      'Function': 'bg-primary-100 text-primary-800',
-      'Meeting': 'bg-yellow-100 text-yellow-800',
-      'Sports': 'bg-orange-100 text-orange-800',
-      'Other': 'bg-surface-accent text-surface-foreground'
-    };
+  const columns: DataGridColumn<CalendarEventRow>[] = [
+    {
+      key: 'kind',
+      header: 'Kind',
+      sortable: true,
+      filterable: true,
+      render: (_value: unknown, row: CalendarEventRow) => eventKindLabel(row.kind),
+    },
+    {
+      key: 'start_date',
+      header: 'Start date',
+      sortable: true,
+      render: (_value: unknown, row: CalendarEventRow) => formatCalendarDate(row.start_date),
+    },
+    {
+      key: 'end_date',
+      header: 'End date',
+      sortable: true,
+      render: (_value: unknown, row: CalendarEventRow) => formatCalendarDate(row.end_date),
+    },
+    {
+      key: 'affects_attendance',
+      header: 'Affects attendance',
+      render: (_value: unknown, row: CalendarEventRow) =>
+        row.affects_attendance ? 'Yes' : 'No',
+    },
+    {
+      key: 'phase',
+      header: 'When',
+      render: (_value: unknown, row: CalendarEventRow) => {
+        const phase = eventPhase(row.start_date, row.end_date, today);
+        return (
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${PHASE_STYLES[phase]}`}
+          >
+            {PHASE_LABELS[phase]}
+          </span>
+        );
+      },
+    },
+  ];
+
+  if (canWrite) {
+    columns.push({
+      key: 'actions',
+      header: 'Actions',
+      sortable: false,
+      filterable: false,
+      render: (_value: unknown, row: CalendarEventRow) => (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => startEdit(row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void removeEvent(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    });
+  }
+
+  if (isLoading && calendarRows.length === 0 && institutionId === null) {
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type]}`}>
-        {type}
-      </span>
-    );
-  };
-
-  const getStatusBadge = (status: EventStatus) => {
-    const styles = {
-      'Upcoming': 'bg-primary-100 text-primary-800',
-      'Ongoing': 'bg-green-100 text-green-800',
-      'Completed': 'bg-surface-accent text-surface-foreground',
-      'Cancelled': 'bg-red-100 text-red-800'
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
-        {status}
-      </span>
-    );
-  };
-
-  const eventTypes: EventType[] = ['Exam', 'Holiday', 'Function', 'Meeting', 'Sports', 'Other'];
-  const eventStatuses: EventStatus[] = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
-
-  const totals = useMemo(() => {
-    return {
-      total: mockEvents.length,
-      upcoming: mockEvents.filter(e => e.status === 'Upcoming').length,
-      ongoing: mockEvents.filter(e => e.status === 'Ongoing').length,
-      completed: mockEvents.filter(e => e.status === 'Completed').length
-    };
-  }, [mockEvents]);
-
-  if ((loading?.all || eventsCollection.loading) && mockEvents.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center py-10">
         <Spinner size="lg" />
-        <span className="ml-2">Loading events...</span>
       </div>
     );
   }
 
+  const reload = () => {
+    setPageError(null);
+    for (const query of queries) void query.refetch();
+  };
+
+  const coverage = years.length
+    ? `Covers ${formatCalendarDate(years[0].start_date)} to ${formatCalendarDate(years[years.length - 1].end_date)}`
+    : 'No academic year is recorded for this calendar yet.';
+
+  const headerAction =
+    canWrite && calendar && institutionId !== null && !calendarDraft ? (
+      <Button onClick={startCreate} leftIcon={<PlusIcon className="w-4 h-4" />}>
+        Add event
+      </Button>
+    ) : undefined;
+
   return (
-    <div className="p-6">
-      <LegacyDataNotice>An event here does not appear in the school calendar.</LegacyDataNotice>
+    <div className="space-y-3">
       <PageHeaderWithTabs
         title="Events Manager"
-        info="Manage school events including exams, holidays, functions, meetings, and sports activities. Track event schedules, locations, and participants."
-        action={
-          <Button onClick={() => openModal()} variant="primary">
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
-        }
+        info="The school calendar: its events, ordered by start date, with the academic year the calendar covers."
+        action={headerAction}
       />
-      <Card>
 
-        {/* Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Total Events</span>
-            </div>
-            <p className="text-2xl font-bold text-surface-foreground mt-2">
-              {totals.total}
-            </p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5 text-primary-600" />
-              <span className="text-sm font-medium">Upcoming</span>
-            </div>
-            <p className="text-2xl font-bold text-primary-600 mt-2">
-              {totals.upcoming}
-            </p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium">Ongoing</span>
-            </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {totals.ongoing}
-            </p>
-          </div>
-          <div className="bg-surface-card border border-surface-border rounded-lg p-4">
-            <div className="flex items-center gap-2 text-surface-muted-fg">
-              <CalendarIcon className="w-5 h-5 text-surface-muted-fg" />
-              <span className="text-sm font-medium">Completed</span>
-            </div>
-            <p className="text-2xl font-bold text-surface-muted-fg mt-2">
-              {totals.completed}
-            </p>
-          </div>
-        </div>
+      <p className="text-sm text-surface-muted-fg">
+        The calendar records an event by its kind and dates. It has no free-text title.
+      </p>
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Event Type</label>
-            <Select
-              value={selectedType}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedType(e.target.value)}
-              className="w-full"
-            >
-              <option value="">All Types</option>
-              {eventTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </Select>
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Status</label>
-            <Select
-              value={selectedStatus}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
-              className="w-full"
-            >
-              <option value="">All Statuses</option>
-              {eventStatuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </Select>
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-surface-foreground mb-1">Search</label>
-            <input
-              type="text"
-              placeholder="Event, location..."
-              value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </div>
-        </div>
-
-        <DataGrid
-          data={mockEvents}
-          columns={[
-            {
-              key: 'title',
-              header: 'Event Title',
-              sortable: true,
-              filterable: true
-            },
-            {
-              key: 'event_type',
-              header: 'Type',
-              sortable: true,
-              render: (value: any) => getTypeBadge(value)
-            },
-            {
-              key: 'start_date',
-              header: 'Start Date',
-              sortable: true,
-              render: (value: any) => value ? new Date(value).toLocaleDateString() : '-'
-            },
-            {
-              key: 'end_date',
-              header: 'End Date',
-              sortable: true,
-              render: (value: any) => value ? new Date(value).toLocaleDateString() : '-'
-            },
-            {
-              key: 'location',
-              header: 'Location',
-              sortable: true,
-              render: (value: any) => value
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              sortable: true,
-              render: (value: any) => getStatusBadge(value)
-            },
-            {
-              key: 'organizer',
-              header: 'Organizer',
-              sortable: true,
-              render: (value: any) => value
-            },
-            {
-              key: 'actions',
-              header: 'Actions',
-              sortable: false,
-              render: (_: any, record: SchoolEvent) => (
-                <div className="flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => openModal(record)}>
-                    <EditIcon className="w-4 h-4" />
-                  </Button>
-                  <Button size="sm" variant="secondary" onClick={() => deleteEvent(record)}>
-                    <TrashIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              )
-            }
-          ]}
-        />
-      </Card>
-
-      {/* Add/Edit Event Modal */}
-      <DialogForm
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingEvent ? 'Edit Event' : 'Add Event'}
-      >
-        <FormSection>
-          <FormField label="Event Title" required>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="Event title"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Description">
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Event description"
-              rows={3}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Event Type" required>
-            <Select
-              name="event_type"
-              value={formData.event_type}
-              onChange={handleInputChange}
-              className="w-full"
-            >
-              {eventTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </Select>
-          </FormField>
-
-          <FormField label="Start Date" required>
-            <input
-              type="date"
-              name="start_date"
-              value={formData.start_date}
-              onChange={handleInputChange}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="End Date">
-            <input
-              type="date"
-              name="end_date"
-              value={formData.end_date}
-              onChange={handleInputChange}
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Location" required>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              placeholder="Event location"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Status" required>
-            <Select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              className="w-full"
-            >
-              {eventStatuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </Select>
-          </FormField>
-
-          <FormField label="Organizer" required>
-            <input
-              type="text"
-              name="organizer"
-              value={formData.organizer}
-              onChange={handleInputChange}
-              placeholder="Event organizer"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-
-          <FormField label="Participants">
-            <input
-              type="text"
-              name="participants"
-              value={formData.participants}
-              onChange={handleInputChange}
-              placeholder="Participants"
-              className="w-full border border-surface-border rounded-md px-3 py-2"
-            />
-          </FormField>
-        </FormSection>
-
-        <div className="flex justify-end gap-3 mt-6">
-          <Button onClick={closeModal} variant="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} variant="primary">
-            {editingEvent ? 'Update' : 'Add'}
+      {failed && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+        >
+          <span>The school calendar could not be read: {messageOf(failed.error)}</span>
+          <Button size="sm" variant="secondary" onClick={reload}>
+            Try again
           </Button>
         </div>
-      </DialogForm>
+      )}
+
+      {pageError && (
+        <p role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          {pageError}
+        </p>
+      )}
+
+      {institutionId === null && !isLoading && (
+        <p role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          The canonical database holds no institution row, so a school calendar cannot be saved
+          yet.
+        </p>
+      )}
+
+      {!failed && !calendar && (
+        <Card title="This school has no calendar yet.">
+          <p className="text-sm text-surface-muted-fg">
+            A calendar groups the school's events and records the academic year it covers. Events
+            belong to a calendar, so one has to exist first.
+          </p>
+          <div className="mt-4">
+            {canWrite && institutionId !== null ? (
+              <Button onClick={startCalendar} leftIcon={<PlusIcon className="w-4 h-4" />}>
+                Create the school calendar
+              </Button>
+            ) : (
+              <p className="text-sm text-surface-muted-fg">
+                Ask an administrator or a head teacher to create the school calendar.
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {!failed && calendar && (
+        <Card title={calendar.name} bodyClassName="p-0">
+          <div className="flex flex-wrap items-end justify-between gap-4 border-t border-surface-border p-4">
+            {calendarRows.length > 1 ? (
+              <label className="text-sm font-medium text-surface-foreground">
+                Calendar
+                <select
+                  className="mt-1.5 block w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm"
+                  value={calendar.id}
+                  onChange={(event) => {
+                    setSelectedCalendarId(event.target.value);
+                    closeEventForm();
+                  }}
+                >
+                  {calendarRows.map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {row.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <p className="text-sm text-surface-muted-fg">{coverage}</p>
+            )}
+            {calendarRows.length > 1 && (
+              <p className="text-sm text-surface-muted-fg">{coverage}</p>
+            )}
+          </div>
+
+          <div className="border-t border-surface-border">
+            <DataGrid
+              columns={columns}
+              data={[...calendarEvents]}
+              sortable
+              filterable
+              pagination
+              emptyState="No events in this calendar yet."
+            />
+          </div>
+
+          <p className="border-t border-surface-border p-4 text-sm text-surface-muted-fg">
+            {counts.upcoming} upcoming, {counts.current} in progress, {counts.past} past.
+          </p>
+        </Card>
+      )}
+
+      {calendarDraft && (
+        <Card title="New school calendar">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Input
+                label="Calendar name"
+                name="calendar_name"
+                value={calendarDraft.calendarName}
+                onChange={(event) =>
+                  setCalendarDraft((current) =>
+                    current ? { ...current, calendarName: event.target.value } : current
+                  )
+                }
+                placeholder="e.g. School calendar"
+                required
+              />
+              <Input
+                label="Academic year name"
+                name="year_name"
+                value={calendarDraft.yearName}
+                onChange={(event) =>
+                  setCalendarDraft((current) =>
+                    current ? { ...current, yearName: event.target.value } : current
+                  )
+                }
+                placeholder="e.g. 2026"
+                required
+              />
+              <DateField
+                label="Year starts"
+                value={calendarDraft.yearStart}
+                onChange={(value) =>
+                  setCalendarDraft((current) =>
+                    current ? { ...current, yearStart: value } : current
+                  )
+                }
+              />
+              <DateField
+                label="Year ends"
+                value={calendarDraft.yearEnd}
+                onChange={(value) =>
+                  setCalendarDraft((current) =>
+                    current ? { ...current, yearEnd: value } : current
+                  )
+                }
+              />
+            </div>
+
+            <p className="text-sm text-surface-muted-fg">
+              The calendar itself holds the school's name for it; the academic year it covers is
+              kept as an academic year of that calendar, which is where the model stores dates.
+            </p>
+
+            {calendarError && (
+              <p role="alert" className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+                {calendarError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setCalendarDraft(null);
+                  setCalendarError(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={() => void createCalendar()} loading={savingCalendar}>
+                Create calendar
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {eventForm && calendar && (
+        <Card title={eventForm === 'edit' ? 'Edit event' : 'New event'}>
+          {eventForm === 'edit' && editingEvent ? (
+            <SchemaEntityForm
+              schema={updateFormSchema('calendar_event')}
+              fields={EVENT_FIELDS}
+              recordKey={editingEvent.id}
+              initialValues={toWritableValues(editingEvent)}
+              submitLabel="Save event"
+              onCancel={closeEventForm}
+              onSubmit={updateEvent}
+            />
+          ) : (
+            <SchemaEntityForm
+              schema={createFormSchema('calendar_event')}
+              fields={EVENT_FIELDS}
+              recordKey={`new-event-${calendar.id}`}
+              initialValues={initialCreate}
+              submitLabel="Create event"
+              onCancel={closeEventForm}
+              onSubmit={createEvent}
+            />
+          )}
+        </Card>
+      )}
     </div>
   );
 };
+
+export const EventsManagerContent: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <EventsManagerPageContent />
+  </CanonicalRepositoryProvider>
+);
+
 const EventsManagerPage: React.FC = () => (
   <div className="space-y-3">
-    <EventsManagerPageContent />
+    <EventsManagerContent />
   </div>
 );
 
