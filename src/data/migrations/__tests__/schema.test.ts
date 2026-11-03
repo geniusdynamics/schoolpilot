@@ -521,7 +521,7 @@ describe('the schema registry', () => {
     // Every schema version must be known: the startup runner refuses a ledger row it has never
     // heard of as a database written by a newer build.
     expect(KNOWN_MIGRATION_VERSIONS).toEqual([
-      1, 2, 3, 4, 5, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 111, 112,
+      1, 2, 3, 4, 5, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112,
     ]);
   });
 });
