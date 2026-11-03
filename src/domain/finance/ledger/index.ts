@@ -6,6 +6,7 @@ export * from './types';
 export * from './errors';
 export * from './chart';
 export * from './accounts';
+export * from './bankAccounts';
 export * from './entry';
 export * from './postings';
 export * from './trialBalance';

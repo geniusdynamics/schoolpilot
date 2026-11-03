@@ -85,7 +85,8 @@ export function openCashierRuntime(
       deviceId: 'cashier-screen',
     });
     // The chart the school configured, so a cashier posts against the same accounts the
-    // accounting screens show rather than a second, in-code chart.
+    // accounting screens show rather than a second, in-code chart, and the account each payment
+    // channel lands in is the one the school nominated for it.
     const institution = (await repository.list('institution', { limit: 1 })).items[0];
     const chart = institution
       ? (
@@ -95,9 +96,17 @@ export function openCashierRuntime(
           })
         ).items
       : [];
+    const channelRows = institution
+      ? (
+          await repository.list('channel_account', {
+            where: { institution_id: institution.id },
+            limit: 500,
+          })
+        ).items
+      : [];
     const ledger = new LedgerService({
       store: createSqliteLedgerStore(adapter),
-      mapping: ledgerChartFromRows(chart),
+      mapping: ledgerChartFromRows(chart, { channelRows }),
     });
     const sessions = new CashierSessionService({
       store: createSqliteCashierSessionStore(adapter),
