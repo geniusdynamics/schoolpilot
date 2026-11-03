@@ -7,10 +7,12 @@ import type { ICollection } from '@/services/database/interfaces';
 import { FinancialYearStatus } from '@/core/types';
 import {
   FINANCIAL_YEARS_COLLECTION,
-  FinancialYearRuleError,
   notifyFinancialYearsChanged,
-  validateFinancialYear,
   type FinancialYearRecord,
+} from '@/modules/finance/data/useLegacyFinancialYearData';
+import {
+  FinancialYearRuleError,
+  validateFinancialYear,
 } from '@/modules/finance/data/useFinancialYearData';
 import {
   SCHOOL_PERIODS_COLLECTION,

@@ -1,19 +1,23 @@
-// ABOUTME: Database-backed financial years (collection 'financial_years') with their business rules:
-// ABOUTME: valid non-overlapping date ranges, exactly one current (open) year, and default-year seeding.
+// ABOUTME: The canonical financial years the finance screens read and write: rows of the
+// ABOUTME: financial_year entity, with non-overlapping ranges and exactly one current year.
+// ABOUTME: Closing a year here changes this setting only; the ledger's periods close in reports.
 
 import { useCallback, useMemo } from 'react';
-import { FinancialYear, FinancialYearStatus } from '@/core/types';
-import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
-import { databaseService } from '@/services/database/databaseService';
-import type { ICollection } from '@/services/database/interfaces';
-import { logger } from '@/utils/logging';
 
-export const FINANCIAL_YEARS_COLLECTION = 'financial_years';
+import { useEntityQuery } from '@/data/query';
+import type { RepositoryRow } from '@/data/repository';
+import { asId } from '@/domain/ids';
+import type { CALENDAR_YEAR_STATUSES } from '@/domain/schema';
 
-/** A stored financial year; ids are strings at runtime. */
-export type FinancialYearRecord = Omit<FinancialYear, 'id'> & { id: string };
+import { useFinanceRepository } from './canonicalFinance';
 
-/** Editable fields of a financial year. */
+/** The statuses a canonical financial year can hold. */
+export type FinancialYearStatusValue = (typeof CALENDAR_YEAR_STATUSES)[number];
+
+/** A stored financial year. */
+export type FinancialYearRow = RepositoryRow<'financial_year'>;
+
+/** The fields a person edits; the status follows from create, close and reopen. */
 export interface FinancialYearInput {
   name: string;
   start_date: string;
@@ -34,7 +38,7 @@ export interface FinancialYearRuleViolation {
   message: string;
 }
 
-/** Thrown by repository writes that break a financial-year rule. */
+/** Thrown when a write would break a financial-year rule. */
 export class FinancialYearRuleError extends Error {
   readonly violations: FinancialYearRuleViolation[];
 
@@ -43,6 +47,14 @@ export class FinancialYearRuleError extends Error {
     this.name = 'FinancialYearRuleError';
     this.violations = violations;
   }
+}
+
+/** The part of a year the rules read, so the rules serve the entity and old rows alike. */
+interface FinancialYearLike {
+  readonly id: string;
+  readonly name: string;
+  readonly start_date: string;
+  readonly end_date: string;
 }
 
 const isoDay = (value: string | undefined | null): string => (value ? String(value).slice(0, 10) : '');
@@ -56,7 +68,7 @@ const toIsoDay = (date: Date): string =>
  */
 export function validateFinancialYear(
   input: FinancialYearInput,
-  existing: FinancialYearRecord[],
+  existing: readonly FinancialYearLike[],
   editingId?: string
 ): FinancialYearRuleViolation[] {
   const violations: FinancialYearRuleViolation[] = [];
@@ -70,14 +82,25 @@ export function validateFinancialYear(
     violations.push({ code: 'dates-required', message: 'Start and end dates are required.' });
     return violations;
   }
-  if (end <= start) violations.push({ code: 'end-before-start', message: 'End date must be after the start date.' });
-
-  if (name) {
-    const duplicate = others.find((year) => (year.name || '').trim().toLowerCase() === name.toLowerCase());
-    if (duplicate) violations.push({ code: 'duplicate-name', message: `A financial year named ${duplicate.name} already exists.` });
+  if (end <= start) {
+    violations.push({ code: 'end-before-start', message: 'End date must be after the start date.' });
   }
 
-  const overlapping = others.find((year) => start <= isoDay(year.end_date) && isoDay(year.start_date) <= end);
+  if (name) {
+    const duplicate = others.find(
+      (year) => (year.name || '').trim().toLowerCase() === name.toLowerCase()
+    );
+    if (duplicate) {
+      violations.push({
+        code: 'duplicate-name',
+        message: `A financial year named ${duplicate.name} already exists.`,
+      });
+    }
+  }
+
+  const overlapping = others.find(
+    (year) => start <= isoDay(year.end_date) && isoDay(year.start_date) <= end
+  );
   if (overlapping) {
     violations.push({
       code: 'overlap',
@@ -87,27 +110,6 @@ export function validateFinancialYear(
   return violations;
 }
 
-/**
- * The single current financial year: among open years, the one whose range contains today;
- * otherwise the latest one that has started; otherwise the earliest upcoming one.
- * Closed and archived years are never current.
- */
-export function selectCurrentFinancialYear<T extends Pick<FinancialYearRecord, 'start_date' | 'end_date' | 'status'>>(
-  years: T[],
-  today: Date = new Date()
-): T | undefined {
-  const day = toIsoDay(today);
-  const open = years
-    .filter((year) => year.status === FinancialYearStatus.OPEN)
-    .sort((a, b) => isoDay(a.start_date).localeCompare(isoDay(b.start_date)));
-  if (open.length === 0) return undefined;
-
-  const containing = open.find((year) => isoDay(year.start_date) <= day && day <= isoDay(year.end_date));
-  if (containing) return containing;
-  const started = open.filter((year) => isoDay(year.start_date) <= day);
-  return started.length > 0 ? started[started.length - 1] : open[0];
-}
-
 /** The financial year created for a new school: the calendar year containing `today`. */
 export function buildDefaultFinancialYear(today: Date = new Date()): FinancialYearInput {
   const year = today.getFullYear();
@@ -115,8 +117,15 @@ export function buildDefaultFinancialYear(today: Date = new Date()): FinancialYe
 }
 
 /** The year that follows the latest existing one, used to pre-fill the create form. */
-export function suggestNextFinancialYear(existing: FinancialYearRecord[], today: Date = new Date()): FinancialYearInput {
-  const latestEnd = existing.map((year) => isoDay(year.end_date)).filter(Boolean).sort().pop();
+export function suggestNextFinancialYear(
+  existing: readonly Pick<FinancialYearLike, 'end_date'>[],
+  today: Date = new Date()
+): FinancialYearInput {
+  const latestEnd = existing
+    .map((year) => isoDay(year.end_date))
+    .filter(Boolean)
+    .sort()
+    .pop();
   if (!latestEnd) return buildDefaultFinancialYear(today);
 
   const start = new Date(`${latestEnd}T00:00:00`);
@@ -124,94 +133,97 @@ export function suggestNextFinancialYear(existing: FinancialYearRecord[], today:
   const end = new Date(start);
   end.setFullYear(end.getFullYear() + 1);
   end.setDate(end.getDate() - 1);
-  const name = start.getFullYear() === end.getFullYear() ? `FY ${start.getFullYear()}` : `FY ${start.getFullYear()}/${String(end.getFullYear()).slice(-2)}`;
+  const name =
+    start.getFullYear() === end.getFullYear()
+      ? `FY ${start.getFullYear()}`
+      : `FY ${start.getFullYear()}/${String(end.getFullYear()).slice(-2)}`;
   return { name, start_date: toIsoDay(start), end_date: toIsoDay(end) };
 }
 
-const stamp = () => new Date().toISOString();
-
-/**
- * Tells AppDataContext to reload its shared lookups, so pickers that read `financialYears`
- * from it (e.g. the term form) show the change at once. Unlike refreshCollection(), the
- * 'appDataChanged' event is not throttled and raises no toast.
- */
-export function notifyFinancialYearsChanged(): void {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent('appDataChanged', { detail: { collection: FINANCIAL_YEARS_COLLECTION } }));
+/** The single current year among the rows, if the school has set one. */
+export function currentFinancialYearOf<T extends { readonly status: string }>(
+  years: readonly T[]
+): T | undefined {
+  return years.find((year) => year.status === 'current');
 }
 
 /**
- * Seeds one open financial year (the calendar year of `today`) when the database has none.
- * Idempotent: returns the current year when one already exists. The setup wizard calls it when a
- * school is created (wired in P0-A05).
+ * The canonical financial years of the school.
+ *
+ * A year is `current` while it is the school's current year, `planned` when it is open but
+ * not current, and `closed` once closed. The write methods keep at most one current year:
+ * the first year is current, a later year is planned, closing the current one promotes the
+ * earliest remaining open year, and reopening a year is current only when none is.
  */
-export async function ensureFinancialYear(today: Date = new Date()): Promise<FinancialYearRecord | undefined> {
-  const db = await databaseService.getDatabase();
-  const collection = db.getCollection(FINANCIAL_YEARS_COLLECTION) as ICollection<FinancialYearRecord> | null;
-  if (!collection) {
-    logger.warn(`[financialYears] Collection '${FINANCIAL_YEARS_COLLECTION}' not available; no financial year seeded`);
-    return undefined;
-  }
+export function useFinancialYearData() {
+  const repository = useFinanceRepository();
+  const institutions = useEntityQuery(repository, 'institution');
+  const years = useEntityQuery(repository, 'financial_year');
+  const refetchInstitutions = institutions.refetch;
+  const refetchYears = years.refetch;
 
-  const existing = (await collection.find({})) || [];
-  if (existing.length > 0) return selectCurrentFinancialYear(existing, today) ?? existing[0];
+  const institutionId = institutions.data?.items[0]?.id ?? null;
 
-  const now = stamp();
-  const seeded: FinancialYearRecord = {
-    ...buildDefaultFinancialYear(today),
-    id: databaseService.generateId(),
-    status: FinancialYearStatus.OPEN,
-    created_at: now,
-    updated_at: now,
-  };
-  await collection.insert(seeded);
-  notifyFinancialYearsChanged();
-  return seeded;
-}
+  const financialYears = useMemo(() => {
+    const rows = years.data?.items ?? [];
+    return (institutionId === null ? [] : rows.filter((row) => row.institution_id === institutionId))
+      .slice()
+      .sort((left, right) => right.start_date.localeCompare(left.start_date));
+  }, [years.data, institutionId]);
 
-export const useFinancialYearData = () => {
-  const collection = useDatabaseCollection<FinancialYearRecord>(FINANCIAL_YEARS_COLLECTION);
-  const { data, insert, update: updateDocument, refresh } = collection;
-
-  const financialYears = useMemo(
-    () => [...data].sort((a, b) => isoDay(b.start_date).localeCompare(isoDay(a.start_date))),
-    [data]
+  const currentFinancialYear = useMemo(
+    () => currentFinancialYearOf(financialYears),
+    [financialYears]
   );
-  const currentFinancialYear = useMemo(() => selectCurrentFinancialYear(financialYears), [financialYears]);
+
+  const loading = institutions.status === 'loading' || years.status === 'loading';
+  const error = institutions.error ?? years.error ?? null;
+
+  const refresh = useCallback(() => {
+    void refetchInstitutions();
+    void refetchYears();
+  }, [refetchInstitutions, refetchYears]);
 
   const findYear = useCallback(
     (id: string) => {
       const found = financialYears.find((year) => String(year.id) === String(id));
-      if (!found) throw new FinancialYearRuleError([{ code: 'not-found', message: 'Financial year not found.' }]);
+      if (!found) {
+        throw new FinancialYearRuleError([{ code: 'not-found', message: 'Financial year not found.' }]);
+      }
       return found;
     },
     [financialYears]
   );
 
   const create = useCallback(
-    async (input: FinancialYearInput): Promise<FinancialYearRecord> => {
+    async (input: FinancialYearInput): Promise<FinancialYearRow> => {
+      if (institutionId === null) {
+        throw new Error(
+          'The canonical database holds no institution row, so a financial year cannot be saved yet.'
+        );
+      }
       const violations = validateFinancialYear(input, financialYears);
       if (violations.length > 0) throw new FinancialYearRuleError(violations);
 
-      const now = stamp();
-      const record: FinancialYearRecord = {
-        id: databaseService.generateId(),
+      const status: FinancialYearStatusValue = financialYears.some(
+        (year) => year.status === 'current'
+      )
+        ? 'planned'
+        : 'current';
+
+      return repository.create('financial_year', {
+        institution_id: asId<'institution'>(institutionId),
         name: input.name.trim(),
         start_date: isoDay(input.start_date),
         end_date: isoDay(input.end_date),
-        status: FinancialYearStatus.OPEN,
-        created_at: now,
-        updated_at: now,
-      };
-      await insert(record);
-      notifyFinancialYearsChanged();
-      return record;
+        status,
+      });
     },
-    [financialYears, insert]
+    [repository, institutionId, financialYears]
   );
 
   const update = useCallback(
-    async (id: string, patch: Partial<FinancialYearInput>): Promise<FinancialYearRecord | null> => {
+    async (id: string, patch: Partial<FinancialYearInput>): Promise<FinancialYearRow> => {
       const current = findYear(id);
       const next: FinancialYearInput = {
         name: patch.name ?? current.name,
@@ -221,67 +233,88 @@ export const useFinancialYearData = () => {
       const violations = validateFinancialYear(next, financialYears, id);
       if (violations.length > 0) throw new FinancialYearRuleError(violations);
 
-      const result = await updateDocument(String(id), {
-        name: next.name.trim(),
-        start_date: isoDay(next.start_date),
-        end_date: isoDay(next.end_date),
-        updated_at: stamp(),
-      });
-      notifyFinancialYearsChanged();
-      return result;
+      return repository.update(
+        'financial_year',
+        asId<'financial_year'>(id),
+        {
+          name: next.name.trim(),
+          start_date: isoDay(next.start_date),
+          end_date: isoDay(next.end_date),
+        },
+        { expectedVersion: current.rowVersion }
+      );
     },
-    [financialYears, findYear, updateDocument]
+    [repository, financialYears, findYear]
   );
 
-  /** A year can be closed only while another open year remains to be current. */
+  /** A year can be closed only while another open year remains to carry the school forward. */
   const canClose = useCallback(
     (id: string) => {
       const target = financialYears.find((year) => String(year.id) === String(id));
-      if (!target || target.status !== FinancialYearStatus.OPEN) return false;
-      return financialYears.some((year) => String(year.id) !== String(id) && year.status === FinancialYearStatus.OPEN);
+      if (!target || target.status === 'closed') return false;
+      return financialYears.some(
+        (year) => String(year.id) !== String(id) && year.status !== 'closed'
+      );
     },
     [financialYears]
   );
 
   const setStatus = useCallback(
-    async (id: string, status: FinancialYearStatus) => {
-      const result = await updateDocument(String(id), { status, updated_at: stamp() });
-      notifyFinancialYearsChanged();
-      return result;
-    },
-    [updateDocument]
+    (year: FinancialYearRow, status: FinancialYearStatusValue): Promise<FinancialYearRow> =>
+      repository.update(
+        'financial_year',
+        asId<'financial_year'>(year.id),
+        { status },
+        { expectedVersion: year.rowVersion }
+      ),
+    [repository]
   );
 
   const close = useCallback(
-    async (id: string) => {
-      findYear(id);
+    async (id: string): Promise<FinancialYearRow> => {
+      const target = findYear(id);
+      if (target.status === 'closed') return target;
       if (!canClose(id)) {
         throw new FinancialYearRuleError([
           {
             code: 'last-open-year',
-            message: 'This is the only open financial year. Create or reopen the next financial year before closing it.',
+            message:
+              'This is the only open financial year. Create or reopen the next financial year before closing it.',
           },
         ]);
       }
-      return setStatus(id, FinancialYearStatus.CLOSED);
+
+      const successor = financialYears
+        .filter((year) => String(year.id) !== String(id) && year.status !== 'closed')
+        .slice()
+        .sort((left, right) => left.start_date.localeCompare(right.start_date))[0];
+
+      const closed = await setStatus(target, 'closed');
+      if (target.status === 'current' && successor) {
+        await setStatus(successor, 'current');
+      }
+      return closed;
     },
-    [findYear, canClose, setStatus]
+    [financialYears, findYear, canClose, setStatus]
   );
 
   const reopen = useCallback(
-    async (id: string) => {
-      findYear(id);
-      return setStatus(id, FinancialYearStatus.OPEN);
+    async (id: string): Promise<FinancialYearRow> => {
+      const target = findYear(id);
+      if (target.status !== 'closed') return target;
+      const hasCurrent = financialYears.some((year) => year.status === 'current');
+      return setStatus(target, hasCurrent ? 'planned' : 'current');
     },
-    [findYear, setStatus]
+    [financialYears, findYear, setStatus]
   );
 
   return {
-    data: financialYears,
+    repository,
+    institutionId,
     financialYears,
     currentFinancialYear,
-    loading: collection.loading,
-    error: collection.error,
+    loading,
+    error,
     refresh,
     create,
     update,
@@ -289,4 +322,4 @@ export const useFinancialYearData = () => {
     reopen,
     canClose,
   };
-};
+}

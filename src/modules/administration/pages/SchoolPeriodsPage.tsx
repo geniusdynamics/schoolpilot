@@ -9,7 +9,7 @@ import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useSchoolPeriodData, type SchoolPeriodRecord } from '../data/useSchoolPeriodData';
 import { useAcademicYearData } from '../data/useAcademicYearData';
 import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
-import { ensureFinancialYear, useFinancialYearData } from '@/modules/finance/data/useFinancialYearData';
+import { ensureFinancialYear, useLegacyFinancialYearData } from '@/modules/finance/data/useLegacyFinancialYearData';
 import { logger } from '@/utils/logging';
 import { useTranslation } from 'react-i18next';
 import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
@@ -29,7 +29,7 @@ export const SchoolPeriodsContent: React.FC = () => {
     loading: financialYearsLoading,
     error: financialYearsError,
     refresh: refreshFinancialYears,
-  } = useFinancialYearData();
+  } = useLegacyFinancialYearData();
 
   // A term needs a financial year. On a fresh school there is none, so seed the default
   // (idempotent) once the collection has loaded empty, then reload so the picker shows it.

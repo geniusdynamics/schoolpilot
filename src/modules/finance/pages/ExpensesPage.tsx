@@ -1,5 +1,5 @@
 // ABOUTME: Hub page for expenses and banking
-// ABOUTME: Consolidates expenses, banks, and suppliers into tabbed interface
+// ABOUTME: Consolidates recorded expenses, the ledger's accounts and suppliers into tabs
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -11,8 +11,8 @@ import {
   BuildingOffice2Icon,
   UserGroupIcon,
 } from '@/components/ui/icons';
-import { BanksPageContent } from './BanksPage';
 import { ExpensesContent } from './expenses/ExpensesContent';
+import { LedgerAccountsContent } from './expenses/LedgerAccountsContent';
 import { SuppliersPageContent } from './SuppliersPage';
 
 interface HubTab {
@@ -35,10 +35,10 @@ const ExpensesPage: React.FC = () => {
       component: <ExpensesContent />,
     },
     {
-      id: 'banks',
-      label: t('banks.title', 'Banks'),
+      id: 'ledger-accounts',
+      label: t('expensesHub.ledgerAccounts', 'Ledger accounts'),
       icon: <BuildingOffice2Icon className="w-4 h-4" />,
-      component: <BanksPageContent />,
+      component: <LedgerAccountsContent />,
     },
     {
       id: 'suppliers',
@@ -72,7 +72,7 @@ const ExpensesPage: React.FC = () => {
         title={t('expensesHub.title', 'Expenses & Banking')}
         info={t(
           'expensesHub.subtitle',
-          'Manage expenses, bank accounts, and suppliers'
+          'Record expenses, see the ledger accounts they post to, and manage suppliers'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,

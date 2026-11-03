@@ -3,6 +3,7 @@
   "workspaces": "Workspaces",
   "website": "Website",
   "reload": "Reload",
+  "retry": "Retry",
   "toggleFullWidth": "Toggle Full Width",
   "toggleTheme": "Toggle Theme",
   "help": "Help",
