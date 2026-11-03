@@ -10,8 +10,8 @@ import { AdjustmentsService } from '@/domain/finance/adjustments';
 import { ensureAdjustmentSchema, transactionAdapter } from '@/domain/finance/adjustments/support';
 import {
   LedgerService,
-  createLedgerAccountMapping,
   createSqliteLedgerStore,
+  ledgerChartFromRows,
 } from '@/domain/finance/ledger';
 import { PAYMENTS_SEQUENCE_CATALOG, PaymentsService, type PaymentChannel } from '@/domain/finance/payments';
 import { SequenceService, createSqliteSequenceStore } from '@/domain/sequences';
@@ -162,6 +162,12 @@ export async function seedMoney(
   // sure they exist, and this makes sure again, because every statement is IF NOT EXISTS.
   await ensureAdjustmentSchema(ctx.tx);
   const adapter = transactionAdapter(ctx.tx);
+  const ledgerAccounts = (
+    await repository.list('ledger_account', {
+      where: { institution_id: ctx.institutionId },
+      limit: 500,
+    })
+  ).items;
   const payments = new PaymentsService({
     store: repository,
     numbers: new SequenceService({
@@ -170,7 +176,7 @@ export async function seedMoney(
     }),
     ledger: new LedgerService({
       store: createSqliteLedgerStore(adapter),
-      mapping: createLedgerAccountMapping(),
+      mapping: ledgerChartFromRows(ledgerAccounts),
       ...(actors.bursarId ? { actor: actors.bursarId } : {}),
     }),
     ...(actors.bursarId ? { actor: actors.bursarId } : {}),

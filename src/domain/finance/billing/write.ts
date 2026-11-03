@@ -10,8 +10,8 @@ import {
   CONTROL_ACCOUNTS,
   LEDGER_DDL,
   LedgerService,
-  createLedgerAccountMapping,
   createSqliteLedgerStore,
+  ledgerChartFromRows,
   type LedgerAccount,
 } from '@/domain/finance/ledger';
 import { SEQUENCE_DDL, SequenceService, createSqliteSequenceStore } from '@/domain/sequences';
@@ -67,7 +67,7 @@ export function chartFor(facts: RunFacts) {
     if (code !== undefined && code.trim() !== '') revenueCodeByItem.set(item.id, code.trim());
   }
   const fallback: LedgerAccount = CONTROL_ACCOUNTS.fee_revenue;
-  return createLedgerAccountMapping({
+  return ledgerChartFromRows(facts.ledgerAccounts, {
     revenueAccountForFeeItem: (feeItemId) => {
       const code = revenueCodeByItem.get(feeItemId);
       // A fee item with no mapping posts to fee revenue, exactly as `glMappingOf` says.

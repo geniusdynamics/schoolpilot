@@ -181,7 +181,7 @@ export function resolveChannelAccount(
 export function expenseAccounts(mapping: LedgerAccountMapping): readonly LedgerAccount[] {
   return mapping
     .accounts()
-    .filter((account) => account.kind === 'expense')
+    .filter((account) => account.kind === 'expense' && account.isActive !== false)
     .sort((left, right) => left.code.localeCompare(right.code));
 }
 

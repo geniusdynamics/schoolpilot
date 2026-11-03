@@ -27,6 +27,8 @@ export type LedgerErrorCode =
   | 'period_overlap'
   /** A posted entry cannot be edited or deleted; post a reversal instead. */
   | 'immutable'
+  /** A control account a posting depends on cannot be deleted or repurposed. */
+  | 'account_protected'
   /** The entry, the period or the source document does not exist. */
   | 'not_found'
   /** The source document already has a journal entry. */

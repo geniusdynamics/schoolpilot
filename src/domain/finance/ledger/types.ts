@@ -3,24 +3,23 @@
 // ABOUTME: period and audit shapes around it.
 
 import type { CurrencyCode, Money } from '@/domain/money';
+import { LEDGER_ACCOUNT_KINDS } from '@/domain/schema/finance';
 
 /** The five account classes of the chart of accounts (spec 05 section 8). */
-export type AccountKind = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+export type AccountKind = (typeof LEDGER_ACCOUNT_KINDS)[number];
 
 /** Every account class, in the order a balance sheet and an income statement read them. */
-export const ACCOUNT_KINDS: readonly AccountKind[] = [
-  'asset',
-  'liability',
-  'equity',
-  'revenue',
-  'expense',
-];
+export const ACCOUNT_KINDS: readonly AccountKind[] = LEDGER_ACCOUNT_KINDS;
 
 /** One account of the chart of accounts. */
 export interface LedgerAccount {
   readonly code: string;
   readonly name: string;
   readonly kind: AccountKind;
+  /** False when the account is kept for its history but may not be picked for a new posting. */
+  readonly isActive?: boolean;
+  /** True for an account a posting depends on and the chart must never repurpose. */
+  readonly isSystem?: boolean;
 }
 
 /** Which side of a journal line carries its amount. */

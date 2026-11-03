@@ -22,9 +22,9 @@ import {
 } from '@/domain/finance/payments';
 import {
   LedgerService,
-  createLedgerAccountMapping,
   createSqliteLedgerStore,
   ensureLedgerSchema,
+  ledgerChartFromRows,
 } from '@/domain/finance/ledger';
 import {
   SequenceService,
@@ -84,9 +84,20 @@ export function openCashierRuntime(
       definitions: PAYMENTS_SEQUENCE_CATALOG,
       deviceId: 'cashier-screen',
     });
+    // The chart the school configured, so a cashier posts against the same accounts the
+    // accounting screens show rather than a second, in-code chart.
+    const institution = (await repository.list('institution', { limit: 1 })).items[0];
+    const chart = institution
+      ? (
+          await repository.list('ledger_account', {
+            where: { institution_id: institution.id },
+            limit: 500,
+          })
+        ).items
+      : [];
     const ledger = new LedgerService({
       store: createSqliteLedgerStore(adapter),
-      mapping: createLedgerAccountMapping(),
+      mapping: ledgerChartFromRows(chart),
     });
     const sessions = new CashierSessionService({
       store: createSqliteCashierSessionStore(adapter),
