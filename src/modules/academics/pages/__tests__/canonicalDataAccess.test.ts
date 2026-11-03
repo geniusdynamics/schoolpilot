@@ -72,14 +72,11 @@ const PENDING_CANONICAL_MIGRATION: Record<string, string> = {
   'pages/EducationSystemsPage.tsx': 'programme, curriculum_pack, level',
   'pages/ExamAnalysisContent.tsx':
     'assessment, class_group, learner, mark, result, learning_area, component, teaching_group, academic_year, academic_period, grading_scale',
-  'pages/ExamSchedulingPage.tsx': 'class_group, assessment',
-  'pages/ExamSessionsPage.tsx': 'assessment',
   'pages/ExamTokensPage.tsx': 'assessment, teaching_assignment, learning_area, level',
   'pages/GradingSchemesPage.tsx': 'grading_scale',
   'pages/ReportCardsPage.tsx':
     'assessment, class_group, learner, mark, learning_area, component, grading_scale, attendance_session, academic_period',
   'pages/StudentExamAnalysisPage.tsx': 'learner, mark, assessment, component, grading_scale',
-  'pages/TimetableEntriesPage.tsx': 'timetable_entry, teaching_group, timetable_slot',
 };
 
 /**
@@ -101,10 +98,20 @@ const MIGRATED_PAGES = [
   'pages/TeacherSubjectAssignmentPage.tsx',
   'pages/StudentSubjectEnrollmentPage.tsx',
   'pages/StudentExamResultsEntryPage.tsx',
+  'pages/TimetableEntriesPage.tsx',
+  'pages/ExamSessionsPage.tsx',
 ] as const;
 
-/** The read-only screen this task moved onto the repository; it chooses no reference. */
-const MIGRATED_READ_ONLY = ['components/AcademicModuleStatus.tsx'] as const;
+/**
+ * The screens this task moved onto the repository that choose no reference with a picker: the
+ * school-day slots pick a weekday and a time, and the exam window picks dates and areas by
+ * checkbox.
+ */
+const MIGRATED_READ_ONLY = [
+  'components/AcademicModuleStatus.tsx',
+  'pages/TimetablePeriodsPage.tsx',
+  'pages/ExamSchedulingPage.tsx',
+] as const;
 
 /** The legacy write helpers of the academics data layer; none may remain in a consumer. */
 const LEGACY_WRITE_HELPERS = [
