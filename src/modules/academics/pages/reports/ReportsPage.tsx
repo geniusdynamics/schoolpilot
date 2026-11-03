@@ -9,6 +9,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { EntityPicker } from '@/components/ui/EntityPicker';
+import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { ReportPreview, printReport } from '@/components/reports';
 import { useAuth } from '@/contexts/AuthContext';
@@ -271,6 +272,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
           'reports.subtitle',
           'Generate a class’s reports from the computed results, review them, then publish a snapshot that never changes.'
         )}
+        clip={false}
       >
         <div className="grid grid-cols-1 gap-4 rounded-md border border-surface-border bg-surface-muted p-4 md:grid-cols-3">
           <EntityPicker
@@ -291,26 +293,14 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
             allowClear
             helperText={results.scope.reason}
           />
-          <label className="text-sm">
-            <span className="block font-medium text-surface-foreground">
-              {t('reports.template', 'Report template')}
-            </span>
-            <select
-              className="mt-1 w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm text-surface-foreground"
-              value={templateCode}
-              onChange={(event) => setTemplateCode(event.target.value)}
-              aria-label="Report template"
-            >
-              {PACK_REPORT_TEMPLATES.map((entry) => (
-                <option key={entry.code} value={entry.code}>
-                  {entry.name}
-                </option>
-              ))}
-            </select>
-            <span className="mt-1 block text-xs text-surface-muted-fg">
-              From the installed pack, version {PACK_VERSION}.
-            </span>
-          </label>
+          <Select
+            label={t('reports.template', 'Report template')}
+            aria-label={t('reports.template', 'Report template')}
+            value={templateCode}
+            onValueChange={(next) => setTemplateCode(Array.isArray(next) ? next[0] ?? '' : next)}
+            options={PACK_REPORT_TEMPLATES.map((entry) => ({ value: entry.code, label: entry.name }))}
+            helperText={`From the installed pack, version ${PACK_VERSION}.`}
+          />
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">

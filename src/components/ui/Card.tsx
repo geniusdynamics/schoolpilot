@@ -27,6 +27,12 @@ interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   headerClassName?: string; // Optional class for the header area
   variant?: CardVariant;
   size?: CardSize;
+  /**
+   * Whether the card clips its content to the rounded box. On by default, which keeps the header
+   * rule inside the corners — but it also cuts an absolutely positioned dropdown at the card's
+   * edge, so a card that holds pickers turns it off.
+   */
+  clip?: boolean;
   interactive?: boolean; // Makes the card clickable with hover effects
   loading?: boolean; // Shows loading state
   disabled?: boolean; // Disables interactions
@@ -48,6 +54,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   headerClassName = '',
   variant = 'default',
   size = 'md',
+  clip = true,
   interactive = false,
   loading = false,
   disabled = false,
@@ -159,7 +166,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
     variantStyles,
     sizeStyles.card,
     interactiveStyles,
-    'overflow-hidden',
+    clip ? 'overflow-hidden' : 'overflow-visible',
     'group', // For group hover effects
     className
   ].filter(Boolean).join(' ');

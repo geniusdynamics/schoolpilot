@@ -237,7 +237,7 @@ test.describe('GP-3 marks, results and the published report', () => {
       const published = page.getByTestId('published-table');
       const lastId = /RC-\d{4}-\d{6}/.exec(await published.getByRole('row').last().innerText());
       expect(lastId, 'the published table holds no document id').not.toBeNull();
-      const sheet = page.locator('.report-sheet').first();
+      const sheet = page.getByRole('region', { name: 'Report preview' }).locator('.report-sheet');
       await expect(sheet).toBeVisible({ timeout: UI_TIMEOUT });
       await expect(sheet).toContainText(`/v1/${lastId![0]}?sig=`);
       expect(documentId).not.toBe('');

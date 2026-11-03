@@ -243,6 +243,22 @@ async function generate() {
 }
 
 describe('the review step on the page', () => {
+  it('offers the template through the same picker as the other controls', async () => {
+    await openReady();
+    const template = screen.getByRole('combobox', { name: 'Report template' });
+    fireEvent.click(template);
+    fireEvent.click(screen.getByRole('option', { name: 'Primary term report (PP1 to G6)' }));
+    expect(template).toHaveTextContent('Primary term report (PP1 to G6)');
+  });
+
+  it('does not let the card clip the pickers’ open lists', async () => {
+    await openReady();
+    // The pickers live in a Card; its default `overflow-hidden` cut the open list at the card edge.
+    const card = screen.getByTestId('generate-batch').closest('.overflow-visible');
+    expect(card).not.toBeNull();
+    expect(screen.getByTestId('generate-batch').closest('.overflow-hidden')).toBeNull();
+  });
+
   it('keeps the preview inside its card and removes both copies when hidden', async () => {
     const view = await openReady();
     await generate();
@@ -252,6 +268,11 @@ describe('the review step on the page', () => {
     expect(view.container.querySelector('.report-document')).not.toBeNull();
     const preview = screen.getByRole('region', { name: 'Report preview' });
     expect(preview.querySelector('.report-document')).not.toBeNull();
+    // The preview shows the paper: the template's own page margins around the content box.
+    const paper = preview.querySelector('.report-preview-paper') as HTMLElement;
+    expect(paper.style.width).toBe('210mm');
+    expect(paper.style.paddingLeft).toBe('12mm');
+    expect(paper.style.paddingRight).toBe('12mm');
     expect(preview.querySelector('.report-preview-banner')).toHaveTextContent(/preview/i);
     expect(toggle).toHaveAttribute('aria-controls', preview.id);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');

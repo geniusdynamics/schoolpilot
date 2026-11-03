@@ -78,11 +78,13 @@ test.describe('report publishing', () => {
 
       const bounds = await preview.evaluate((element) => {
         const sheet = element.querySelector('.report-sheet')!;
+        const paper = element.querySelector('.report-preview-paper')!;
         return {
           inApp: element.closest('#root') !== null,
           pageWidth: document.documentElement.scrollWidth,
           viewportWidth: window.innerWidth,
           sheetWidth: sheet.getBoundingClientRect().width,
+          paperWidth: paper.getBoundingClientRect().width,
           scrollWidth: element.scrollWidth,
           clientWidth: element.clientWidth,
           scrollHeight: element.scrollHeight,
@@ -92,6 +94,8 @@ test.describe('report publishing', () => {
       expect(bounds.inApp).toBe(true);
       expect(bounds.pageWidth).toBeLessThanOrEqual(bounds.viewportWidth);
       expect(bounds.sheetWidth).toBeCloseTo((186 * 96) / 25.4, 0);
+      // The preview shows the paper, not just the content box: full A4 width with real margins.
+      expect(bounds.paperWidth).toBeCloseTo((210 * 96) / 25.4, 0);
       expect(bounds.scrollHeight).toBeGreaterThan(bounds.clientHeight);
       if (width === 360) expect(bounds.scrollWidth).toBeGreaterThan(bounds.clientWidth);
       await preview.focus();
@@ -109,6 +113,31 @@ test.describe('report publishing', () => {
       expect(errors).toEqual([]);
     });
   }
+
+  test('the offscreen print copy cannot be scrolled to on an RTL page', async ({ page }) => {
+    await openHarness(page, 'inline-preview', { width: 1100, height: 900 });
+    await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'));
+
+    // In RTL the scroll origin is the right edge and leftward overflow is reachable: an absolutely
+    // positioned offscreen box would widen the page leftward. A fixed one adds no scrollable
+    // overflow, so the document stays exactly the viewport and hard-left scrolling cannot move.
+    const overflow = await page.evaluate(() => {
+      const el = document.scrollingElement ?? document.documentElement;
+      el.scrollLeft = -100000;
+      return {
+        scrollWidth: document.documentElement.scrollWidth,
+        innerWidth: window.innerWidth,
+        scrollLeftAfterHardLeft: el.scrollLeft,
+      };
+    });
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.innerWidth + 1);
+    expect(overflow.scrollLeftAfterHardLeft).toBe(0);
+
+    // The copy still measures a real fit while parked offscreen.
+    const printDocument = page.locator('.report-print-surface--offscreen .report-document');
+    expect(Number(await printDocument.getAttribute('data-height-mm'))).toBeGreaterThan(0);
+    await expect(printDocument).toHaveAttribute('data-overflow', 'false');
+  });
 
   test('the frozen snapshot never changes, and a re-issue is a new version', async ({ page }) => {
     await openHarness(page, 'published');
