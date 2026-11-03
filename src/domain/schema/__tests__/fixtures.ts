@@ -904,4 +904,15 @@ export const validFixtures: { [K in EntityName]: EntityRow<K> } = {
     status: 'posted',
     ...audit,
   },
+  ledger_account: {
+    id: '00000000-0000-7000-8000-000000000045',
+    institution_id: IDS.institution,
+    code: '1010',
+    name: 'Cash',
+    kind: 'asset',
+    role: 'cash',
+    is_system: true,
+    is_active: true,
+    ...audit,
+  },
 };
