@@ -78,3 +78,9 @@ export function currentPeriodOf<T extends CurrentPeriodSource>(
   if (byDate !== undefined) return byDate;
   return periods.find((period) => period.status === 'current') ?? periods[0];
 }
+
+/** A weekday as a grid shows it: "monday" reads "Monday". */
+export function weekdayLabel(day: string): string {
+  const words = day.replace(/_/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}

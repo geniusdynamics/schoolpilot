@@ -1,387 +1,361 @@
-// ABOUTME: Class timetable page — a day × period grid per class stream; each slot holds a subject and teacher.
-// ABOUTME: CRUD goes through the academics module context with string ids and update(id, patch).
+// ABOUTME: Timetable entries page — each entry places one canonical teaching group in one
+// ABOUTME: canonical timetable slot, optionally naming a room. Rows read and write timetable_entry
+// ABOUTME: only; the slots themselves are defined on the Periods tab.
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { DayOfWeek } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import Select from '@/components/ui/Select';
-
-import { useTranslation } from 'react-i18next';
-import { logger } from '@/utils/logging';
-import { useAcademicDataContext } from '../data/AcademicDataContext';
-import { useAdministrationDataContext } from '@/modules/administration/data/AdministrationDataContext';
+import Input from '@/components/ui/Input';
+import Spinner from '@/components/ui/Spinner';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useLookup } from '@/data/query';
+import { type CreateInput, type UpdateInput } from '@/data/repository';
+import { asId, type Id } from '@/domain/ids';
+import { WEEKDAYS } from '@/domain/schema';
+import { useCan } from '@/data/auth/useCan';
 import { useToast } from '@/hooks/useToast';
+import { weekdayLabel } from '@/utils/academicLabels';
 
-type Id = string | number;
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
+import {
+  useCanonicalAcademics,
+  type TeachingGroupRow,
+  type TimetableEntryRow,
+  type TimetableSlotRow,
+} from '../data/useCanonicalAcademics';
 
-interface TimetableEntryFormData {
-  day_of_week?: DayOfWeek;
-  period_id?: string;
-  subject_id?: string;
-  teacher_id?: string;
+interface EntryDraft {
+  readonly slotId: Id<'timetable_slot'> | null;
+  readonly teachingGroupId: Id<'teaching_group'> | null;
+  readonly room: string;
 }
 
-interface Named { id: Id; name?: string | null; title?: string | null }
-interface StreamRecord extends Named { class_id?: Id | null; class_name?: string | null }
-interface PeriodDef { id: Id; period_name?: string; start_time: string; end_time: string }
-interface StaffRecord {
-  id: Id;
-  first_name?: string;
-  last_name?: string;
-  staff_no?: string;
-  is_active?: boolean;
-  designation_id?: Id | null;
-  designation_title?: string | null;
-  department_id?: Id | null;
-  department_name?: string | null;
-}
-interface StoredEntry {
-  id: Id;
-  class_stream_id?: Id | null;
-  day_of_week: DayOfWeek;
-  period_id?: Id | null;
-  subject_id?: Id | null;
-  teacher_id?: Id | null;
-  subject_name?: string | null;
-  teacher_name?: string | null;
-}
-interface StoredAllocation { id: Id; class_stream_id?: Id | null; subject_id?: Id | null }
-interface StoredAssignment { id: Id; allocation_id?: Id | null; teacher_id?: Id | null }
+const EMPTY_DRAFT: EntryDraft = { slotId: null, teachingGroupId: null, room: '' };
 
-/** A timetable slot as shown in the grid, with subject and teacher names resolved. */
-interface EntryRow {
-  id: string;
-  class_stream_id: string;
-  day_of_week: DayOfWeek;
-  period_id: string;
-  subject_id: string;
-  teacher_id: string;
-  subject_name: string;
-  teacher_name: string;
+/** The slot as a picker names it: its weekday and the time it starts. */
+const slotLabel = (slot: TimetableSlotRow): string =>
+  `${weekdayLabel(slot.day_of_week)} ${slot.start_time}`;
+
+/** The slot as a grid names it: its weekday and the window it covers. */
+const slotWindowLabel = (slot: TimetableSlotRow): string =>
+  `${weekdayLabel(slot.day_of_week)} ${slot.start_time}–${slot.end_time}`;
+
+/** Order entries by weekday, then by the time the school day reaches them. */
+function byDayAndStart(
+  left: TimetableEntryRow,
+  right: TimetableEntryRow,
+  slotById: ReadonlyMap<string, TimetableSlotRow>
+): number {
+  const leftSlot = slotById.get(left.slot_id);
+  const rightSlot = slotById.get(right.slot_id);
+  if (!leftSlot || !rightSlot) return left.slot_id.localeCompare(right.slot_id);
+  const dayOrder =
+    WEEKDAYS.indexOf(leftSlot.day_of_week) - WEEKDAYS.indexOf(rightSlot.day_of_week);
+  return dayOrder !== 0 ? dayOrder : leftSlot.start_time.localeCompare(rightSlot.start_time);
 }
 
-const idOf = (value: Id | null | undefined): string => (value == null ? '' : String(value));
-const fullName = (person?: { first_name?: string; last_name?: string }) =>
-  person ? `${person.first_name ?? ''} ${person.last_name ?? ''}`.trim() : '';
-
-export const TimetableEntriesContent: React.FC = () => {
+const TimetableEntryList: React.FC = () => {
   const { t } = useTranslation('academics');
-  const academic = useAcademicDataContext();
-  const admin = useAdministrationDataContext();
-  const { addTimetableEntry, updateTimetableEntry, deleteTimetableEntry } = academic;
-  const [isSaving, setIsSaving] = useState(false);
-
-  const classStreams = admin.classStreams as unknown as StreamRecord[];
-  const classes = admin.classes as unknown as Named[];
-  const staff = admin.staff as StaffRecord[];
-  const designations = admin.designations as unknown as Named[];
-  const departments = admin.departments as unknown as Named[];
-  const subjects = academic.subjects as Named[];
-  const timetablePeriodDefs = academic.timetablePeriodDefs as unknown as PeriodDef[];
-  const classSubjectAllocations = academic.classSubjectAllocations as unknown as StoredAllocation[];
-  const teacherSubjectAssignments = academic.teacherSubjectAssignments as StoredAssignment[];
-
-  const streamLabel = (stream: StreamRecord) => {
-    const className = classes.find(c => idOf(c.id) === idOf(stream.class_id))?.name ?? stream.class_name;
-    return className ? `${className} - ${stream.name ?? ''}` : (stream.name ?? '');
-  };
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<EntryRow | null>(null);
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<string | undefined>(classStreams.length > 0 ? idOf(classStreams[0].id) : undefined);
-
-  const initialFormData: TimetableEntryFormData = { 
-    day_of_week: undefined, 
-    period_id: undefined,
-    subject_id: undefined,
-    teacher_id: undefined,
-  };
-  const [formData, setFormData] = useState<TimetableEntryFormData>(initialFormData);
-
-  const openModal = (entry?: EntryRow, day?: DayOfWeek, periodId?: string) => {
-    setEditingEntry(entry || null);
-    setFormData(entry ? 
-      { 
-        day_of_week: entry.day_of_week, 
-        period_id: entry.period_id,
-        subject_id: entry.subject_id,
-        teacher_id: entry.teacher_id,
-      } : 
-      {...initialFormData, day_of_week: day, period_id: periodId }
-    );
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingEntry(null);
-    setFormData(initialFormData);
-  };
-
-  const handleInputChange = (name: keyof TimetableEntryFormData, value: string) => {
-    const newState = { ...formData, [name]: value || undefined };
-    // If subject changes, reset teacher if the current teacher isn't assigned to the new subject
-    if (name === 'subject_id') {
-        newState.teacher_id = undefined; 
-    }
-    setFormData(newState);
-  };
-  
-  const availableTeachers = useMemo(() => {
-    const active = staff.filter(s => s.is_active !== false);
-    if (!formData.subject_id || !selectedClassStreamId) {
-      return active.filter(s => {
-        const designation = designations.find(d => idOf(d.id) === idOf(s.designation_id))?.title ?? s.designation_title ?? '';
-        const department = departments.find(d => idOf(d.id) === idOf(s.department_id))?.name ?? s.department_name ?? '';
-        return department === 'Academics' || /teacher|principal/i.test(designation);
-      });
-    }
-
-    // Find relevant ClassSubjectAllocations for the current stream and selected subject
-    const relevantAllocationIds = new Set(classSubjectAllocations
-      .filter(csa => idOf(csa.class_stream_id) === selectedClassStreamId && idOf(csa.subject_id) === formData.subject_id)
-      .map(csa => idOf(csa.id)));
-
-    if (relevantAllocationIds.size === 0) return [];
-
-    const teacherIds = new Set(teacherSubjectAssignments
-        .filter(tsa => relevantAllocationIds.has(idOf(tsa.allocation_id)))
-        .map(tsa => idOf(tsa.teacher_id)));
-
-    return active.filter(s => teacherIds.has(idOf(s.id)));
-  }, [formData.subject_id, selectedClassStreamId, staff, designations, departments, classSubjectAllocations, teacherSubjectAssignments]);
-
   const toast = useToast();
-  const handleSubmit = async () => {
-    if (!selectedClassStreamId || !formData.day_of_week || !formData.period_id || !formData.subject_id || !formData.teacher_id) {
-      toast.showWarning(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
+  const confirm = useConfirm();
+  const { repository, institutionId, isLoading, timetableSlots, timetableEntries, teachingGroups } =
+    useCanonicalAcademics();
+
+  // Placing a group in a period is teaching configuration, so teaching.write gates the controls.
+  const canEdit = useCan('teaching.write');
+
+  const slotLookup = useLookup(repository, 'timetable_slot', { label: slotLabel });
+  const teachingGroupLookup = useLookup(repository, 'teaching_group', { label: (row) => row.name });
+
+  const [editing, setEditing] = useState<TimetableEntryRow | null>(null);
+  const [draft, setDraft] = useState<EntryDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const slotById = useMemo<ReadonlyMap<string, TimetableSlotRow>>(
+    () => new Map(timetableSlots.map((slot) => [slot.id, slot] as const)),
+    [timetableSlots]
+  );
+  const teachingGroupById = useMemo<ReadonlyMap<string, TeachingGroupRow>>(
+    () => new Map(teachingGroups.map((group) => [group.id, group] as const)),
+    [teachingGroups]
+  );
+  const entries = useMemo(
+    () => [...timetableEntries].sort((left, right) => byDayAndStart(left, right, slotById)),
+    [timetableEntries, slotById]
+  );
+
+  const noSlots = timetableSlots.length === 0;
+  const noGroups = teachingGroups.length === 0;
+  const canPlace = canEdit && !noSlots && !noGroups;
+
+  const startNew = () => {
+    setEditing(null);
+    setFormError(null);
+    setDraft({ ...EMPTY_DRAFT, slotId: timetableSlots[0] ? asId<'timetable_slot'>(timetableSlots[0].id) : null });
+  };
+
+  const startEdit = (row: TimetableEntryRow) => {
+    setEditing(row);
+    setFormError(null);
+    setDraft({
+      slotId: asId<'timetable_slot'>(row.slot_id),
+      teachingGroupId: asId<'teaching_group'>(row.teaching_group_id),
+      room: row.room ?? '',
+    });
+  };
+
+  const closeForm = () => {
+    setDraft(null);
+    setEditing(null);
+    setFormError(null);
+  };
+
+  const submit = async () => {
+    if (!draft) return;
+    if (!draft.slotId || !draft.teachingGroupId) {
+      setFormError('A period and a teaching group are both required.');
+      return;
+    }
+    if (institutionId === null) {
+      setFormError('The canonical database holds no institution row, so an entry cannot be saved yet.');
+      return;
+    }
+    const duplicate = entries.some(
+      (entry) =>
+        entry.id !== editing?.id &&
+        entry.slot_id === draft.slotId &&
+        entry.teaching_group_id === draft.teachingGroupId
+    );
+    if (duplicate) {
+      setFormError('This teaching group is already placed in that period.');
       return;
     }
 
-    const payload = {
-        class_stream_id: selectedClassStreamId,
-        day_of_week: formData.day_of_week,
-        period_id: formData.period_id,
-        subject_id: formData.subject_id,
-        teacher_id: formData.teacher_id,
-    };
-
-    setIsSaving(true);
+    const room = draft.room.trim() === '' ? undefined : draft.room.trim();
+    setSaving(true);
+    setFormError(null);
     try {
-      if (editingEntry) {
-        await updateTimetableEntry(editingEntry.id, payload as never);
+      if (editing) {
+        const patch: UpdateInput<'timetable_entry'> = {
+          slot_id: draft.slotId,
+          teaching_group_id: draft.teachingGroupId,
+          room,
+        };
+        await repository.update('timetable_entry', asId<'timetable_entry'>(editing.id), patch, {
+          expectedVersion: editing.rowVersion,
+        });
+        toast.showSuccess('Timetable entry saved.');
       } else {
-        await addTimetableEntry(payload as never);
+        const payload: CreateInput<'timetable_entry'> = {
+          institution_id: institutionId,
+          slot_id: draft.slotId,
+          teaching_group_id: draft.teachingGroupId,
+          room,
+        };
+        await repository.create('timetable_entry', payload);
+        toast.showSuccess('Timetable entry added.');
       }
-      closeModal();
+      closeForm();
     } catch (error) {
-      logger.error('Failed to save timetable slot:', error);
-      toast.showError('Failed to save timetable slot.');
+      setFormError(messageOf(error));
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  const confirm = useConfirm();
-  const handleDelete = async (id: string) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this timetable slot?' }))) {
-      await deleteTimetableEntry(id);
+  const remove = async (row: TimetableEntryRow) => {
+    const confirmed = await confirm({
+      variant: 'danger',
+      message: 'Remove this teaching group from the period? The group and the period stay.',
+    });
+    if (!confirmed) return;
+    try {
+      await repository.remove('timetable_entry', asId<'timetable_entry'>(row.id), {
+        expectedVersion: row.rowVersion,
+      });
+      toast.showSuccess('Timetable entry removed.');
+    } catch (error) {
+      toast.showError(messageOf(error));
     }
   };
 
-  const daysOfWeekOrder: DayOfWeek[] = [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY];
-  const sortedPeriods = useMemo(() => 
-    [...(timetablePeriodDefs || [])].sort((a,b) => a.start_time.localeCompare(b.start_time)), 
-  [timetablePeriodDefs]);
+  const columns: DataGridColumn<TimetableEntryRow>[] = [
+    {
+      key: 'slot_id',
+      header: 'Period',
+      sortable: true,
+      filterable: true,
+      render: (_value: unknown, row: TimetableEntryRow) => {
+        const slot = slotById.get(row.slot_id);
+        return slot ? slotWindowLabel(slot) : row.slot_id;
+      },
+    },
+    {
+      key: 'teaching_group_id',
+      header: 'Teaching group',
+      sortable: true,
+      filterable: true,
+      render: (_value: unknown, row: TimetableEntryRow) =>
+        teachingGroupById.get(row.teaching_group_id)?.name ?? row.teaching_group_id,
+    },
+    {
+      key: 'room',
+      header: 'Room',
+      render: (_value: unknown, row: TimetableEntryRow) => row.room ?? '—',
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (_value: unknown, row: TimetableEntryRow) => (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => startEdit(row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            {t('common:edit', 'Edit')}
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void remove(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            {t('common:delete', 'Delete')}
+          </Button>
+        </div>
+      ),
+    },
+  ].filter((column) => canEdit || column.key !== 'actions') as DataGridColumn<TimetableEntryRow>[];
 
-  const entriesForSelectedStream = useMemo<EntryRow[]>(() => {
-    if (!selectedClassStreamId) return [];
-    return (academic.timetableEntries as unknown as StoredEntry[])
-      .filter(entry => idOf(entry.class_stream_id) === selectedClassStreamId)
-      .map(entry => ({
-        id: idOf(entry.id),
-        class_stream_id: idOf(entry.class_stream_id),
-        day_of_week: entry.day_of_week,
-        period_id: idOf(entry.period_id),
-        subject_id: idOf(entry.subject_id),
-        teacher_id: idOf(entry.teacher_id),
-        subject_name: subjects.find(s => idOf(s.id) === idOf(entry.subject_id))?.name ?? entry.subject_name ?? '',
-        teacher_name: fullName(staff.find(s => idOf(s.id) === idOf(entry.teacher_id))) || entry.teacher_name || '',
-      }));
-  }, [selectedClassStreamId, academic.timetableEntries, subjects, staff]);
-
-  const findEntry = (day: DayOfWeek, periodId: string): EntryRow | undefined => {
-    return entriesForSelectedStream.find(e => e.day_of_week === day && e.period_id === periodId);
-  };
-
-  const getSubjectColor = (subjectId: string): string => {
-    const colors = ['bg-primary-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100'];
-    const hash = Array.from(subjectId).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-    return colors[hash % colors.length];
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
-      <Card title="Class Timetable Management" actions={
-        <>
-          {/* <Button variant="secondary" leftIcon={<PrinterIcon className="w-5 h-5" />}>Print Timetable</Button> */}
-        </>
-      }>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-surface-muted">
-          <Select
-            label="Select Class Stream"
-            value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
-            onChange={(e) => setSelectedClassStreamId(e.target.value || undefined)}
-          >
-            <option value="">-- Select Class Stream --</option>
-            {classStreams.map(cs => (
-              <option key={cs.id} value={idOf(cs.id)}>{streamLabel(cs)}</option>
-            ))}
-          </Select>
-        </div>
+      {institutionId === null && (
+        <p
+          role="alert"
+          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
+        >
+          The canonical database holds no institution row, so an entry cannot be saved yet.
+        </p>
+      )}
 
-        {!selectedClassStreamId && <p className="text-center text-surface-muted-fg py-4">Please select a class stream to view or manage its timetable.</p>}
-        
-        {selectedClassStreamId && (
-          <div className="table-responsive">
-            <table className="min-w-full border-collapse border border-surface-border">
-              <thead>
-                <tr className="bg-surface-accent">
-                  <th className="border border-surface-border p-2 text-xs font-medium text-surface-muted-fg">Time / Day</th>
-                  {daysOfWeekOrder.map(day => (
-                    <th key={day} className="border border-surface-border p-2 text-xs font-medium text-surface-muted-fg capitalize">{day.toLowerCase()}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {(sortedPeriods || []).map(period => (
-                  <tr key={period.id}>
-                    <td className="border border-surface-border p-2 text-xs font-semibold text-surface-foreground whitespace-nowrap">
-                      {period.period_name}<br/>({period.start_time.slice(0,5)} - {period.end_time.slice(0,5)})
-                    </td>
-                    {daysOfWeekOrder.map(day => {
-                      const entry = findEntry(day, idOf(period.id));
-                      return (
-                        <td key={`${day}-${period.id}`} className={`border border-surface-border p-1.5 text-xs relative group h-24 ${entry ? getSubjectColor(entry.subject_id) : 'hover:bg-surface-muted'}`}>
-                          {entry ? (
-                            <div className="flex flex-col justify-between h-full">
-                              <div>
-                                <p className="font-semibold text-surface-foreground">{entry.subject_name}</p>
-                                <p className="text-surface-muted-fg text-[10px]">{entry.teacher_name}</p>
-                              </div>
-                              <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                                <Button size="sm" variant="ghost" className="p-0.5" onClick={() => openModal(entry, day, idOf(period.id))}><EditIcon className="w-3 h-3"/></Button>
-                                <Button size="sm" variant="ghost" className="p-0.5 text-red-500" onClick={() => handleDelete(entry.id)}><DeleteIcon className="w-3 h-3"/></Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 p-0.5" onClick={() => openModal(undefined, day, idOf(period.id))}>
-                                <PlusIcon className="w-4 h-4 text-surface-muted-fg"/>
-                              </Button>
-                            </div>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      <DialogForm
-        open={isModalOpen}
-        onClose={closeModal}
-        title={editingEntry ? 'Edit Timetable Slot' : 'Add Timetable Slot'}
-        size="lg"
-        onSubmit={handleSubmit}
+      <Card
+        title={t('timetableEntries.title', 'Class Timetable Management')}
+        info="Each row places one teaching group in one of the school-day periods. A period may hold several groups at once when they run in parallel, such as elective sets."
+        bodyClassName="p-0"
         actions={
-          <FormActions>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={isSaving}>
-              {editingEntry ? 'Save Changes' : 'Add Slot'}
+          canPlace ? (
+            <Button onClick={startNew} leftIcon={<PlusIcon className="w-5 h-5" />}>
+              Add entry
             </Button>
-          </FormActions>
+          ) : undefined
         }
       >
-        <FormSection>
-          <FormField>
-            <Select
-              name="day_of_week"
-              label="Day of Week"
-              value={formData.day_of_week || ''}
-              onChange={(e) => handleInputChange('day_of_week', e.target.value)}
-              required
-              disabled={!!editingEntry}
-            >
-              <option value="">Select Day</option>
-              {daysOfWeekOrder.map(day => (<option key={day} value={day}>{day}</option>))}
-            </Select>
-          </FormField>
-          <FormField>
-            <Select
-              name="period_id"
-              label="Period"
-              value={formData.period_id ?? ''}
-              onChange={(e) => handleInputChange('period_id', e.target.value)}
-              required
-              disabled={!!editingEntry}
-            >
-              <option value="">Select Period</option>
-              {sortedPeriods.map(p => (
-                <option key={p.id} value={idOf(p.id)}>{p.period_name} ({p.start_time.slice(0,5)}-{p.end_time.slice(0,5)})</option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField>
-            <Select
-              name="subject_id"
-              label="Subject"
-              value={formData.subject_id ?? ''}
-              onChange={(e) => handleInputChange('subject_id', e.target.value)}
-              required
-            >
-              <option value="">Select Subject</option>
-              {subjects.map(subject => (
-                <option key={subject.id} value={idOf(subject.id)}>{subject.name}</option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField>
-            <Select
-              name="teacher_id"
-              label="Teacher"
-              aria-label="Teacher"
-              value={formData.teacher_id || ''}
-              onValueChange={(value) => handleInputChange('teacher_id', value as string)}
-              options={availableTeachers.map(teacher => ({
-                value: idOf(teacher.id),
-                label: `${fullName(teacher)}${teacher.staff_no ? ` (${teacher.staff_no})` : ''}`,
-              }))}
-              placeholder="Select Teacher"
-              searchable
-              required
-            />
-          </FormField>
-        </FormSection>
-      </DialogForm>
+        {canEdit && noSlots && (
+          <p className="border-t border-surface-border p-4 text-sm text-surface-muted-fg">
+            The school day has no periods yet. Add them on the Periods tab first.
+          </p>
+        )}
+        {canEdit && !noSlots && noGroups && (
+          <p className="border-t border-surface-border p-4 text-sm text-surface-muted-fg">
+            No teaching groups exist yet. Create them on the Teaching groups screen first.
+          </p>
+        )}
+        <div className="border-t border-surface-border">
+          <DataGrid
+            columns={columns}
+            data={entries}
+            sortable
+            filterable
+            pagination
+            emptyState="No timetable entries yet. Define the school-day periods first, then place a teaching group in one."
+          />
+        </div>
+      </Card>
+
+      {draft && (
+        <Card title={editing ? 'Edit timetable entry' : 'New timetable entry'}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <EntityPicker
+                label="Period"
+                value={draft.slotId}
+                onChange={(next) =>
+                  setDraft((current) => (current ? { ...current, slotId: next } : current))
+                }
+                lookup={slotLookup}
+                placeholder="Select a period"
+                allowClear
+              />
+              <EntityPicker
+                label="Teaching group"
+                value={draft.teachingGroupId}
+                onChange={(next) =>
+                  setDraft((current) => (current ? { ...current, teachingGroupId: next } : current))
+                }
+                lookup={teachingGroupLookup}
+                placeholder="Select a teaching group"
+                allowClear
+              />
+              <Input
+                label="Room"
+                name="room"
+                value={draft.room}
+                onChange={(event) =>
+                  setDraft((current) =>
+                    current ? { ...current, room: event.target.value } : current
+                  )
+                }
+                helperText="Optional."
+              />
+            </div>
+
+            {formError && (
+              <p
+                role="alert"
+                className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              >
+                {formError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button onClick={() => void submit()} loading={saving}>
+                {editing ? 'Save entry' : 'Create entry'}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
 
-const TimetableEntriesPage: React.FC = () => {
-  return <TimetableEntriesContent />;
-};
+export const TimetableEntriesContent: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <TimetableEntryList />
+  </CanonicalRepositoryProvider>
+);
+
+const TimetableEntriesPage: React.FC = () => <TimetableEntriesContent />;
 
 export default TimetableEntriesPage;
