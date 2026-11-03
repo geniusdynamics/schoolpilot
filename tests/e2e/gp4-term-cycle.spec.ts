@@ -257,7 +257,8 @@ test.describe('GP-4 term cycle', () => {
 
     await test.step('the frozen document prints the moderated grade with its reason', async () => {
       await page.getByTestId('toggle-preview').click();
-      const sheet = page.locator('.report-sheet').first();
+      // Scope to the preview region: with the preview open a second, offscreen print copy exists.
+      const sheet = page.getByRole('region', { name: 'Report preview' }).locator('.report-sheet');
       await expect(sheet).toBeVisible({ timeout: UI_TIMEOUT });
       await expect(sheet).toContainText(LEARNER);
       await expect(sheet).toContainText(MODERATED_GRADE);

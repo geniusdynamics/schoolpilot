@@ -15,6 +15,9 @@ import {
   type Publication,
 } from '..';
 
+// Page tests supply their canonical actor and repository; do not boot a browser login/database.
+vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: null }) }));
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
@@ -240,6 +243,49 @@ async function generate() {
 }
 
 describe('the review step on the page', () => {
+  it('offers the template through the same picker as the other controls', async () => {
+    await openReady();
+    const template = screen.getByRole('combobox', { name: 'Report template' });
+    fireEvent.click(template);
+    fireEvent.click(screen.getByRole('option', { name: 'Primary term report (PP1 to G6)' }));
+    expect(template).toHaveTextContent('Primary term report (PP1 to G6)');
+  });
+
+  it('does not let the card clip the pickers’ open lists', async () => {
+    await openReady();
+    // The pickers live in a Card; its default `overflow-hidden` cut the open list at the card edge.
+    const card = screen.getByTestId('generate-batch').closest('.overflow-visible');
+    expect(card).not.toBeNull();
+    expect(screen.getByTestId('generate-batch').closest('.overflow-hidden')).toBeNull();
+  });
+
+  it('keeps the preview inside its card and removes both copies when hidden', async () => {
+    const view = await openReady();
+    await generate();
+    const toggle = screen.getByTestId('toggle-preview');
+    fireEvent.click(toggle);
+
+    expect(view.container.querySelector('.report-document')).not.toBeNull();
+    const preview = screen.getByRole('region', { name: 'Report preview' });
+    expect(preview.querySelector('.report-document')).not.toBeNull();
+    // The preview shows the paper: the template's own page margins around the content box.
+    const paper = preview.querySelector('.report-preview-paper') as HTMLElement;
+    expect(paper.style.width).toBe('210mm');
+    expect(paper.style.paddingLeft).toBe('12mm');
+    expect(paper.style.paddingRight).toBe('12mm');
+    expect(preview.querySelector('.report-preview-banner')).toHaveTextContent(/preview/i);
+    expect(toggle).toHaveAttribute('aria-controls', preview.id);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    const printSurface = document.body.querySelector('.report-print-surface--offscreen');
+    expect(printSurface?.parentElement).toBe(document.body);
+    expect(printSurface).toHaveAttribute('aria-hidden', 'true');
+    expect(printSurface?.querySelector('.report-document')).not.toBeNull();
+
+    fireEvent.click(toggle);
+    expect(screen.queryByRole('region', { name: 'Report preview' })).toBeNull();
+    expect(document.body.querySelector('.report-print-surface')).toBeNull();
+  });
+
   it('refuses to publish before anything has been reviewed', async () => {
     await openReady();
     expect(screen.getByTestId('publish-batch')).toBeDisabled();

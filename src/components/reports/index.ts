@@ -4,5 +4,6 @@
 export { ReportDocument, type ReportDocumentProps } from './ReportDocument';
 export { ReportBlock } from './ReportBlock';
 export { ReportPrintSurface } from './ReportPrintSurface';
+export { ReportPreview } from './ReportPreview';
 export { ReportToolbar } from './ReportToolbar';
 export { beginPrint, endPrint, isPrinting, printReport, PRINTING_ATTRIBUTE, type PrintEnvironment } from './print';

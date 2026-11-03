@@ -87,11 +87,15 @@ describe('the negative rule in the stylesheet', () => {
     expect(declarations).toMatch(/html\[data-printing\] #root \{\s*display: none !important;/);
   });
 
-  it('never hides the shell with visibility: hidden and never uses fixed furniture', () => {
+  it('never hides the shell with visibility: hidden and never uses fixed furniture in print', () => {
     // Measured: a hidden-but-laid-out shell paginates and adds blank pages, and `position: fixed`
     // furniture overprints the last rows while its page counter prints "Page 0 of 0".
     expect(declarations).not.toMatch(/visibility:\s*hidden/);
-    expect(declarations).not.toMatch(/position:\s*fixed/);
+    // The one sanctioned fixed box is the screen-only offscreen preview copy: fixed adds nothing to
+    // the scrollable overflow, so an RTL page cannot scroll to it. Strip the screen blocks and the
+    // ban stands unchanged for everything a printer sees.
+    const outsideScreenBlocks = declarations.replace(/@media screen\s*\{[\s\S]*?\r?\n\}\s*(?=\r?\n|$)/g, '');
+    expect(outsideScreenBlocks).not.toMatch(/position:\s*fixed/);
   });
 
   it('repeats table headers, keeps rows whole, and lets table blocks break', () => {

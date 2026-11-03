@@ -2,15 +2,16 @@
 // ABOUTME: pack's template, review them, publish an immutable snapshot, and distribute it through the
 // ABOUTME: print queue, stored PDFs, the guardian portal link and the SMS link.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { EntityPicker } from '@/components/ui/EntityPicker';
+import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
-import { ReportDocument, ReportPrintSurface, printReport } from '@/components/reports';
+import { ReportPreview, printReport } from '@/components/reports';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEntityQuery, useLookup } from '@/data/query';
 import { resolveCanonicalActor } from '@/data/sessionActor';
@@ -148,6 +149,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
   const [classGroupId, setClassGroupId] = useState<Id<'class_group'> | null>(null);
   const [templateCode, setTemplateCode] = useState<string>(PACK_REPORT_TEMPLATES[0]?.code ?? '');
   const [showPreview, setShowPreview] = useState(false);
+  const previewId = useId();
 
   // The period whose dates cover today is the one a school almost always wants.
   useEffect(() => {
@@ -270,6 +272,7 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
           'reports.subtitle',
           'Generate a class’s reports from the computed results, review them, then publish a snapshot that never changes.'
         )}
+        clip={false}
       >
         <div className="grid grid-cols-1 gap-4 rounded-md border border-surface-border bg-surface-muted p-4 md:grid-cols-3">
           <EntityPicker
@@ -290,26 +293,14 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
             allowClear
             helperText={results.scope.reason}
           />
-          <label className="text-sm">
-            <span className="block font-medium text-surface-foreground">
-              {t('reports.template', 'Report template')}
-            </span>
-            <select
-              className="mt-1 w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm text-surface-foreground"
-              value={templateCode}
-              onChange={(event) => setTemplateCode(event.target.value)}
-              aria-label="Report template"
-            >
-              {PACK_REPORT_TEMPLATES.map((entry) => (
-                <option key={entry.code} value={entry.code}>
-                  {entry.name}
-                </option>
-              ))}
-            </select>
-            <span className="mt-1 block text-xs text-surface-muted-fg">
-              From the installed pack, version {PACK_VERSION}.
-            </span>
-          </label>
+          <Select
+            label={t('reports.template', 'Report template')}
+            aria-label={t('reports.template', 'Report template')}
+            value={templateCode}
+            onValueChange={(next) => setTemplateCode(Array.isArray(next) ? next[0] ?? '' : next)}
+            options={PACK_REPORT_TEMPLATES.map((entry) => ({ value: entry.code, label: entry.name }))}
+            helperText={`From the installed pack, version ${PACK_VERSION}.`}
+          />
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -429,7 +420,13 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
           )}
         >
           <div className="mb-3 flex flex-wrap items-center gap-3">
-            <Button variant="outline" onClick={() => setShowPreview((current) => !current)} data-testid="toggle-preview">
+            <Button
+              variant="outline"
+              onClick={() => setShowPreview((current) => !current)}
+              data-testid="toggle-preview"
+              aria-expanded={showPreview}
+              aria-controls={showPreview ? previewId : undefined}
+            >
               {showPreview ? 'Hide preview' : 'Show preview'}
             </Button>
             <span className="text-sm text-surface-muted-fg">
@@ -439,9 +436,11 @@ const ReportsInner: React.FC<ReportsPageContentProps> = ({
             </span>
           </div>
           {showPreview ? (
-            <ReportPrintSurface>
-              <ReportDocument model={documentModel(previewDocument)} toolbar={false} />
-            </ReportPrintSurface>
+            <ReportPreview
+              id={previewId}
+              label={t('reports.previewRegion', 'Report preview')}
+              model={documentModel(previewDocument)}
+            />
           ) : null}
         </Card>
       )}

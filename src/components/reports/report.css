@@ -40,6 +40,46 @@
   min-height: 100%;
 }
 
+.report-preview-viewport {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 75vh;
+  overflow: auto;
+  padding: 8mm 4mm 12mm;
+  background: #e5e7eb;
+}
+
+/* The paper: the full page box with the template's own margins, so the preview shows the card
+   exactly as it prints. The sheet inside drops its desk shadow — the paper is the page now.
+   The geometry is owned here, not borrowed from a global preflight: without border-box the
+   padding would widen the paper past the physical page. */
+.report-preview-paper {
+  box-sizing: border-box;
+  margin: 0 auto;
+  background: #ffffff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+}
+
+.report-preview-paper .report-sheet {
+  box-shadow: none;
+}
+
+/* Only the screen copy scrolls. The print copy keeps its physical width and measurable height.
+   It is `position: fixed` — a fixed box contributes nothing to the document's scrollable overflow,
+   so the page cannot be scrolled to it in either direction (in RTL, leftward overflow is reachable,
+   which `left` on an absolutely positioned box would create). Screen-only: fixed furniture in print
+   overprints rows, which is why the print guard still bans it there. */
+@media screen {
+  .report-print-surface--offscreen {
+    position: fixed;
+    top: 0;
+    left: -100000px;
+    width: max-content;
+    min-height: 0;
+  }
+}
+
 .report-document {
   --report-ink: #111827;
   --report-muted: #4b5563;
