@@ -173,9 +173,9 @@ export const ledgerAccountSchemaMigration: ModuleSchemaMigration = moduleSchemaM
 /**
  * Transport: the routes a school runs and the learner assignments billed each term.
  *
- * Version 109 belongs to another branch in flight, so this one takes 110. The statements are
- * derived from both canonical entity declarations, exactly as the expense migration is derived
- * from its entity.
+ * Version 110 follows the ledger chart's 109: a version is an identity in the shared ledger, never
+ * a count. The statements are derived from both canonical entity declarations, exactly as the
+ * expense migration is derived from its entity.
  */
 export const transportSchemaMigration: ModuleSchemaMigration = moduleSchemaMigration({
   version: 110,
