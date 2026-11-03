@@ -1,123 +1,179 @@
-// ABOUTME: Finance settings page for financial years: create, edit, close and reopen years stored in the database.
-// ABOUTME: Shows the single current year; rules (no overlap, one open year kept current) live in useFinancialYearData.
+// ABOUTME: Finance settings page for financial years: create, edit, close and reopen the canonical
+// ABOUTME: financial_year rows. Date ranges may not overlap and exactly one year is current.
+// ABOUTME: Closing a year here does not close the ledger's accounting period; that lives in reports.
 
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Card from '@/components/ui/Card';
+import { Link } from 'react-router-dom';
+
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
+import Card from '@/components/ui/Card';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { ArrowPathIcon, EditIcon, LockClosedIcon, PlusIcon } from '@/components/ui/icons';
+import {
+  ArrowPathIcon,
+  EditIcon,
+  ExclamationTriangleIcon,
+  LockClosedIcon,
+  PlusIcon,
+} from '@/components/ui/icons';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import {
+  SchemaEntityForm,
+  type EntityFormFieldMeta,
+} from '@/components/ui/forms';
+import {
+  createSchemaFor,
+  toWritableValues,
+  updateSchemaFor,
+  type CreateInput,
+} from '@/data/repository';
+import { asId } from '@/domain/ids';
 import { useToast } from '@/hooks/useToast';
-import { FinancialYearStatus } from '@/core/types';
 import { formatDate } from '@/utils/format';
-import { LegacyDataNotice } from '@/components/LegacyDataNotice';
+
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
 import {
   suggestNextFinancialYear,
   useFinancialYearData,
-  type FinancialYearInput,
-  type FinancialYearRecord,
+  type FinancialYearRow,
 } from '../data/useFinancialYearData';
 
-const statusVariant: Record<string, 'success' | 'secondary' | 'warning'> = {
-  [FinancialYearStatus.OPEN]: 'success',
-  [FinancialYearStatus.CLOSED]: 'secondary',
-  [FinancialYearStatus.ARCHIVED]: 'warning',
+/** The period-close view of the ledger, where an accounting period is actually closed. */
+export const PERIOD_CLOSE_PATH = '/finance/accounting-reports?tab=period-close';
+
+const STATUS_LABEL_KEYS: Readonly<Record<FinancialYearRow['status'], [string, string]>> = {
+  planned: ['finance:financialYears.status.planned', 'Planned'],
+  current: ['finance:financialYears.status.current', 'Current year'],
+  closed: ['finance:financialYears.status.closed', 'Closed'],
 };
 
-const FinancialYearsPage: React.FC = () => {
-  const { t } = useTranslation();
+const STATUS_VARIANTS: Readonly<Record<FinancialYearRow['status'], 'success' | 'secondary' | 'info'>> = {
+  planned: 'info',
+  current: 'success',
+  closed: 'secondary',
+};
+
+const FIELDS: readonly EntityFormFieldMeta[] = [
+  {
+    path: 'name',
+    label: 'Name',
+    order: 1,
+    section: 'Financial year',
+    required: true,
+    colSpan: 2,
+    placeholder: 'FY 2027',
+  },
+  {
+    path: 'start_date',
+    label: 'Start date',
+    order: 2,
+    section: 'Financial year',
+    widget: 'date',
+    required: true,
+  },
+  {
+    path: 'end_date',
+    label: 'End date',
+    order: 3,
+    section: 'Financial year',
+    widget: 'date',
+    required: true,
+  },
+];
+
+export const FinancialYearsContent: React.FC = () => {
+  const { t } = useTranslation('finance');
   const toast = useToast();
   const confirm = useConfirm();
-  const { financialYears, currentFinancialYear, loading, create, update, close, reopen, canClose } = useFinancialYearData();
+  const {
+    institutionId,
+    financialYears,
+    currentFinancialYear,
+    loading,
+    error,
+    refresh,
+    create: createYear,
+    update: updateYear,
+    close: closeYear,
+    reopen: reopenYear,
+    canClose,
+  } = useFinancialYearData();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editing, setEditing] = useState<FinancialYearRecord | null>(null);
-  const [formDefaults, setFormDefaults] = useState<FinancialYearInput | null>(null);
-
-  const statusLabel = (status: string) => {
-    if (status === FinancialYearStatus.OPEN) return t('finance:financialYears.status.open', 'Open');
-    if (status === FinancialYearStatus.CLOSED) return t('finance:financialYears.status.closed', 'Closed');
-    return t('finance:financialYears.status.archived', 'Archived');
-  };
-
-  const openCreate = () => {
-    setEditing(null);
-    setFormDefaults(suggestNextFinancialYear(financialYears));
-    setIsFormOpen(true);
-  };
-
-  const openEdit = (year: FinancialYearRecord) => {
-    setEditing(year);
-    setFormDefaults({ name: year.name, start_date: year.start_date?.slice(0, 10) ?? '', end_date: year.end_date?.slice(0, 10) ?? '' });
-    setIsFormOpen(true);
-  };
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<FinancialYearRow | null>(null);
 
   const closeForm = () => {
-    setIsFormOpen(false);
+    setCreating(false);
     setEditing(null);
-    setFormDefaults(null);
   };
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
-    const input: FinancialYearInput = {
-      name: String(values.name ?? ''),
-      start_date: String(values.start_date ?? ''),
-      end_date: String(values.end_date ?? ''),
-    };
-    if (editing) {
-      await update(editing.id, input);
-    } else {
-      await create(input);
+  const create = async (values: Record<string, unknown>) => {
+    const name = String(values.name ?? '');
+    try {
+      await createYear({
+        name,
+        start_date: String(values.start_date ?? ''),
+        end_date: String(values.end_date ?? ''),
+      });
+      closeForm();
+      toast.showSuccess(t('finance:financialYears.created', '{{name}} created', { name }));
+    } catch (failure) {
+      throw new Error(messageOf(failure));
     }
   };
 
-  const handleClose = async (year: FinancialYearRecord) => {
+  const update = async (values: Record<string, unknown>) => {
+    if (!editing) return;
+    const name = String(values.name ?? editing.name);
+    try {
+      await updateYear(String(editing.id), {
+        name,
+        start_date: String(values.start_date ?? editing.start_date),
+        end_date: String(values.end_date ?? editing.end_date),
+      });
+      closeForm();
+      toast.showSuccess(t('finance:financialYears.saved', '{{name}} saved', { name }));
+    } catch (failure) {
+      throw new Error(messageOf(failure));
+    }
+  };
+
+  const handleClose = async (year: FinancialYearRow) => {
     const confirmed = await confirm({
       variant: 'warning',
       title: t('finance:financialYears.closeTitle', 'Close financial year'),
       message: t('finance:financialYears.closeMessage', {
-        defaultValue: 'Close {{name}}? Closed years stay available in reports but are no longer current.',
+        defaultValue:
+          'Close {{name}}? Closed years stay available in reports, and the next open year becomes current. The ledger’s accounting period is not closed here.',
         name: year.name,
       }),
       confirmLabel: t('finance:financialYears.close', 'Close'),
     });
     if (!confirmed) return;
     try {
-      await close(year.id);
-      toast.showSuccess(t('finance:financialYears.closed', { defaultValue: '{{name}} closed', name: year.name }));
-    } catch (err) {
-      toast.showError(err instanceof Error ? err.message : t('common:saveError', 'Failed to save. Please try again.'));
+      await closeYear(String(year.id));
+      toast.showSuccess(
+        t('finance:financialYears.closed', '{{name}} closed', { name: year.name })
+      );
+    } catch (failure) {
+      toast.showError(messageOf(failure));
     }
   };
 
-  const handleReopen = async (year: FinancialYearRecord) => {
+  const handleReopen = async (year: FinancialYearRow) => {
     try {
-      await reopen(year.id);
-      toast.showSuccess(t('finance:financialYears.reopened', { defaultValue: '{{name}} reopened', name: year.name }));
-    } catch (err) {
-      toast.showError(err instanceof Error ? err.message : t('common:saveError', 'Failed to save. Please try again.'));
+      await reopenYear(String(year.id));
+      toast.showSuccess(
+        t('finance:financialYears.reopened', '{{name}} reopened', { name: year.name })
+      );
+    } catch (failure) {
+      toast.showError(messageOf(failure));
     }
   };
 
-  const fields: EntityFieldConfig[] = useMemo(() => [
-    { name: 'name', label: t('finance:financialYears.name', 'Name'), required: true, colSpan: 2, placeholder: 'FY 2027' },
-    { name: 'start_date', label: t('finance:financialYears.startDate', 'Start Date'), type: 'date', required: true },
-    {
-      name: 'end_date',
-      label: t('finance:financialYears.endDate', 'End Date'),
-      type: 'date',
-      required: true,
-      validate: (value, all) =>
-        value && all.start_date && String(value) <= String(all.start_date)
-          ? t('validation.endDateAfterStartDate', 'End date must be after the start date.')
-          : null,
-    },
-  ], [t]);
-
-  const columns: DataGridColumn<FinancialYearRecord>[] = [
+  const columns: DataGridColumn<FinancialYearRow>[] = [
     {
       key: 'name',
       header: t('finance:financialYears.name', 'Name'),
@@ -127,20 +183,22 @@ const FinancialYearsPage: React.FC = () => {
         <span className="inline-flex items-center gap-2">
           <span>{item.name}</span>
           {currentFinancialYear?.id === item.id && (
-            <Badge variant="primary" size="sm">{t('finance:financialYears.current', 'Current')}</Badge>
+            <Badge variant="primary" size="sm">
+              {t('finance:financialYears.current', 'Current')}
+            </Badge>
           )}
         </span>
       ),
     },
     {
       key: 'start_date',
-      header: t('finance:financialYears.startDate', 'Start Date'),
+      header: t('finance:financialYears.startDate', 'Start date'),
       sortable: true,
       render: (_value, item) => formatDate(item.start_date),
     },
     {
       key: 'end_date',
-      header: t('finance:financialYears.endDate', 'End Date'),
+      header: t('finance:financialYears.endDate', 'End date'),
       sortable: true,
       render: (_value, item) => formatDate(item.end_date),
     },
@@ -148,9 +206,14 @@ const FinancialYearsPage: React.FC = () => {
       key: 'status',
       header: t('finance:financialYears.statusHeader', 'Status'),
       sortable: true,
-      render: (_value, item) => (
-        <Badge variant={statusVariant[item.status] ?? 'secondary'} size="sm">{statusLabel(item.status)}</Badge>
-      ),
+      render: (_value, item) => {
+        const [key, fallback] = STATUS_LABEL_KEYS[item.status];
+        return (
+          <Badge variant={STATUS_VARIANTS[item.status]} size="sm">
+            {t(key, fallback)}
+          </Badge>
+        );
+      },
     },
     {
       key: 'actions',
@@ -160,23 +223,40 @@ const FinancialYearsPage: React.FC = () => {
       sticky: 'right',
       render: (_value, item) => (
         <div className="flex gap-2">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditing(item)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
             {t('common:edit', 'Edit')}
           </Button>
-          {item.status === FinancialYearStatus.OPEN ? (
+          {item.status === 'closed' ? (
             <Button
               size="sm"
               variant="secondary"
-              disabled={!canClose(item.id)}
-              title={canClose(item.id) ? undefined : t('finance:financialYears.lastOpenHint', 'Create or reopen another financial year before closing this one.')}
-              onClick={() => handleClose(item)}
+              onClick={() => void handleReopen(item)}
+              leftIcon={<ArrowPathIcon className="w-4 h-4" />}
+            >
+              {t('finance:financialYears.reopen', 'Reopen')}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={!canClose(String(item.id))}
+              title={
+                canClose(String(item.id))
+                  ? undefined
+                  : t(
+                      'finance:financialYears.lastOpenHint',
+                      'Create or reopen another financial year before closing this one.'
+                    )
+              }
+              onClick={() => void handleClose(item)}
               leftIcon={<LockClosedIcon className="w-4 h-4" />}
             >
               {t('finance:financialYears.close', 'Close')}
-            </Button>
-          ) : (
-            <Button size="sm" variant="secondary" onClick={() => handleReopen(item)} leftIcon={<ArrowPathIcon className="w-4 h-4" />}>
-              {t('finance:financialYears.reopen', 'Reopen')}
             </Button>
           )}
         </div>
@@ -184,47 +264,134 @@ const FinancialYearsPage: React.FC = () => {
     },
   ];
 
+  const suggestion = useMemo(() => suggestNextFinancialYear(financialYears), [financialYears]);
+
+  const createInitial = useMemo<Partial<CreateInput<'financial_year'>>>(
+    () => ({
+      institution_id: institutionId === null ? undefined : asId<'institution'>(institutionId),
+      name: suggestion.name,
+      start_date: suggestion.start_date,
+      end_date: suggestion.end_date,
+      status: 'planned',
+    }),
+    [institutionId, suggestion]
+  );
+
+  if (error !== null) {
+    return (
+      <Card title={t('finance:financialYears.title', 'Financial Years')}>
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
+          <ExclamationTriangleIcon className="mt-0.5 h-5 w-5" />
+          <div>
+            <p>{t('finance:financialYears.loadFailed', 'The financial years could not be read.')}</p>
+            <p className="mt-1 text-xs opacity-80">
+              {error instanceof Error ? error.message : String(error)}
+            </p>
+            <Button size="sm" variant="secondary" className="mt-2" onClick={refresh}>
+              {t('common:retry', 'Retry')}
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      <LegacyDataNotice>
-        The school&rsquo;s financial years and their close are in Accounting Reports &gt; Period Close.
-      </LegacyDataNotice>
+      {institutionId === null && !loading ? (
+        <p
+          role="alert"
+          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
+        >
+          {t(
+            'finance:financialYears.noInstitution',
+            'The canonical database holds no institution row, so a financial year cannot be saved yet.'
+          )}
+        </p>
+      ) : null}
+
       <Card
         title={t('finance:financialYears.title', 'Financial Years')}
         info={t(
           'finance:financialYears.description',
-          'Financial years group terms, fees and accounts. Date ranges may not overlap, and one open year is always the current year.'
+          'Financial years group the school’s money. Date ranges may not overlap, and one year is the current year.'
         )}
         actions={
-          <Button onClick={openCreate} leftIcon={<PlusIcon className="w-5 h-5" />}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setCreating(true);
+            }}
+            disabled={institutionId === null}
+            leftIcon={<PlusIcon className="w-5 h-5" />}
+          >
             {t('finance:financialYears.add', 'Add Financial Year')}
           </Button>
         }
       >
+        <p className="mb-3 text-sm text-surface-muted-fg">
+          {t(
+            'finance:financialYears.notPeriodClose',
+            'Closing a financial year here does not close the ledger’s accounting period. Close accounting periods in'
+          )}{' '}
+          <Link to={PERIOD_CLOSE_PATH} className="text-primary-600 underline">
+            {t('finance:financialYears.periodCloseLink', 'Accounting Reports > Period Close')}
+          </Link>
+          .
+        </p>
         <DataGrid
           columns={columns}
-          data={financialYears}
+          data={[...financialYears]}
           loading={loading}
           sortable
           filterable
           pagination
           emptyState={{
             title: t('finance:financialYears.emptyTitle', 'No financial years yet'),
-            description: t('finance:financialYears.emptyDescription', 'Add the financial year your terms and fees belong to.'),
+            description: t(
+              'finance:financialYears.emptyDescription',
+              'Add the financial year your terms and fees belong to.'
+            ),
           }}
         />
       </Card>
 
-      <EntityForm
-        isOpen={isFormOpen}
-        onClose={closeForm}
-        title={editing ? t('finance:financialYears.edit', 'Edit Financial Year') : t('finance:financialYears.add', 'Add Financial Year')}
-        initialData={formDefaults ?? undefined}
-        fields={fields}
-        onSubmit={handleSubmit}
-      />
+      {(creating || editing) && (
+        <Card title={editing ? `Edit ${editing.name}` : 'New financial year'}>
+          {editing ? (
+            <SchemaEntityForm
+              schema={updateSchemaFor('financial_year')}
+              fields={FIELDS}
+              recordKey={String(editing.id)}
+              initialValues={toWritableValues(editing)}
+              submitLabel={t('finance:financialYears.save', 'Save financial year')}
+              onCancel={closeForm}
+              onSubmit={update}
+            />
+          ) : (
+            <SchemaEntityForm
+              schema={createSchemaFor('financial_year')}
+              fields={FIELDS}
+              recordKey="new-financial-year"
+              initialValues={createInitial}
+              submitLabel={t('finance:financialYears.create', 'Create financial year')}
+              onCancel={closeForm}
+              onSubmit={create}
+            />
+          )}
+        </Card>
+      )}
     </div>
   );
 };
+
+const FinancialYearsPage: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <FinancialYearsContent />
+  </CanonicalRepositoryProvider>
+);
 
 export default FinancialYearsPage;
