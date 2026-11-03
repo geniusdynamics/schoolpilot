@@ -4,6 +4,7 @@
 // ABOUTME: invents a field the view does not carry.
 
 import type { ReceiptView } from '@/domain/finance/payments';
+import type { Money } from '@/domain/money';
 import type { QrMatrix, ReportPageFurniture, ReportPageGeometry } from '@/domain/reports';
 
 /** The three receipt formats of spec 05 §5.2, in the order the spec lists them. */
@@ -94,6 +95,11 @@ export interface ReceiptDocumentInput {
   readonly footer?: string | null;
   /** The display date; defaults to `view.issuedAt` unchanged, which is what the view carries. */
   readonly issuedAtLabel?: string | null;
+  /**
+   * How an amount prints. Defaults to the money module's own formatter; the finance module passes
+   * its canonical `KES 2,500.00` formatter so a receipt and the screen that issued it agree.
+   */
+  readonly formatAmount?: (value: Money) => string;
   readonly locale?: string;
   readonly dir?: 'ltr' | 'rtl';
   readonly labels?: Partial<ReceiptLabels>;
@@ -111,6 +117,8 @@ export interface ReceiptDocumentModel {
   readonly school: ReceiptSchool;
   readonly view: ReceiptView;
   readonly issuedAtLabel: string;
+  /** The formatter every money figure prints through. */
+  readonly formatAmount: (value: Money) => string;
   readonly footer: string | null;
   /** The A5/A4 page box, or null for thermal, which is a roll and has no page box (DR-05). */
   readonly page: ReportPageGeometry | null;

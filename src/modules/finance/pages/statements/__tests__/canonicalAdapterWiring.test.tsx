@@ -17,7 +17,8 @@ import {
   paymentEntry,
   type JournalEntry,
 } from '@/domain/finance/ledger';
-import { formatMoney, fromMinor } from '@/domain/money';
+import { fromMinor } from '@/domain/money';
+import { formatMoneyMinor } from '@/modules/finance/data/canonicalFinance';
 
 import { createFinanceRepositoryDouble } from '@/modules/finance/data/__tests__/canonicalRepositoryDouble';
 import { StatementsPageContent } from '../StatementsPage';
@@ -147,7 +148,7 @@ describe('the statements page on the canonical ledger', () => {
 
     await waitFor(() => expect(screen.getByTestId('statement-closing')).toBeInTheDocument());
     // The closing balance is the ledger's: 600,000 invoiced less 400,000 received.
-    expect(screen.getByTestId('statement-closing').textContent).toContain(formatMoney(kes(200_000)));
+    expect(screen.getByTestId('statement-closing').textContent).toContain(formatMoneyMinor(200_000));
     expect(screen.getByTestId('statement-tie').textContent).toContain('Agrees with the ledger');
   });
 });

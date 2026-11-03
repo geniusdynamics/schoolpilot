@@ -275,6 +275,8 @@ export interface FinanceLearnerRow {
 export interface CanonicalFinance {
   readonly repository: QueryRepository;
   readonly status: 'idle' | 'loading' | 'refreshing' | 'success' | 'error';
+  /** True once every read below has produced its first data, so a page never shows a partial sum. */
+  readonly ready: boolean;
   readonly error: unknown;
   readonly learners: readonly RepositoryRow<'learner'>[];
   readonly learnerRows: readonly FinanceLearnerRow[];
@@ -604,9 +606,33 @@ export function useCanonicalFinance(): CanonicalFinance {
     paymentsQuery.error ??
     null;
 
+  // A query starts idle and only then loads; a page that reads the derived rows needs every one of
+  // them to have produced its first data, or it sums an empty table and shows a wrong total.
+  const ready =
+    learnersQuery.data !== undefined &&
+    enrolmentsQuery.data !== undefined &&
+    classGroupsQuery.data !== undefined &&
+    levelsQuery.data !== undefined &&
+    periodsQuery.data !== undefined &&
+    yearsQuery.data !== undefined &&
+    feeItemsQuery.data !== undefined &&
+    schedulesQuery.data !== undefined &&
+    scheduleLinesQuery.data !== undefined &&
+    invoicesQuery.data !== undefined &&
+    invoiceLinesQuery.data !== undefined &&
+    paymentsQuery.data !== undefined &&
+    allocationsQuery.data !== undefined &&
+    receiptsQuery.data !== undefined &&
+    creditNotesQuery.data !== undefined &&
+    refundsQuery.data !== undefined &&
+    discountRulesQuery.data !== undefined &&
+    sponsorshipsQuery.data !== undefined &&
+    installmentPlansQuery.data !== undefined;
+
   return {
     repository,
     status,
+    ready,
     error,
     learners,
     learnerRows,

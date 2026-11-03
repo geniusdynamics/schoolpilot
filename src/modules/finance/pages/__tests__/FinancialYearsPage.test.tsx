@@ -41,6 +41,9 @@ const appDataChanged = vi.fn();
 window.addEventListener('appDataChanged', () => appDataChanged());
 
 vi.mock('@/services/database/databaseService', () => ({
+  // `userPermissionsService` (which the page barrel now reaches through the auth context) imports
+  // this module as a namespace and calls `getDatabase` on it, so the mock needs both shapes.
+  getDatabase: vi.fn(async () => ({ users: { find: async () => [] } })),
   databaseService: { getDatabase: vi.fn(), generateId: vi.fn(() => 'fy-created') },
 }));
 

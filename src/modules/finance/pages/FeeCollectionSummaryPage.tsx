@@ -16,6 +16,7 @@ interface CollectionRow {
   readonly votehead: string;
   readonly expectedMinor: number;
   readonly paidMinor: number;
+  readonly arrearsMinor: number;
 }
 
 export const FeeCollectionSummaryPageContent: React.FC = () => {
@@ -47,6 +48,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
         votehead,
         expectedMinor: value.expected,
         paidMinor: value.paid,
+        arrearsMinor: value.expected - value.paid,
       }))
       .sort((left, right) => left.votehead.localeCompare(right.votehead));
   }, [finance.invoiceLineRows, selectedPeriod, levelId, learnerLevel]);
@@ -74,16 +76,17 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
       render: (value) => <span className="font-mono">{formatMoneyMinor(Number(value))}</span>,
     },
     {
-      key: 'paidMinor',
+      key: 'arrearsMinor',
       header: 'Arrears',
       align: 'right',
-      render: (_value, row) => (
+      sortable: true,
+      render: (value, row) => (
         <span
           className={`font-mono ${
             row.expectedMinor > row.paidMinor ? 'text-red-600' : 'text-green-600'
           }`}
         >
-          {formatMoneyMinor(row.expectedMinor - row.paidMinor)}
+          {formatMoneyMinor(Number(value))}
         </span>
       ),
     },

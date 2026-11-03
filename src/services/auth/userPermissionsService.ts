@@ -49,10 +49,18 @@ class UserPermissionsService {
   private isDemoMode: boolean = true; // Default to demo mode
 
   constructor() {
-    // Check if RxDB is available to determine mode
-    databaseService.getDatabase()
-      .then(() => { this.isDemoMode = false; })
-      .catch(() => { this.isDemoMode = true; });
+    // Probe whether the database is available, to know if this is the demo collections or the
+    // database. The probe is optional by nature - it already treats a failure as demo mode - so it
+    // must not throw when the service is only partly mocked (a module import is not a place to
+    // insist on a live database), and it must not take the importing module down with it.
+    try {
+      const probe = databaseService.getDatabase();
+      if (probe && typeof probe.then === 'function') {
+        probe.then(() => { this.isDemoMode = false; }).catch(() => { this.isDemoMode = true; });
+      }
+    } catch {
+      this.isDemoMode = true;
+    }
   }
 
   // ===== USER MANAGEMENT =====

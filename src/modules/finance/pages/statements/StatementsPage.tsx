@@ -29,9 +29,13 @@ import {
   type StatementKind,
 } from '@/domain/finance/statements';
 import { asId, type Id } from '@/domain/ids';
-import { formatMoney, isCurrencyCode, type CurrencyCode } from '@/domain/money';
+import { isCurrencyCode, type CurrencyCode } from '@/domain/money';
 
-import { useFinanceRepository } from '../../data/canonicalFinance';
+import { formatMoneyMinor, useFinanceRepository } from '../../data/canonicalFinance';
+import {
+  resolveStatementDocument,
+  type StatementDocumentLookup,
+} from './statementDocuments';
 
 export interface StatementsPageProps {
   /** A ledger the caller already holds. Takes precedence over `adapter`. */
@@ -119,9 +123,9 @@ function useStatementLedger(
   return { ledger: opened, status: opened ? 'ready' : 'loading', error: null };
 }
 
-/** The amount columns of the running balance, formatted exactly. */
+/** The amount columns of the running balance, in the finance module's one money format. */
 function Amount({ value }: { readonly value: { readonly amount_minor: number; readonly currency: CurrencyCode } }): React.ReactElement {
-  return <span className="font-mono">{formatMoney(value)}</span>;
+  return <span className="font-mono">{formatMoneyMinor(value.amount_minor, value.currency)}</span>;
 }
 
 export const StatementsPageContent: React.FC<StatementsPageProps> = (props) => {
@@ -129,6 +133,11 @@ export const StatementsPageContent: React.FC<StatementsPageProps> = (props) => {
   const institutions = useEntityQuery(repository, 'institution');
   const learners = useEntityQuery(repository, 'learner');
   const households = useEntityQuery(repository, 'household');
+  const invoices = useEntityQuery(repository, 'invoice', {}, { allPages: true });
+  const payments = useEntityQuery(repository, 'payment', {}, { allPages: true });
+  const receipts = useEntityQuery(repository, 'receipt', {}, { allPages: true });
+  const creditNotes = useEntityQuery(repository, 'credit_note', {}, { allPages: true });
+  const refunds = useEntityQuery(repository, 'refund', {}, { allPages: true });
 
   const institution = institutions.data?.items[0];
   const institutionId: Id<'institution'> | undefined = institution
@@ -172,6 +181,41 @@ export const StatementsPageContent: React.FC<StatementsPageProps> = (props) => {
   const subjectId = kind === 'learner' ? learnerId : kind === 'household' ? householdId : sponsorId;
   const periodFrom = from === '' ? null : from;
   const periodTo = to === '' ? null : to;
+
+  // The statement's ledger entries name documents by id; the page prints the numbers a person
+  // recognises, resolved from the canonical rows.
+  const documents = useMemo<StatementDocumentLookup>(() => {
+    const invoiceNumberById = new Map<string, string>();
+    for (const invoice of invoices.data?.items ?? []) invoiceNumberById.set(invoice.id, invoice.number);
+    const receiptNumberByPaymentId = new Map<string, string>();
+    for (const receipt of receipts.data?.items ?? []) {
+      receiptNumberByPaymentId.set(receipt.payment_id, receipt.number);
+    }
+    const paymentById = new Map<string, { channel: string; reference: string }>();
+    for (const payment of payments.data?.items ?? []) {
+      paymentById.set(payment.id, {
+        channel: payment.channel,
+        reference: payment.reference ?? payment.external_reference ?? '',
+      });
+    }
+    const creditNoteNumberById = new Map<string, string>();
+    for (const note of creditNotes.data?.items ?? []) creditNoteNumberById.set(note.id, note.number);
+    const refundNumberById = new Map<string, string>();
+    for (const refund of refunds.data?.items ?? []) refundNumberById.set(refund.id, refund.number);
+    return {
+      invoiceNumberById,
+      receiptNumberByPaymentId,
+      paymentById,
+      creditNoteNumberById,
+      refundNumberById,
+    };
+  }, [
+    invoices.data,
+    payments.data,
+    receipts.data,
+    creditNotes.data,
+    refunds.data,
+  ]);
 
   useEffect(() => {
     if (!service || subjectId === '') {
@@ -339,7 +383,9 @@ export const StatementsPageContent: React.FC<StatementsPageProps> = (props) => {
           </p>
         ) : null}
 
-        {!loading && !error && statement ? <StatementView statement={statement} /> : null}
+        {!loading && !error && statement ? (
+          <StatementView statement={statement} documents={documents} />
+        ) : null}
         {!loading && !error && !statement && subjectId === '' ? (
           <p className="text-sm text-surface-muted-fg">Choose a subject to see their statement.</p>
         ) : null}
@@ -349,7 +395,10 @@ export const StatementsPageContent: React.FC<StatementsPageProps> = (props) => {
 };
 
 /** The statement itself: the tie, the running balance, the aging, the clearance and the notes. */
-const StatementView: React.FC<{ readonly statement: Statement }> = ({ statement }) => (
+const StatementView: React.FC<{
+  readonly statement: Statement;
+  readonly documents: StatementDocumentLookup;
+}> = ({ statement, documents }) => (
   <div className="space-y-6">
     <div className="flex flex-wrap items-center gap-3">
       <span
@@ -397,35 +446,40 @@ const StatementView: React.FC<{ readonly statement: Statement }> = ({ statement 
               <Amount value={statement.openingBalance} />
             </td>
           </tr>
-          {statement.movements.map((movement) => (
-            <React.Fragment key={movement.id}>
-              <tr className="border-b border-surface-border last:border-0">
-                <td className="py-1.5 text-left">{movement.date}</td>
-                <td className="py-1.5 text-left">{movement.kind.replace('_', ' ')}</td>
-                <td className="py-1.5 text-left font-mono">{movement.source.number ?? movement.source.id}</td>
-                <td className="py-1.5 text-left">{movement.description}</td>
-                <td className="py-1.5 text-right">
-                  <Amount value={movement.amount} />
-                </td>
-                <td className="py-1.5 text-right" data-testid={`statement-balance-${movement.id}`}>
-                  <Amount value={movement.balanceAfter} />
-                </td>
-              </tr>
-              {movement.detail.map((line) => (
-                <tr key={`${movement.id}:${line.accountCode}:${line.description}`} className="text-surface-muted-fg">
-                  <td className="py-1 text-left" />
-                  <td className="py-1 pl-4 text-left" colSpan={2}>
-                    {line.kind === 'discount' ? 'Less discount' : 'Fee'}
+          {statement.movements.map((movement) => {
+            const resolved = resolveStatementDocument(movement, documents);
+            return (
+              <React.Fragment key={movement.id}>
+                <tr className="border-b border-surface-border last:border-0">
+                  <td className="py-1.5 text-left">{movement.date}</td>
+                  <td className="py-1.5 text-left">{movement.kind.replace('_', ' ')}</td>
+                  <td className="py-1.5 text-left font-mono" data-testid={`statement-document-${movement.id}`}>
+                    {resolved.document}
                   </td>
-                  <td className="py-1 text-left">{line.description}</td>
-                  <td className="py-1 text-right">
-                    <Amount value={line.amount} />
+                  <td className="py-1.5 text-left">{resolved.description}</td>
+                  <td className="py-1.5 text-right">
+                    <Amount value={movement.amount} />
                   </td>
-                  <td className="py-1 text-right" />
+                  <td className="py-1.5 text-right" data-testid={`statement-balance-${movement.id}`}>
+                    <Amount value={movement.balanceAfter} />
+                  </td>
                 </tr>
-              ))}
-            </React.Fragment>
-          ))}
+                {movement.detail.map((line) => (
+                  <tr key={`${movement.id}:${line.accountCode}:${line.description}`} className="text-surface-muted-fg">
+                    <td className="py-1 text-left" />
+                    <td className="py-1 pl-4 text-left" colSpan={2}>
+                      {line.kind === 'discount' ? 'Less discount' : 'Fee'}
+                    </td>
+                    <td className="py-1 text-left">{line.description}</td>
+                    <td className="py-1 text-right">
+                      <Amount value={line.amount} />
+                    </td>
+                    <td className="py-1 text-right" />
+                  </tr>
+                ))}
+              </React.Fragment>
+            );
+          })}
           <tr className="border-t border-surface-border font-medium">
             <td className="py-2 text-left" />
             <td className="py-2 text-left" colSpan={3}>

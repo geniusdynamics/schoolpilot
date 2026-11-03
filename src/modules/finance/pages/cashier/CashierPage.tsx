@@ -9,8 +9,10 @@ import Card from '@/components/ui/Card';
 import { ReceiptDocument, buildReceiptDocument } from '@/components/finance/receipts';
 import { printReport } from '@/components/reports';
 import { parseMoneyInput } from '@/components/ui/forms/MoneyField';
+import { useOptionalAuth } from '@/contexts/AuthContext';
 import { useSchoolProfile, formatSchoolAddress, formatSchoolContact } from '@/hooks/useSchoolProfile';
 import { asId } from '@/domain/ids';
+import { formatDateTime } from '@/utils/format';
 import type { AllocationStrategyKind } from '@/domain/finance/allocation';
 import {
   CASHIER_FLOW_BUDGET_MS,
@@ -35,8 +37,10 @@ import {
   FINANCE_CURRENCY,
   currencyDigits,
   formatMoney,
+  formatMoneyMinor,
   useCanonicalFinance,
 } from '../../data/canonicalFinance';
+import { buildLearnerPositions, positionOf } from '../../data/learnerPosition';
 import { readReceiptLayout } from '../../data/receiptLayout';
 import { PAYMENT_STRATEGY_OPTIONS } from '../paymentStrategy';
 import { useCashierRuntimePort, type CashierPaymentsPort } from './runtime';
@@ -74,10 +78,15 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
   cashierUserId = 'cashier',
 }) => {
   const finance = useCanonicalFinance();
+  const auth = useOptionalAuth();
   const runtimePort = useCashierRuntimePort();
   const port = injected ?? runtimePort;
   const { profile: schoolProfile } = useSchoolProfile();
   const layout = readReceiptLayout();
+  // The shell supplies the cashier's name; mounted on its own the screen reads the signed-in user,
+  // so the receipt prints a person rather than a blank line or the placeholder id.
+  const signedInName = auth?.user?.fullName?.trim() || auth?.user?.username || '';
+  const cashier = cashierName.trim() || signedInName;
 
   const [flow, setFlow] = useState<CashierFlowState>(() => initialCashierFlow());
   const [session, setSession] = useState<CashierSessionState>(null);
@@ -115,6 +124,32 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
       label: `${learner.name} · ${learner.admissionNumber}`,
     }));
   }, [finance.learnerRows, flow.learnerQuery]);
+
+  // What the chosen learner owes, stated before the amount is typed: the counter can see the bill
+  // it is collecting against, and whether an amount would run past it.
+  const positions = useMemo(
+    () =>
+      buildLearnerPositions({
+        invoiceRows: finance.invoiceRows,
+        paymentRows: finance.paymentRows,
+        allocationRows: finance.allocationRows,
+        creditNotes: finance.creditNotes,
+      }),
+    [finance.invoiceRows, finance.paymentRows, finance.allocationRows, finance.creditNotes]
+  );
+  const learnerPosition = flow.learnerId ? positionOf(positions, flow.learnerId) : null;
+  const enteredMinor = useMemo(() => {
+    const parsed = parseMoneyInput(flow.amountText, {
+      minorUnitDigits: currencyDigits(FINANCE_CURRENCY),
+      allowNegative: false,
+    });
+    return parsed.ok ? parsed.amountMinor : null;
+  }, [flow.amountText]);
+  const exceedsOutstanding =
+    learnerPosition !== null &&
+    learnerPosition.balance > 0 &&
+    enteredMinor !== null &&
+    enteredMinor > learnerPosition.balance;
 
   const context = useMemo<CashierFlowContext>(
     () => ({ matches, channels: PAYMENT_CHANNEL_VALUES }),
@@ -170,7 +205,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
         channel: state.channel,
         strategy,
         ...(state.reference.trim() ? { reference: state.reference.trim() } : {}),
-        ...(cashierName ? { cashierName } : {}),
+        ...(cashier ? { cashierName: cashier } : {}),
         ...(session ? { sessionId: session.id } : {}),
       });
       recordElapsed();
@@ -181,7 +216,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
     } finally {
       setBusy(false);
     }
-  }, [port, cashierName, session, dispatch, recordElapsed, strategy]);
+  }, [port, cashier, session, dispatch, recordElapsed, strategy]);
 
   const completePrint = useCallback(() => {
     void printReport();
@@ -233,7 +268,7 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
       const opened = await port.openSession({
         institutionId: asId<'institution'>(finance.learners[0]?.institution_id ?? ''),
         cashierUserId: cashierUserId || 'cashier',
-        ...(cashierName ? { cashierName } : {}),
+        ...(cashier ? { cashierName: cashier } : {}),
         openingFloat: { amount_minor: parsed.amountMinor, currency: FINANCE_CURRENCY },
       });
       setSession(opened);
@@ -288,6 +323,8 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
         },
         title: layout.title,
         footer: layout.footer.trim() === '' ? null : layout.footer,
+        issuedAtLabel: formatDateTime(receipt.issuedAt),
+        formatAmount: (value) => formatMoneyMinor(value.amount_minor, value.currency),
       })
     : null;
 
@@ -432,6 +469,43 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
             )}
           </div>
 
+          {learnerPosition ? (
+            <div
+              data-testid="cashier-position"
+              className="grid grid-cols-2 gap-3 rounded-lg border border-surface-border bg-surface-muted p-3 text-sm sm:grid-cols-4"
+            >
+              <div>
+                <span className="block text-xs text-surface-muted-fg">Billed</span>
+                <span className="font-mono font-medium">
+                  {formatMoneyMinor(learnerPosition.billed)}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-surface-muted-fg">Paid</span>
+                <span className="font-mono font-medium">
+                  {formatMoneyMinor(learnerPosition.collected)}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-surface-muted-fg">Outstanding</span>
+                <span
+                  className={`font-mono font-medium ${
+                    learnerPosition.balance > 0 ? 'text-red-600' : 'text-green-600'
+                  }`}
+                  data-testid="cashier-outstanding"
+                >
+                  {formatMoneyMinor(Math.max(learnerPosition.balance, 0))}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-surface-muted-fg">Credit</span>
+                <span className="font-mono font-medium">
+                  {formatMoneyMinor(learnerPosition.credit)}
+                </span>
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium" htmlFor="cashier-amount">
@@ -493,6 +567,18 @@ export const CashierPageContent: React.FC<CashierPageContentProps> = ({
               />
             </div>
           </div>
+
+          {exceedsOutstanding && learnerPosition ? (
+            <p
+              role="alert"
+              data-testid="cashier-overpayment-warning"
+              className="text-sm font-medium text-amber-700 dark:text-amber-400"
+            >
+              {formatMoneyMinor(enteredMinor ?? 0)} is more than the{' '}
+              {formatMoneyMinor(learnerPosition.balance)} outstanding; the excess becomes learner
+              credit.
+            </p>
+          ) : null}
 
           <div className="max-w-md">
             <label className="mb-1.5 block text-sm font-medium" htmlFor="cashier-strategy">

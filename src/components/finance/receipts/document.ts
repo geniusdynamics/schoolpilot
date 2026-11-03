@@ -6,6 +6,7 @@ import { qrMatrix } from '@/domain/reports/qr';
 import { resolvePageGeometry } from '@/domain/reports/page';
 import { buildVerificationLink, qrSizeMmFor, VerificationLinkError } from '@/domain/reports/verification';
 import type { ReportPageFurniture } from '@/domain/reports/types';
+import { formatMoney } from '@/domain/money';
 
 import type {
   ReceiptDocumentInput,
@@ -138,6 +139,7 @@ export function buildReceiptDocument(input: ReceiptDocumentInput): ReceiptDocume
     school: input.school,
     view: input.view,
     issuedAtLabel: input.issuedAtLabel ?? input.view.issuedAt,
+    formatAmount: input.formatAmount ?? ((value) => formatMoney(value)),
     footer: input.footer ?? null,
     page,
     furniture,

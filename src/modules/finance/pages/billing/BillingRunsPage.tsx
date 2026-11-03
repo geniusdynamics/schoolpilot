@@ -12,9 +12,15 @@ import { BillingRunPanel } from '../../components/BillingRunPanel';
 export const BillingRunsPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   return (
-    <Card title={t('billingRuns.title', 'Billing runs')}>
-      <BillingRunPanel />
-    </Card>
+    <div className="space-y-3">
+      <p className="text-sm text-surface-muted-fg" data-testid="billing-runs-guidance">
+        This is the same billing run as Invoicing → Invoice Generation; use that tab for the
+        school&apos;s billing and this route when a deep link points here.
+      </p>
+      <Card title={t('billingRuns.title', 'Billing runs')}>
+        <BillingRunPanel />
+      </Card>
+    </div>
   );
 };
 

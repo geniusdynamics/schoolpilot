@@ -113,14 +113,14 @@ test.describe('the cashier screen', () => {
     await test.step('the receipt shows what §5.2 asks for', async () => {
       const receipt = page.getByTestId('cashier-receipt');
       await expect(receipt).toContainText(learnerName);
-      await expect(receipt).toContainText(/Ksh\s1,500\.00/);
+      await expect(receipt).toContainText(/KES\s1,500\.00/);
       await expect(receipt).toContainText('one thousand five hundred shillings');
       await expect(receipt).toContainText('Cash');
       // The allocation by vote head and the balance after the payment are both stated.
       await expect(receipt).toContainText('Allocation');
       await expect(receipt).toContainText(/TUITION|MEALS|TRANSPORT|Unallocated/);
       await expect(receipt).toContainText('Balance after');
-      await expect(receipt).toContainText(/Ksh\s[\d,]+\.\d{2}/);
+      await expect(receipt).toContainText(/KES\s[\d,]+\.\d{2}/);
       // The number came from the sequences module, not from a count of rows.
       await expect(page.getByText(/RCT\/\d{4}\/\d{6}/).first()).toBeVisible();
     });
